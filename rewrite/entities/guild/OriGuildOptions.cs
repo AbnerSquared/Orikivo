@@ -64,7 +64,16 @@ namespace Orikivo
         // this is used to determine what's public about a guild.
         [JsonProperty("privacy")]
         public GuildPrivacyDeny Privacy { get; set; }
+
+        // the most amount of games that can be open within a guild.
+        [JsonProperty("max_games")]
+        public int MaxGameCount { get; internal set; }
+
+        // if the entire reporting system used to improve orikivo is enabled or disabled.
+        [JsonProperty("allow_reports")]
+        public bool AllowReports { get; internal set; }
         
+        // the guild's default prefix
         [JsonProperty("prefix")]
         public string Prefix { get; set; }
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -7,15 +9,21 @@ namespace Orikivo
     public class GameClient
     {
         private GameEventHandler _eventHandler;
-        public GameClient(GameMode mode, GameEventHandler eventHandler)
+        private BaseSocketClient _client;
+        private GameLobby _lobby;
+        // set up the game client with all of their stuff things.
+        public GameClient(GameMode mode, BaseSocketClient client, GameLobby lobby, GameEventHandler eventHandler)
         {
             _eventHandler = eventHandler;
             GameProperties props = GameProperties.FromMode(mode);
             Attributes = props.Attributes;
-            Tasks = props.Tasks;
+            EntryTask = props.EntryTask; // the first task to start with on the game client.
+            Tasks = props.Tasks; // a collection of all other tasks.
         }
         // a list of 
         public List<GameAttribute> Attributes { get; } // a list of attributes that contain info.
+
+        private GameTask EntryTask { get; }
         public List<GameTask> Tasks { get; } // a list of tasks that is used to control the game.
 
         // the game's starting point.
@@ -23,7 +31,25 @@ namespace Orikivo
         // properties that need to be updated.
         public async Task StartAsync()
         {
+            bool active = true;
+            GameRoute route = await EntryTask.StartAsync(_client, _lobby, _eventHandler).ConfigureAwait(false);
+            if (!Checks.NotNull(route.TaskId)) // if the entry route doesn't go anywhere.
+                return;
 
+            // create a loop 
+            GameTask task;
+            while (active)
+            {
+                if (!Tasks.Any(x => x.Id == route.TaskId)) // if the route doesn't go anywhere.
+                    return;
+
+                task = Tasks.First(x => x.Id == route.TaskId); // get the task corresponding to the route.
+
+                route = await task.StartAsync(_client, _lobby, _eventHandler); // get the route from the task.
+                
+            }
+
+            // end the game.
         }
 
         // internal async Task OnMessageReceivedAsync(SocketMessage message);
@@ -65,8 +91,6 @@ namespace Orikivo
         // action [att.timeout, att.abilitiesUsed]
         // this task is used to allow all players with an ability available at this task
         // to utilize it to the best of their ability.
-
-
 
         // results [att.timeout]
         // this task is used to show the end result of the game that was played.

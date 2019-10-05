@@ -21,13 +21,13 @@ namespace Orikivo
             if (string.IsNullOrWhiteSpace(url))
                 return null;
             string ext = Path.GetExtension(url).Substring(1);
-            if (new List<string> { "png", "jpg", "gif" }.Contains(ext))
+            if (ext.EqualsAny("png", "jpg", "gif"))
                 return Orikivo.UrlType.Image;
-            if (new List<string> { "mp4", "mov" }.Contains(ext))
+            if (ext.EqualsAny("mp4", "mov"))
                 return Orikivo.UrlType.Video;
-            if (new List<string> { "mp3", "wav" }.Contains(ext))
+            if (ext.EqualsAny("mp3", "wav"))
                 return Orikivo.UrlType.Audio;
-            if (new List<string> { "txt", "cs", "js", "html", "cpp" }.Contains(ext))
+            if (ext.EqualsAny("txt", "cs", "js", "html", "cpp", "py"))
                 return Orikivo.UrlType.Text;
             return Orikivo.UrlType.Empty;
         }

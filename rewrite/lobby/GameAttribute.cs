@@ -22,19 +22,13 @@ namespace Orikivo
     // this is used to keep game rules/data stored
     public class GameAttribute
     {
-        public GameAttribute(string name, int requiredValue, int defaultValue = 0)
+        public GameAttribute(string name, int defaultValue = 0)
         {
             Name = name;
-            RequiredValue = requiredValue;
             DefaultValue = defaultValue;
         }
         public string Name { get; } // werewolf:werewolvesLeft
         public int Value { get; set; } // 2
         public int DefaultValue { get; } // 0
-
-        // the value that is needed to return .IsSuccess
-        public int RequiredValue { get; } // 0 
-
-        public bool IsSuccess => Value >= RequiredValue;
     }
 }
