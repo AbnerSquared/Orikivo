@@ -6,7 +6,7 @@ namespace Orikivo
     {
         internal ReportBodyInfo() { }
 
-        public ReportBodyInfo(string title, string content, string imageUrl)
+        public ReportBodyInfo(string title, string content, string imageUrl = null)
         {
             Title = title;
             Content = content;

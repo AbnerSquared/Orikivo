@@ -57,8 +57,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Orikivo.Poxel\Orikivo.Poxel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
         <None Update="configuration.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="rewrite\mongo\" />
   </ItemGroup>
 </Project>

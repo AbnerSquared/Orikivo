@@ -72,7 +72,7 @@ namespace Orikivo
             => TempRoles.Any(x => x.UserId == userId && !x.HasExpired);
 
         public string Greet(SocketUser user)
-            => OriFormat.ParseGreeting(OriRandom.NextElement(Options.Greetings ?? OriGuildOptions.Default.Greetings).Frame, user);
+            => OriFormat.ParseGreeting(OriRandom.NextElement(Options.Greetings ?? OriGuildOptions.Default.Greetings).Message, user);
 
         public void Mute(ulong userId, double seconds)
         {

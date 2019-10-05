@@ -28,12 +28,12 @@ namespace Orikivo
             RequiredValue = requiredValue;
             DefaultValue = defaultValue;
         }
-        public string Name { get; }
-        public int Value { get; set; }
-        public int DefaultValue { get; }
+        public string Name { get; } // werewolf:werewolvesLeft
+        public int Value { get; set; } // 2
+        public int DefaultValue { get; } // 0
 
         // the value that is needed to return .IsSuccess
-        public int RequiredValue { get; }
+        public int RequiredValue { get; } // 0 
 
         public bool IsSuccess => Value >= RequiredValue;
     }

@@ -12,6 +12,7 @@ namespace Orikivo
         public OriGuild Server { get; }
         public OriGlobal Global { get; }
         public OriJsonContainer Container { get; }
+        //public CommandInfo Command { get; internal set; } // maybe contain executed command info here.
 
         public OriCommandContext(DiscordSocketClient client, OriJsonContainer container, SocketUserMessage msg) : base(client, msg)
         {

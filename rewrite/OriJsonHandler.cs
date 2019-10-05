@@ -45,7 +45,7 @@ namespace Orikivo
         public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
             => Load<T>(GetDirectoryIndex<T>() + string.Format(DefaultFileFormat, id), serializer);
 
-        public static T Load<T>(string path, JsonSerializer serializer = null)
+        public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmptyDeserialization = false)
         {
             Console.WriteLine($"[Debug] -- Loading object of type '{typeof(T).Name}'. --");
             if (typeof(T) == typeof(OriGlobal))
@@ -63,6 +63,9 @@ namespace Orikivo
                 {
                     serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
                     T tmp = serializer.Deserialize<T>(reader);
+                    if (throwOnEmptyDeserialization)
+                        if (tmp == null)
+                            throw new Exception("The file deserialized returned as empty.");
                     return tmp == null ? default : tmp;
                 }
             }

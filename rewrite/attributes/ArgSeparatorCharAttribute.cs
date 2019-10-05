@@ -14,4 +14,7 @@ namespace Orikivo
             Separator = separator;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class OptionAttribute : Attribute { }
 }

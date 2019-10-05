@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Orikivo
@@ -13,13 +14,13 @@ namespace Orikivo
         private OriGuildOptions() { }
 
         [JsonConstructor]
-        public OriGuildOptions(string prefix, List<GuildGreeting> greetings, bool? allowGreeting, Dictionary<GuildRoleType, ulong> customRoles,
+        public OriGuildOptions(string prefix, List<GuildEvent> events, bool? allowEvents, Dictionary<GuildRoleType, ulong> customRoles,
             ulong? systemChannelId, List<ulong> selfAssignRoles, ExceptionLevel exceptionLevel)
         {
             Prefix = prefix; // prevent editing prefix config
             // allow MaxLobbies, which defines the limit to the lobbies that can be open on your server at a time. Default is 1.
-            Greetings = greetings ?? Default.Greetings;
-            AllowGreeting = allowGreeting ?? Default.AllowGreeting;
+            Events = events ?? Default.Events;
+            AllowEvents = allowEvents ?? Default.AllowEvents;
             CustomRoles = customRoles ?? Default.CustomRoles;
             SystemChannelId = systemChannelId;
             ExceptionLevel = exceptionLevel;
@@ -30,12 +31,13 @@ namespace Orikivo
         {
             get
             {
-                RoleProperties role = new RoleProperties();
-                role.Name = "Muted";
-                GuildPermissions permissions = new GuildPermissions(66560);
-                role.Permissions = permissions;
-                role.Mentionable = false;
-                role.Hoist = false;
+                RoleProperties role = new RoleProperties
+                {
+                    Name = "Muted",
+                    Permissions = new GuildPermissions(66560),
+                    Mentionable = false,
+                    Hoist = false
+                };
                 return role;
             }
         }
@@ -52,8 +54,8 @@ namespace Orikivo
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
                 guildOptions.CustomRoles = new Dictionary<GuildRoleType, ulong>();
                 
-                guildOptions.AllowGreeting = false;
-                guildOptions.Greetings = new List<GuildGreeting> { new GuildGreeting { Frame = "Welcome to the server, {mention_user}!" } };
+                guildOptions.AllowEvents = false;
+                guildOptions.Events = new List<GuildEvent> { new GuildEvent(GuildEventType.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
                 guildOptions.SelfAssignRoles = new List<ulong>();
                 return guildOptions;
             }
@@ -70,11 +72,14 @@ namespace Orikivo
         [JsonIgnore]
         public bool HasPrefix => !string.IsNullOrWhiteSpace(Prefix);
 
-        [JsonProperty("greetings")]
-        public List<GuildGreeting> Greetings { get; set; }
+        [JsonProperty("events")]
+        public List<GuildEvent> Events { get; set; }
 
-        [JsonProperty("allow_greeting")]
-        public bool AllowGreeting { get; set; }
+        [JsonIgnore]
+        public IReadOnlyList<GuildEvent> Greetings => Events.Where(x => x.Type == GuildEventType.UserJoin).ToList();
+
+        [JsonProperty("allow_events")]
+        public bool AllowEvents { get; set; }
 
         [JsonProperty("custom_roles")]
         public Dictionary<GuildRoleType, ulong> CustomRoles {get; private set;}
@@ -133,17 +138,20 @@ namespace Orikivo
         [JsonProperty("self_assign_roles")]
         public List<ulong> SelfAssignRoles { get; private set; } // roles that the people within the guild can give themselves
 
+        public void AddEvent(GuildEventType type, string message)
+            => Events.Add(new GuildEvent(type) { Message = message });
+
         public void AddSelfRole(ulong roleId)
         {
             if (SelfAssignRoles.Contains(roleId))
-                return;
+                throw new Exception("A role of this type already exists.");
             SelfAssignRoles.Add(roleId);
         }
 
         public void RemoveSelfRole(ulong roleId)
         {
             if (!SelfAssignRoles.Contains(roleId))
-                return;
+                throw new Exception("There is no role that matches this.");
             SelfAssignRoles.Remove(roleId);
         }
 
@@ -155,13 +163,5 @@ namespace Orikivo
 
         [JsonProperty("ex_level")]
         public ExceptionLevel ExceptionLevel { get; set; }
-    }
-
-    // This defines the role that will be used in those certain cases
-    public enum GuildRoleType
-    {
-        Default = 1,
-        Muted = 2,
-        Trusted = 3
     }
 }

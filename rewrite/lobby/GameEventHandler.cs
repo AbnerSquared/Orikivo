@@ -25,6 +25,13 @@ namespace Orikivo
         }
         private readonly AsyncEvent<Func<User, GameLobby, Task>> _userJoinedEvent = new AsyncEvent<Func<User, GameLobby, Task>>();
 
+        public event Func<Game, Task> GameStarted
+        {
+            add { _gameStartedEvent.Add(value); }
+            remove { _gameStartedEvent.Remove(value); }
+        }
+        private readonly AsyncEvent<Func<Game, Task>> _gameStartedEvent = new AsyncEvent<Func<Game, Task>>();
+
         public event Func<User, GameLobby, Task> UserLeft
         {
             add { _userLeftEvent.Add(value); }
@@ -65,6 +72,9 @@ namespace Orikivo
 
         internal async Task InvokeDisplayUpdatedAsync(Display previous, Display current, Game game)
             => await _displayUpdatedEvent.InvokeAsync(previous, current, game);
+
+        internal async Task InvokeGameStartedAsync(Game game)
+            => await _gameStartedEvent.InvokeAsync(game);
 
     }
 }

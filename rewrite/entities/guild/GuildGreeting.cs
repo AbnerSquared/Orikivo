@@ -1,7 +1,5 @@
 ﻿namespace Orikivo
 {
-    // instead shoot for GuildEvent
-    // which would specify the type of event you wish to log.
 
     public class GuildGreeting
     {

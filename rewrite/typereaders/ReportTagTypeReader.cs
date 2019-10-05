@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public class ReportFlagTypeReader : TypeReader
+    public class ReportTagTypeReader : TypeReader
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider provider)
         {
-            ReportFlag result;
+            ReportTag result;
             if (int.TryParse(input, out int i))
                 if (Enum.TryParse(input, out result))
                     return Task.FromResult(TypeReaderResult.FromSuccess(result));

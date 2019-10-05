@@ -32,7 +32,7 @@ namespace Orikivo
                 oriClientBuilder.LoggerConfig = OriLoggerConfig.Default;
                 oriClientBuilder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
                 oriClientBuilder.AddTypeReader<GameMode>(new GameModeTypeReader());
-                oriClientBuilder.AddTypeReader<ReportFlag>(new ReportFlagTypeReader());
+                oriClientBuilder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
                 //oriClientBuilder.AddTypeReader<double>(new DoubleTypeReader());
 
                 oriClientBuilder.AddModule<AlphaModule>();

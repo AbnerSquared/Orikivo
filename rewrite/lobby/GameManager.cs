@@ -13,6 +13,8 @@ namespace Orikivo
         {
             GameCreated += OnGameCreatedAsync;
         }
+
+        public bool IsEmpty => Games.Count == 0;
         // Id, Game
         public ConcurrentDictionary<string, Game> Games { get; } = new ConcurrentDictionary<string, Game>();
 
@@ -28,11 +30,6 @@ namespace Orikivo
             Console.WriteLine($"-- GameManager.GameCreated = #{game.Id} --");
         }
 
-        public async Task OnGameDeletedAsync(Game game)
-        {
-            Console.WriteLine($"-- GameManager.GameDeleted = #{game.Id} --");
-        }
-
         public async Task<Game> CreateGameAsync(OriCommandContext context, LobbyConfig lobbyConfig, DisplayConfig displayConfig = null)
         {
             Game game = new Game(context.Client, lobbyConfig, displayConfig);
@@ -42,6 +39,15 @@ namespace Orikivo
             return game;
         }
 
+        public bool ContainsUser(ulong userId)
+            => Games.Values.Any(x => x.ContainsUser(userId));
+
+        public async Task DeleteGameAsync(string id)
+        {
+            await Games[id].CloseAsync();
+            if (Games.TryRemove(id, out Game old))
+                Console.WriteLine($"-- GameManager.GameDeleted = #{id} --"); // try to remove
+        }
         // adds the user from the executed command context into a game
         public async Task<bool> AddUserAsync(OriCommandContext context, string gameId)
         {
@@ -56,8 +62,8 @@ namespace Orikivo
                     throw new Exception("This guild is currently playing a game and cannot support lobby idling.");
 
                 await game.Lobby.AddUserAsync(context.Account, context.Guild); // this is used to build the receiver and user info at once.
-                
 
+                return true;
                 // the game should be able to determine all of the active users playing, and all of the users in the lobby.
                 // receivers should keep track of all users linked from themselves to be able to properly determine if the users are currently playing or not.
                 // spectators can only watch what happens in the game
@@ -75,8 +81,18 @@ namespace Orikivo
 
             }
             // if the game is currently active; and if it is, is the guild they're in currently connected to it.
-
+            await game.Lobby.AddUserAsync(context.Account, context.Guild);
             return true; // temp fix
+        }
+
+        public Game this[string id]
+        {
+            get
+            {
+                if (Games.ContainsKey(id))
+                    return Games[id];
+                return null;
+            }
         }
     }
 }

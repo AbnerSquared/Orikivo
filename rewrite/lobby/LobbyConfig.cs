@@ -3,12 +3,12 @@
     // this is the general options that can be changed in a lobby.
     public class LobbyConfig
     {
-        public LobbyConfig()
+        public LobbyConfig(string name = null, GameMode mode = GameMode.Werewolf, LobbyPrivacy privacy = LobbyPrivacy.Public, ReceiverConfig receiverConfig = null)
         {
-            Name = "New Lobby";
-            Privacy = LobbyPrivacy.Local;
-            Mode = GameMode.Werewolf;
-            ReceiverConfig = new ReceiverConfig(Name);
+            Name = Checks.NotNull(name) ? name : "New Lobby";
+            Privacy = privacy;
+            Mode = mode;
+            ReceiverConfig = receiverConfig ?? new ReceiverConfig(Name);
         }
 
         public string Name { get; set; } // the name of the lobby.

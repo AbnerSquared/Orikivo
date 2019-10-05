@@ -19,9 +19,9 @@ namespace Orikivo
 
         private readonly OriJsonContainer _container;
         private readonly OriLoggerService _logger;
-
+        private readonly GameManager _gameManager;
         public OriEventHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider provider,
-            OriJsonContainer container, OriLoggerService logger)
+            OriJsonContainer container, OriLoggerService logger, GameManager gameManager)
         {
             Console.WriteLine("-- Initializing event handler. --");
             _client = client;
@@ -30,27 +30,36 @@ namespace Orikivo
 
             _container = container;
             _logger = logger;
-
+            _gameManager = gameManager;
             _client.Ready += OnReadyAsync;
             _client.MessageReceived += HandleCommandAsync;
             _client.UserJoined += OnUserJoinAsync;
+            _client.ChannelDestroyed += OnChannelDeletedAsync;
             _commandService.CommandExecuted += OnCommandExecutedAsync;
         }
 
         public async Task OnUserJoinAsync(SocketGuildUser user)
         {
             OriGuild server = _container.GetOrAddGuild(user.Guild);
-            if (server.Options.DefaultRoleId.HasValue)
+            if (server.Options.DefaultRoleId.HasValue) // check for verify
                 await user.AddRoleAsync(user.Guild.GetRole(server.Options.DefaultRoleId.Value));
-            if (server.Options.AllowGreeting)
+            if (server.Options.AllowEvents)
             {
                 SocketTextChannel defaultChannel = user.Guild.SystemChannel;
                 if (server.Options.SystemChannelId.HasValue)
                     defaultChannel = user.Guild.GetTextChannel(server.Options.SystemChannelId.Value) ?? defaultChannel;
 
-                if (defaultChannel != null)
+                if (defaultChannel != null && server.Options.Greetings.Count > 0)
                     await defaultChannel.SendMessageAsync(server.Greet(user));
             }
+        }
+
+        public async Task OnChannelDeletedAsync(SocketChannel channel)
+        {
+            Game game = _gameManager.Games.Values.FirstOrDefault(x => x.Receivers.Any(y => y.ChannelId == channel.Id));
+            if (game.Receivers.Count - 1 == 0) // if the receiver count - the one about to be deleted results in an empty game.
+                await _gameManager.DeleteGameAsync(game.Id);
+
         }
 
         public async Task OnReadyAsync()
@@ -77,12 +86,12 @@ namespace Orikivo
 
             if (Context.Account != null)
             {
-                if (Context.Global.Lobbies.Any(x => x.Users.Any(y => y.Id == Context.Account.Id)))
+                if (_gameManager.ContainsUser(Context.Account.Id))
                 {
-                    OriLobbyInvoker lobby = Context.Global.Lobbies.First(x => x.Users.Any(y => y.Id == Context.Account.Id));
-                    if (lobby.Receivers.Any(x => x.ChannelId == Context.Channel.Id))
+                    Game game = _gameManager.Games.Values.First(x => x.ContainsUser(Context.Account.Id));
+                    if (game.Receivers.Any(x => x.ChannelId == Context.Channel.Id))
                     {
-                        _logger.Debug("User in lobby. Closing event.");
+                        _logger.Debug("User sent a message while in a game. Ignoring.");
                         return;
                     }
                 }
@@ -204,7 +213,7 @@ namespace Orikivo
                         _logger.Debug("Cooldown found.");
                         if (Context.Account != null)
                         {
-                            Context.Account.SetCooldown($"command:{commandInfo.Value.Name}", (attribute as CooldownAttribute).Seconds);
+                            Context.Account.SetCooldown($"command:{commandInfo.Value.Name}+{commandInfo.Value.Priority}", (attribute as CooldownAttribute).Seconds);
                         }
                     }
                 }

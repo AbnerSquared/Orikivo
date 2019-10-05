@@ -2,8 +2,7 @@
 {
     public enum ReportStatus
     {
-        Pending = 1, // waiting to be confirmed by others
-        Closed = 2, // either complete or declined
-        Open = 3 // open to review
+        Open = 1, // open to review
+        Closed = 2 // either complete or declined
     }
 }

@@ -4,9 +4,13 @@ using Discord.Rest;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Orikivo.Poxel;
+using SysColor = System.Drawing.Color;
+using DiscordColor = Discord.Color;
 
 namespace Orikivo
 {
@@ -26,17 +30,6 @@ namespace Orikivo
             _commandService = commandService;
             _logger = logger;
             _gameManager = gameManager;
-        }
-        
-        [RequireGuild]
-        [Command("lobby2")]
-        [Summary("test the new lobby system")]
-        
-        public async Task TestLobbyAsync()
-        {
-            Game game = await _gameManager.CreateGameAsync(Context, new LobbyConfig());
-            // get the first receiver.
-            await Context.Channel.SendMessageAsync($"New lobby created. {game.Receivers[0].Mention}");
         }
 
         [Command("testdisplay")]
@@ -71,7 +64,7 @@ namespace Orikivo
         [Summary("New color object testing.")]
         public async Task ColorAsync()
         {
-            Color c = new Color(100, 100, 100);
+            DiscordColor c = new DiscordColor(100, 100, 100);
             OriColor oriC = (OriColor)c;
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"```bf");
@@ -86,18 +79,18 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
 
-
+        // make generic events
         [Group("greetings")]
         public class GreetingsGroup : OriModuleBase<OriCommandContext>
         {
-            public GreetingsGroup() {}
             [RequireGuild]
             [Command("")]
             [Summary("Shows the list of all greetings used for this guild.")]
             public async Task GetGreetingsAsync(int page = 1)
             {
-                await Context.Channel.SendMessageAsync($"{(Context.Server.Options.AllowGreeting ? "" : $"> Greetings are currently disabled.\n")}```autohotkey\n{string.Join('\n', Context.Server.Options.Greetings.Select(x => $"[{Context.Server.Options.Greetings.IndexOf(x)}] :: {x.Frame}"))}```");
+                await Context.Channel.SendMessageAsync($"{(Context.Server.Options.AllowEvents ? "" : $"> Greetings are currently disabled.\n")}```autohotkey\n{(Context.Server.Options.Greetings.Count > 0 ? string.Join('\n', Context.Server.Options.Greetings.Select(x => $"[{Context.Server.Options.Events.IndexOf(x)}] :: {x.Message}")) : "There are currently no greetings set.")}```");
             }
+
             [RequireGuild]
             [Command("add")]
             [BindTo(TrustLevel.Inherit)]
@@ -106,7 +99,7 @@ namespace Orikivo
             {
                 try
                 {
-                    Context.Server.Options.Greetings.Add(new GuildGreeting { Frame = greeting });
+                    Context.Server.Options.Events.Add(new GuildEvent(GuildEventType.UserJoin) { Message = greeting });
                     await Context.Channel.SendMessageAsync($"> Greeting **#{Context.Server.Options.Greetings.Count - 1}** has been included.");
                 }
                 catch(Exception e)
@@ -120,7 +113,8 @@ namespace Orikivo
             [Summary("Removes the greeting at the specified index (zero-based).")]
             public async Task RemoveGreetingAsync(int index)
             {
-                Context.Server.Options.Greetings.RemoveAt(index);
+                Context.Server.Options.Events.RemoveAt(index);
+                // this will throw if outside of bounds
                 await Context.Channel.SendMessageAsync($"> Greeting **#{index}** has been removed.");
             }
             [RequireGuild]
@@ -129,8 +123,8 @@ namespace Orikivo
             [Summary("Clears all custom greetings written for this guild.")]
             public async Task ClearGreetingsAsync()
             {
-                Context.Server.Options.Greetings = OriGuildOptions.Default.Greetings;
-                await Context.Channel.SendMessageAsync($"> All greetings have been reset.");
+                Context.Server.Options.Events.RemoveAll(x => x.Type == GuildEventType.UserJoin);
+                await Context.Channel.SendMessageAsync($"> All greetings have been cleared.");
             }
             [RequireGuild]
             [Command("toggle")]
@@ -138,8 +132,8 @@ namespace Orikivo
             [Summary("Toggles the ability to use greetings whenever a user joins.")]
             public async Task ToggleGreetingsAsync()
             {
-                Context.Server.Options.AllowGreeting = !Context.Server.Options.AllowGreeting;
-                await Context.Channel.SendMessageAsync($"> **Greetings** {(Context.Server.Options.AllowGreeting ? "enabled" : "disabled")}.");
+                Context.Server.Options.AllowEvents = !Context.Server.Options.AllowEvents;
+                await Context.Channel.SendMessageAsync($"> **Greetings** {(Context.Server.Options.AllowEvents ? "enabled" : "disabled")}.");
             }
         }
 
@@ -288,60 +282,51 @@ namespace Orikivo
                 await Context.Channel.SendMessageAsync($"The custom command (**{name}**) has been deleted.");
             }
             else
-                await Context.Channel.SendMessageAsync("There aren't any custom commands in this guild with that name.");
+                await Context.Channel.SendMessageAsync($"There aren't any custom commands in **{Context.Guild.Name}** that match '{name}'.");
         }
 
-        [Command("setreport")]
+        [Command("closereport")]
         [BindTo(TrustLevel.Dev)]
-        public async Task SetReportStatusAsync(int index, ReportStatus status)
+        public async Task SetReportStatusAsync(int id, string reason = null)
         {
-            if (Context.Global.HasReport(index))
+            if (Context.Global.Reports.Contains(id))
             {
-                if (Context.Global.UpdateReport(index, status))
-                {
-                    await Context.Channel.SendMessageAsync($"Report#{index} has been updated.");
-                    return;
-                }
-            }
-            await Context.Channel.SendMessageAsync("There were no valid reports with the specified index.");
-        }
-
-        [Command("report")]
-        public async Task GetReportAsync(int index)
-        {
-            if (Context.Global.HasReport(index))
-            {
-                await Context.Channel.SendMessageAsync(Context.Global.GetReport(index).GetInfo());
+                Context.Global.Reports.Close(id, reason);
+                await Context.Channel.SendMessageAsync($"> **Report**#{id} has been closed.");
                 return;
             }
-            await Context.Channel.SendMessageAsync("There were no valid reports with the specified index.");
+            await Context.Channel.SendMessageAsync($"> I could not find any reports matching #{id}.");
         }
 
         [Command("reports")]
         public async Task ReportsAsync()
         {
-            await Context.Channel.SendMessageAsync($"{Context.Global.ReportIndex}");
+            await Context.Channel.SendMessageAsync($"> There are {Context.Global.Reports.Count} reports.");
         }
 
-        [Command("newreport")]
-        [RequireUserAccount]
         [Cooldown(300)]
+        [RequireUserAccount]
         [ArgSeparatorChar(',')]
-        public async Task ReportAsync(string context, ReportFlag level, string title, string content, string imageUrl = null)
+        [Command("report"), Priority(1)]
+        public async Task ReportAsync(string context, string title, string content, params ReportTag[] tags)
         {
             ContextInfo ctx = ContextInfo.Parse(content);
             ContextSearchResult result = new OriHelpService(_commandService).Search(context);
-            if (result.IsSuccess)
+
+            if (result.IsSuccess && (result.ResultType == ContextInfoType.Command || result.ResultType == ContextInfoType.Overload))
             {
-                if (result.ResultType.HasValue)
-                    if (result.ResultType.Value == ContextInfoType.Overload)
-                    {
-                        Context.Global.AddReport(Context.Account, result.Overload, level, new ReportBodyInfo(title, content, imageUrl));
-                        await Context.Channel.SendMessageAsync("Your report has been submitted.");
-                        return;
-                    }
+                int id = Context.Global.Reports.Add(Context.Account, result.ResultType == ContextInfoType.Command ? result.Command.Default : result.Overload, new ReportBodyInfo(title, content), tags);
+                await Context.Channel.SendMessageAsync($"> **Report** #{id} has been submitted.");
+                return;
             }
-            await Context.Channel.SendMessageAsync("The command you specified does not exist.");
+            await Context.Channel.SendMessageAsync("> I could not find any ContextValue objects matching your context.");
+        }
+
+        [Command("report"), Priority(0)]
+        [Summary("Get the **Report** submitted with the corresponding id.")]
+        public async Task GetReportAsync(int id)
+        {
+            await Context.Channel.SendMessageAsync(Context.Global.Reports.Contains(id) ? Context.Global.Reports[id].ToString() : $"> I could not find any reports matching #{id}.");
         }
 
         [Group("gimi")]
@@ -377,40 +362,24 @@ namespace Orikivo
                 await Context.Channel.SendMessageAsync($"> Your **Risk** has been set to **{Context.Account.Gimi.Risk}**%.");
             }
 
-            [Command("stats")]
+            // find names that sound and work better.
             [RequireUserAccount]
-            public async Task GetGimiStatsAsync()
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"> Gimi");
-                sb.AppendLine($"> **Stats**");
-                sb.AppendLine($"**{Context.Account.GetStat(GimiStat.TimesWon)}+{Context.Account.GetStat(GimiStat.TimesWonGold)}**W : **{Context.Account.GetStat(GimiStat.TimesLost)}+{Context.Account.GetStat(GimiStat.TimesLostCursed)}**L : **{Context.Account.GetStat(GimiStat.TimesPlayed)}**P");
-                sb.AppendLine($"${Context.Account.GetStat(GimiStat.TotalAmountWon)} Earned : ${Context.Account.GetStat(GimiStat.TotalAmountLost)} Lost");
-                sb.AppendLine($"Longest Win Streak: {Context.Account.GetStat(GimiStat.LargestWinStreakLength)} (${Context.Account.GetStat(GimiStat.LargestWinStreakAmount)}");
-                sb.AppendLine($"Longest Gold Streak: {Context.Account.GetStat(GimiStat.LargestGoldStreakLength)}");
-                sb.AppendLine($"Longest Loss Streak: {Context.Account.GetStat(GimiStat.LargestLossStreakLength)} (${Context.Account.GetStat(GimiStat.LargestLossStreakAmount)})");
-                sb.AppendLine($"Longest Curse Streak: {Context.Account.GetStat(GimiStat.LargestCurseStreakLength)}");
-
-                await Context.Channel.SendMessageAsync(sb.ToString());
-            }
-
             [Command("earn"), Priority(0)]
-            [RequireUserAccount]
             public async Task SetGimiEarnAsync()
             {
                 await Context.Channel.SendMessageAsync($"> Your **Earn** is currently set to {Context.Account.Gimi.Earn}.");
             }
 
-            [Command("earn"), Priority(1)]
             [RequireUserAccount]
+            [Command("earn"), Priority(1)]
             public async Task SetGimiEarnAsync(int earn)
             {
                 Context.Account.Gimi.SetEarn(earn);
                 await Context.Channel.SendMessageAsync($"> Your **Earn** has been set to **{Context.Account.Gimi.Earn}**.");
             }
 
-            [Command("slots")]
             [RequireUserAccount]
+            [Command("slots")]
             public async Task GetGimiSlotsAsync()
             {
                 await Context.Channel.SendMessageAsync($">>> **Gold**#{Context.Account.Gimi.GoldSlot}\n**Curse**#{Context.Account.Gimi.CurseSlot}");
@@ -426,11 +395,39 @@ namespace Orikivo
             }
         }
 
+        [Group("stats")]
+        public class StatsGroup : OriModuleBase<OriCommandContext>
+        {
+            [Command("")]
+            [RequireUserAccount]
+            [Summary("Get information on all of the generic stats stored.")]
+            public async Task GetStatsAync()
+            {
+                await Context.Channel.SendMessageAsync($"**Commands Used**: {Context.Account.GetStat(Stat.CommandsUsed)}");
+            }
+
+            [RequireUserAccount]
+            [Command("gimi")]
+            [Summary("Get all of the stats related to **Gimi**.")]
+            public async Task GetGimiStatsAsync()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"> Gimi");
+                sb.AppendLine($"> **Stats**");
+                sb.AppendLine($"**{Context.Account.GetStat(GimiStat.TimesWon)}+{Context.Account.GetStat(GimiStat.TimesWonGold)}**W : **{Context.Account.GetStat(GimiStat.TimesLost)}+{Context.Account.GetStat(GimiStat.TimesLostCursed)}**L : **{Context.Account.GetStat(GimiStat.TimesPlayed)}**P");
+                sb.AppendLine($"${Context.Account.GetStat(GimiStat.TotalAmountWon)} Earned : ${Context.Account.GetStat(GimiStat.TotalAmountLost)} Lost");
+                sb.AppendLine($"Longest Win Streak: {Context.Account.GetStat(GimiStat.LargestWinStreakLength)} (${Context.Account.GetStat(GimiStat.LargestWinStreakAmount)}");
+                sb.AppendLine($"Longest Gold Streak: {Context.Account.GetStat(GimiStat.LargestGoldStreakLength)}");
+                sb.AppendLine($"Longest Loss Streak: {Context.Account.GetStat(GimiStat.LargestLossStreakLength)} (${Context.Account.GetStat(GimiStat.LargestLossStreakAmount)})");
+                sb.AppendLine($"Longest Curse Streak: {Context.Account.GetStat(GimiStat.LargestCurseStreakLength)}");
+
+                await Context.Channel.SendMessageAsync(sb.ToString());
+            }
+        }
+
         [Command("help"), Alias("h")]
-        [Summary("Gets the underlying **DisplayInfo** for a specified object.")]
-        public async Task GetHelpInfoAsync(
-            [Remainder][Summary("The **ContextInfo** for the **OriHelpService** to utilize.")]string context = null
-            )
+        [Summary("A guide to understanding everything **Orikivo** has to offer.")]
+        public async Task GetHelpInfoAsync([Remainder][Summary("The **ContextInfo** containing what to search for.")]string context = null)
         {
             try
             {
@@ -443,76 +440,47 @@ namespace Orikivo
             }
         }
 
-        [Command("lobbies"), Alias("lbl")]
-        [Summary("Gets all active entities of **OriLobbyInvoker**.")]
         [RequireUserAccount]
-        public async Task ShowLobbiesAsync([Summary("The result page to be on.")]int page = 1)
-        {
-            List<string> lobbies = new List<string>();
-            foreach (OriLobbyInvoker lobby in Context.Global.Lobbies)
-            {
-                lobbies.Add(lobby.Summary);
-            }
+        [Command("games")]
+        [Summary("Returns a list of all visible **Games**.")]
+        public async Task ShowLobbiesAsync([Summary("The page index for the list.")]int page = 1) // utilize a paginator.
+            => await Context.Channel.SendMessageAsync(_gameManager.IsEmpty ? $"> **Looks like there's nothing here.**" : string.Join('\n', _gameManager.Games.Values.Select(x => x.ToString())));
 
-            string result = string.Join("\n``` ```\n", lobbies);
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                result = "**Null.**\nThere are currently no open lobbies.";
-            }
-
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [Command("joinlobby"), Alias("jlb")]
-        [Summary("Join an active **OriLobbyInvoker**.")]
         [RequireUserAccount]
-        public async Task JoinLobbyAsync([Summary("The identity key for a specific **OriLobbyInvoker**.")]string id)
+        [Command("joingame"), Alias("jg")]
+        [Summary("Join an open **Lobby**.")]
+        public async Task JoinLobbyAsync([Summary("A string pointing to a specific **Game**.")]string id)
         {
-            if (Context.Global.HasUserInLobby(Context.Account.Id))
-            {
-                await Context.Channel.SendMessageAsync($"**Wait!**\nYou are already in a lobby.");
-                return;
-            }
-            if (!Context.Global.Lobbies.Any(x => x.Id == id))
-            {
-                await Context.Channel.SendMessageAsync($"**Empty.**\nThere no lobbies at #**{id}**.");
-                return;
-            }
+            Game game = _gameManager[id];
+            if (game == null)
+                await Context.Channel.SendMessageAsync(_gameManager.ContainsUser(Context.User.Id) ?
+                    "> **Wait a minute...**\n> You are already in a game." : $"**No luck.**\n> I couldn't find any games matching #**{id}**.");
             else
             {
-                OriLobbyInvoker lobby = Context.Global.Lobbies.First(x => x.Id == id);
-                if (lobby.HasUser(Context.User.Id))
+                if (game.ContainsUser(Context.User.Id))
+                    await Context.Channel.SendMessageAsync($"**???**\n> You are already in this game.");
+                else
                 {
-                    await Context.Channel.SendMessageAsync($"**Wait!**\nYou are already in this lobby.");
-                    return;
+                    await _gameManager.AddUserAsync(Context, id);
+                    await Context.Channel.SendMessageAsync($"**Success!**\n> You have joined {game.Lobby.Name}. [{game.Receivers.First(x => x.Id == Context.Guild.Id).Mention}]");
                 }
-                await lobby.AddUserAsync(Context);
-                await Context.Channel.SendMessageAsync($"**Success!**\nYou have joined {lobby.Name}. [{lobby.Receivers.First(x => x.Id == Context.Guild.Id).Mention}]");
             }
         }
 
-        [Command("createlobby"), Alias("crlb")]
-        [Summary("Create an **OriLobbyInvoker** for a specified **OriGameType**.")]
+        [Command("creategame"), Alias("crg")]
+        [Summary("Create a **Game**.")]
         [RequireUserAccount]
-        public async Task StartLobbyAsync([Summary("The **OriGameType** to use for an **OriLobbyInvoker**.")]GameMode gameType)
+        public async Task StartLobbyAsync([Summary("The **GameMode** to play within the **Game**.")]GameMode mode)
         {
-            if (Context.Global.HasUserInLobby(Context.Account.Id))
+            if (_gameManager.ContainsUser(Context.Account.Id))
             {
-                await Context.Channel.SendMessageAsync($"**Wait!**\nYou are already in a lobby.");
+                await Context.Channel.SendMessageAsync($"> **Wait a minute...**\n> You are already in a game.");
                 return;
             }
             try
             {
-                LobbyConfig config = new LobbyConfig();
-
-                config.Name = $"{Context.User.Username}'s Lobby";
-                config.Mode = GameMode.Werewolf;
-                config.Privacy = LobbyPrivacy.Public;
-                
-                OriLobbyInvoker lobby = new OriLobbyInvoker(_client, Context, new ReceiverConfig(), config);
-                Context.Global.AddLobby(lobby);
-                await Context.Channel.SendMessageAsync($"**Success!**\n{lobby.Name} has been created. [{lobby.Receivers.First(x => x.Id == Context.Guild.Id).Mention}]");
-                await lobby.StartAsync(Context);
+                Game game = _gameManager.CreateGameAsync(Context, new LobbyConfig($"{Context.User.Username}'s Lobby", mode)).Result;
+                await Context.Channel.SendMessageAsync($"**Success!**\n> {game.Lobby.Name} has been created. [{game.Receivers[0].Mention}]");
             }
             catch (Exception ex)
             {
@@ -528,19 +496,34 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(Context.Account.GetDisplay(Context.Account.Options.DisplayFormat));
         }
 
+        [RequireUserAccount]
+        [Command("options"), Alias("config", "cfg")]
+        [Summary("Returns all of your customized preferences.")]
+        public async Task GetUserOptionsAsync()
+        {
+            OriUserOptions options = Context.Account.Options;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"> **Prefix** `{options.Prefix ?? "null"}`");
+            sb.AppendLine($"> This is an optional property that can be used as your personal prefix with **Orikivo.**");
+            sb.AppendLine();
+            sb.AppendLine($"> **Privacy** `{options.Privacy}`");
+            sb.AppendLine($"> This property defines how public your Discord account is.");
+            sb.AppendLine();
+            sb.AppendLine($"> **Nickname** `{options.Nickname ?? "null"}`");
+            sb.AppendLine($"> This property defines an optional name that can be set across **Orikivo**.");
+
+            await Context.Channel.SendMessageAsync(sb.ToString());
+
+        }
+
+
+
         [Command("guildprofile"), Alias("server", "gpf")]
         [Summary("Gets the **OriGuild** object for the current **SocketGuild**.")]
         [RequireUserAccount]
         public async Task GetGuildTestAsync()
         {
             await Context.Channel.SendMessageAsync(Context.Server.GetDisplay(Context.Account.Options.DisplayFormat));
-        }
-
-        [Command("stats")]
-        [RequireUserAccount]
-        public async Task GetStatsAync()
-        {
-            await Context.Channel.SendMessageAsync($"**Commands Used**: {Context.Account.GetStat(Stat.CommandsUsed)}");
         }
 
         [Command("displayformat"), Alias("dispfmt"), Priority(0)]

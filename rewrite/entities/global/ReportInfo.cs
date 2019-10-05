@@ -1,19 +1,34 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Orikivo
 {
-    // make sure that reports can only be made if errors are public
-    // used to contain information on a report a command may have
     public class ReportInfo : ReportBodyInfo
     {
-        [JsonConstructor]
-        internal ReportInfo(string commandId, OriAuthor author, DateTime createdAt,
-            DateTime? editedAt, string title, string content, string imageUrl, ReportBodyInfo lastInfo, ReportFlag level,
-            ReportStatus status, List<ulong> upvoteIds, List<ulong> downvoteIds)
+        // the only time this is used is if the exception is deemed critical
+        internal static ReportInfo FromException<T>(int id, T exception, string commandId) where T : Exception
+            => new ReportInfo(id, commandId, typeof(T).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);
+
+        // exception constructor
+        private ReportInfo(int id, string commandId, string title, string content, params ReportTag[] tags)
         {
+            Id = id;
+            CommandId = commandId;
+            Author = new OriAuthor(OriGlobal.ClientName);
+            Title = title;
+            Content = content;
+            Tags = tags?.ToList() ?? new List<ReportTag>();
+        }
+
+        [JsonConstructor]
+        internal ReportInfo(int id, string commandId, OriAuthor author, DateTime createdAt,
+            DateTime? editedAt, string title, string content, string imageUrl, ReportBodyInfo lastInfo, ReportStatus status,
+            List<VoteInfo> votes, params ReportTag[] tags)
+        {
+            Id = id;
             CommandId = commandId;
             Author = author;
             CreatedAt = createdAt;
@@ -22,28 +37,30 @@ namespace Orikivo
             Content = content;
             ImageUrl = imageUrl;
             LastInfo = lastInfo;
-            Flag = level;
+            Tags = tags?.ToList() ?? new List<ReportTag>();
             Status = status;
-            UpvoteIds = upvoteIds ?? new List<ulong>();
-            DownvoteIds = downvoteIds ?? new List<ulong>();
+            Votes = votes ?? new List<VoteInfo>();
         }
 
-        public ReportInfo(OverloadDisplayInfo overload, OriUser user, ReportFlag level, ReportBodyInfo reportInfo)
+        internal ReportInfo(int id, OverloadDisplayInfo overload, OriUser user, ReportBodyInfo reportInfo, params ReportTag[] tags)
         {
+            Id = id;
             CommandId = overload.Id;
             Author = new OriAuthor(user);
             CreatedAt = DateTime.UtcNow;
             Title = reportInfo.Title;
             Content = reportInfo.Content;
             ImageUrl = reportInfo.ImageUrl;
-            Flag = level;
-            Status = OriGlobal.DevId == Author.Id ? ReportStatus.Open : ReportStatus.Pending;
-            UpvoteIds = new List<ulong>();
-            DownvoteIds = new List<ulong>();
+            Tags = tags?.ToList() ?? new List<ReportTag>();
+            Status = ReportStatus.Open;
+            Votes = new List<VoteInfo>();
         }
 
         // in seconds
         public static double CooldownLength = 2700;
+
+        [JsonProperty("id")]
+        public int Id { get; }
 
         [JsonProperty("command_id")]
         public string CommandId { get; } // figure out a way to format that
@@ -57,11 +74,11 @@ namespace Orikivo
         [JsonProperty("edited_at")]
         public DateTime? EditedAt { get; private set; }
 
-        [JsonProperty("last_info")]
+        [JsonProperty("last")] // possible scrap.
         public ReportBodyInfo LastInfo { get; private set; }
 
-        [JsonProperty("flag")]
-        public ReportFlag Flag { get; } // if incorrect, should be deleted altogether
+        [JsonProperty("tags")]
+        public List<ReportTag> Tags { get; } // now an optional ideal
 
         [JsonProperty("status")]
         public ReportStatus Status { get; private set; }
@@ -72,75 +89,74 @@ namespace Orikivo
         [JsonIgnore]
         public bool IsClosed => Status == ReportStatus.Closed;
 
-        [JsonProperty("upvotes")]
-        public List<ulong> UpvoteIds { get; }
-
-        [JsonProperty("downvotes")]
-        public List<ulong> DownvoteIds { get; }
+        [JsonProperty("votes")]
+        public List<VoteInfo> Votes { get; }
 
         [JsonIgnore]
-        public bool CanEdit { get { return EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true; } }
+        public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
 
         [JsonIgnore]
-        public bool HasImage { get { return !string.IsNullOrWhiteSpace(ImageUrl); } }
+        public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
 
         [JsonIgnore]
-        public int Upvotes { get { return UpvoteIds.Count; } }
+        public int Upvotes => Votes.Where(x => x.Vote == VoteType.Upvote).Count();
 
         [JsonIgnore]
-        public int Downvotes { get { return DownvoteIds.Count; } }
+        public int Downvotes => Votes.Where(x => x.Vote == VoteType.Downvote).Count();
 
-        public void SetStatus(ReportStatus status)
+        // since it's either open or closed, closing is the only way to change status
+        public void Close(string reason = null)
         {
             if (IsClosed)
-                return;
-            Status = status;
+                throw new Exception("This report is already closed.");
+            Status = ReportStatus.Closed;
+            if (Checks.NotNull(reason, nameof(reason)))
+                CloseReason = reason;
         }
 
-        public void AddVote(ulong userId, bool isUpvote = true)
+        public void AddVote(ulong userId, VoteType vote = VoteType.Upvote)
         {
             if (IsClosed)
+                throw new Exception("This report cannot be updated, as it has been closed.");
+
+            if (!Votes.Any(x => x.UserId == userId))
+            {
+                Votes.Add(new VoteInfo(userId, vote));
+                return;
+            }
+
+            VoteInfo info = Votes.First(x => x.UserId == userId);
+            if (info.Vote == vote) // handle vote removing separately
                 return;
 
-            if (UpvoteIds.Contains(userId))
-            {
-                if (isUpvote)
-                    UpvoteIds.Remove(userId);
-                else
-                {
-                    UpvoteIds.Remove(userId);
-                    DownvoteIds.Add(userId);
-                }
-            }
-            else if (DownvoteIds.Contains(userId))
-            {
-                if (isUpvote)
-                {
-                    DownvoteIds.Remove(userId);
-                    UpvoteIds.Add(userId);
-                }
-                else
-                    DownvoteIds.Remove(userId);
-            }
-
-            if (isUpvote)
-                UpvoteIds.Add(userId);
-            else
-                DownvoteIds.Add(userId);
+            Votes[Votes.IndexOf(info)].Vote = vote;
         }
+
+        public void RemoveVotes(ulong userId)
+            => Votes.RemoveAll(x => x.UserId == userId);
 
         public void Update(string title = null, string content = null, string imageUrl = null)
         {
             if (IsClosed)
-                return;
+                throw new Exception("This report cannot be updated, as it has been closed.");
+
             bool edited = false;
             ReportBodyInfo old = new ReportBodyInfo(Title, Content, ImageUrl);
-            if (!string.IsNullOrWhiteSpace(title))
+            if (Checks.NotNull(title))
+            {
                 Title = title;
-            if (!string.IsNullOrWhiteSpace(content))
+                edited = true;
+            }
+            if (Checks.NotNull(content))
+            {
                 Content = content;
-            if (!string.IsNullOrWhiteSpace(imageUrl))
+                edited = true;
+            }
+            if (Checks.NotNull(imageUrl))
+            {
                 ImageUrl = imageUrl;
+                edited = true;
+            }
 
             if (edited)
             {
@@ -149,27 +165,23 @@ namespace Orikivo
             }
         }
 
-        public string GetInfo()
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             if (IsClosed)
             {
                 sb.AppendLine($"> This report has been closed.");
-                if (!string.IsNullOrWhiteSpace(CloseReason))
+                if (Checks.NotNull(CloseReason))
                     sb.AppendLine($"> `{CloseReason.Escape("`")}`");
             }
-            sb.AppendLine($"`{CommandId}` {GetFlagIcon(Flag)} **{Title}**");
+            sb.AppendLine($"**{Title}** #{Id}");
+            sb.Append($"{(IsClosed ? "📕 **Closed**" : "📖 **Open**")}");
+            if (Tags.Count > 0)
+                sb.Append($" • {string.Join(' ', Tags.Select(x => $"**#**{x.ToString()}"))}");
+            sb.AppendLine();
             sb.AppendLine(Content);
+            sb.AppendLine($"`{Author.Name}` **@** `{(EditedAt ?? CreatedAt).ToString("MM/dd/yyyy hh:mm:sstt")}`");
             return sb.ToString();
-        }
-
-        public string GetFlagIcon(ReportFlag flag)
-        {
-            switch(flag)
-            {
-                default:
-                    return flag.ToString();
-            }
         }
     }
 }

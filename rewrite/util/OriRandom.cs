@@ -6,16 +6,14 @@ using System.Text;
 namespace Orikivo
 {
     // a class that enhances the features of randomization
-    public class OriRandom
+    public static class OriRandom
     {
-        private Random _rnd { get { return RandomProvider.Instance; } }
-
-        public IEnumerable<T> Shuffle<T>(IEnumerable<T> obj)
+        public static IEnumerable<T> Shuffle<T>(IEnumerable<T> obj)
         {
             throw new NotImplementedException();
         }
 
-        public T Select<T>(IEnumerable<T> obj, int times = 1)
+        public static T Select<T>(IEnumerable<T> obj, int times = 1)
         {
             throw new NotImplementedException();
         }
@@ -23,32 +21,25 @@ namespace Orikivo
         public static T NextElement<T>(IEnumerable<T> obj)
             => obj.ElementAt(RandomProvider.Instance.Next(0, obj.Count()));
 
-        public IEnumerable<T> SelectMany<T> (IEnumerable<T> obj, int times)
+        public static IEnumerable<T> SelectMany<T> (IEnumerable<T> obj, int times)
         {
             throw new NotImplementedException();
         }
 
         // should be diceresult
-        public int Roll(Dice d, int times = 1)
+        public static int Roll(Dice d, int times = 1)
         {
-            /*
-           
-            // basic
-            Math.Truncate( Random.Next(1, d.FaceCount * d._length) / d._length ) % d.FaceCount
-            internal Range GetDiceRange()
-             */
-
-            int result = (int)(Math.Truncate((double)(_rnd.Next(1, d.FaceCount * d.Length) / d.Length)) % d.FaceCount);
+            int result = (int)(Math.Truncate((double)(RandomProvider.Instance.Next(1, d.FaceCount * d.Length) / d.Length)) % d.FaceCount);
             Console.WriteLine(result);
             return result;
         }
 
-        public DiceResult RollMany(params (Dice, int)[] die)
+        public static DiceResult RollMany(params (Dice, int)[] die)
         {
             throw new NotImplementedException();
         }
 
-        public string GetColorHex(HexLengthType type = HexLengthType.Default)
+        public static string GetColorHex(HexLengthType type = HexLengthType.Default)
             => GetChars("0123456789ABCDEF", type.GetHashCode());
 
         // get a list of random characters using a specified tree.
@@ -61,12 +52,12 @@ namespace Orikivo
             return new string(tree);
         }
 
-        public OriColor GetColor()
+        public static OriColor GetColor()
         {
             throw new NotImplementedException();
         }
 
-        public int Next(Range range)
+        public static int Next(Range range)
         {
             throw new NotImplementedException();
         }

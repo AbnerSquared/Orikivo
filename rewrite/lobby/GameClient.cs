@@ -4,11 +4,19 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     // double check with julian about the order of when abilities were active in werewolf
-    public class GameHandler
+    public class GameClient
     {
         private GameEventHandler _eventHandler;
+        public GameClient(GameMode mode, GameEventHandler eventHandler)
+        {
+            _eventHandler = eventHandler;
+            GameProperties props = GameProperties.FromMode(mode);
+            Attributes = props.Attributes;
+            Tasks = props.Tasks;
+        }
         // a list of 
-        public List<GameAttribute> Attributes { get; }
+        public List<GameAttribute> Attributes { get; } // a list of attributes that contain info.
+        public List<GameTask> Tasks { get; } // a list of tasks that is used to control the game.
 
         // the game's starting point.
         // from this point, you could return a GameResult, which could contain all

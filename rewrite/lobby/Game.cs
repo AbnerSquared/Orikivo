@@ -32,6 +32,7 @@ namespace Orikivo
             _eventHandler.DisplayUpdated += OnDisplayUpdatedAsync;
             _eventHandler.ReceiverConnected += OnReceiverConnectedAsync;
             _eventHandler.UserJoined += OnUserJoinedAsync;
+            _eventHandler.GameStarted += OnGameStartedAsync;
         }
 
         public string Id { get; }
@@ -51,6 +52,18 @@ namespace Orikivo
         // private List<Trigger> _triggers;
 
         // handle commands here
+        internal async Task OnGameStartedAsync(Game game)
+        {
+            foreach (Receiver receiver in Lobby.Receivers)
+                receiver.State = GameState.Active;
+        }
+
+        internal async Task OnGameEndedAsync(Game game)
+        {
+            foreach (Receiver receiver in Lobby.Receivers)
+                receiver.State = GameState.Inactive;
+        }
+
         internal async Task OnReceiverConnectedAsync(Receiver receiver, GameLobby lobby)
         {
             Console.WriteLine($"-- #{Id}.ReceiverConnected = {receiver.Id} --");
@@ -103,7 +116,22 @@ namespace Orikivo
         // the game's handler, for the actual game itself
         // and a backline handle, which manages users leaving, joining, etc.
         // and a message handler, which manages what to do when a message is received.
+        internal async Task CloseAsync()
+        {
+            _client.MessageReceived -= OnMessageReceivedAsync;
+            Console.WriteLine("-- Closing lobbies... --");
+            await Lobby.ClearAsync();
+            Console.WriteLine("-- Lobbies closed. --");
+            //_gameEventHandler.InvokeGameClosedAsync(this);
+        }
 
+        public bool ContainsUser(ulong userId)
+            => Users.Any(x => x.Id == userId);
         // public async Task DeleteAsync(); // closes _client.MessageReceived.
+
+        public override string ToString()
+        {
+            return $"**{Lobby.Name}** #{Id}\n**{(State == GameState.Active ? "In Progress" : "Open")}** • (**{Lobby.UserCount}** of **{Lobby.UserLimit}**)\n`{Lobby.Mode}`";
+        }
     }
 }

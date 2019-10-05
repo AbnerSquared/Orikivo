@@ -215,7 +215,10 @@ namespace Orikivo
             SearchResult result = _commandService.Search(context);
             if (!result.IsSuccess)
                 return new List<string>();
-            return result.Commands.First().Command.Aliases.ToList(); // make it to where you get the aliases of the main command
+            CommandInfo command = result.Commands.First().Command;
+            List<string> aliases = command.Aliases.ToList();
+            aliases.ForEach(x => x.Concat($"+{command.Priority}")); // make it to where you get the aliases of the main command, including its priority.
+            return aliases;
         }
         private List<ContextValue> GetMatchingValues(string name)
         {

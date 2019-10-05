@@ -23,6 +23,7 @@ namespace Orikivo
             // figure out why slow mode cant be set on the creation of a new text channel.
             Channel.ModifyAsync(x => { x.SlowModeInterval = ChannelProperties.SlowModeInterval; }).ConfigureAwait(false);
             DeleteMessages = guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageMessages);
+            State = GameState.Inactive;
         }
         public bool DeleteMessages { get; } // if the client can delete sent messages 
         public bool ModifySource { get; } // if the message is modified, or if a new message is sent upon each update.
@@ -30,8 +31,10 @@ namespace Orikivo
         public ulong Id { get; } // the guild in which the channel is built in.
         public string Name { get; } // the name used to build the receiver.
         public string Mention { get { return Channel?.Mention; } }
-        public ulong? ChannelId { get { return Channel?.Id; } }
+        public ulong? ChannelId { get { return Channel?.Id; } } // maybe store on build when checking
         public ulong? MessageId { get { return Message?.Id; } }
+
+        public GameState State { get; internal set; }
         
         private TextChannelProperties ChannelProperties { get; } // the properties used on build, in case of
         // the message being deleted, or the node is manually updated.
@@ -99,12 +102,15 @@ namespace Orikivo
         // this closes the receiver.
         public async Task CloseAsync(string message = null, TimeSpan? delay = null)
         {
-            if (!string.IsNullOrWhiteSpace(message))
-                await Channel.SendMessageAsync(message);
+            if (Channel == null)
+            {
+                if (Checks.NotNull(message))
+                    await Channel.SendMessageAsync(message);
 
-            if (delay.HasValue)
-                await Task.Delay(delay.Value);
-            await Channel.DeleteAsync();
+                if (delay.HasValue)
+                    await Task.Delay(delay.Value);
+                await Channel.DeleteAsync();
+            }
         }
     }
 }

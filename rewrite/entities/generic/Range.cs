@@ -16,6 +16,12 @@ namespace Orikivo
         bool ContainsValue(T value);
     }
 
+    public enum RangeSign
+    {
+        NotEquals = 1, // 1 > 2
+        Equals = 2 // 1 >= 2
+    }
+
     public class Range : IRange<int>
     {
         public Range(int max, bool isEqualTo = true)

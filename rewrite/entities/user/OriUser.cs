@@ -7,6 +7,36 @@ using System.Text;
 
 namespace Orikivo
 {
+    // handles how merits are given, along with the rewards they give.
+    public class MeritManager
+    {
+        // check criteria
+        // catch Event.StatsUpdated
+        // check if the stats updated now fit the criteria of a merit
+        // check rewarding
+    }
+
+    // handles exp requirements and rewards based on results.
+    public class ExpManager
+    {
+        // this would determine the exp multiplier rate based on a user's boosters and upgrades, as well as the game they're playing.
+        public double GetExpRate()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    // handles the returning values due to upgrades.
+    public class UpgradeReader
+    {
+
+    }
+
+    // handles how to read boosters
+    public class BoosterReader
+    {
+
+    }
 
     // socketuser orikivo counterpart
     public class OriUser : ISocketEntity<SocketUser>, IJsonEntity

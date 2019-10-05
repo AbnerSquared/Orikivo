@@ -62,6 +62,11 @@ namespace Orikivo
             .Replace("{mention_user}", user.Mention)
             .Replace("{date}", DateTime.UtcNow.ToString(@"mm-dd-yyyy"));
 
+        public static string ConvertHtmlTags(string value)
+        {
+            StringBuilder sb = new StringBuilder();
+            return sb.ToString();
+        }
         public static string GetNounForm(string word, int count)
             => $"{word}{(count > 1 || count == 0 || count < 0 ? "s" : "")}";
 

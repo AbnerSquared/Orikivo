@@ -74,7 +74,7 @@ namespace Orikivo
             oriUser.LastSaved = DateTime.UtcNow;
             oriUser.HasChanged = false;
             AddOrUpdateUser(oriUser);
-            OriJsonHandler.Save(oriUser, $"{oriUser.Id}.json");
+            OriJsonHandler.SaveJsonEntity(oriUser);
         }
 
         // saves the guild to its directory
@@ -86,7 +86,7 @@ namespace Orikivo
             oriGuild.LastSaved = DateTime.UtcNow;
             oriGuild.HasChanged = false;
             AddOrUpdateGuild(oriGuild);
-            OriJsonHandler.Save(oriGuild, $"{oriGuild.Id}.json");
+            OriJsonHandler.SaveJsonEntity(oriGuild);
         }
 
         public void SaveAllUsers()

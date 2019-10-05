@@ -22,7 +22,7 @@ namespace Orikivo
                 logColorConfig.LogColors.Add(LogSeverity.Warning, (null, ConsoleColor.Yellow));
                 logColorConfig.LogColors.Add(LogSeverity.Info, (null, ConsoleColor.White));
                 logColorConfig.LogColors.Add(LogSeverity.Critical, (null, ConsoleColor.DarkMagenta));
-                logColorConfig.LogColors.Add(LogSeverity.Verbose, (null, null));
+                logColorConfig.LogColors.Add(LogSeverity.Verbose, (null, ConsoleColor.Gray));
                 return logColorConfig;
             }
         }

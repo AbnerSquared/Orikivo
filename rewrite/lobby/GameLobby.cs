@@ -138,7 +138,7 @@ namespace Orikivo
             Receiver receiver = Receivers.First(x => x.Id == guildId);
             // from what i know, configure await is essentially do the stuff
             // but we don't care about the result.
-            await receiver.CloseAsync("This receiver has been closed.", TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+            await receiver.CloseAsync().ConfigureAwait(false);//"This receiver has been closed.", TimeSpan.FromSeconds(2)).ConfigureAwait(false);
             Receivers.Remove(receiver);
 
             await _eventHandler.InvokeReceiverDisconnectedAsync(receiver, this);
@@ -154,7 +154,7 @@ namespace Orikivo
                 throw new Exception("There is no receiver that references that guild.");
 
             Receiver receiver = Receivers.First(x => x.Id == guildId);
-            await receiver.CloseAsync("This receiver has been closed.", TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+            await receiver.CloseAsync().ConfigureAwait(false);//"This receiver has been closed.", TimeSpan.FromSeconds(2)).ConfigureAwait(false);
             Receivers.Remove(receiver);
 
             IEnumerable<User> users = Users.Where(x => x.GuildIds.Where(y => y != guildId).Count() == 0);
@@ -164,6 +164,16 @@ namespace Orikivo
 
             await _eventHandler.InvokeReceiverDisconnectedAsync(receiver, this);
 
+        }
+
+        internal async Task ClearAsync()
+        {
+            foreach (Receiver receiver in Receivers)
+            {
+                await receiver.CloseAsync();
+            }
+            Receivers.Clear();
+            Users.Clear();
         }
     }
 }
