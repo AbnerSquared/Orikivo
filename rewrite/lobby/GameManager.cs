@@ -39,6 +39,14 @@ namespace Orikivo
             return game;
         }
 
+        internal async Task<GameResult> StartGameAsync(string id)
+        {
+            Game game = Games[id];
+            foreach (Receiver receiver in game.Receivers)
+                receiver.State = GameState.Active;
+            return await game.StartAsync();
+        }
+
         public bool ContainsUser(ulong userId)
             => Games.Values.Any(x => x.ContainsUser(userId));
 

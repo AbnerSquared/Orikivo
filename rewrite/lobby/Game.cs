@@ -6,12 +6,6 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public enum ReceiverChannel
-    {
-        Lobby = 1,
-        Game = 2, 
-        Spectator = 3
-    }
     public class Game
     {
         private BaseSocketClient _client;
@@ -48,7 +42,7 @@ namespace Orikivo
         // from lobby.receivers
         public List<User> Users => Lobby.Users;
         // from lobby.users
-
+        private bool start = false;
         // private List<Trigger> _triggers;
 
         // handle commands here
@@ -91,10 +85,8 @@ namespace Orikivo
 
             // if the receiver can delete messages
             bool canDeleteMessage = Receivers.First(x => x.ChannelId == channelId).DeleteMessages;
-
             await UpdateDisplayAsync("[Valid Message]");
             // handle triggers here
-
         }
 
         private async Task UpdateDisplayAsync(string content)
@@ -110,6 +102,13 @@ namespace Orikivo
             await UpdateDisplayAsync($"[Console] {user.Name} has joined.");
             // update the display
         }
+
+        internal async Task<GameResult> StartAsync()
+        {
+            GameClient gameClient = new GameClient(Lobby.Mode, _client, Lobby, _eventHandler);
+            return await gameClient.StartAsync();
+        }
+
         // a game needs to hold info about the users currently playing
         // the display that the game is currently showing
         // the collections of subscribers to the game (dedicated channels

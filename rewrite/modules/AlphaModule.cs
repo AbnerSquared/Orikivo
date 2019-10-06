@@ -308,7 +308,8 @@ namespace Orikivo
         [RequireUserAccount]
         [ArgSeparatorChar(',')]
         [Command("report"), Priority(1)]
-        public async Task ReportAsync(string context, string title, string content, params ReportTag[] tags)
+        [Summary("Create a **Report** for a specified **Command**.")]
+        public async Task ReportAsync([Summary("The **Command** to report.")]string context, string title, string content, params ReportTag[] tags)
         {
             ContextInfo ctx = ContextInfo.Parse(content);
             ContextSearchResult result = new OriHelpService(_commandService).Search(context);
@@ -481,6 +482,7 @@ namespace Orikivo
             {
                 Game game = _gameManager.CreateGameAsync(Context, new LobbyConfig($"{Context.User.Username}'s Lobby", mode)).Result;
                 await Context.Channel.SendMessageAsync($"**Success!**\n> {game.Lobby.Name} has been created. [{game.Receivers[0].Mention}]");
+                await _gameManager.StartGameAsync(game.Id);
             }
             catch (Exception ex)
             {

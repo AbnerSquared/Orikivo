@@ -18,19 +18,23 @@ namespace Orikivo
         public GameTriggerArg Arg { get; }
         public GameAttributeUpdate OnSuccess { get; }
         public bool RequiresArg => !(Arg == null);
-
+        public bool CanParse(string context, List<User> users)
+            => TryParse(context, users, out TriggerContext parse);
         // pass the list of users in here to ensure parse
         public bool TryParse(string context, List<User> users, out TriggerContext parse)
         {
+            Console.WriteLine("start parse");
             parse = new TriggerContext();
-            string keyParser = @"^{0}";
+            string keyParser = string.Format(@"^{0}", Name);
             string valueParser = @"((?:(?: \w+)*)?)(?: +)?";
             // if there is an arg specified, attach the value parser; otherwise, just get the key
             string parser = Arg == null ? keyParser + "$" : keyParser + valueParser + "$";
             Regex r = new Regex(parser);
-            Match m = r.Match(parser);
+            Match m = r.Match(context);
+            Console.WriteLine("parse context");
             if (m.Success)
             {
+                Console.WriteLine("is success");
                 parse.TriggerName = Name;
                 if (Arg != null)
                 {
@@ -47,9 +51,10 @@ namespace Orikivo
                         }
                         parse.Value = users.First(x => x.Name == obj || (x.Id == userId));
                     }
-
+                    Console.WriteLine("arg parsed");
                 }
 
+                parse.AttributeUpdate = OnSuccess;
                 return true;
             }
 
@@ -64,7 +69,7 @@ namespace Orikivo
         public string TriggerName { get; internal set; }
         public object Value { get; internal set; } // can be null.
 
-        public GameAttributeUpdate AttributeUpdate { get; }
+        public GameAttributeUpdate AttributeUpdate { get; internal set; }
 
     }
 }

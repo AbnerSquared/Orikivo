@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Orikivo
         public GameClient(GameMode mode, BaseSocketClient client, GameLobby lobby, GameEventHandler eventHandler)
         {
             _eventHandler = eventHandler;
-            GameProperties props = GameProperties.FromMode(mode);
+            GameProperties props = GameProperties.FromMode(mode, client, lobby, eventHandler);
             Attributes = props.Attributes;
             EntryTask = props.EntryTask; // the first task to start with on the game client.
             Tasks = props.Tasks; // a collection of all other tasks.
@@ -29,26 +30,31 @@ namespace Orikivo
         // the game's starting point.
         // from this point, you could return a GameResult, which could contain all
         // properties that need to be updated.
-        public async Task StartAsync()
+        public async Task<GameResult> StartAsync()
         {
             bool active = true;
-            GameRoute route = await EntryTask.StartAsync(_client, _lobby, _eventHandler).ConfigureAwait(false);
-            if (!Checks.NotNull(route.TaskId)) // if the entry route doesn't go anywhere.
-                return;
-
             // create a loop 
-            GameTask task;
-            while (active)
+            GameTask task = EntryTask;
+            do
             {
-                if (!Tasks.Any(x => x.Id == route.TaskId)) // if the route doesn't go anywhere.
-                    return;
+                Console.WriteLine("starting task...");
+                GameRoute route = task.StartAsync().Result;
+                Console.WriteLine($"task complete: {task.Id} => {route.TaskId}");
 
-                task = Tasks.First(x => x.Id == route.TaskId); // get the task corresponding to the route.
+                if (!Checks.NotNull(route.TaskId) || !Tasks.Any(x => x.Id == route.TaskId)) // if the route doesn't go anywhere.
+                {
+                    Console.WriteLine("none of the tasks match the tasks written. ending game...");
+                    active = false;
+                }
+                else
+                {
+                    task = Tasks.First(x => x.Id == route.TaskId); // get the task corresponding to the route.
+                    Console.WriteLine($"updated task: => {task.Id}");
+                }
+            } while (active);
 
-                route = await task.StartAsync(_client, _lobby, _eventHandler); // get the route from the task.
-                
-            }
-
+            Console.WriteLine("tasks complete...");
+            return null;
             // end the game.
         }
 

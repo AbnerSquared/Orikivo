@@ -213,7 +213,7 @@ namespace Orikivo
                         _logger.Debug("Cooldown found.");
                         if (Context.Account != null)
                         {
-                            Context.Account.SetCooldown($"command:{commandInfo.Value.Name}+{commandInfo.Value.Priority}", (attribute as CooldownAttribute).Seconds);
+                            Context.Account.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", (attribute as CooldownAttribute).Seconds);
                         }
                     }
                 }
