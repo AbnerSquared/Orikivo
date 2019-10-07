@@ -62,10 +62,10 @@ namespace Orikivo
             _displayConfig = displayConfig ?? new DisplayConfig();
 
             Receivers = new List<Receiver>();
-            Users = new List<User>();
+            Users = new List<GameUser>();
 
             Mode = config.Mode;
-            _isGlobal = config.Privacy == LobbyPrivacy.Public;
+            _isGlobal = config.Privacy == GamePrivacy.Public;
 
             IsRunning = false;
             IsGameStarted = false;
@@ -181,8 +181,8 @@ namespace Orikivo
         public bool IsGameStarted { get; private set; } // if the lobby is in-game.
         public bool Closed { get; private set; } // if the lobby shutdown. 
         public List<Receiver> Receivers { get; } // all linking channels
-        public User Host { get { return Users.FirstOrDefault(x => x.IsHost); } }
-        public List<User> Users { get; } // all connected users
+        public GameUser Host { get { return Users.FirstOrDefault(x => x.IsHost); } }
+        public List<GameUser> Users { get; } // all connected users
         public Display Display { get; } // the display node used.
         private List<ulong> _bans { get; } // a list of user ids that cannot be read from.
         public bool FromReceiver(ulong channelId)
@@ -256,7 +256,7 @@ namespace Orikivo
                                 break;
                             if (!_context.Container.TryGetUser(message.Author.Id, out OriUser user))
                                 break;
-                            await AddUserAsync(new User(user, receiverId));
+                            await AddUserAsync(new GameUser(user, receiverId));
                             break;
                         case "start":
                             if (Users.Count < Criteria.RequiredUsers)
@@ -275,7 +275,7 @@ namespace Orikivo
                             {
                                 string userName = triggerArgs[0];
                                 bool isValidId = ulong.TryParse(userName, out ulong userId);
-                                User lobbyUser = HasUser(userName) ? Users.First(x => x.Name == userName) : isValidId ? HasUser(userId) ? Users.First(x => x.Id == userId) : Host : Host;
+                                GameUser lobbyUser = HasUser(userName) ? Users.First(x => x.Name == userName) : isValidId ? HasUser(userId) ? Users.First(x => x.Id == userId) : Host : Host;
 
                                 if (userName == Host.Name || userId == Host.Id)
                                 {
@@ -347,7 +347,7 @@ namespace Orikivo
                             {
                                 string userName = triggerArgs[0];
                                 bool isValidId = ulong.TryParse(userName, out ulong userId);
-                                User lobbyUser = HasUser(userName) ? Users.First(x => x.Name == userName) : isValidId ? HasUser(userId) ? Users.First(x => x.Id == userId) : Host : Host;
+                                GameUser lobbyUser = HasUser(userName) ? Users.First(x => x.Name == userName) : isValidId ? HasUser(userId) ? Users.First(x => x.Id == userId) : Host : Host;
 
                                 if (userName == Host.Name || userId == Host.Id)
                                 {
@@ -632,7 +632,7 @@ namespace Orikivo
             }
             else
             {
-                User user = new User(context.Account, context.Guild.Id); // set host
+                GameUser user = new GameUser(context.Account, context.Guild.Id); // set host
                 user.Tags = UserTag.Host;
                 Users.Add(user);
                 
@@ -663,12 +663,12 @@ namespace Orikivo
             // check if there is a host first
             if (Host != null)
             {
-                User oldHost = Host;
-                oldHost.Tags = UserTag.None;
+                GameUser oldHost = Host;
+                oldHost.Tags = UserTag.Empty;
 
                 Display.UpdateAtGroup(_userNodeGroup, Users.IndexOf(oldHost), oldHost.ToString());
             }
-            User user = Users.First(x => x.Id == id);
+            GameUser user = Users.First(x => x.Id == id);
             Users.First(x => x.Id == id).Tags = UserTag.Host;
             Display.UpdateAtGroup(_userNodeGroup, Users.IndexOf(user), user.ToString());
             // gets rid of the local node displays, and sets the stuff to work within the other end now
@@ -725,7 +725,7 @@ namespace Orikivo
             if (!HasNodeReceiver(context.Guild.Id))
                 await AddReceiverAsync(context.Guild);
 
-            User user = new User(context.Account, context.Guild.Id);
+            GameUser user = new GameUser(context.Account, context.Guild.Id);
             Users.Add(user);
             Display.AddAtGroup(_userNodeGroup, user.ToString());
             Display.UpdateGroup(_userNodeGroup, $"Users **{Counter}**");
@@ -733,7 +733,7 @@ namespace Orikivo
             Console.WriteLine(Counter);
         }
 
-        private async Task AddUserAsync(User user)
+        private async Task AddUserAsync(GameUser user)
         {
             Users.Add(user);
             Display.AddAtGroup(_userNodeGroup, user.ToString());
@@ -747,13 +747,13 @@ namespace Orikivo
         {
             if (HasUser(id))
             {
-                User user = Users.First(x => x.Id == id);
+                GameUser user = Users.First(x => x.Id == id);
                 if (Users.Count - 1 > 0)
                 {
                     if (Host.Id == user.Id)
                     {
-                        User newHost = Users.Where(x => !x.IsHost).OrderBy(x => x.JoinedAt).First();
-                        Host.Tags = UserTag.None;
+                        GameUser newHost = Users.Where(x => !x.IsHost).OrderBy(x => x.JoinedAt).First();
+                        Host.Tags = UserTag.Empty;
                         Users.First(x => x == newHost).Tags = UserTag.Host;
                         Display.AddAtGroup(_consoleNodeGroup, $"{newHost.Name} is now the new host.");
                         Display.UpdateAtGroup(_userNodeGroup, Users.IndexOf(newHost), newHost.ToString());
@@ -788,7 +788,7 @@ namespace Orikivo
         public bool HasUser(ulong id)
             => Users.Any(x => x.Id == id);
 
-        public User GetUser(ulong id)
+        public GameUser GetUser(ulong id)
             => HasUser(id) ? Users.First(x => x.Id == id) : null;
 
         public async Task CloseAsync()

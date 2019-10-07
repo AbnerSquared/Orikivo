@@ -3,7 +3,7 @@
     // figure out how to split this info to be a separate variant.
     public class WerewolfUser
     {
-        public WerewolfUser(User user)
+        public WerewolfUser(GameUser user)
         {
             Name = user.Name;
             Id = user.Id;

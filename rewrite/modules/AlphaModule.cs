@@ -480,7 +480,7 @@ namespace Orikivo
             }
             try
             {
-                Game game = _gameManager.CreateGameAsync(Context, new LobbyConfig($"{Context.User.Username}'s Lobby", mode)).Result;
+                Game game = _gameManager.CreateGameAsync(Context, new GameConfig(mode, $"{Context.User.Username}'s Lobby")).Result;
                 await Context.Channel.SendMessageAsync($"**Success!**\n> {game.Lobby.Name} has been created. [{game.Receivers[0].Mention}]");
                 await _gameManager.StartGameAsync(game.Id);
             }

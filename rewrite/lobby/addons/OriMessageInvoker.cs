@@ -29,7 +29,7 @@ namespace Orikivo
             return GetMessageAsync(context, criterion, timeout, token);
         }
         // notice: you can create asynchronous tasks within async tasks
-        public async Task<SocketMessage> GetMessageAsync(OriCommandContext context, ICriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
+        public async Task<SocketMessage> GetMessageAsync(OriCommandContext context, IOriCriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
         {
             timeout = timeout ?? _defaultTimeout;
 

@@ -18,12 +18,12 @@ namespace Orikivo
         // place all event flags here
         // pass this class down into each lower class
         // this way, all classes in Game have access to the events
-        public event Func<User, GameLobby, Task> UserJoined
+        public event Func<GameUser, GameLobby, Task> UserJoined
         {
             add { _userJoinedEvent.Add(value); }
             remove { _userJoinedEvent.Remove(value); }
         }
-        private readonly AsyncEvent<Func<User, GameLobby, Task>> _userJoinedEvent = new AsyncEvent<Func<User, GameLobby, Task>>();
+        private readonly AsyncEvent<Func<GameUser, GameLobby, Task>> _userJoinedEvent = new AsyncEvent<Func<GameUser, GameLobby, Task>>();
 
         public event Func<Game, Task> GameStarted
         {
@@ -32,12 +32,12 @@ namespace Orikivo
         }
         private readonly AsyncEvent<Func<Game, Task>> _gameStartedEvent = new AsyncEvent<Func<Game, Task>>();
 
-        public event Func<User, GameLobby, Task> UserLeft
+        public event Func<GameUser, GameLobby, Task> UserLeft
         {
             add { _userLeftEvent.Add(value); }
             remove { _userLeftEvent.Remove(value); }
         }
-        private readonly AsyncEvent<Func<User, GameLobby, Task>> _userLeftEvent = new AsyncEvent<Func<User, GameLobby, Task>>();
+        private readonly AsyncEvent<Func<GameUser, GameLobby, Task>> _userLeftEvent = new AsyncEvent<Func<GameUser, GameLobby, Task>>();
 
         public event Func<Receiver, GameLobby, Task> ReceiverConnected
         {
@@ -60,9 +60,9 @@ namespace Orikivo
         }
         private readonly AsyncEvent<Func<Display, Display, Game, Task>> _displayUpdatedEvent = new AsyncEvent<Func<Display, Display, Game, Task>>();
 
-        internal async Task InvokeUserJoinedAsync(User user, GameLobby lobby)
+        internal async Task InvokeUserJoinedAsync(GameUser user, GameLobby lobby)
             => await _userJoinedEvent.InvokeAsync(user, lobby);
-        internal async Task InvokeUserLeftAsync(User user, GameLobby lobby)
+        internal async Task InvokeUserLeftAsync(GameUser user, GameLobby lobby)
             => await _userLeftEvent.InvokeAsync(user, lobby);
 
         internal async Task InvokeReceiverConnectedAsync(Receiver receiver, GameLobby lobby)

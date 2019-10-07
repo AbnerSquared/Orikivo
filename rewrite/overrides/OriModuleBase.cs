@@ -14,7 +14,7 @@ namespace Orikivo
         public OriMessageInvoker Invoker { get; set; }
 
         // a task that waits n seconds for a message, from which it returns.
-        public Task<SocketMessage> GetMessageAsync(ICriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
+        public Task<SocketMessage> GetMessageAsync(IOriCriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
             => Invoker.GetMessageAsync(Context, criterion, timeout, token);
         public Task<SocketMessage> GetMessageAsync(bool fromSourceUser = true, bool inSourceChannel = true, TimeSpan? timeout = null, CancellationToken token = default)
             => Invoker.GetMessageAsync(Context, fromSourceUser, inSourceChannel, timeout, token);

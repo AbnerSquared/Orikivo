@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Orikivo
 {
+    // needs a major rework
     public class GameTrigger
     {
         public GameTrigger(string name, GameTriggerArg arg = null, GameAttributeUpdate onSuccess = null)

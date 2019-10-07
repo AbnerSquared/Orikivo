@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -9,26 +10,13 @@ namespace Orikivo
     // this is used to store specific phases
     public class GameTask
     {
-        // required to handle message input.
-        private GameEventHandler _eventHandler;
-        private BaseSocketClient _client;
-        private GameLobby _lobby;
-
-        // a collection of attributes deriving from the main game handler.
-        // private List<GameAttributes> _rootAttributes;
-
-        // name: The task ID, attributes: A list of attributes this task keeps track of. triggers: a list of triggers that update within the task.
-        internal GameTask(BaseSocketClient client, GameLobby lobby, GameEventHandler eventHandler, string id, List<GameAttribute> attributes,
-            List<GameTrigger> triggers, List<TaskCriterion> criteria, GameRoute onCancel, GameTimer timer = null)
+        internal GameTask(string id, List<GameAttribute> attributes, List<GameTrigger> triggers, List<TaskCriterion> criteria, GameRoute onCancel, GameTimer timer = null)
         {
-            _client = client;
-            _lobby = lobby;
-            _eventHandler = eventHandler;
             // set up the root basics. we need a root game handler that contains root attributes and so forth.
             Id = id;
 
             // these are the properties that control how the tasks functions.
-            Attributes = new GameAttributes(attributes); // a list of attributes that are used to determine scenarios.
+            Attributes = attributes; // a list of attributes that are used to determine scenarios.
             Triggers = triggers; // a list of triggers used to update attributes
             Criteria = criteria; // a list of criteria used to determine what a successful route is.
 
@@ -39,99 +27,78 @@ namespace Orikivo
             Timer = timer; // a timer used to control how long the task lasts until it closes.
         }
         public string Id { get; }
-        private GameRoute OnCancel { get; }
         private TaskCompletionSource<GameRoute> Cancel { get; }
-        
+        private GameRoute OnCancel { get; }
         private TaskCompletionSource<GameRoute> Success { get; }
         private GameTimer Timer { get; }
-        // this provides where to go on specific attributes being complete.
         private List<TaskCriterion> Criteria { get; }
-
-        // a collection of triggers that are read when a message is sent.
         internal List<GameTrigger> Triggers { get; }
 
         // a collection of local attributes.
-        public GameAttributes Attributes { get; }
+        public List<GameAttribute> Attributes { get; }
+        private GameAttribute LastAttributeUpdated { get; set; } = null;
 
-        // returns the next task to transition to on complete.
-
-        // create handles on user leaving, with the user being actively in the game.
-
-        public async Task<GameRoute> StartAsync()
+        public async Task<GameRoute> StartAsync(BaseSocketClient client, GameLobby lobby, GameEventHandler events, GameData data, CancellationToken token)
         {
-            Console.WriteLine("The start of task");
-            GameAttribute updatedAttribute = null;
-            // this handles messages when sent.
-            async Task ReadAsync(SocketMessage message)
+            async Task ParseAsync(SocketMessage message)
             {
-                Console.WriteLine("start read");
-                // clear the last updated attribute.
-                updatedAttribute = null;
+                LastAttributeUpdated = null;
 
-                // set basic check vars
-                ulong channelId = message.Channel.Id;
-                ulong userId = message.Author.Id;
-                string content = message.Content;
-
-                Console.WriteLine("verifying receivers");
                 // if this message came from a receiver location AND the receiver is currently active for a game:
-                if (!(_lobby.Receivers.Any(x => x.ChannelId == channelId && x.State == GameState.Active) && _lobby.Users.Any(x => x.Id == userId)))
-                    return; // cancel the check.
+                if (!(lobby.Receivers.Any(x => x.ChannelId == message.Channel.Id && x.State == GameState.Active) && lobby.Users.Any(x => x.Id == message.Author.Id)))
+                    return;
 
-                Console.WriteLine("receiver verified");
-
-                TriggerContext ctx = null;
                 foreach (GameTrigger trigger in Triggers)
-                    Console.WriteLine($"trigger:{trigger.Name}");
-                // otherwise, if the message sent is a valid trigger:
-                if (Triggers.Any(x => x.CanParse(content, _lobby.Users)))
                 {
-                    Console.WriteLine("A trigger has been valid.");
-                    Triggers.First(x => x.CanParse(content, _lobby.Users)).TryParse(content, _lobby.Users, out ctx);
-                    if (ctx.AttributeUpdate != null)
+                    if (trigger.TryParse(message.Content, lobby.Users, out TriggerContext context))
                     {
-                        Console.WriteLine("an attribute update has been specified.");
-                        if (Attributes.Update(ctx.AttributeUpdate))
-                        {
-                            Console.WriteLine("Update success");
-                            updatedAttribute = Attributes.Attributes.First(x => x.Name == ctx.AttributeUpdate.Id);
-                            Console.WriteLine($"attribute:{updatedAttribute.Name}");
-                        }
-
-                        Console.WriteLine(ctx.AttributeUpdate.Id);
+                        if (context.AttributeUpdate != null)
+                            if (UpdateAttribute(context.AttributeUpdate, out GameAttribute attribute))
+                                LastAttributeUpdated = attribute;
+                        break;
                     }
                 }
-                Console.WriteLine("a message went through");
-                // send an optional display update on success
 
-                if (updatedAttribute != null)
-                    foreach (TaskCriterion criteria in Criteria.Where(x => x.Criteria.Any(y => y.AttributeId == updatedAttribute.Name)))
-                        if (criteria.Check(Attributes.Attributes))
-                            Success.SetResult(criteria.OnSuccess); // send an optional display update on success
+                if (LastAttributeUpdated != null)
+                    foreach (TaskCriterion criteria in Criteria.Where(x => x.Requirements.Any(y => y.RequiredId == LastAttributeUpdated.Id)))
+                        if (criteria.Check(Attributes))
+                            Success.SetResult(criteria.OnSuccess);
+            }
 
-                Console.WriteLine("end read");
-            };
+            try
+            {
+                return await Task.Run(async () =>
+                {
+                    client.MessageReceived += ParseAsync;
+                    List<Task<GameRoute>> tasks = new List<Task<GameRoute>> { Cancel.Task, Success.Task };
 
-            // set up the listener
-            Console.WriteLine("setting up listener");
-            _client.MessageReceived += ReadAsync;
-            Console.WriteLine("listener set");
-            List<Task<GameRoute>> tasks = new List<Task<GameRoute>>();
-            tasks.Add(Cancel.Task); // when the task was cancelled.
-            tasks.Add(Success.Task); // when the criteria has been met
-            if (Timer != null)
-                tasks.Add(Timer.Run()); // timer Task.Delay(Timeout.Value) // nake a check on a timeout. set the result to the 
-            Console.WriteLine("tasks added");
-            Task<GameRoute> task = await Task.WhenAny(tasks).ConfigureAwait(false);
-            Console.WriteLine($"one of the tasks were complete: {task.Result.Route.ToString()}");
-            _client.MessageReceived -= ReadAsync;
-            Console.WriteLine("removed reader");
-            return task.Result; // returns the route to take. if the taskId is left empty. the task is assumed as finished.
-            // create a loop until either: all criteria have been met; the timeout has finished; the cancel token has gone off.
+                    if (Timer != null)
+                        tasks.Add(Timer.Run());
+
+                    Task<GameRoute> task = await Task.WhenAny(tasks).ConfigureAwait(false);
+
+                    task.Result.LastTaskId = Id;
+                    client.MessageReceived -= ParseAsync;
+
+                    return task.Result;
+                }, token);
+            }
+            catch (OperationCanceledException)
+            {
+                client.MessageReceived -= ParseAsync;
+                Console.WriteLine("Cancel requested.");
+                return GameRoute.Empty;
+            }
         }
 
-        public bool IsCompleted { get; } // this can derive from TaskCompletionSource<bool>
-
+        private bool UpdateAttribute(GameAttributeUpdate update, out GameAttribute attribute)
+        {
+            if (!Attributes.Any(x => x.Id == update.Id))
+                throw new Exception("The update packet is trying to update an attribute that doesn't exist.");
+            attribute = Attributes.First(x => x.Id == update.Id);
+            attribute.Value += update.Amount; // consider Append/Set method types.
+            return true;
+        }
         public void End()
             => Cancel.SetResult(OnCancel);
     }

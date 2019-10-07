@@ -5,6 +5,7 @@ namespace Orikivo
     // this is used to determine what task to switch to whenever the task is complete
     public class GameRoute
     {
+        public static GameRoute Empty => new GameRoute(TaskRoute.Cancel, null);
         public GameRoute(TaskRoute route, string taskId)
         {
             Route = route;

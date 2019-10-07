@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public class SourceChannelCriterion : ICriterion<IMessage>
+    public class SourceChannelCriterion : IOriCriterion<IMessage>
     {
         public Task<bool> JudgeAsync(OriCommandContext sourceContext, IMessage parameter)
         {

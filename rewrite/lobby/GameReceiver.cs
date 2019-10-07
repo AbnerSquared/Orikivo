@@ -1,4 +1,5 @@
-﻿using Discord.Rest;
+﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -10,56 +11,74 @@ namespace Orikivo
     // a subscriber to the game that reads off of the game's display.
     public class GameReceiver
     {
-        // reference the GameEventHandler to determine when a user leaves and whatknot.
-        private GameEventHandler _eventHandler;
+        private TextChannelProperties _properties;
 
-        // the display id to listen for. this should default to lobby
-        // the receiver gamestate it's currently in.
-        // the guild it's for
-        // the event handler
-        // the list of current users
-        // the config for the receiver.
-        public GameReceiver(SocketGuild guild, GameEventHandler eventHandler, List<User> users, ReceiverConfig config)
+        public GameReceiver(SocketGuild guild, GameReceiverConfig config)
         {
+            Id = guild.Id;
+            Name = config.Name;
+            _properties = config.Properties;
+            Channel = CreateChannelAsync(guild).Result;
+            CanDeleteMessages = guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageMessages);
+            // if you can delete messages, go off of user preference; otherwise, send a new msg each time.
+            CanUpdateMessage = CanDeleteMessages ? config.UpdateLastMessage : false;
+            State = GameState.Inactive;
         }
 
-        // handle UserJoined, UserLeft, DisplayUpdated
-        // DisplayUpdated can handle updating receivers, but only if the 
-        // receiver is listening to the display that was updated.
-
-            // this determines what display to listen for
-        public int DisplayId { get; private set; }
         public ulong Id { get; } // this is the guild id
         public string Name { get; } // the name used for the receiver.
         public bool CanDeleteMessages { get; } // if the receiver allows for deleting messages.
-        public bool CanUpdateMessage { get; } // if the receiver updates the existing message in a lobby.
-
-        // this determines what the receiver is looking for.
-        public GameState State { get; private set; }
-
-        // find a new way to ensure synchronization
+        public bool CanUpdateMessage { get; } // if the receiver can update the existing message.
+        public GameState State { get; internal set; }
+        private RestTextChannel Channel { get; set; }
+        private RestUserMessage Message { get; set; }
+        public ulong? ChannelId => Channel?.Id;
+        public ulong? MessageId => Message?.Id;
+        public string Mention => Channel?.Mention;
         public string SyncKey { get; private set; }
 
-        // the channel info of the receiver.
-        private RestTextChannel Channel { get; set; }
-        public ulong? ChannelId => Channel?.Id;
-        // the message info of the receiver. if !CanUpdateMessage, this is ignored.
-        private RestUserMessage Message { get; set; }
-
-        // this is all of the users bound to this receiver.
-        // this is immutable to ensure it's readonly from the lobby itself.
-        public ImmutableArray<ulong> UserIds { get; }
-        public string Mention => Channel?.Mention;
-
-        // updates the receiver with the most current info
-        public async Task UpdateAsync(BaseSocketClient client, Display display)
-        { }
-
-        // deletes the receiver
-        public async Task DeleteAsync(string reason = null, TimeSpan? timeout = null)
+        private async Task<RestTextChannel> CreateChannelAsync(BaseSocketClient client)
+            => await CreateChannelAsync(client.GetGuild(Id));
+        private async Task<RestTextChannel> CreateChannelAsync(SocketGuild guild)
         {
-
+            if (guild == null)
+                throw new Exception("The original guild used for this receiver is empty.");
+            if (!guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageChannels))
+                throw new MissingGuildPermissionsException(GuildPermission.ManageChannels, guild.Id, ActionType.ChannelCreated);
+            // Channel.ModifyAsync(x => { x.SlowModeInterval = _properties.SlowModeInterval; }).ConfigureAwait(false);
+            return await guild.CreateTextChannelAsync(Name, x => { x = _properties; }); // .ConfigureAwait(false);
         }
 
+        internal async Task UpdateAsync(BaseSocketClient client, GameDisplay display)
+        {
+            await Channel?.UpdateAsync();
+            if (Channel == null)
+                Channel = CreateChannelAsync(client).Result;
+
+            if (Message == null || !CanUpdateMessage)
+                Message = Channel.SendMessageAsync(display.ToString()).Result;
+            else
+            {
+                if (SyncKey == display.SyncKey)
+                    return;
+
+                await Message.ModifyAsync(x => x.Content = display.ToString());
+            }
+
+            SyncKey = display.SyncKey;
+        }
+
+        // cleans the receiver
+        public async Task CloseAsync(string reason = null, TimeSpan? delay = null)
+        {
+            await Channel?.UpdateAsync();
+            if (Channel == null)
+                return;
+            if (Checks.NotNull(reason))
+                await Channel.SendMessageAsync(reason);
+            if (delay.HasValue)
+                await Task.Delay(delay.Value);
+            await Channel.DeleteAsync();
+        }
     }
 }

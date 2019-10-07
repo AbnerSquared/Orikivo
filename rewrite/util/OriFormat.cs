@@ -38,6 +38,8 @@ namespace Orikivo
         public static string Subscript(string value)
             => MapChars(value, CharMapType.Subscript);
 
+        public static string CropGameId(string value)
+            => value.Length > 8 ? value.Substring(0, 8) + "..." : value;
         private static string MapChars(string value, CharMapType mapType)
         {
             Dictionary<char, char> map = null;

@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace Orikivo
 {
-    public class User
+    public class GameUser
     {
-        public User(OriUser user, params ulong[] guildIds)
+        public GameUser(OriUser user, params ulong[] guildIds)
         {
             Id = user.Id;
             Name = user.Username;

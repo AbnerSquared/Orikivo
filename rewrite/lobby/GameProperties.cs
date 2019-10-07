@@ -7,8 +7,10 @@ namespace Orikivo
     // this defines what the game needs before actually launching.
     public class GameProperties
     {
+        private GameProperties() {}
         // learn about what is required for the game properties to generate.
-        public static GameProperties FromMode(GameMode mode, BaseSocketClient client, GameLobby lobby, GameEventHandler eventHandler)
+        // you need the list of users in order to properly determine what attributes need to exist
+        public static GameProperties Create(GameMode mode, List<User> users)
         {
             GameProperties properties = new GameProperties();
             List<GameAttribute> attributes = new List<GameAttribute>();
@@ -24,7 +26,7 @@ namespace Orikivo
             GameAttribute timesCalled = new GameAttribute(timesCalledAtt);
 
             GameRoute onCrit1 = new GameRoute(TaskRoute.Success, task2);
-            TaskCriterion crit1 = new TaskCriterion(new List<AttributeCriterion> { new AttributeCriterion(timesCalled, 3) }, onCrit1);
+            TaskCriterion crit1 = new TaskCriterion(new List<AttributeCriterion> { new AttributeCriterion(timesCalled.Id, 3) }, onCrit1);
 
             GameAttributeUpdate onCall = new GameAttributeUpdate(timesCalledAtt, 1);
             GameTrigger crit1Call = new GameTrigger("call", onSuccess: onCall);
@@ -34,27 +36,27 @@ namespace Orikivo
             GameTimer task3Timer = new GameTimer(TimeSpan.FromSeconds(10), new GameRoute(TaskRoute.Timeout, task4));
 
 
-            GameTask Task1 = new GameTask(client, lobby, eventHandler, task1,
+            GameTask Task1 = new GameTask(task1,
                 new List<GameAttribute> { timesCalled },
                 new List<GameTrigger> { crit1Call },
                 new List<TaskCriterion> { crit1 },
                 onCancel); // new GameTimer(TimeSpan.FromSeconds(10), new GameRoute(TaskRoute.Timeout, task4))
 
-            GameTask Task2 = new GameTask(client, lobby, eventHandler, task2,
+            GameTask Task2 = new GameTask(task2,
                 new List<GameAttribute>(),
                 new List<GameTrigger>(),
                 new List<TaskCriterion>(),
                 new GameRoute(TaskRoute.Cancel, task4),
                 new GameTimer(TimeSpan.FromSeconds(10), new GameRoute(TaskRoute.Timeout, task4)));
 
-            GameTask Task3 = new GameTask(client, lobby, eventHandler, task3,
+            GameTask Task3 = new GameTask(task3,
                 new List<GameAttribute>(),
                 new List<GameTrigger>(),
                 new List<TaskCriterion>(),
                 new GameRoute(TaskRoute.Cancel, task4),
                 new GameTimer(TimeSpan.FromSeconds(10),
                 new GameRoute(TaskRoute.Timeout, task4)));
-            GameTask Task4 = new GameTask(client, lobby, eventHandler, task4,
+            GameTask Task4 = new GameTask(task4,
                 new List<GameAttribute>(), new List<GameTrigger>(),
                 new List<TaskCriterion>(), new GameRoute(TaskRoute.Cancel, null),
                 new GameTimer(TimeSpan.FromSeconds(5), new GameRoute(TaskRoute.Timeout, null)));
@@ -66,9 +68,13 @@ namespace Orikivo
             return properties;
         }
 
-        public GameTask EntryTask { get; set; }
-        public List<GameAttribute> Attributes { get; set; } // the root list of attributes.
-        public List<GameTask> Tasks { get; set; } // the list of tasks.
+        public GameTask EntryTask { get; private set; }
+        public List<GameAttribute> Attributes { get; private set; } // the root list of attributes.
+        public List<GameTask> Tasks { get; private set; } // the list of tasks.
+
+        public GameTask ExitTask { get; private set; }
+
+        public GameData BaseData { get; private set; }
     }
 
     // create a function determining what to do upon starting from a specific task.

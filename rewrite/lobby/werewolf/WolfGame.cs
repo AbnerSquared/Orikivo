@@ -14,7 +14,7 @@ namespace Orikivo
         private Display _oldDisplay;
         private BaseSocketClient _rootClient;
 
-        public WerewolfGame(BaseSocketClient client, Display display, List<Receiver> receivers, List<User> users)
+        public WerewolfGame(BaseSocketClient client, Display display, List<Receiver> receivers, List<GameUser> users)
         {
             _rootClient = client;
             _oldDisplay = display;
@@ -22,7 +22,7 @@ namespace Orikivo
             Display.Clear();
 
             Users = new List<WerewolfUser>();
-            foreach (User user in users)
+            foreach (GameUser user in users)
             {
                 Users.Add(new WerewolfUser(user));
             }
