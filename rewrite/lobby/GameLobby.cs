@@ -7,31 +7,29 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // this could just manage the users playing overall.
+    #pragma warning disable CS1998
     public class GameLobby
     {
+        public static int DefaultUserLimit = 16;
+
         private GameBootCriteria _bootCriteria => GameBootCriteria.FromMode(Mode);
         private GameReceiverConfig _receiverConfig;
         private GameEventHandler _events;
 
         public GameLobby(GameConfig config, GameEventHandler events)
         {
-
             _events = events;
         }
 
         internal bool IsInitialized { get; private set; } = false;
-        public static int DefaultUserLimit = 16;
         public string Name { get; private set; }
         public GamePrivacy Privacy { get; private set; }
         public string Password { get; private set; }
         public bool IsProtected => Checks.NotNull(Password);
         public GameMode Mode { get; private set; }
-
-        public List<GameReceiver> Receivers { get; } = new List<GameReceiver>(); // all channels from a guild
-        public List<User> Users { get; } = new List<User>(); // all users playing.
+        public List<GameReceiver> Receivers { get; } = new List<GameReceiver>();
+        public List<User> Users { get; } = new List<User>();
         public User Host => Users.FirstOrDefault(x => x.IsHost);
-
         public int UserCount => Users.Count;
         public int UserLimit => _bootCriteria?.UserLimit ?? DefaultUserLimit;
 
@@ -74,6 +72,7 @@ namespace Orikivo
         {
             if (!ContainsUser(user.Id))
                 throw new Exception("This user is already not in this game.");
+            Users.Remove(user);
             // if UserCount - 1 == 0
             // await CloseAsync();
         }
@@ -81,7 +80,8 @@ namespace Orikivo
         internal async Task AddReceiverAsync(SocketGuild guild)
         {
             if (ContainsGuild(guild.Id))
-                throw new Exception("This guild is already a receiver for this game.");
+                return; // this isn't too big of a deal; just cancel the task
+                // throw new Exception("This guild is already a receiver for this game.");
 
             GameReceiver receiver = new GameReceiver(guild, _receiverConfig);
             Receivers.Add(receiver);

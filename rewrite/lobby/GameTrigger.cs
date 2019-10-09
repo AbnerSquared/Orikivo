@@ -41,9 +41,9 @@ namespace Orikivo
                 {
                     string obj = m.Groups[0].Value; // the parsed object value.
                     ulong.TryParse(obj, out ulong userId);
-                    if (Arg.Type == GameArgType.Message)
+                    if (Arg.Type is GameArgType.Message)
                         parse.Value = obj;
-                    if (Arg.Type == GameArgType.User)
+                    if (Arg.Type is GameArgType.User)
                     {
                         if (!users.Any(x => x.Name == obj || (x.Id == userId)))
                         {

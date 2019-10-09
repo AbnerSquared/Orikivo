@@ -34,8 +34,10 @@ namespace Orikivo
         {
             Game game = new Game(context.Client, config);
             await game.Lobby.BootAsync(context);
-            await _gameCreatedEvent.InvokeAsync(game);
+            if (Games.ContainsKey(game.Id))
+                throw new Exception("There is already a game using this exact id."); // handle
             Games.AddOrUpdate(game.Id, game, (id, currentGame) => game);
+            await _gameCreatedEvent.InvokeAsync(game);
             return game;
         }
 
@@ -61,22 +63,12 @@ namespace Orikivo
         public async Task<bool> AddUserAsync(OriCommandContext context, string gameId)
         {
             Game game = this[gameId];
+            // if the receiver the user belongs to is currently actively playing, prevent joining from their guild.
+            if (game.Receivers.Any(x => x.Id == context.Guild.Id && x.State is GameState.Active))
+                throw new Exception("This guild is currently playing a game and cannot support lobby idling.");
 
-            // if the game is currently active.
-            if (game.State == GameState.Active)
-            {
-                if (game.Receivers.Any(x => x.Id == context.Guild.Id))
-                    // have receivers support GameState, to determine if they're currently partaking in the game.
-                    throw new Exception("This guild is currently playing a game and cannot support lobby idling.");
-
-                await game.Lobby.AddUserAsync(context.Account, context.Guild);
-                // this is used to build the receiver and user info at once.
-
-                return true;
-            }
-            // if the game is currently active; and if it is, is the guild they're in currently connected to it.
             await game.Lobby.AddUserAsync(context.Account, context.Guild);
-            return true; // temp fix
+            return true;
         }
 
         public Game this[string id]
