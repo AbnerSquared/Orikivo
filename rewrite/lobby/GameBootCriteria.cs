@@ -14,7 +14,7 @@ namespace Orikivo
                 case GameMode.Werewolf:
                     clientCriteria.RequiredUsers = 5;
                     clientCriteria.UserLimit = 15;
-                    break;
+                    return clientCriteria;
                 default:
                     throw new Exception("An unknown game mode has been specified.");
             }

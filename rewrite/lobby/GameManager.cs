@@ -33,7 +33,7 @@ namespace Orikivo
         public async Task<Game> CreateGameAsync(OriCommandContext context, GameConfig config)
         {
             Game game = new Game(context.Client, config);
-            await game.Lobby.BootAsync(context);
+            await game.BootAsync(context);
             if (Games.ContainsKey(game.Id))
                 throw new Exception("There is already a game using this exact id."); // handle
             Games.AddOrUpdate(game.Id, game, (id, currentGame) => game);
@@ -41,13 +41,18 @@ namespace Orikivo
             return game;
         }
 
+        internal async Task StartGameSessionAsync(string id)
+        {
+            Game game = Games[id];
+            await game.StartSessionAsync(); // in short, the game session task should always be open then??
+        }
+
         // starting the game needs to occur outside of the MessageReceived.
         internal async Task<GameResult> StartGameAsync(string id)
         {
             Game game = Games[id];
-            foreach (GameReceiver receiver in game.Receivers)
-                receiver.State = GameState.Active;
-            return await game.StartAsync();
+            GameResult result = game.StartAsync().Result;//.ConfigureAwait(false);
+            return result;
         }
 
         public bool ContainsUser(ulong userId)

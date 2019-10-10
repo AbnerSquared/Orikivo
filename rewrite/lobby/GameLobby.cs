@@ -19,6 +19,10 @@ namespace Orikivo
         public GameLobby(GameConfig config, GameEventHandler events)
         {
             _events = events;
+            Name = config.Name;
+            Privacy = config.Privacy;
+            Password = config.Password;
+            Mode = config.Mode;
         }
 
         internal bool IsInitialized { get; private set; } = false;
@@ -62,7 +66,7 @@ namespace Orikivo
                 user.Tags = UserTag.Empty;
 
             Users.Add(user);
-            // await _events.InvokeUserJoinedAsync(user, this);
+            await _events.InvokeUserJoinedAsync(user, this);
         }
 
         internal async Task RemoveUserAsync(ulong userId)
@@ -73,8 +77,18 @@ namespace Orikivo
             if (!ContainsUser(user.Id))
                 throw new Exception("This user is already not in this game.");
             Users.Remove(user);
+            await _events.InvokeUserLeftAsync(user, this);
             // if UserCount - 1 == 0
             // await CloseAsync();
+        }
+
+        public bool TryGetUser(ulong userId, out User user)
+        {
+            user = null;
+            bool result = ContainsUser(userId);
+            if (result)
+                user = Users.First(x => x.Id == userId);
+            return result;
         }
 
         internal async Task AddReceiverAsync(SocketGuild guild)
@@ -85,7 +99,7 @@ namespace Orikivo
 
             GameReceiver receiver = new GameReceiver(guild, _receiverConfig);
             Receivers.Add(receiver);
-            // await _events.InvokeReceiverConnectedAsync(receiver, this);
+            await _events.InvokeReceiverConnectedAsync(receiver, this);
         }
 
         private async Task RemoveReceiverAsync(GameReceiver receiver)
@@ -110,6 +124,7 @@ namespace Orikivo
         public bool ContainsGuild(ulong guildId)
             => Receivers.Any(x => x.Id == guildId);
 
-        public bool CanStart => _bootCriteria.Check(UserCount);
+        // testing purposes
+        public bool CanStart => true;// _bootCriteria.Check(UserCount);
     }
 }

@@ -17,9 +17,19 @@ namespace Orikivo
             Mode = mode;
             Privacy = privacy;
             Password = password;
-            ReceiverConfig = receiverConfig ?? GameReceiverConfig.Default;
+            receiverConfig = receiverConfig ?? GameReceiverConfig.Default;
             if (Checks.NotNull(name))
-                ReceiverConfig.Name = name;
+            {
+                Name = name;
+                receiverConfig.Name = name;
+            }
+            else
+            {
+                Name = "New Game";
+
+            }
+
+            ReceiverConfig = receiverConfig;
         }
 
         public string Name { get; internal set; }
@@ -33,7 +43,18 @@ namespace Orikivo
     // config for the game receiver.
     public class GameReceiverConfig
     {
-        public static GameReceiverConfig Default = new GameReceiverConfig { Name = "New Game", MessageCooldownLength = 1, Topic = "A new game.", UpdateLastMessage = true };
+        public static GameReceiverConfig Default
+        {
+            get
+            {
+                GameReceiverConfig config = new GameReceiverConfig();
+                config.Name = "New Game";
+                config.MessageCooldownLength = 1;
+                config.Topic = "A new game.";
+                config.UpdateLastMessage = true;
+                return config;
+            }
+        }
         private string _name;
         public string Name { get { return _name; } set { _name = OriFormat.FormatTextChannelName(value); } }
 

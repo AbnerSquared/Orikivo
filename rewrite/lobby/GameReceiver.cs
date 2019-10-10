@@ -15,10 +15,11 @@ namespace Orikivo
 
         public GameReceiver(SocketGuild guild, GameReceiverConfig config)
         {
+            config = config ?? GameReceiverConfig.Default; // ??=
             Id = guild.Id;
             Name = config.Name;
-            _properties = config.Properties;
-            Channel = CreateChannelAsync(guild).Result;
+            _properties = config?.Properties;
+            Channel = CreateChannelAsync(guild).Result;//.GetAwaiter().GetResult();
             CanDeleteMessages = guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageMessages);
             // if you can delete messages, go off of user preference; otherwise, send a new msg each time.
             CanUpdateMessage = CanDeleteMessages ? config.UpdateLastMessage : false;
@@ -46,26 +47,31 @@ namespace Orikivo
             if (!guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageChannels))
                 throw new MissingGuildPermissionsException(GuildPermission.ManageChannels, guild.Id, ActionType.ChannelCreated);
             // Channel.ModifyAsync(x => { x.SlowModeInterval = _properties.SlowModeInterval; }).ConfigureAwait(false);
-            return await guild.CreateTextChannelAsync(Name, x => { x = _properties; }); // .ConfigureAwait(false);
+            return await guild.CreateTextChannelAsync(Name, x => { x = _properties; });//.ConfigureAwait(false); // .ConfigureAwait(false);
         }
 
-        internal async Task UpdateAsync(BaseSocketClient client, GameDisplay display)
+        internal async Task UpdateStateAsync(GameState state)
         {
-            await Channel?.UpdateAsync();
+
+        }
+
+        internal async Task UpdateAsync(BaseSocketClient client, GameMonitor monitor)
+        {
+            //await Channel?.UpdateAsync();
             if (Channel == null)
-                Channel = CreateChannelAsync(client).Result;
+                Channel = await CreateChannelAsync(client);//.ConfigureAwait(false);
 
             if (Message == null || !CanUpdateMessage)
-                Message = Channel.SendMessageAsync(display.ToString()).Result;
+                Message = await Channel.SendMessageAsync(monitor[State].ToString());//.ConfigureAwait(false);
             else
             {
-                if (SyncKey == display.SyncKey)
+                if (SyncKey == monitor[State].SyncKey)
                     return;
 
-                await Message.ModifyAsync(x => x.Content = display.ToString());
+                await Message.ModifyAsync(x => x.Content = monitor[State].ToString());
             }
 
-            SyncKey = display.SyncKey;
+            SyncKey = monitor[State].SyncKey;
         }
 
         // cleans the receiver
@@ -75,7 +81,7 @@ namespace Orikivo
             if (Channel == null)
                 return;
             if (Checks.NotNull(reason))
-                await Channel.SendMessageAsync(reason);
+                await Channel.SendMessageAsync(reason ?? "An unknown reason was given.");
             if (delay.HasValue)
                 await Task.Delay(delay.Value);
             await Channel.DeleteAsync();

@@ -24,7 +24,7 @@ namespace Orikivo
         // pass the list of users in here to ensure parse
         public bool TryParse(string context, List<User> users, out TriggerContext parse)
         {
-            Console.WriteLine("start parse");
+            Console.WriteLine($"-- (trigger:{Name}) Now attempting parse... --");
             parse = new TriggerContext();
             string keyParser = string.Format(@"^{0}", Name);
             string valueParser = @"((?:(?: \w+)*)?)(?: +)?";
@@ -32,10 +32,9 @@ namespace Orikivo
             string parser = Arg == null ? keyParser + "$" : keyParser + valueParser + "$";
             Regex r = new Regex(parser);
             Match m = r.Match(context);
-            Console.WriteLine("parse context");
             if (m.Success)
             {
-                Console.WriteLine("is success");
+                Console.WriteLine($"-- (trigger:{Name}) Parse success! --");
                 parse.TriggerName = Name;
                 if (Arg != null)
                 {
@@ -52,7 +51,7 @@ namespace Orikivo
                         }
                         parse.Value = users.First(x => x.Name == obj || (x.Id == userId));
                     }
-                    Console.WriteLine("arg parsed");
+                    Console.WriteLine($"-- (trigger:{Name}) Arg parse success! --");
                 }
 
                 parse.AttributeUpdate = OnSuccess;
