@@ -7,7 +7,7 @@ using System.Text;
 namespace Orikivo
 {
     // this class is used to help signify and identify information about a module
-    public class ModuleDisplayInfo
+    public class ModuleDisplayInfo : IDisplayInfo
     {
         public ModuleDisplayInfo(ModuleInfo module)
         {

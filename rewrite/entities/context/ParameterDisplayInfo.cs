@@ -8,7 +8,7 @@ using System.Text;
 namespace Orikivo
 {
     // this class is used to help signify and identify information about a parameter/arg
-    public class ParameterDisplayInfo
+    public class ParameterDisplayInfo : IDisplayInfo
     {
         public ParameterDisplayInfo(ParameterInfo parameter)
         {

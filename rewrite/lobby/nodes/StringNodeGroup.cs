@@ -143,7 +143,7 @@ namespace Orikivo
                 {
                     StringNode pushedNode = Nodes[0]; // this is the node that's pushed out.
                     Nodes = Nodes.ShiftLeft(1);
-                    Nodes.Add(node);
+                    Nodes.Add(node);//Nodes.Insert(0, node);
                     return Nodes.IndexOf(node);
                 }
                     

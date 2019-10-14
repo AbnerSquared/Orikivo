@@ -6,9 +6,7 @@ using System.Text;
 
 namespace Orikivo
 {
-    // replace with .ToString() variants
-    // this class is used to help signify and identify information about a command
-    public class CommandDisplayInfo
+    public class CommandDisplayInfo : IDisplayInfo
     {
         public CommandDisplayInfo(CommandInfo command)
         {

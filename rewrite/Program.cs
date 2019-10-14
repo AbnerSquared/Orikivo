@@ -35,7 +35,7 @@ namespace Orikivo
                 oriClientBuilder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
                 //oriClientBuilder.AddTypeReader<double>(new DoubleTypeReader());
 
-                oriClientBuilder.AddModule<AlphaModule>();
+                oriClientBuilder.AddModule<MiscModule>();
 
                 OriClient oriClient = oriClientBuilder.Build();
                 await oriClient.SetGameAsync("Minecraft", activity: ActivityType.Listening);

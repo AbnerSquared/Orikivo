@@ -51,7 +51,7 @@ namespace Orikivo
 
             if (!ctx.IsSuccess)
             {
-                result.ResultType = null;
+                result.Type = null;
                 result.IsSuccess = false;
                 result.ErrorReason = ContextError.EmptyValue;
                 return result;
@@ -179,8 +179,8 @@ namespace Orikivo
                 resultType = ContextInfoType.Parameter;
             }
             Console.WriteLine("[Debug] -- 6 --");
-            result.ResultType = resultType;
-            switch(result.ResultType)
+            result.Type = resultType;
+            switch(result.Type)
             {
                 case ContextInfoType.Parameter:
                     result.Parameter = new ParameterDisplayInfo(parameter);
@@ -190,7 +190,7 @@ namespace Orikivo
                     {
                         if (commands.Count() > 1 || ctx.HasPriority)
                         {
-                            result.ResultType = ContextInfoType.Overload;
+                            result.Type = ContextInfoType.Overload;
                             result.Overload = new OverloadDisplayInfo(command);
                         }
                         result.Command = new CommandDisplayInfo(command);
