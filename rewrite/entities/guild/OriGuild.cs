@@ -9,7 +9,7 @@ using System.Text;
 namespace Orikivo
 {
     // socketguild account counterpart
-    public class OriGuild : ISocketEntity<SocketGuild>, IJsonEntity
+    public class OriGuild : IDiscordEntity<SocketGuild>, IJsonEntity
     {
         [JsonConstructor]
         internal OriGuild(ulong id, ulong? ownerId, string name, DateTime createdAt, OriGuildOptions options,

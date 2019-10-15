@@ -6,7 +6,9 @@ using System.Text;
 
 namespace Orikivo
 {
-    // Used to convert a JSON file with optional arrays to such.
+    /// <summary>
+    /// A custom JSON converter used to handle optional arrays in its file. (i.e 'a', ['a', 'b'] => ['a'], ['a', 'b'] )
+    /// </summary>
     public class DynamicArrayJsonConverter<T> : JsonConverter
     {
         public override bool CanConvert(Type objectType)
@@ -30,6 +32,7 @@ namespace Orikivo
         public override bool CanWrite { get { return false; } }
 
         // find out a way to serialize this json format
+        // write values as arrays only when needed; make everything else singular value.
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             => throw new NotImplementedException();
     }

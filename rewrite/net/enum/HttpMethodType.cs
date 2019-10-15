@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Orikivo
 {
-    public enum HttpRequestType
+    public enum HttpMethodType
     {
         GET = 1,
         POST = 2,

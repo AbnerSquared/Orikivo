@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     // a class that stores a pre-built message that can be sent to discord.
+    /// <summary>
+    /// Represents a custom message body that can be freely edited.
+    /// </summary>
     public class OriMessage
     {
         public OriMessage() { }

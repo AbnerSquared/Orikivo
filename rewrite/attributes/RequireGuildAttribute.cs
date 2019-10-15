@@ -4,7 +4,9 @@ using System.Text;
 
 namespace Orikivo
 {
-    // Marks a command to only function within a guild.
+    /// <summary>
+    /// An attribute that marks a command to require its execution channel to be within a guild.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RequireGuildAttribute : Attribute {}
 }

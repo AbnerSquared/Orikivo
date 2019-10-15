@@ -17,6 +17,7 @@ namespace Orikivo
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
         private readonly IServiceProvider _provider;
+        private readonly OriConsoleService _console;
         private readonly IConfigurationRoot _config;
 
         public OriNetworkService(DiscordSocketClient client, CommandService commandService,
@@ -26,6 +27,7 @@ namespace Orikivo
             _client = client;
             _commandService = commandService;
             _provider = provider;
+            _console = provider.GetRequiredService<OriConsoleService>();
             _config = config;
         }
 
@@ -36,7 +38,7 @@ namespace Orikivo
             token = string.IsNullOrWhiteSpace(token) ? _config["keys:discord"] : token;
 
             if (string.IsNullOrWhiteSpace(token))
-                throw new NullReferenceException("The token referenced is invalid or null.");
+                throw new NullReferenceException("The token cannot be empty.");
 
             await _client.LoginAsync(TokenType.Bot, token);
             if (typeReaders.Count > 0)
@@ -60,17 +62,18 @@ namespace Orikivo
         public async Task SetGameAsync(string name, string streamUrl = null, ActivityType type = ActivityType.Playing)
         {
             await _client.SetGameAsync(name, streamUrl, type);
+            _console.Debug("IActivity updated.");
         }
 
         public async Task SetStatusAsync(UserStatus status)
         {
             await _client.SetStatusAsync(status);
+            _console.Debug("UserStatus updated.");
         }
 
         public async Task StopAsync()
             => await _client.StopAsync();
 
-        // removes a module entirely from the current instance
         public async Task RemoveModuleAsync<TModule>() where TModule : ModuleBase
             => await _commandService.RemoveModuleAsync(typeof(TModule));
 

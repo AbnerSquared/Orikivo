@@ -3,7 +3,10 @@ using System;
 
 namespace Orikivo
 {
-    public class UniqueItemInfo
+    /// <summary>
+    /// Represents a unique item data object for items that can vary from each rendition.
+    /// </summary>
+    public class UniqueItemData
     {
 
         [JsonProperty("local_id")]

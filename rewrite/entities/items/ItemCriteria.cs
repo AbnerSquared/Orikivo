@@ -3,10 +3,13 @@ using System.Linq;
 
 namespace Orikivo
 {
-    public struct ItemCriteria
+    /// <summary>
+    /// A criteria object defining everything that a user is required to have in order to return true.
+    /// </summary>
+    public struct UserCriteria
     {
-        public static ItemCriteria Empty
-            => new ItemCriteria
+        public static UserCriteria Empty
+            => new UserCriteria
             {
                 Merits = new List<string>(),
                 Upgrades = new List<(string name, int level)>(),
@@ -40,7 +43,7 @@ namespace Orikivo
         public ulong? Balance { get; internal set; }
         public ulong? Debt { get; internal set; }
 
-        public bool Meets(OriUser user)
+        public bool Check(OriUser user)
         {
             foreach ((string, int) upgrade in Upgrades)
                 if (!user.HasUpgradeAt(upgrade.Item1, upgrade.Item2))

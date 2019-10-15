@@ -17,16 +17,19 @@
   <ItemGroup>
     <Compile Remove="legacy\**" />
     <Compile Remove="Overhaul\**" />
+    <Compile Remove="rewrite\lobby\**" />
     <Compile Remove="source\**" />
     <Compile Remove="src\**" />
     <Compile Remove="Systems\**" />
     <EmbeddedResource Remove="legacy\**" />
     <EmbeddedResource Remove="Overhaul\**" />
+    <EmbeddedResource Remove="rewrite\lobby\**" />
     <EmbeddedResource Remove="source\**" />
     <EmbeddedResource Remove="src\**" />
     <EmbeddedResource Remove="Systems\**" />
     <None Remove="legacy\**" />
     <None Remove="Overhaul\**" />
+    <None Remove="rewrite\lobby\**" />
     <None Remove="source\**" />
     <None Remove="src\**" />
     <None Remove="Systems\**" />

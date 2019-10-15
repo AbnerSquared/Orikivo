@@ -80,6 +80,7 @@ namespace Orikivo
                         {
                             content.AppendLine($"[Console] Task closed. ({Id} => {criteria.OnSuccess.TaskId})");
                             Success.SetResult(criteria.OnSuccess);
+                            break;
                         }
 
                 // this now only calls up once per trigger update.

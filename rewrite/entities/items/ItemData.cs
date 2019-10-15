@@ -6,11 +6,15 @@ namespace Orikivo
     {
         public ItemData()
         {
-            Info = new List<UniqueItemInfo>();
+            Info = new List<UniqueItemData>();
         }
 
-        public int Count { get { return StackCount ?? Info.Count; } }
+        public int Count => StackCount ?? Info.Count;
         public int? StackCount { get; set; }
-        public List<UniqueItemInfo> Info { get; private set; } // used if each item is different
+
+        /// <summary>
+        /// A collection of each unique version of the specified item.
+        /// </summary>
+        public List<UniqueItemData> Info { get; private set; }
     }
 }

@@ -65,7 +65,7 @@ namespace Orikivo
             IEnumerable<CommandInfo> commands = null;
             ParameterInfo parameter = null;
             IEnumerable<ParameterInfo> args = null;
-            Console.WriteLine("[Debug] -- 1 --");
+            Console.WriteLine("[Debug] -- 1 --"); // Search all of the modules for a matching name if there is any.
             if (ctx.Modules != null)
             {
                 if (ctx.Modules.Count > 0)
@@ -83,7 +83,7 @@ namespace Orikivo
                     }
                 }
             }
-            Console.WriteLine("[Debug] -- 2 --");
+            Console.WriteLine("[Debug] -- 2 --"); // Search all of the groups for a matching name if there is any.
             if (ctx.Groups != null)
             {
                 foreach (string name in ctx.Groups)
@@ -296,7 +296,7 @@ namespace Orikivo
             if (includeChildren)
                 parent.Submodules.Select(x => GetCommands(x, name)).ToList().ForEach(x => commands = commands.Concat(x));
 
-            Console.WriteLine($"-- GetCommands()\n{string.Join('\n', commands.Select(x => string.Join('\n', x.Aliases)))} --");
+            // Console.WriteLine($"-- GetCommands()\n{string.Join('\n', commands.Select(x => string.Join('\n', x.Aliases)))} --");
             return commands;
         }
         private IEnumerable<ParameterInfo> GetArgs(CommandInfo parent, string parameter)

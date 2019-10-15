@@ -4,9 +4,12 @@ using System.Text;
 
 namespace Orikivo
 {
-    public class EnumParser
+    public static class EnumParser
     {
-        public static bool TryParseEnum<T>(string value, out T enumValue) where T : Enum
+        /// <summary>
+        /// Attempts to loosely parse a matching enumeration from a specified string.
+        /// </summary>
+        public static bool TryParse<T>(string value, out T enumValue) where T : Enum
         {
             enumValue = default;
             foreach (string name in typeof(T).GetEnumNames())

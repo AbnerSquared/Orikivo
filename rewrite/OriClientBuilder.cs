@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // the entry point of Orikivo. this connects all services
-    // that only need to be built once into one area,
-    // from which can be called with dependency injection
-    // required services should already be in the OriClientBuilder by default.
+    // TODO: Learn how to shard.
 
+    /// <summary>
+    /// A constructor for a client built for Orikivo.
+    /// </summary>
     public class OriClientBuilder
     {
         public OriClientBuilder(bool useSharding = false)
@@ -25,33 +25,32 @@ namespace Orikivo
                 .AddJsonFile("config.json").Build();
             Services = new ServiceCollection();
             if (useSharding)
-                Services.AddSingleton(new DiscordShardedClient(OriDiscordConfig.DefaultSocketConfig));
+                Services.AddSingleton(new DiscordShardedClient(DiscordConfig.DefaultSocketConfig));
             else
-                Services.AddSingleton(new DiscordSocketClient(OriDiscordConfig.DefaultSocketConfig)); // discord client
+                Services.AddSingleton(new DiscordSocketClient(DiscordConfig.DefaultSocketConfig)); // discord client
 
-            // a list of all classes that can be passed into any class
-            // within the namespace
+            // A list of required classes needed in order for Orikivo to function.
             Services
-                .AddSingleton(new CommandService(OriDiscordConfig.DefaultServiceConfig)) // discord command service
-                .AddSingleton<OriNetworkService>() // discord network connection
-                .AddSingleton<OriLoggerService>() // console logging
-                .AddSingleton<OriEventHandler>() // handles discord events
-                .AddSingleton<OriJsonContainer>() // json data container
-                .AddSingleton<OriMessageInvoker>() // dynamic message invoker
-                .AddSingleton<GameManager>() // game manager
+                .AddSingleton(new CommandService(DiscordConfig.DefaultServiceConfig)) /* The command service used to handle all commands and modules.  */
+                .AddSingleton<OriNetworkService>() /* Handles the connection to Discord. */
+                .AddSingleton<OriConsoleService>() /* Handles all called events in general. Is connected with DiscordEventHandler. */
+                .AddSingleton<DiscordEventHandler>() /* Manages all events that occur from the Discord API. */
+                .AddSingleton<OriJsonContainer>() /* A data container that is passed along all inheriting classes. */
+                .AddSingleton<OriMessageInvoker>() /* A message handler that can create internal handles for separate users. */
+                .AddSingleton<GameManager>() /* Handles all of the processes relating to game lobbies and so forth. */
                 .AddSingleton(Config); // root config for orikivo
-            TypeReaders = new Dictionary<Type, TypeReader>();
-            Modules = new List<Type>();
         }
 
         public IConfigurationRoot Config { get; }
         public ServiceCollection Services { get; }
-        public Dictionary<Type, TypeReader> TypeReaders { get; set; }
-        public List<Type> Modules { get; set; }
+        public Dictionary<Type, TypeReader> TypeReaders { get; set; } = new Dictionary<Type, TypeReader>();
+        public List<Type> Modules { get; set; } = new List<Type>();
         public OriConsoleConfig ConsoleConfig { get; set; }
-        public OriLoggerConfig LoggerConfig { get; set; }
+        public OriLogConfig LoggerConfig { get; set; }
 
-        // adds a typeReader for precompile
+        /// <summary>
+        /// Marks an object to be bound with a specified typereader on compile.
+        /// </summary>
         public void AddTypeReader<T>(TypeReader reader)
         {
             Type type = typeof(T);
@@ -71,7 +70,9 @@ namespace Orikivo
             Console.WriteLine($"[Debug] -- Included TypeReader of Type '{typeof(T)}'. --");
         }
 
-        // removes a typeReader used for precompile
+        /// <summary>
+        /// Removes a typereader from the existing precompile pool.
+        /// </summary>
         public void RemoveTypeReader<T>()
         {
             Type type = typeof(T);
@@ -120,7 +121,9 @@ namespace Orikivo
             return oriClientBuilder;
         }
 
-        // build the service provider before returning?
+        /// <summary>
+        /// Compiles all of the properties to create a new client.
+        /// </summary>
         public OriClient Build()
         {
             return new OriClient(Config, Services.BuildServiceProvider(), TypeReaders, Modules, ConsoleConfig, LoggerConfig);

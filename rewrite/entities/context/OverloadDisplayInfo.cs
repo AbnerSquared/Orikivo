@@ -8,6 +8,9 @@ using System.Text;
 namespace Orikivo
 {
     // this class is used to help signify and identify information about a command with overridable variants
+    /// <summary>
+    /// Represents a specific command function with a set priority.
+    /// </summary>
     public class OverloadDisplayInfo : IDisplayInfo
     {
         public OverloadDisplayInfo(CommandInfo command)

@@ -5,18 +5,18 @@ using System.Text;
 
 namespace Orikivo
 {
-    public class OriLogColorConfig
+    public class LogColorMap
     {
-        public OriLogColorConfig()
+        public LogColorMap()
         {
             LogColors = new Dictionary<LogSeverity, (ConsoleColor? BackgroundColor, ConsoleColor? TextColor)?>();
         }
         // this manages log severity colors
-        public static OriLogColorConfig Default
+        public static LogColorMap Default
         {
             get
             {
-                OriLogColorConfig logColorConfig = new OriLogColorConfig();
+                LogColorMap logColorConfig = new LogColorMap();
                 logColorConfig.LogColors.Add(LogSeverity.Debug, (null, ConsoleColor.Cyan));
                 logColorConfig.LogColors.Add(LogSeverity.Error, (null, ConsoleColor.DarkRed));
                 logColorConfig.LogColors.Add(LogSeverity.Warning, (null, ConsoleColor.Yellow));

@@ -14,5 +14,6 @@
         internal static string ItemsSold = "generic:items_sold";
         internal static string GiftsGiven = "generic:gifts_given";
         internal static string CommandsUsed = "generic:commands_used";
+        // stat:
     }
 }

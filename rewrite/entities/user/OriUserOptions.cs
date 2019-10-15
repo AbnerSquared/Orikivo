@@ -4,6 +4,14 @@ using System.Text;
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents a configurable option from a user.
+    /// </summary>
+    public class UserOption
+    {
+
+    }
+
     // contains info relating to user configuration to orikivo
     public class OriUserOptions
     {

@@ -36,7 +36,7 @@ namespace Orikivo
         {
             (int Value, IntLengthType? LengthType) info = (0, null);
             Match m = new Regex(IntParsePattern).Match(context);
-            bool isSuccess = EnumParser.TryParseEnum(m.Groups[1].Value, out IntLengthType type);
+            bool isSuccess = EnumParser.TryParse(m.Groups[1].Value, out IntLengthType type);
             if (isSuccess)
                 info.LengthType = type;
             if (int.TryParse(m.Groups[0].Value, out int i))
@@ -53,7 +53,7 @@ namespace Orikivo
         {
             (double Value, IntLengthType? LengthType) info = (0, null);
             Match m = new Regex(DoubleParsePattern).Match(context);
-            bool isSuccess = EnumParser.TryParseEnum(m.Groups[1].Value, out IntLengthType type);
+            bool isSuccess = EnumParser.TryParse(m.Groups[1].Value, out IntLengthType type);
             if (isSuccess)
                 info.LengthType = type;
             if (double.TryParse(m.Groups[0].Value, out double i))

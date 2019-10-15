@@ -76,21 +76,21 @@ namespace Orikivo
         }
 
         public async Task<OriWebResult> GetAsync(string url = "")
-            => await SendAsync(HttpRequestType.GET, url);
+            => await SendAsync(HttpMethodType.GET, url);
 
         public async Task<OriWebResult> DeleteAsync(string url = "")
-            => await SendAsync(HttpRequestType.DELETE, url);
+            => await SendAsync(HttpMethodType.DELETE, url);
 
         public async Task<OriWebResult> PostAsync(string url = "", string value = null)
-            => await SendAsync(HttpRequestType.POST, url, value);
+            => await SendAsync(HttpMethodType.POST, url, value);
 
         public async Task<OriWebResult> PatchAsync(string url = "", string value = null)
-            => await SendAsync(HttpRequestType.PATCH, url, value);
+            => await SendAsync(HttpMethodType.PATCH, url, value);
 
         public async Task<OriWebResult> PutAsync(string url = "", string value = null)
-            => await SendAsync(HttpRequestType.PUT, url, value);
+            => await SendAsync(HttpMethodType.PUT, url, value);
 
-        public async Task<OriWebResult> SendAsync(HttpRequestType requestType, string url = "", string value = null)
+        public async Task<OriWebResult> SendAsync(HttpMethodType requestType, string url = "", string value = null)
         {
             url.TrimStart('/');
             HttpMethod method = new HttpMethod(requestType.ToString());
@@ -110,7 +110,7 @@ namespace Orikivo
             HttpResponseMessage response = await _client.SendAsync(request);
 
             if (_rateLimit != null)
-                if (!await _rateLimit.CanRequestAsync((HttpRequestType)Enum.Parse(typeof(HttpRequestType), request.Method.Method.ToUpper()), request.RequestUri.ToString()))
+                if (!await _rateLimit.CanRequestAsync((HttpMethodType)Enum.Parse(typeof(HttpMethodType), request.Method.Method.ToUpper()), request.RequestUri.ToString()))
                     throw new HttpRequestException($"{request.RequestUri} is currently prohibited due to a ratelimit.");
             OriWebResult result = new OriWebResult(response);
             if (result.IsSuccess)

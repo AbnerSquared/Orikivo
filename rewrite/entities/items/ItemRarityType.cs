@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum ItemRarityType
+    public enum ItemRarity
     {
         Common = 1
     }

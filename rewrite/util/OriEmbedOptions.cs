@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SysColor = System.Drawing.Color;
-using DiscordColor = Discord.Color;
-using Discord;
 using Newtonsoft.Json;
 
 namespace Orikivo
@@ -16,10 +11,12 @@ namespace Orikivo
         {
             get
             {
-                OriEmbedOptions embedOptions = new OriEmbedOptions();
-                embedOptions.Color = (110, 250, 200);
-                embedOptions.IsLocalImage = false;
-                embedOptions.StampCurrentTime = false;
+                OriEmbedOptions embedOptions = new OriEmbedOptions
+                {
+                    Color = (110, 250, 200),
+                    IsLocalImage = false,
+                    StampCurrentTime = false
+                };
 
                 return embedOptions;
             }

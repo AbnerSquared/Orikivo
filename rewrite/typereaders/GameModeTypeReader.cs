@@ -14,7 +14,7 @@ namespace Orikivo
             if (int.TryParse(input, out int i))
                 if (Enum.TryParse(input, out result))
                     return Task.FromResult(TypeReaderResult.FromSuccess(result));
-            if (EnumParser.TryParseEnum(input, out result))
+            if (EnumParser.TryParse(input, out result))
                 return Task.FromResult(TypeReaderResult.FromSuccess(result));
             return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Input did not match any parsable value."));
         }

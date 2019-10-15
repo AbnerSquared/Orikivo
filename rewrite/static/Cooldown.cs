@@ -2,9 +2,13 @@
 {
     internal static class Cooldown
     {
-        public static string Global = "generic:global";
-        public static string Notify = "generic:cooldown_notify";
-        public static string Vote = "generic:vote";
-        public static string Daily = "generic:checked_in";
+        // Global is the global cooldown among all commands.
+        public static string Global = "cooldown:global";
+        // Notify is the cooldown used to determine when it can notify you that you are on cooldown again.
+        public static string Notify = "cooldown:notify";
+        // Vote is the cooldown used to prevent voting until it clears.
+        public static string Vote = "cooldown:vote";
+        // Daily is the cooldown used to prevent checking in until it clears.
+        public static string Daily = "cooldown:checked_in";
     }
 }

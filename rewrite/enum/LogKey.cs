@@ -5,7 +5,7 @@ using System.Text;
 namespace Orikivo
 {
     // used to define the type of key the logger used
-    public enum LogKeyType
+    public enum LogKey
     {
         Name = 1,
         Date = 2,

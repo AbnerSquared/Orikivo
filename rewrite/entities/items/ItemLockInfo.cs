@@ -2,6 +2,6 @@
 {
     public class ItemLockInfo
     {
-        public ItemCriteria ToUnlock { get; }
+        public UserCriteria ToUnlock { get; }
     }
 }

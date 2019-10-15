@@ -21,10 +21,10 @@ namespace Orikivo
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
-        private readonly OriLoggerService _logger;
+        private readonly OriConsoleService _logger;
         private readonly GameManager _gameManager;
         public MiscModule(DiscordSocketClient client, CommandService commandService,
-            OriLoggerService logger, GameManager gameManager)
+            OriConsoleService logger, GameManager gameManager)
         {
             _client = client;
             _commandService = commandService;

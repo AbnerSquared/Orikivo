@@ -3,8 +3,9 @@ using System.Threading;
 
 namespace Orikivo
 {
-    // derives from random, using a single instance to create new randoms.
-    // increases randomness, instead of creating new ones each time.
+    /// <summary>
+    /// A static provider that allows for thread-safe random construction.
+    /// </summary>
     public class RandomProvider
     {
         private static readonly Random _global = new Random();
@@ -17,6 +18,6 @@ namespace Orikivo
                 return new Random(_global.Next());
         }
 
-        public static Random Instance { get { return _local.Value; } }
+        public static Random Instance => _local.Value;
     }
 }

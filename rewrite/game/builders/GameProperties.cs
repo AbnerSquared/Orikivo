@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Orikivo
 {
@@ -35,7 +36,6 @@ namespace Orikivo
 
             GameTimer task3Timer = new GameTimer(TimeSpan.FromSeconds(10), new GameTaskQueue(TaskCloseReason.Timeout, task4));
 
-
             GameTask Task1 = new GameTask(task1,
                 new List<GameAttribute> { timesCalled },
                 new List<GameTrigger> { crit1Call },
@@ -61,7 +61,8 @@ namespace Orikivo
                 new List<TaskCriterion>(), new GameTaskQueue(TaskCloseReason.Cancel, null),
                 new GameTimer(TimeSpan.FromSeconds(5), new GameTaskQueue(TaskCloseReason.Timeout, null)));
 
-            properties.EntryTask = Task1; // expected: a player types 'call' 3 times, which changes the task to task2, which times out to task4.
+            properties.EntryTask = Task1;
+            // expected: a player types 'call' 3 times, which changes the task to task2, which times out to task4.
             properties.Attributes = attributes;
             properties.Tasks = new List<GameTask> { Task2, Task3, Task4 };
             properties.ExitTask = Task4;

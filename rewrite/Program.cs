@@ -29,7 +29,7 @@ namespace Orikivo
                 // find a place for args
                 OriClientBuilder oriClientBuilder = new OriClientBuilder();
                 oriClientBuilder.ConsoleConfig = oriConsoleConfig;
-                oriClientBuilder.LoggerConfig = OriLoggerConfig.Default;
+                oriClientBuilder.LoggerConfig = OriLogConfig.Default;
                 oriClientBuilder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
                 oriClientBuilder.AddTypeReader<GameMode>(new GameModeTypeReader());
                 oriClientBuilder.AddTypeReader<ReportTag>(new ReportTagTypeReader());

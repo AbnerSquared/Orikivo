@@ -6,7 +6,6 @@ using System.Text;
 
 namespace Orikivo
 {
-    // stores all json files, like the users and guilds
     public class OriJsonContainer
     {
         public OriGlobal Global;

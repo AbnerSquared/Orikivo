@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // Marks a command to require the user executing it to have an existing account.
+    /// <summary>
+    /// A precondition that marks a command to require the user executing it to have an account.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RequireUserAccountAttribute : PreconditionAttribute
     {

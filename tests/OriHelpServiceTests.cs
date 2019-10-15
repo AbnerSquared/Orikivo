@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public class OriHelperServiceTests
+    public class OriHelpServiceTests
     {
         public static async Task<string> CompileTestAsync(string context)
         {

@@ -15,10 +15,10 @@
                 info.CanStack = true;
                 info.Id = "entity_pocket_lawyer";
                 info.Name = "Pocket Lawyer";
-                info.Rarity = ItemRarityType.Common;
+                info.Rarity = ItemRarity.Common;
                 info.Group = ItemGroupType.Entity;
                 info.Summary = "This little guy works against ORS to keep you safe.";
-                ItemCriteria toOwnCriteria = ItemCriteria.Empty;
+                UserCriteria toOwnCriteria = UserCriteria.Empty;
                 toOwnCriteria.Debt = 1000;
                 info.ToOwn = toOwnCriteria;
 
@@ -31,6 +31,7 @@
                 ItemMarketInfo marketInfo = new ItemMarketInfo();
                 marketInfo.Value = 40;
                 marketInfo.SellRate = 0.5;
+                info.MarketInfo = marketInfo;
 
                 return info;
             }

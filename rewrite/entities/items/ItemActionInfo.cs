@@ -2,10 +2,23 @@
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents an update packet for a user.
+    /// </summary>
+    public class UserUpdatePacket
+    {
+
+    }
+
+    public class ItemActionResult
+    {
+
+    }
+
     public class ItemActionInfo
     {
         // before use
-        public ItemCriteria ToUse { get; internal set; }
+        public UserCriteria ToUse { get; internal set; }
 
         // generic info
         public ItemCustomAction? OnUse { get; internal set;  } // a custom action that occurs on use

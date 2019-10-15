@@ -10,15 +10,15 @@ namespace Orikivo
     public static class ChannelExtensions
     {
         public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, OriUser user, KeyValuePair<string, CooldownInfo> cooldown)
-            => await OriMessageService.WarnCooldownAsync(channel, user, cooldown);
+            => await OriMessageHelper.WarnCooldownAsync(channel, user, cooldown);
 
         public static async Task ThrowAsync(this ISocketMessageChannel channel, string error, RequestOptions options = null)
-            => await OriMessageService.ThrowAsync(channel, error, options);
+            => await OriMessageHelper.ThrowAsync(channel, error, options);
 
         public static async Task CatchAsync(this ISocketMessageChannel channel, Exception ex, RequestOptions options = null)
-            => await OriMessageService.CatchAsync(channel, ex, options);
+            => await OriMessageHelper.CatchAsync(channel, ex, options);
 
         public static async Task SendMessageAsync(this ISocketMessageChannel channel, OriMessage oriMessage, RequestOptions options = null)
-            => await OriMessageService.SendMessageAsync(channel, oriMessage, options);
+            => await OriMessageHelper.SendMessageAsync(channel, oriMessage, options);
     }
 }

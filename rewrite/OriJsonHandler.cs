@@ -12,23 +12,27 @@ namespace Orikivo
     // related to json files
     public static class OriJsonHandler
     {
-        internal static readonly string DefaultFileFormat = "{0}.json";
-        internal static readonly string DefaultGlobalFileName = "global";
+        internal static readonly string JsonFrame = "{0}.json";
+        internal static readonly string GlobalFileName = "global";
+
         public static JsonSerializerSettings DefaultSerializerSettings
-        {
-            get
+            => new JsonSerializerSettings
             {
-                JsonSerializerSettings serializerSettings = new JsonSerializerSettings();
-                serializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                serializerSettings.DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate;
-                serializerSettings.Formatting = Formatting.Indented;
-                return serializerSettings;
-            }
-        }
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                Formatting = Formatting.Indented
+            };
 
         public static void SaveJsonEntity<T>(T obj, JsonSerializer serializer = null) where T : IJsonEntity
-            => Save(obj, string.Format(DefaultFileFormat, obj.Id), serializer);
+            => Save(obj, string.Format(JsonFrame, obj.Id), serializer);
 
+        /// <summary>
+        /// Saves an object to a specified local path.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj">The object to serialize as JSON.</param>
+        /// <param name="path">The local path to save to.</param>
+        /// <param name="serializer"></param>
         public static void Save<T>(T obj, string path, JsonSerializer serializer = null)
         {
             Console.WriteLine($"[Debug] -- Saving object of type '{typeof(T).Name}'. --");
@@ -37,15 +41,24 @@ namespace Orikivo
             {
                 using (JsonWriter writer = new JsonTextWriter(stream))
                 {
+                    // ??=
                     serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
                     serializer.Serialize(stream, obj);
                 }
             }
         }
-        public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
-            => Load<T>(GetDirectoryIndex<T>() + string.Format(DefaultFileFormat, id), serializer);
 
-        public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmptyDeserialization = false)
+        public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
+            => Load<T>(GetDirectoryIndex<T>() + string.Format(JsonFrame, id), serializer);
+
+        /// <summary>
+        /// Loads an object by the specified local path.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="path">The local path of the object.</param>
+        /// <param name="serializer">The serializer to use when loading this object.</param>
+        /// <param name="throwOnEmpty">Defines whether or not an empty object should throw an Exception.</param>
+        public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmpty = false)
         {
             Console.WriteLine($"[Debug] -- Loading object of type '{typeof(T).Name}'. --");
             if (typeof(T) == typeof(OriGlobal))
@@ -63,7 +76,7 @@ namespace Orikivo
                 {
                     serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
                     T tmp = serializer.Deserialize<T>(reader);
-                    if (throwOnEmptyDeserialization)
+                    if (throwOnEmpty)
                         if (tmp == null)
                             throw new Exception("The file deserialized returned as empty.");
                     return tmp == null ? default : tmp;
@@ -108,7 +121,6 @@ namespace Orikivo
             if (typeof(T) == typeof(OriGlobal))
                 return Directory.CreateDirectory(@"..\data\global\").FullName;
             return Directory.CreateDirectory(@"..\data\").FullName;
-            //throw new Exception($"Type '{typeof(T).Name}' is not a valid JSON container.");
         }
 
         private static List<string> ReadJsonDirectory(string directoryPath)
@@ -118,9 +130,8 @@ namespace Orikivo
         {
             Dictionary<string, T> tmp = new Dictionary<string, T>();
             foreach(string path in directory)
-            {
                 tmp[path] = Load<T>(path);
-            }
+
             return tmp;
         }
 

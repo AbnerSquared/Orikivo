@@ -11,17 +11,20 @@ namespace Orikivo
 {
     // the class that handles all events that can occur on discord
     // this is where commands are executed and whatknot
-    public class OriEventHandler
+    /// <summary>
+    /// The event handler deriving from all events relating to the Discord API.
+    /// </summary>
+    public class DiscordEventHandler
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
         private readonly IServiceProvider _provider;
 
         private readonly OriJsonContainer _container;
-        private readonly OriLoggerService _logger;
+        private readonly OriConsoleService _logger;
         private readonly GameManager _gameManager;
-        public OriEventHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider provider,
-            OriJsonContainer container, OriLoggerService logger, GameManager gameManager)
+        public DiscordEventHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider provider,
+            OriJsonContainer container, OriConsoleService logger, GameManager gameManager)
         {
             Console.WriteLine("-- Initializing event handler. --");
             _client = client;
@@ -38,7 +41,7 @@ namespace Orikivo
             _commandService.CommandExecuted += OnCommandExecutedAsync;
         }
 
-        public async Task OnUserJoinAsync(SocketGuildUser user)
+        private async Task OnUserJoinAsync(SocketGuildUser user)
         {
             OriGuild server = _container.GetOrAddGuild(user.Guild);
             if (server.Options.DefaultRoleId.HasValue) // check for verify
@@ -54,7 +57,7 @@ namespace Orikivo
             }
         }
 
-        public async Task OnChannelDeletedAsync(SocketChannel channel)
+        private async Task OnChannelDeletedAsync(SocketChannel channel)
         {
             Game game = _gameManager.Games.Values.FirstOrDefault(x => x.Receivers.Any(y => y.ChannelId == channel.Id));
             if (game.Receivers.Count - 1 == 0) // if the receiver count - the one about to be deleted results in an empty game.
@@ -62,12 +65,12 @@ namespace Orikivo
 
         }
 
-        public async Task OnReadyAsync()
+        private async Task OnReadyAsync()
         {
             _logger.Debug("Orikivo has connected to Discord.");
         }
 
-        public async Task HandleCommandAsync(SocketMessage arg)
+        private async Task HandleCommandAsync(SocketMessage arg)
         {
             // logging
             if (arg.Author.Id == _client.CurrentUser.Id)
@@ -115,24 +118,11 @@ namespace Orikivo
                 _logger.Debug("Incorrect prefix used. Now closing.");
         }
 
+        // Gets the prefix that the client should be looking for.
         private string GetContextPrefix(OriCommandContext Context)
-        {
-            string prefix = Context.Global.Prefix;
-            if (Context.Server != null)
-            {
-                if (Context.Server.Options.HasPrefix)
-                    prefix = Context.Server.Options.Prefix;
-            }
-            if (Context.Account != null)
-            {
-                if (Context.Account.Options.HasPrefix)
-                    prefix = Context.Account.Options.Prefix;
-            }
+            => Context.Account?.Options.Prefix ?? Context.Server?.Options.Prefix ?? Context.Global.Prefix;
 
-            return prefix;
-        }
-
-        public async Task ExecuteCommandAsync(OriCommandContext Context, int argPos)
+        private async Task ExecuteCommandAsync(OriCommandContext Context, int argPos)
         {
             try
             {
@@ -197,7 +187,7 @@ namespace Orikivo
 
         // this is used when a command is executed.
         // used to save OriGuild and OriUser to the actual computer if they exist
-        public async Task OnCommandExecutedAsync(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
+        private async Task OnCommandExecutedAsync(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
         {
             if (result.IsSuccess)
             {
