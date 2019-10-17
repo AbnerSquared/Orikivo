@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // Handles the actual process of the game.
     public class GameClient
     {
         private GameEventHandler _events;
@@ -42,6 +43,7 @@ namespace Orikivo
 
         private GameTask CurrentTask { get; set; }
 
+        // Officially starts the game client, launching at entry task and continuing until an end has been met.
         internal async Task<GameResult> StartAsync()
         {
             try
@@ -81,6 +83,7 @@ namespace Orikivo
             return GameResult.Empty;
         }
 
+        // Completely halts all actions and closes the client.
         internal async Task StopAsync(string reason = null, TimeSpan? delay = null)
         {
             GameToken.Cancel();

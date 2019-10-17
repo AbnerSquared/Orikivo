@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     // container for game displays.
+    
+    // To be replaced by GameMonitor2 when ready.
     public class GameMonitor
     {
         private GameEventHandler _events;
@@ -39,8 +41,13 @@ namespace Orikivo
     }
 
     // remove 2 when rewritten.
+    ///<summary>
+    /// A container bound to a game that handles what to display across each receiver.
+    ///</summary>
     public class GameMonitor2
     {
+        // Goal: I want the windows to be updated separately. Since each window is a separate display type,
+        // you want the windows to be explicitly called in order to update.
         private GameEventHandler _events;
         internal GameMonitor2(string gameId, GameEventHandler events)
         {
@@ -57,6 +64,18 @@ namespace Orikivo
                 throw new Exception("An error has occured while updating an element.");
             //await _events.InvokeWindowUpdatedAsync(this[state]);
         }
+
+        ///<summary>
+        /// Updates the current game state bound to a window with an update packet.
+        ///</summary>
+        internal async Task UpdateWindowAsync(GameState state, WindowUpdatePacket packet)
+        {}
+
+        ///<summary>
+        /// Updates a game window with an update packet.
+        ///</summary>
+        internal async Task UpdateWindowAsync(WindowUpdatePacket packet)
+        {}
 
         // internal async Task UpdateWindowAsync(GameOutput output, ElementUpdatePacket packet) {}
         internal async Task SetTabAsync(GameState state, string tabId)

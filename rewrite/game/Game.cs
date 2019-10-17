@@ -85,6 +85,7 @@ namespace Orikivo
         // async task version is used whenever a game session can start, as a game session is a dynamic task.
         // default event version is used during a game session, as all of the commands are just quick functions
 
+        // Begins a lobby session. This is the main session listener.
         internal async Task StartSessionAsync()
         {
             Loop:
@@ -116,12 +117,13 @@ namespace Orikivo
                     await Monitor.UpdateDisplayAsync(GameState.Inactive, $"[{user.Name}]: {message.Content}");
             }
 
-            _client.MessageReceived += ReadAsync;
+            _client.MessageReceived += ReadAsync; // sets the actual listener and stops it upon either start or close was called
             Task<bool> result = await Task.WhenAny(start.Task).ConfigureAwait(false);
             _client.MessageReceived -= ReadAsync;
 
             if (result.Result)
             {
+                // If result.True... Set the offhand listener which allows the lobby to still process info.
                 _client.MessageReceived += OnOffhandMessageAsync;
                 await StartAsync();
                 _client.MessageReceived -= OnOffhandMessageAsync;
@@ -133,15 +135,16 @@ namespace Orikivo
             }
         }
 
+        // Attempts to start a game and parse its result.
         public async Task<GameResult> StartAsync()
         {
-            if (State == GameState.Active)
+            if (State == GameState.Active) // Can be set at Window.Inactive
                 throw new Exception("The game has already started.");
 
             if (!Lobby.IsInitialized)
                 throw new Exception("The game hasn't been initialized yet.");
 
-            if (!Lobby.CanStart)
+            if (!Lobby.CanStart) // Can be sent at Window.Inactive
                 throw new Exception("The game does not meet the criteria to start.");
 
             await SetStateAsync(GameState.Active);
@@ -156,6 +159,8 @@ namespace Orikivo
             return result;
         }
 
+        // UpdateStateAsync(GameState state);
+        // This is used to set the global game state (if the game is active at the moment)
         private async Task SetStateAsync(GameState state)
         {
             State = state;
@@ -169,6 +174,7 @@ namespace Orikivo
             Console.WriteLine("-- All receivers are now up to date. --");
         }
 
+        // Stops all actions within a game and shuts it down.
         internal async Task CloseAsync()
         {
             if (State == GameState.Active)
@@ -181,6 +187,7 @@ namespace Orikivo
         public bool ContainsGuild(ulong guildId)
             => Lobby.ContainsGuild(guildId);
 
+        // Displays the game as a quick overall summary.
         public override string ToString()
             => $"**{Lobby.Name}** #{Id}\n**{(State == GameState.Active ? "In Progress" : "Open")}** • (**{Lobby.UserCount}** of **{Lobby.UserLimit}**)\n`{Lobby.Mode}`";
     }

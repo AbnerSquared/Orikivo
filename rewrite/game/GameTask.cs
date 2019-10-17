@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // Defines a continuous action for a game that is called until any completion criteria have been met
     public class GameTask
     {
         // this is used to store specific phases

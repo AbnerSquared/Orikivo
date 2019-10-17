@@ -2,13 +2,25 @@
 
 namespace Orikivo
 {
-    // contains what to do on a tab.
+    ///<summary>
+    /// A packet that contains information on what to update within a game window tab.
+    ///</summary>
     public class TabUpdatePacket
     {
-        // apply the tabId in monitor update packet.
-        string TabId { get; set; } // the tab to update. leave null for currentTabId
+        public TabUpdatePacket(string tabId = null, List<ElementUpdatePacket> packets = null)
+        {
+            TabId = tabId;
+            Packets = packets ?? new List<ElementUpdatePacket>();
+        }
 
-        // a list defining a collection of elements to be updated on a tab.
+        ///<summary>
+        /// The tab to be updated. If left empty, it will default to the current tab.
+        ///</summary>
+        string TabId { get; set; }
+
+        ///<summary>
+        /// A collection of elements to be updated within a tab.
+        ///</summary>
         List<ElementUpdatePacket> Packets { get; } = new List<ElementUpdatePacket>();
     }
 }

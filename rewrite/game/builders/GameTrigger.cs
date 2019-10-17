@@ -5,6 +5,16 @@ using System.Text.RegularExpressions;
 
 namespace Orikivo
 {
+    // Defines an update packet for the currently running game.
+    public class GameUpdatePacket
+    {
+        // AttributeUpdatePacket // What to update an attribute with.
+        // UserUpdatePacket // What to update a user with
+        // MonitorUpdatePacket // What to update a monitor
+        // WindowUpdatePacket // What to update a game window
+
+    }
+
     /// <summary>
     /// A command object that defines what to do upon being called in a message.
     /// </summary>
@@ -25,10 +35,13 @@ namespace Orikivo
 
         public GameArg Arg { get; }
 
+        // AttributePackets
         /// <summary>
         /// A list of attributes to update upon a successful execution.
         /// </summary>
         public List<AttributeUpdatePacket> ToUpdate { get; } = new List<AttributeUpdatePacket>();
+
+        // MonitorPackets
 
         /// <summary>
         /// A list of criteria that need to be met before the command can be executed.

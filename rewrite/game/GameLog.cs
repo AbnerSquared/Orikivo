@@ -6,15 +6,17 @@
     /// <summary>
     /// A GameLogger entry defining what occurred within a Game.
     /// </summary>
-    public class GameLogEntry
+    public class GameLog
     {
-        private GameLogEntry() { }
+        private GameLog() { }
 
         /// <summary>
         /// Creates a custom log entry from a string written.
         /// </summary>
-        internal static GameLogEntry FromString(string content)
-            => new GameLogEntry { Content = content, Type = LogEntryType.Custom };
+        internal static GameLog FromString(string content)
+            => new GameLog { Content = content, Type = LogEntryType.Custom };
+
+        // Add static constructors for other types: FromAction FromEvent FromException
 
         /// <summary>
         /// The content that was written.
@@ -24,6 +26,6 @@
         /// <summary>
         /// The type of entry that was specified.
         /// </summary>
-        public LogEntryType Type { get; private set; }
+        public GameLogType Type { get; private set; }
     }
 }

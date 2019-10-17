@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum LogEntryType
+    public enum GameLogType
     {
         /// <summary>
         /// The entry is a custom string.
