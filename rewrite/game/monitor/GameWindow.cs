@@ -25,6 +25,10 @@ namespace Orikivo
         }
         public GameTab this[string id]
             => Tabs.First(x => x.Id == id);
+
+        // Make it the parsing content.
+        public string Content { get; }
+        public string SyncKey { get; private set; }
         public override string ToString()
         {
             return base.ToString();

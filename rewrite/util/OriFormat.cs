@@ -121,7 +121,6 @@ namespace Orikivo
 
         public static string FormatTextChannelName(string value)
         {
-            int minLen = 1;
             int maxLen = 100;
 
             if (string.IsNullOrWhiteSpace(value))

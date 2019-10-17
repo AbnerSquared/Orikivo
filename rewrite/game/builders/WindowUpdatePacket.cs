@@ -7,7 +7,7 @@ namespace Orikivo
     ///</summary>
     public class WindowUpdatePacket
     {
-        public WindowUpdatePacket(GameWindowOutput output, string toTabId = null, List<TabUpdatePacket> packets = null)
+        public WindowUpdatePacket(GameOutput output, string toTabId = null, List<TabUpdatePacket> packets = null)
         {
             Output = output;
             ToTabId = toTabId;
@@ -24,7 +24,7 @@ namespace Orikivo
         ///<summary>
         /// Defines the output type that correlates to the window. This can be used in place of an ID.
         ///</summary>
-        public GameWindowOutput Output {get; set; }
+        public GameOutput Output {get; set; }
 
         ///<summary>
         /// The game window to be updated.

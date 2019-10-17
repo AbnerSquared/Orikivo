@@ -12,11 +12,11 @@ namespace Orikivo
         /// <summary>
         /// A collection of all of the stored entries logged.
         /// </summary>
-        public List<GameLogEntry> Entries { get; } = new List<GameLogEntry>();
+        public List<GameLog> Entries { get; } = new List<GameLog>();
 
         public void Log(string value)
         {
-            GameLogEntry entry = GameLogEntry.FromString(value);
+            GameLog entry = GameLog.FromString(value);
             Entries.Add(entry);
             Console.WriteLine(value);
         }

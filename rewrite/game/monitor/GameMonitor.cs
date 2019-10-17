@@ -84,6 +84,9 @@ namespace Orikivo
             //await _events.InvokeWindowUpdatedAsync(this[state]);
         }
 
+        internal GameWindow GetWindow(GameState state)
+            => this[state];
+
         internal GameWindow this[GameState state]
             => Windows.First(x => x.Output == (GameOutput)(int)state);
 

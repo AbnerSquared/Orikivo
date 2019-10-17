@@ -60,8 +60,6 @@ namespace Orikivo
         {
             if (loggerConfig != null)
             {
-                _logKeyEntry = loggerConfig.LogKeyEntry;
-                _logKeyExit = loggerConfig.LogKeyExit;
                 EntryFormat = loggerConfig.EntryFormat;
                 ExceptionFormat = loggerConfig.ExceptionFormat;
                 MessageFormat = loggerConfig.MessageFormat;

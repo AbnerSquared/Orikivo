@@ -39,8 +39,9 @@ namespace Orikivo
                 throw new NullReferenceException("The value used to set a LogKey is null.");
             Keys[keyType] = value;
         }
-
+        private const char ENT = '{';
+        private const char EX = '}';
         private Dictionary<LogKey, string> Keys { get; set; }
-        public string this[LogKey keyType] => Keys[keyType] ?? Default.Keys[keyType];
+        public string this[LogKey keyType] => $"{ENT}{Keys[keyType] ?? Default.Keys[keyType]}{EX}";
     }
 }

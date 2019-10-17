@@ -14,7 +14,7 @@
         /// Creates a custom log entry from a string written.
         /// </summary>
         internal static GameLog FromString(string content)
-            => new GameLog { Content = content, Type = LogEntryType.Custom };
+            => new GameLog { Content = content, Type = GameLogType.Custom };
 
         // Add static constructors for other types: FromAction FromEvent FromException
 

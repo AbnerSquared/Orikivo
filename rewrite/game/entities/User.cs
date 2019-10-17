@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
+using System;
+using System.Threading.Tasks;
 // Import System.Threading.Tasks;
 namespace Orikivo
 {
@@ -40,21 +44,20 @@ namespace Orikivo
         public ulong? ChannelId => Channel?.Id;
         public ulong? MessageId => Message?.Id;
         public string SyncKey { get; private set; }
+        public GameState State { get; private set; }
         private IDMChannel Channel { get; set; }
         private RestUserMessage Message { get; set; }
         
-        public async Task<bool> UpdateAsync(BaseSocketClient client, GameMonitor monitor)
+        public async Task<bool> UpdateAsync(BaseSocketClient client, GameMonitor2 monitor)
         {
             // Handle empty channels, empty messages, if it can update messages...
-            await Channel.UpdateAsync();
-            if (Channel is null)
-               // await client.GetDMChannelAsync(Id);
             if (SyncKey == monitor.GetWindow(State).SyncKey)
                 return true;
-            await Message.ModifyAsync(x => x.Text = monitor.GetWindow(State).Content);
+            await Message.ModifyAsync(x => x.Content = monitor.GetWindow(State).Content);
+            throw new NotImplementedException();
         }
         
-        public async Task<bool> CloseAsync(string reason = null, TimeSpan delay = null)
+        public async Task<bool> CloseAsync(string reason = null, TimeSpan? delay = null)
         {
             throw new NotImplementedException();
         }

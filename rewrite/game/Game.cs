@@ -10,7 +10,6 @@ namespace Orikivo
     {
         private BaseSocketClient _client;
         private GameEventHandler _events;
-        private GameConfig _config;
 
         public Game(BaseSocketClient client, GameConfig config)
         {
