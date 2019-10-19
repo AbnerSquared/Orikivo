@@ -24,7 +24,7 @@ namespace Orikivo
         ///<summary>
         /// Defines the output type that correlates to the window. This can be used in place of an ID.
         ///</summary>
-        public GameOutput Output {get; set; }
+        public GameOutput Output { get; set; }
 
         ///<summary>
         /// The game window to be updated.

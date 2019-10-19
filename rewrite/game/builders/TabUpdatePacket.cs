@@ -16,11 +16,11 @@ namespace Orikivo
         ///<summary>
         /// The tab to be updated. If left empty, it will default to the current tab.
         ///</summary>
-        string TabId { get; set; }
+        public string TabId { get; set; }
 
         ///<summary>
         /// A collection of elements to be updated within a tab.
         ///</summary>
-        List<ElementUpdatePacket> Packets { get; } = new List<ElementUpdatePacket>();
+        public List<ElementUpdatePacket> Packets { get; } = new List<ElementUpdatePacket>();
     }
 }

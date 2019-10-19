@@ -23,11 +23,27 @@ namespace Orikivo
                 throw new Exception("There are no tabs that correspond to that id.");
             CurrentTabId = tabId;
         }
+
+        public bool Update(WindowUpdatePacket packet)
+        {
+            if (packet.ToTabId != null)
+                SetCurrentTab(packet.ToTabId);
+
+            foreach (TabUpdatePacket tabPacket in packet.Packets)
+                if (!CurrentTab.Update(tabPacket))
+                    return false;
+
+            return true;
+        }
+
+        public GameTab GetTab(string id)
+            => this[id];
+
         public GameTab this[string id]
             => Tabs.First(x => x.Id == id);
 
         // Make it the parsing content.
-        public string Content { get; }
+        public string Content => CurrentTab.Content;
         public string SyncKey { get; private set; }
         public override string ToString()
         {

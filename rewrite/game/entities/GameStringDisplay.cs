@@ -3,9 +3,9 @@
 namespace Orikivo
 {
     // container for display content.
-    public class GameDisplay
+    public class GameStringDisplay
     {
-        internal GameDisplay(GameState type)
+        internal GameStringDisplay(GameState type)
         {
             Type = type;
             Content = new StringBuilder();

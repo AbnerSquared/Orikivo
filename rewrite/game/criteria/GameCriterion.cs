@@ -4,15 +4,6 @@ using System.Linq;
 
 namespace Orikivo
 {
-    // base game task data that is the backbone behind every task.
-    public class BaseTaskData
-    {
-        // the attributes to pass onto each task.
-        List<GameAttribute> Attributes { get; }
-        // the criteria to render a game as successful to pass onto each task.
-        List<TaskCriterion> SuccessCriteria { get; }
-    }
-
     /// <summary>
     /// The criterion that is required for a game to end.
     /// </summary>

@@ -12,41 +12,44 @@ namespace Orikivo
     public class GameTask
     {
         // this is used to store specific phases
-        internal GameTask(string id, List<GameAttribute> attributes, List<GameTrigger> triggers, List<TaskCriterion> criteria, GameTaskQueue onCancel, GameTimer timer = null)
+        internal GameTask(string name, List<GameAttribute> attributes, List<GameTrigger> triggers, List<TaskCriterion> criteria, TaskQueuePacket onCancel, GameTimer timer = null)
         {
             // set up the root basics. we need a root game handler that contains root attributes and so forth.
-            Id = id;
+            Name = name;
 
             // these are the properties that control how the tasks functions.
             Attributes = attributes; // a list of attributes that are used to determine scenarios.
             Triggers = triggers; // a list of triggers used to update attributes
             Criteria = criteria; // a list of criteria used to determine what a successful route is.
 
-            // create the task completion sources to read from.
-            Success = new TaskCompletionSource<GameTaskQueue>();
             OnCancel = onCancel;
-            Cancel = new TaskCompletionSource<GameTaskQueue>();
             Timer = timer; // a timer used to control how long the task lasts until it closes.
         }
-        public string Id { get; }
-        private TaskCompletionSource<GameTaskQueue> Cancel { get; }
-        private GameTaskQueue OnCancel { get; }
-        private TaskCompletionSource<GameTaskQueue> Success { get; }
+
+        public string Name { get; }
+        public string Id => $"task.{Name}";
+        public GameTaskData Data { get; }
+
+        private TaskCompletionSource<TaskQueuePacket> Cancel = new TaskCompletionSource<TaskQueuePacket>();
+        private TaskQueuePacket OnCancel { get; }
+        private TaskCompletionSource<TaskQueuePacket> Success = new TaskCompletionSource<TaskQueuePacket>();
         private GameTimer Timer { get; }
         private List<TaskCriterion> Criteria { get; }
         internal List<GameTrigger> Triggers { get; }
+
+        
 
         // a collection of local attributes.
         public List<GameAttribute> Attributes { get; }
         private List<GameAttribute> LastAttributesUpdated { get; set; } = new List<GameAttribute>();
 
-        public async Task<GameTaskQueue> StartAsync(BaseSocketClient client, GameLobby lobby, GameMonitor monitor, GameData data, CancellationToken token)
+        public async Task<TaskQueuePacket> StartAsync(BaseSocketClient client, GameLobby lobby, GameDisplay display, GameData data, CancellationToken token)
         {
+            Data.Root = data; // unite parent data to task data.
             Console.WriteLine($"-- Now starting task. ({Id}) --");
-            await monitor.UpdateDisplayAsync(GameState.Active, $"[Console] Task opened. ({Id})");
+            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task opened. ({Id})"), ElementUpdateMethod.AddToGroup, groupId: "console"));
             async Task ParseAsync(SocketMessage message)
             {
-                StringBuilder content = new StringBuilder();
                 LastAttributesUpdated = new List<GameAttribute>();
 
                 Console.WriteLine($"-- Now validating incoming message... --");
@@ -58,59 +61,87 @@ namespace Orikivo
                 }
                 Console.WriteLine($"-- Message validated. --");
 
+                Player player = GetPlayer(message.Author.Id);
+
                 foreach (GameTrigger trigger in Triggers)
                 {
                     Console.WriteLine($"-- Now comparing a trigger. (trigger:{trigger.Name}) --");
-                    if (trigger.TryParse(message.Content, lobby.Users, out TriggerResult context))
+                    if (trigger.TryParse(new GameTriggerContext(Data, player, message.Content), out GameTriggerResult context))
                     {
-                        content.AppendLine($"[Console] Trigger successful. (trigger:{trigger.Name})");
+                        display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Trigger successful. (trigger:{trigger.Name})"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
                         if (context.Packets != null)
-                            foreach (AttributeUpdatePacket packet in context.Packets)
-                                if (UpdateAttribute(packet, out GameAttribute attribute))
-                                    LastAttributesUpdated.Add(attribute);
+                            foreach (GameUpdatePacket packet in context.Packets)
+                                if (Update(packet, display, out List<GameAttribute> updatedAttributes))
+                                    LastAttributesUpdated.AddRange(updatedAttributes);
                         break;
                     }
                 }
 
                 if (LastAttributesUpdated.Count == 0)
-                    content.AppendLine($"[{user.Name}]: {message.Content}");
+                    display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
 
                 if (LastAttributesUpdated.Count > 0)
-                    foreach (TaskCriterion criteria in Criteria.Where(x => x.AttributeCriteria.Any(y => LastAttributesUpdated.Any(z => z.Id == y.RequiredId))))
+                    foreach (TaskCriterion criteria in Criteria.Where(x =>
+                    x.AttributeCriteria.Any(y => LastAttributesUpdated.Select(z => z.Id).Contains(y.RequiredId))))
                         if (criteria.Check(Attributes))
                         {
-                            content.AppendLine($"[Console] Task closed. ({Id} => {criteria.OnSuccess.TaskId})");
+                            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task closed. ({Id} => {criteria.OnSuccess.NextTaskId})"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
                             Success.SetResult(criteria.OnSuccess);
                             break;
                         }
 
-                // this now only calls up once per trigger update.
-                await monitor.UpdateDisplayAsync(GameState.Active, content.ToString().Trim());
+                // refresh all connected displays with its new content, if applicable.
+                await display.RefreshAsync();
             }
-            //try
-            //{
-                //return await Task.Run(async () =>
-                //{
+            /*
+             try
+             {
+                return await Task.Run(async () =>
+                {
+            */
             client.MessageReceived += ParseAsync;
-            List<Task<GameTaskQueue>> tasks = new List<Task<GameTaskQueue>> { Cancel.Task, Success.Task };
+            List<Task<TaskQueuePacket>> tasks = new List<Task<TaskQueuePacket>> { Cancel.Task, Success.Task };
 
             if (Timer != null)
                 tasks.Add(Timer.Run());
 
-            Task<GameTaskQueue> task = await Task.WhenAny(tasks).ConfigureAwait(false);
+            Task<TaskQueuePacket> task = await Task.WhenAny(tasks).ConfigureAwait(false);
 
-            task.Result.LastTaskId = Id;
+            task.Result.TaskId = Id;
             client.MessageReceived -= ParseAsync;
             Console.WriteLine($"-- A task has ended. (task:{Id}) --");
             return task.Result;
-                //}, token);
-            //}
-            //catch (OperationCanceledException)
-            //{
-            //    _client.MessageReceived -= ParseAsync;
-            //    Console.WriteLine("Cancel requested.");
-            //    return GameRoute.Empty;
-            //}
+            /*
+                }, token);
+            }
+            catch (OperationCanceledException)
+            {
+                _client.MessageReceived -= ParseAsync;
+                Console.WriteLine("Cancel requested.");
+                return GameRoute.Empty;
+            }
+            */
+        }
+
+        private Player GetPlayer(ulong id)
+            => Data?.Players.FirstOrDefault(x => x.UserId == id) ?? null;
+
+        private bool Update(GameUpdatePacket packet, GameDisplay display, out List<GameAttribute> updatedAttributes)
+        {
+            updatedAttributes = new List<GameAttribute>();
+            foreach (AttributeUpdatePacket attributePacket in packet.AttributePackets)
+            {
+                if (!UpdateAttribute(attributePacket, out GameAttribute updatedAttribute))
+                    return false;
+
+                updatedAttributes.Add(updatedAttribute);   
+            }
+
+            foreach (WindowUpdatePacket windowPacket in packet.WindowPackets)
+                if (!display.UpdateWindow(GameState.Active, windowPacket))
+                    return false;
+
+            return true;
         }
 
         private bool UpdateAttribute(AttributeUpdatePacket update, out GameAttribute attribute)

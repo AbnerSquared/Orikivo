@@ -13,14 +13,14 @@ namespace Orikivo
         private GameEventHandler _events;
         private BaseSocketClient _client;
         private GameLobby _lobby; // contains the root info.
-        private GameMonitor _monitor;
+        private GameDisplay _display;
         private bool _active = false;
         public GameClient(Game game, BaseSocketClient client, GameEventHandler events)
         {
             _client = client;
             _events = events;
             _lobby = game.Lobby;
-            _monitor = game.Monitor;
+            _display = game.Display;
             Id = game.Id;
             GameProperties properties = GameProperties.Create(game.Mode, game.Users);
             EntryTask = properties.EntryTask;
@@ -53,10 +53,10 @@ namespace Orikivo
                 do
                 {
                     Console.WriteLine($"-- A task has started execution. ({CurrentTask.Id}) --");
-                    GameTaskQueue route = await CurrentTask.StartAsync(_client, _lobby, _monitor, Data, GameToken.Token).ConfigureAwait(false);
+                    TaskQueuePacket route = await CurrentTask.StartAsync(_client, _lobby, _display, Data, GameToken.Token).ConfigureAwait(false);
                     Console.WriteLine($"-- The current task has completed. ({CurrentTask.Id}) --");
 
-                    if (!Checks.NotNull(route.TaskId))
+                    if (!Checks.NotNull(route.NextTaskId))
                     {
                         if (CurrentTask.Id == ExitTask?.Id)
                             _active = false;
@@ -65,10 +65,10 @@ namespace Orikivo
                     }
                     else
                     {
-                        if (!Tasks.Any(x => x.Id == route.TaskId))
+                        if (!Tasks.Any(x => x.Id == route.NextTaskId))
                             throw new Exception("A route attempted to go to a task that doesn't exist.");
-                        CurrentTask = Tasks.First(x => x.Id == route.TaskId);
-                        Console.WriteLine($"-- The current task has been updated. ({route.LastTaskId} => {route.TaskId ?? "null"}) --");
+                        CurrentTask = Tasks.First(x => x.Id == route.NextTaskId);
+                        Console.WriteLine($"-- The current task has been updated. ({route.TaskId} => {route.NextTaskId ?? "null"}) --");
                     }
                 } while (_active);
             }

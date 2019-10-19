@@ -26,15 +26,15 @@ namespace Orikivo
 
             GameAttribute timesCalled = new GameAttribute(timesCalledAtt);
 
-            GameTaskQueue onCrit1 = new GameTaskQueue(TaskCloseReason.Success, task2);
+            TaskQueuePacket onCrit1 = new TaskQueuePacket(TaskQueueReason.Success, task2);
             TaskCriterion crit1 = new TaskCriterion(new List<AttributeCriterion> { new AttributeCriterion(timesCalled.Id, 3) }, onCrit1);
 
-            AttributeUpdatePacket onCall = new AttributeUpdatePacket(timesCalledAtt, 1);
-            GameTrigger crit1Call = new GameTrigger("call", onSuccess: onCall);
+            GameUpdatePacket onCall = new GameUpdatePacket(new List<AttributeUpdatePacket> { new AttributeUpdatePacket(timesCalledAtt, 1) });
+            GameTrigger crit1Call = new GameTrigger("call", onParseSuccess: new List<GameUpdatePacket>() { onCall });
 
-            GameTaskQueue onCancel = new GameTaskQueue(TaskCloseReason.Cancel, task3);
+            TaskQueuePacket onCancel = new TaskQueuePacket(TaskQueueReason.Cancel, task3);
 
-            GameTimer task3Timer = new GameTimer(TimeSpan.FromSeconds(10), new GameTaskQueue(TaskCloseReason.Timeout, task4));
+            GameTimer task3Timer = new GameTimer(TimeSpan.FromSeconds(10), new TaskQueuePacket(TaskQueueReason.Timeout, task4));
 
             GameTask Task1 = new GameTask(task1,
                 new List<GameAttribute> { timesCalled },
@@ -46,20 +46,20 @@ namespace Orikivo
                 new List<GameAttribute>(),
                 new List<GameTrigger>(),
                 new List<TaskCriterion>(),
-                new GameTaskQueue(TaskCloseReason.Cancel, task4),
-                new GameTimer(TimeSpan.FromSeconds(10), new GameTaskQueue(TaskCloseReason.Timeout, task4)));
+                new TaskQueuePacket(TaskQueueReason.Cancel, task4),
+                new GameTimer(TimeSpan.FromSeconds(10), new TaskQueuePacket(TaskQueueReason.Timeout, task4)));
 
             GameTask Task3 = new GameTask(task3,
                 new List<GameAttribute>(),
                 new List<GameTrigger>(),
                 new List<TaskCriterion>(),
-                new GameTaskQueue(TaskCloseReason.Cancel, task4),
+                new TaskQueuePacket(TaskQueueReason.Cancel, task4),
                 new GameTimer(TimeSpan.FromSeconds(10),
-                new GameTaskQueue(TaskCloseReason.Timeout, task4)));
+                new TaskQueuePacket(TaskQueueReason.Timeout, task4)));
             GameTask Task4 = new GameTask(task4,
                 new List<GameAttribute>(), new List<GameTrigger>(),
-                new List<TaskCriterion>(), new GameTaskQueue(TaskCloseReason.Cancel, null),
-                new GameTimer(TimeSpan.FromSeconds(5), new GameTaskQueue(TaskCloseReason.Timeout, null)));
+                new List<TaskCriterion>(), new TaskQueuePacket(TaskQueueReason.Cancel, null),
+                new GameTimer(TimeSpan.FromSeconds(5), new TaskQueuePacket(TaskQueueReason.Timeout, null)));
 
             properties.EntryTask = Task1;
             // expected: a player types 'call' 3 times, which changes the task to task2, which times out to task4.

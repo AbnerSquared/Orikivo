@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the type of argument specified.
     /// </summary>
-    public enum GameArgType
+    public enum GameObjectType
     {
         /// <summary>
         /// The argument requires that an identifier or name of a user be passed.
@@ -12,7 +12,7 @@
         /// <summary>
         /// The argument requires that a string be passed.
         /// </summary>
-        Message = 2,
+        String = 2,
 
         /// <summary>
         /// The argument requires that any of the argument fields are passed.

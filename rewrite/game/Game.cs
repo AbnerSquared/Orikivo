@@ -18,7 +18,7 @@ namespace Orikivo
             Id = KeyBuilder.Generate(8);
             Logger = new GameLogger();
             Lobby = new GameLobby(config, _events);
-            Monitor = new GameMonitor(_events, config.Mode); // this needs to build the generic lobby display
+            Display = new GameDisplay(Id, _events/*, config.Mode*/); // this needs to build the generic lobby display
             // the game display can be built in game properties.
             _events.DisplayUpdated += OnDisplayUpdatedAsync;
             _events.ReceiverConnected += OnReceiverConnectedAsync;
@@ -34,7 +34,7 @@ namespace Orikivo
         public bool IsProtected => Checks.NotNull(Password);
         public GameMode Mode { get; private set; }
         public GameState State { get; private set; }
-        public GameMonitor Monitor { get; } // the root display for all receivers.
+        public GameDisplay Display { get; } // the root display for all receivers.
         // create UpdateDisplay(...);
         public GameLogger Logger { get; } // logs all events in the game.
         public GameLobby Lobby { get; } // contains all of the users and receivers.
@@ -51,7 +51,8 @@ namespace Orikivo
                 return;
             if (message.Content == "start")
             {
-                await Monitor.UpdateDisplayAsync(GameState.Inactive, "[Console] A game is already in progress.");
+                // new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat")
+                Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
             }
         }
         //if (userId == _client.CurrentUser.Id)
@@ -59,15 +60,15 @@ namespace Orikivo
         private async Task OnDisplayUpdatedAsync(GameDisplay display)
         {
             Console.WriteLine($"-- A display update was called. --");
-            Receivers.Where(x => x.State == display.Type).ToList().ForEach(async x => { await x.UpdateAsync(_client, Monitor); Console.WriteLine($"-- ({x.Id}.{x.State}) Display updated. --"); });
+            Receivers.ForEach(async x => { await x.UpdateAsync(_client, Display); Console.WriteLine($"-- ({x.Id}.{x.State}) Display updated. --"); });
         }
         private async Task OnUserJoinedAsync(User user, GameLobby lobby)
-            => await Monitor.UpdateDisplayAsync(GameState.Inactive, $"[Console] {user.Name} has joined.");
+            => Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has joined."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
         private async Task OnUserLeftAsync(User user, GameLobby lobby)
-            => await Monitor.UpdateDisplayAsync(GameState.Inactive, $"[Console] {user.Name} has left.");
+            => Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has left."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
 
         private async Task OnReceiverConnectedAsync(GameReceiver receiver, GameLobby lobby)
-            => await receiver.UpdateAsync(_client, Monitor);
+            => await receiver.UpdateAsync(_client, Display);
 
         // this is what's used to start the lobby client.
         public async Task BootAsync(OriCommandContext context)
@@ -104,7 +105,7 @@ namespace Orikivo
                 
                 if (message.Content == "start")
                 {
-                    await Monitor.UpdateDisplayAsync(GameState.Inactive, $"[Console] {Lobby.Mode} will be starting soon.");
+                    Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {Lobby.Mode} will be starting soon."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
                     await Task.Delay(TimeSpan.FromSeconds(3));
                     start.SetResult(true);
                 }
@@ -113,7 +114,7 @@ namespace Orikivo
                     start.SetResult(false);
                 }
                 else
-                    await Monitor.UpdateDisplayAsync(GameState.Inactive, $"[{user.Name}]: {message.Content}");
+                    Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
             }
 
             _client.MessageReceived += ReadAsync; // sets the actual listener and stops it upon either start or close was called
@@ -150,9 +151,8 @@ namespace Orikivo
 
             Client = new GameClient(this, _client, _events);
             GameResult result = await Client.StartAsync().ConfigureAwait(false);
-            Monitor[GameState.Active].Content.Clear();
-            Monitor[GameState.Active].Content.AppendLine("**Game**");
-            await Monitor.UpdateDisplayAsync(GameState.Inactive, "[Console] The game has ended.");
+            Display.UpdateWindow(GameState.Active, new ElementUpdatePacket(ElementUpdateMethod.ClearGroup, groupId: "elements:console"));
+            Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element("[Console] The game has ended."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
             await SetStateAsync(GameState.Inactive);
             Client = null;
             return result;
@@ -167,7 +167,7 @@ namespace Orikivo
             {
                 var oldState = x.State;
                 x.State = State;
-                await x.UpdateAsync(_client, Monitor);
+                await x.UpdateAsync(_client, Display);
                 Console.WriteLine($"-- A receiver has been updated. ({x.Id}.{x.State}), {oldState} => {x.State} --");
             }); // make state updates decisive.
             Console.WriteLine("-- All receivers are now up to date. --");

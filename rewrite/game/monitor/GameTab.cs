@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Text;
 
 namespace Orikivo
 {
@@ -8,19 +9,19 @@ namespace Orikivo
     public class GameTab
     {
         public string Id { get; } // screen:{parent_id}#{id}
-        public List<TabElement> Elements { get; } = new List<TabElement>();
-        public List<TabElementGroup> Groups { get; } = new List<TabElementGroup>();
-        public ElementMetadata SetElement(string elementId, TabElement newElement) { throw new NotImplementedException(); }
+        public List<Element> Elements { get; } = new List<Element>();
+        public List<ElementGroup> Groups { get; } = new List<ElementGroup>();
+        public ElementMetadata SetElement(string elementId, Element newElement) { throw new NotImplementedException(); }
         public ElementMetadata SetElement(string elementId, string content) { throw new NotImplementedException(); }
-        public ElementMetadata SetAtGroup(string groupId, string elementId, TabElement newElement) { throw new NotImplementedException(); }
+        public ElementMetadata SetAtGroup(string groupId, string elementId, Element newElement) { throw new NotImplementedException(); }
         public ElementMetadata SetAtGroup(string groupId, string elementId, string content) { throw new NotImplementedException(); }
-        public ElementMetadata AddToGroup(string groupId, TabElement newElement) { throw new NotImplementedException(); }
+        public ElementMetadata AddToGroup(string groupId, Element newElement) { throw new NotImplementedException(); }
         public ElementMetadata AddToGroup(string groupId, string content) { throw new NotImplementedException(); }
         public ElementMetadata InsertAtGroup(string groupId, int index, string content) { throw new NotImplementedException(); }
-        public ElementMetadata InsertAtGroup(string groupId, int index, TabElement newElement) { throw new NotImplementedException(); }
+        public ElementMetadata InsertAtGroup(string groupId, int index, Element newElement) { throw new NotImplementedException(); }
         public ElementMetadata Insert(int index, string content) { throw new NotImplementedException(); }
-        public ElementMetadata Insert(int index, TabElement element) { throw new NotImplementedException(); }
-        public ElementMetadata AddElement(TabElement element) { throw new NotImplementedException(); }
+        public ElementMetadata Insert(int index, Element element) { throw new NotImplementedException(); }
+        public ElementMetadata AddElement(Element element) { throw new NotImplementedException(); }
         public void RemoveFromGroup(string groupId, int index) { throw new NotImplementedException(); }
         public void RemoveFromGroup(string groupId, string elementId) { throw new NotImplementedException(); }
         public void ClearElement(string elementId) { throw new NotImplementedException(); }
@@ -28,20 +29,34 @@ namespace Orikivo
         public void RemoveElement(string elementId) { throw new NotImplementedException(); }
         public void RemoveElement(int index) { throw new NotImplementedException(); }
 
+        public bool Update(TabUpdatePacket packet)
+        {
+            foreach (ElementUpdatePacket elementPacket in packet.Packets)
+                if (!Update(elementPacket).IsSuccess)
+                    return false;
+            return true;
+        }
         public ElementUpdateResult Update(ElementUpdatePacket packet)
         {
             // check all method types and if the method can be done without error.
             throw new NotImplementedException();
         }
 
-        public TabElement GetElement(string id)
+        public Element GetElement(string id)
             => Elements.First(x => x.Id == id);
-        public TabElementGroup GetGroup(string id)
+        public ElementGroup GetGroup(string id)
             => Groups.First(x => x.Id == id);
 
-        public override string ToString()
+        public string Content
         {
-            return base.ToString();
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                return sb.ToString();
+            }
         }
+
+        public override string ToString()
+            => Content;
     }
 }

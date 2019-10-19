@@ -22,7 +22,7 @@ namespace Orikivo
             Channel = CreateChannelAsync(guild).Result;//.GetAwaiter().GetResult();
             CanDeleteMessages = guild.CurrentUser.GuildPermissions.Has(GuildPermission.ManageMessages);
             // if you can delete messages, go off of user preference; otherwise, send a new msg each time.
-            CanUpdateMessage = CanDeleteMessages ? config.UpdateLastMessage : false;
+            CanUpdateMessage = CanDeleteMessages ? config.CanUpdateMessage : false;
             State = GameState.Inactive;
         }
 
@@ -55,23 +55,23 @@ namespace Orikivo
 
         }
 
-        internal async Task UpdateAsync(BaseSocketClient client, GameMonitor monitor)
+        internal async Task UpdateAsync(BaseSocketClient client, GameDisplay display)
         {
             //await Channel?.UpdateAsync();
             if (Channel == null)
                 Channel = await CreateChannelAsync(client);//.ConfigureAwait(false);
 
             if (Message == null || !CanUpdateMessage)
-                Message = await Channel.SendMessageAsync(monitor[State].ToString());//.ConfigureAwait(false);
+                Message = await Channel.SendMessageAsync(display[State].Content);//.ConfigureAwait(false);
             else
             {
-                if (SyncKey == monitor[State].SyncKey)
+                if (SyncKey == display[State].SyncKey)
                     return;
 
-                await Message.ModifyAsync(x => x.Content = monitor[State].ToString());
+                await Message.ModifyAsync(x => x.Content = display[State].Content);
             }
 
-            SyncKey = monitor[State].SyncKey;
+            SyncKey = display[State].SyncKey;
         }
 
         // cleans the receiver

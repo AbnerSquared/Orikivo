@@ -5,14 +5,14 @@
     /// </summary>
     public class GameAction
     {
-        internal GameAction(ulong userId, TriggerResult trigger)
+        internal GameAction(ulong userId, GameTriggerResult trigger)
         {
             UserId = userId;
             TriggerUsed = trigger;
         }
 
         public ulong UserId { get; }
-        public TriggerResult TriggerUsed { get; }
+        public GameTriggerResult TriggerUsed { get; }
     }
 
 

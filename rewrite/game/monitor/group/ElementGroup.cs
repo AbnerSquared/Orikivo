@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Orikivo
 {
-    public class TabElementGroup : IElementGroup<TabElement>
+    public class ElementGroup : IElementGroup<Element>
     {
-        internal TabElementGroup(string id, ElementGroupConfig config = null)
+        internal ElementGroup(string id, ElementGroupConfig config = null)
         {
             Id = id;
             // Index = config.Index;
@@ -25,7 +25,7 @@ namespace Orikivo
         public bool Immutable { get; } // if the element can be deleted.
         
         public ElementType Type => ElementType.Group;
-        public List<TabElement> Elements { get; } = new List<TabElement>();
+        public List<Element> Elements { get; } = new List<Element>();
         // just gets the pure content.
         public string Content
         {
@@ -62,7 +62,7 @@ namespace Orikivo
         public ElementMetadata Metadata => new ElementMetadata(this);
 
         // used to help separate all of its values.
-        public ElementMetadata Add(TabElement element)
+        public ElementMetadata Add(Element element)
         {
             if (element == null)
                 throw new Exception("You can't add an empty element into a group.");
@@ -76,7 +76,7 @@ namespace Orikivo
             return new ElementMetadata(element, Id);
         }
         public ElementMetadata Add(string content)
-            => Add(new TabElement($"new-element{Elements.Count}", content));
+            => Add(new Element(content, $"new-element{Elements.Count}"));
         public void Remove(string id)
         {
             Elements.Remove(GetElement(id));
@@ -97,9 +97,9 @@ namespace Orikivo
             Elements.Clear();
         }
 
-        public TabElement ElementAt(int index)
+        public Element ElementAt(int index)
             => Elements[index]; // gets the element at the specified index.
-        public TabElement GetElement(string id)
+        public Element GetElement(string id)
             => Elements.First(x => x.Id == id); // gets the element with the specified id.
 
         public ElementMetadata GetMetadataFor(int index)
@@ -114,13 +114,13 @@ namespace Orikivo
             if (properties.CanFormat != null)
             {
                 CanFormat = properties.CanFormat ?? CanFormat;
-                foreach (TabElement element in Elements)
+                foreach (Element element in Elements)
                     element.CanFormat = CanFormat;
             }
             if (properties.CanUseInvalidChars != null)
             {
                 CanUseInvalidChars = properties.CanUseInvalidChars ?? CanUseInvalidChars;
-                foreach (TabElement element in Elements)
+                foreach (Element element in Elements)
                     element.CanUseInvalidChars = CanUseInvalidChars;
             }
             ContentLimit = properties.ContentLimit ?? ContentLimit;

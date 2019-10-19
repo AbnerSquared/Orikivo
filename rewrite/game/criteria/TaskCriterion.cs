@@ -14,7 +14,7 @@ namespace Orikivo
         /// </summary>
         /// <param name="attributeCriteria">A collection of attribute criteria that must be met for the criterion to return true.</param>
         /// <param name="onSuccess"></param>
-        public TaskCriterion(List<AttributeCriterion> attributeCriteria, GameTaskQueue onSuccess)
+        public TaskCriterion(List<AttributeCriterion> attributeCriteria, TaskQueuePacket onSuccess)
         {
             // make validity checks to make sure the objects being passed aren't empty.
             AttributeCriteria = attributeCriteria;
@@ -33,7 +33,7 @@ namespace Orikivo
         /// <summary>
         /// What the game task calls upon all of the criteria being met.
         /// </summary>
-        public GameTaskQueue OnSuccess { get; }
+        public TaskQueuePacket OnSuccess { get; }
 
         public bool Check(List<GameAttribute> attributes)
         {

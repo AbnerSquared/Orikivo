@@ -6,14 +6,15 @@ namespace Orikivo
     public class GameData
     {
         // attributes and triggers can be left empty.
-        internal GameData(List<GameAttribute> attributes, List<UserGameData> userData, List<GameTrigger> triggers)
+        internal GameData(List<Player> players, List<GameAttribute> attributes = null, List<GameTrigger> triggers = null)
         {
-            Attributes = attributes;
-            UserData = userData;
-            Triggers = triggers;
+            Attributes = attributes ?? new List<GameAttribute>();
+            Players = players;
+            Triggers = triggers ?? new List<GameTrigger>();
         }
+        
         public List<GameAttribute> Attributes { get; }
-        public List<UserGameData> UserData { get; }
+        public List<Player> Players { get; }
         public List<GameTrigger> Triggers { get; }
     }
 }

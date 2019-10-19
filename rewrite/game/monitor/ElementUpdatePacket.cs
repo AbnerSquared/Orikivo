@@ -11,7 +11,7 @@
     ///</summary>
     public class ElementUpdatePacket
     {
-        public ElementUpdatePacket(ElementUpdateMethod method, string groupId = null, string elementId = null, int? index = null, TabElement element = null)
+        public ElementUpdatePacket(ElementUpdateMethod method, string groupId = null, string elementId = null, int? index = null, Element element = null)
         {
             Method = method;
             Element = element;
@@ -20,7 +20,7 @@
             Index = index;
         }
 
-        public ElementUpdatePacket(TabElement element, ElementUpdateMethod method = ElementUpdateMethod.Add,
+        public ElementUpdatePacket(Element element, ElementUpdateMethod method = ElementUpdateMethod.Add,
             string elementId = null, string groupId = null, int? index = null)
             : this(method, groupId, elementId, index, element) {}
 
@@ -47,6 +47,6 @@
         ///<summary>
         /// The element to update with. Primarily used to add new elements and so forth.
         ///</summary>
-        public TabElement Element { get; set; }
+        public Element Element { get; set; }
     }
 }

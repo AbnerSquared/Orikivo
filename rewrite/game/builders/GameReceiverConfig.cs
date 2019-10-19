@@ -9,18 +9,20 @@ namespace Orikivo
         {
             get
             {
-                GameReceiverConfig config = new GameReceiverConfig();
-                config.Name = "New Game";
-                config.MessageCooldownLength = 1;
-                config.Topic = "A new game.";
-                config.UpdateLastMessage = true;
-                return config;
+                return new GameReceiverConfig
+                {
+                    Name = "New Game",
+                    MessageCooldownLength = 1,
+                    Topic = "A new game.",
+                    CanUpdateMessage = true
+                };
             }
         }
-        private string _name;
-        public string Name { get { return _name; } set { _name = OriFormat.FormatTextChannelName(value); } }
 
-        public bool UpdateLastMessage { get; internal set; }
+        private string _name;
+        public string Name { get => _name; set => _name = OriFormat.FormatTextChannelName(value); }
+
+        public bool CanUpdateMessage { get; internal set; }
         public string Topic { get => Properties.Topic.Value; set => Properties.Topic = value; }
         public int MessageCooldownLength { get => Properties.SlowModeInterval.Value; set => Properties.SlowModeInterval = value; }
 

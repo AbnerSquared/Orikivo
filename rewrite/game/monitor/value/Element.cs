@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
-    public class TabElement : IElement
+    public class Element : IElement
     {
-        internal TabElement(string id, string content = null, ElementConfig config = null)
+        internal Element(string content = null, string id = null, ElementConfig config = null)
         {
             Id = id;
             // Index = config.Index;

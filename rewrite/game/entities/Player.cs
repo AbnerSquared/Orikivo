@@ -7,8 +7,10 @@ namespace Orikivo
     /// </summary>
     public class Player
     {
-        public ulong Id { get; }
+        public ulong UserId { get; }
+        public string Id => $"user.{UserId}";
         public string Name { get; }
         public List<GameAttribute> Attributes { get; }
+        public bool CanSpeak { get; internal set; }
     }
 }
