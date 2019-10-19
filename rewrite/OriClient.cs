@@ -53,7 +53,7 @@ namespace Orikivo
         public async Task SetGameAsync(string name, string streamUrl = null, ActivityType activity = ActivityType.Playing)
             => await Network.SetGameAsync(name, streamUrl, activity);
 
-        // TODO: Figure out what gets used up.
+        // TODO: Figure out what needs to be disposed
         public void Dispose() { }
     }
 }
