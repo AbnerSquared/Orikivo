@@ -18,6 +18,7 @@ namespace Orikivo
         public int Priority { get; internal set; }
         public bool IsHidden { get; internal set; } = false;
         public bool Immutable { get; } // set on config, if the element can be deleted.
+        public ElementMetadata Metadata => new ElementMetadata(this);
         public ElementType Type => ElementType.Value; // used to help return the context to its former.
         private string _content;
         public string Content
@@ -51,13 +52,7 @@ namespace Orikivo
             Content = null;
         }
         public string ToString(bool debug = false)
-            =>
-            (debug ? "[s]" : "") +
-            (Content.Length > ContentLimit ?
-            CanFormat ?
-                string.Format(ContentFormatter, Content)
-                : Content
-            : throw new Exception("The content length is larger than its limit."))
-            + (debug? "[/s]" : "");
+            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter, Content) : Content
+            : throw new Exception("The content length is larger than its limit.");
     }
 }

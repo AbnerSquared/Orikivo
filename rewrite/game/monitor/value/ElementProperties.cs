@@ -7,9 +7,9 @@
         public ElementProperties(bool? canFormat = null, bool? canUseInvalidChars = null,
             int? contentLimit = null)
         {
-            CanFormat = canFormat ?? Default.CanFormat;
-            CanUseInvalidChars = canUseInvalidChars ?? Default.CanUseInvalidChars;
-            ContentLimit = contentLimit ?? Default.ContentLimit;
+            CanFormat = canFormat ?? true;
+            CanUseInvalidChars = canUseInvalidChars ?? false;
+            ContentLimit = contentLimit;
         }
         public static ElementProperties Default => new ElementProperties(true, false);
         public bool? CanFormat { get; set; }

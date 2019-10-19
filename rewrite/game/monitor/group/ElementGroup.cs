@@ -6,9 +6,9 @@ namespace Orikivo
 {
     public class ElementGroup : IElementGroup<Element>
     {
-        internal ElementGroup(string id, ElementGroupConfig config = null)
+        internal ElementGroup(string name, ElementGroupConfig config = null)
         {
-            Id = id;
+            Name = name;
             // Index = config.Index;
             // Immutable = config.Immutable;
             ContentFormatter = config.ContentFormatter;
@@ -18,11 +18,11 @@ namespace Orikivo
             Update(config.GetProperties());
         }
 
-        public string Id { get; } // elements:id
-
+        public string Name { get; } // elements:id
+        public string Id => $"elements.{Name}";
         public int Priority { get; internal set; }
         public bool IsHidden { get; internal set; } = false;
-        public bool Immutable { get; } // if the element can be deleted.
+        public bool Immutable { get; } = true; // if the element can be deleted.
         
         public ElementType Type => ElementType.Group;
         public List<Element> Elements { get; } = new List<Element>();
@@ -47,6 +47,7 @@ namespace Orikivo
 
         // properties
         public bool CanFormat { get; set; } // should only be enabled when there is no frame set.
+        public bool CanElementsFormat { get; set; } = false;
         public bool CanUseInvalidChars { get; set; }
         public int? ContentLimit { get; set; }
         public int? Capacity { get; set; }
@@ -61,46 +62,71 @@ namespace Orikivo
         public int ElementCount => Elements.Count;
         public ElementMetadata Metadata => new ElementMetadata(this);
 
-        // used to help separate all of its values.
-        public ElementMetadata Add(Element element)
+        private Element SyncElement(Element element)
         {
             if (element == null)
                 throw new Exception("You can't add an empty element into a group.");
-            element.CanFormat = CanFormat;
+            element.CanFormat = CanElementsFormat;
             foreach (char c in InvalidChars)
                 if (!element.InvalidChars.Contains(c))
                     element.InvalidChars.Add(c);
             element.CanUseInvalidChars = CanUseInvalidChars;
             element.ContentFormatter = ElementFormatter;
-            Elements.Add(element);
+            return element;
+        }
+        // used to help separate all of its values.
+        public ElementMetadata Add(Element element)
+        {
+            Elements.Add(SyncElement(element));
             return new ElementMetadata(element, Id);
         }
+
+        public ElementMetadata Insert(int index, Element element)
+        {
+            Elements.Insert(index, SyncElement(element));
+            return new ElementMetadata(element, Id);
+        }
+
         public ElementMetadata Add(string content)
             => Add(new Element(content, $"new-element{Elements.Count}"));
-        public void Remove(string id)
+        public ElementMetadata Insert(int index, string content)
+            => Insert(index, new Element(content, $"new-element{Elements.Count}"));
+        
+        public ElementMetadata Set(string id, Element element)
         {
-            Elements.Remove(GetElement(id));
+            GetElement(id).Update(element.Content);
+            return GetMetadataFor(id);
         }
 
-        public void Remove(int index)
-        {
-            Elements.RemoveAt(index);
-        }
+        public ElementMetadata Set(string id, string content)
+            => Set(id, new Element(content));
+
+        public void Remove(string id)
+            => Elements.Remove(GetElement(id));
+
+        public void RemoveAt(int index)
+            => Elements.RemoveAt(index);
 
         public void Remove(ElementMetadata metadata)
-        {
-            Elements.Remove(GetElement(metadata.Id));
-        }
+            => Elements.Remove(GetElement(metadata.Id));
 
         public void Clear()
-        {
-            Elements.Clear();
-        }
+            => Elements.Clear();
 
         public Element ElementAt(int index)
             => Elements[index]; // gets the element at the specified index.
         public Element GetElement(string id)
             => Elements.First(x => x.Id == id); // gets the element with the specified id.
+
+        
+
+        public bool ContainsElement(string id)
+            => Elements.Any(x => x.Id == id);
+
+        public bool CanAddElement => Capacity.HasValue ? (Capacity.Value + 1 <= Capacity.Value) : true;
+
+        public bool ContainsElement(int index)
+            => index <= ElementCount - 1;
 
         public ElementMetadata GetMetadataFor(int index)
             => new ElementMetadata(Elements[index], Id);
@@ -129,13 +155,7 @@ namespace Orikivo
             Page = properties.Page ?? Page;
         }
         public override string ToString()
-            =>
-            (Debug ? "[s]" : "") +
-            (Content.Length > ContentLimit ?
-            CanFormat ?
-                string.Format(ContentFormatter, Content)
-                : Content
-            : throw new Exception("The content length is larger than its limit."))
-            + (Debug ? "[/s]" : "");
+            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter, Content) : Content
+            : throw new Exception("The content length is larger than its limit.");
     }
 }

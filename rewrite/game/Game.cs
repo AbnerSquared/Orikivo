@@ -51,7 +51,6 @@ namespace Orikivo
                 return;
             if (message.Content == "start")
             {
-                // new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat")
                 await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
             }
         }

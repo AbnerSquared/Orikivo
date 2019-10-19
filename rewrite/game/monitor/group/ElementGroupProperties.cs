@@ -6,11 +6,10 @@
             int? contentLimit = null, int? capacity = null, int? pageElementLimit = null,
             int? page = null) : base(canFormat, canUseInvalidChars, contentLimit)
         {
-            Capacity = capacity ?? Default.Capacity;
-            PageElementLimit = pageElementLimit ?? Default.PageElementLimit;
-            Page = page ?? Default.Page;
+            Capacity = capacity ?? null;
+            PageElementLimit = pageElementLimit ?? 8;
+            Page = page ?? null;
         }
-
         public ElementGroupProperties(int? capacity = null, int? pageElementLimit = null,
             int? page = null, ElementProperties properties = null)
             : this(properties?.CanFormat, properties?.CanUseInvalidChars, properties?.ContentLimit,

@@ -5,6 +5,8 @@ namespace Orikivo
     // config: properties that are static once built.
     public class ElementGroupConfig : ElementGroupProperties, IElementGroupConfig
     {
+        public static ElementGroupConfig Empty => new ElementGroupConfig((bool?)null);
+
         public ElementGroupConfig(bool? canFormat = null,
             bool? canUseInvalidChars = null, int? contentLimit = null,
             int? capacity = null, int? pageElementLimit = null, int? page = null,

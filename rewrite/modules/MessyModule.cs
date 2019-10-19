@@ -66,6 +66,20 @@ namespace Orikivo
             }
         }
 
+        [Command("windowtest")]
+        public async Task WindowTestAsync()
+        {
+            try
+            {
+                GameWindow window = new GameWindow(GameWindowProperties.Lobby);
+                await Context.Channel.SendMessageAsync(window.Content);
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.CatchAsync(ex);
+            }
+        }
+
         [Command("triggertest")]
         public async Task TriggerTestAsync([Remainder]string message)
         {
