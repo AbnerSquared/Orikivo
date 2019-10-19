@@ -1,11 +1,14 @@
 ﻿using Discord;
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Orikivo
 {
     // internal means that it cannot be accessed once it's compiled
+
+    // TODO: Separate all of the files in 'Orikivo' namespace into their proper locations.
     internal class Program
     {
         private static void Main(string[] args)
@@ -13,7 +16,7 @@ namespace Orikivo
             Task.Run(async () =>
             {
                 OriConsoleConfig oriConsoleConfig = OriConsoleConfig.Default;
-                oriConsoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
+                oriConsoleConfig.Title = $"Orikivo: {Assembly.GetEntryAssembly().GetName().Version.ToString()}";
                 oriConsoleConfig.BackgroundColor = ConsoleColor.Black;
                 oriConsoleConfig.TextColor = ConsoleColor.White;
 
@@ -27,17 +30,18 @@ namespace Orikivo
                 //Console.Beep(800, 200);
 
                 // find a place for args
-                OriClientBuilder oriClientBuilder = new OriClientBuilder();
-                oriClientBuilder.ConsoleConfig = oriConsoleConfig;
-                oriClientBuilder.LoggerConfig = OriLogConfig.Default;
-                oriClientBuilder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
-                oriClientBuilder.AddTypeReader<GameMode>(new GameModeTypeReader());
-                oriClientBuilder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
+                OriClientBuilder builder = new OriClientBuilder();
+                builder.ConsoleConfig = oriConsoleConfig;
+                builder.LogConfig = OriLogConfig.Default;
+                builder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
+                builder.AddTypeReader<GameMode>(new GameModeTypeReader());
+                builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
                 //oriClientBuilder.AddTypeReader<double>(new DoubleTypeReader());
 
-                oriClientBuilder.AddModule<MiscModule>();
+                builder.AddModule<MiscModule>();
+                builder.AddModule<MessyModule>();
 
-                OriClient oriClient = oriClientBuilder.Build();
+                OriClient oriClient = builder.Build();
                 await oriClient.SetGameAsync("Minecraft", activity: ActivityType.Listening);
                 await oriClient.SetStatusAsync(UserStatus.DoNotDisturb);
                 await oriClient.StartAsync();

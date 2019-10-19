@@ -27,7 +27,7 @@ namespace Orikivo
         /// </summary>
         public List<GameUpdatePacket> Packets { get; internal set; } = new List<GameUpdatePacket>();
 
-        public bool IsSuccess => Error.HasValue;
+        public bool IsSuccess => !Error.HasValue;
         public TriggerParseError? Error { get; internal set; }
         public string ErrorReason { get; internal set; }
     }

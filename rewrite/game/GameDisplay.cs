@@ -27,11 +27,38 @@ namespace Orikivo
         // Calls to update all displays
         internal async Task RefreshAsync()
         {
-            if (CanSeeUpdates)
-            {
+           // if (CanSeeUpdates)
+            //{
                 await _events.InvokeDisplayUpdatedAsync(this);
                 CanSeeUpdates = false;
-            }
+           // }
+        }
+
+        internal async Task<bool> UpdateWindowAsync(GameState state, WindowUpdatePacket packet)
+        {
+            bool result = UpdateWindow(state, packet);
+            await RefreshAsync();
+            return result;
+        }
+        internal async Task<bool> UpdateWindowAsync(GameState state, TabUpdatePacket packet)
+
+        {
+            bool result = UpdateWindow(state, packet);
+            await RefreshAsync();
+            return result;
+        }
+        internal async Task<bool> UpdateWindowAsync(GameState state, ElementUpdatePacket packet)
+        {
+            bool result = UpdateWindow(state, packet);
+            await RefreshAsync();
+            return result;
+        }
+
+        internal async Task<bool> UpdateWindowAsync(GameState state, string tabId)
+        {
+            SetTab(state, tabId);
+            await RefreshAsync();
+            return true;
         }
 
         ///<summary>

@@ -11,10 +11,11 @@ using System.Threading.Tasks;
 using Orikivo.Poxel;
 using SysColor = System.Drawing.Color;
 using Color = Discord.Color;
+using System.Reflection;
 
 namespace Orikivo
 {
-    // alpha module begins here
+    // TODO: Place actual command functions into a Service variant. (MiscService.cs)
     [Name("Misc")]
     [Summary("A group of commands that have no distinct category.")]
     public class MiscModule : OriModuleBase<OriCommandContext>
@@ -223,7 +224,7 @@ namespace Orikivo
 
         [RequireGuild]
         // this is used to give the specified user the trust role
-        [Command("trust")]
+        //[Command("trust")]
         [BindTo(TrustLevel.Owner)]
         public async Task TrustUserAsync(SocketGuildUser user)
         {
@@ -304,6 +305,7 @@ namespace Orikivo
         [Group("gimi")]
         public class GimiGroup : OriModuleBase<OriCommandContext>
         {
+            // TODO: Figure out how to handle group commands with an empty subvalue
             [Command("")]
             [Cooldown(10)]
             [RequireUserAccount]
@@ -405,55 +407,7 @@ namespace Orikivo
             {
                 OriHelpService helper = new OriHelpService(_commandService);
                 await Context.Channel.SendMessageAsync(helper.Search(context).GetResultInfo() ?? helper.GetDefaultInfo());
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex);
-            }
-        }
-
-        [RequireUserAccount]
-        [Command("games")]
-        [Summary("Returns a list of all visible **Games**.")]
-        public async Task ShowLobbiesAsync([Summary("The page index for the list.")]int page = 1) // utilize a paginator.
-            => await Context.Channel.SendMessageAsync(_gameManager.IsEmpty ? $"> **Looks like there's nothing here.**" : string.Join('\n', _gameManager.Games.Values.Select(x => x.ToString())));
-
-        [RequireUserAccount]
-        [Command("joingame"), Alias("jg")]
-        [Summary("Join an open **Lobby**.")]
-        public async Task JoinLobbyAsync([Summary("A string pointing to a specific **Game**.")]string id)
-        {
-            Game game = _gameManager[id];
-            if (game == null)
-                await Context.Channel.SendMessageAsync(_gameManager.ContainsUser(Context.User.Id) ?
-                    "> **Wait a minute...**\n> You are already in a game." : $"**No luck.**\n> I couldn't find any games matching #**{id}**.");
-            else
-            {
-                if (game.ContainsUser(Context.User.Id))
-                    await Context.Channel.SendMessageAsync($"**???**\n> You are already in this game.");
-                else
-                {
-                    await _gameManager.AddUserAsync(Context, id);
-                    await Context.Channel.SendMessageAsync($"**Success!**\n> You have joined {game.Lobby.Name}. [{game.Receivers.First(x => x.Id == Context.Guild.Id).Mention}]");
-                }
-            }
-        }
-
-        [Command("creategame"), Alias("crg")]
-        [Summary("Create a **Game**.")]
-        [RequireUserAccount]
-        public async Task StartLobbyAsync([Summary("The **GameMode** to play within the **Game**.")]GameMode mode)
-        {
-            if (_gameManager.ContainsUser(Context.Account.Id))
-            {
-                await Context.Channel.SendMessageAsync($"> **Wait a minute...**\n> You are already in a game.");
-                return;
-            }
-            try
-            {
-                Game game = await _gameManager.CreateGameAsync(Context, new GameConfig(mode, $"{Context.User.Username}'s Lobby")).ConfigureAwait(false);
-                await Context.Channel.SendMessageAsync($"**Success!**\n> {game.Lobby.Name} has been created. [{game.Receivers[0].Mention}]");
-                await _gameManager.StartGameSessionAsync(game.Id);
+                helper.Dispose(); // Still needs something that can be disposed for this to have purpose.
             }
             catch (Exception ex)
             {
@@ -515,5 +469,9 @@ namespace Orikivo
             Context.Account.Options.DisplayFormat = format;
             await Context.Channel.SendMessageAsync("Display format set.");
         }
+
+        [Command("version")]
+        public async Task GetVersionAsync()
+            => await Context.Channel.SendMessageAsync(Assembly.GetEntryAssembly().GetName().Version.ToString());
     }
 }

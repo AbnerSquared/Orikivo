@@ -13,6 +13,7 @@ namespace Orikivo
             Triggers = triggers ?? new List<GameTrigger>();
         }
         
+        public string TaskId { get; internal set; }
         public List<GameAttribute> Attributes { get; }
         public List<Player> Players { get; }
         public List<GameTrigger> Triggers { get; }

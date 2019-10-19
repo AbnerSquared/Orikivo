@@ -46,7 +46,7 @@ namespace Orikivo
         public Dictionary<Type, TypeReader> TypeReaders { get; set; } = new Dictionary<Type, TypeReader>();
         public List<Type> Modules { get; set; } = new List<Type>();
         public OriConsoleConfig ConsoleConfig { get; set; }
-        public OriLogConfig LoggerConfig { get; set; }
+        public OriLogConfig LogConfig { get; set; }
 
         /// <summary>
         /// Marks an object to be bound with a specified typereader on compile.
@@ -126,7 +126,7 @@ namespace Orikivo
         /// </summary>
         public OriClient Build()
         {
-            return new OriClient(Config, Services.BuildServiceProvider(), TypeReaders, Modules, ConsoleConfig, LoggerConfig);
+            return new OriClient(Config, Services.BuildServiceProvider(), TypeReaders, Modules, ConsoleConfig, LogConfig);
         }
     }
 }

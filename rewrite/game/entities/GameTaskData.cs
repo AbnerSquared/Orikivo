@@ -16,8 +16,8 @@ namespace Orikivo
         public GameData Root { get; internal set; }
         public string TaskId { get; }
         public List<Player> Players => Root?.Players;
-        public List<GameAttribute> TaskAttributes { get; }
-        public List<GameTrigger> TaskTriggers { get; }
+        public List<GameAttribute> TaskAttributes { get; } = new List<GameAttribute>();
+        public List<GameTrigger> TaskTriggers { get; } = new List<GameTrigger>();
         public List<GameAttribute> Attributes => TaskAttributes.Concat(Root?.Attributes ?? new List<GameAttribute>()).ToList();
         public List<GameTrigger> Triggers => TaskTriggers.Concat(Root?.Triggers ?? new List<GameTrigger>()).ToList();
     }

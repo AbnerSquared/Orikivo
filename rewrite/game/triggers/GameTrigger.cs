@@ -49,22 +49,23 @@ namespace Orikivo
         /// </summary>
         public bool TryParse(GameTriggerContext context, out GameTriggerResult result)
         {
-            Console.WriteLine($"-- (trigger:{Name}) Now attempting parse... --");
+            Console.WriteLine($"-- [{Id}]: Now attempting parse... --");
             result = new GameTriggerResult();
             string keyParser = string.Format(@"^{0}", Name);
-            string valueParser = @"((?:(?: \w+)*)?)(?: +)?";
+            string valueParser = string.Format(@"(?: *$| ((?:(?:(?:{0})?([ \w]+))*)?)(?!{0}) *$)", ",");
+            // ^test( *((([ \w\d-_]+)(, *)?)*))(?:,*) *$
             // if there is an arg specified, attach the value parser; otherwise, just get the key
             string parser = ContainsArg ? keyParser + valueParser + "$" : keyParser + "$";
             Regex r = new Regex(parser);
             Match m = r.Match(context.Message);
+            result.TriggerId = Id;
             if (m.Success)
             {
-                Console.WriteLine($"-- {Id} Successfully parsed a trigger. --");
-                result.TriggerId = Id;
+                Console.WriteLine($"-- [{Id}]: Successfully parsed a trigger. --");
                 if (ContainsArg)
                 {
                     result.ArgId = Arg.Id;
-                    string argMessage = m.Groups[0].Value;
+                    string argMessage = m.Groups[1].Value;
 
                     if (Arg.IsOptional && !Checks.NotNull(argMessage))
                     {
@@ -101,6 +102,7 @@ namespace Orikivo
                     result.Objects.Clear();
                     result.Packets.Clear();
                     result.Error = TriggerParseError.InvalidArg;
+                    result.ErrorReason = $"'{argMessage}' could not be casted into the object specified.";
                     return false;
                 }
 
@@ -112,24 +114,29 @@ namespace Orikivo
             result.Objects.Clear();
             result.Packets.Clear();
             result.Error = TriggerParseError.InvalidTrigger;
+            result.ErrorReason = $"'{context.Message}' could be parsed into the specified trigger.";
             return false;
         }
 
         private bool TryParseArgs(GameTaskData data, string message, out List<GameObject> objects)
         {
+            message = message.Trim();
             objects = new List<GameObject>();
             if (Arg.IsArray)
             {
-                string[] values = message.Split(',');
+                List<string> values = message.Split(',').Select(x => x.Trim()).ToList();
+                Console.WriteLine(string.Join('\n', values));
+                Console.WriteLine(values.Count >= Arg.RequiredValues);
+                Console.WriteLine((Arg.Capacity.HasValue ? (values.Count <= Arg.Capacity.Value) : true));
 
-                if (!(values.Length <= Arg.Capacity && values.Length >= Arg.RequiredValues))
+                if (!(values.Count >= Arg.RequiredValues && (Arg.Capacity.HasValue ? (values.Count <= Arg.Capacity.Value) : true)))
                     return false;
 
                 foreach (string context in values)
-                    if (TryParseArg(data, context.Trim(), out GameObject obj))
+                    if (TryParseArg(data, context, out GameObject obj))
                         objects.Add(obj);
 
-                if (!(objects.Count <= Arg.Capacity && objects.Count >= Arg.RequiredValues))
+                if (!(objects.Count >= Arg.RequiredValues && (Arg.Capacity.HasValue ? (objects.Count <= Arg.Capacity.Value) : true)))
                     return false;
 
                 return true;
@@ -175,7 +182,7 @@ namespace Orikivo
                     GameArgValue value = Arg.Values.Find(x => x.Value == message);
                     if (value != null)
                     {
-                        obj = new GameObject(GameObjectType.Custom, $"{Arg.Id}:{value}");
+                        obj = new GameObject(GameObjectType.Custom, $"{Arg.Id}:{value.Value}");
                         return true;
                     }
                     return false;

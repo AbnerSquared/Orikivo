@@ -52,7 +52,7 @@ namespace Orikivo
             if (message.Content == "start")
             {
                 // new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat")
-                Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+                await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
             }
         }
         //if (userId == _client.CurrentUser.Id)
@@ -63,9 +63,9 @@ namespace Orikivo
             Receivers.ForEach(async x => { await x.UpdateAsync(_client, Display); Console.WriteLine($"-- ({x.Id}.{x.State}) Display updated. --"); });
         }
         private async Task OnUserJoinedAsync(User user, GameLobby lobby)
-            => Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has joined."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+            => await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has joined."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
         private async Task OnUserLeftAsync(User user, GameLobby lobby)
-            => Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has left."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+            => await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has left."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
 
         private async Task OnReceiverConnectedAsync(GameReceiver receiver, GameLobby lobby)
             => await receiver.UpdateAsync(_client, Display);
@@ -115,6 +115,8 @@ namespace Orikivo
                 }
                 else
                     Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+
+                await Display.RefreshAsync();
             }
 
             _client.MessageReceived += ReadAsync; // sets the actual listener and stops it upon either start or close was called
