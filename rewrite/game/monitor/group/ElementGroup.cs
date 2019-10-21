@@ -25,7 +25,7 @@ namespace Orikivo
         public int Priority { get; internal set; }
         public bool IsHidden { get; internal set; } = false;
         public bool Immutable { get; } = true; // if the element can be deleted.
-        
+
         public ElementType Type => ElementType.Group;
         public List<Element> Elements { get; } = new List<Element>();
         // just gets the pure content.
@@ -102,7 +102,7 @@ namespace Orikivo
             => Add(new Element(content, $"new-element{Elements.Count}"));
         public ElementMetadata Insert(int index, string content)
             => Insert(index, new Element(content, $"new-element{Elements.Count}"));
-        
+
         public ElementMetadata Set(string id, Element element)
         {
             GetElement(id).Update(element.Content);
@@ -112,14 +112,21 @@ namespace Orikivo
         public ElementMetadata Set(string id, string content)
             => Set(id, new Element(content));
 
-        public void Remove(string id)
-            => Elements.Remove(GetElement(id));
+        public ElementMetadata Remove(string id)
+        {
+            ElementMetadata metadata = GetMetadataFor(id);
+            Elements.Remove(GetElement(id));
+            return metadata;
+        }
 
-        public void RemoveAt(int index)
-            => Elements.RemoveAt(index);
-
-        public void Remove(ElementMetadata metadata)
-            => Elements.Remove(GetElement(metadata.Id));
+        public ElementMetadata RemoveAt(int index)
+        {
+            ElementMetadata metadata = GetMetadataFor(index);
+            Elements.RemoveAt(index);
+            return metadata;
+        }
+        public ElementMetadata Remove(ElementMetadata metadata)
+            => Remove(metadata.Id);
 
         public void Clear()
             => Elements.Clear();

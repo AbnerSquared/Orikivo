@@ -73,15 +73,15 @@ namespace Orikivo
             try
             {
                 GameWindow window = new GameWindow(GameWindowProperties.Lobby);
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-0"));
+                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 1.", "message-0"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-1"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-2"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-3"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-4"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-5"));
                 window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-6"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element("Message eight.", "message-7"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element("AHHH", "message-8"));
+                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 8.", "message-7"));
+                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 9.", "message-8"));
                 await Context.Channel.SendMessageAsync(window.Content);
             }
             catch (Exception ex)

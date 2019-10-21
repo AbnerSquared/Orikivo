@@ -38,6 +38,18 @@ namespace Orikivo
             }
         }
 
+        public static GameWindowProperties Werewolf
+        {
+            get
+            {
+                GameWindowProperties properties = new GameWindowProperties();
+
+
+
+                return properties;
+            }
+        }
+
         public string Name { get; set; }
         public string CurrentTabId { get; set; }
         public GameOutput Output { get; set; }
