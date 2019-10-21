@@ -19,6 +19,8 @@ namespace Orikivo
         public string ContentFormatter { get; set; }
         public List<char> InvalidChars { get; set; }
 
+        public static ElementConfig Empty => new ElementConfig((bool?)null);
+
         public ElementProperties GetProperties()
             => new ElementProperties(CanFormat, CanUseInvalidChars, ContentLimit);
     }

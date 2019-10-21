@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Orikivo
 {
@@ -11,6 +12,7 @@ namespace Orikivo
             Name = name;
             // Index = config.Index;
             // Immutable = config.Immutable;
+            config = config ?? ElementGroupConfig.Empty;
             ContentFormatter = config.ContentFormatter;
             InvalidChars = config.InvalidChars ?? new List<char> { '|', '`', '*', '_', '~' };
             ElementFormatter = config.ElementFormatter;
@@ -34,8 +36,15 @@ namespace Orikivo
                 int skipLength = ElementCount > PageElementLimit ?
                     Page.HasValue ? Page.Value * PageElementLimit.Value
                         : ElementCount - PageElementLimit.Value : 0;
+
+                int emptyLength = FillEmpties && PageElementLimit.HasValue ? PageElementLimit.Value - (ElementCount - skipLength) : 0;
+
+                List<string> empties = new List<string>();
+                for (int i = 0; i < emptyLength; i++)
+                    empties.Add(string.Format(ElementFormatter, " "));
+
                 // fill on empty
-                return string.Join(ElementSeparator, Elements.Skip(skipLength).Select(x => x.ToString(Debug)));
+                return string.Join(ElementSeparator, Elements.Skip(skipLength).Select(x => x.ToString(Debug)).Concat(empties));
             }
         }
 
@@ -45,9 +54,11 @@ namespace Orikivo
         public string ElementFormatter { get; }
         public string ElementSeparator { get; }
 
+        public bool FillEmpties { get; set; } = false;
+
         // properties
         public bool CanFormat { get; set; } // should only be enabled when there is no frame set.
-        public bool CanElementsFormat { get; set; } = false;
+        public bool CanElementsFormat { get; set; } = true;
         public bool CanUseInvalidChars { get; set; }
         public int? ContentLimit { get; set; }
         public int? Capacity { get; set; }

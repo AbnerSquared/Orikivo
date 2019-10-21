@@ -10,6 +10,7 @@ namespace Orikivo
             Id = id;
             // Index = config.Index;
             // Immutable = config.Immutable;
+            config = config ?? ElementConfig.Empty; // ??=
             ContentFormatter = config.ContentFormatter;
             InvalidChars = config.InvalidChars ?? new List<char> { '|', '`', '*', '_', '~' };
             Update(content, config.GetProperties());

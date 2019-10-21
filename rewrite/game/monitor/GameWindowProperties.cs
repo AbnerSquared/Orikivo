@@ -24,6 +24,7 @@ namespace Orikivo
 
                 ElementGroup chat = new ElementGroup("chat", chatConfig); // window.generic_lobby:tab.main:elements.chat
                 chat.Priority = 1;
+                chat.FillEmpties = true;
 
                 console.Groups.Add(chat);
 
