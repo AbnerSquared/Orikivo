@@ -73,26 +73,26 @@ namespace Orikivo
             try
             {
                 GameWindow window = new GameWindow(GameWindowProperties.Lobby);
-                window.CurrentTab.GetElement("element.info").Update(ElementShard.LobbyInfoShard.ToString("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()));
+                window.CurrentTab.GetElement("element.info").Update(StringFormatter.LobbyInfoFormatter.WithArgs("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()).ToString());
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 1."), "message-0"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 1.").ToString(), "message-0"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-1"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-1"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-2"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-2"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-3"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-3"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-4"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-4"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-5"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-5"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-6"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-6"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 8."), "message-7"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 8.").ToString(), "message-7"));
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 9."), "message-8"));
-                window.CurrentTab.GetElement("element.user_info").Update(ElementShard.UserTitleShard.ToString("1", "15"));
+                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 9.").ToString(), "message-8"));
+                window.CurrentTab.GetElement("element.user_info").Update(StringFormatter.UserTitleFormatter.WithArgs("1", "15").ToString());
                 window.CurrentTab.AddToGroup("elements.triggers", new Element(new GameTrigger("start").ToString()));
                 window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.User.Id, Context.User.Username, Context.Guild.Id, UserTag.Host | UserTag.Playing).ToString()));
                 window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.Client.CurrentUser.Id, Context.Client.CurrentUser.Username, Context.Guild.Id, UserTag.Playing).ToString()));
@@ -221,6 +221,18 @@ namespace Orikivo
                 await Context.Channel.SendMessageAsync(sb.ToString());
                 return;
             }
+        }
+
+        [Command("shuffletest")]
+        public async Task ShuffleTestAsync()
+        {
+            List<int> values = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Old: {{ {values.WriteValues()} }}");
+            List<int> shuffledValues = OriRandom.Shuffle(values).ToList();
+            sb.AppendLine($"OldEnsure: {{ {values.WriteValues()} }}");
+            sb.AppendLine($"New: {{ {shuffledValues.WriteValues()} }}");
+            await Context.Channel.SendMessageAsync(sb.ToString());
         }
     }
 }

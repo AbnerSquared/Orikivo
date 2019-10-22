@@ -21,5 +21,19 @@ namespace Orikivo
             return arr.ToList();
             // add a wrapping ability
         }
+
+        public static void AddRange<T>(this List<T> list, params T[] ts)
+        {
+            if (ts.Length > 0)
+                list.AddRange(ts.ToList());
+        }
+
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (T item in source)
+                action(item);
+        }
+        public static string WriteValues<T>(this IEnumerable<T> source)
+            => string.Join(", ", source);
     }
 }

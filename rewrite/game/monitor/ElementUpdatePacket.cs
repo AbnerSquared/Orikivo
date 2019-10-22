@@ -44,9 +44,20 @@
         ///</summary>
         public string ElementId { get; set; }
 
+        public string Content { get; set; }
+        public string Name { get; set; }
+        public ElementConfig Config { get; set; }
+
         ///<summary>
         /// The element to update with. Primarily used to add new elements and so forth.
         ///</summary>
-        public Element Element { get; set; }
+        public Element Element { get => InternalElement ?? AutoElement; set => InternalElement = value; }
+
+        /// <summary>
+        /// The element that is automatically generated with the properties specified. If an element is not set, this is the default value.
+        /// </summary>
+        public Element AutoElement => !Checks.NotNull(Content) && !Checks.NotNull(Name) && Config == null ? null : new Element(Content, Name, Config);
+
+        private Element InternalElement;
     }
 }

@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Orikivo
 {
+    // TODO: rework this class mechanic. Utilize it correctly in order to easily create formattable classes.
     public class StringMap
     {
         private static char _keyOpenChar = '{';

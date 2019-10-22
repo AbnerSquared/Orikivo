@@ -1,47 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Orikivo
 {
-    // used to edit what should be considered the log key
+    /// <summary>
+    /// A map defining the keys of a log key. This is used primarily when logging events or writing to a console.
+    /// </summary>
     public class LogKeyMap
     {
+        private const char ENTRY = '{';
+        private const char EXIT = '}';
+
         public LogKeyMap()
         {
             Keys = new Dictionary<LogKey, string>();
         }
 
+        /// <summary>
+        /// Gets the default log key map that is used with Orikivo.
+        /// </summary>
         public static LogKeyMap Default
         {
             get
             {
-                LogKeyMap config = new LogKeyMap();
-                config.Keys = new Dictionary<LogKey, string>
+                LogKeyMap map = new LogKeyMap();
+                map.Keys = new Dictionary<LogKey, string>
                 {
-                    { LogKey.Name, "name" },
-                    { LogKey.Date, "date" },
-                    { LogKey.LogMessage, "message" },
-                    { LogKey.Exception, "ex" },
-                    { LogKey.ExceptionType, "ex_type" },
-                    { LogKey.ExceptionMessage, "ex_message" },
-                    { LogKey.LogSeverity, "log_severity" },
-                    { LogKey.LogSource, "log_source" },
-                    { LogKey.ClientVersion, "client_version" }
+                    [LogKey.Name] = "name",
+                    [LogKey.Date] = "date" ,
+                    [LogKey.LogMessage] = "message",
+                    [LogKey.Exception] = "ex",
+                    [LogKey.ExceptionType] = "ex_type",
+                    [LogKey.ExceptionMessage] = "ex_message",
+                    [LogKey.LogSeverity] = "log_severity",
+                    [LogKey.LogSource] = "log_source",
+                    [LogKey.ClientVersion] = "client_version"
                 };
-                return config;
+                return map;
             }
         }
 
-        public void SetLogKey(LogKey keyType, string value)
+        /// <summary>
+        /// Sets the specified log key to match with the specified key.
+        /// </summary>
+        /// <param name="type">The log key to set.</param>
+        /// <param name="key">The new name of the specified log key.</param>
+        public void SetKey(LogKey type, string key)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new NullReferenceException("The value used to set a LogKey is null.");
-            Keys[keyType] = value;
+            if (!Checks.NotNull(key))
+                throw new NullReferenceException("A log key must have a name that is not empty.");
+            Keys[type] = key;
         }
-        private const char ENT = '{';
-        private const char EX = '}';
+        
+        /// <summary>
+        /// The collection of log keys set.
+        /// </summary>
         private Dictionary<LogKey, string> Keys { get; set; }
-        public string this[LogKey keyType] => $"{ENT}{Keys[keyType] ?? Default.Keys[keyType]}{EX}";
+
+        /// <summary>
+        /// Gets the log key formatting string from the specified log key. If there isn't a log key specified, it defaults to LogKeyMap.Default[LogKey].
+        /// </summary>
+        /// <param name="type">The log key to get the format for.</param>
+        /// <returns></returns>
+        public string this[LogKey type] => $"{ENTRY}{Keys[type] ?? Default.Keys[type]}{EXIT}";
     }
 }

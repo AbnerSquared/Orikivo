@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Orikivo
 {
@@ -67,12 +68,26 @@ namespace Orikivo
         public GameTab this[string id]
             => InternalTabs.First(x => x.Id == id);
 
+        public ElementCluster Header { get; set; }
+        public ElementCluster Footer { get; set; }
+
         // Make it the parsing content.
-        public string Content => CurrentTab.Content;
+        public string Content
+        {
+            get
+            {
+                List<string> contents = new List<string>();
+                if (CurrentTab.IncludeHeader && !(Header?.IsEmpty ?? true))
+                    contents.Add(Header.Content);
+                contents.Add(CurrentTab.Content);
+                if (CurrentTab.IncludeFooter && !(Footer?.IsEmpty ?? true))
+                    contents.Add(Footer.Content);
+                return string.Join('\n', contents);
+            }
+        }
+
         public string SyncKey { get; private set; }
         public override string ToString()
-        {
-            return base.ToString();
-        }
+            => Content;
     }
 }

@@ -6,12 +6,24 @@ namespace Orikivo
     // dice result holds the dice used, how many times it was used, and the resulting rolls for all rolls.
     public class DiceResult
     {
-        public DiceResult(int result, params (Dice, int)[] die)
+        public DiceResult(params DiceRoll[] rolls)
         {
-            Die = new List<(Dice, int)>();
-            die.ToList().ForEach(x => Die.Add(x));
+            Rolls = rolls.ToList();
         }
 
-        public List<(Dice, int)> Die { get; }
+        public DiceResult(List<DiceRoll> rolls)
+        {
+            Rolls = rolls ?? new List<DiceRoll>();
+        }
+
+        public List<DiceRoll> Rolls { get; } = new List<DiceRoll>();
+        public List<Dice> GetDie() 
+            => Rolls.Select(x => x.Dice).ToList();
+
+        public int GetDiceUsed()
+            => OriMath.Add(Rolls.Select(x => x.Times));
+        public int GetTotalResult()
+            => OriMath.Add(Rolls.Select(x => x.TotalResult));
+
     }
 }

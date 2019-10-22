@@ -5,10 +5,6 @@ using System.Text;
 
 namespace Orikivo
 {
-    public enum CharMapType
-    {
-        Subscript = 1
-    }
 
     // used to fancify text and whatknot.
     public static class OriFormat
@@ -36,16 +32,16 @@ namespace Orikivo
         };
 
         public static string Subscript(string value)
-            => MapChars(value, CharMapType.Subscript);
+            => MapChars(value, CharMap.Subscript);
 
         public static string CropGameId(string value)
             => value.Length > 8 ? value.Substring(0, 8) + "..." : value;
-        private static string MapChars(string value, CharMapType mapType)
+        private static string MapChars(string value, CharMap mapType)
         {
             Dictionary<char, char> map = null;
             switch(mapType)
             {
-                case CharMapType.Subscript:
+                case CharMap.Subscript:
                     map = _subscriptMap;
                     break;
                 default:
@@ -128,7 +124,7 @@ namespace Orikivo
 
             if (value.Length > maxLen)
                 value = value.Substring(0, maxLen);
-
+            // regex (([A-Za-z0-9-_ ])*)
             List<char> limitedChars = new List<char>
             { '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '=',
              '{', '[', '}', ']', '|', '\\', ':', ';', '\'', '"', '<', ',', '>', '.',

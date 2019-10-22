@@ -249,6 +249,8 @@ namespace Orikivo
 
         public int Count => Elements.Count + Groups.Count;
 
+        public bool IsEmpty => (Elements?.Count ?? 0) == 0 && (Groups?.Count ?? 0) == 0;
+
         public Element GetElement(string id)
             => ContainsElement(id) ? Elements.First(x => x.Id == id) : null;
 

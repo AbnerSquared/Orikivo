@@ -1,17 +1,42 @@
-﻿namespace Orikivo
+﻿using System;
+
+namespace Orikivo
 {
     // rework the dice classes
-    public class Dice
+    public class Dice : IEquatable<Dice>
     {
-        public Dice(int faceCount)
+        private const int RAND_LENGTH = 20; // used to help randomize sides.
+        public Dice(int sides)
         {
-            FaceCount = faceCount;
-            Length = _length;
+            Sides = sides;
+            Length = RAND_LENGTH;
         }
 
-        private static int _length = 20;
-        public int Weight { get; } // how heavy the dice is. this impacts the roll.
+        public static Dice Default => new Dice(6);
+
+
         internal int Length { get; } // this is used to alter the amount how much is rolled to get a value.
-        public int FaceCount { get; set; } // the amount of faces on the dice
+        public int Sides { get; set; } // the amount of faces on the dice
+        public bool Equals(Dice dice)
+            => Sides == dice.Sides;
+
+        public static bool operator ==(Dice d1, Dice d2)
+        {
+            return d1.Sides == d2.Sides;
+        }
+
+        public static bool operator !=(Dice d1, Dice d2)
+        {
+            return d1.Sides != d2.Sides;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() == typeof(Dice))
+                return Equals(obj as Dice);
+            return false;
+        }
+        public override int GetHashCode()
+            => Sides * Length;
     }
 }
