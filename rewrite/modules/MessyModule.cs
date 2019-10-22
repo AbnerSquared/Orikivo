@@ -73,15 +73,30 @@ namespace Orikivo
             try
             {
                 GameWindow window = new GameWindow(GameWindowProperties.Lobby);
-                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 1.", "message-0"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-1"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-2"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-3"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-4"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-5"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element(message, "message-6"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 8.", "message-7"));
-                window.CurrentTab.AddToGroup("elements.chat", new Element("Message 9.", "message-8"));
+                window.CurrentTab.GetElement("element.info").Update(ElementShard.LobbyInfoShard.ToString("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 1."), "message-0"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-1"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-2"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-3"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-4"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-5"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString(Context.User.Username, message), "message-6"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 8."), "message-7"));
+                window.CurrentTab.AddToGroup("elements.console",
+                    new Element(ElementShard.ConsoleLineShard.ToString("Orikivo", "Message 9."), "message-8"));
+                window.CurrentTab.GetElement("element.user_info").Update(ElementShard.UserTitleShard.ToString("1", "15"));
+                window.CurrentTab.AddToGroup("elements.triggers", new Element(new GameTrigger("start").ToString()));
+                window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.User.Id, Context.User.Username, Context.Guild.Id, UserTag.Host | UserTag.Playing).ToString()));
+                window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.Client.CurrentUser.Id, Context.Client.CurrentUser.Username, Context.Guild.Id, UserTag.Playing).ToString()));
+
                 await Context.Channel.SendMessageAsync(window.Content);
             }
             catch (Exception ex)

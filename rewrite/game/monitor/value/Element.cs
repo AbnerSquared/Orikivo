@@ -5,9 +5,9 @@ namespace Orikivo
 {
     public class Element : IElement
     {
-        internal Element(string content = null, string id = null, ElementConfig config = null)
+        internal Element(string content = null, string name = null, ElementConfig config = null)
         {
-            Id = id;
+            Name = name;
             // Index = config.Index;
             // Immutable = config.Immutable;
             config = config ?? ElementConfig.Empty; // ??=
@@ -15,7 +15,9 @@ namespace Orikivo
             InvalidChars = config.InvalidChars ?? new List<char> { '|', '`', '*', '_', '~' };
             Update(content, config.GetProperties());
         }
-        public string Id { get; } // element:{id}
+        public string Name { get; }
+
+        public string Id => $"element.{Name}";
         public int Priority { get; internal set; }
         public bool IsHidden { get; internal set; } = false;
         public bool Immutable { get; } // set on config, if the element can be deleted.
@@ -25,7 +27,7 @@ namespace Orikivo
         public string Content
         {
             get => _content;
-            private set => _content = CanUseInvalidChars ? value.Escape(InvalidChars) : value.Remove(InvalidChars);
+            private set => _content = CanUseInvalidChars ? value/*.Escape(InvalidChars)*/ : value.Remove(InvalidChars);
         }
         public string ContentFormatter { get; internal set; }
         // only it being placed within a group permits updating its invalid chars.
@@ -35,10 +37,11 @@ namespace Orikivo
         public bool CanFormat { get; set; }
         public bool CanUseInvalidChars { get; set; } // characters that could violate discord chars.
         public int? ContentLimit { get; set; }
+        public bool AllowNewLine { get; set; } = false;
         public void Update(string content, ElementProperties properties = null)
         {
             // prevent newlines
-            Content = Checks.NotNull(content) ? content.Replace('\n', ' ') : "null";
+            Content = Checks.NotNull(content) ? AllowNewLine ? content : content.Replace('\n', ' ') : "null";
             if (properties != null)
                 Update(properties);
         }
@@ -52,8 +55,8 @@ namespace Orikivo
         {
             Content = null;
         }
-        public string ToString(bool debug = false)
-            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter, Content) : Content
+        public override string ToString()
+            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter ?? "{0}", Content) : Content
             : throw new Exception("The content length is larger than its limit.");
     }
 }

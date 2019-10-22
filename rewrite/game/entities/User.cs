@@ -12,7 +12,7 @@ namespace Orikivo
             Id = id;
             Name = name;
             ReceiverId = guildId;
-            if (tags != UserTag.Empty)
+            if (!tags.HasFlag(UserTag.Empty))
                 Tags |= tags;
             else
                 Tags = tags;
@@ -24,7 +24,11 @@ namespace Orikivo
         // Incomplete // public UserReceiver Receiver { get; }
         public UserTag Tags { get; internal set; }
         public bool IsHost => Tags.HasFlag(UserTag.Host);
+        public bool IsPlaying => Tags.HasFlag(UserTag.Playing);
         public ulong ReceiverId { get; internal set; }
         public DateTime JoinedAt { get; }
+
+        public override string ToString()
+            => string.Format($"{(IsHost ? "**{0}**":"{0}")}{(IsPlaying ? "🔹" : "")}", Name);
     }
 }

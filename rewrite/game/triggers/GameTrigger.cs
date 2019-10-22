@@ -190,5 +190,8 @@ namespace Orikivo
 
             return false;
         }
+
+        public override string ToString()
+            => $"{Name}{(ContainsArg ? $" <{Arg.Name}>" : "")}";
     }
 }

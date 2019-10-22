@@ -44,7 +44,7 @@ namespace Orikivo
                     empties.Add(string.Format(ElementFormatter, " "));
 
                 // fill on empty
-                return string.Join(ElementSeparator, Elements.Skip(skipLength).Select(x => x.ToString(Debug)).Concat(empties));
+                return string.Join(ElementSeparator, Elements.Skip(skipLength).Select(x => x.ToString()).Concat(empties));
             }
         }
 
@@ -81,7 +81,7 @@ namespace Orikivo
             foreach (char c in InvalidChars)
                 if (!element.InvalidChars.Contains(c))
                     element.InvalidChars.Add(c);
-            element.CanUseInvalidChars = CanUseInvalidChars;
+            //element.CanUseInvalidChars = CanUseInvalidChars;
             element.ContentFormatter = ElementFormatter;
             return element;
         }
@@ -173,7 +173,7 @@ namespace Orikivo
             Page = properties.Page ?? Page;
         }
         public override string ToString()
-            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter, Content) : Content
+            => (ContentLimit.HasValue ? Content.Length < ContentLimit : true) ? CanFormat ? string.Format(ContentFormatter ?? "{0}", Content) : Content
             : throw new Exception("The content length is larger than its limit.");
     }
 }
