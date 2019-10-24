@@ -19,10 +19,6 @@ namespace Orikivo
         // OriStat
         public static string StatParsePattern = @"^(\w+):(\w+)$";
 
-        // intCharType
-        public static string IntParsePattern = @"([0-9.]+)([s|m|h|d]?)";
-        public static string DoubleParsePattern = @"([0-9.]+)([s|m|h|d])";
-
         // Discord
         public static string EmojiParsePattern = @"<a?:\w{2,32}:\d{1,20}>";
 
@@ -32,40 +28,7 @@ namespace Orikivo
         public static string TriggerArgParsePattern = @"(?: (\w+))"; // make object parse patterns
         // and append the corresponding object parse values into the trigger parse format.
 
-        public static (int Value, IntLengthType? LengthType) TryParseCustomInt(string context)
-        {
-            (int Value, IntLengthType? LengthType) info = (0, null);
-            Match m = new Regex(IntParsePattern).Match(context);
-            bool isSuccess = EnumParser.TryParse(m.Groups[1].Value, out IntLengthType type);
-            if (isSuccess)
-                info.LengthType = type;
-            if (int.TryParse(m.Groups[0].Value, out int i))
-            {
-                info.Value = i;
-            }
-            else
-                throw new Exception("Could not parse Int32.");
-
-            return info;
-        }
-
-        public static (double Value, IntLengthType? LengthType) TryParseCustomDouble(string context)
-        {
-            (double Value, IntLengthType? LengthType) info = (0, null);
-            Match m = new Regex(DoubleParsePattern).Match(context);
-            bool isSuccess = EnumParser.TryParse(m.Groups[1].Value, out IntLengthType type);
-            if (isSuccess)
-                info.LengthType = type;
-            if (double.TryParse(m.Groups[0].Value, out double i))
-            {
-                info.Value = i;
-            }
-            else
-                throw new Exception("Could not parse Double.");
-
-            return info;
-        }
-
+        // TODO: Create custom parser for Double and Int32.
 
         public static Match ParseContext(string context)
             => new Regex(ContextParsePattern).Match(context);

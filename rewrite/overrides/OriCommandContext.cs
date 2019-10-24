@@ -6,13 +6,15 @@ using System.Text;
 
 namespace Orikivo
 {
+    /// <summary>
+    /// A custom command context that supports JSON container data and accounts.
+    /// </summary>
     public class OriCommandContext : SocketCommandContext
     {
         public OriUser Account { get; internal set; }
         public OriGuild Server { get; }
         public OriGlobal Global { get; }
         public OriJsonContainer Container { get; }
-        //public CommandInfo Command { get; internal set; } // maybe contain executed command info here.
 
         public OriCommandContext(DiscordSocketClient client, OriJsonContainer container, SocketUserMessage msg) : base(client, msg)
         {
@@ -22,10 +24,8 @@ namespace Orikivo
             if (Guild != null)
             {
                 Server = Container.GetOrAddGuild(Guild);
-                if (Server.Name != Guild.Name)
-                    Server.Name = Guild.Name;
-                if (Server.OwnerId != Guild.OwnerId)
-                    Server.OwnerId = Guild.OwnerId;
+                Server.TryUpdateName(Guild.Name);
+                Server.TryUpdateOwner(Guild.OwnerId);
                 Console.WriteLine("[Debug] -- Guild account found or built. --");
             }
             if (User != null)

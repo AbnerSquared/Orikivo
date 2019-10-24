@@ -2,6 +2,7 @@
 
 namespace Orikivo
 {
+    // TODO: Implement actual mechanics.
     public class GameResult
     {
         private GameResult() { }

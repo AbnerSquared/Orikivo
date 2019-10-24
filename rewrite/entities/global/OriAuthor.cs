@@ -2,6 +2,9 @@
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents an author, the creator of the object that it is bound to.
+    /// </summary>
     public class OriAuthor
     {
         [JsonConstructor]
@@ -11,20 +14,31 @@ namespace Orikivo
             Id = id;
         }
 
-        public OriAuthor(OriUser oriUser)
-        {
-            Name = oriUser.DefaultName;
-            Id = oriUser.Id;
-        }
-
+        /// <summary>
+        /// Creates an author with the specified name.
+        /// </summary>
         public OriAuthor(string name)
         {
             Name = name;
         }
 
+        /// <summary>
+        /// Creates an author from a specified user.
+        /// </summary>
+        public OriAuthor(OriUser user) : this(user.DefaultName)
+        {
+            Id = user.Id;
+        }
+
+        /// <summary>
+        /// The name of the author.
+        /// </summary>
         [JsonProperty("name")]
         public string Name { get; }
 
+        /// <summary>
+        /// The Discord Snowflake ID of the author, if one was specified.
+        /// </summary>
         [JsonProperty("id")]
         public ulong? Id { get; }
     }

@@ -3,8 +3,9 @@ using System.Linq;
 
 namespace Orikivo
 {
+    // TODO: Overhaul criteria checker.
     /// <summary>
-    /// A criteria object defining everything that a user is required to have in order to return true.
+    /// A criteria packet that checks a user for all specified values required.
     /// </summary>
     public struct UserCriteria
     {

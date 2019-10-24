@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
+    // TODO: This could possibly be scrapped.
     /// <summary>
     /// An object used to assist in creating formattable strings with arguments that can be passed into it.
     /// </summary>

@@ -149,7 +149,7 @@ namespace Orikivo
         public void Debug(string content)
         {
             if (CanDebug)
-                WriteLine(string.Format(OriFormat.DebugFrame, content));
+                WriteLine(string.Format(OriFormat.DebugFormat, content));
         }
 
         private ConsoleColor? _oldBackgroundColor;

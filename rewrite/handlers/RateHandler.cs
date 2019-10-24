@@ -2,7 +2,6 @@
 
 namespace Orikivo
 {
-    
     /// <summary>
     /// Handles how rate modifiers affect existing rates.
     /// </summary>

@@ -14,9 +14,9 @@ namespace Orikivo
     {
         [JsonConstructor]
         internal OriUser(ulong id, string username, string discriminator, DateTime createdAt, ulong? balance, ulong? debt, ulong? exp,
-            Dictionary<ulong, ulong> guildExp, Dictionary<string, ItemData> items, Dictionary<string, int> stats, Dictionary<string, MeritInfo> merits,
+            Dictionary<ulong, ulong> guildExp, Dictionary<string, ItemData> items, Dictionary<string, int> stats, Dictionary<string, MeritData> merits,
             Dictionary<string, int> upgrades, Dictionary<string, BoosterInfo> boosters, Dictionary<string, CooldownInfo> cooldowns, OriUserOptions options,
-            GimiInfo gimi)
+            GimiData gimi)
         {
 
             // find a way to auto-remove inactive items
@@ -49,12 +49,12 @@ namespace Orikivo
             GuildExp = guildExp ?? new Dictionary<ulong, ulong>();
             Items = items ?? new Dictionary<string, ItemData>();
             Stats = stats ?? new Dictionary<string, int>();
-            Merits = merits ?? new Dictionary<string, MeritInfo>();
+            Merits = merits ?? new Dictionary<string, MeritData>();
             Upgrades = upgrades ?? new Dictionary<string, int>();
             Boosters = boosters ?? new Dictionary<string, BoosterInfo>();
             Cooldowns = cooldowns ?? new Dictionary<string, CooldownInfo>();
             Options = options ?? OriUserOptions.Default;
-            Gimi = gimi ?? new GimiInfo();
+            Gimi = gimi ?? new GimiData();
             HasChanged = false;
         }
 
@@ -70,51 +70,76 @@ namespace Orikivo
             GuildExp = new Dictionary<ulong, ulong>();
             Cooldowns = new Dictionary<string, CooldownInfo>();
             Stats = new Dictionary<string, int>();
-            Merits = new Dictionary<string, MeritInfo>();
+            Merits = new Dictionary<string, MeritData>();
             Upgrades = new Dictionary<string, int>();
             Items = new Dictionary<string, ItemData>();
             Boosters = new Dictionary<string, BoosterInfo>();
             Options = OriUserOptions.Default;
-            Gimi = new GimiInfo();
+            Gimi = new GimiData();
             HasChanged = false;
         }
 
-        // single-layer properties
+
+        /// <summary>
+        /// Represents the Discord Snowflake ID.
+        /// </summary>
         [JsonProperty("id")]
         public ulong Id { get; }
+
+        /// <summary>
+        /// Represents the Discord username.
+        /// </summary>
         [JsonProperty("username")]
         public string Username { get; private set; }
+
+        /// <summary>
+        /// Represents the Discord discriminator.
+        /// </summary>
         [JsonProperty("discriminator")]
         public string Discriminator { get; private set; }
+
+        /// <summary>
+        /// The date at which this account was created at.
+        /// </summary>
         [JsonProperty("created_at")]
         public DateTime CreatedAt { get; }
 
         [JsonProperty("balance")]
         public ulong Balance { get; private set; }
-        [JsonProperty("guild_bal")] // used to help the guild out
+
+        [JsonProperty("guild_bal")]
         public Dictionary<ulong, GuildBalanceInfo> GuildBal { get; private set; }
 
         [JsonProperty("debt")]
         public ulong Debt { get; private set; }
 
+
         [JsonProperty("exp")]
         public ulong Exp { get; private set; }
+
         [JsonProperty("guild_exp")]
         public Dictionary<ulong, ulong> GuildExp { get; }
 
         [JsonProperty("stats")]
         public Dictionary<string, int> Stats { get; }
+
         [JsonProperty("merits")]
-        public Dictionary<string, MeritInfo> Merits { get; }
+        public Dictionary<string, MeritData> Merits { get; }
+
         [JsonProperty("upgrades")]
         public Dictionary<string, int> Upgrades { get; }
+
         [JsonProperty("boosters")]
         public Dictionary<string, BoosterInfo> Boosters { get; }
+
         [JsonProperty("items")]
         public Dictionary<string, ItemData> Items { get; }
+
+        // TODO: Set item cooldowns here.
         [JsonProperty("cooldowns")]
         public Dictionary<string, CooldownInfo> Cooldowns { get; }
 
+        // TODO: Transfer this to ExpHandler.
         [JsonIgnore]
         public double ExpGainRate
         {
@@ -190,16 +215,16 @@ namespace Orikivo
             => Items.ContainsKey(key);
 
         public void AddItem(string key, int amount = 1)
-        { 
-            // implement IsStackable & build-in features
-            if (!Items.TryAdd(key, new ItemData { StackCount = amount }))
-                Items[key].StackCount += amount;
-
-            HasChanged = true;
+        {
+            // TODO:  check if the user has the item in the first place.
+            // After that, check if the UniqueItemData are exact matches to the one being set.
+            // If they are, add one to the StackCount.
+            // If they aren't create a new item slot with the UniqueItemData.
         }
 
         public void RemoveItem(string key, int amount = 1)
         {
+            // implement IsStackable
             if (HasItem(key))
             {
                 if (Items[key].Count - amount < 1)
@@ -211,12 +236,19 @@ namespace Orikivo
             }
         }
 
-        // upgrades
+        /// <summary>
+        /// Checks to see if the user has a specified upgrade.
+        /// </summary>
         public bool HasUpgrade(string key)
             => Upgrades.ContainsKey(key);
 
+        /// <summary>
+        /// Checks to see if the user has a specified upgrade at a certain tier.
+        /// </summary>
         public bool HasUpgradeAt(string key, int value)
-            => Upgrades.ContainsKey(key) ? Upgrades[key] == value : false;
+            => HasUpgrade(key) ? Upgrades[key] == value : false;
+
+        // TODO: Make StatCriterion
         public bool MeetsStatCriteria(params (string, int)[] criteria)
         {
             foreach ((string key, int count) in criteria)
@@ -226,16 +258,26 @@ namespace Orikivo
             }
             return true;
         }
+
+        // TODO: ItemCriterion
         public bool HasItemAt(string key, int value)
             => Items.ContainsKey(key) ? Items[key].Count == value : false;
 
+        /// <summary>
+        /// Checks to see if the user has a specified merit.
+        /// </summary>
         public bool HasMerit(string key)
             => Merits.ContainsKey(key);
 
+        /// <summary>
+        /// Attempts to get the level of an upgrade on a user.
+        /// </summary>
         public int GetUpgrade(string key)
-            => Upgrades.ContainsKey(key) ? Upgrades[key] : 0;
+            => HasUpgrade(key) ? Upgrades[key] : 0;
 
-        // cooldown
+        /// <summary>
+        /// Sets or updates a cooldown for a user.
+        /// </summary>
         public void SetCooldown(string key, double seconds)
         {
             if (!Cooldowns.TryAdd(key, new CooldownInfo(DateTime.UtcNow, seconds)))
@@ -243,17 +285,21 @@ namespace Orikivo
             HasChanged = true;
         }
 
-        public List<KeyValuePair<string, CooldownInfo>> GetCommandCooldowns()
-            => Cooldowns.Where(x => x.Key.StartsWith("command")).ToList();
+        /// <summary>
+        /// Gets all currently set cooldowns for a specified type.
+        /// </summary>
+        public List<KeyValuePair<string, CooldownInfo>> GetCooldownsFor(CooldownType type)
+            => Cooldowns.Where(x => x.Key.StartsWith(type.ToString().ToLower())).ToList();
 
+        /// <summary>
+        /// Checks to see if the user has a currently existing cooldown in place.
+        /// </summary>
         public bool IsOnCooldown(string key)
-        {
-            if (Cooldowns.ContainsKey(key))
-                return Cooldowns[key].IsActive;
-            return false;
-        }
+            => Cooldowns.ContainsKey(key) ? Cooldowns[key].IsActive : false;
 
-        // update upon any properties being changed
+        /// <summary>
+        /// Defines the last time a user has saved, if they have.
+        /// </summary>
         [JsonIgnore]
         public DateTime? LastSaved { get; internal set; }
 
@@ -261,21 +307,26 @@ namespace Orikivo
         [JsonIgnore]
         public bool HasChanged { get; internal set; }
 
-        // get-only properties
+        /// <summary>
+        /// Returns the default Discord username format.
+        /// </summary>
         [JsonIgnore]
-        public string DefaultName { get { return $"{Username}#{Discriminator}"; } }
+        public string DefaultName => $"{Username}#{Discriminator}";
 
         [JsonIgnore]
-        public string Name { get { return !string.IsNullOrWhiteSpace(Options.Nickname) ? Options.Nickname : Username; } }
+        public string Name => Checks.NotNull(Options.Nickname) ? Options.Nickname : Username;
 
-        // inner-layer properties
+        /// <summary>
+        /// The configurations for this user.
+        /// </summary>
         [JsonProperty("options")]
         public OriUserOptions Options { get; private set; }
 
+        // TODO: Modify how the gimi info is stored... preferably into a UserGameData.
         [JsonProperty("gimi")]
-        public GimiInfo Gimi { get; }
+        public GimiData Gimi { get; }
 
-        // rework this
+        // TODO: Make this formatting separate from the user.
         public OriMessage GetDisplay(EntityDisplayFormat displayFormat)
         {
             OriMessage oriMessage = new OriMessage();
@@ -309,13 +360,8 @@ namespace Orikivo
         }
 
         public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj) || obj == null || GetType() != obj.GetType())
-                return false;
-            if (ReferenceEquals(this, obj))
-                return true;
-            return Equals(obj as IJsonEntity);
-        }
+            => ReferenceEquals(null, obj) || obj == null || GetType() != obj.GetType() ? false :
+            ReferenceEquals(this, obj) ? true : Equals(obj as IJsonEntity);
 
         public bool Equals(IJsonEntity obj)
             => Id == obj.Id;

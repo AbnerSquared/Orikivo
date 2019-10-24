@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // TODO: Rework this class to allow for TickUpdatePacket and such.
     public class TimerTask
     {
         public TimerTask(TimeSpan duration)

@@ -1,5 +1,6 @@
 ﻿namespace Orikivo
 {
+    // TODO: Create AttributeReader, which can easily account for all of these.
     internal static class GimiStat
     {
         internal static string CurrentWinStreak = "gimi:current_win_streak";

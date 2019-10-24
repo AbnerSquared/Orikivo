@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Orikivo
+﻿namespace Orikivo
 {
     /// <summary>
     /// An object used to keep track of a specific value across a game.
@@ -14,9 +12,9 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// The identity of this attribute.
+        /// The unique identifier of this attribute.
         /// </summary>
-        public string Id { get; } // namespace:value
+        public string Id { get; }
 
         /// <summary>
         /// The attribute's current value.

@@ -4,8 +4,7 @@ using System.Text;
 
 namespace Orikivo
 {
-    // simplify the name EntityFormat
-    // this is used to determine how accounts are rendered. (i.e. guild, user)
+    // TODO: Remove this. This is a useless formatting tool, and isn't needed. Instead, make a toggle for pixel art or default and toggle Debug mode.
     public enum EntityDisplayFormat
     {
         Text = 1, // text display

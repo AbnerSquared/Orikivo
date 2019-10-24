@@ -18,6 +18,6 @@ namespace Orikivo
         public Dice Dice { get; }
         public int Times { get; }
         public List<int> Results { get; }
-        public int TotalResult => OriMath.Add(Results);
+        public int TotalResult => Results.Sum();
     }
 }

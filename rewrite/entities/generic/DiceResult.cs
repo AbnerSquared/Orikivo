@@ -21,9 +21,9 @@ namespace Orikivo
             => Rolls.Select(x => x.Dice).ToList();
 
         public int GetDiceUsed()
-            => OriMath.Add(Rolls.Select(x => x.Times));
+            => Rolls.Select(x => x.Times).Sum();
         public int GetTotalResult()
-            => OriMath.Add(Rolls.Select(x => x.TotalResult));
+            => Rolls.Select(x => x.TotalResult).Sum();
 
     }
 }

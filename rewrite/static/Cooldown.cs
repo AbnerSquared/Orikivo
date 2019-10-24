@@ -1,5 +1,6 @@
 ﻿namespace Orikivo
 {
+    // TODO: Create AttributeReader, which can easily account for all of these.
     internal static class Cooldown
     {
         // Global is the global cooldown among all commands.

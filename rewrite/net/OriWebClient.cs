@@ -76,24 +76,24 @@ namespace Orikivo
         }
 
         public async Task<OriWebResult> GetAsync(string url = "")
-            => await SendAsync(HttpMethodType.GET, url);
+            => await SendAsync(HttpMethod.GET, url);
 
         public async Task<OriWebResult> DeleteAsync(string url = "")
-            => await SendAsync(HttpMethodType.DELETE, url);
+            => await SendAsync(HttpMethod.DELETE, url);
 
         public async Task<OriWebResult> PostAsync(string url = "", string value = null)
-            => await SendAsync(HttpMethodType.POST, url, value);
+            => await SendAsync(HttpMethod.POST, url, value);
 
         public async Task<OriWebResult> PatchAsync(string url = "", string value = null)
-            => await SendAsync(HttpMethodType.PATCH, url, value);
+            => await SendAsync(HttpMethod.PATCH, url, value);
 
         public async Task<OriWebResult> PutAsync(string url = "", string value = null)
-            => await SendAsync(HttpMethodType.PUT, url, value);
+            => await SendAsync(HttpMethod.PUT, url, value);
 
-        public async Task<OriWebResult> SendAsync(HttpMethodType requestType, string url = "", string value = null)
+        public async Task<OriWebResult> SendAsync(HttpMethod requestType, string url = "", string value = null)
         {
             url.TrimStart('/');
-            HttpMethod method = new HttpMethod(requestType.ToString());
+            System.Net.Http.HttpMethod method = new System.Net.Http.HttpMethod(requestType.ToString());
             using (HttpRequestMessage request = new HttpRequestMessage(method, url))
             {
                 if (!string.IsNullOrWhiteSpace(value))
@@ -110,7 +110,7 @@ namespace Orikivo
             HttpResponseMessage response = await _client.SendAsync(request);
 
             if (_rateLimit != null)
-                if (!await _rateLimit.CanRequestAsync((HttpMethodType)Enum.Parse(typeof(HttpMethodType), request.Method.Method.ToUpper()), request.RequestUri.ToString()))
+                if (!await _rateLimit.CanRequestAsync((HttpMethod)Enum.Parse(typeof(HttpMethod), request.Method.Method.ToUpper()), request.RequestUri.ToString()))
                     throw new HttpRequestException($"{request.RequestUri} is currently prohibited due to a ratelimit.");
             OriWebResult result = new OriWebResult(response);
             if (result.IsSuccess)

@@ -2,6 +2,6 @@
 {
     public enum MiniGameMode
     {
-        RPS = 1, // rok pap scis
+        RPS = 1, // Rock-Paper-Scissors
     }
 }

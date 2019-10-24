@@ -13,7 +13,6 @@ namespace Orikivo
         /// Creates a new TaskCriterion.
         /// </summary>
         /// <param name="attributeCriteria">A collection of attribute criteria that must be met for the criterion to return true.</param>
-        /// <param name="onSuccess"></param>
         public TaskCriterion(List<AttributeCriterion> attributeCriteria, TaskQueuePacket onSuccess)
         {
             // make validity checks to make sure the objects being passed aren't empty.
@@ -22,7 +21,6 @@ namespace Orikivo
 
         }
 
-        // the list of attribute ids, with their required values
         /// <summary>
         /// A collection of attribute criterion that must be met for the criterion to return true.
         /// </summary>
@@ -35,6 +33,7 @@ namespace Orikivo
         /// </summary>
         public TaskQueuePacket OnSuccess { get; }
 
+        // TODO: Handle user criterion checks.
         public bool Check(List<GameAttribute> attributes)
         {
             foreach (AttributeCriterion criterion in AttributeCriteria)

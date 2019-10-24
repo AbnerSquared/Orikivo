@@ -1,4 +1,5 @@
 using Discord.Commands;
+using System;
 
 namespace Orikivo
 {
@@ -6,6 +7,6 @@ namespace Orikivo
     [Summary("Commands that provide information on Discord objects.")]
     public class DiscordModule : OriModuleBase<OriCommandContext>
     {
-        // emojis global: gets all public emojis from all guilds using orikivo within the shard.
+        public DiscordModule() => throw new NotImplementedException();
     }
 }

@@ -43,7 +43,9 @@ namespace Orikivo
 
         private async Task OnUserJoinAsync(SocketGuildUser user)
         {
+            // Create or get the guild account.
             OriGuild server = _container.GetOrAddGuild(user.Guild);
+            // Check if the server has a default role set AND if the bot is allowed to set roles.
             if (server.Options.DefaultRoleId.HasValue) // check for verify
                 await user.AddRoleAsync(user.Guild.GetRole(server.Options.DefaultRoleId.Value));
             if (server.Options.AllowEvents)
@@ -53,7 +55,7 @@ namespace Orikivo
                     defaultChannel = user.Guild.GetTextChannel(server.Options.SystemChannelId.Value) ?? defaultChannel;
 
                 if (defaultChannel != null && server.Options.Greetings.Count > 0)
-                    await defaultChannel.SendMessageAsync(server.Greet(user));
+                    await defaultChannel.SendMessageAsync(server.Greet(user.Guild, user));
             }
         }
 
@@ -133,7 +135,7 @@ namespace Orikivo
                     // check command for cooldowns.
                     OriHelpService helperService = new OriHelpService(_commandService);
                     // in the case of custom command cooldowns, you would need to ignore them here;
-                    foreach (KeyValuePair<string, CooldownInfo> pair in Context.Account.GetCommandCooldowns())
+                    foreach (KeyValuePair<string, CooldownInfo> pair in Context.Account.GetCooldownsFor(CooldownType.Command))
                     {
                         // could probably make static
                         List<string> aliases = helperService.GetAliases(pair.Key.Substring("command:".Length));
@@ -153,7 +155,7 @@ namespace Orikivo
                         }
                     }
                 }
-
+                // Custom Commands: command:name.guild_id
                 // custom command logic
                 // make sure to apply a global cooldown in the case of a successful custom command.
                 // custom command cooldowns can be specified such as: command:yoshikill.456195057373020160
@@ -185,8 +187,9 @@ namespace Orikivo
             }
         }
 
-        // this is used when a command is executed.
-        // used to save OriGuild and OriUser to the actual computer if they exist
+        /// <summary>
+        /// These are the set of tasks that are executed when a user successfully calls a command.
+        /// </summary>
         private async Task OnCommandExecutedAsync(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
         {
             if (result.IsSuccess)
@@ -194,7 +197,7 @@ namespace Orikivo
                 _logger.Debug("Command.Success");
                 OriCommandContext Context = context as OriCommandContext;
 
-                // checking for cooldowns
+                /* Determine if there's a cooldown to be set. */
                 if (commandInfo.IsSpecified)
                 {
                     Attribute attribute = commandInfo.Value.Attributes.Where(x => x.GetType() == typeof(CooldownAttribute)).FirstOrDefault();
@@ -207,8 +210,8 @@ namespace Orikivo
                         }
                     }
                 }
+                /* Save all JSON entities, if needed. */
 
-                // saving/updating accounts if they need to
                 Context.Container.Global = Context.Global; // set the root global to the current global, if updated.
                 OriJsonHandler.Save(Context.Container.Global, "global.json"); // if it was updated; want to conserve amount of memory used.
                 if (Context.Server != null)
@@ -220,7 +223,6 @@ namespace Orikivo
                     Context.Account.UpdateStat(Stat.CommandsUsed, 1);
                     Context.Container.SaveUser(Context.Account);
                 }
-                // if it was updated; want to conserve amount of memory used.
             }
             else
             {

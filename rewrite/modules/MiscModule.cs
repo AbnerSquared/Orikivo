@@ -33,25 +33,6 @@ namespace Orikivo
             _gameManager = gameManager;
         }
 
-        [Command("color")]
-        [Summary("New color object testing.")]
-        public async Task ColorAsync()
-        {
-            Color c = new Color(100, 100, 100);
-            OriColor oriC = (OriColor)c;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"```bf");
-            sb.AppendLine($"Discord.Color.RawValue == {c.RawValue}");
-            sb.AppendLine($"OriColor.Value == {oriC.Value}");
-            sb.AppendLine($"Discord.Color.R == {c.R}\nDiscord.Color.G == {c.G}\nDiscord.Color.B == {c.B}");
-            sb.AppendLine($"OriColor.A == {oriC.A}\nOriColor.R == {oriC.R}\nOriColor.G == {oriC.G}\nOriColor.B == {oriC.B}");
-            sb.AppendLine($"Discord.Color.ToString == {c.ToString()}");
-            sb.AppendLine($"OriColor.ToString == {oriC.ToString()}");
-            sb.AppendLine($"```");
-
-            await Context.Channel.SendMessageAsync(sb.ToString());
-        }
-
         // make generic events
         [Group("greetings")]
         public class GreetingsGroup : OriModuleBase<OriCommandContext>
@@ -72,7 +53,7 @@ namespace Orikivo
             {
                 try
                 {
-                    Context.Server.Options.Events.Add(new GuildEvent(GuildEventType.UserJoin) { Message = greeting });
+                    Context.Server.Options.Events.Add(new GuildEventData(GuildEvent.UserJoin) { Message = greeting });
                     await Context.Channel.SendMessageAsync($"> Greeting **#{Context.Server.Options.Greetings.Count - 1}** has been included.");
                 }
                 catch(Exception e)
@@ -96,7 +77,7 @@ namespace Orikivo
             [Summary("Clears all custom greetings written for this guild.")]
             public async Task ClearGreetingsAsync()
             {
-                Context.Server.Options.Events.RemoveAll(x => x.Type == GuildEventType.UserJoin);
+                Context.Server.Options.Events.RemoveAll(x => x.Type == GuildEvent.UserJoin);
                 await Context.Channel.SendMessageAsync($"> All greetings have been cleared.");
             }
             [RequireGuild]
@@ -149,13 +130,13 @@ namespace Orikivo
             if (Context.Server.HasMuted(user.Id))
             {
                 Context.Server.Mute(user.Id, seconds);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.GetUserName(user)} has been muted for another {OriFormat.GetShortTime(seconds)}.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been muted for another {OriFormat.GetShortTime(seconds)}.");
                 return;
             }
 
             await user.AddRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
             Context.Server.Mute(user.Id, seconds);
-            await Context.Channel.SendMessageAsync($"> {OriFormat.GetUserName(user)} has been muted for {OriFormat.GetShortTime(seconds)}.");
+            await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been muted for {OriFormat.GetShortTime(seconds)}.");
 
         }
 
@@ -169,11 +150,11 @@ namespace Orikivo
             {
                 await user.RemoveRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
                 Context.Server.Unmute(user.Id);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.GetUserName(user)} has been unmuted.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been unmuted.");
                 return;
             }
 
-            await Context.Channel.SendMessageAsync($"> {OriFormat.GetUserName(user)} is already unmuted.");
+            await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} is already unmuted.");
         }
 
         [RequireGuild]
@@ -184,12 +165,12 @@ namespace Orikivo
         {
             if (user.Roles.Contains(role))
             {
-                await Context.Channel.SendMessageAsync($"> {OriFormat.GetUserName(user)} already has this role.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} already has this role.");
                 return;
             }
 
             await user.AddRoleAsync(role);
-            await Context.Channel.SendMessageAsync($"> Gave {OriFormat.GetUserName(user)} **{role.Name}**.");
+            await Context.Channel.SendMessageAsync($"> Gave {OriFormat.ReadUserName(user)} **{role.Name}**.");
         }
 
 
@@ -288,7 +269,7 @@ namespace Orikivo
 
             if (result.IsSuccess && (result.Type == ContextInfoType.Command || result.Type == ContextInfoType.Overload))
             {
-                int id = Context.Global.Reports.Add(Context.Account, result.Type == ContextInfoType.Command ? result.Command.Default : result.Overload, new ReportBodyInfo(title, content), tags);
+                int id = Context.Global.Reports.Open(Context.Account, result.Type == ContextInfoType.Command ? result.Command.Default : result.Overload, new ReportBodyInfo(title, content), tags);
                 await Context.Channel.SendMessageAsync($"> **Report** #{id} has been submitted.");
                 return;
             }
@@ -305,14 +286,15 @@ namespace Orikivo
         [Group("gimi")]
         public class GimiGroup : OriModuleBase<OriCommandContext>
         {
-            // TODO: Figure out how to handle group commands with an empty subvalue
+            // TODO: Figure out how to handle group commands with an empty subvalue.
+            // TODO: Create an easier way to handle group commands that can execute without a subvalue.
             [Command("")]
             [Cooldown(10)]
             [RequireUserAccount]
             [Summary("A **CasinoType** activity that randomly offers a reward value.")]
             public async Task GimiAsync()
             {
-                Gimi gimi = new Gimi(Context.Account);
+                GimiService gimi = new GimiService(Context.Account);
                 int returns = gimi.Get();
                 Context.Account.SetStat(returns > 0 ? GimiStat.CurrentLossStreak : GimiStat.CurrentWinStreak, 0);
                 Context.Account.UpdateStat(returns > 0 ? GimiStat.CurrentWinStreak : GimiStat.CurrentLossStreak, 1);
@@ -423,12 +405,14 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(Context.Account.GetDisplay(Context.Account.Options.DisplayFormat));
         }
 
+        // TODO: Create a context system to allow for getting specific option values alongside being able to set them.
         [RequireUserAccount]
         [Command("options"), Alias("config", "cfg")]
         [Summary("Returns all of your customized preferences.")]
         public async Task GetUserOptionsAsync()
         {
             OriUserOptions options = Context.Account.Options;
+            // TODO: Separate into a formatting class.
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"> **Prefix** `{options.Prefix ?? "null"}`");
             sb.AppendLine($"> This is an optional property that can be used as your personal prefix with **Orikivo.**");
@@ -453,6 +437,7 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(Context.Server.GetDisplay(Context.Account.Options.DisplayFormat));
         }
 
+        // TODO: Might scrap all around. The DisplayEntityFormat is kind of a mess.
         [Command("displayformat"), Alias("dispfmt"), Priority(0)]
         [Summary("Shows your current **EntityDisplayFormat**.")]
         [RequireUserAccount]

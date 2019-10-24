@@ -1,8 +1,17 @@
 ﻿namespace Orikivo
 {
-    public enum ReportStatus
+    /// <summary>
+    /// Defines the state of a report.
+    /// </summary>
+    public enum ReportState
     {
-        Open = 1, // open to review
-        Closed = 2 // either complete or declined
+        /// <summary>
+        /// Marks a report as open to review.
+        /// </summary>
+        Open = 1,
+        /// <summary>
+        /// States that a report has been fixed or declined.
+        /// </summary>
+        Closed = 2
     }
 }

@@ -6,13 +6,15 @@ using System.Text;
 namespace Orikivo
 {
 
-    // used to fancify text and whatknot.
+    /// <summary>
+    /// A formatter tool used to help format text across Orikivo.
+    /// </summary>
     public static class OriFormat
     {
-        public static string DebugFrame = "[Debug] -- {0} --";
+        public static string DebugFormat = "[Debug] -- {0} --";
         // ᵃᵇᶜᵈᵉᶠᵍʰᶤʲᵏˡᵐᶯᵒᵖʳˢᵗᵘᵛʷˣʸᶻ (superscript)
         // ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ (subscript)
-        private static Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
+        private static readonly Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
         {
             {'0', '₀'},
             {'1', '₁'},
@@ -31,6 +33,9 @@ namespace Orikivo
             {')', '₎'}
         };
 
+        /// <summary>
+        /// Attempts to map all known characters to its subscript variant.
+        /// </summary>
         public static string Subscript(string value)
             => MapChars(value, CharMap.Subscript);
 
@@ -54,45 +59,55 @@ namespace Orikivo
         }
 
         // use Regex to single out the {} values.
-        public static string ParseGreeting(string greeting, IUser user) // OriCommandContext
-            => greeting
+        /// <summary>
+        /// Parses the format of a greeting and replaces all specified keys into their known type.
+        /// </summary>
+        public static string ParseGreeting(string greeting, IGuild guild, IUser user) // OriCommandContext
+            => greeting // ({[A-Za-z._]}) <= Regex format. Regex.Matches(Pattern);
             .Replace("{user}", user.Username)
             .Replace("{mention_user}", user.Mention)
             .Replace("{date}", DateTime.UtcNow.ToString(@"mm-dd-yyyy"));
 
+        // Convert HTML format tags and convert them into Discord markup tags?
         public static string ConvertHtmlTags(string value)
-        {
-            StringBuilder sb = new StringBuilder();
-            return sb.ToString();
-        }
+            => throw new NotImplementedException();
+
         public static string GetNounForm(string word, int count)
             => $"{word}{(count > 1 || count == 0 || count < 0 ? "s" : "")}";
 
         public static string ReadType<T>()
             => $"**{typeof(T).Name}**";
 
-        public static string GetUserName(IUser user)
+        public static string ReadUserName(IUser user)
             => $"**{user.Username}**#{user.Discriminator}";
 
+        /// <summary>
+        /// Converts the specified number to be read out in place value format.
+        /// </summary>
         public static string PlaceValue(double d)
             => d.ToString("##,0.###");
 
-        public static string GetShortTime(double d)
+        public static string GetShortTime(double seconds)
         {
             char t = 's';
-            if (d > (60 * 60))
+            double n = seconds;
+            if (seconds > (60 * 60)) // if seconds is larger than 1 hour (in seconds)
             {
+                n = seconds / (60 * 60);
                 t = 'h';
-                return $"**{d / (60 * 60)}**{t}";
             }
-            if (d > 60)
+            if (seconds > 60) // if seconds is larger than 1 minute (in seconds)
             {
+                n = seconds / 60;
                 t = 'm';
-                return $"**{d / 60}**{t}";
             }
             
-            return $"**{d}**{t}";
+            return $"**{n}**{t}";
         }
+
+        /// <summary>
+        /// Converts the specified value into a JSON-friendly string.
+        /// </summary>
         public static string Jsonify(string value)
         {
             StringBuilder sb = new StringBuilder();
@@ -117,13 +132,11 @@ namespace Orikivo
 
         public static string FormatTextChannelName(string value)
         {
-            int maxLen = 100;
+            const int MAX_LENGTH = 100;
 
-            if (string.IsNullOrWhiteSpace(value))
-                throw new Exception("The value used to format cannot be empty.");
+            if (value.Length > MAX_LENGTH)
+                value = value.Substring(0, MAX_LENGTH);
 
-            if (value.Length > maxLen)
-                value = value.Substring(0, maxLen);
             // regex (([A-Za-z0-9-_ ])*)
             List<char> limitedChars = new List<char>
             { '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '=',

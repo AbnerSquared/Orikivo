@@ -21,7 +21,7 @@ namespace Orikivo
         public ulong UserId { get; } // the user that invoked the listener
         public Task<SocketMessage> GetMessageAsync(OriCommandContext context, bool fromSourceUser = true, bool inSourceChannel = true, TimeSpan? timeout = null, CancellationToken token = default)
         {
-            Criteria<SocketMessage> criterion = new Criteria<SocketMessage>();
+            MessageCriteria<SocketMessage> criterion = new MessageCriteria<SocketMessage>();
             if (fromSourceUser)
                 criterion.AddCriterion(new SourceUserCriterion());
             if (inSourceChannel)
@@ -29,7 +29,7 @@ namespace Orikivo
             return GetMessageAsync(context, criterion, timeout, token);
         }
         // notice: you can create asynchronous tasks within async tasks
-        public async Task<SocketMessage> GetMessageAsync(OriCommandContext context, IOriCriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
+        public async Task<SocketMessage> GetMessageAsync(OriCommandContext context, IMessageCriterion<SocketMessage> criterion, TimeSpan? timeout = null, CancellationToken token = default)
         {
             timeout = timeout ?? _defaultTimeout;
 

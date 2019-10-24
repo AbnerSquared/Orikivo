@@ -1,20 +1,35 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
 
 namespace Orikivo
 {
+    // TODO: Create a possible ID reference within the data.
+    // That way, a dictionary isn't required.
     public class ItemData
     {
-        public ItemData()
+        [JsonConstructor]
+        internal ItemData(int? stackCount, UniqueItemData unique)
         {
-            Info = new List<UniqueItemData>();
+            StackCount = stackCount;
+            Unique = unique;
         }
 
-        public int Count => StackCount ?? Info.Count;
-        public int? StackCount { get; set; }
+        internal ItemData(int stackCount)
+        {
+            StackCount = stackCount;
+        }
+
+        internal ItemData(UniqueItemData unique)
+        {
+            Unique = unique;
+        }
+
+        public int Count => StackCount ?? 1;
+        public string Id { get; }
+        public int? StackCount { get; internal set; }
 
         /// <summary>
-        /// A collection of each unique version of the specified item.
+        /// Unique information about the item, if one is specified.
         /// </summary>
-        public List<UniqueItemData> Info { get; private set; }
+        public UniqueItemData Unique { get; }
     }
 }

@@ -10,36 +10,16 @@ namespace Orikivo
     public static class OriMath
     {
         /// <summary>
-        /// Collectively adds a set of numbers together.
+        /// Calculates the average of all numbers within a set.
         /// </summary>
-        public static int Add(IEnumerable<int> set)
-        {
-            int result = 0;
-            foreach(int number in set)
-                result += number;
-            return result;
-        }
-
-        /// <summary>
-        /// Collectively adds a set of numbers together.
-        /// </summary>
-        public static double Add(IEnumerable<double> set)
-        {
-            double result = 0;
-            foreach (double number in set)
-                result += number;
-            return result;
-        }
-
-        // all combined values / number of values
         public static double Mean(IEnumerable<int> set)
-            => Add(set) / set.Count();
+            => set.Sum() / set.Count();
 
         /// <summary>
         /// Returns the exact median value from a set of numbers.
         /// </summary>
         public static double MedianValue(IEnumerable<int> set)
-            => Add(Median(set)) / 2;
+            => Median(set).Sum() / 2;
 
         /// <summary>
         /// Returns all median values from a set of numbers. If the set has an even count, it returns two median values.

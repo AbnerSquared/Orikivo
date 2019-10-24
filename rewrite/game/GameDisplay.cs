@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // remove 2 when rewritten.
     ///<summary>
     /// A container bound to a game that handles what to display across each receiver.
     ///</summary>

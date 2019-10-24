@@ -1,7 +1,6 @@
 ﻿namespace Orikivo
 {
-    // foreach property in these static classes, get the stat of the value of each property.
-    // this can be used to quickly get stat summaries
+    // TODO: Create AttributeReader, which can easily account for all of these.
     internal static class Stat
     {
         internal static string MostMoneyHeld = "generic:most_money_held";
@@ -14,6 +13,5 @@
         internal static string ItemsSold = "generic:items_sold";
         internal static string GiftsGiven = "generic:gifts_given";
         internal static string CommandsUsed = "generic:commands_used";
-        // stat:
     }
 }

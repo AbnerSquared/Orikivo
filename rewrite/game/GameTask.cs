@@ -8,7 +8,13 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // Defines a continuous action for a game that is called until any completion criteria have been met
+    // TODO: Create private message listeners for specific users.
+    // TODO: Handle display updates from a game packet.
+    // CONCEPT: Allow for sub-tasks within a task?
+    /// <summary>
+    /// A task that loops until a criteria metnioned has been met.
+    /// </summary>
+
     public class GameTask
     {
         // this is used to store specific phases
@@ -36,8 +42,6 @@ namespace Orikivo
         private GameTimer Timer { get; }
         private List<TaskCriterion> Criteria { get; }
         internal List<GameTrigger> Triggers { get; }
-
-        
 
         // a collection of local attributes.
         public List<GameAttribute> Attributes { get; }

@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Orikivo
 {
-    // these were referenced from Discord.Net.Utils; figure out the structure, and make your version that has what you need.
+    // these were referenced from Discord.Net.Utils
     public class AsyncEvent<T> where T : class
     {
         private readonly object _subLock = new object();
@@ -18,14 +18,14 @@ namespace Orikivo
 
         public void Add(T subscriber)
         {
-            Preconditions.NotNull(subscriber, nameof(subscriber));
+            Catcher.NotNull(subscriber, nameof(subscriber));
             lock (_subLock)
                 _subscriptions = _subscriptions.Add(subscriber);
         }
 
         public void Remove(T subscriber)
         {
-            Preconditions.NotNull(subscriber, nameof(subscriber));
+            Catcher.NotNull(subscriber, nameof(subscriber));
             lock (_subLock)
                 _subscriptions = _subscriptions.Remove(subscriber);
         }

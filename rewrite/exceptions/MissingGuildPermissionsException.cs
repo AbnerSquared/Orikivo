@@ -3,6 +3,7 @@ using System;
 
 namespace Orikivo
 {
+    // TODO: Replace ActionType to a different enum. That is used for audit logs.
     public class MissingGuildPermissionsException : Exception
     {
         public MissingGuildPermissionsException(GuildPermission permission, ulong guildId, ActionType type)

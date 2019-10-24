@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // Referenced from Discord.Net.Utils.
     internal static class AsyncExtensions
     {
         public static async Task InvokeAsync(this AsyncEvent<Func<Task>> handler)

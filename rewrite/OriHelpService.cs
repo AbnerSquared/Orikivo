@@ -8,23 +8,24 @@ using System.Linq;
 
 namespace Orikivo
 {
-    // used to get info on commands, modules, and reports statuses.
+    // TODO: Make this be the new command service.
+    // TODO: Integrate ReportContainer for the help service.
     public class OriHelpService : IDisposable
     {
         private readonly CommandService _commandService;
         private readonly List<CustomGuildCommand> _customCommands;
         
+        // A generic help service.
         public OriHelpService(CommandService commandService) // include report data alongside command data
         {
             Console.WriteLine("[Debug] -- Built a helper thread. --");
             _commandService = commandService;
         }
 
+        // A help service containing extra information in relation to a guild account.
         public OriHelpService(CommandService commandService, OriGuild guild)
         {
-            _commandService = commandService;
-            // if there aren't any, why keep the list?
-            
+            _commandService = commandService;            
             _customCommands = guild.CustomCommands.Count > 0 ? guild.CustomCommands : null;
         }
 
@@ -41,8 +42,10 @@ namespace Orikivo
             return sb.ToString();
         }
 
-        // allow custom command and aliases search index
-        // fix group searches
+        // TODO: Permit custom command search.
+        // TODO: Create group searches that can be separate from their command name variant.
+        // TODO: Create ambiguity catchers.
+        // TODO: Completely rewrite (again) how the context info is determined step-by-step.
         public ContextSearchResult Search(string content)
         {
             ContextInfo ctx = ContextInfo.Parse(content);
@@ -210,6 +213,7 @@ namespace Orikivo
             return result;
         }
 
+        // Get all known aliases for a context.
         public List<string> GetAliases(string context)
         {
             SearchResult result = _commandService.Search(context);
@@ -220,6 +224,8 @@ namespace Orikivo
             aliases.ForEach(x => x.Concat($"+{command.Priority}")); // make it to where you get the aliases of the main command, including its priority.
             return aliases;
         }
+
+        // Get all context values that have the exact same name.
         private List<ContextValue> GetMatchingValues(string name)
         {
             List<ContextValue> values = GetModules(name).Select(x => new ContextValue(x)).ToList();

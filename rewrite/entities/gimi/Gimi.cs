@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace Orikivo
 {
-    // a casino game
-    public class Gimi
+    // TODO: Create CasinoService mechanics.
+    public class GimiService
     {
-        public Gimi(OriUser user)
+        public GimiService(OriUser user)
         {
             Risk = user.Gimi.Risk;
             Earn = user.Gimi.Earn;

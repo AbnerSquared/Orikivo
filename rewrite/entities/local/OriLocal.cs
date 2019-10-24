@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Orikivo
 {
-    // used for storing local config
+    // TODO: Find the correct way to utilize this. As of now, all of this can be handled within Program.cs.
+    /// <summary>
+    /// A local entity used to store configurations for local processes.
+    /// </summary>
     public class OriLocal
     {
         [JsonConstructor]
@@ -13,14 +13,16 @@ namespace Orikivo
         {
             DiscordConfig = discordConfig;
             ConsoleConfig = consoleConfig;
-            LoggerConfig = loggerConfig;
+            LogConfig = loggerConfig;
         }
 
         [JsonProperty("discord_config")]
         public DiscordConfig DiscordConfig { get; }
+
         [JsonProperty("console_config")]
         public OriConsoleConfig ConsoleConfig { get; }
-        [JsonProperty("logger_config")]
-        public OriLogConfig LoggerConfig { get; }
+
+        [JsonProperty("log_config")]
+        public OriLogConfig LogConfig { get; }
     }
 }

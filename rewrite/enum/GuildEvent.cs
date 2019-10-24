@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum GuildEventType
+    public enum GuildEvent
     {
         UserJoin = 1,
         UserLeave = 2

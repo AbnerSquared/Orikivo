@@ -1,5 +1,6 @@
 ﻿namespace Orikivo
 {
+    // TODO: Modify its purpose.
     public class GuildBalanceInfo
     {
         public GuildBalanceInfo()

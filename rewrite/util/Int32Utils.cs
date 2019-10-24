@@ -12,12 +12,5 @@ namespace Orikivo
                 throw new DivideByZeroException("Dividing by zero is a sin.");
             return Enumerable.Repeat(start, (int)((end - start) / increment) + 1).Select((u, v) => u + (increment * v));
         }
-        public static int GetTotal(IEnumerable<int> ints, bool absolute = false)
-        {
-            int result = 0;
-            foreach (int i in ints)
-                result += absolute ? Math.Abs(i) : i;
-            return result;
-        }
     }
 }

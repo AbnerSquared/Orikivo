@@ -5,7 +5,9 @@ using System.Text;
 
 namespace Orikivo
 {
-    // a class that enhances the features of randomization
+    /// <summary>
+    /// A tool that enhances and expands upon RNG-based methods.
+    /// </summary>
     public static class OriRandom
     {
         /// <summary>
@@ -101,7 +103,7 @@ namespace Orikivo
         public static int Roll(Dice dice)
         {
             int result = (int)(Math.Truncate((double)(RandomProvider.Instance.Next(1, dice.Sides * dice.Length) / dice.Length)) % dice.Sides);
-            Console.WriteLine(string.Format(OriFormat.DebugFrame, $"Rolled a {dice.Sides}-sided dice and got {result}."));
+            Console.WriteLine(string.Format(OriFormat.DebugFormat, $"Rolled a {dice.Sides}-sided dice and got {result}."));
             return result;
         }
 
@@ -117,10 +119,8 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Rolls a collection of various dice with its specified number of times and returns a dice result containing all of their rolls.
+        /// Rolls a collection of various dice with its specified number of times, returning a dice result containing all of their rolls.
         /// </summary>
-        /// <param name="rolls"></param>
-        /// <returns></returns>
         public static DiceResult RollMany(params (Dice, int)[] rolls)
         {
             Dictionary<Dice, int> die = new Dictionary<Dice, int>();
@@ -138,7 +138,9 @@ namespace Orikivo
             return new DiceResult(diceRolls);
         }
 
-        // get a list of random characters using a specified tree.
+        /// <summary>
+        /// Gets a collection of random characters from a specified string of characters.
+        /// </summary>
         public static string GetChars(string branch, int len)
         {
             len = len > int.MaxValue ? int.MaxValue : (len < 1 ? 1 : len);
@@ -148,19 +150,21 @@ namespace Orikivo
             return new string(tree);
         }
 
+        /// <summary>
+        /// Gets a collection of random integers within a specified upper bound.
+        /// </summary>
         public static int[] GetRandInts(int upperBound, int len, bool allowRepeats = true)
             => GetRandInts(0, upperBound, len, allowRepeats);
 
         /// <summary>
-        /// Gets a collection of random integers.
+        /// Gets a collection of random integers within a specified bound.
         /// </summary>
         public static int[] GetRandInts(int lowerBound, int upperBound, int len, bool allowRepeats = true)
         {
             len = len > int.MaxValue ? int.MaxValue : (len < 1 ? 1 : len);
-            Console.WriteLine($"{lowerBound} => {upperBound}, length {len}");
             List<int> bag = Int32Utils.Increment(lowerBound, upperBound).ToList();
-            Console.WriteLine(bag.WriteValues());
             int[] mix = new int[len];
+
             for (int i = 0; i < len; i++)
             {
                 int j = RandomProvider.Instance.Next(bag.Count);
@@ -172,11 +176,15 @@ namespace Orikivo
             return mix;
         }
 
-        public static OriColor GetColor()
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>
+        /// Returns a color object with randomized RGB values.
+        /// </summary>
+        public static OriColor GetRandColor()
+            => throw new NotImplementedException();
 
+        /// <summary>
+        /// Returns a random integer that is within the specified range.
+        /// </summary>
         public static int Next(Range range)
             => RandomProvider.Instance.Next(range.Min, range.Max);
     }

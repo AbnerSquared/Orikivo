@@ -44,6 +44,18 @@ namespace Orikivo
 
         [JsonProperty("name")]
         public string Name { get; internal set; } // name of guild
+        
+        internal void TryUpdateName(string guildName)
+        {
+            if (Name != guildName)
+                Name = guildName;
+        }
+
+        internal void TryUpdateOwner(ulong ownerId)
+        {
+            if (OwnerId != ownerId)
+                OwnerId = ownerId;
+        }
 
         [JsonProperty("created_at")]
         public DateTime CreatedAt { get; }
@@ -71,8 +83,9 @@ namespace Orikivo
         public bool HasMuted(ulong userId)
             => TempRoles.Any(x => x.UserId == userId && !x.HasExpired);
 
-        public string Greet(SocketUser user)
-            => OriFormat.ParseGreeting(OriRandom.Choose(Options.Greetings ?? OriGuildOptions.Default.Greetings).Message, user);
+        // TODO: Possibly create EventContext, which would contain OriGuild, SocketGuild, and SocketUser.
+        public string Greet(SocketGuild guild, SocketUser user)
+            => OriFormat.ParseGreeting(OriRandom.Choose(Options.Greetings ?? OriGuildOptions.Default.Greetings).Message, guild, user);
 
         public void Mute(ulong userId, double seconds)
         {

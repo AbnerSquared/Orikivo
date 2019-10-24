@@ -2,7 +2,9 @@
 
 namespace Orikivo
 {
-    // instead of throwing, just checks if the object matches
+    /// <summary>
+    /// A polite variant of Catcher, only returning a Boolean value defining if the specified objects meet a requirement.
+    /// </summary>
     public static class Checks
     {
         public static bool NotNull(string str, string name = null)
@@ -11,6 +13,18 @@ namespace Orikivo
             {
                 if (!string.IsNullOrWhiteSpace(name))
                     Console.WriteLine($"-- {name} is an invalid string. --");
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool NotNull(object obj, string name = null)
+        {
+            if (obj == null)
+            {
+                if (!string.IsNullOrWhiteSpace(name))
+                    Console.WriteLine($"!= {obj} is null.");
                 return false;
             }
 

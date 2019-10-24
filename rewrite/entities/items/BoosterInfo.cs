@@ -3,6 +3,7 @@ using System;
 
 namespace Orikivo
 {
+    // TODO: Make rate positive or negative.
     public class BoosterInfo
     {
         [JsonProperty("gain_rate")]

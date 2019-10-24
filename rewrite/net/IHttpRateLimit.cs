@@ -7,7 +7,7 @@ namespace Orikivo
 {
     public interface IHttpRateLimit
     {
-        Task<bool> CanRequestAsync(HttpMethodType requestType, string url);
+        Task<bool> CanRequestAsync(HttpMethod requestType, string url);
         Task OnSuccessAsync(OriWebResult result);
     }
 }

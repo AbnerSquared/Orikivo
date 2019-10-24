@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // Since Messy is a testing module, this doesn't need services.
     [Name("Messy")]
     [Summary("Commands that are under the works. Functionality is not to be expected.")]
     public class MessyModule : OriModuleBase<OriCommandContext>
@@ -64,6 +66,25 @@ namespace Orikivo
             {
                 await Context.Channel.CatchAsync(ex);
             }
+        }
+
+        [Command("colortest")]
+        [Summary("New color object testing.")]
+        public async Task ColorAsync()
+        {
+            Color c = new Color(100, 100, 100);
+            OriColor oriC = (OriColor)c;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"```bf");
+            sb.AppendLine($"Discord.Color.RawValue == {c.RawValue}");
+            sb.AppendLine($"OriColor.Value == {oriC.Value}");
+            sb.AppendLine($"Discord.Color.R == {c.R}\nDiscord.Color.G == {c.G}\nDiscord.Color.B == {c.B}");
+            sb.AppendLine($"OriColor.A == {oriC.A}\nOriColor.R == {oriC.R}\nOriColor.G == {oriC.G}\nOriColor.B == {oriC.B}");
+            sb.AppendLine($"Discord.Color.ToString == {c.ToString()}");
+            sb.AppendLine($"OriColor.ToString == {oriC.ToString()}");
+            sb.AppendLine($"```");
+
+            await Context.Channel.SendMessageAsync(sb.ToString());
         }
 
         [Command("windowtest")]
@@ -233,6 +254,14 @@ namespace Orikivo
             sb.AppendLine($"OldEnsure: {{ {values.WriteValues()} }}");
             sb.AppendLine($"New: {{ {shuffledValues.WriteValues()} }}");
             await Context.Channel.SendMessageAsync(sb.ToString());
+        }
+
+        [Command("dicetest")]
+        public async Task DiceTestAsync()
+        {
+            Dice dice = Dice.Default;
+            int result = OriRandom.Roll(dice);
+            await Context.Channel.SendMessageAsync(result.ToString());
         }
     }
 }

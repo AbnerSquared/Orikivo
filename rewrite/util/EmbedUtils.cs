@@ -1,12 +1,15 @@
 ﻿using Discord;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Orikivo
 {
     public static class EmbedUtils
     {
+        /// <summary>
+        /// Gets the color object derived from the status of a Discord user.
+        /// </summary>
         public static OriColor GetColorByStatus(UserStatus status)
         {
             return status.EqualsAny(UserStatus.Offline, UserStatus.Invisible) ? new OriColor(0x747F8D)
@@ -16,6 +19,7 @@ namespace Orikivo
                 : throw new Exception("The UserStatus given is unspecified.");
         }
 
+        // TODO: actually give this a reason to exist.
         public static string CreatePagedFooter(int currentPage, int maxPage, string text = null)
         {
             StringBuilder sb = new StringBuilder();
@@ -26,5 +30,8 @@ namespace Orikivo
                 sb.Insert(0, $"{text} | ");
             return sb.ToString();
         }
+
+        public static string CreateLocalImageUrl(string path)
+            => $"attachment://{Path.GetFileName(path)}";
     }
 }

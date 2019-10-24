@@ -3,10 +3,10 @@
 namespace Orikivo
 {
     // used to set how the gimi command works for you
-    public class GimiInfo
+    public class GimiData
     {
         [JsonConstructor]
-        public GimiInfo(int risk, int earn, int? goldSlot = null, int? curseSlot = null)
+        public GimiData(int risk, int earn, int? goldSlot = null, int? curseSlot = null)
         {
             Risk = risk;
             Earn = earn;
@@ -14,7 +14,7 @@ namespace Orikivo
             CurseSlot = curseSlot;
         }
 
-        public GimiInfo()
+        public GimiData()
         {
             Risk = 50;
             Earn = 10;

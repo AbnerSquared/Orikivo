@@ -2,8 +2,9 @@
 
 namespace Orikivo
 {
+    // TODO: Implement base mechanics on GameProperties constructor.
     /// <summary>
-    /// The data of a player that is used upon the construction of all players.
+    /// The data of a player that is used for the construction of all players.
     /// </summary>
     public class BasePlayerData
     {

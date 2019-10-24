@@ -6,7 +6,7 @@ namespace Orikivo
     {
         public bool IsSuccess { get; }
         public ulong Reward { get; }
-        public List<StatUpdateInfo> StatsToChange { get; set; }
+        public List<StatUpdatePacket> StatsToChange { get; set; }
 
         // design the result info here
     }

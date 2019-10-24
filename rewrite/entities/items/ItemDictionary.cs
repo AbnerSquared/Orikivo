@@ -16,16 +16,16 @@
                 info.Id = "entity_pocket_lawyer";
                 info.Name = "Pocket Lawyer";
                 info.Rarity = ItemRarity.Common;
-                info.Group = ItemGroupType.Entity;
+                info.Group = ItemGroup.Entity;
                 info.Summary = "This little guy works against ORS to keep you safe.";
                 UserCriteria toOwnCriteria = UserCriteria.Empty;
                 toOwnCriteria.Debt = 1000;
                 info.ToOwn = toOwnCriteria;
 
                 ItemActionInfo actionInfo = new ItemActionInfo();
-                actionInfo.OnUse = ItemCustomAction.NoDebt;
+                actionInfo.OnUse.CustomAction = ItemCustomAction.NoDebt;
                 actionInfo.MaxUses = 1;
-                actionInfo.BreakOnUse = true;
+                actionInfo.BreakOnLastUse = true;
                 info.ActionInfo = actionInfo;
 
                 ItemMarketInfo marketInfo = new ItemMarketInfo();

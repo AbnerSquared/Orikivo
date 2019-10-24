@@ -1,5 +1,6 @@
 ﻿namespace Orikivo
 {
+    // TODO: Create the currencies and find out how to utilize each of them.
     /// <summary>
     /// Defines a type of currency that can be stored within a wallet.
     /// </summary>

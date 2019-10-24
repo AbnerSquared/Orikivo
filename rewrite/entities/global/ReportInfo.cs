@@ -8,24 +8,15 @@ namespace Orikivo
 {
     public class ReportInfo : ReportBodyInfo
     {
-        // the only time this is used is if the exception is deemed critical
+        /// <summary>
+        /// Creates a new report from an exception.
+        /// </summary>
         internal static ReportInfo FromException<T>(int id, T exception, string commandId) where T : Exception
             => new ReportInfo(id, commandId, typeof(T).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);
 
-        // exception constructor
-        private ReportInfo(int id, string commandId, string title, string content, params ReportTag[] tags)
-        {
-            Id = id;
-            CommandId = commandId;
-            Author = new OriAuthor(OriGlobal.ClientName);
-            Title = title;
-            Content = content;
-            Tags = tags?.ToList() ?? new List<ReportTag>();
-        }
-
         [JsonConstructor]
         internal ReportInfo(int id, string commandId, OriAuthor author, DateTime createdAt,
-            DateTime? editedAt, string title, string content, string imageUrl, ReportBodyInfo lastInfo, ReportStatus status,
+            DateTime? editedAt, string title, string content, string imageUrl, ReportBodyInfo lastInfo, ReportState status,
             List<VoteInfo> votes, params ReportTag[] tags)
         {
             Id = id;
@@ -38,7 +29,7 @@ namespace Orikivo
             ImageUrl = imageUrl;
             LastInfo = lastInfo;
             Tags = tags?.ToList() ?? new List<ReportTag>();
-            Status = status;
+            State = status;
             Votes = votes ?? new List<VoteInfo>();
         }
 
@@ -52,8 +43,18 @@ namespace Orikivo
             Content = reportInfo.Content;
             ImageUrl = reportInfo.ImageUrl;
             Tags = tags?.ToList() ?? new List<ReportTag>();
-            Status = ReportStatus.Open;
+            State = ReportState.Open;
             Votes = new List<VoteInfo>();
+        }
+
+        private ReportInfo(int id, string commandId, string title, string content, params ReportTag[] tags)
+        {
+            Id = id;
+            CommandId = commandId;
+            Author = new OriAuthor(OriGlobal.ClientName);
+            Title = title;
+            Content = content;
+            Tags = tags?.ToList() ?? new List<ReportTag>();
         }
 
         // in seconds
@@ -78,16 +79,19 @@ namespace Orikivo
         public ReportBodyInfo LastInfo { get; private set; }
 
         [JsonProperty("tags")]
-        public List<ReportTag> Tags { get; } // now an optional ideal
+        public List<ReportTag> Tags { get; }
 
-        [JsonProperty("status")]
-        public ReportStatus Status { get; private set; }
+        [JsonProperty("state")]
+        public ReportState State { get; private set; }
 
+        /// <summary>
+        /// The reason this report was closed, if one was specified.
+        /// </summary>
         [JsonProperty("close_reason")]
         public string CloseReason { get; private set; }
 
         [JsonIgnore]
-        public bool IsClosed => Status == ReportStatus.Closed;
+        public bool IsClosed => State == ReportState.Closed;
 
         [JsonProperty("votes")]
         public List<VoteInfo> Votes { get; }
@@ -96,7 +100,7 @@ namespace Orikivo
         public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
 
         [JsonIgnore]
-        public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
+        public bool HasImage => Checks.NotNull(ImageUrl);
 
         [JsonIgnore]
         public int Upvotes => Votes.Where(x => x.Vote == VoteType.Upvote).Count();
@@ -108,16 +112,16 @@ namespace Orikivo
         public void Close(string reason = null)
         {
             if (IsClosed)
-                throw new Exception("This report is already closed.");
-            Status = ReportStatus.Closed;
-            if (Checks.NotNull(reason, nameof(reason)))
+                throw new Exception("The report specified has already been closed.");
+            State = ReportState.Closed;
+            if (Checks.NotNull(reason))
                 CloseReason = reason;
         }
 
         public void AddVote(ulong userId, VoteType vote = VoteType.Upvote)
         {
             if (IsClosed)
-                throw new Exception("This report cannot be updated, as it has been closed.");
+                throw new Exception("The report specified has already been closed.");
 
             if (!Votes.Any(x => x.UserId == userId))
             {
@@ -132,13 +136,14 @@ namespace Orikivo
             Votes[Votes.IndexOf(info)].Vote = vote;
         }
 
-        public void RemoveVotes(ulong userId)
+        public void RemoveVoteFrom(ulong userId)
             => Votes.RemoveAll(x => x.UserId == userId);
 
         public void Update(string title = null, string content = null, string imageUrl = null)
         {
+            // TODO: Edit how the update system is used.
             if (IsClosed)
-                throw new Exception("This report cannot be updated, as it has been closed.");
+                throw new Exception("The report specified has already been closed.");
 
             bool edited = false;
             ReportBodyInfo old = new ReportBodyInfo(Title, Content, ImageUrl);
@@ -165,6 +170,7 @@ namespace Orikivo
             }
         }
 
+        // TODO: Separate into a formatting service.
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

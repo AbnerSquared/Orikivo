@@ -14,7 +14,7 @@ namespace Orikivo
         private OriGuildOptions() { }
 
         [JsonConstructor]
-        public OriGuildOptions(string prefix, List<GuildEvent> events, bool? allowEvents, Dictionary<GuildRoleType, ulong> customRoles,
+        public OriGuildOptions(string prefix, List<GuildEventData> events, bool? allowEvents, Dictionary<GuildRoleType, ulong> customRoles,
             ulong? systemChannelId, List<ulong> selfAssignRoles, ExceptionLevel exceptionLevel)
         {
             Prefix = prefix; // prevent editing prefix config
@@ -55,7 +55,7 @@ namespace Orikivo
                 guildOptions.CustomRoles = new Dictionary<GuildRoleType, ulong>();
                 
                 guildOptions.AllowEvents = false;
-                guildOptions.Events = new List<GuildEvent> { new GuildEvent(GuildEventType.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
+                guildOptions.Events = new List<GuildEventData> { new GuildEventData(GuildEvent.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
                 guildOptions.SelfAssignRoles = new List<ulong>();
                 return guildOptions;
             }
@@ -82,10 +82,10 @@ namespace Orikivo
         public bool HasPrefix => !string.IsNullOrWhiteSpace(Prefix);
 
         [JsonProperty("events")]
-        public List<GuildEvent> Events { get; set; }
+        public List<GuildEventData> Events { get; set; }
 
         [JsonIgnore]
-        public IReadOnlyList<GuildEvent> Greetings => Events.Where(x => x.Type == GuildEventType.UserJoin).ToList();
+        public IReadOnlyList<GuildEventData> Greetings => Events.Where(x => x.Type == GuildEvent.UserJoin).ToList();
 
         [JsonProperty("allow_events")]
         public bool AllowEvents { get; set; }
@@ -147,8 +147,8 @@ namespace Orikivo
         [JsonProperty("self_assign_roles")]
         public List<ulong> SelfAssignRoles { get; private set; } // roles that the people within the guild can give themselves
 
-        public void AddEvent(GuildEventType type, string message)
-            => Events.Add(new GuildEvent(type) { Message = message });
+        public void AddEvent(GuildEvent type, string message)
+            => Events.Add(new GuildEventData(type) { Message = message });
 
         public void AddSelfRole(ulong roleId)
         {

@@ -15,7 +15,7 @@ namespace Orikivo
             => eb.WithFooter(EmbedUtils.CreatePagedFooter(currentPage, maxPage, text), iconUrl);
 
         // this must be sent using Context.Channel.SendFileAsync;
-        public static EmbedBuilder WithAttachedImage(this EmbedBuilder eb, string path)
-            => eb.WithImageUrl($"attachment://{Path.GetFileName(path)}");
+        public static EmbedBuilder WithLocalImageUrl(this EmbedBuilder eb, string path)
+            => eb.WithImageUrl(EmbedUtils.CreateLocalImageUrl(path));
     }
 }
