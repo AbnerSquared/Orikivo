@@ -5,7 +5,7 @@ namespace Orikivo
     /// <summary>
     /// A tool used to to catch any mistakes an object might have to throw exceptions accordingly.
     /// </summary>
-    public static class Catcher
+    public static class Catch
     {
         // Referenced from Discord.Net.Utils.
         public static void NotNull<T>(T obj, string name, string msg = null) where T : class

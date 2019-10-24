@@ -18,14 +18,14 @@ namespace Orikivo
 
         public void Add(T subscriber)
         {
-            Catcher.NotNull(subscriber, nameof(subscriber));
+            Catch.NotNull(subscriber, nameof(subscriber));
             lock (_subLock)
                 _subscriptions = _subscriptions.Add(subscriber);
         }
 
         public void Remove(T subscriber)
         {
-            Catcher.NotNull(subscriber, nameof(subscriber));
+            Catch.NotNull(subscriber, nameof(subscriber));
             lock (_subLock)
                 _subscriptions = _subscriptions.Remove(subscriber);
         }

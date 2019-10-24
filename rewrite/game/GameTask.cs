@@ -47,6 +47,7 @@ namespace Orikivo
         public List<GameAttribute> Attributes { get; }
         private List<GameAttribute> LastAttributesUpdated { get; set; } = new List<GameAttribute>();
 
+        // TODO: It could be possible to make the game client function independently from Discord.
         public async Task<TaskQueuePacket> StartAsync(BaseSocketClient client, GameLobby lobby, GameDisplay display, GameData data, CancellationToken token)
         {
             Data.Root = data; // unite parent data to task data.
@@ -153,7 +154,6 @@ namespace Orikivo
             if (!Attributes.Any(x => x.Id == update.Id))
                 throw new Exception("The update packet is trying to update an attribute that doesn't exist.");
             attribute = Attributes.First(x => x.Id == update.Id);
-            attribute.Value += update.Amount;
 
             // method used here.
             switch(update.Method)

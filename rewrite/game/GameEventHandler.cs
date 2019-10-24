@@ -24,32 +24,32 @@ namespace Orikivo
 
         public event Func<Game, Task> GameStarted
         {
-            add { _gameStartedEvent.Add(value); }
-            remove { _gameStartedEvent.Remove(value); }
+            add => _gameStartedEvent.Add(value);
+            remove => _gameStartedEvent.Remove(value);
         }
         
         public event Func<User, GameLobby, Task> UserLeft
         {
-            add { _userLeftEvent.Add(value); }
-            remove { _userLeftEvent.Remove(value); }
+            add => _userLeftEvent.Add(value);
+            remove => _userLeftEvent.Remove(value);
         }
         
         public event Func<GameReceiver, GameLobby, Task> ReceiverConnected
         {
-            add { _receiverConnectedEvent.Add(value); }
-            remove { _receiverConnectedEvent.Remove(value); }
+            add => _receiverConnectedEvent.Add(value);
+            remove => _receiverConnectedEvent.Remove(value);
         }
         
         public event Func<GameReceiver, GameLobby, Task> ReceiverDisconnected
         {
-            add { _receiverDisconnectedEvent.Add(value); }
-            remove { _receiverDisconnectedEvent.Remove(value); }
+            add => _receiverDisconnectedEvent.Add(value);
+            remove => _receiverDisconnectedEvent.Remove(value);
         }
 
         public event Func<GameDisplay, Task> DisplayUpdated
         {
-            add { _displayUpdatedEvent.Add(value); }
-            remove { _displayUpdatedEvent.Remove(value); }
+            add => _displayUpdatedEvent.Add(value);
+            remove => _displayUpdatedEvent.Remove(value);
         }
 
         internal async Task InvokeUserJoinedAsync(User user, GameLobby lobby)

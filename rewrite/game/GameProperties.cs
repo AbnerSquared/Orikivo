@@ -1,11 +1,11 @@
-﻿using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 
 namespace Orikivo
 {
-    // this defines what the game needs before actually launching.
+    /// <summary>
+    /// Base rulesets that define how a game is handled.
+    /// </summary>
     public class GameProperties
     {
         private GameProperties() {}

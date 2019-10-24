@@ -3,7 +3,7 @@
 namespace Orikivo
 {
     /// <summary>
-    /// A polite variant of Catcher, only returning a Boolean value defining if the specified objects meet a requirement.
+    /// A polite variant of Catch, only returning a Boolean value defining if the specified objects meet a requirement.
     /// </summary>
     public static class Checks
     {

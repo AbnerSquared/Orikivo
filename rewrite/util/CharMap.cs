@@ -6,7 +6,7 @@
     public enum CharMap
     {
         /// <summary>
-        /// Marks the map reader to read subscript.
+        /// Marks the map reader to convert subscript.
         /// </summary>
         Subscript = 1
     }

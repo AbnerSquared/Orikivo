@@ -98,7 +98,7 @@ namespace Orikivo
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    request.Content = new StringContent(value, Encoding.UTF8, $"application/{HttpApplicationType.JSON.ToString().ToLower()}");
+                    request.Content = new StringContent(value, Encoding.UTF8, $"application/{HttpMedia.JSON.ToString().ToLower()}");
                     request.Content.Headers.ContentType.CharSet = null; // This is the UTF-8 being removed, to make sure it can actually format the value given.
                 }
                 return await SendAsync(request);
