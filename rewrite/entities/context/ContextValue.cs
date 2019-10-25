@@ -2,6 +2,9 @@
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents a generic trigger.
+    /// </summary>
     public class ContextValue
     {
         public ContextValue(ModuleInfo module)
@@ -29,6 +32,7 @@ namespace Orikivo
         }
 
         public string Name { get; internal set; }
+
         public ContextInfoType Type { get; internal set; }
     }
 }

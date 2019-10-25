@@ -47,7 +47,7 @@ namespace Orikivo
         /// <summary>
         /// Attempts to parse the message sent as a validated trigger.
         /// </summary>
-        public bool TryParse(GameTriggerContext context, out GameTriggerResult result)
+        public bool TryParse(TaskTriggerContext context, out GameTriggerResult result)
         {
             Console.WriteLine($"-- [{Id}]: Now attempting parse... --");
             result = new GameTriggerResult();

@@ -29,6 +29,7 @@
         /// Marks a report as derived from an exception.
         /// </summary>
         Exception = 5,
+
         /// <summary>
         /// Marks a report as automatically generated.
         /// </summary>

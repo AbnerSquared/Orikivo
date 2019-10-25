@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Orikivo
+﻿namespace Orikivo
 {
     public enum ContextInfoType
     {

@@ -2,11 +2,11 @@
 
 namespace Orikivo
 {
-    public class ReportBodyInfo
+    public class ReportBody
     {
-        internal ReportBodyInfo() { }
+        internal ReportBody() { }
 
-        public ReportBodyInfo(string title, string content, string imageUrl = null)
+        public ReportBody(string title, string content, string imageUrl = null)
         {
             Title = title;
             Content = content;

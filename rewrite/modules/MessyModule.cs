@@ -178,7 +178,7 @@ namespace Orikivo
             GameTaskData taskData = new GameTaskData(rootData.TaskId, taskAttributes, taskTriggers);
             taskData.Root = rootData;
 
-            GameTriggerContext context = new GameTriggerContext(taskData, player, message);
+            TaskTriggerContext context = new TaskTriggerContext(taskData, player, message);
 
             for(int i = 0; i < taskData.Triggers.Count; i++)
             {

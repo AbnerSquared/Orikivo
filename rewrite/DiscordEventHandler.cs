@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // the class that handles all events that can occur on discord
-    // this is where commands are executed and whatknot
     /// <summary>
     /// The event handler deriving from all events relating to the Discord API.
     /// </summary>
@@ -88,7 +86,8 @@ namespace Orikivo
 
             SocketUserMessage source = arg as SocketUserMessage;
             OriCommandContext Context = new OriCommandContext(_client, _container, source);
-
+            // TODO: Instead of handling here, if the game manager does have this user,
+            //       create a new GameTriggerContext that is then passed into the GameManager as its own internal event.
             if (Context.Account != null)
             {
                 if (_gameManager.ContainsUser(Context.Account.Id))
@@ -124,6 +123,7 @@ namespace Orikivo
         private string GetContextPrefix(OriCommandContext Context)
             => Context.Account?.Options.Prefix ?? Context.Server?.Options.Prefix ?? Context.Global.Prefix;
 
+        // PROCESS: 1. Check for cooldowns. 2. Check within custom commands. 3. Attempt to execute, catch if there was an exception error.
         private async Task ExecuteCommandAsync(OriCommandContext Context, int argPos)
         {
             try
@@ -133,7 +133,7 @@ namespace Orikivo
                 if (Context.Account != null)
                 {
                     // check command for cooldowns.
-                    OriHelpService helperService = new OriHelpService(_commandService);
+                    OriHelpService helperService = new OriHelpService(_commandService, Context.Global); // Instead of constantly creating this, create a dependency.
                     // in the case of custom command cooldowns, you would need to ignore them here;
                     foreach (KeyValuePair<string, CooldownInfo> pair in Context.Account.GetCooldownsFor(CooldownType.Command))
                     {

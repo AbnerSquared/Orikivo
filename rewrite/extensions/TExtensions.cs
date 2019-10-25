@@ -13,7 +13,7 @@ namespace Orikivo
         /// <summary>
         /// Creates a new list with itself being the first element.
         /// </summary>
-        public static List<T> CreateList<T>(this T t)
+        public static List<T> AsList<T>(this T t)
             => new List<T>() { t };
     }
 }

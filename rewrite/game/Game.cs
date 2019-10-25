@@ -8,8 +8,9 @@ namespace Orikivo
 {
     public class Game
     {
-        private BaseSocketClient _client;
-        private GameEventHandler _events;
+        // Dependencies
+        private readonly BaseSocketClient _client;
+        private readonly GameEventHandler _events;
 
         public Game(BaseSocketClient client, GameConfig config)
         {
@@ -27,6 +28,7 @@ namespace Orikivo
             _events.UserLeft += OnUserLeftAsync;
         }
 
+        // Properties
         public string Id { get; }
         public string SessionName { get; private set; }
         public GamePrivacy Privacy { get; private set; }
@@ -42,6 +44,12 @@ namespace Orikivo
         internal GameClient Client { get; private set; }
         public List<User> Users => Lobby.Users;
         public List<GameReceiver> Receivers => Lobby.Receivers;
+
+        // Private Properties
+        /// <summary>
+        /// A private property that defines what message handler to utilize.
+        /// </summary>
+        private bool UseMainHandler { get; set; } = true;
 
         // detect message mechanics
         private async Task OnOffhandMessageAsync(SocketMessage message)
@@ -87,52 +95,54 @@ namespace Orikivo
         // Begins a lobby session. This is the main session listener.
         internal async Task StartSessionAsync()
         {
-            Loop:
-            _client.MessageReceived -= OnOffhandMessageAsync;
-            TaskCompletionSource<bool> start = new TaskCompletionSource<bool>();
-            TaskCompletionSource<bool> close = new TaskCompletionSource<bool>();
-
-            async Task ReadAsync(SocketMessage message)
+            while (UseMainHandler)
             {
-                Console.WriteLine("-- Now validating lobby message. --");
-                // if there are no inactive receivers that exists and the user is not valid.
-                if (!(Receivers.Any(x => x.ChannelId == message.Channel.Id && x.State == GameState.Inactive) && Lobby.TryGetUser(message.Author.Id, out User user)))
+                _client.MessageReceived -= OnOffhandMessageAsync; // Disable the Secondary Handler.
+
+                // SecondaryHandler handles all other commands that alter config and such. Lock configuration to host, and lock changes being made during a game.
+                TaskCompletionSource<bool> session = new TaskCompletionSource<bool>(); // Handles when to start/close (The main reason this Task exists)
+
+                async Task ReadAsync(SocketMessage message)
                 {
-                    Console.WriteLine("-- Invalid lobby message. --");
-                    return;
+                    Console.WriteLine("-- Now validating lobby message. --");
+                    // if there are no inactive receivers that exists and the user is not valid.
+                    if (!(Receivers.Any(x => x.ChannelId == message.Channel.Id && x.State == GameState.Inactive) && Lobby.TryGetUser(message.Author.Id, out User user)))
+                    {
+                        Console.WriteLine("-- Invalid lobby message. --");
+                        return;
+                    }
+
+                    if (message.Content == "start")
+                    {
+                        Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {Lobby.Mode} will be starting soon."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+                        await Task.Delay(TimeSpan.FromSeconds(3));
+                        session.SetResult(true);
+                    }
+                    else if (message.Content == "close")
+                    {
+                        session.SetResult(false);
+                    }
+                    else
+                        Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
+
+                    await Display.RefreshAsync();
                 }
-                
-                if (message.Content == "start")
+
+                _client.MessageReceived += ReadAsync; // sets the actual listener and stops it upon either start or close was called
+                Task<bool> result = await Task.WhenAny(session.Task).ConfigureAwait(false);
+                _client.MessageReceived -= ReadAsync;
+
+                if (result.Result)
                 {
-                    Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {Lobby.Mode} will be starting soon."), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
-                    await Task.Delay(TimeSpan.FromSeconds(3));
-                    start.SetResult(true);
-                }
-                else if (message.Content == "close")
-                {
-                    start.SetResult(false);
+                    // If result.True... Set the offhand listener which allows the lobby to still process info.
+                    _client.MessageReceived += OnOffhandMessageAsync;
+                    await StartAsync();
+                    _client.MessageReceived -= OnOffhandMessageAsync;
                 }
                 else
-                    Display.UpdateWindow(GameState.Inactive, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:chat"));
-
-                await Display.RefreshAsync();
-            }
-
-            _client.MessageReceived += ReadAsync; // sets the actual listener and stops it upon either start or close was called
-            Task<bool> result = await Task.WhenAny(start.Task).ConfigureAwait(false);
-            _client.MessageReceived -= ReadAsync;
-
-            if (result.Result)
-            {
-                // If result.True... Set the offhand listener which allows the lobby to still process info.
-                _client.MessageReceived += OnOffhandMessageAsync;
-                await StartAsync();
-                _client.MessageReceived -= OnOffhandMessageAsync;
-                goto Loop;
-            }
-            else
-            {
-                await CloseAsync();
+                {
+                    await CloseAsync();
+                }
             }
         }
 
@@ -187,7 +197,9 @@ namespace Orikivo
         public bool ContainsGuild(ulong guildId)
             => Lobby.ContainsGuild(guildId);
 
-        // Displays the game as a quick overall summary.
+        /// <summary>
+        /// Returns a formatted summary of the game and its state.
+        /// </summary>
         public override string ToString()
             => $"**{Lobby.Name}** #{Id}\n**{(State == GameState.Active ? "In Progress" : "Open")}** • (**{Lobby.UserCount}** of **{Lobby.UserLimit}**)\n`{Lobby.Mode}`";
     }

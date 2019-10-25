@@ -8,7 +8,7 @@ namespace Orikivo
     /// </summary>
     public class DiceRoll
     {
-        public DiceRoll(Dice dice, int result) : this(dice, 1, result.CreateList()) { }
+        public DiceRoll(Dice dice, int result) : this(dice, 1, result.AsList()) { }
         public DiceRoll(Dice dice, int times, List<int> results)
         {
             Dice = dice;

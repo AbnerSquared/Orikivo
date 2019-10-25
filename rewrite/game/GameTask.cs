@@ -71,7 +71,7 @@ namespace Orikivo
                 foreach (GameTrigger trigger in Triggers)
                 {
                     Console.WriteLine($"-- Now comparing a trigger. (trigger:{trigger.Name}) --");
-                    if (trigger.TryParse(new GameTriggerContext(Data, player, message.Content), out GameTriggerResult context))
+                    if (trigger.TryParse(new TaskTriggerContext(Data, player, message.Content), out GameTriggerResult context))
                     {
                         display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Trigger successful. (trigger:{trigger.Name})"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
                         if (context.Packets != null)

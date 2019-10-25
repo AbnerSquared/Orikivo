@@ -6,17 +6,22 @@ using System.Text;
 
 namespace Orikivo
 {
-    public class ReportInfo : ReportBodyInfo
+    /// <summary>
+    /// An object detailing the properties of a possible issue, as described by a user.
+    /// </summary>
+    public class Report : ReportBody, IReport
     {
+        public const int CooldownLength = 2700;
+
         /// <summary>
         /// Creates a new report from an exception.
         /// </summary>
-        internal static ReportInfo FromException<T>(int id, T exception, string commandId) where T : Exception
-            => new ReportInfo(id, commandId, typeof(T).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);
+        internal static Report FromException<TException>(int id, TException exception, string commandId) where TException : Exception
+            => new Report(id, commandId, typeof(TException).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);
 
         [JsonConstructor]
-        internal ReportInfo(int id, string commandId, OriAuthor author, DateTime createdAt,
-            DateTime? editedAt, string title, string content, string imageUrl, ReportBodyInfo lastInfo, ReportState status,
+        internal Report(int id, string commandId, OriAuthor author, DateTime createdAt,
+            DateTime? editedAt, string title, string content, string imageUrl, ReportBody lastInfo, ReportState status,
             List<VoteInfo> votes, params ReportTag[] tags)
         {
             Id = id;
@@ -33,7 +38,7 @@ namespace Orikivo
             Votes = votes ?? new List<VoteInfo>();
         }
 
-        internal ReportInfo(int id, OverloadDisplayInfo overload, OriUser user, ReportBodyInfo reportInfo, params ReportTag[] tags)
+        internal Report(int id, OverloadDisplayInfo overload, OriUser user, ReportBody reportInfo, params ReportTag[] tags)
         {
             Id = id;
             CommandId = overload.Id;
@@ -47,7 +52,7 @@ namespace Orikivo
             Votes = new List<VoteInfo>();
         }
 
-        private ReportInfo(int id, string commandId, string title, string content, params ReportTag[] tags)
+        private Report(int id, string commandId, string title, string content, params ReportTag[] tags)
         {
             Id = id;
             CommandId = commandId;
@@ -57,14 +62,11 @@ namespace Orikivo
             Tags = tags?.ToList() ?? new List<ReportTag>();
         }
 
-        // in seconds
-        public static double CooldownLength = 2700;
-
         [JsonProperty("id")]
         public int Id { get; }
 
         [JsonProperty("command_id")]
-        public string CommandId { get; } // figure out a way to format that
+        public string CommandId { get; }
 
         [JsonProperty("author")]
         public OriAuthor Author { get; }
@@ -76,7 +78,7 @@ namespace Orikivo
         public DateTime? EditedAt { get; private set; }
 
         [JsonProperty("last")] // possible scrap.
-        public ReportBodyInfo LastInfo { get; private set; }
+        public ReportBody LastInfo { get; private set; }
 
         [JsonProperty("tags")]
         public List<ReportTag> Tags { get; }
@@ -90,11 +92,14 @@ namespace Orikivo
         [JsonProperty("close_reason")]
         public string CloseReason { get; private set; }
 
+        [JsonProperty("votes")]
+        public List<VoteInfo> Votes { get; }
+
+
         [JsonIgnore]
         public bool IsClosed => State == ReportState.Closed;
 
-        [JsonProperty("votes")]
-        public List<VoteInfo> Votes { get; }
+        
 
         [JsonIgnore]
         public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
@@ -108,7 +113,6 @@ namespace Orikivo
         [JsonIgnore]
         public int Downvotes => Votes.Where(x => x.Vote == VoteType.Downvote).Count();
 
-        // since it's either open or closed, closing is the only way to change status
         public void Close(string reason = null)
         {
             if (IsClosed)
@@ -130,13 +134,13 @@ namespace Orikivo
             }
 
             VoteInfo info = Votes.First(x => x.UserId == userId);
-            if (info.Vote == vote) // handle vote removing separately
+            if (info.Vote == vote)
                 return;
 
             Votes[Votes.IndexOf(info)].Vote = vote;
         }
 
-        public void RemoveVoteFrom(ulong userId)
+        public void RemoveVotesFrom(ulong userId)
             => Votes.RemoveAll(x => x.UserId == userId);
 
         public void Update(string title = null, string content = null, string imageUrl = null)
@@ -146,7 +150,7 @@ namespace Orikivo
                 throw new Exception("The report specified has already been closed.");
 
             bool edited = false;
-            ReportBodyInfo old = new ReportBodyInfo(Title, Content, ImageUrl);
+            ReportBody old = new ReportBody(Title, Content, ImageUrl);
             if (Checks.NotNull(title))
             {
                 Title = title;

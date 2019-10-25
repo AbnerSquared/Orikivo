@@ -1,17 +1,19 @@
-﻿namespace Orikivo
+﻿using Discord.WebSocket;
+using System;
+
+namespace Orikivo
 {
-    // a mini context for the trigger.
+    /// <summary>
+    /// A global trigger context for a game derived from a <see cref="Discord.WebSocket.SocketMessage"/>.
+    /// </summary>
     public class GameTriggerContext
     {
-        internal GameTriggerContext(GameTaskData data, Player author, string message)
-        {
-            Data = data;
-            Author = author;
-            Message = message;
-        }
+        public GameTriggerContext(SocketUser user) => throw new NotImplementedException();
 
-        public GameTaskData Data { get; }
-        public Player Author { get; }
+        public OriAuthor Author { get; }
+        public string GameId { get; }
+        public ulong ChannelId { get; }
+        public ulong MessageId { get; }
         public string Message { get; }
     }
 }

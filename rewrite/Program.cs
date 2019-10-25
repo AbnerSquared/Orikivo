@@ -16,27 +16,27 @@ namespace Orikivo
             Task.Run(async () =>
             {
                 OriConsoleConfig oriConsoleConfig = OriConsoleConfig.Default;
-                oriConsoleConfig.Title = $"Orikivo: {Assembly.GetEntryAssembly().GetName().Version.ToString()}";
+                oriConsoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
                 oriConsoleConfig.BackgroundColor = ConsoleColor.Black;
                 oriConsoleConfig.TextColor = ConsoleColor.White;
 
-                // boot tune
-                //Console.Beep(800, 300);
-                //Thread.Sleep(200);
-                //Console.Beep(700, 200);
-                //Console.Beep(600, 200);
-                //Console.Beep(900, 200);
-                //Console.Beep(700, 200);
-                //Console.Beep(800, 200);
+                // A simple little boot tune for fun:
+                /*
+                Console.Beep(800, 300);
+                Thread.Sleep(200);
+                Console.Beep(700, 200);
+                Console.Beep(600, 200);
+                Console.Beep(900, 200);
+                Console.Beep(700, 200);
+                Console.Beep(800, 200);
+                */
 
-                // find a place for args
                 OriClientBuilder builder = new OriClientBuilder();
                 builder.ConsoleConfig = oriConsoleConfig;
                 builder.LogConfig = OriLogConfig.Default;
                 builder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
                 builder.AddTypeReader<GameMode>(new GameModeTypeReader());
                 builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
-                //oriClientBuilder.AddTypeReader<double>(new DoubleTypeReader());
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
@@ -45,10 +45,6 @@ namespace Orikivo
                 await oriClient.SetGameAsync("Minecraft", activity: ActivityType.Listening);
                 await oriClient.SetStatusAsync(UserStatus.DoNotDisturb);
                 await oriClient.StartAsync();
-                
-
-                
-               
             }).GetAwaiter().GetResult();
         }
     }

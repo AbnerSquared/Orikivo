@@ -1,69 +1,72 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Orikivo
 {
-    // this class is used to help signify and identify information about a parameter/arg
+    /// <summary>
+    /// A simplified paramter information container.
+    /// </summary>
     public class ParameterDisplayInfo : IDisplayInfo
     {
-        public ParameterDisplayInfo(ParameterInfo parameter)
+        internal ParameterDisplayInfo(ParameterInfo parameter, List<ContextValue> family = null)
         {
             CommandName = parameter.Command.Name;
             CommandPriority = parameter.Command.Priority;
             Name = parameter.Name;
             Summary = parameter.Summary;
-            Type = parameter.Type;
+            ValueType = parameter.Type;
             DefaultValue = parameter.DefaultValue;
-            Mods = new List<ParameterMod>();
-            if (parameter.IsOptional)
-                Mods.Add(ParameterMod.Optional);
-            if (parameter.IsRemainder)
-                Mods.Add(ParameterMod.Trailing);
-            if (parameter.Type == typeof(SocketUser))
-                Mods.Add(ParameterMod.Mentionable);
+            Mod = ContextUtils.GetMod(parameter);
+
+            if (Checks.NotNull(family))
+                family.Add(new ContextValue(parameter));
+            Family = family ?? ContextUtils.GetFamilyTree(parameter);
         }
+
+        public ContextInfoType Type => ContextInfoType.Parameter;
+
+        public string Id => ContextUtils.ConcatFamilyTree(Family);
+
+        public string Name { get; }
+
+        public string Summary { get; }
+
+        public List<string> Aliases { get; }
+
+        public List<IReport> Reports { get; }
+
+        public List<ContextValue> Family { get; }
+
+        public Type ValueType { get; }
+
         public string SyntaxName
         {
             get
             {
                 StringBuilder sb = new StringBuilder();
-                if (Mods.Contains(ParameterMod.Mentionable))
+                if (Mod.HasFlag(ParameterMod.Mentionable))
                     sb.Append("@");
                 sb.Append(Name);
-                if (Mods.Contains(ParameterMod.Trailing))
+                if (Mod.HasFlag(ParameterMod.Trailing))
                     sb.Append("...");
-                if (Mods.Contains(ParameterMod.Optional))
+                if (Mod.HasFlag(ParameterMod.Optional))
                     sb.Append("?");
                 return sb.ToString();
             }
         }
 
         public string CommandName { get; }
-        public int CommandPriority { get; }
-        public string Name { get; }
-        private string DefaultName { get; } // the name that the parameter was given in the code
-        public string Summary { get; }
-        public Type Type { get; }
-        public object DefaultValue { get; } // the default value if one is set
-        public List<ParameterMod> Mods { get; } // replace with flag variants
-        public bool IsOptional => Mods.Contains(ParameterMod.Optional);
 
-        public string GetDisplay()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"**{Name}**[{CommandName}{OriFormat.Subscript($"+{CommandPriority}")}]{(IsOptional ? $" = **{DefaultValue}**" : "")}");
-            if (Mods.Count > 0)
-            {
-                sb.AppendLine($"**+** {string.Join(", ", Mods.Select(x => $"`{x.ToString()}`"))}");
-            }
-            sb.AppendLine($"typeof(**{Type.Name}**)");
-            if (Summary != null)
-                sb.AppendLine($"⇛ {Summary}");
-            return sb.ToString();
-        }
+        public int CommandPriority { get; }
+        
+        public object DefaultValue { get; }
+
+        public ParameterMod Mod { get; }
+
+        public bool IsOptional => Mod.HasFlag(ParameterMod.Optional);
+
+        public string Content => ContextUtils.WriteDisplayContent(this);
     }
 }

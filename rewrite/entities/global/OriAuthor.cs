@@ -37,7 +37,7 @@ namespace Orikivo
         public string Name { get; }
 
         /// <summary>
-        /// The Discord Snowflake ID of the author, if one was specified.
+        /// The unique identifier of the author, if one was specified.
         /// </summary>
         [JsonProperty("id")]
         public ulong? Id { get; }

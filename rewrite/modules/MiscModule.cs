@@ -21,14 +21,14 @@ namespace Orikivo
     public class MiscModule : OriModuleBase<OriCommandContext>
     {
         private readonly DiscordSocketClient _client;
-        private readonly CommandService _commandService;
+        private readonly OriHelpService _help;
         private readonly OriConsoleService _logger;
         private readonly GameManager _gameManager;
         public MiscModule(DiscordSocketClient client, CommandService commandService,
             OriConsoleService logger, GameManager gameManager)
         {
             _client = client;
-            _commandService = commandService;
+            _help = new OriHelpService(commandService, Context.Global, Context.Server);
             _logger = logger;
             _gameManager = gameManager;
         }
@@ -125,7 +125,6 @@ namespace Orikivo
                 RestRole muteRole = Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(66560)).Result;
                 Context.Server.Options.MuteRoleId = muteRole.Id;
             }
-            role = Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value);
 
             if (Context.Server.HasMuted(user.Id))
             {
@@ -207,10 +206,7 @@ namespace Orikivo
         // this is used to give the specified user the trust role
         //[Command("trust")]
         [BindTo(TrustLevel.Owner)]
-        public async Task TrustUserAsync(SocketGuildUser user)
-        {
-
-        }
+        public async Task TrustUserAsync(SocketGuildUser user) {}
 
         [RequireGuild]
         [Command("newcustomcommand")]
@@ -264,12 +260,11 @@ namespace Orikivo
         [Summary("Create a **Report** for a specified **Command**.")]
         public async Task ReportAsync([Summary("The **Command** to report.")]string context, string title, string content, params ReportTag[] tags)
         {
-            ContextInfo ctx = ContextInfo.Parse(content);
-            ContextSearchResult result = new OriHelpService(_commandService).Search(context);
+            ContextSearchResult result = _help.Search(context);
 
             if (result.IsSuccess && (result.Type == ContextInfoType.Command || result.Type == ContextInfoType.Overload))
             {
-                int id = Context.Global.Reports.Open(Context.Account, result.Type == ContextInfoType.Command ? result.Command.Default : result.Overload, new ReportBodyInfo(title, content), tags);
+                int id = Context.Global.Reports.Open(Context.Account, result.Type == ContextInfoType.Command ? (result.Result as CommandDisplayInfo).Default : (result.Result as OverloadDisplayInfo), new ReportBody(title, content), tags);
                 await Context.Channel.SendMessageAsync($"> **Report** #{id} has been submitted.");
                 return;
             }
@@ -387,9 +382,7 @@ namespace Orikivo
         {
             try
             {
-                OriHelpService helper = new OriHelpService(_commandService);
-                await Context.Channel.SendMessageAsync(helper.Search(context).GetResultInfo() ?? helper.GetDefaultInfo());
-                helper.Dispose(); // Still needs something that can be disposed for this to have purpose.
+                await Context.Channel.SendMessageAsync(_help.Search(context).Result?.Content ?? _help.CreateDefaultContent());
             }
             catch (Exception ex)
             {
@@ -424,10 +417,7 @@ namespace Orikivo
             sb.AppendLine($"> This property defines an optional name that can be set across **Orikivo**.");
 
             await Context.Channel.SendMessageAsync(sb.ToString());
-
         }
-
-
 
         [Command("guildprofile"), Alias("server", "gpf")]
         [Summary("Gets the **OriGuild** object for the current **SocketGuild**.")]
@@ -457,6 +447,6 @@ namespace Orikivo
 
         [Command("version")]
         public async Task GetVersionAsync()
-            => await Context.Channel.SendMessageAsync(Assembly.GetEntryAssembly().GetName().Version.ToString());
+            => await Context.Channel.SendMessageAsync(OriGlobal.ClientVersion);
     }
 }

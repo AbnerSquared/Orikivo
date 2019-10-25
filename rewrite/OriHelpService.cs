@@ -3,43 +3,55 @@ using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Linq;
 
 namespace Orikivo
 {
-    // TODO: Make this be the new command service.
     // TODO: Integrate ReportContainer for the help service.
-    public class OriHelpService : IDisposable
+    /// <summary>
+    /// A help service which provides information on all commands as an override to <see cref="CommandService"/>.
+    /// </summary>
+    public class OriHelpService /*: IDisposable (Determine if this is really needed) */ 
     {
         private readonly CommandService _commandService;
+        private readonly IReportContainer<IReport> _reports;
         private readonly List<CustomGuildCommand> _customCommands;
         
-        // A generic help service.
-        public OriHelpService(CommandService commandService) // include report data alongside command data
+        /// <summary>
+        /// Constructs a generic help service.
+        /// </summary>
+        public OriHelpService(CommandService commandService, OriGlobal global)
         {
-            Console.WriteLine("[Debug] -- Built a helper thread. --");
+            Console.WriteLine("[Debug] -- Created a new help service. --");
             _commandService = commandService;
+            _reports = (IReportContainer<IReport>)global.Reports;
         }
 
-        // A help service containing extra information in relation to a guild account.
-        public OriHelpService(CommandService commandService, OriGuild guild)
-        {
-            _commandService = commandService;            
+        /// <summary>
+        /// Constructs a help service with information from a guild.
+        /// </summary>
+        public OriHelpService(CommandService commandService, OriGlobal global, OriGuild guild) : this(commandService, global)
+        {          
             _customCommands = guild.CustomCommands.Count > 0 ? guild.CustomCommands : null;
         }
 
-        // include customCommands
-        public string GetDefaultInfo()
+        public string CreateDefaultContent()
         {
             List<ModuleDisplayInfo> displayModules = GetModules();
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"**Orikivo**\n**Modules** {OriFormat.Subscript($"({displayModules.Count})")}:");
-            sb.AppendLine(string.Join("\n", displayModules.Select(x => $"🔹{x.Name} {OriFormat.Subscript($"(+{x.TotalCommands})")}{(x.FlavorText != null ? $": {x.FlavorText}" : "")}")));
+            sb.AppendLine(string.Join("\n", displayModules.Select(x => $"🔹{x.Name} {OriFormat.Subscript($"(+{x.TotalCommands})")}{(x.Subtitle != null ? $": {x.Subtitle}" : "")}")));
             if (_customCommands != null)
                 sb.Append($"🔹Custom {OriFormat.Subscript($"(+{_customCommands.Count})")}");
             return sb.ToString();
+        }
+
+        public string GetHelpFor(string content)
+        {
+            if (!Checks.NotNull(content))
+                return CreateDefaultContent();
+            return Search(content).Result?.Content;
         }
 
         // TODO: Permit custom command search.
@@ -54,9 +66,7 @@ namespace Orikivo
 
             if (!ctx.IsSuccess)
             {
-                result.Type = null;
-                result.IsSuccess = false;
-                result.ErrorReason = ContextError.EmptyValue;
+                result.Error = ContextError.EmptyValue;
                 return result;
             }
 
@@ -182,36 +192,37 @@ namespace Orikivo
                 resultType = ContextInfoType.Parameter;
             }
             Console.WriteLine("[Debug] -- 6 --");
-            result.Type = resultType;
-            switch(result.Type)
+            switch (result.Type)
             {
                 case ContextInfoType.Parameter:
-                    result.Parameter = new ParameterDisplayInfo(parameter);
+                    result.Result = new ParameterDisplayInfo(parameter);
                     break;
                 case ContextInfoType.Command:
                     if (command != null)
                     {
                         if (commands.Count() > 1 || ctx.HasPriority)
                         {
-                            result.Type = ContextInfoType.Overload;
-                            result.Overload = new OverloadDisplayInfo(command);
+                            result.Result = new OverloadDisplayInfo(command);
                         }
-                        result.Command = new CommandDisplayInfo(command);
+                        else
+                            result.Result = new CommandDisplayInfo(command);
                     }
-                    else 
-                        result.Command = new CommandDisplayInfo(commands.ToList());
+                    else
+                        result.Result = new CommandDisplayInfo(commands.ToList());
                     break;
                 case ContextInfoType.Group:
-                    result.Group = new ModuleDisplayInfo(group);
+                    result.Result = new ModuleDisplayInfo(group);
                     break;
                 case ContextInfoType.Module:
-                    result.Module = new ModuleDisplayInfo(module);
+                    result.Result = new ModuleDisplayInfo(module);
                     break;
             }
 
-            result.IsSuccess = true;
             return result;
         }
+
+
+        // TODO: Make all methods derive from ContextInfo. This way, the search method can be the same across all services.
 
         // Get all known aliases for a context.
         public List<string> GetAliases(string context)
@@ -225,7 +236,9 @@ namespace Orikivo
             return aliases;
         }
 
-        // Get all context values that have the exact same name.
+        /// <summary>
+        /// Gets all generic context values that match a specified name.
+        /// </summary>
         private List<ContextValue> GetMatchingValues(string name)
         {
             List<ContextValue> values = GetModules(name).Select(x => new ContextValue(x)).ToList();
@@ -240,6 +253,10 @@ namespace Orikivo
             }
             return values;
         }
+
+        /// <summary>
+        /// Gets all generic context values within a module that match a specified name.
+        /// </summary>
         private List<ContextValue> GetMatchingValues(ModuleInfo module, string name)
         {
             if (module == null)
@@ -257,6 +274,12 @@ namespace Orikivo
             }
             return values;
         }
+
+        /// <summary>
+        /// Gets all modules that match a specified name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private ModuleInfo GetModule(string name)
         {
             try
@@ -268,12 +291,20 @@ namespace Orikivo
                 throw new Exception($"There is no ModuleInfo with the name \"{name}\".");
             }
         }
+
+        public IEnumerable<ModuleInfo> Modules => _commandService.Modules;
+        public IEnumerable<CommandInfo> Commands => _commandService.Commands;
+        public IReadOnlyList<CustomGuildCommand> CustomCommands => _customCommands ?? null;
+
         private IEnumerable<ModuleInfo> GetModules(string name)
-            => _commandService.Modules.Where(x => x.Name.ToLower() == name.ToLower());
+            => Modules.Where(x => x.Name.ToLower() == name.ToLower());
+
         private IEnumerable<ModuleInfo> GetGroups(string name)
-            => _commandService.Modules.Where(x => x.Group?.ToLower() == name.ToLower());
+            => Modules.Where(x => x.Group?.ToLower() == name.ToLower());
+
         private IEnumerable<CommandInfo> GetCommands(string name)
-            => _commandService.Commands.Where(x => x.Aliases.Contains(name.ToLower()));
+            => Commands.Where(x => x.Aliases.Contains(name.ToLower()));
+
         private IEnumerable<ModuleInfo> GetModules(ModuleInfo parent, string name, bool includeChildren = false)
         {
             if (parent == null)
@@ -283,6 +314,7 @@ namespace Orikivo
                 parent.Submodules.Select(x => GetModules(x, name, x.Submodules.Count > 0)).ToList().ForEach(x => modules = modules.Concat(x));
             return modules;
         }
+
         private IEnumerable<ModuleInfo> GetGroups(ModuleInfo parent, string name, bool includeChildren = false)
         {
             if (parent == null)
@@ -292,27 +324,33 @@ namespace Orikivo
                 parent.Submodules.Select(x => GetGroups(x, name, x.Submodules.Count > 0)).ToList().ForEach(x => groups = groups.Concat(x));
             return groups;
         }
+
         private IEnumerable<CommandInfo> GetCommands(ModuleInfo parent, string name, bool includeChildren = false)
         {
             if (parent == null)
                 return GetCommands(name);
-            //if (parent.Group != null)
-            //    name = $"{parent.Group} {name}";
+
             IEnumerable<CommandInfo> commands = parent.Commands.Where(x => x.Aliases.Contains(name.ToLower()));
+
             if (includeChildren)
                 parent.Submodules.Select(x => GetCommands(x, name)).ToList().ForEach(x => commands = commands.Concat(x));
 
-            // Console.WriteLine($"-- GetCommands()\n{string.Join('\n', commands.Select(x => string.Join('\n', x.Aliases)))} --");
             return commands;
         }
+
+        /// <summary>
+        /// Gets all parameters from a command matching a specified name.
+        /// </summary>
         private IEnumerable<ParameterInfo> GetArgs(CommandInfo parent, string parameter)
             => parent.Parameters.Where(x => x.Name.ToLower() == parameter.ToLower());
         
-        // compile all info from the command service into a single list.
+        /// <summary>
+        /// Gets that summary information of all parent modules.
+        /// </summary>
         public List<ModuleDisplayInfo> GetModules()
         {
             List<ModuleDisplayInfo> modules = new List<ModuleDisplayInfo>();
-            foreach (ModuleInfo module in _commandService.Modules.Where(x => x.Parent == null))
+            foreach (ModuleInfo module in Modules.Where(x => x.Parent == null))
                 modules.Add(new ModuleDisplayInfo(module));
             return modules;
         }
@@ -324,10 +362,6 @@ namespace Orikivo
 
         // offer generalized info about other information the user might need
         // such as syntax, reading types, definitions, and examples of other systems on orikivo
-        public void Dispose()
-        {
-            Console.WriteLine("[Debug] -- Disposed a helper thread. --");
-        }
 
         // 🔹 stable
         // 🔸 unstable
