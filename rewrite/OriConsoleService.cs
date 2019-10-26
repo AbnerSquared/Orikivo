@@ -64,7 +64,7 @@ namespace Orikivo
                 ExceptionFormat = loggerConfig.ExceptionFormat;
                 MessageFormat = loggerConfig.MessageFormat;
                 ExitFormat = loggerConfig.ExitFormat;
-                _logKeys = loggerConfig.Keys;
+                LogKeys = loggerConfig.Keys;
                 Colors = loggerConfig.Colors;
             }
         }
@@ -127,12 +127,11 @@ namespace Orikivo
             private set => Console.SetWindowSize(value.Width, value.Height);
         }
 
+        // TODO: Create output file that can store all logs.
         public string OutputPath { get; private set; }
         private bool CanOutput => Checks.NotNull(OutputPath);
         public bool CanDebug { get; set; }
-        private string _logKeyEntry { get; set; }
-        private string _logKeyExit { get; set; }
-        private LogKeyMap _logKeys { get; set; }
+        private LogKeyMap LogKeys { get; set; }
         private LogColorMap Colors { get; set; }
         private string EntryFormat { get; set; }
         private string ExceptionFormat { get; set; }
@@ -185,10 +184,11 @@ namespace Orikivo
         }
 
         private string GetKey(LogKey keyType)
-            => $"{_logKeyEntry}{_logKeys[keyType]}{_logKeyExit}";
+            => LogKeys[keyType];
 
         public Task LogAsync(LogMessage log)
         {
+            // TODO: could be able to remove Colors[log.Severity] != null
             if (Colors[log.Severity] != null && Colors?[log.Severity] != (BackgroundColor, TextColor))
                 SetTempColors(Colors?[log.Severity]?.BackgroundColor, Colors?[log.Severity]?.TextColor);
 

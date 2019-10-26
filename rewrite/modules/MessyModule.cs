@@ -46,6 +46,19 @@ namespace Orikivo
             }
         }
 
+        [Command("presettest")]
+        public async Task PresetTestAsync(bool useEmbed = false, bool hideUrl = false)
+        {
+            MessageBuilder msg = new MessageBuilder();
+            msg.Content = "This is a message with content inside.";
+            msg.Url = "https://steamcdn-a.akamaihd.net/steam/apps/730/header.jpg";
+            msg.HideUrl = hideUrl;
+            if (useEmbed)
+                msg.Embedder = Embedder.Default;
+
+            await Context.Channel.SendMessageAsync(msg.Build());
+        }
+
         [Command("creategame"), Alias("crg")]
         [Summary("Create a **Game**.")]
         [RequireUserAccount]

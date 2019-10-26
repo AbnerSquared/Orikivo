@@ -8,7 +8,7 @@ namespace Orikivo
     public class CustomCommandMessage
     {
         [JsonConstructor]
-        internal CustomCommandMessage(string url, string content, OriEmbedOptions embedOptions = null)
+        internal CustomCommandMessage(string url, string content, Embedder embedOptions = null)
         {
             Url = url;
             Content = content;
@@ -41,12 +41,12 @@ namespace Orikivo
         [JsonProperty("content")]
         public string Content { get; set; }
         [JsonProperty("embed_options")]
-        public OriEmbedOptions EmbedOptions { get; set; }
+        public Embedder EmbedOptions { get; set; }
 
         [JsonIgnore]
         public bool HasUrl => !string.IsNullOrWhiteSpace(Url); // instead, check if the url is validated
 
-        public OriMessage Build()
-            => new OriMessage(Content, Url, EmbedOptions);
+        public Message Build()
+            => new MessageBuilder(Content, Url).Build();
     }
 }

@@ -8,9 +8,9 @@ namespace Orikivo
 {
     public class OriJsonContainer
     {
-        public OriGlobal Global;
-        public ConcurrentDictionary<ulong, OriUser> Users;
-        public ConcurrentDictionary<ulong, OriGuild> Guilds;
+        public OriGlobal Global { get; }
+        public ConcurrentDictionary<ulong, OriUser> Users { get; }
+        public ConcurrentDictionary<ulong, OriGuild> Guilds { get; }
 
         public OriJsonContainer()
         {
@@ -76,6 +76,17 @@ namespace Orikivo
             OriJsonHandler.SaveJsonEntity(oriUser);
         }
 
+        public void TrySaveUser(OriUser user)
+        {
+            if (Checks.NotNull(user))
+                SaveUser(user);
+        }
+
+        public void TrySaveGuild(OriGuild guild)
+        {
+            if (Checks.NotNull(guild))
+                SaveGuild(guild);
+        }
         // saves the guild to its directory
         public void SaveGuild(OriGuild oriGuild)
         {

@@ -16,6 +16,20 @@ namespace Orikivo
             => set.Sum() / set.Count();
 
         /// <summary>
+        /// Divides a number only based on how many times the number can fit in without decimals.
+        /// </summary>
+        public static int DivideWhole(int dividend, int divisor)
+        {
+            int quotient = 0;
+            while(dividend % divisor == 0)
+            {
+                dividend -= divisor;
+                quotient++;
+            }
+            return quotient;
+        }
+
+        /// <summary>
         /// Returns the exact median value from a set of numbers.
         /// </summary>
         public static double MedianValue(IEnumerable<int> set)

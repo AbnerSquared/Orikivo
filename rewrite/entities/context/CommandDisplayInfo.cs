@@ -12,22 +12,14 @@ namespace Orikivo
         public CommandDisplayInfo(List<CommandInfo> commands, List<ContextValue> family = null)
         {
             CommandInfo command = commands.OrderBy(x => x.Priority).First();
-            Name = command.Name;
+            Name = command.Name ?? string.Empty;
             Aliases = ContextUtils.GetAliases(command);
-            IsInGroup = false;
-            if (Checks.NotNull(command.Module.Group))
-            {
-                IsInGroup = true;
-                GroupName = command.Module.Group;
-                if (string.IsNullOrWhiteSpace(Name))
-                    Name = "";
-            }
+            GroupName = command.Module.Group;
+
 
             Summary = command.Summary;
 
-            if (Checks.NotNull(family))
-                family?.Add(new ContextValue(command));
-
+            family?.Add(new ContextValue(command));
             Family = family ?? ContextUtils.GetFamilyTree(command);
 
             Overloads = commands.Select(x => new OverloadDisplayInfo(x, Family)).ToList();
@@ -54,7 +46,7 @@ namespace Orikivo
 
         public string GroupName { get; }
 
-        public bool IsInGroup { get; }
+        public bool IsInGroup => Checks.NotNull(GroupName);
 
         public string BlockName => $"`{Name}{(HasMultiple ? $"+{Overloads.Count - 1}" : "")}`";
         

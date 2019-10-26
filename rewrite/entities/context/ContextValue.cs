@@ -3,13 +3,13 @@
 namespace Orikivo
 {
     /// <summary>
-    /// Represents a generic trigger.
+    /// Represents a generic context from the command family.
     /// </summary>
     public class ContextValue
     {
         public ContextValue(ModuleInfo module)
         {
-            if (module.Group != null)
+            if (Checks.NotNull(module.Group))
             {
                 Name = module.Group;
                 Type = ContextInfoType.Group;
@@ -20,19 +20,21 @@ namespace Orikivo
                 Type = ContextInfoType.Module;
             }
         }
+
         public ContextValue(CommandInfo command)
         {
             Name = command.Name;
             Type = ContextInfoType.Command;
         }
+
         public ContextValue(ParameterInfo parameter)
         {
             Name = parameter.Name;
             Type = ContextInfoType.Parameter;
         }
 
-        public string Name { get; internal set; }
+        public string Name { get; }
 
-        public ContextInfoType Type { get; internal set; }
+        public ContextInfoType Type { get; }
     }
 }

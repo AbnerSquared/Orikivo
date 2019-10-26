@@ -2,7 +2,8 @@
 {
     public enum CodeType
     {
-        Css = 1,
-        AutoHotKey = 2
+        Text = 1,
+        Css = 2,
+        AutoHotKey = 3
     }
 }

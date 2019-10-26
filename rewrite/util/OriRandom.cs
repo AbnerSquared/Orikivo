@@ -15,7 +15,7 @@ namespace Orikivo
         /// </summary>
         public static IEnumerable<T> Shuffle<T>(IEnumerable<T> args)
         {
-            if (args == null)
+            if (!Checks.NotNull(args))
                 throw new NullReferenceException("The arguments cannot be null.");
 
             T[] sourceArray = args.ToArray();
@@ -34,8 +34,8 @@ namespace Orikivo
         /// </summary>
         public static T Choose<T>(IEnumerable<T> args)
         {
-            if (args == null)
-                throw new Exception("The arguments specified cannot be null.");
+            if (!Checks.NotNull(args))
+                throw new NullReferenceException("The arguments specified cannot be null.");
 
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
         }
@@ -45,8 +45,8 @@ namespace Orikivo
         /// </summary>
         public static T Take<T>(List<T> args)
         {
-            if (args == null)
-                throw new Exception("The arguments specified cannot be null.");
+            if (!Checks.NotNull(args))
+                throw new NullReferenceException("The arguments specified cannot be null.");
             
             int j = RandomProvider.Instance.Next(args.Count());
             T obj = args.ElementAt(j);

@@ -31,7 +31,7 @@ namespace Orikivo
         /// <summary>
         /// Sends a custom message object to the specified channel.
         /// </summary>
-        public static async Task SendMessageAsync(this ISocketMessageChannel channel, OriMessage oriMessage, RequestOptions options = null)
-            => await OriMessageHelper.SendMessageAsync(channel, oriMessage, options);
+        public static async Task SendMessageAsync(this ISocketMessageChannel channel, Message message, RequestOptions options = null)
+            => await OriMessageHelper.SendMessageAsync(channel, message, options);
     }
 }

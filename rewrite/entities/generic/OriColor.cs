@@ -9,7 +9,7 @@ namespace Orikivo
     // OriColor.FromHex(), OriColor.FromColor(), OriColor.OriGreen
     public class OriColor
     {
-
+        public static OriColor OriGreen = new OriColor(0x6EFAC8);
         private const int _aShift = 24;
         private const int _rShift = 16;
         private const int _gShift = 8;

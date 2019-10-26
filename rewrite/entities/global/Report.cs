@@ -99,8 +99,6 @@ namespace Orikivo
         [JsonIgnore]
         public bool IsClosed => State == ReportState.Closed;
 
-        
-
         [JsonIgnore]
         public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
 

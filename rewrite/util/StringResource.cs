@@ -1,14 +1,36 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Orikivo
 {
     // TODO: Configure this to derive from Resources.
-    // This is a class that contains its ID from the Resources with all known languages of it.
     public class StringResource
     {
-        public string Id { get; }
-        public Dictionary<StringLocale, string> Locale { get; }
+        public static StringResource Get(string key)
+        {
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// The unique identifier for this string.
+        /// </summary>
+        public string Key { get; }
+
+        /// <summary>
+        /// The formatter used to modify the appearance of this string. Can be left empty.
+        /// </summary>
+        public string Formatter { get; }
+
+        /// <summary>
+        /// The collection of values for this string across all known languages.
+        /// </summary>
+        public Dictionary<StringLocale, string[]> Locale { get; }
+
+        /// <summary>
+        /// Returns the string correlated to the specified locale.
+        /// </summary>
         public string ToString(StringLocale locale)
-            => Locale[locale];
+            => Locale[locale][RandomProvider.Instance.Next(0, Locale[locale].Length - 1)] ?? throw new KeyNotFoundException();
     }
 }

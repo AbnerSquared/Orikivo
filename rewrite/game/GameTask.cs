@@ -129,7 +129,7 @@ namespace Orikivo
         }
 
         private Player GetPlayer(ulong id)
-            => Data?.Players.FirstOrDefault(x => x.UserId == id) ?? null;
+            => Data?.Players.FirstOrDefault(x => x.UserId == id);
 
         private bool Update(GameUpdatePacket packet, GameDisplay display, out List<GameAttribute> updatedAttributes)
         {

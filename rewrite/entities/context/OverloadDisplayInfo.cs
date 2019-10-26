@@ -12,28 +12,15 @@ namespace Orikivo
     {
         internal OverloadDisplayInfo(CommandInfo command, List<ContextValue> family = null)
         {
-            // TODO: Create as a method in ContextUtils
-            if (command.Attributes.Any(x => x.GetType() == typeof(CooldownAttribute)))
-                CooldownLength = (command.Attributes.First(x => x.GetType() == typeof(CooldownAttribute)) as CooldownAttribute).Seconds;
+            CooldownLength = command.Attributes.GetAttribute<CooldownAttribute>()?.Seconds;
+            Permissions = command.Preconditions.GetAttribute<RequirePermissionsAttribute>()?.Permissions;
+            TrustLevel = command.Preconditions.GetAttribute<BindToAttribute>()?.Level;
 
-            if (command.Preconditions.Any(x => x.GetType() == typeof(RequirePermissionsAttribute)))
-                Permissions = (command.Preconditions.First(x => x.GetType() == typeof(RequirePermissionsAttribute)) as RequirePermissionsAttribute).Permissions;
-
-            if (command.Preconditions.Any(x => x.GetType() == typeof(BindToAttribute)))
-                TrustLevel = (command.Preconditions.First(x => x.GetType() == typeof(BindToAttribute)) as BindToAttribute).Level;
-
-            Name = command.Name;
+            Name = command.Name ?? string.Empty;
             Aliases = ContextUtils.GetAliases(command);
             Priority = command.Priority;
             Summary = command.Summary;
-
-            if (Checks.NotNull(command.Module.Group))
-            {
-                GroupName = command.Module.Group;
-
-                if (!Checks.NotNull(Name))
-                    Name = "";
-            }
+            GroupName = command.Module.Group;
 
             if (Checks.NotNull(family))
                 family.Add(new ContextValue(command));

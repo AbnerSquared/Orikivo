@@ -14,7 +14,7 @@ namespace Orikivo
     public class OriHelpService /*: IDisposable (Determine if this is really needed) */ 
     {
         private readonly CommandService _commandService;
-        private readonly IReportContainer<IReport> _reports;
+        private readonly IEnumerable<IReport> _reports;
         private readonly List<CustomGuildCommand> _customCommands;
         
         /// <summary>
@@ -24,7 +24,7 @@ namespace Orikivo
         {
             Console.WriteLine("[Debug] -- Created a new help service. --");
             _commandService = commandService;
-            _reports = (IReportContainer<IReport>)global.Reports;
+            _reports = global.Reports.Reports.Cast<IReport>();
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Orikivo
         {
             if (!Checks.NotNull(content))
                 return CreateDefaultContent();
-            return Search(content).Result?.Content;
+            return Search(content).Value?.Content;
         }
 
         // TODO: Permit custom command search.
@@ -66,8 +66,7 @@ namespace Orikivo
 
             if (!ctx.IsSuccess)
             {
-                result.Error = ContextError.EmptyValue;
-                return result;
+                return ContextSearchResult.FromError(ContextError.EmptyValue);
             }
 
             ModuleInfo module = null;
@@ -172,53 +171,41 @@ namespace Orikivo
                 command = commands.Where(x => x.Priority == ctx.Priority).First();
             }
             Console.WriteLine("[Debug] -- 5 --");
-            if (ctx.HasArg)
+            if (ctx.HasParameter)
             {
                 if (ctx.Type.HasValue)
                     if (ctx.Type != ContextInfoType.Command)
                         throw new Exception("Only CommandInfo values can be indexed with an argument.");
 
-                args = command != null ? GetArgs(command, ctx.Arg) : new List<ParameterInfo>();
+                args = command != null ? GetArgs(command, ctx.Parameter) : new List<ParameterInfo>();
                 if (command == null)
                 {
                     if (commands != null)
-                        commands.ToList().ForEach(x => args = args.Concat(GetArgs(x, ctx.Arg)));
+                        commands.ToList().ForEach(x => args = args.Concat(GetArgs(x, ctx.Parameter)));
                     else
                         throw new Exception("There are no CommandInfo values to look through for a parameter.");
                 }
                 if (args.Count() == 0)
-                    throw new Exception($"There were no matching ParameterInfo values for the parameter \"{ctx.Arg}\".");
+                    throw new Exception($"There were no matching ParameterInfo values for the parameter \"{ctx.Parameter}\".");
                 parameter = args.First();
                 resultType = ContextInfoType.Parameter;
             }
             Console.WriteLine("[Debug] -- 6 --");
-            switch (result.Type)
+            return resultType switch
             {
-                case ContextInfoType.Parameter:
-                    result.Result = new ParameterDisplayInfo(parameter);
-                    break;
-                case ContextInfoType.Command:
-                    if (command != null)
-                    {
-                        if (commands.Count() > 1 || ctx.HasPriority)
-                        {
-                            result.Result = new OverloadDisplayInfo(command);
-                        }
-                        else
-                            result.Result = new CommandDisplayInfo(command);
-                    }
-                    else
-                        result.Result = new CommandDisplayInfo(commands.ToList());
-                    break;
-                case ContextInfoType.Group:
-                    result.Result = new ModuleDisplayInfo(group);
-                    break;
-                case ContextInfoType.Module:
-                    result.Result = new ModuleDisplayInfo(module);
-                    break;
-            }
+                ContextInfoType.Parameter => ContextSearchResult.FromSuccess(new ParameterDisplayInfo(parameter)),
 
-            return result;
+                ContextInfoType.Command => ContextSearchResult.FromSuccess(Checks.NotNull(command) ?
+                        commands.Count() > 1 || ctx.HasPriority ?
+                        (IDisplayInfo)new OverloadDisplayInfo(command) : new CommandDisplayInfo(command)
+                        : new CommandDisplayInfo(commands.ToList())),
+
+                ContextInfoType.Group => ContextSearchResult.FromSuccess(new ModuleDisplayInfo(group)),
+
+                ContextInfoType.Module => ContextSearchResult.FromSuccess(new ModuleDisplayInfo(module)),
+
+                _ => ContextSearchResult.FromError(ContextError.FailedMatch),
+            };
         }
 
 

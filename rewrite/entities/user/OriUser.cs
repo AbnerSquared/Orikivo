@@ -327,9 +327,9 @@ namespace Orikivo
         public GimiData Gimi { get; }
 
         // TODO: Make this formatting separate from the user.
-        public OriMessage GetDisplay(EntityDisplayFormat displayFormat)
+        public MessageBuilder GetDisplay(EntityDisplayFormat displayFormat)
         {
-            OriMessage oriMessage = new OriMessage();
+            MessageBuilder oriMessage = new MessageBuilder();
             switch (displayFormat)
             {
                 case EntityDisplayFormat.Json:
@@ -341,14 +341,14 @@ namespace Orikivo
                     sbj.AppendLine($"    \"discriminator\": \"{Discriminator}\",");
                     sbj.AppendLine($"    \"created_at\": \"{CreatedAt}\"");
                     sbj.AppendLine("}```");
-                    oriMessage.Text = sbj.ToString();
+                    oriMessage.Content = sbj.ToString();
                     return oriMessage;
                 default:
                     StringBuilder sbd = new StringBuilder();
                     sbd.AppendLine($"**{Username}**#{Discriminator}"); // name display
                     sbd.AppendLine($"• {Id}");// id display
                     sbd.AppendLine($"\n**Joined**: {CreatedAt.ToString($"`MM`.`dd`.`yyyy` **@** `hh`:`mm`:`ss`")}");
-                    oriMessage.Text = sbd.ToString();
+                    oriMessage.Content = sbd.ToString();
                     return oriMessage;
             }
         }

@@ -95,7 +95,7 @@ namespace Orikivo
         {
             if (ContainsGuild(guild.Id))
                 return; // this isn't too big of a deal; just cancel the task
-                // throw new Exception("This guild is already a receiver for this game.");
+            // throw new Exception("This guild is already a receiver for this game.");
 
             GameReceiver receiver = new GameReceiver(guild, _receiverConfig);
             Receivers.Add(receiver);

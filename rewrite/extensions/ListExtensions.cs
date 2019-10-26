@@ -35,5 +35,8 @@ namespace Orikivo
         }
         public static string WriteValues<T>(this IEnumerable<T> source)
             => string.Join(", ", source);
+
+        public static TAttribute GetAttribute<TAttribute>(this IEnumerable<Attribute> attributes) where TAttribute : Attribute
+            => attributes.FirstOrDefault(a => a.GetType() == typeof(TAttribute)) as TAttribute;
     }
 }

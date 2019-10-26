@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -72,11 +71,8 @@ namespace Orikivo
 
         private async Task HandleCommandAsync(SocketMessage arg)
         {
-            // logging
-            if (arg.Author.Id == _client.CurrentUser.Id)
-                _logger.Debug("Orikivo has sent a message.");
-            else
-                _logger.Debug("Orikivo has received a message.");
+
+            _logger.Debug($"Orikivo has {(arg.Author.Id == _client.CurrentUser.Id ? "sent" : "received")} a message.");
 
             // command syntax
             
@@ -192,42 +188,35 @@ namespace Orikivo
         /// </summary>
         private async Task OnCommandExecutedAsync(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
         {
+            OriCommandContext Context = context as OriCommandContext;
+
             if (result.IsSuccess)
             {
                 _logger.Debug("Command.Success");
-                OriCommandContext Context = context as OriCommandContext;
+                
 
                 /* Determine if there's a cooldown to be set. */
                 if (commandInfo.IsSpecified)
                 {
-                    Attribute attribute = commandInfo.Value.Attributes.Where(x => x.GetType() == typeof(CooldownAttribute)).FirstOrDefault();
+                    CooldownAttribute attribute = (CooldownAttribute)commandInfo.Value.Attributes.FirstOrDefault(x => x.GetType() == typeof(CooldownAttribute));
                     if (attribute != null)
                     {
                         _logger.Debug("Cooldown found.");
-                        if (Context.Account != null)
-                        {
-                            Context.Account.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", (attribute as CooldownAttribute).Seconds);
-                        }
+                        Context.Account?.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Seconds);
                     }
                 }
                 /* Save all JSON entities, if needed. */
 
-                Context.Container.Global = Context.Global; // set the root global to the current global, if updated.
-                OriJsonHandler.Save(Context.Container.Global, "global.json"); // if it was updated; want to conserve amount of memory used.
-                if (Context.Server != null)
-                {
-                    Context.Container.SaveGuild(Context.Server); // if it was updated; want to conserve amount of memory used.
-                }
-                if (Context.Account != null)
-                {
-                    Context.Account.UpdateStat(Stat.CommandsUsed, 1);
-                    Context.Container.SaveUser(Context.Account);
-                }
+                //Context.Container.Global = Context.Global; // set the root global to the current global, if updated.
+                OriJsonHandler.Save(Context.Container.Global, "global.json");
+                Context.Container.TrySaveGuild(Context.Server);
+                Context.Account?.UpdateStat(Stat.CommandsUsed, 1);
+                Context.Container.TrySaveUser(Context.Account);
             }
             else
             {
                 _logger.Debug("Command.Failed");
-                await (context as OriCommandContext).Channel.ThrowAsync(result.ErrorReason);
+                await Context.Channel.ThrowAsync(result.ErrorReason);
                 Console.WriteLine(result.ErrorReason);
             }
         }

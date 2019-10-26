@@ -12,7 +12,7 @@ namespace Orikivo
             => eb.WithColor(EmbedUtils.GetColorByStatus(status));
 
         public static EmbedBuilder WithFooter(this EmbedBuilder eb, int currentPage, int maxPage, string text = null, string iconUrl = null)
-            => eb.WithFooter(EmbedUtils.CreatePagedFooter(currentPage, maxPage, text), iconUrl);
+            => eb.WithFooter(EmbedUtils.CreatePageIndex(currentPage, maxPage, text), iconUrl);
 
         // this must be sent using Context.Channel.SendFileAsync;
         public static EmbedBuilder WithLocalImageUrl(this EmbedBuilder eb, string path)

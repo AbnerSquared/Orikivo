@@ -14,7 +14,7 @@ namespace Orikivo
         internal ModuleDisplayInfo(ModuleInfo module, List<ContextValue> family = null)
         {
             Name = module.Name;
-
+            Subtitle = module.Attributes.GetAttribute<SubtitleAttribute>()?.Subtitle;
             Summary = module.Summary;
             GroupName = module.Group;
             Aliases = module.Aliases.Where(x => x != Name).ToList();

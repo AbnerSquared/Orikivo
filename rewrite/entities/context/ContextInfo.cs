@@ -13,7 +13,7 @@ namespace Orikivo
         public string Content { get; private set; }
         public bool IsSuccess { get; private set; }
         public ContextError? Error { get; private set; }
-        public bool HasArg => Checks.NotNull(Arg);
+        public bool HasParameter => Checks.NotNull(Parameter);
         public bool HasPriority => _priority.HasValue;
         public bool HasRoot => Checks.NotNull(Root);
         public List<string> Modules { get; private set; }
@@ -25,7 +25,7 @@ namespace Orikivo
             {
                 StringBuilder sb = new StringBuilder();
 
-                if (Checks.NotNull(Groups) && Groups?.Count > 0)
+                if (Groups?.Count > 0)
                     sb.Append($"{string.Join(' ', Groups)} ");
 
                 sb.Append(_root);
@@ -34,12 +34,16 @@ namespace Orikivo
             }
         }
 
-        public string Arg { get; private set; }
-        internal int? _priority;
+        public string Parameter { get; private set; }
+
+        private int? _priority;
         public int Priority => _priority ?? 0;
-        internal int? _index;
+
+        private int? _index;
         public int Index => _index ?? 0;
+
         public ContextInfoType? Type { get; private set; }
+
         public ContextSearchMethod? SearchFormat { get; private set; }
 
         public static ContextInfo Parse(string content)
@@ -84,40 +88,33 @@ namespace Orikivo
             ctx._priority = m.Groups[9].Success ?
                 int.Parse(m.Groups[9].Value) : (int?)null;
 
-            ctx.Arg = m.Groups[11].Value;
+            ctx.Parameter = m.Groups[11].Value;
 
             return ctx;
         }
 
         public static ContextInfoType? GetType(string type)
         {
-            if (string.IsNullOrWhiteSpace(type))
+            if (!Checks.NotNull(type))
                 return null;
 
-            switch (type)
+            return type switch
             {
-                case "m":
-                    return ContextInfoType.Module;
-                case "g":
-                    return ContextInfoType.Group;
-                case "c":
-                    return ContextInfoType.Command;
-                default:
-                    throw new Exception("The specified HelperContextType does not exist.");
-            }
+                "m" => ContextInfoType.Module,
+                "g" => ContextInfoType.Group,
+                "c" => ContextInfoType.Command,
+                _ => throw new Exception("The specified HelperContextType does not exist."),
+            };
         }
 
         public static ContextSearchMethod GetSearchFormat(string format)
         {
-            switch (format)
+            return format switch
             {
-                case "~":
-                    return ContextSearchMethod.List;
-                case "*":
-                    return ContextSearchMethod.Verbose;
-                default:
-                    return ContextSearchMethod.Default;
-            }
+                "~" => ContextSearchMethod.List,
+                "*" => ContextSearchMethod.Verbose,
+                _ => ContextSearchMethod.Default,
+            };
         }
     }
 }

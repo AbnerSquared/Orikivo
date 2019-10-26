@@ -8,6 +8,18 @@ namespace Orikivo
 {
     public static class ContextUtils
     {
+        public const int YIELD_THRESHOLD = 1; // if > 1, deem as warning
+        public const int CRITICAL_THRESHOLD = 10; // if > 10, deem as critical
+
+        private const string STABLE_EMOJI = "\uD83D\uDD39"; /* :small_blue_diamond: */
+        private const string YIELD_EMOJI = "\uD83D\uDD38"; /* :small_orange_diamond: */
+        private const string CRITICAL_EMOJI = "\uD83D\uDD3A"; /* :small_red_triangle: */
+        private static string GetSeverityIcon(int reportCount)
+            => reportCount >= CRITICAL_THRESHOLD ? CRITICAL_EMOJI : reportCount >= YIELD_THRESHOLD ? YIELD_EMOJI : STABLE_EMOJI;
+
+        public static string GetSeverityIcon(IDisplayInfo info)
+            => GetSeverityIcon(info.Reports.Where(x => x.State == ReportState.Open).Count());
+
         public static ParameterMod GetMod(ParameterInfo parameter)
         {
             ParameterMod mod = 0;
@@ -31,7 +43,7 @@ namespace Orikivo
 
                 aliases = aliases
                     .Where(x => x.StartsWith($"{command.Module.Group} "))
-                    .Select(x => x.Replace($"{groupName} ", "").Trim())
+                    .Select(x => x.Replace($"{groupName} ", string.Empty).Trim())
                     .Where(x => x != command.Name).ToList();
 
                 if (!Checks.NotNull(command.Name))
@@ -46,10 +58,11 @@ namespace Orikivo
             StringBuilder sb = new StringBuilder();
             if (!info.IsGroup)
             {
-                sb.AppendLine($"{ConcatFamilyTree(info.Family.Skip(1).ToList())}**{info.Name}**");
+                /* {ConcatFamilyTree(info.Family.Skip(1).ToList())} */
+                sb.AppendLine($"**{info.Name}**");
                 if (info.Summary != null)
                 {
-                    sb.AppendLine($"```\n{info.Summary}```");
+                    sb.AppendLine(OriFormat.CodeBlock(info.Summary));
                 }
 
                 if (info.Commands.Count > 0)
@@ -57,10 +70,11 @@ namespace Orikivo
                     sb.AppendLine($"**Commands** {OriFormat.Subscript($"({info.Commands.Count})")}:");
                     sb.AppendLine($"{string.Join(" ", info.Commands.Select(x => x.BlockName).Concat(info.Submodules.Where(x => x.IsGroup).Select(x => x.BlockName)).OrderBy(x => x[1]).ToList())}");
                 }
-                if (info.Submodules.Count > 0)
+                IEnumerable<ModuleDisplayInfo> subs = info.Submodules.Where(x => x.IsGroup == false);
+                if (subs.Count() > 0)
                 {
-                    sb.AppendLine($"**Submodules** {OriFormat.Subscript($"({info.Submodules.Count})")}:");
-                    sb.AppendLine($"{string.Join("\n", info.Submodules.Select(x => $"🔹**{x.Name}** {OriFormat.Subscript($"(+{x.TotalCommands})")}"))}");
+                    sb.AppendLine($"**Submodules** {OriFormat.Subscript($"({subs.Count()})")}:");
+                    sb.AppendLine($"{string.Join("\n", subs.Select(x => $"{GetSeverityIcon(x.Reports?.Count ?? 0)}**{x.Name}** {OriFormat.Subscript($"(+{x.TotalCommands})")}"))}");
                 }
             }
             else
@@ -204,17 +218,12 @@ namespace Orikivo
 
         private static string GetValueSeparator(ContextValue value)
         {
-            switch (value.Type)
+            return value.Type switch
             {
-                case ContextInfoType.Module:
-                    return ".";
-
-                case ContextInfoType.Group:
-                    return " ";
-
-                default:
-                    return string.Empty;
-            }
+                ContextInfoType.Module => ".",
+                ContextInfoType.Group => " ",
+                _ => string.Empty
+            };
         }
     }
 }

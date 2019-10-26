@@ -15,10 +15,10 @@ namespace Orikivo
                     Colors = LogColorMap.Default,
                     Keys = LogKeyMap.Default
                 };
-                config.EntryFormat = $"-- ~ --\n{config.Keys[LogKey.Name]} [{config.Keys[LogKey.Date]}]\n{config.Keys[LogKey.LogSeverity]}.{config.Keys[LogKey.LogSource]}";
+                config.EntryFormat = $"--  --\n{config.Keys[LogKey.Name]} [{config.Keys[LogKey.Date]}]\n{config.Keys[LogKey.LogSeverity]}.{config.Keys[LogKey.LogSource]}";
                 config.ExceptionFormat = $"~ An exception has occured. [{config.Keys[LogKey.ExceptionType]}] ~\n{config.Keys[LogKey.ExceptionMessage]}";
                 config.MessageFormat = $"{config.Keys[LogKey.LogMessage]}";
-                config.ExitFormat = "-- END --";
+                config.ExitFormat = "-- --";
                 return config;
             }
         }

@@ -1,7 +1,5 @@
 ﻿using Discord;
 using System;
-using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -9,7 +7,7 @@ namespace Orikivo
     // internal means that it cannot be accessed once it's compiled
 
     // TODO: Separate all of the files in 'Orikivo' namespace into their proper locations.
-    internal class Program
+    internal sealed class Program
     {
         private static void Main(string[] args)
         {

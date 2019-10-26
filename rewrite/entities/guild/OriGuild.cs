@@ -136,9 +136,9 @@ namespace Orikivo
         }
 
         // functions
-        public OriMessage GetDisplay(EntityDisplayFormat displayFormat)
+        public MessageBuilder GetDisplay(EntityDisplayFormat displayFormat)
         {
-            OriMessage oriMessage = new OriMessage();
+            MessageBuilder oriMessage = new MessageBuilder();
             switch (displayFormat)
             {
                 case EntityDisplayFormat.Json:
@@ -149,14 +149,14 @@ namespace Orikivo
                     sbj.AppendLine($"    \"id\": \"{Id}\",");
                     sbj.AppendLine($"    \"created_at\": \"{CreatedAt}\"");
                     sbj.AppendLine("}```");
-                    oriMessage.Text = sbj.ToString();
+                    oriMessage.Content = sbj.ToString();
                     return oriMessage;
                 default:
                     StringBuilder sbd = new StringBuilder();
                     sbd.AppendLine($"{Format.Bold(Name)}"); // name display
                     sbd.AppendLine($"{Format.Bold("id")}:{Id}");// id display
                     sbd.AppendLine($"{Format.Bold("joined")}:{CreatedAt.ToString($"`yyyy`.`MM`.`dd` • `hh`:`mm`:`ss`{CreatedAt.ToString("tt")}")}");
-                    oriMessage.Text = sbd.ToString();
+                    oriMessage.Content = sbd.ToString();
                     return oriMessage;
             }
         }

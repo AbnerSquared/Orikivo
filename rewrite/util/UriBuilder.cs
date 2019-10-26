@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Orikivo
 {
+    // TODO: System.UriBuilder exists. This could be scrapped.
     /// <summary>
     /// A tool used to simplify URI construction.
     /// </summary>

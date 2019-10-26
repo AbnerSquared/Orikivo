@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     // TODO: Rework this class to allow for TickUpdatePacket and such.
-    public class TimerTask
+    public class AsyncTimer
     {
-        public TimerTask(TimeSpan duration)
+        public AsyncTimer(TimeSpan duration)
         {
             Duration = duration;
             Trigger = false;
@@ -22,13 +22,14 @@ namespace Orikivo
         }
 
 
+        // TODO: Remove 'goto' label.
         // implement user count into lobby as a part of the timer mechanic.
         public async Task<bool> StartAsync()
         {
             Running = true;
             Task _timer = Task.Delay(Duration);
             Entry:
-            while (!Task.WhenAny(_timer).ConfigureAwait(false).GetAwaiter().IsCompleted)
+            while (!Task.WhenAll(_timer).ConfigureAwait(false).GetAwaiter().IsCompleted)
             {
                 if (ForceQuit)
                 {

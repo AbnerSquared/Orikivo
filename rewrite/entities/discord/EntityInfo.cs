@@ -12,6 +12,7 @@ namespace Orikivo
     // ChannelDisplayInfo
     // DiscordChannelType
 
+    // TODO: Since this doesn't implement custom information, this whole discord folder could be scrapped.
     public class EntityInfo
     {
         internal EntityInfo(SocketGuild guild)
@@ -53,4 +54,4 @@ namespace Orikivo
 
         public DateTimeOffset CreatedAt { get; }
     }
-    }
+}

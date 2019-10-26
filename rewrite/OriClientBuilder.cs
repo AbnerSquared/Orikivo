@@ -18,16 +18,18 @@ namespace Orikivo
     /// </summary>
     public class OriClientBuilder
     {
-        public OriClientBuilder(bool useSharding = false)
+        public OriClientBuilder(/*bool useSharding = false*/)
         {
             Config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("config.json").Build();
             Services = new ServiceCollection();
-            if (useSharding)
+
+            /*if (useSharding)
                 Services.AddSingleton(new DiscordShardedClient(DiscordConfig.DefaultSocketConfig));
-            else
-                Services.AddSingleton(new DiscordSocketClient(DiscordConfig.DefaultSocketConfig)); // discord client
+            else*/
+
+            Services.AddSingleton(new DiscordSocketClient(DiscordConfig.DefaultSocketConfig)); // discord client
 
             // A list of required classes needed in order for Orikivo to function.
             Services
@@ -36,9 +38,9 @@ namespace Orikivo
                 .AddSingleton<OriConsoleService>() /* Handles all called events in general. Is connected with DiscordEventHandler. */
                 .AddSingleton<DiscordEventHandler>() /* Manages all events that occur from the Discord API. */
                 .AddSingleton<OriJsonContainer>() /* A data container that is passed along all inheriting classes. */
-                .AddSingleton<OriMessageInvoker>() /* A message handler that can create internal handles for separate users. */
+                /* TODO: Create a message handler that can create internal handles for separate users. */
                 .AddSingleton<GameManager>() /* Handles all of the processes relating to game lobbies and so forth. */
-                .AddSingleton(Config); // root config for orikivo
+                .AddSingleton(Config); // Root configuration for Orikivo.
         }
 
         public IConfigurationRoot Config { get; }

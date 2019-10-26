@@ -29,9 +29,14 @@ namespace Orikivo
         /// <summary>
         /// Sends a custom message object to the specified channel.
         /// </summary>
-        public static async Task SendMessageAsync(ISocketMessageChannel channel, OriMessage oriMessage, RequestOptions options = null)
-            => await channel.SendMessageAsync(oriMessage.Text, oriMessage.IsTTS, oriMessage.Embed?.Build(), options);
-        
+        public static async Task SendMessageAsync(ISocketMessageChannel channel, Message message, RequestOptions options = null)
+        {
+            if (Checks.NotNull(message.AttachmentUrl))
+                await channel.SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options);
+            else
+                await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options);
+        }
+
         /// <summary>
         /// Sends a custom error message to the specified channel.
         /// </summary>

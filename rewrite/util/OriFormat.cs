@@ -5,13 +5,14 @@ using System.Text;
 
 namespace Orikivo
 {
-
     /// <summary>
-    /// A formatter tool used to help format text across Orikivo.
+    /// A formatter tool used to help format simple sentences.
     /// </summary>
     public static class OriFormat
     {
-        public static string DebugFormat = "[Debug] -- {0} --";
+        public static readonly string DebugFormat = "[Debug] -- {0} --";
+        public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
+        public static readonly string HyperlinkFormat = "[{0}]({1})";
         // ᵃᵇᶜᵈᵉᶠᵍʰᶤʲᵏˡᵐᶯᵒᵖʳˢᵗᵘᵛʷˣʸᶻ (superscript)
         // ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ (subscript)
         private static readonly Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
@@ -39,8 +40,17 @@ namespace Orikivo
         public static string Subscript(string value)
             => MapChars(value, CharMap.Subscript);
 
+        public static string CodeBlock(string value, CodeType? type = null)
+            => $"```{type?.ToString().ToLower()}\n{value}```";
+
         public static string CropGameId(string value)
             => value.Length > 8 ? value.Substring(0, 8) + "..." : value;
+
+        public static string Hyperlink(string text, string url)
+            => string.Format(HyperlinkFormat, text, url);
+
+        public static string CreateVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
+            => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
         private static string MapChars(string value, CharMap mapType)
         {
             Dictionary<char, char> map = null;

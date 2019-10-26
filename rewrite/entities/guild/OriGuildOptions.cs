@@ -15,7 +15,7 @@ namespace Orikivo
 
         [JsonConstructor]
         public OriGuildOptions(string prefix, List<GuildEventData> events, bool? allowEvents, Dictionary<GuildRoleType, ulong> customRoles,
-            ulong? systemChannelId, List<ulong> selfAssignRoles, ExceptionLevel exceptionLevel)
+            ulong? systemChannelId, List<ulong> selfAssignRoles, ExceptionSeverity exceptionLevel)
         {
             Prefix = prefix; // prevent editing prefix config
             // allow MaxLobbies, which defines the limit to the lobbies that can be open on your server at a time. Default is 1.
@@ -49,7 +49,7 @@ namespace Orikivo
             {
                 OriGuildOptions guildOptions = new OriGuildOptions();
                 guildOptions.Prefix = null;
-                guildOptions.ExceptionLevel = ExceptionLevel.Default;
+                guildOptions.ExceptionLevel = ExceptionSeverity.Default;
                 guildOptions.Privacy = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
                 guildOptions.CustomRoles = new Dictionary<GuildRoleType, ulong>();
@@ -171,6 +171,6 @@ namespace Orikivo
         }
 
         [JsonProperty("ex_level")]
-        public ExceptionLevel ExceptionLevel { get; set; }
+        public ExceptionSeverity ExceptionLevel { get; set; }
     }
 }
