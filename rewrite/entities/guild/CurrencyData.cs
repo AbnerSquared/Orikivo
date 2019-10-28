@@ -28,12 +28,18 @@
 
         internal void Give(ulong value)
         {
-
+            ulong remainder = OriMath.Subtract(Debt, value);
+            Debt -= value - remainder;
+            if (remainder > 0)
+                Value += value;
         }
 
         internal void Take(ulong value)
         {
-
+            ulong remainder = OriMath.Subtract(Value, value);
+            Value -= value - remainder;
+            if (remainder > 0)
+                Debt += remainder;
         }
 
         /// <summary>
@@ -41,20 +47,13 @@
         /// </summary>
         public static CurrencyData operator +(CurrencyData data, ulong value)
         {
-            ulong remainder = OriMath.Subtract(data.Debt, value);
-            data.Debt -= value - remainder;
-            if (remainder > 0)
-                data.Value += value;
+            data.Give(value);
             return data;
         }
 
         public static CurrencyData operator -(CurrencyData data, ulong value)
         {
-            // the most that can be removed.
-            ulong remainder = OriMath.Subtract(data.Value, value);
-            data.Value -= value - remainder;
-            if (remainder > 0)
-                data.Debt += remainder;
+            data.Take(value);
             return data;
         }
 
