@@ -114,9 +114,6 @@ namespace Orikivo
         [JsonIgnore]
         public DateTime? LastSaved { get; internal set; }
 
-        [JsonIgnore]
-        public bool HasChanged { get; internal set; }
-
         public void AddCommand(CustomGuildCommand command)
         {
             if (CustomCommands.Any(x => x.Name.ToLower() == command.Name.ToLower()))
@@ -141,6 +138,7 @@ namespace Orikivo
             MessageBuilder oriMessage = new MessageBuilder();
             switch (displayFormat)
             {
+                // TODO: Transfer this into a separate formatting service.
                 case EntityDisplayFormat.Json:
                     StringBuilder sbj = new StringBuilder();
                     sbj.AppendLine("```json");

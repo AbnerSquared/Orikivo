@@ -25,7 +25,7 @@ namespace Orikivo
         /// <summary>
         /// An update packet that is executed when the item is used.
         /// </summary>
-        public AccountUpdatePacket OnUse { get; internal set; } = new AccountUpdatePacket();
+        public AccountUpdatePacket OnUse { get; internal set; }
 
         // TODO: Make another update packet that modifies stuff when the last use of an item is called.
 

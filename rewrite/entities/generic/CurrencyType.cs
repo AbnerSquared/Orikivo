@@ -17,8 +17,20 @@
         Vote = 2,
 
         /// <summary>
+        /// Marks the currency type as 'Gini', the currency used within guilds.
+        /// </summary>
+        Guild = 3
+    }
+
+    /*
+        NOTICE: Since CurrencyData can all have Debt applied,
+        it will instead be there by default for all currencies. 
+
+        /// <summary>
         /// Marks the currency type as 'Etiro', the currency used for debt.
         /// </summary>
-        Debt = 3
-    }
+        Debt = 3,
+     
+     
+     */
 }

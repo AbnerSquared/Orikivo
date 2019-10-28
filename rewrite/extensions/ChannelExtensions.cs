@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -19,19 +20,19 @@ namespace Orikivo
         /// <summary>
         /// Sends a custom error message to the specified channel.
         /// </summary>
-        public static async Task ThrowAsync(this ISocketMessageChannel channel, string error, RequestOptions options = null)
+        public static async Task<RestUserMessage> ThrowAsync(this ISocketMessageChannel channel, string error, RequestOptions options = null)
             => await OriMessageHelper.ThrowAsync(channel, error, options);
 
         /// <summary>
         /// Catches a possible Exception and sends its information to the specified channel.
         /// </summary>
-        public static async Task CatchAsync(this ISocketMessageChannel channel, Exception ex, RequestOptions options = null)
+        public static async Task<RestUserMessage> CatchAsync(this ISocketMessageChannel channel, Exception ex, RequestOptions options = null)
             => await OriMessageHelper.CatchAsync(channel, ex, options);
 
         /// <summary>
         /// Sends a custom message object to the specified channel.
         /// </summary>
-        public static async Task SendMessageAsync(this ISocketMessageChannel channel, Message message, RequestOptions options = null)
+        public static async Task<RestUserMessage> SendMessageAsync(this ISocketMessageChannel channel, Message message, RequestOptions options = null)
             => await OriMessageHelper.SendMessageAsync(channel, message, options);
     }
 }

@@ -186,9 +186,8 @@ namespace Orikivo
         [BindTo(TrustLevel.Owner), RequireContext(ContextType.Guild)]
         public async Task TrustUserAsync(SocketGuildUser user) {}
 
-        [RequireGuild]
         [Command("newcustomcommand")]
-        [BindTo(TrustLevel.Inherit)]
+        [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
             CustomGuildCommand command = new CustomGuildCommand(name);

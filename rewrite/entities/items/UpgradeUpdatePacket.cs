@@ -1,9 +1,11 @@
 ﻿namespace Orikivo
 {
-    public class UpgradeUpdatePacket
+    /// <summary>
+    /// An update packet specifying how to update an upgrade.
+    /// </summary>
+    public class UpgradeUpdatePacket : Int32UpdatePacket
     {
-        public string Id { get; }
-        public int Amount { get; }
-        public UpdateMethod Method { get; }
+        public UpgradeUpdatePacket(string id, int amount, UpdateMethod method = UpdateMethod.Add) : base(id, amount, method)
+        { }
     }
 }

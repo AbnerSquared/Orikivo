@@ -30,6 +30,14 @@ namespace Orikivo
         }
 
         /// <summary>
+        /// Returns the remainder of a subtraction between two UInt64 values. If the minuend can take itself from the subtrahend, with the subtrahend being greater than zero, it returns zero.
+        /// </summary>
+        /// <param name="subtrahend">The number being subtracted.</param>
+        /// <param name="minuend">The number that the subtrahend will be subtracted by.</param>
+        public static ulong Subtract(ulong subtrahend, ulong minuend)
+            => subtrahend - minuend < 0 ? minuend - subtrahend : 0;
+
+        /// <summary>
         /// Returns the exact median value from a set of numbers.
         /// </summary>
         public static double MedianValue(IEnumerable<int> set)

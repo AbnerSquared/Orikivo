@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum HttpMethod
+    public enum HttpMethodType
     {
         GET = 1,
         POST = 2,

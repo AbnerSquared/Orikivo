@@ -1,4 +1,7 @@
-﻿namespace Orikivo
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Orikivo
 {
     internal static class ItemDictionary
     {
@@ -23,7 +26,7 @@
                 info.ToOwn = toOwnCriteria;
 
                 ItemActionInfo actionInfo = new ItemActionInfo();
-                actionInfo.OnUse.CustomAction = ItemCustomAction.NoDebt;
+                actionInfo.OnUse.Custom = GetCustomActionFor(ItemCustomAction.NoDebt);
                 actionInfo.MaxUses = 1;
                 actionInfo.BreakOnLastUse = true;
                 info.ActionInfo = actionInfo;
@@ -34,6 +37,19 @@
                 info.MarketInfo = marketInfo;
 
                 return info;
+            }
+        }
+
+        public static Func<OriUser, Task> GetCustomActionFor(ItemCustomAction action)
+        {
+            switch (action)
+            {
+                /*case ItemCustomAction.NoDebt*/default:
+                    return async (OriUser x) =>
+                    {
+                        CurrencyData wallet = x.GetWalletFor(CurrencyType.Generic);
+                        x.GetWalletFor(CurrencyType.Generic).Give(wallet.Debt);
+                    }; 
             }
         }
     }

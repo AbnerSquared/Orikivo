@@ -197,6 +197,10 @@ namespace Orikivo
         public bool ContainsGuild(ulong guildId)
             => Lobby.ContainsGuild(guildId);
 
+        public bool ContainsChannel(ulong channelId)
+            => Lobby.ContainsChannel(channelId);
+
+        // TODO: Separate into formatting service.
         /// <summary>
         /// Returns a formatted summary of the game and its state.
         /// </summary>

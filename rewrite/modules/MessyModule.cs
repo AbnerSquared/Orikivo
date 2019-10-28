@@ -46,6 +46,37 @@ namespace Orikivo
             }
         }
 
+        [Command("whispertest")]
+        public async Task WhisperTestAsync()
+        {
+            await WhisperAsync(".....hi.");
+            await ReplyAsync("Psst... I sent you something");
+        }
+
+        [Command("roletoggletest")]
+        public async Task RemoveRoleTestAsync()
+        {
+            ulong roleId = 614686327019012098;
+            IGuildUser user = Context.Guild.GetUser(Context.User.Id);
+            IRole role = Context.Guild.GetRole(roleId);
+
+            string message = "You shouldn't see this.";
+
+            if (user.RoleIds.Contains(roleId))
+            {
+                await user.RemoveRoleAsync(role);
+                message = "Removed role.";
+            }
+            else
+            {
+                await user.AddRoleAsync(role);
+                message = "Added role.";
+            }
+
+            await Context.Channel.SendMessageAsync(message);
+
+        }
+
         [Command("presettest")]
         public async Task PresetTestAsync(bool useEmbed = false, bool hideUrl = false)
         {

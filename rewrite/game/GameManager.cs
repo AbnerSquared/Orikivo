@@ -92,6 +92,14 @@ namespace Orikivo
             => Games.Values.Any(x => x.Lobby.ContainsUser(userId));
 
         /// <summary>
+        /// Attempts to get the game that a user is currently in. If there is no matching user found, it returns null.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public Game GetGameFrom(ulong userId)
+            => ContainsUser(userId) ? Games.Values.First(x => x.Lobby.ContainsUser(userId)) : null;
+
+        /// <summary>
         /// Deletes a game and wipes all references toward it.
         /// </summary>
         /// <param name="id">The identity of a Game.</param>

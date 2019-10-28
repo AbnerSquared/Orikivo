@@ -71,7 +71,6 @@ namespace Orikivo
         public void SaveUser(OriUser oriUser)
         {
             oriUser.LastSaved = DateTime.UtcNow;
-            oriUser.HasChanged = false;
             AddOrUpdateUser(oriUser);
             OriJsonHandler.SaveJsonEntity(oriUser);
         }
@@ -94,7 +93,6 @@ namespace Orikivo
             // you don't need to check if it updated
             // just save it directly.
             oriGuild.LastSaved = DateTime.UtcNow;
-            oriGuild.HasChanged = false;
             AddOrUpdateGuild(oriGuild);
             OriJsonHandler.SaveJsonEntity(oriGuild);
         }

@@ -80,8 +80,8 @@ namespace Orikivo
             if (Balance.HasValue)
                 if (!(user.Balance >= Balance.Value))
                     return false;
-            if (Debt.HasValue)
-                if (!(user.Debt >= Debt.Value))
+            if (Debt.HasValue) // TODO: Handle how money is read.
+                if (!(user.GetWalletFor(CurrencyType.Generic).Debt >= Debt.Value))
                     return false;
 
             return true;

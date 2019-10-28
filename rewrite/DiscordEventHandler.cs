@@ -19,7 +19,7 @@ namespace Orikivo
 
         private readonly OriJsonContainer _container;
         private readonly OriConsoleService _logger;
-        private readonly GameManager _gameManager;
+        private readonly GameManager _games;
         public DiscordEventHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider provider,
             OriJsonContainer container, OriConsoleService logger, GameManager gameManager)
         {
@@ -30,7 +30,7 @@ namespace Orikivo
 
             _container = container;
             _logger = logger;
-            _gameManager = gameManager;
+            _games = gameManager;
             _client.Ready += OnReadyAsync;
             _client.MessageReceived += HandleCommandAsync;
             _client.UserJoined += OnUserJoinAsync;
@@ -58,9 +58,9 @@ namespace Orikivo
 
         private async Task OnChannelDeletedAsync(SocketChannel channel)
         {
-            Game game = _gameManager.Games.Values.FirstOrDefault(x => x.Receivers.Any(y => y.ChannelId == channel.Id));
+            Game game = _games.Games.Values.FirstOrDefault(x => x.Receivers.Any(y => y.ChannelId == channel.Id));
             if (game.Receivers.Count - 1 == 0) // if the receiver count - the one about to be deleted results in an empty game.
-                await _gameManager.DeleteGameAsync(game.Id);
+                await _games.DeleteGameAsync(game.Id);
 
         }
 
@@ -86,10 +86,10 @@ namespace Orikivo
             //       create a new GameTriggerContext that is then passed into the GameManager as its own internal event.
             if (Context.Account != null)
             {
-                if (_gameManager.ContainsUser(Context.Account.Id))
+                Game game = _games.GetGameFrom(Context.User.Id);
+                if (game != null)
                 {
-                    Game game = _gameManager.Games.Values.First(x => x.ContainsUser(Context.Account.Id));
-                    if (game.Receivers.Any(x => x.ChannelId == Context.Channel.Id))
+                    if (game.ContainsChannel(Context.Channel.Id))
                     {
                         _logger.Debug("User sent a message while in a game. Ignoring.");
                         return;
@@ -190,35 +190,49 @@ namespace Orikivo
         {
             OriCommandContext Context = context as OriCommandContext;
 
-            if (result.IsSuccess)
+            if (!result.IsSuccess)
             {
-                _logger.Debug("Command.Success");
-                
-
-                /* Determine if there's a cooldown to be set. */
-                if (commandInfo.IsSpecified)
-                {
-                    CooldownAttribute attribute = (CooldownAttribute)commandInfo.Value.Attributes.FirstOrDefault(x => x.GetType() == typeof(CooldownAttribute));
-                    if (attribute != null)
-                    {
-                        _logger.Debug("Cooldown found.");
-                        Context.Account?.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Seconds);
-                    }
-                }
-                /* Save all JSON entities, if needed. */
-
-                //Context.Container.Global = Context.Global; // set the root global to the current global, if updated.
-                OriJsonHandler.Save(Context.Container.Global, "global.json");
-                Context.Container.TrySaveGuild(Context.Server);
-                Context.Account?.UpdateStat(Stat.CommandsUsed, 1);
-                Context.Container.TrySaveUser(Context.Account);
-            }
-            else
-            {
+                // TODO: Since an Exception is never thrown from here,
+                // we need to find a workaround outside of _commandService.ExecuteAsync();
+                // A solution could be to execute all commands from a command that catches exceptions to display.
                 _logger.Debug("Command.Failed");
                 await Context.Channel.ThrowAsync(result.ErrorReason);
-                Console.WriteLine(result.ErrorReason);
+                _logger.WriteLine(result.ErrorReason);
+                return;
             }
+
+            _logger.Debug("Command.Success");
+                
+            /* Determine if there's a cooldown to be set. */
+            if (commandInfo.IsSpecified)
+            {
+                CooldownAttribute attribute = commandInfo.Value.Attributes.GetAttribute<CooldownAttribute>();
+                if (attribute != null)
+                {
+                    _logger.Debug("Cooldown found.");
+                    Context.Account?.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Seconds);
+                }
+            }
+
+
+            // SAVING
+
+            // CONCEPT: Instead of configuring users at handle, we need to be able to track user updates.
+            // A solution would be to use a UserManager.UpdateUser(UserProperties), which could change all the values
+            // there and keep track of them to place into a list, from which can be invoked for an event.
+
+            OriJsonHandler.Save(Context.Container.Global, "global.json");
+            Context.Container.TrySaveGuild(Context.Server);
+            Context.Account?.UpdateStat(Stat.CommandsUsed, 1);
+
+            // TODO: Create UserHandler.CompareCriteriaAsync(); 
+            //await _merits.CheckUserAsync(Context.Account);
+
+
+
+
+
+            Context.Container.TrySaveUser(Context.Account);
         }
     }
 }

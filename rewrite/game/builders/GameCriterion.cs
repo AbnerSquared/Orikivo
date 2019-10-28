@@ -13,6 +13,7 @@ namespace Orikivo
 
         public bool Check(Player player)
             => Check(player.Attributes);
+        // TODO: This can be split into a separate static utility service.
         public bool Check(List<GameAttribute> attributes)
         {
             foreach (AttributeCriterion criterion in Criteria)

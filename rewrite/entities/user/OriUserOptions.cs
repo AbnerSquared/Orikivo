@@ -73,5 +73,8 @@ namespace Orikivo
         [Option]
         [JsonProperty("privacy")]
         public Privacy Privacy { get; internal set; }
+
+        // TODO: Configure notifiers.
+        public bool NotifyOnMeritEarn { get; internal set; }
     }
 }

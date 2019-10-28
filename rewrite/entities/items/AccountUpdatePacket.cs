@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Orikivo
 {
@@ -8,19 +9,33 @@ namespace Orikivo
     /// </summary>
     public class AccountUpdatePacket
     {
-        // TODO: Incorporate GameResult into this update packet. This way, all of the things that can be updated can go here.
-        public AccountUpdatePacket() { throw new NotImplementedException(); }
+        /// <summary>
+        /// Returns an update packet for an account derived from a game result.
+        /// </summary>
+        /// <param name="result"></param>
+        public static AccountUpdatePacket FromGameResult(GameResult result)
+        {
+            AccountUpdatePacket packet = new AccountUpdatePacket();
+            /* Calculate what values from GameResult are utilized here. */
+            return packet;
+        }
 
-        public ItemCustomAction? CustomAction { get; internal set; }
+        private AccountUpdatePacket() { }
 
-        public List<UpgradeUpdatePacket> Upgrades { get; internal set; } = new List<UpgradeUpdatePacket>();
-        public List<ItemUpdatePacket> Items { get; internal set; } = new List<ItemUpdatePacket>();
+        // TODO: Learn how to properly assign a customized action onto here.
+        /// <summary>
+        /// An optional customized action that can be done on the user.
+        /// </summary>
+        public Func<OriUser, Task> Custom { get;  internal/*private*/ set; }
 
-        public List<StatUpdatePacket> Stats { get; internal set; } = new List<StatUpdatePacket>();
+        public List<UpgradeUpdatePacket> Upgrades { get; private set; } = new List<UpgradeUpdatePacket>();
+        public List<ItemUpdatePacket> Items { get; private set; } = new List<ItemUpdatePacket>();
+        //IReadOnly
+        public List<StatUpdatePacket> Stats { get; private set; } = new List<StatUpdatePacket>();
 
-        public List<ExpUpdatePacket> Exp { get; internal set; } = new List<ExpUpdatePacket>();
+        public List<ExpUpdatePacket> Exp { get; private set; } = new List<ExpUpdatePacket>();
 
-        public List<BalanceUpdatePacket> Balance { get; internal set; } = new List<BalanceUpdatePacket>();
+        public List<BalanceUpdatePacket> Balance { get; private set; } = new List<BalanceUpdatePacket>();
 
     }
 }

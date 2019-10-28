@@ -1,9 +1,11 @@
 ﻿namespace Orikivo
 {
-    public class StatUpdatePacket
+    /// <summary>
+    /// An update packet specifying how to update a stat.
+    /// </summary>
+    public class StatUpdatePacket : Int32UpdatePacket
     {
-        public string Id { get; }
-        public UpdateMethod Method { get; }
-        public int Amount { get; }
+        public StatUpdatePacket(string id, int amount, UpdateMethod method = UpdateMethod.Add) : base(id, amount, method)
+        { }
     }
 }

@@ -22,7 +22,7 @@ namespace Orikivo
             _lobby = game.Lobby;
             _display = game.Display;
             Id = game.Id;
-            GameProperties properties = GameProperties.Create(game.Mode, game.Users);
+            GameBuilder properties = GameBuilder.Create(game.Mode, game.Users);
             EntryTask = properties.EntryTask;
             Tasks = properties.Tasks;
             ExitTask = properties.ExitTask;

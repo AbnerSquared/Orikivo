@@ -37,5 +37,11 @@ namespace Orikivo
         /// </summary>
         [JsonProperty("expires_on")]
         public DateTime? ExpiresOn { get; internal set; }
+
+        /// <summary>
+        /// Defines when the item was last used, if any.
+        /// </summary>
+        [JsonProperty("used_at")]
+        public DateTime? UsedAt { get; internal set; }
     }
 }

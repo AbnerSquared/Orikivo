@@ -124,6 +124,9 @@ namespace Orikivo
         public bool ContainsGuild(ulong guildId)
             => Receivers.Any(x => x.Id == guildId);
 
+        public bool ContainsChannel(ulong channelId)
+            => Receivers.Any(x => x.ChannelId == channelId);
+
         // testing purposes
         public bool CanStart => true;// _bootCriteria.Check(UserCount);
     }

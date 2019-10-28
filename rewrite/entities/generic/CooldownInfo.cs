@@ -3,7 +3,7 @@ using System;
 
 namespace Orikivo
 {
-    // a basic class used to set info about a cooldown.
+    // TODO: This can be made for checking cooldowns, but creating cooldowns only need one value: ExpiresOn. This saves space.
     public class CooldownInfo
     {
         public CooldownInfo(DateTime executedAt, double seconds)

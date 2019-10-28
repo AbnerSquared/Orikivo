@@ -9,6 +9,5 @@ namespace Orikivo
     {
         ulong Id { get; }
         DateTime? LastSaved { get; }
-        bool HasChanged { get; }
     }
 }
