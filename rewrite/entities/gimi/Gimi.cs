@@ -9,22 +9,19 @@ namespace Orikivo
     {
         public GimiService(OriUser user)
         {
-            Risk = user.Gimi.Risk;
-            Earn = user.Gimi.Earn;
+            Risk = user.GetAttribute(GimiAttribute.Risk);
+            Earn = user.GetAttribute(GimiAttribute.Earn);
             RiskOverload = user.GetUpgrade(GimiUpgrade.RiskOverload);
             EarnExpander = user.GetUpgrade(GimiUpgrade.MaxExpander);
             MaxEarn = GetMaxEarn();
             MaxRisk = GetMaxRisk();
-            _goldSlot = user.Gimi.GoldSlot ?? GetSlot(); // the number that is its winnable value.
-            _curseSlot = user.Gimi.CurseSlot ?? GetSlot(); // the number that is its winnable value.
-            _winDir = user.Gimi.WinDir ?? GetWinDirection();
-
-            if (!user.Gimi.GoldSlot.HasValue)
-                user.Gimi.SetGoldSlot(_goldSlot);
-            if (!user.Gimi.CurseSlot.HasValue)
-                user.Gimi.SetCurseSlot(_curseSlot);
-            if (!user.Gimi.WinDir.HasValue)
-                user.Gimi.SetWinDir(_winDir);
+            GoldSlot = user.GetAttribute(GimiAttribute.GoldSlot); // the number that is its winnable value.
+            CurseSlot = user.GetAttribute(GimiAttribute.CurseSlot); // the number that is its winnable value.
+            WinDir = user.GetAttribute(GimiAttribute.WinDirection) == 1;
+            if (GoldSlot == 0)
+                GoldSlot = GetSlot();
+            if (CurseSlot == 0)
+                CurseSlot = GetSlot();
         }
 
         public int Risk { get; }
@@ -33,10 +30,9 @@ namespace Orikivo
         public int EarnExpander { get; }
         public int MaxRisk { get; }
         public int MaxEarn { get; }
-        private int _goldSlot { get; }
-        private int _curseSlot { get; }
-        private bool _winDir { get; }
-        
+        private int GoldSlot { get; }
+        private int CurseSlot { get; }
+        private bool WinDir { get; }
 
         private const int _baseMaxRisk = 100;
         private const int _riskOverloadSize = 25;
@@ -118,20 +114,20 @@ namespace Orikivo
             int curseSlotCount = (int)Math.Round(_curseSlotCount);
             List<int> goldSlots = new List<int>();
             List<int> curseSlots = new List<int>();
-            int slotDif = (_goldSlot - _curseSlot);
-            bool _goldDir = (slotDif * Math.Sign(_goldSlot - _curseSlot)) >= goldSlotCount || (slotDif * Math.Sign(_goldSlot - _curseSlot)) >= curseSlotCount;
+            int slotDif = (GoldSlot - CurseSlot);
+            bool _goldDir = (slotDif * Math.Sign(GoldSlot - CurseSlot)) >= goldSlotCount || (slotDif * Math.Sign(GoldSlot - CurseSlot)) >= curseSlotCount;
             int goldDir = _goldDir ? 1 : -1;
             int curseDir = goldDir * -1;
 
             Console.WriteLine($"[Debug] -- Reward: {baseReturnValue} [Min: {earnLowerBound}] [Max: {earnUpperBound}] --");
-            Console.WriteLine($"[Debug] -- [Slots: {goldSlotCount}] Gold: {maxGold} ({goldChance}%) [Root: {_goldSlot}] --");
-            Console.WriteLine($"[Debug] -- [Slots: {curseSlotCount}] Curse: {maxCurse} ({curseChance}%) [Root: {_curseSlot}] --");
+            Console.WriteLine($"[Debug] -- [Slots: {goldSlotCount}] Gold: {maxGold} ({goldChance}%) [Root: {GoldSlot}] --");
+            Console.WriteLine($"[Debug] -- [Slots: {curseSlotCount}] Curse: {maxCurse} ({curseChance}%) [Root: {CurseSlot}] --");
             Console.WriteLine($"[Debug] -- Difference: {slotDif} [GoldDir: {goldDir}] [CurseDir: {curseDir}] --");
-            Console.WriteLine($"[Debug] -- Seed: {seed} [Min: {minSeed}] [Max: {maxSeed}] [WinDir: {(_winDir ? 1 : -1)}] --");
+            Console.WriteLine($"[Debug] -- Seed: {seed} [Min: {minSeed}] [Max: {maxSeed}] [WinDir: {(WinDir ? 1 : -1)}] --");
 
             for (int i = 0; i < goldSlotCount; i++)
             {
-                int goldSlot = (_goldSlot + (i * goldDir)) % maxSeed;
+                int goldSlot = (GoldSlot + (i * goldDir)) % maxSeed;
                 goldSlots.Add(goldSlot);
 
                 Console.WriteLine($"[Debug] -- Gold Slot {i}: {goldSlot} [Max: {maxSeed}] --");
@@ -139,9 +135,9 @@ namespace Orikivo
 
             for (int i = 0; i < curseSlotCount; i++)
             {
-                int curseSlot = ((_curseSlot + (i * curseDir)) % maxSeed);
+                int curseSlot = ((CurseSlot + (i * curseDir)) % maxSeed);
                 if (goldSlots.Contains(curseSlot))
-                    curseSlot = goldSlots.OrderBy(x => (x - curseSlot) * Math.Sign(x - _curseSlot)).First() - curseSlot; // get the largest difference
+                    curseSlot = goldSlots.OrderBy(x => (x - curseSlot) * Math.Sign(x - CurseSlot)).First() - curseSlot; // get the largest difference
 
                 Console.WriteLine($"[Debug] -- Curse Slot {i}: {curseSlot} [Max: {maxSeed}] --");
                 curseSlots.Add(curseSlot);
@@ -159,7 +155,7 @@ namespace Orikivo
             }
             else
             {
-                int isSameDir = seed > ((int)Math.Truncate((double)(maxSeed / 2))) == _winDir ? 1 : -1;
+                int isSameDir = seed > ((int)Math.Truncate((double)(maxSeed / 2))) == WinDir ? 1 : -1;
                 returnValue = baseReturnValue * isSameDir;
 
                 Console.WriteLine($"[Debug] -- IsWin: {isSameDir} --");

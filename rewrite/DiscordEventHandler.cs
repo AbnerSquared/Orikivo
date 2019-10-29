@@ -45,7 +45,7 @@ namespace Orikivo
             // Check if the server has a default role set AND if the bot is allowed to set roles.
             if (server.Options.DefaultRoleId.HasValue) // check for verify
                 await user.AddRoleAsync(user.Guild.GetRole(server.Options.DefaultRoleId.Value));
-            if (server.Options.AllowEvents)
+            if (server.Options.UseEvents)
             {
                 SocketTextChannel defaultChannel = user.Guild.SystemChannel;
                 if (server.Options.SystemChannelId.HasValue)
@@ -131,7 +131,7 @@ namespace Orikivo
                     // check command for cooldowns.
                     OriHelpService helperService = new OriHelpService(_commandService, Context.Global); // Instead of constantly creating this, create a dependency.
                     // in the case of custom command cooldowns, you would need to ignore them here;
-                    foreach (KeyValuePair<string, CooldownInfo> pair in Context.Account.GetCooldownsFor(CooldownType.Command))
+                    foreach (KeyValuePair<string, DateTime> pair in Context.Account.GetCooldownsFor(CooldownType.Command))
                     {
                         // could probably make static
                         List<string> aliases = helperService.GetAliases(pair.Key.Substring("command:".Length));
@@ -151,17 +151,18 @@ namespace Orikivo
                         }
                     }
                 }
+
                 // Custom Commands: command:name.guild_id
                 // custom command logic
                 // make sure to apply a global cooldown in the case of a successful custom command.
                 // custom command cooldowns can be specified such as: command:yoshikill.456195057373020160
                 if (Context.Server != null)
                 {
-                    foreach (CustomGuildCommand customCommand in Context.Server.CustomCommands)
+                    if (Context.Server.Options.Commands != null)
                     {
-                        foreach(string alias in customCommand.Aliases.Append(customCommand.Name))
+                        foreach (GuildCommand customCommand in Context.Server.Options.Commands)
                         {
-                            if (baseMsg == GetContextPrefix(Context) + alias)
+                            if (baseMsg == GetContextPrefix(Context) + customCommand.Name)
                             {
                                 if (customCommand.Message == null)
                                     break;
@@ -210,7 +211,7 @@ namespace Orikivo
                 if (attribute != null)
                 {
                     _logger.Debug("Cooldown found.");
-                    Context.Account?.SetCooldown($"command:{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Seconds);
+                    Context.Account?.SetCooldown(CooldownType.Command, $"{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Seconds);
                 }
             }
 

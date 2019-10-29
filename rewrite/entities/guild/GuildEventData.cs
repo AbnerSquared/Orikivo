@@ -1,19 +1,25 @@
-﻿namespace Orikivo
-{
-    // instead shoot for GuildEvent
-    // which would specify the type of event you wish to log.
+﻿using Newtonsoft.Json;
 
+namespace Orikivo
+{
+    /// <summary>
+    /// Represents information about what to write in a guild when an event occurs that matches the specified type.
+    /// </summary>
     public class GuildEventData
     {
-        public GuildEventData(GuildEvent eventType)
+        public GuildEventData(GuildEvent type)
         { }
-        // This message is what shows when the event occurs.
-        public GuildEvent Type { get; set; }
-        public string Message { get; set; }
-        public string ImageUrl { get; set; }
-        public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
-    }
 
-    // custom commands could used
-    // a custom command framework
+        [JsonProperty("event_type")]
+        public GuildEvent Type { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("image_url")]
+        public string ImageUrl { get; set; }
+
+        [JsonIgnore]
+        public bool HasImage => Checks.NotNull(ImageUrl);
+    }
 }

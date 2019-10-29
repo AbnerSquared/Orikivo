@@ -18,13 +18,13 @@ namespace Orikivo
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, OriUser user, KeyValuePair<string, CooldownInfo> cooldown)
+        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, OriUser user, KeyValuePair<string, DateTime> cooldown)
         {
             if (!user.IsOnCooldown(Cooldown.Notify))
             {
                 //RestUserMessage msg = 
-                await channel.SendMessageAsync($"You are on cooldown.\nTime left: **{cooldown.Value.TimeLeft.ToString(@"hh\:mm\:ss")}**");
-                user.SetCooldown(Cooldown.Notify, 3.0);
+                await channel.SendMessageAsync($"You are on cooldown.\nTime left: **{cooldown.Value.ToString(@"hh\:mm\:ss")}**");
+                user.SetCooldown(CooldownType.Global, Cooldown.Notify, 3.0);
                 //await Task.Delay(TimeSpan.FromSeconds(3));
                 //await msg.DeleteAsync();
             }

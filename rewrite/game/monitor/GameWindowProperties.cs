@@ -74,6 +74,27 @@ namespace Orikivo
             }
         }
 
+        public static GameWindowProperties Game
+        {
+            get
+            {
+                var window = new GameWindowProperties();
+                window.Name = "game";
+                var tab = new GameTabProperties();
+                tab.Name = "main";
+                var groupInfo = ElementGroupConfig.Empty;
+                groupInfo.PageElementLimit = 8;
+                groupInfo.ElementFormatter = "{0}";
+                groupInfo.ElementSeparator = "\n";
+                groupInfo.ContentFormatter = "{0}";
+                var group = new ElementGroup("chat", groupInfo);
+                tab.Groups.Add(group);
+                window.Tabs.Add(new GameTab(tab));
+                window.Output = GameOutput.Game;
+                return window;
+            }
+        }
+
         public static GameWindowProperties Werewolf
         {
             get

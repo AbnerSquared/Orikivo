@@ -1,7 +1,4 @@
-﻿using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace Orikivo
 {
@@ -10,7 +7,18 @@ namespace Orikivo
     /// </summary>
     public class MessageBuilder
     {
+
+        [JsonConstructor]
+        internal MessageBuilder(string content, string url, Embedder embedder, bool isTTS)
+        {
+            Content = content;
+            Url = url;
+            Embedder = embedder;
+            IsTTS = isTTS;
+        }
+
         public MessageBuilder() { }
+
         public MessageBuilder(string content, string url)
         {
             Content = content;
@@ -18,15 +26,32 @@ namespace Orikivo
             IsTTS = false;
         }
 
-        public Embedder Embedder { get; set; } // If null, write as a message.
+        [JsonProperty("embedder")]
         public string Content { get; set; }
-        public string Url { get; set; } // if there is a url.
-        public bool HasUrl => Checks.NotNull(Url);
-        public bool HideUrl { get; set; } = false; // if the url is hyperlinked.
-        public bool IsLocalUrl { get; set; } = false;
-        public bool CanEmbedUrl => Checks.NotNull(Embedder) && CustomCommandMessage.GetUrlType(Url).Value == UrlType.Image;
-        public UrlType? FileType => HasUrl ? CustomCommandMessage.GetUrlType(Url) : null;
+
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("embedder")]
+        public Embedder Embedder { get; set; }
+
+        [JsonProperty("is_tts")]
         public bool IsTTS { get; set; }
+
+        [JsonIgnore]
+        public bool HasUrl => Checks.NotNull(Url);
+
+        [JsonIgnore]
+        public bool HideUrl { get; set; } = false;
+
+        [JsonIgnore]
+        public bool IsLocalUrl { get; set; } = false;
+
+        [JsonIgnore]
+        public bool CanEmbedUrl => Checks.NotNull(Embedder) && EnumUtils.GetUrlType(Url).Value == UrlType.Image;
+
+        [JsonIgnore]
+        public UrlType? FileType => HasUrl ? EnumUtils.GetUrlType(Url) : null;
 
         public Message Build()
             => new Message(this);

@@ -42,7 +42,7 @@ namespace Orikivo
             [Summary("Shows the list of all greetings used for this guild."), RequireContext(ContextType.Guild)]
             public async Task GetGreetingsAsync(int page = 1)
             {
-                await Context.Channel.SendMessageAsync($"{(Context.Server.Options.AllowEvents ? "" : $"> Greetings are currently disabled.\n")}```autohotkey\n{(Context.Server.Options.Greetings.Count > 0 ? string.Join('\n', Context.Server.Options.Greetings.Select(x => $"[{Context.Server.Options.Events.IndexOf(x)}] :: {x.Message}")) : "There are currently no greetings set.")}```");
+                await Context.Channel.SendMessageAsync($"{(Context.Server.Options.UseEvents ? "" : $"> Greetings are currently disabled.\n")}```autohotkey\n{(Context.Server.Options.Greetings.Count > 0 ? string.Join('\n', Context.Server.Options.Greetings.Select(x => $"[{Context.Server.Options.Events.IndexOf(x)}] :: {x.Message}")) : "There are currently no greetings set.")}```");
             }
 
             [Command("add")]
@@ -85,8 +85,8 @@ namespace Orikivo
             [Summary("Toggles the ability to use greetings whenever a user joins."), RequireContext(ContextType.Guild)]
             public async Task ToggleGreetingsAsync()
             {
-                Context.Server.Options.AllowEvents = !Context.Server.Options.AllowEvents;
-                await Context.Channel.SendMessageAsync($"> **Greetings** {(Context.Server.Options.AllowEvents ? "enabled" : "disabled")}.");
+                Context.Server.Options.UseEvents = !Context.Server.Options.UseEvents;
+                await Context.Channel.SendMessageAsync($"> **Greetings** {(Context.Server.Options.UseEvents ? "enabled" : "disabled")}.");
             }
         }
 
@@ -170,11 +170,11 @@ namespace Orikivo
         [Command("customcommands"), RequireContext(ContextType.Guild)]
         public async Task GetCustomCommandsAsync(int page = 1)
         {
-            if (Context.Server.CustomCommands.Count > 0)
+            if (Context.Server.Options.Commands.Count > 0)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"**Custom Commands**");
-                sb.Append(string.Join(' ', Context.Server.CustomCommands.Select(x => $"`{x.Name}`")));
+                sb.Append(string.Join(' ', Context.Server.Options.Commands.Select(x => $"`{x.Name}`")));
                 await Context.Channel.SendMessageAsync(sb.ToString());
             }
             else
@@ -190,9 +190,13 @@ namespace Orikivo
         [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
-            CustomGuildCommand command = new CustomGuildCommand(name);
-            CustomCommandMessage msg = new CustomCommandMessage(imageUrl, content, isEmbed ? Embedder.Default : null);
-            command.Message = msg;
+            GuildCommand command = new GuildCommand(name);
+            MessageBuilder message = new MessageBuilder(content, imageUrl);
+            
+            if (isEmbed)
+                message.Embedder = Embedder.Default;
+
+            command.Message = message;
             Context.Server.AddCommand(command);
             await Context.Channel.SendMessageAsync($"Your custom command (**{name}**) has been set.");
         }
@@ -201,9 +205,9 @@ namespace Orikivo
         [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task DeleteCustomCommandAsync(string name)
         {
-            if (Context.Server.CustomCommands.Any(x => x.Name.ToLower() == name.ToLower()))
+            if (Context.Server.Options.Commands.Any(x => x.Name.ToLower() == name.ToLower()))
             {
-                Context.Server.TryRemoveCommand(name);
+                Context.Server.RemoveCommand(name);
                 await Context.Channel.SendMessageAsync($"The custom command (**{name}**) has been deleted.");
             }
             else
@@ -279,15 +283,15 @@ namespace Orikivo
             [RequireUserAccount]
             public async Task GetGimiRiskAsync()
             {
-                await Context.Channel.SendMessageAsync($"> Your **Risk** is currently set to **{Context.Account.Gimi.Risk}**%.");
+                //await Context.Channel.SendMessageAsync($"> Your **Risk** is currently set to **{Context.Account.Gimi.Risk}**%.");
             }
 
             [Command("risk"), Priority(1)]
             [RequireUserAccount]
             public async Task SetGimiRiskAsync(int risk)
             {
-                Context.Account.Gimi.SetRisk(risk);
-                await Context.Channel.SendMessageAsync($"> Your **Risk** has been set to **{Context.Account.Gimi.Risk}**%.");
+                //Context.Account.Gimi.SetRisk(risk);
+                //await Context.Channel.SendMessageAsync($"> Your **Risk** has been set to **{Context.Account.Gimi.Risk}**%.");
             }
 
             // find names that sound and work better.
@@ -295,22 +299,22 @@ namespace Orikivo
             [Command("earn"), Priority(0)]
             public async Task SetGimiEarnAsync()
             {
-                await Context.Channel.SendMessageAsync($"> Your **Earn** is currently set to {Context.Account.Gimi.Earn}.");
+                //await Context.Channel.SendMessageAsync($"> Your **Earn** is currently set to {Context.Account.Gimi.Earn}.");
             }
 
             [RequireUserAccount]
             [Command("earn"), Priority(1)]
             public async Task SetGimiEarnAsync(int earn)
             {
-                Context.Account.Gimi.SetEarn(earn);
-                await Context.Channel.SendMessageAsync($"> Your **Earn** has been set to **{Context.Account.Gimi.Earn}**.");
+                //Context.Account.Gimi.SetEarn(earn);
+                //await Context.Channel.SendMessageAsync($"> Your **Earn** has been set to **{Context.Account.Gimi.Earn}**.");
             }
 
             [RequireUserAccount]
             [Command("slots")]
             public async Task GetGimiSlotsAsync()
             {
-                await Context.Channel.SendMessageAsync($">>> **Gold**#{Context.Account.Gimi.GoldSlot}\n**Curse**#{Context.Account.Gimi.CurseSlot}");
+                //await Context.Channel.SendMessageAsync($">>> **Gold**#{Context.Account.Gimi.GoldSlot}\n**Curse**#{Context.Account.Gimi.CurseSlot}");
             }
 
             [Command("clear")]
@@ -318,7 +322,7 @@ namespace Orikivo
             [Cooldown(86400)]
             public async Task RegenGimiSlotsAsync()
             {
-                Context.Account.Gimi.ClearSlots();
+                //Context.Account.Gimi.ClearSlots();
                 await Context.Channel.SendMessageAsync("> **Gimi** slots cleared.");
             }
         }
@@ -373,7 +377,7 @@ namespace Orikivo
         [RequireUserAccount]
         public async Task GetUserTestAsync()
         {
-            await Context.Channel.SendMessageAsync(Context.Account.GetDisplay(Context.Account.Options.DisplayFormat).Build());
+            await Context.Channel.SendMessageAsync(Context.Account.ToString());
         }
 
         // TODO: Create a context system to allow for getting specific option values alongside being able to set them.
@@ -382,7 +386,7 @@ namespace Orikivo
         [Summary("Returns all of your customized preferences.")]
         public async Task GetUserOptionsAsync()
         {
-            OriUserOptions options = Context.Account.Options;
+            UserOptions options = Context.Account.Options;
             // TODO: Separate into a formatting class.
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"> **Prefix** `{options.Prefix ?? "null"}`");
@@ -402,26 +406,15 @@ namespace Orikivo
         [RequireUserAccount]
         public async Task GetGuildTestAsync()
         {
-            await Context.Channel.SendMessageAsync(Context.Server.GetDisplay(Context.Account.Options.DisplayFormat).Build());
+            await Context.Channel.SendMessageAsync(Context.Server.ToString());
         }
 
         // TODO: Might scrap all around. The DisplayEntityFormat is kind of a mess.
-        [Command("displayformat"), Alias("dispfmt"), Priority(0)]
-        [Summary("Shows your current **EntityDisplayFormat**.")]
-        [RequireUserAccount]
-        public async Task GetDisplayFormatAsync()
-        {
-            await Context.Channel.SendMessageAsync(Context.Account.Options.DisplayFormat.ToString());
-        }
+        //[Command("displayformat"), Alias("dispfmt"), Priority(0)]
+        //[Summary("Shows your current **EntityDisplayFormat**.")]
 
-        [Command("displayformat"), Alias("dispfmt"), Priority(1)]
-        [Summary("Set your **EntityDisplayFormat** to the specified type.")]
-        [RequireUserAccount]
-        public async Task SetDisplayFormatAsync([Summary("The new **EntityDisplayFormat** to set.")]EntityDisplayFormat format)
-        {
-            Context.Account.Options.DisplayFormat = format;
-            await Context.Channel.SendMessageAsync("Display format set.");
-        }
+        //[Command("displayformat"), Alias("dispfmt"), Priority(1)]
+        //[Summary("Set your **EntityDisplayFormat** to the specified type.")]
 
         [Command("version")]
         public async Task GetVersionAsync()

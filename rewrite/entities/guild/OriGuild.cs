@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -8,20 +7,16 @@ using System.Text;
 
 namespace Orikivo
 {
-    // socketguild account counterpart
     public class OriGuild : IDiscordEntity<SocketGuild>, IJsonEntity
     {
         [JsonConstructor]
-        internal OriGuild(ulong id, ulong? ownerId, string name, DateTime createdAt, OriGuildOptions options,
-            List<CustomGuildCommand> customCommands, List<UserRoleInfo> tempRoles)
+        internal OriGuild(ulong id, ulong? ownerId, string name, DateTime createdAt, GuildOptions options)
         {
             Id = id;
             OwnerId = ownerId ?? 0;
             Name = name;
             CreatedAt = createdAt;
             Options = options;
-            CustomCommands = customCommands ?? new List<CustomGuildCommand>();
-            TempRoles = tempRoles ?? new List<UserRoleInfo>();
         }
 
         public OriGuild(SocketGuild guild)
@@ -30,21 +25,58 @@ namespace Orikivo
             OwnerId = guild.OwnerId;
             Name = guild.Name;
             CreatedAt = DateTime.UtcNow;
-            Options = OriGuildOptions.Default;
-            CustomCommands = new List<CustomGuildCommand>();
-            TempRoles = new List<UserRoleInfo>();
+            Options = GuildOptions.Default;
         }
 
+        /// <summary>
+        /// The unique identifier for this guild.
+        /// </summary>
         [JsonProperty("id")]
-        public ulong Id { get; } // guild id
+        public ulong Id { get; }
 
-        // update these at OriCommandContext
+        /// <summary>
+        /// The ID of the guild's current owner.
+        /// </summary>
         [JsonProperty("owner_id")]
-        public ulong OwnerId { get; internal set; } // guild owner id
+        public ulong OwnerId { get; internal set; }
 
+
+        /// <summary>
+        /// The current name of the guild.
+        /// </summary>
         [JsonProperty("name")]
-        public string Name { get; internal set; } // name of guild
+        public string Name { get; internal set; }
         
+        /// <summary>
+        /// The time that this guild account was created.
+        /// </summary>
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; }
+
+        /// <summary>
+        /// A local guild balance that can utilized to purchase guild mechanics and systems.
+        /// </summary>
+        [JsonProperty("balance")]
+        public ulong Balance { get; private set; }
+
+        /// <summary>
+        /// The guild's current global experience.
+        /// </summary>
+        [JsonProperty("exp")]
+        public ulong Exp { get; private set; }
+
+        /// <summary>
+        /// Configuration variables that are used when executing methods.
+        /// </summary>
+        [JsonProperty("options")]
+        public GuildOptions Options { get; private set; }
+
+        /// <summary>
+        /// All actions that have been executed on users.
+        /// </summary>
+        [JsonProperty("actions")] // ulong => UserId
+        public Dictionary<ulong, Dictionary<GuildAction, DateTime?>> Actions { get; private set; }
+
         internal void TryUpdateName(string guildName)
         {
             if (Name != guildName)
@@ -57,106 +89,49 @@ namespace Orikivo
                 OwnerId = ownerId;
         }
 
-        [JsonProperty("created_at")]
-        public DateTime CreatedAt { get; }
-
-        // guild exp/balance is only grown through group actions/tasks
-        [JsonProperty("balance")]
-        public ulong Balance { get; private set; }
-
-        [JsonProperty("exp")]
-        public ulong Exp { get; private set; }
-
-        // inner-layer properties
-        [JsonProperty("options")]
-        public OriGuildOptions Options { get; private set; }
-
-        [JsonProperty("custom_commands")]
-        public List<CustomGuildCommand> CustomCommands { get; private set; }
-
-        [JsonProperty("temp_roles")]
-        public List<UserRoleInfo> TempRoles { get; private set; }
-
-        public List<ulong> UserBlacklist { get; private set; }
-
-
         public bool HasMuted(ulong userId)
-            => TempRoles.Any(x => x.UserId == userId && !x.HasExpired);
+            => Actions.Where(x => x.Value.Any(x => x.Key == GuildAction.Mute && !DateTimeUtils.IsExpired(x.Value))).Any(x => x.Key == userId);
 
         // TODO: Possibly create EventContext, which would contain OriGuild, SocketGuild, and SocketUser.
-        public string Greet(SocketGuild guild, SocketUser user)
-            => OriFormat.ParseGreeting(OriRandom.Choose(Options.Greetings ?? OriGuildOptions.Default.Greetings).Message, guild, user);
+        public string Greet(SocketGuild guild, SocketGuildUser user)
+            => OriFormat.ParseGreeting(OriRandom.Choose(Options.Greetings ?? GuildOptions.Default.Greetings).Message, new GuildEventContext(this, guild, user));
+        
+        private void EnsureActionDataFor(ulong userId)
+        {
+            if (!Actions.ContainsKey(userId))
+                Actions[userId] = new Dictionary<GuildAction, DateTime?>();
+        }
 
         public void Mute(ulong userId, double seconds)
         {
-            TempRoles.RemoveAll(x => x.HasExpired);
-            IEnumerable<UserRoleInfo> userMuteInfo = TempRoles.TakeWhile(x => x.UserId == userId && x.RoleId == Options.MuteRoleId.Value);
-            if (userMuteInfo.Count() > 0)
-            {
-                if (userMuteInfo.Count() > 1)
-                    throw new Exception("There are multiple mute counts.");
-                TempRoles.ElementAt(TempRoles.IndexOf(userMuteInfo.First())).ExpiresOn = userMuteInfo.First().ExpiresOn.Value.AddSeconds(seconds);
-                return;
-            }
-            TempRoles.Add(new UserRoleInfo(userId, Options.MuteRoleId.Value, seconds));
+            EnsureActionDataFor(userId);
+
+            if (!Actions[userId].TryAdd(GuildAction.Mute, DateTime.UtcNow.AddSeconds(seconds)))
+                Actions[userId][GuildAction.Mute] = (Actions[userId][GuildAction.Mute] ?? DateTime.UtcNow).AddSeconds(seconds);
         }
 
-        // make unmuting independent of muteroleid, just in case the mute role id has changed
+        public void Blacklist(ulong userId)
+        {
+            EnsureActionDataFor(userId);
+            Actions[userId].TryAdd(GuildAction.Blacklist, null);
+        }
+
         public void Unmute(ulong userId)
         {
-            TempRoles.RemoveAll(x => x.HasExpired);
             if (HasMuted(userId))
-                TempRoles.RemoveAll(x => x.UserId == userId && x.RoleId == Options.MuteRoleId.Value);
+                Actions[userId].Remove(GuildAction.Mute);
         }
-        
 
-        // update upon any properties being changed
-        [JsonIgnore]
-        public DateTime? LastSaved { get; internal set; }
-
-        public void AddCommand(CustomGuildCommand command)
+        public void AddCommand(GuildCommand command)
         {
-            if (CustomCommands.Any(x => x.Name.ToLower() == command.Name.ToLower()))
+            if (Options.Commands.Any(x => x.Name.ToLower() == command.Name.ToLower()))
                 throw new Exception("This command name conflicts with an existing command.");
-            // reserved command name check
-            CustomCommands.Add(command);
+            Options.Commands.Add(command);
         }
 
-        public bool TryRemoveCommand(string commandName)
+        public void RemoveCommand(string command)
         {
-            if (CustomCommands.Any(x => x.Name.ToLower() == commandName.ToLower()))
-            {
-                CustomCommands.Remove(CustomCommands.First(x => x.Name.ToLower() == commandName.ToLower()));
-                return true;
-            }
-            return false;
-        }
-
-        // functions
-        public MessageBuilder GetDisplay(EntityDisplayFormat displayFormat)
-        {
-            MessageBuilder oriMessage = new MessageBuilder();
-            switch (displayFormat)
-            {
-                // TODO: Transfer this into a separate formatting service.
-                case EntityDisplayFormat.Json:
-                    StringBuilder sbj = new StringBuilder();
-                    sbj.AppendLine("```json");
-                    sbj.AppendLine("{");
-                    sbj.AppendLine($"    \"name\": \"{Name}\",");
-                    sbj.AppendLine($"    \"id\": \"{Id}\",");
-                    sbj.AppendLine($"    \"created_at\": \"{CreatedAt}\"");
-                    sbj.AppendLine("}```");
-                    oriMessage.Content = sbj.ToString();
-                    return oriMessage;
-                default:
-                    StringBuilder sbd = new StringBuilder();
-                    sbd.AppendLine($"{Format.Bold(Name)}"); // name display
-                    sbd.AppendLine($"{Format.Bold("id")}:{Id}");// id display
-                    sbd.AppendLine($"{Format.Bold("joined")}:{CreatedAt.ToString($"`yyyy`.`MM`.`dd` • `hh`:`mm`:`ss`{CreatedAt.ToString("tt")}")}");
-                    oriMessage.Content = sbd.ToString();
-                    return oriMessage;
-            }
+            Options.Commands.Remove(Options.Commands.First(x => x.Name.ToLower() == command.ToLower()));
         }
 
         public bool TryGetSocketEntity(BaseSocketClient client, out SocketGuild guild)
@@ -179,5 +154,8 @@ namespace Orikivo
 
         public override int GetHashCode()
             => unchecked((int)Id);
+
+        public override string ToString()
+            => Name;
     }
 }

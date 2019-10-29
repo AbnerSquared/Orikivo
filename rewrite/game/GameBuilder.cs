@@ -13,7 +13,7 @@ namespace Orikivo
         // you need the list of users in order to properly determine what attributes need to exist
         public static GameBuilder Create(GameMode mode, List<User> users)
         {
-            GameBuilder properties = new GameBuilder();
+            GameBuilder builder = new GameBuilder();
             List<GameAttribute> attributes = new List<GameAttribute>();
 
             string task1 = "task:call"; // first task name
@@ -61,13 +61,14 @@ namespace Orikivo
                 new List<TaskCriterion>(), new TaskQueuePacket(TaskQueueReason.Cancel, null),
                 new GameTimer(TimeSpan.FromSeconds(5), new TaskQueuePacket(TaskQueueReason.Timeout, null)));
 
-            properties.EntryTask = Task1;
+            builder.EntryTask = Task1;
             // expected: a player types 'call' 3 times, which changes the task to task2, which times out to task4.
-            properties.Attributes = attributes;
-            properties.Tasks = new List<GameTask> { Task2, Task3, Task4 };
-            properties.ExitTask = Task4;
+            builder.Attributes = attributes;
+            builder.Tasks = new List<GameTask> { Task2, Task3, Task4 };
+            builder.ExitTask = Task4;
 
-            return properties;
+            
+            return builder;
         }
 
         public string Name { get; set; }

@@ -25,7 +25,7 @@ namespace Orikivo
         /// <summary>
         /// Creates an author from a specified user.
         /// </summary>
-        public OriAuthor(OriUser user) : this(user.DefaultName)
+        public OriAuthor(OriUser user) : this(user.ToString())
         {
             Id = user.Id;
         }

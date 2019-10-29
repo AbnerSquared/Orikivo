@@ -7,6 +7,13 @@ namespace Orikivo
     /// </summary>
     public static class Catch
     {
+        // string variant
+        public static void NotNull(string obj, string name, string msg = null)
+        {
+            if (string.IsNullOrWhiteSpace(obj))
+                throw ThrowObjectNullException(name, msg);
+        }
+
         // Referenced from Discord.Net.Utils.
         public static void NotNull<T>(T obj, string name, string msg = null) where T : class
         {

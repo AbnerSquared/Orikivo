@@ -1,6 +1,7 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Orikivo
@@ -68,15 +69,81 @@ namespace Orikivo
             return value;
         }
 
+        // ({[A-Za-z._]}) <= Regex format. Regex.Matches(Pattern);
         // use Regex to single out the {} values.
         /// <summary>
         /// Parses the format of a greeting and replaces all specified keys into their known type.
         /// </summary>
-        public static string ParseGreeting(string greeting, IGuild guild, IUser user) // OriCommandContext
-            => greeting // ({[A-Za-z._]}) <= Regex format. Regex.Matches(Pattern);
-            .Replace("{user}", user.Username)
-            .Replace("{mention_user}", user.Mention)
-            .Replace("{date}", DateTime.UtcNow.ToString(@"mm-dd-yyyy"));
+        public static string ParseGreeting(string greeting, GuildEventContext context) // TODO: Create literal parser u U P I C v V T y m M d D DIM d DOY H h m s t
+        {
+            DateTime time = context.User.JoinedAt?.ToUniversalTime().UtcDateTime ?? DateTime.UtcNow;
+            return greeting
+                .Replace("{user}", context.User.Mention)
+            .Replace("{user.name}", context.User.Username)
+            .Replace("{user.id}", context.User.Id.ToString())
+            .Replace("{user.pos}", (context.Guild.Users.OrderBy(x => x.JoinedAt.Value).ToList().IndexOf(context.User) + 1).ToString())//context.Guild.MemberCount.ToString()) // ToPosition
+            .Replace("{guild}", context.Guild.Name)
+            .Replace("{guild.id}", context.Guild.Id.ToString())
+            .Replace("{guild.users}", context.Guild.MemberCount.ToString()) // PlaceValue
+            .Replace("{date}", time.ToString(@"MM-dd-yyyy"))
+            .Replace("{time}", time.ToString(@"MM-dd-yyyy HH:mm:ss tt"))
+            .Replace("{time.year}", time.Year.ToString())
+            .Replace("{time.month}", time.Month.ToString())
+            .Replace("{time.Month}", time.ToString(@"MMMM"))
+            .Replace("{time.day}", time.Day.ToString())
+            .Replace("{time.daysInMonth}", DateTime.DaysInMonth(time.Year, time.Month).ToString())
+            .Replace("{time.Day}", time.DayOfWeek.ToString())
+            .Replace("{time.dayOfYear}", time.DayOfYear.ToString())
+            .Replace("{time.hour}", (time.Hour % 12 == 0 ? 12 : time.Hour % 12).ToString()) // 12h
+            .Replace("{time.Hour}", time.Hour.ToString()) // 24h
+            .Replace("{time.minute}", time.Minute.ToString())
+            .Replace("{time.second}", time.Second.ToString())
+            .Replace("{time.millisecond}", time.Millisecond.ToString()) // fff
+            .Replace("{time.post}", time.ToString(@"tt"));
+        }
+
+        public static string GetMonthString(int month)
+        {
+            return month switch
+            {
+                1 => "January",
+                2 => "February",
+                3 => "March",
+                4 => "April",
+                5 => "May",
+                6 => "June",
+                7 => "July",
+                8 => "August",
+                9 => "September",
+                10 => "October",
+                11 => "November",
+                12 => "December",
+                _ => throw new Exception("1-12 only.")
+            };
+        }
+
+        private static bool IsLeapYear(int year)
+            => year % 4 == 0;
+        /*
+            {user}
+            {user.name}
+            {user.id}
+            {user.pos}
+            {guild}
+            {guild.id}
+            {guild.userCount}
+            {date}
+            {time}
+            {time.year}
+            {time.month}
+            {time.week}
+            {time.day}
+            {time.hour}
+            {time.minute}
+            {time.second}
+            {time.post}
+        */
+
 
         // Convert HTML format tags and convert them into Discord markup tags?
         public static string ConvertHtmlTags(string value)

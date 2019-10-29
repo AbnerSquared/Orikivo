@@ -180,7 +180,7 @@ namespace Orikivo
         /// Returns a color object with randomized RGB values.
         /// </summary>
         public static OriColor GetRandColor()
-            => throw new NotImplementedException();
+            => new OriColor((uint)RandomProvider.Instance.Next(0x000000, 0xFFFFFF));
 
         /// <summary>
         /// Returns a random integer that is within the specified range.

@@ -12,11 +12,18 @@ namespace Orikivo
     // TODO: Handle display updates from a game packet.
     // CONCEPT: Allow for sub-tasks within a task?
     /// <summary>
-    /// A task that loops until a criteria metnioned has been met.
+    /// A task that loops until a criteria mentioned has been met.
     /// </summary>
 
     public class GameTask
     {
+        // TODO: Build derived from game task properties.
+        internal GameTask(GameTaskProperties properties)
+        {
+
+        }
+
+
         // this is used to store specific phases
         internal GameTask(string name, List<GameAttribute> attributes, List<GameTrigger> triggers, List<TaskCriterion> criteria, TaskQueuePacket onCancel, GameTimer timer = null)
         {
@@ -52,7 +59,7 @@ namespace Orikivo
         {
             Data.Root = data; // unite parent data to task data.
             Console.WriteLine($"-- Now starting task. ({Id}) --");
-            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task opened. ({Id})"), ElementUpdateMethod.AddToGroup, groupId: "console"));
+            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task opened. ({Id})"), ElementUpdateMethod.AddToGroup, groupId: "elements.chat"));
             async Task ParseAsync(SocketMessage message)
             {
                 LastAttributesUpdated = new List<GameAttribute>();
@@ -73,7 +80,7 @@ namespace Orikivo
                     Console.WriteLine($"-- Now comparing a trigger. (trigger:{trigger.Name}) --");
                     if (trigger.TryParse(new TaskTriggerContext(Data, player, message.Content), out GameTriggerResult context))
                     {
-                        display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Trigger successful. (trigger:{trigger.Name})"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
+                        display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Trigger successful. (trigger:{trigger.Name})"), ElementUpdateMethod.AddToGroup, groupId: "elements.chat"));
                         if (context.Packets != null)
                             foreach (GameUpdatePacket packet in context.Packets)
                                 if (Update(packet, display, out List<GameAttribute> updatedAttributes))
@@ -83,14 +90,14 @@ namespace Orikivo
                 }
 
                 if (LastAttributesUpdated.Count == 0)
-                    display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
+                    display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[{user.Name}]: {message.Content}"), ElementUpdateMethod.AddToGroup, groupId: "elements.chat"));
 
                 if (LastAttributesUpdated.Count > 0)
                     foreach (TaskCriterion criteria in Criteria.Where(x =>
                     x.AttributeCriteria.Any(y => LastAttributesUpdated.Select(z => z.Id).Contains(y.RequiredId))))
                         if (criteria.Check(Attributes))
                         {
-                            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task closed. ({Id} => {criteria.OnSuccess.NextTaskId})"), ElementUpdateMethod.AddToGroup, groupId: "elements:console"));
+                            display.UpdateWindow(GameState.Active, new ElementUpdatePacket(new Element($"[Console] Task closed. ({Id} => {criteria.OnSuccess.NextTaskId})"), ElementUpdateMethod.AddToGroup, groupId: "elements.chat"));
                             Success.SetResult(criteria.OnSuccess);
                             break;
                         }

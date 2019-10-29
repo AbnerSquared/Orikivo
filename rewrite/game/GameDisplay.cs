@@ -13,10 +13,15 @@ namespace Orikivo
         // Goal: I want the windows to be updated separately. Since each window is a separate display type,
         // you want the windows to be explicitly called in order to update.
         private GameEventHandler _events;
-        internal GameDisplay(string gameId, GameEventHandler events)
+        internal GameDisplay(string gameId, GameEventHandler events, GameWindowProperties windowProperties)
         {
             GameId = gameId;
             _events = events;
+            windowProperties.Output = GameOutput.Game;
+            var lobby = GameWindowProperties.Lobby;
+            lobby.Output = GameOutput.Lobby;
+            Windows.Add(new GameWindow(lobby));
+            Windows.Add(new GameWindow(windowProperties));
         }
 
         public string GameId { get; }

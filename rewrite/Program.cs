@@ -32,9 +32,9 @@ namespace Orikivo
                 OriClientBuilder builder = new OriClientBuilder();
                 builder.ConsoleConfig = oriConsoleConfig;
                 builder.LogConfig = OriLogConfig.Default;
-                builder.AddTypeReader<EntityDisplayFormat>(new EntityDisplayFormatTypeReader());
                 builder.AddTypeReader<GameMode>(new GameModeTypeReader());
                 builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
+                builder.AddTypeReader<GuildEvent>(new GuildEventTypeReader());
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();

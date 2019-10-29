@@ -12,54 +12,44 @@ namespace Orikivo
     /// </summary>
     public class OriUser : IDiscordEntity<SocketUser>, IJsonEntity
     {
-        private static readonly List<CurrencyData> _walletPlaceholder = new List<CurrencyData>
+        private static readonly Dictionary<CurrencyType, WalletData> _emptyWallet = new Dictionary<CurrencyType, WalletData>
         {
-            new CurrencyData(CurrencyType.Generic),
-            new CurrencyData(CurrencyType.Vote)
+            [CurrencyType.Generic] = new WalletData(CurrencyType.Generic),
+            [CurrencyType.Vote] = new WalletData(CurrencyType.Vote)
         };
 
         [JsonConstructor]
-        internal OriUser(ulong id, string username, string discriminator, DateTime createdAt, ulong? exp, List<CurrencyData> wallets,
-            Dictionary<ulong, ulong> guildExp, Dictionary<string, ItemData> items, Dictionary<string, int> stats, Dictionary<string, MeritData> merits,
-            Dictionary<string, int> upgrades, Dictionary<string, BoosterInfo> boosters, Dictionary<string, CooldownInfo> cooldowns, OriUserOptions options,
-            GimiData gimi)
+        internal OriUser(
+            ulong id,
+            string username,
+            string discriminator,
+            DateTime createdAt,
+            ulong? exp,
+            Dictionary<CurrencyType, WalletData> wallets,
+            Dictionary<ulong, ulong> guildExp,
+            Dictionary<string, ItemData> items,
+            Dictionary<string, int> stats,
+            Dictionary<string, MeritData> merits,
+            Dictionary<string, int> upgrades,
+            Dictionary<string, BoosterData> boosters,
+            Dictionary<string, DateTime> cooldowns,
+            UserOptions options)
         {
-            // TODO: Create Booster/CooldownHandler classes that can auto-manage deleting expired boosters and cooldowns.
-            // find a way to auto-remove inactive items
-            /*
-            Dictionary<string, BoosterInfo> _boosters = null;
-            Dictionary<string, CooldownInfo> _cooldowns = null;
-            if (boosters != null)
-            {
-                _boosters = boosters;
-                foreach (KeyValuePair<string, BoosterInfo> booster in boosters)
-                    if (booster.Value.IsExpired)
-                        _boosters.Remove(booster.Key);
-            }
-            if (cooldowns != null)
-            {
-                _cooldowns = cooldowns;
-                foreach (KeyValuePair<string, CooldownInfo> cooldown in cooldowns)
-                    if (!cooldown.Value.IsActive)
-                        _cooldowns.Remove(cooldown.Key);
-                cooldowns = _cooldowns;
-            }*/
-
             Id = id;
             Username = username;
             Discriminator = discriminator;
             CreatedAt = createdAt;
-            Wallets = wallets ?? _walletPlaceholder;
+            Wallets = wallets ?? _emptyWallet;
             Exp = exp ?? 0;
             GuildExp = guildExp ?? new Dictionary<ulong, ulong>();
             Items = items ?? new Dictionary<string, ItemData>();
             Stats = stats ?? new Dictionary<string, int>();
             Merits = merits ?? new Dictionary<string, MeritData>();
             Upgrades = upgrades ?? new Dictionary<string, int>();
-            Boosters = boosters ?? new Dictionary<string, BoosterInfo>();
-            Cooldowns = cooldowns ?? new Dictionary<string, CooldownInfo>();
-            Options = options ?? OriUserOptions.Default;
-            Gimi = gimi ?? new GimiData();
+            Boosters = boosters ?? new Dictionary<string, BoosterData>();
+            Cooldowns = cooldowns ?? new Dictionary<string, DateTime>();
+            ProcessCooldowns = new Dictionary<string, DateTime>();
+            Options = options ?? UserOptions.Default;
         }
 
         public OriUser(SocketUser user)
@@ -68,22 +58,21 @@ namespace Orikivo
             Username = user.Username;
             Discriminator = user.Discriminator;
             CreatedAt = DateTime.UtcNow;
-            Wallets = _walletPlaceholder;
+            Wallets = _emptyWallet;
             Exp = 0;
             GuildExp = new Dictionary<ulong, ulong>();
-            Cooldowns = new Dictionary<string, CooldownInfo>();
+            Cooldowns = new Dictionary<string, DateTime>();
+            ProcessCooldowns = new Dictionary<string, DateTime>();
             Stats = new Dictionary<string, int>();
             Merits = new Dictionary<string, MeritData>();
             Upgrades = new Dictionary<string, int>();
             Items = new Dictionary<string, ItemData>();
-            Boosters = new Dictionary<string, BoosterInfo>();
-            Options = OriUserOptions.Default;
-            Gimi = new GimiData();
+            Boosters = new Dictionary<string, BoosterData>();
+            Options = UserOptions.Default;
         }
 
-
         /// <summary>
-        /// Represents the Discord Snowflake ID.
+        /// The unique identifier for the current user.
         /// </summary>
         [JsonProperty("id")]
         public ulong Id { get; }
@@ -106,35 +95,53 @@ namespace Orikivo
         [JsonProperty("created_at")]
         public DateTime CreatedAt { get; }
 
-        [JsonProperty("bal")]
-        public ulong Balance => GetWalletFor(CurrencyType.Generic).Value;
-
         [JsonProperty("wallets")]
-        public List<CurrencyData> Wallets { get; private set; }
+        public Dictionary<CurrencyType, WalletData> Wallets { get; private set; }
 
-        public CurrencyData GetWalletFor(CurrencyType type)
-            => Wallets.First(x => x.Type == type);
+        [JsonProperty("guild_wallets")]
+        public Dictionary<ulong, GuildWalletData> GuildWallets { get; private set; }
 
-        [JsonProperty("guild_bal")]
-        public Dictionary<ulong, GuildCurrencyData> GuildBal { get; private set; }
-
+        /// <summary>
+        /// Experience earned globally.
+        /// </summary>
         [JsonProperty("exp")]
         public ulong Exp { get; private set; }
 
+        /// <summary>
+        /// Local experience earned across all guilds.
+        /// </summary>
         [JsonProperty("guild_exp")]
         public Dictionary<ulong, ulong> GuildExp { get; }
 
+        /// <summary>
+        /// Incremental variables that track user progression.
+        /// </summary>
         [JsonProperty("stats")]
         public Dictionary<string, int> Stats { get; }
 
+        /// <summary>
+        /// Dynamic variables that define service data.
+        /// </summary>
+        [JsonProperty("attributes")]
+        public Dictionary<string, int> Attributes { get; }
+
+        /// <summary>
+        /// All information about merits that the user has earned.
+        /// </summary>
         [JsonProperty("merits")]
         public Dictionary<string, MeritData> Merits { get; }
 
+        /// <summary>
+        /// All information about upgrades the the user currently has.
+        /// </summary>
         [JsonProperty("upgrades")]
         public Dictionary<string, int> Upgrades { get; }
 
+        /// <summary>
+        /// All information about boosters that the user currently has.
+        /// </summary>
         [JsonProperty("boosters")]
-        public Dictionary<string, BoosterInfo> Boosters { get; }
+        public Dictionary<string, BoosterData> Boosters { get; }
 
         [JsonProperty("items")]
         public Dictionary<string, ItemData> Items { get; }
@@ -142,30 +149,41 @@ namespace Orikivo
         // TODO: Split cooldowns between temporary cooldowns (commands) and literal cooldowns (item usage, dailies, voting)
         // TODO: Store cooldowns as <ID, ExpiresOn>; the extra information isn't required.
         [JsonProperty("cooldowns")]
-        public Dictionary<string, CooldownInfo> Cooldowns { get; }
+        public Dictionary<string, DateTime> Cooldowns { get; }
 
-        // TODO: Transfer this to ExpHandler.
-        [JsonIgnore]
-        public double ExpGainRate
-        {
-            get
-            {
-                double boosterRate = 0.0;
-                Boosters.Where(x => x.Key == GenericBooster.Exp && !x.Value.IsExpired).ToList().ForEach(x => boosterRate += x.Value.GainRate);
-                return 1.0 * boosterRate; // combine all multipliers together, and then multiply by the base rate.
-            }
-        }
+        /// <summary>
+        /// The configurations for this user.
+        /// </summary>
+        [JsonProperty("options")]
+        public UserOptions Options { get; private set; }
 
-        // TODO: Transfer this to ExpHandler.
+        /// <summary>
+        /// Defines the last time a user has saved, if they have.
+        /// </summary>
         [JsonIgnore]
-        public double MoneyGainRate
+        public DateTime? LastSaved { get; internal set; }
+
+        // TODO: Don't see too much use of this yet.
+        [JsonIgnore]
+        public string Name => Checks.NotNull(Options.Nickname) ? Options.Nickname : Username;
+        // Key, ExpiresOn
+
+        [JsonIgnore]
+        public ulong Balance => GetWallet(CurrencyType.Generic).Value;
+
+        [JsonIgnore]
+        public ulong Debt => GetWallet(CurrencyType.Generic).Value;
+
+        /// <summary>
+        /// A collections of cooldowns specific to the currently running process.
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<string, DateTime> ProcessCooldowns { get; } = new Dictionary<string, DateTime>();
+
+        public WalletData GetWallet(CurrencyType type)
         {
-            get
-            {
-                double boosterRate = 0.0;
-                Boosters.Where(x => x.Key == GenericBooster.Money && !x.Value.IsExpired).ToList().ForEach(x => boosterRate += x.Value.GainRate);
-                return 1.0 * boosterRate;
-            }
+            Wallets.TryAdd(type, new WalletData(type));
+            return Wallets[type];
         }
 
         // TODO: Plan out experience and their types.
@@ -178,17 +196,10 @@ namespace Orikivo
                 GuildExp[guildId] += value;
         }
 
-        public ulong GetGuildBal(ulong guildId)
-            => GuildBal.TryGetValue(guildId, out GuildCurrencyData guildBal) ? guildBal.Value : 0;
-
-        // TODO: This could honestly be scrapped, since the wallet now supports auto-debt and auto-balance upon values being added or subtracted.
-        public void UpdateGuildBal(ulong guildId, ulong amount, bool isDebt = false)
+        public GuildWalletData GetWalletForGuild(ulong guildId)
         {
-            GuildBal.TryAdd(guildId, new GuildCurrencyData(guildId));
-            if (isDebt)
-                GuildBal[guildId] -= amount;
-            else
-                GuildBal[guildId] += amount;
+            GuildWallets.TryAdd(guildId, new GuildWalletData(guildId));
+            return GuildWallets[guildId];
         }
 
         // TODO: Seperate accumulative information as stats, and dynamic information as attributes.
@@ -279,82 +290,42 @@ namespace Orikivo
         public int GetUpgrade(string key)
             => HasUpgrade(key) ? Upgrades[key] : 0;
 
+        public int GetAttribute(string key)
+            => Attributes.ContainsKey(key) ? Attributes[key] : 0;
+
         // TODO: Create CooldownHandler // Literal Cooldown
         // TODO: Create CooldownHandler // Process Cooldown
         /// <summary>
         /// Sets or updates a cooldown for a user.
         /// </summary>
-        public void SetCooldown(string key, double seconds)
+        public void SetCooldown(CooldownType type, string id, double seconds)
         {
-            if (!Cooldowns.TryAdd(key, new CooldownInfo(DateTime.UtcNow, seconds)))
-                Cooldowns[key] = new CooldownInfo(DateTime.UtcNow, seconds);
+            string key = $"{type.ToString().ToLower()}:{id}";
+            if (type.EqualsAny(CooldownType.Command, CooldownType.Global))
+            {
+                if (!ProcessCooldowns.TryAdd(key, DateTimeUtils.GetTimeIn(seconds)))
+                    ProcessCooldowns[key] = DateTimeUtils.GetTimeIn(seconds);
+            }
+
+            if (!Cooldowns.TryAdd(key, DateTimeUtils.GetTimeIn(seconds)))
+                Cooldowns[key] = DateTimeUtils.GetTimeIn(seconds);
         }
 
         /// <summary>
         /// Gets all currently set cooldowns for a specified type.
         /// </summary>
-        public List<KeyValuePair<string, CooldownInfo>> GetCooldownsFor(CooldownType type)
-            => Cooldowns.Where(x => x.Key.StartsWith(type.ToString().ToLower())).ToList();
+        public List<KeyValuePair<string, DateTime>> GetCooldownsFor(CooldownType type)
+            => Cooldowns.Where(x => x.Key.StartsWith($"{type.ToString().ToLower()}:")).ToList();
 
         /// <summary>
         /// Checks to see if the user has a currently existing cooldown in place.
         /// </summary>
         public bool IsOnCooldown(string key)
-            => Cooldowns.ContainsKey(key) ? Cooldowns[key].IsActive : false;
-
-        
-        /// <summary>
-        /// Defines the last time a user has saved, if they have.
-        /// </summary>
-        [JsonIgnore]
-        public DateTime? LastSaved { get; internal set; }
-
-        /// <summary>
-        /// Returns the default Discord username format.
-        /// </summary>
-        [JsonIgnore]
-        public string DefaultName => $"{Username}#{Discriminator}";
-
-        // TODO: Don't see too much use of this yet.
-        [JsonIgnore]
-        public string Name => Checks.NotNull(Options.Nickname) ? Options.Nickname : Username;
-
-        /// <summary>
-        /// The configurations for this user.
-        /// </summary>
-        [JsonProperty("options")]
-        public OriUserOptions Options { get; private set; }
-
-        // TODO: This could most likely just be decompiled as stats. Even more so, as attributes.
-        [JsonProperty("gimi")]
-        public GimiData Gimi { get; }
-
-        // TODO: Make this formatting separate from the user.
-        public MessageBuilder GetDisplay(EntityDisplayFormat displayFormat)
-        {
-            MessageBuilder oriMessage = new MessageBuilder();
-            switch (displayFormat)
-            {
-                case EntityDisplayFormat.Json:
-                    StringBuilder sbj = new StringBuilder();
-                    sbj.AppendLine("```json");
-                    sbj.AppendLine("{");
-                    sbj.AppendLine($"    \"id\": \"{Id}\",");
-                    sbj.AppendLine($"    \"username\": \"{Username}\",");
-                    sbj.AppendLine($"    \"discriminator\": \"{Discriminator}\",");
-                    sbj.AppendLine($"    \"created_at\": \"{CreatedAt}\"");
-                    sbj.AppendLine("}```");
-                    oriMessage.Content = sbj.ToString();
-                    return oriMessage;
-                default:
-                    StringBuilder sbd = new StringBuilder();
-                    sbd.AppendLine($"**{Username}**#{Discriminator}"); // name display
-                    sbd.AppendLine($"• {Id}");// id display
-                    sbd.AppendLine($"\n**Joined**: {CreatedAt.ToString($"`MM`.`dd`.`yyyy` **@** `hh`:`mm`:`ss`")}");
-                    oriMessage.Content = sbd.ToString();
-                    return oriMessage;
-            }
-        }
+            => Cooldowns.ContainsKey(key) ?
+            DateTime.UtcNow.Subtract(Cooldowns[key]).TotalSeconds > 0 :
+            ProcessCooldowns.ContainsKey(key) ?
+            DateTime.UtcNow.Subtract(ProcessCooldowns[key]).TotalSeconds > 0 :
+            false;
 
         public bool TryGetSocketEntity(BaseSocketClient client, out SocketUser user)
         { 
@@ -371,5 +342,8 @@ namespace Orikivo
 
         public override int GetHashCode()
             => unchecked((int)Id);
+
+        public override string ToString()
+            => $"{Username}#{Discriminator}";
     }
 }

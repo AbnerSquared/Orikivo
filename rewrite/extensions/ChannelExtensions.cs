@@ -13,7 +13,7 @@ namespace Orikivo
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, OriUser user, KeyValuePair<string, CooldownInfo> cooldown)
+        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, OriUser user, KeyValuePair<string, DateTime> cooldown)
             => await OriMessageHelper.WarnCooldownAsync(channel, user, cooldown);
 
         // TODO: Create custom error embed presets and default to this if there isn't one set.

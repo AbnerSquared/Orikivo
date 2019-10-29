@@ -17,7 +17,7 @@ namespace Orikivo
             { }
             foreach (ExpUpdatePacket exp in packet.Exp)
             { }
-            foreach (BalanceUpdatePacket bal in packet.Balance)
+            foreach (WalletUpdatePacket bal in packet.Balance)
             {
                 
             }

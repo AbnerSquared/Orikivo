@@ -8,6 +8,7 @@ namespace Orikivo
     /// </summary>
     public class UniqueItemData
     {
+        // TODO: See if it's useful.
         /// <summary>
         /// The item's local identifier in order to prevent incorrect item storing.
         /// </summary>

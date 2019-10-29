@@ -19,6 +19,15 @@ namespace Orikivo
             _gameManager = manager;
         }
 
+        [Command("eventparsetest")]
+        public async Task EventParseTestAsync([Remainder]string content)
+        {
+            if (!Checks.NotNull(content))
+                await ReplyAsync("you numnut.");
+            string result = OriFormat.ParseGreeting(content, new GuildEventContext(Context.Server, Context.Guild, Context.Guild.GetUser(Context.User.Id)));
+            await Context.Channel.SendMessageAsync(result);
+        }
+
         [RequireUserAccount]
         [Command("games")]
         [Summary("Returns a list of all visible **Games**.")]

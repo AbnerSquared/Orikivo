@@ -15,7 +15,7 @@ namespace Orikivo
     {
         private readonly CommandService _commandService;
         private readonly IEnumerable<IReport> _reports;
-        private readonly List<CustomGuildCommand> _customCommands;
+        private readonly List<GuildCommand> _customCommands;
         
         /// <summary>
         /// Constructs a generic help service.
@@ -32,7 +32,7 @@ namespace Orikivo
         /// </summary>
         public OriHelpService(CommandService commandService, OriGlobal global, OriGuild guild) : this(commandService, global)
         {          
-            _customCommands = guild.CustomCommands.Count > 0 ? guild.CustomCommands : null;
+            _customCommands = guild.Options.Commands.Count > 0 ? guild.Options.Commands : null;
         }
 
         public string CreateDefaultContent()
@@ -281,7 +281,7 @@ namespace Orikivo
 
         public IEnumerable<ModuleInfo> Modules => _commandService.Modules;
         public IEnumerable<CommandInfo> Commands => _commandService.Commands;
-        public IReadOnlyList<CustomGuildCommand> CustomCommands => _customCommands ?? null;
+        public IReadOnlyList<GuildCommand> CustomCommands => _customCommands ?? null;
 
         private IEnumerable<ModuleInfo> GetModules(string name)
             => Modules.Where(x => x.Name.ToLower() == name.ToLower());

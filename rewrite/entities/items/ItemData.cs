@@ -7,19 +7,22 @@ namespace Orikivo
     public class ItemData
     {
         [JsonConstructor]
-        internal ItemData(int? stackCount, UniqueItemData unique)
+        internal ItemData(string id, int? stackCount, UniqueItemData unique)
         {
+            Id = id;
             StackCount = stackCount;
             Unique = unique;
         }
 
-        internal ItemData(int stackCount)
+        internal ItemData(string id, int stackCount)
         {
+            Id = id;
             StackCount = stackCount;
         }
 
-        internal ItemData(UniqueItemData unique)
+        internal ItemData(string id, UniqueItemData unique)
         {
+            Id = id;
             Unique = unique;
         }
 

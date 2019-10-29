@@ -89,10 +89,6 @@ namespace Orikivo
         // saves the guild to its directory
         public void SaveGuild(OriGuild oriGuild)
         {
-            // due to the json container being updated globally
-            // you don't need to check if it updated
-            // just save it directly.
-            oriGuild.LastSaved = DateTime.UtcNow;
             AddOrUpdateGuild(oriGuild);
             OriJsonHandler.SaveJsonEntity(oriGuild);
         }

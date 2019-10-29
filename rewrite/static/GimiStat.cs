@@ -3,6 +3,12 @@
     // TODO: Create AttributeReader, which can easily account for all of these.
     internal static class GimiStat
     {
+        // Stats affect merit criteria, Attributes don't.
+        internal static string Risk = "gimi:risk";
+        internal static string Earn = "gimi:earn";
+        internal static string GoldSlot = "gimi:gold_slot";
+        internal static string CurseSlot = "gimi:curse_slot";
+        internal static string WinDirection = "gimi:win_direction";
         internal static string CurrentWinStreak = "gimi:current_win_streak";
         internal static string CurrentGoldStreak = "gimi:current_gold_streak";
         internal static string CurrentLossStreak = "gimi:current_loss_streak";

@@ -33,38 +33,48 @@ namespace Orikivo
         /// </summary>
         public ItemGroup? Group { get; internal set; }
 
+        // What to do when marketing, if possible.
         public ItemMarketInfo MarketInfo { get; internal set; }
 
+        // What to do when gifting, if possible.
         public ItemGiftInfo GiftInfo { get; internal set; }
 
+        // What to do on decay, if possible
         public ItemDecayInfo DecayInfo { get; internal set; }
 
+        // What to do on trading, if possible
         public ItemTradeInfo TradeInfo { get; internal set; }
 
+
+        // What to do on use, if any.
         public ItemActionInfo ActionInfo { get; internal set; }
 
         /// <summary>
         /// Defines all of the requirements a user needs to own this item.
         /// </summary>
-        public UserCriteria ToOwn { get; internal set; }
+        public AccountCriteria ToOwn { get; internal set; }
 
-        /// <summary>
-        /// Defines if the item is unique.
-        /// </summary>
-        public bool CanStack { get; internal set; }
+        private bool IsUnique()
+            => (DecayInfo?.ExpiresOn.HasValue ?? false) &&
+            (ActionInfo?.MaxUses.HasValue ?? false) &&
+            (TradeInfo?.MaxTrades.HasValue ?? false) &&
+            (GiftInfo?.MaxGifts.HasValue ?? false);
 
         public ItemData CreateDataPacket()
         {
-            UniqueItemData unique = new UniqueItemData
+            if (IsUnique())
             {
-                ExpiresOn = DecayInfo?.ExpiresOn,
-                UsesLeft = ActionInfo?.MaxUses,
-                TradesLeft = TradeInfo?.MaxTrades,
-                GiftsLeft = GiftInfo?.MaxGifts
-            };
+                UniqueItemData unique = new UniqueItemData
+                {
+                    ExpiresOn = DecayInfo?.ExpiresOn,
+                    UsesLeft = ActionInfo?.MaxUses,
+                    TradesLeft = TradeInfo?.MaxTrades,
+                    GiftsLeft = GiftInfo?.MaxGifts
+                };
 
-            ItemData data = new ItemData(unique);
-            return data;
+                return new ItemData(Id, unique);
+            }
+            return new ItemData(Id, 1);
         }
     }
 }
