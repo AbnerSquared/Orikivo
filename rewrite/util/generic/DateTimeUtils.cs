@@ -9,5 +9,8 @@ namespace Orikivo
 
         public static DateTime GetTimeIn(double seconds)
             => DateTime.UtcNow.AddSeconds(seconds);
+
+        public static TimeSpan TimeSince(DateTime time)
+            => DateTime.UtcNow - time;
     }
 }

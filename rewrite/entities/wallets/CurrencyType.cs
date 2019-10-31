@@ -15,11 +15,10 @@
         /// Marks the currency type as 'Voken', the currency earned from voting.
         /// </summary>
         Vote = 2,
-
         /// <summary>
-        /// Marks the currency type as 'Gini', the currency used within guilds.
+        /// Marks the currency type as 'Etiro', the currency used for debt.
         /// </summary>
-        Guild = 3
+        Debt = 3
     }
 
     /*
@@ -27,9 +26,9 @@
         it will instead be there by default for all currencies. 
 
         /// <summary>
-        /// Marks the currency type as 'Etiro', the currency used for debt.
+        /// Marks the currency type as 'Gini', the currency used within guilds.
         /// </summary>
-        Debt = 3,
+        Guild = 3
      
      
      */

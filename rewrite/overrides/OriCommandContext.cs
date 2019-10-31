@@ -17,6 +17,8 @@ namespace Orikivo
         public OriGlobal Global { get; }
         public OriJsonContainer Container { get; }
 
+        // public AccountUpdatePacket Packet { get; }
+
         public OriCommandContext(DiscordSocketClient client, OriJsonContainer container, SocketUserMessage msg) : base(client, msg)
         {
             Console.WriteLine("[Debug] -- Constructing command context. --");

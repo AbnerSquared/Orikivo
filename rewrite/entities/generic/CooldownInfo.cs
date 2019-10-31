@@ -4,9 +4,9 @@ using System;
 namespace Orikivo
 {
     // TODO: This can be made for checking cooldowns, but creating cooldowns only need one value: ExpiresOn. This saves space.
-    public class CooldownInfo
+    public class CooldownCheckInfo
     {
-        public CooldownInfo(DateTime executedAt, double seconds)
+        public CooldownCheckInfo(DateTime executedAt, double seconds)
         {
             ExecutedAt = executedAt;
             Seconds = seconds;

@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-
-namespace Orikivo
+﻿namespace Orikivo
 {
     // TODO: Calculate % of all users that have unlocked this merit.
     public class MeritInfo
     {
-        public string Name { get; set; }
-        public string Id { get; set; }
-        public MeritGroup? Group { get; set; }
-        public List<AccountCriterion> Criteria { get; set; }
-        public MeritRewardInfo OnSuccess { get; set; }
+        public string Name { get; }
+        public string Id { get; }
+        public MeritGroup Group { get; } = MeritGroup.Misc;
+        public VarCriterion[] Criteria { get; }
+        public MeritRewardInfo OnSuccess { get; }
     }
 }
