@@ -27,6 +27,7 @@ namespace Orikivo
             Value = value;
             Debt = debt;
         }
+
         // essentially store ulong.maxvalue as string.
         private const string MinValueUnparsed = "-18446744073709551615";
         private const string MaxValueUnparsed = "18446744073709551615";
@@ -50,7 +51,7 @@ namespace Orikivo
 
         internal void Give(ulong value)
         {
-            ulong remainder = OriMath.Subtract(Debt, value);
+            ulong remainder = OriMath.SubtractRem(Debt, value);
             Debt -= value - remainder;
             if (remainder > 0)
                 Value += value;
@@ -58,7 +59,7 @@ namespace Orikivo
 
         internal void Take(ulong value)
         {
-            ulong remainder = OriMath.Subtract(Value, value);
+            ulong remainder = OriMath.SubtractRem(Value, value);
             Value -= value - remainder;
             if (remainder > 0)
                 Debt += remainder;

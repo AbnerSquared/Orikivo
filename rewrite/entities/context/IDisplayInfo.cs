@@ -22,5 +22,7 @@ namespace Orikivo
         ContextInfoType Type { get; }
 
         string Content { get; }
+
+        string ToString();
     }
 }

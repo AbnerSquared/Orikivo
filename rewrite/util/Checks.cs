@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo
 {
@@ -16,6 +19,17 @@ namespace Orikivo
                 return false;
             }
 
+            return true;
+        }
+
+        public static bool NotNullOrEmpty<T>(IEnumerable<T> source, string name = null)
+        {
+            if (source?.Count() == 0) // Maybe check if all inner values are null as well.
+            {
+                if (!string.IsNullOrWhiteSpace(name))
+                    Console.WriteLine("-- {name} -- is either null or empty.");
+                return false;
+            }
             return true;
         }
 

@@ -32,19 +32,16 @@
     <Compile Remove="Overhaul\**" />
     <Compile Remove="rewrite\lobby\**" />
     <Compile Remove="source\**" />
-    <Compile Remove="src\**" />
     <Compile Remove="Systems\**" />
     <EmbeddedResource Remove="legacy\**" />
     <EmbeddedResource Remove="Overhaul\**" />
     <EmbeddedResource Remove="rewrite\lobby\**" />
     <EmbeddedResource Remove="source\**" />
-    <EmbeddedResource Remove="src\**" />
     <EmbeddedResource Remove="Systems\**" />
     <None Remove="legacy\**" />
     <None Remove="Overhaul\**" />
     <None Remove="rewrite\lobby\**" />
     <None Remove="source\**" />
-    <None Remove="src\**" />
     <None Remove="Systems\**" />
   </ItemGroup>
 
@@ -73,10 +70,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Orikivo.Poxel\Orikivo.Poxel.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
         <None Update="configuration.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -84,6 +77,12 @@
 
   <ItemGroup>
     <Folder Include="rewrite\mongo\" />
-    <Folder Include="tests\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
+    <ProjectReference Include="..\Orikivo.Ascii\Orikivo.Ascii.csproj" />
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties assets_4fonts_4legacy_1json__JsonSchema="http://json-schema.org/draft-04/schema" /></VisualStudio></ProjectExtensions>
 </Project>

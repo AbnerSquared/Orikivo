@@ -1,11 +1,20 @@
-﻿namespace Orikivo
+﻿using System;
+
+namespace Orikivo
 {
     public struct ContextSearchResult
     {
+        private ContextSearchResult(IDisplayInfo value = null, ContextError? error = null, string errorReason = null)
+        {
+            Value = value;
+            Error = error;
+            ErrorReason = errorReason;
+        }
+
         public static ContextSearchResult FromSuccess(IDisplayInfo value)
-            => new ContextSearchResult { Value = value };
+            => new ContextSearchResult(value);
         public static ContextSearchResult FromError(ContextError? error, string reason = null)
-            => new ContextSearchResult { Error = error, ErrorReason = reason };
+            => new ContextSearchResult(null, error, reason);
 
         public IDisplayInfo Value { get; private set; }
 

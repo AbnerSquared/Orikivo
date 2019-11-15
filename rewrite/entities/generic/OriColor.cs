@@ -15,6 +15,11 @@ namespace Orikivo
         private const int _gShift = 8;
         private const int _bShift = 0;
 
+        [JsonConstructor]
+        internal OriColor(long rValue)
+        {
+            Value = rValue;
+        }
 
         public OriColor(uint rgb)
         {

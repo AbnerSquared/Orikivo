@@ -14,7 +14,7 @@ namespace Orikivo
         private const string STABLE_EMOJI = "\uD83D\uDD39"; /* :small_blue_diamond: */
         private const string YIELD_EMOJI = "\uD83D\uDD38"; /* :small_orange_diamond: */
         private const string CRITICAL_EMOJI = "\uD83D\uDD3A"; /* :small_red_triangle: */
-        private static string GetSeverityIcon(int reportCount)
+        public static string GetSeverityIcon(int reportCount)
             => reportCount >= CRITICAL_THRESHOLD ? CRITICAL_EMOJI : reportCount >= YIELD_THRESHOLD ? YIELD_EMOJI : STABLE_EMOJI;
 
         public static string GetSeverityIcon(IDisplayInfo info)
@@ -51,6 +51,20 @@ namespace Orikivo
             }
 
             return aliases;
+        }
+
+        public static string WriteDisplayContent(GuildDisplayInfo info)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"**{info.Name}** ({info.GuildName})");
+            sb.AppendLine(OriFormat.CodeBlock(info.Summary));
+            if (info.Customs.Count > 0)
+            {
+                sb.AppendLine($"**Commands** {OriFormat.Subscript($"({info.Customs.Count})")}:");
+                sb.AppendLine($"{string.Join(" ", info.Customs.Select(x => $"`{x.Name}`").OrderBy(x => x).ToList())}");
+            }
+
+            return sb.ToString();
         }
 
         public static string WriteDisplayContent(ModuleDisplayInfo info)
@@ -147,6 +161,22 @@ namespace Orikivo
                 sb.Append($"> ⇛ {info.Summary}");
             return sb.ToString();
         }
+
+        // guildcommands
+        public static string WriteDisplayContent(CustomDisplayInfo info)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"> **{info.Name}**()"); // mentions
+
+            if (info.Author != null)
+                sb.AppendLine($"> Created by **{info.Author.Name}**");
+
+            if (info.HasImage)
+                sb.AppendLine("> **Contains Image**");
+
+            return sb.ToString();
+        }
+
 
         public static string WriteDisplayContent(ParameterDisplayInfo info)
         {

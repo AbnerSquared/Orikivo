@@ -13,10 +13,17 @@ namespace Orikivo
             Name = name;
             Attributes = attributes ?? new List<GameAttribute>();
         }
+
+        public int Index { get; internal set; }
+        
         public ulong UserId { get; }
+        
         public string Id => $"user.{UserId}";
+        
         public string Name { get; }
+        
         public List<GameAttribute> Attributes { get; }
+        
         public bool CanSpeak { get; internal set; } = true;
     }
 }

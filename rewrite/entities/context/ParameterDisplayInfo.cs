@@ -41,6 +41,8 @@ namespace Orikivo
 
         public Type ValueType { get; }
 
+        // public string ValueTypeSummary { get; } // Used to describe what the general purpose of the ValueType is.
+
         public string SyntaxName
         {
             get
@@ -68,5 +70,8 @@ namespace Orikivo
         public bool IsOptional => Mod.HasFlag(ParameterMod.Optional);
 
         public string Content => ContextUtils.WriteDisplayContent(this);
+
+        public override string ToString()
+            => Content;
     }
 }

@@ -8,7 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Orikivo.Poxel;
+using Orikivo.Drawing;
 using SysColor = System.Drawing.Color;
 using Color = Discord.Color;
 using System.Reflection;
@@ -21,7 +21,7 @@ namespace Orikivo
     public class MiscModule : OriModuleBase<OriCommandContext>
     {
         private readonly DiscordSocketClient _client;
-        private OriHelpService _help;
+        private InfoService _help;
         private readonly CommandService _commandService;
         private readonly OriConsoleService _logger;
         private readonly GameManager _gameManager;
@@ -125,13 +125,13 @@ namespace Orikivo
             if (Context.Server.HasMuted(user.Id))
             {
                 Context.Server.Mute(user.Id, seconds);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been muted for another {OriFormat.GetShortTime(seconds)}.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been muted for another {OriFormat.GetShortTime(seconds)}.");
                 return;
             }
 
             await user.AddRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
             Context.Server.Mute(user.Id, seconds);
-            await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been muted for {OriFormat.GetShortTime(seconds)}.");
+            await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been muted for {OriFormat.GetShortTime(seconds)}.");
 
         }
 
@@ -144,11 +144,11 @@ namespace Orikivo
             {
                 await user.RemoveRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
                 Context.Server.Unmute(user.Id);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} has been unmuted.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been unmuted.");
                 return;
             }
 
-            await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} is already unmuted.");
+            await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} is already unmuted.");
         }
 
         [Command("setrole")]
@@ -158,12 +158,12 @@ namespace Orikivo
         {
             if (user.Roles.Contains(role))
             {
-                await Context.Channel.SendMessageAsync($"> {OriFormat.ReadUserName(user)} already has this role.");
+                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} already has this role.");
                 return;
             }
 
             await user.AddRoleAsync(role);
-            await Context.Channel.SendMessageAsync($"> Gave {OriFormat.ReadUserName(user)} **{role.Name}**.");
+            await Context.Channel.SendMessageAsync($"> Gave {OriFormat.Username(user)} **{role.Name}**.");
         }
 
         // make a seperate field for the help menu with custom commands.
@@ -240,8 +240,8 @@ namespace Orikivo
         [Summary("Create a **Report** for a specified **Command**.")]
         public async Task ReportAsync([Summary("The **Command** to report.")]string context, string title, string content, params ReportTag[] tags)
         {
-            _help ??= new OriHelpService(_commandService, Context.Global, Context.Server);
-            ContextSearchResult result = _help.Search(context);
+            _help ??= new InfoService(_commandService, Context.Global, Context.Server);
+            ContextSearchResult result = _help.GetContext(context);
 
             if (result.IsSuccess && (result.Type == ContextInfoType.Command || result.Type == ContextInfoType.Overload))
             {
@@ -363,8 +363,8 @@ namespace Orikivo
         {
             try
             {
-                _help ??= new OriHelpService(_commandService, Context.Global, Context.Server);
-                await Context.Channel.SendMessageAsync(_help.Search(context).Value?.Content ?? _help.CreateDefaultContent());
+                _help ??= new InfoService(_commandService, Context.Global, Context.Server);
+                await Context.Channel.SendMessageAsync(_help.GetHelpFor(context));
             }
             catch (Exception ex)
             {

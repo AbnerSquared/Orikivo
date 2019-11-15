@@ -22,7 +22,7 @@ namespace Orikivo
         public OriCommandContext(DiscordSocketClient client, OriJsonContainer container, SocketUserMessage msg) : base(client, msg)
         {
             Console.WriteLine("[Debug] -- Constructing command context. --");
-            Container = container;
+            Container = container; // ensured in container.
             Global = Container.Global;
             if (Guild != null)
             {

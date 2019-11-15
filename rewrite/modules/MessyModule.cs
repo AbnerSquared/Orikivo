@@ -5,6 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Orikivo.Drawing;
+using System.Drawing;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using Color = Discord.Color;
+using SysColor = System.Drawing.Color;
+using System.IO;
+using Image = System.Drawing.Image;
+using System.Text.RegularExpressions;
+using Orikivo.Ascii;
 
 namespace Orikivo
 {
@@ -17,6 +26,181 @@ namespace Orikivo
         public MessyModule(GameManager manager)
         {
             _gameManager = manager;
+        }
+
+        private List<Stream> DrawTextFrames(params string[] texts)
+        {
+            if (texts.Length == 0)
+                throw new ArgumentNullException("At least one text must be written.");
+
+            List<Stream> frames = new List<Stream>();
+            FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
+            CanvasProperties canvasProperties = new CanvasProperties { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) };
+            string framePath = $"../tmp/{Context.User.Id}_frame{{0}}.png";
+
+            using (PixelGraphics poxel = new PixelGraphics(OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new DynamicArrayJsonConverter<char>())))
+            {
+                poxel.DefaultCanvasProperties = canvasProperties;
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    // string outputPath = string.Format(framePath, i);
+
+                    MemoryStream stream = new MemoryStream();
+                    using (Bitmap frame = poxel.DrawString(texts[i], font, OriColor.OriGreen, options: canvasProperties))
+                    {
+                        frame.Save(stream, ImageFormat.Png);
+                        // BitmapUtils.Save(frame, outputPath, ImageFormat.Png);
+                    }
+
+
+                    frames.Add(stream);
+
+                    //frames.Add(outputPath);
+                }
+            }
+
+            return frames;
+        }
+
+        [Command("drawanimr")]
+        [Summary("Creates a GIFASCII animation using the AsciiEngine.")]
+        public async Task DrawRenderAsync()
+        {
+            using (var engine = new AsciiEngine(12, 12))
+            {
+                engine.CurrentGrid.CreateAndAddObject("DVD", '\n', 0, 0, 0, GridCollideMethod.Reflect, new AsciiVector(1, 0, 0, 0));
+                engine.CurrentGrid.CreateAndAddObject("DV2", '\n', 0, 1, 0, GridCollideMethod.Reflect, new AsciiVector(0.5f, 0, 0, 0));
+                engine.CurrentGrid.CreateAndAddObject("DV3", '\n', 0, 2, 0, GridCollideMethod.Reflect, new AsciiVector(0.25f, 0, 0, 0));
+                string[] frames = engine.GetFrames(0, 9, 1);
+                await DrawAnimAsync(150, frames);
+            }
+        }
+
+        /// <summary>
+        /// Creates a GIFASCII animation from a given .txt file with an optional specified delay.
+        /// </summary>
+        /// <param name="delay">The length of delay per frame (in milliseconds).</param>
+        [Command("drawanimf")]
+        [Summary("Creates a GIFASCII animation from a given .txt file with an optional specified delay (in milliseconds).")]
+        public async Task DrawAnimAsync([Summary("The length of delay per frame (in milliseconds).")]int delay = 150)
+        {
+            if (Context.Message.Attachments.Count == 0)
+                throw new Exception("You need to send a .txt file containing the frames!");
+
+            if (!Context.Message.Attachments.Any(x => EnumUtils.GetUrlType(x.Filename) == UrlType.Text))
+                throw new Exception("You need to send a .txt file containing the frames!");
+
+            Attachment textFile = Context.Message.Attachments.Where(x => EnumUtils.GetUrlType(x.Filename) == UrlType.Text).First();
+            OriWebResult urlResult = await new OriWebClient().RequestAsync(textFile.Url);
+
+            string[] urlFrames = ParseFrames(urlResult.RawContent);
+
+            if (urlFrames.Length == 0)
+                throw new Exception("There weren't any proper frames specified.");
+
+            await DrawAnimAsync(delay, urlFrames);
+        }
+
+        private string[] ParseFrames(string rawContent)
+        {
+            List<string> frames = new List<string>();
+            Regex regex = new Regex("([\"\'])(?:(?=(\\\\?))\\2[\\s\\S])*?\\1");
+            MatchCollection matches = regex.Matches(rawContent);
+            foreach(Match match in matches)
+            {
+                Console.WriteLine($"Match!:\n{string.Join(", ", match.Value.Select(x => $"\'{x}\'"))}");
+                if (match.Success)
+                {
+                    string frame = match.Value.Trim('\"', '\'');
+                    frame = frame.Replace("\r", "");
+                    frames.Add(frame);
+                }
+
+            }
+
+            return frames.ToArray();
+        }
+
+        [Command("drawanim")]
+        public async Task DrawAnimAsync(params string[] strings)
+            => await DrawAnimAsync(150, strings);
+
+        [Command("drawanimd")]
+        public async Task DrawAnimAsync(int millisecondDelay, params string[] strings)
+        {
+            string gifPath = $"../tmp/{Context.User.Id}_anim.gif";
+            FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
+            CanvasProperties canvasProperties = new CanvasProperties { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) };
+            // animate a, b  
+
+            MemoryStream gifStream = new MemoryStream();
+            using (GifEncoder encoder = new GifEncoder(gifStream))
+            {
+                encoder.FrameDelay = TimeSpan.FromMilliseconds(millisecondDelay);
+
+                /*
+                    "o_____"
+                    "_o____"
+                    "__o___"
+                    "___o__"
+                    "____o_"
+                    "_____o"
+                    "____o_"
+                    "___o__"
+                    "__o___"
+                    "_o____"
+                */
+
+                /*
+                    "-"
+                    "/"
+                    "|"
+                    "\\"
+                */
+
+                //foreach (string frame in DrawTextFrames(strings))
+                //    encoder.EncodeFrame(Image.FromFile(frame));
+
+                foreach (Stream frame in DrawTextFrames(strings))
+                    using (frame)
+                        encoder.EncodeFrame(Image.FromStream(frame));
+            }
+
+            gifStream.Position = 0;
+            Image gifResult = Image.FromStream(gifStream);
+            gifResult.Save(gifPath, ImageFormat.Gif);
+            gifStream.Dispose();
+
+            await Context.Channel.SendFileAsync(gifPath);
+            //await Context.Channel.SendFileAsync(gifStream, "gif_test.gif");
+        }
+
+        [Command("draw")]
+        [Summary("Draws a pixelated string.")]
+        public async Task DrawTextAsync([Remainder]string text)
+        {
+            string path = $"../tmp/{Context.User.Id}_text.png";
+            FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
+            // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
+            using (PixelGraphics poxel = new PixelGraphics(OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new DynamicArrayJsonConverter<char>())))
+                using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, null, new CanvasProperties { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
+                    BitmapUtils.Save(bmp, path, ImageFormat.Png);
+
+            await Context.Channel.SendFileAsync(path, $"Draw `{text}`");
+        }
+
+        [Command("drawmono")]
+        [Summary("Draws a pixelated string as monospaced text.")]
+        public async Task DrawMonoTextAsync([Remainder]string text)
+        {
+            string path = $"../tmp/{Context.User.Id}_text.png";
+            FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
+            // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
+            using (PixelGraphics poxel = new PixelGraphics(OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new DynamicArrayJsonConverter<char>())))
+            using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, null, new CanvasProperties { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
+                BitmapUtils.Save(bmp, path, ImageFormat.Png);
+
+            await Context.Channel.SendFileAsync(path, $"Draw `{text}`");
         }
 
         [Command("eventparsetest")]
@@ -147,26 +331,38 @@ namespace Orikivo
             try
             {
                 GameWindow window = new GameWindow(GameWindowProperties.Lobby);
-                window.CurrentTab.GetElement("element.info").Update(StringFormatter.LobbyInfoFormatter.WithArgs("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()).ToString());
+                
+                window.CurrentTab.GetElement("element.info").Update(OriFormat.Lobby("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 1.").ToString(), "message-0"));
+                    new Element(OriFormat.GameChat("Orikivo", "Message 1."), "message-0"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-1"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-1"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-2"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-2"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-3"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-3"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-4"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-4"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-5"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-5"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs(Context.User.Username, message).ToString(), "message-6"));
+                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-6"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 8.").ToString(), "message-7"));
+                    new Element(OriFormat.GameChat("Orikivo", "Message 8."), "message-7"));
+
                 window.CurrentTab.AddToGroup("elements.console",
-                    new Element(StringFormatter.ConsoleLineFormatter.WithArgs("Orikivo", "Message 9.").ToString(), "message-8"));
-                window.CurrentTab.GetElement("element.user_info").Update(StringFormatter.UserTitleFormatter.WithArgs("1", "15").ToString());
+                    new Element(OriFormat.GameChat("Orikivo", "Message 9."), "message-8"));
+
+                window.CurrentTab.GetElement("element.user_info").Update(OriFormat.UserCounter(1, 15));
+
                 window.CurrentTab.AddToGroup("elements.triggers", new Element(new GameTrigger("start").ToString()));
                 window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.User.Id, Context.User.Username, Context.Guild.Id, UserTag.Host | UserTag.Playing).ToString()));
                 window.CurrentTab.AddToGroup("elements.users", new Element(new User(Context.Client.CurrentUser.Id, Context.Client.CurrentUser.Username, Context.Guild.Id, UserTag.Playing).ToString()));
@@ -295,6 +491,22 @@ namespace Orikivo
                 await Context.Channel.SendMessageAsync(sb.ToString());
                 return;
             }
+        }
+
+        [Command("choosetest")]
+        public async Task ChooseTestAsync(int times = 8, bool allowRepeats = true)
+        {
+            times = times > 8 ? 8 : times < 1 ? 1 : times; // force bounds
+
+            List<int> values = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("I have picked the winners.");
+            foreach (int value in OriRandom.ChooseMany(values, times, allowRepeats))
+            {
+                sb.AppendLine($"Selected: {value}");
+            }
+
+            await Context.Channel.SendMessageAsync(sb.ToString());
         }
 
         [Command("shuffletest")]

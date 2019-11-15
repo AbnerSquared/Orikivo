@@ -9,16 +9,21 @@ namespace Orikivo
         {
             Name = name;
             Message = message;
+            Author = null;
         }
 
         public GuildCommand(string name)
         {
             Catch.NotNull(name, nameof(name), "The name for a custom command cannot be empty.");
             Name = name;
+            Author = null;
         }
 
+        [JsonProperty("author")]
+        public OriAuthor Author { get; }
+
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; }
 
         [JsonProperty("message")]
         public MessageBuilder Message { get; set; }

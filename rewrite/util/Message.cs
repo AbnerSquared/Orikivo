@@ -21,7 +21,7 @@ namespace Orikivo
                 if (builder.HasUrl && builder.CanEmbedUrl)
                 {
                     if (builder.HideUrl)
-                        embed.Description += '\n' + OriFormat.Hyperlink(Path.GetFileName(builder.Url), builder.Url);
+                        embed.Description += '\n' + OriFormat.Hyperlink(builder.Url);
                     else
                         embed.WithImageUrl(builder.IsLocalUrl ? EmbedUtils.CreateLocalImageUrl(builder.Url) : builder.Url);
                 }
@@ -35,7 +35,7 @@ namespace Orikivo
                 if (builder.HasUrl)
                 {
                     if (builder.HideUrl)
-                        sb.AppendLine($"<{builder.Url}>");
+                        sb.AppendLine(Format.EscapeUrl(builder.Url));
                     else if (builder.IsLocalUrl)
                         AttachmentUrl = builder.Url;
                     else
@@ -46,7 +46,27 @@ namespace Orikivo
 
                 
             }
+        }
 
+        public Message(ErrorMessageBuilder builder)
+        {
+            if (Checks.NotNull(builder.Color))
+            {
+                EmbedBuilder embed = new EmbedBuilder();
+
+                embed.WithColor(builder.Color);
+
+                if (Checks.NotNull(builder.Reaction))
+                    embed.WithTitle(Format.Bold(builder.Reaction));
+
+                embed.WithDescription(OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Checks.NotNull(builder.Color)));
+
+                Embed = embed.Build();
+            }
+            else
+            {
+                Text = OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace);
+            }
         }
 
         public string Text { get; }

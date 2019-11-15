@@ -62,5 +62,8 @@ namespace Orikivo
         public string Id => $"{ContextUtils.ConcatFamilyTree(Family)}+{Priority}";
 
         public string Content => ContextUtils.WriteDisplayContent(this);
+
+        public override string ToString()
+            => Content;
     }
 }

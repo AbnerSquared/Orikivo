@@ -51,6 +51,9 @@ namespace Orikivo
             };
         }
 
+        // command:help+0
+        // command:main_alias+priority
+        public const string COMMAND_SUBST = "command:";
         public const string VAR_MERIT = "merit";
         public const string VAR_STAT = "stat";
         public const string VAR_UPGRADE = "upgrade";

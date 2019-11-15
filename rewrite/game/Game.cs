@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // GameMessageContainer: keeps track of all messages
     public class Game
     {
         // Dependencies

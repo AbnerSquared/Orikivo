@@ -6,6 +6,8 @@
         Group = 2,
         Command = 3,
         Overload = 4,
-        Parameter = 5
+        Parameter = 5,
+        Custom = 6,
+        Guild = 7
     }
 }

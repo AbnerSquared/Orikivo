@@ -138,6 +138,9 @@ namespace Orikivo
         private Player GetPlayer(ulong id)
             => Data?.Players.FirstOrDefault(x => x.UserId == id);
 
+        private Player GetPlayer(int index)
+            => Data?.Players.FirstOrDefault(x => x.Index == index);
+
         private bool Update(GameUpdatePacket packet, GameDisplay display, out List<GameAttribute> updatedAttributes)
         {
             updatedAttributes = new List<GameAttribute>();

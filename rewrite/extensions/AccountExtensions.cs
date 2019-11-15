@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Discord.WebSocket;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 

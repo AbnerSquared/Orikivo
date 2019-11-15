@@ -20,7 +20,7 @@ namespace Orikivo
         }
 
         private string _name;
-        public string Name { get => _name; set => _name = OriFormat.FormatTextChannelName(value); }
+        public string Name { get => _name; set => _name = OriFormat.TextChannelName(value); }
 
         public bool CanUpdateMessage { get; internal set; }
         public string Topic { get => Properties.Topic.Value; set => Properties.Topic = value; }

@@ -82,7 +82,8 @@ namespace Orikivo
             for (int i = 0; i < times; i++)
             {
                 int j = RandomProvider.Instance.Next(bag.Count);
-                chosen[i] = bag[j];
+                Console.WriteLine($"I: {i}\nJ: {j}\nBag.Count: {bag.Count}");
+                chosen.Add(bag[j]);
                 if (!allowRepeats)
                     bag.RemoveAt(j);
             }

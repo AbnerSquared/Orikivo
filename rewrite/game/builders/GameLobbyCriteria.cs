@@ -8,6 +8,9 @@ namespace Orikivo
     /// </summary>
     public class GameLobbyCriteria
     {
+        public static GameLobbyCriteria Create(int requiredUsers, int userLimit)
+            => new GameLobbyCriteria { RequiredUsers = requiredUsers, UserLimit = userLimit };
+
         private GameLobbyCriteria() { }
         public static GameLobbyCriteria FromMode(GameMode mode)
         {

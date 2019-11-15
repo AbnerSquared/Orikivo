@@ -16,7 +16,6 @@ namespace Orikivo
             Aliases = ContextUtils.GetAliases(command);
             GroupName = command.Module.Group;
 
-
             Summary = command.Summary;
 
             family?.Add(new ContextValue(command));
@@ -57,6 +56,9 @@ namespace Orikivo
         public bool HasMultiple => Overloads.Count > 1;
 
         public string Content => ContextUtils.WriteDisplayContent(this);
+
+        public override string ToString()
+            => Content;
 
         public static explicit operator CommandDisplayInfo(CommandInfo info)
             => new CommandDisplayInfo(info);

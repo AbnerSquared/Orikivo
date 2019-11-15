@@ -31,6 +31,6 @@ namespace Orikivo
         /// Returns the string correlated to the specified locale.
         /// </summary>
         public string ToString(StringLocale locale)
-            => Locale[locale][RandomProvider.Instance.Next(0, Locale[locale].Length - 1)] ?? throw new KeyNotFoundException();
+            => Locale[locale][RandomProvider.Instance.Next(Locale[locale].Length)] ?? throw new KeyNotFoundException();
     }
 }

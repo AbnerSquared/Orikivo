@@ -12,8 +12,8 @@ namespace Orikivo
     /// </summary>
     public static class OriMessageHelper
     {
-
-        // NotifyAsync() ??
+        public static readonly Dictionary<OriError, MessageBuilder> ErrorPresets = new Dictionary<OriError, MessageBuilder>();
+        // NotifyAsync() ?? Creates a notification pop-up.
 
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
@@ -23,7 +23,22 @@ namespace Orikivo
             if (!user.IsOnCooldown(Cooldown.Notify))
             {
                 //RestUserMessage msg = 
-                await channel.SendMessageAsync($"You are on cooldown.\nTime left: **{cooldown.Value.ToString(@"hh\:mm\:ss")}**");
+                await channel.SendMessageAsync($"You are on cooldown.\nTime left: **{DateTimeUtils.TimeSince(cooldown.Value).ToString(@"hh\:mm\:ss")}**");
+                user.SetCooldown(CooldownType.Global, Cooldown.Notify, 3.0);
+                //await Task.Delay(TimeSpan.FromSeconds(3));
+                //await msg.DeleteAsync();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to warn a user about a global cooldown preventing any command execution.
+        /// </summary>
+        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, OriUser user, DateTime globalExpires)
+        {
+            if (!user.IsOnCooldown(Cooldown.Notify))
+            {
+                //RestUserMessage msg = 
+                await channel.SendMessageAsync($"You are sending requests too quickly!\nTime left: **{DateTimeUtils.TimeSince(globalExpires).ToString(@"hh\:mm\:ss")}**");
                 user.SetCooldown(CooldownType.Global, Cooldown.Notify, 3.0);
                 //await Task.Delay(TimeSpan.FromSeconds(3));
                 //await msg.DeleteAsync();
@@ -42,16 +57,29 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Sends a custom error message to the specified channel.
+        /// Sends a manual error message to the specified channel.
         /// </summary>
         public static async Task<RestUserMessage> ThrowAsync(ISocketMessageChannel channel, string error, RequestOptions options = null)
-            => await channel.SendMessageAsync($"**Oops!**\nAn error has occured.```{error}```", options: options);
+            => await channel.SendMessageAsync(OriFormat.Error("Oops!", "An error has occurred.", error), options: options);
+        // $"**Oops!**\nAn error has occurred.```{error}```"
+
+        /// <summary>
+        /// Sends an error message to the specified channel. If a preset is not defined, it executes the manual variant of ThrowAsync.
+        /// </summary>
+        public static async Task<RestUserMessage> ThrowAsync(ISocketMessageChannel channel, OriError error, RequestOptions options = null)
+        {
+            if (!ErrorPresets.ContainsKey(error))
+                return await ThrowAsync(channel, error.ToString(), options);
+
+            return await SendMessageAsync(channel, ErrorPresets[error].Build(), options);
+        }
 
         /// <summary>
         /// Catches a possible Exception and sends its information to the specified channel.
         /// </summary>
         public static async Task<RestUserMessage> CatchAsync(ISocketMessageChannel channel, Exception ex, RequestOptions options = null)
-            => await channel.SendMessageAsync($"**Yikes!**\nAn exception has been thrown.```{ex.Message}```\n```bf\n{ex.StackTrace}```", options: options);
+            => await channel.SendMessageAsync(OriFormat.Error("Yikes!", "An exception has been thrown.", ex.Message, ex.StackTrace), options: options);
+        // $"**Yikes!**\nAn exception has been thrown.```{ex.Message}```\n```bf\n{ex.StackTrace}```"
 
         /// <summary>
         /// Sends an Embed to the specified channel.

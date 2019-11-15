@@ -4,7 +4,7 @@
     internal static class Cooldown
     {
         // Global is the global cooldown among all commands.
-        public static string Global = "cooldown:global";
+        public const string GLOBAL = "cooldown:global";
         // Notify is the cooldown used to determine when it can notify you that you are on cooldown again.
         public static string Notify = "cooldown:notify";
         // Vote is the cooldown used to prevent voting until it clears.

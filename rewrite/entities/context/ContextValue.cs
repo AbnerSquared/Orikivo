@@ -7,6 +7,12 @@ namespace Orikivo
     /// </summary>
     public class ContextValue
     {
+        public ContextValue(GuildCommand custom)
+        {
+            Name = custom.Name;
+            Type = ContextInfoType.Custom;
+        }
+
         public ContextValue(ModuleInfo module)
         {
             if (Checks.NotNull(module.Group))
@@ -36,5 +42,18 @@ namespace Orikivo
         public string Name { get; }
 
         public ContextInfoType Type { get; }
+
+        public static bool operator ==(ContextValue valueA, ContextValue valueB)
+        {
+            return valueA.Name == valueB.Name && valueA.Type == valueB.Type;
+        }
+
+        public static bool operator !=(ContextValue valueA, ContextValue valueB)
+        {
+            return !(valueA == valueB);
+        }
+
+        public override string ToString()
+            => $"{Name}: {Type}";
     }
 }

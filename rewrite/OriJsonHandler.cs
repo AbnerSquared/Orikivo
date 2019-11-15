@@ -68,7 +68,7 @@ namespace Orikivo
             {
                 File.Create(path).Dispose();
                 return default;
-            }
+            } 
 
             using (StreamReader stream = File.OpenText(path))
             {
@@ -84,7 +84,12 @@ namespace Orikivo
             }
         }
 
-        public static T LoadDynamicArray<T>(string path)
+        /// <summary>
+        /// Loads an object by the specified local path.
+        /// </summary>
+        /// <param name="path">The local path of the object.</param>
+        /// <param name="converter">The JSON converter to use when deserializing.</param>
+        public static T Load<T>(string path, JsonConverter converter)
         {
             if (!File.Exists(path))
             {
@@ -94,8 +99,8 @@ namespace Orikivo
 
             using (StreamReader stream = File.OpenText(path))
             {
-                T tmp = Deserialize<T>(stream.ReadToEndAsync().Result, new DynamicArrayJsonConverter<T>());
-                return tmp == null ? default : tmp;
+                T tmp = Deserialize<T>(stream.ReadToEndAsync().Result, converter);
+                return tmp ?? default;
             }
         }
 
@@ -116,10 +121,13 @@ namespace Orikivo
         {
             if (typeof(T) == typeof(OriUser))
                 return Directory.CreateDirectory(@"..\data\users\").FullName;
+
             if (typeof(T) == typeof(OriGuild))
                 return Directory.CreateDirectory(@"..\data\guilds\").FullName;
+
             if (typeof(T) == typeof(OriGlobal))
                 return Directory.CreateDirectory(@"..\data\global\").FullName;
+
             return Directory.CreateDirectory(@"..\data\").FullName;
         }
 

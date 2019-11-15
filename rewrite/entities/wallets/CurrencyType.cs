@@ -18,7 +18,9 @@
         /// <summary>
         /// Marks the currency type as 'Etiro', the currency used for debt.
         /// </summary>
-        Debt = 3
+        Debt = 3,
+
+        Guild = 4
     }
 
     /*

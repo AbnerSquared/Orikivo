@@ -26,7 +26,7 @@ namespace Orikivo
             IsTTS = false;
         }
 
-        [JsonProperty("embedder")]
+        [JsonProperty("content")]
         public string Content { get; set; }
 
         [JsonProperty("url")]

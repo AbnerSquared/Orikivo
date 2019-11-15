@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Orikivo
 {
+
     // TODO: Figure out how to insert report information.
     // TODO: Create Subtitle field editor. (Remarks)??
     /// <summary>
@@ -64,5 +65,11 @@ namespace Orikivo
         public bool IsGroup => Checks.NotNull(GroupName);
 
         public string Content => ContextUtils.WriteDisplayContent(this);
+
+        string IDisplayInfo.Content
+            => Content;
+
+        public override string ToString()
+            => Content;
     }
 }

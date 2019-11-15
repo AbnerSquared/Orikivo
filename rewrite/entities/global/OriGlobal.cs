@@ -23,7 +23,10 @@ namespace Orikivo
             Reports = reports ?? new ReportContainer();
         }
 
-        public OriGlobal() {}
+        public OriGlobal()
+        {
+            Reports = new ReportContainer();
+        }
         
         [JsonIgnore]
         public string Prefix => DEFAULT_PREFIX;

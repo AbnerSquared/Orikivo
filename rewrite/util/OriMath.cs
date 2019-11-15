@@ -30,11 +30,23 @@ namespace Orikivo
         }
 
         /// <summary>
+        /// Returns the value specified to the power of 2.
+        /// </summary>
+        public static double Squared(double x)
+            => Math.Pow(x, 2);
+
+        /// <summary>
+        /// Returns the root n of a value specified.
+        /// </summary>
+        public static double Root(double x, double n)
+            => Math.Pow(10, Math.Log10(x) / 2);
+
+        /// <summary>
         /// Returns the remainder of a subtraction between two UInt64 values. If the minuend can take itself from the subtrahend, with the subtrahend being greater than zero, it returns zero.
         /// </summary>
         /// <param name="subtrahend">The number being subtracted.</param>
         /// <param name="minuend">The number that the subtrahend will be subtracted by.</param>
-        public static ulong Subtract(ulong subtrahend, ulong minuend)
+        public static ulong SubtractRem(ulong subtrahend, ulong minuend)
             => subtrahend - minuend < 0 ? minuend - subtrahend : 0;
 
         /// <summary>

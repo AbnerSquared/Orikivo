@@ -1,6 +1,7 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -13,7 +14,6 @@ namespace Orikivo
     {
         public static readonly string DebugFormat = "[Debug] -- {0} --";
         public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
-        public static readonly string HyperlinkFormat = "[{0}]({1})";
         // ᵃᵇᶜᵈᵉᶠᵍʰᶤʲᵏˡᵐᶯᵒᵖʳˢᵗᵘᵛʷˣʸᶻ (superscript)
         // ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ (subscript)
         private static readonly Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
@@ -41,14 +41,80 @@ namespace Orikivo
         public static string Subscript(string value)
             => MapChars(value, CharMap.Subscript);
 
+        public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
+            => $"{Format.Url(parsedEmote, emoteUrl)} {emoteName}";
+
         public static string CodeBlock(string value, CodeType? type = null)
             => $"```{type?.ToString().ToLower()}\n{value}```";
 
         public static string CropGameId(string value)
             => value.Length > 8 ? value.Substring(0, 8) + "..." : value;
 
-        public static string Hyperlink(string text, string url)
-            => string.Format(HyperlinkFormat, text, url);
+        public static string Position(int i)
+        {
+            string value = PosNotation(i, false);
+            return i switch
+            {
+                1 => $"{value}st",
+                2 => $"{value}nd",
+                3 => $"{value}rd",
+                _ => $"{value}th",
+            };
+        }
+
+        private const string POS_NOTATION = "##,0.###";
+        public static string PosNotation(int i, bool includeDecimals = true)
+            => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
+
+        public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
+        {
+            StringBuilder sb = new StringBuilder();
+            // if embedded, the reaction is placed on the title.
+            if (!isEmbedded)
+                if (Checks.NotNull(reaction))
+                    sb.AppendLine(Format.Bold(reaction));
+
+            if (Checks.NotNull(title))
+                sb.Append(title);
+
+            if (Checks.NotNull(reason))
+                sb.Append($"```{reason}```");
+
+            if (Checks.NotNull(stackTrace))
+            {
+                if (Checks.NotNull(reason))
+                    sb.AppendLine();
+
+                sb.Append($"```bf\n{stackTrace}```");
+            }
+
+            return sb.ToString();
+        }
+
+        // Create a notification pop-up text.
+        public static string Notify()
+        {
+            StringBuilder sb = new StringBuilder();
+            return sb.ToString();
+        }
+
+        public static string Lobby(string name, string id, string host, string gameMode)
+            => string.Format(LobbyDataFormatter, name, id, host, gameMode);
+
+        public static readonly string LobbyDataFormatter = "> **{0}**#{1} `{2}`\n> ⇛ Playing **{3}**";
+
+        public static readonly string ChatFormatter = "[{0}]: \"{1}\"";
+
+        public static string GameChat(string author, string message)
+            => string.Format(ChatFormatter, author, message);
+
+        public static readonly string UserCounterFormatter = "Users (**{0}**/**{1}**):";
+
+        public static string UserCounter(int userCount, int userLimit)
+            => string.Format(UserCounterFormatter, userCount, userLimit);
+
+        public static string Hyperlink(string url)
+            => Format.Url(Path.GetFileName(url), url);
 
         public static string CreateVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
@@ -102,26 +168,6 @@ namespace Orikivo
             .Replace("{time.post}", time.ToString(@"tt"));
         }
 
-        public static string GetMonthString(int month)
-        {
-            return month switch
-            {
-                1 => "January",
-                2 => "February",
-                3 => "March",
-                4 => "April",
-                5 => "May",
-                6 => "June",
-                7 => "July",
-                8 => "August",
-                9 => "September",
-                10 => "October",
-                11 => "November",
-                12 => "December",
-                _ => throw new Exception("1-12 only.")
-            };
-        }
-
         private static bool IsLeapYear(int year)
             => year % 4 == 0;
         /*
@@ -155,14 +201,8 @@ namespace Orikivo
         public static string ReadType<T>()
             => $"**{typeof(T).Name}**";
 
-        public static string ReadUserName(IUser user)
+        public static string Username(IUser user)
             => $"**{user.Username}**#{user.Discriminator}";
-
-        /// <summary>
-        /// Converts the specified number to be read out in place value format.
-        /// </summary>
-        public static string PlaceValue(double d)
-            => d.ToString("##,0.###");
 
         public static string GetShortTime(double seconds)
         {
@@ -183,7 +223,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Converts the specified value into a JSON-friendly string.
+        /// Returns the specified value into a JSON-friendly string.
         /// </summary>
         public static string Jsonify(string value)
         {
@@ -207,7 +247,7 @@ namespace Orikivo
             return sb.ToString();
         }
 
-        public static string FormatTextChannelName(string value)
+        public static string TextChannelName(string value)
         {
             const int MAX_LENGTH = 100;
 

@@ -7,7 +7,7 @@ namespace Orikivo
         public static bool IsExpired(DateTime? date)
             => date.HasValue ? (DateTime.UtcNow - date.Value).TotalSeconds > 0 : false;
 
-        public static DateTime GetTimeIn(double seconds)
+        public static DateTime GetTimeIn(double seconds) // could make DateTime thing
             => DateTime.UtcNow.AddSeconds(seconds);
 
         public static TimeSpan TimeSince(DateTime time)

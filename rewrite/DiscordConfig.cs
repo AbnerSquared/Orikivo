@@ -35,6 +35,7 @@ namespace Orikivo
                     DefaultRunMode = RunMode.Async,
                     LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
                     ThrowOnError = true
+                    //QuotationMarkAliasMap = null
                 };
                 return serviceConfig;
             }
