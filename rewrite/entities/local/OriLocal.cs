@@ -9,7 +9,7 @@ namespace Orikivo
     public class OriLocal
     {
         [JsonConstructor]
-        internal OriLocal(DiscordConfig discordConfig, OriConsoleConfig consoleConfig, OriLogConfig loggerConfig)
+        internal OriLocal(DiscordConfig discordConfig, ConsoleConfig consoleConfig, LogConfig loggerConfig)
         {
             DiscordConfig = discordConfig;
             ConsoleConfig = consoleConfig;
@@ -20,9 +20,9 @@ namespace Orikivo
         public DiscordConfig DiscordConfig { get; }
 
         [JsonProperty("console_config")]
-        public OriConsoleConfig ConsoleConfig { get; }
+        public ConsoleConfig ConsoleConfig { get; }
 
         [JsonProperty("log_config")]
-        public OriLogConfig LogConfig { get; }
+        public LogConfig LogConfig { get; }
     }
 }

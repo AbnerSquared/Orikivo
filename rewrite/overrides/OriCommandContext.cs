@@ -13,7 +13,7 @@ namespace Orikivo
     public class OriCommandContext : SocketCommandContext
     {
         public OriUser Account { get; internal set; } // TODO: Override SocketUser with OriUser variant.
-        public OriGuild Server { get; }
+        public OriGuild Server { get; internal set; }
         public OriGlobal Global { get; }
         public OriJsonContainer Container { get; }
 

@@ -36,7 +36,7 @@ namespace Orikivo
             Commands = commandGroups.Select(x => new CommandDisplayInfo(x.Value, Family)).ToList();
         }
 
-        public string Id => ContextUtils.ConcatFamilyTree(Family);
+        public string Id => ContextUtils.ConcatFamilyTree(Family, Type);
 
         public ContextInfoType Type => ContextInfoType.Module;
 

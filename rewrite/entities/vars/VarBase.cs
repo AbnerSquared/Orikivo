@@ -92,7 +92,7 @@ namespace Orikivo
         public static readonly Type UpgradeValueType = typeof(int);
         public static readonly Type CooldownValueType = typeof(CooldownData); // Non-Matchable compare at Match
         public static readonly Type AttributeValueType = typeof(ulong);
-        public static readonly Type BoosterValueType = typeof(BoosterData); // Non-Matchable compare at Match
+        public static readonly Type BoosterValueType = typeof(BoostData); // Non-Matchable compare at Match
         public static readonly Type BalanceValueType = typeof(ulong);
         public static readonly Type DebtValueType = typeof(ulong);
         public static readonly Type TokenValueType = typeof(ulong);

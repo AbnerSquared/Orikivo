@@ -10,6 +10,6 @@ namespace Orikivo
         public DateTime CreatedAt { get; }
         public VarData[] Vars { get; }
         // Config
-        public UserConfig Config { get; }
+        //public UserConfig Config { get; }
     }
 }

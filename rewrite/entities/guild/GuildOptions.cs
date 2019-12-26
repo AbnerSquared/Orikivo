@@ -41,7 +41,7 @@ namespace Orikivo
                 GuildOptions guildOptions = new GuildOptions();
                 guildOptions.Prefix = null;
                 guildOptions.Exceptions = ExceptionSeverity.Default;
-                guildOptions.PrivacyDeny = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
+                //guildOptions.PrivacyDeny = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
                 guildOptions.SystemRoles = new Dictionary<GuildRole, ulong>();
                 guildOptions.Commands = new List<GuildCommand>();
@@ -55,8 +55,8 @@ namespace Orikivo
         /// <summary>
         /// Determines what is denied for others to see about your guild (Discord-side).
         /// </summary>
-        [JsonProperty("privacy")]
-        public GuildPrivacyDeny PrivacyDeny { get; set; }
+        //[JsonProperty("privacy")]
+        //public GuildPrivacyDeny PrivacyDeny { get; set; }
 
         /// <summary>
         /// Specifies how many games a guild can have open at a time. The upper bound is 4.

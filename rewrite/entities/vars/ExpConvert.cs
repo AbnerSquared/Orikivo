@@ -2,23 +2,34 @@
 
 namespace Orikivo
 {
+    /// <summary>
+    /// A utility class that handles conversion formulas between experience values.
+    /// </summary>
     public static class ExpConvert
     {
         // exp to level
         public static int AsLevel(ulong exp)
         {
+            exp = exp > MaxExp ? MaxExp : exp;
+
+            // FORMULA GOES HERE
+
             int level = 0;
-            // EQ
-            if (level > MaxLevel)
-                return 0;
-            return 0;
+
+
+            return level;
         }
 
         // level to exp
         public static ulong AsExp(int level)
         {
+            level = level > AsLevel(MaxExp) ? AsLevel(MaxExp) : level;
 
-            return 0;
+            // REV FORMULA GOES HERE
+
+            ulong exp = 0;
+
+            return exp;
         }
 
         // exp between two levels
@@ -37,12 +48,16 @@ namespace Orikivo
         public static ulong MaxExp = 0;
 
         // the highest level anyone can reach
-        public static int MaxLevel => AsLevel(MaxExp);
+        //public static int MaxLevel => AsLevel(MaxExp);
 
         // exp to reach a specified level, starting from specified exp. if it's less than the current exp, return 0.
-        public static ulong ExpToLevel(ulong exp, int level) => AsExp(level) - exp < 0 ? 0 : AsExp(level) - exp; 
+        public static ulong ExpToLevel(ulong exp, int level) =>
+            AsExp(level) - exp < 0 ?
+            0 :
+            AsExp(level) - exp; 
 
         // exp to reach the next level
-        public static ulong ExpToNext(ulong exp) => ExpToLevel(exp, AsLevel(exp) + 1);
+        public static ulong ExpToNext(ulong exp) =>
+            ExpToLevel(exp, AsLevel(exp) + 1);
     }
 }

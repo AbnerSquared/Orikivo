@@ -5,6 +5,13 @@ using System.Linq;
 
 namespace Orikivo
 {
+    // GuildCommandDisplayInfo
+    // CustomModuleDisplayInfo
+    // ParameterDisplayInfo
+    // CommandDisplayInfo
+    // MethodDisplayInfo
+    // ModuleDisplayInfo
+    // could instead be MethodDisplayInfo
     /// <summary>
     /// Represents a specific command function with a set priority.
     /// </summary>
@@ -12,9 +19,9 @@ namespace Orikivo
     {
         internal OverloadDisplayInfo(CommandInfo command, List<ContextValue> family = null)
         {
-            CooldownLength = command.Attributes.GetAttribute<CooldownAttribute>()?.Seconds;
+            CooldownLength = command.Attributes.GetAttribute<CooldownAttribute>()?.Duration.TotalSeconds;
             Permissions = command.Preconditions.GetAttribute<RequirePermissionsAttribute>()?.Permissions;
-            TrustLevel = command.Preconditions.GetAttribute<BindToAttribute>()?.Level;
+            TrustLevel = command.Preconditions.GetAttribute<AccessAttribute>()?.Level;
 
             Name = command.Name ?? string.Empty;
             Aliases = ContextUtils.GetAliases(command);
@@ -59,7 +66,7 @@ namespace Orikivo
 
         public List<ParameterDisplayInfo> Parameters { get; }
 
-        public string Id => $"{ContextUtils.ConcatFamilyTree(Family)}+{Priority}";
+        public string Id => $"{ContextUtils.ConcatFamilyTree(Family, Type)}+{Priority}";
 
         public string Content => ContextUtils.WriteDisplayContent(this);
 

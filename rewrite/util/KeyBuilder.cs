@@ -12,6 +12,6 @@
         /// </summary>
         /// <param name="size">The size of the key.</param>
         public static string Generate(int size)
-            => OriRandom.GetChars(_alphanumeric, (size > 256) ? 256 : (size < 1 ? 1 : size));
+            => Randomizer.GetChars(_alphanumeric, (size > 256) ? 256 : (size < 1 ? 1 : size));
     }
 }

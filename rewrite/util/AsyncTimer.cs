@@ -1,53 +1,100 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Orikivo
 {
-    // TODO: Rework this class to allow for TickUpdatePacket and such.
     public class AsyncTimer
     {
-        public AsyncTimer(TimeSpan duration)
-        {
-            Duration = duration;
-            Trigger = false;
-        }
+        private bool _started = false;
 
-        public TimeSpan Duration { get; set; }
-        private bool Trigger { get; set; }
-        public bool ForceQuit { get; set; }
-        public bool Running { get; private set; }
-        public void Reset()
+        public AsyncTimer(TimeSpan? duration)
         {
-            Trigger = true;
-        }
-
-
-        // TODO: Remove 'goto' label.
-        // implement user count into lobby as a part of the timer mechanic.
-        public async Task<bool> StartAsync()
-        {
-            Running = true;
-            Task _timer = Task.Delay(Duration);
-            Entry:
-            while (!Task.WhenAll(_timer).ConfigureAwait(false).GetAwaiter().IsCompleted)
+            InternalTimer = new Timer
             {
-                if (ForceQuit)
+                Enabled = false
+            };
+
+            InternalTimer.AutoReset = false;
+            Timeout = duration;
+            TimeStarted = Signal = null;
+            CompletionSource = new TaskCompletionSource<bool>();
+            InternalTimer.Elapsed += OnElapse;
+            Elapsed = false;
+        }
+
+        private Timer InternalTimer { get; }
+
+        private DateTime? TimeStarted { get; set; }
+        private DateTime? Signal { get; set; }
+
+        public bool Elapsed { get; private set; }
+
+        public TimeSpan ElapsedTime => TimeStarted.HasValue ? DateTime.UtcNow - TimeStarted.Value : Signal.HasValue ? Signal.Value - TimeStarted.Value : TimeSpan.Zero;
+
+        public TaskCompletionSource<bool> CompletionSource { get; private set; }
+
+        public TimeSpan? Timeout
+        {
+            get => TimeSpan.FromMilliseconds(InternalTimer.Interval);
+            set
+            {
+                if (value.HasValue)
                 {
-                    Running = false;
-                    ForceQuit = false;
-                    return true;
+                    InternalTimer.Interval = value.Value.TotalMilliseconds;
+                    InternalTimer.Enabled = true;
                 }
-                if (Trigger)
+                else
                 {
-                    Console.WriteLine("[Debug] -- Timer reset triggered. --");
-                    Trigger = false;
-                    _timer = Task.Delay(Duration);
-                    goto Entry;
+                    InternalTimer.Enabled = false;
+                    InternalTimer.Interval = 1;
                 }
             }
+        }
 
-            Running = false;
-            return true;
+        private void OnElapse(object obj, ElapsedEventArgs e)
+        {
+            Signal = e.SignalTime;
+            InternalTimer.Stop();
+            _started = false;
+            Elapsed = true;
+            CompletionSource.SetResult(true);
+        }
+
+        public void Start()
+        {
+            if (!_started)
+            {
+                TimeStarted = DateTime.UtcNow;
+                Signal = null;
+                InternalTimer.Start();
+                _started = true;
+                Elapsed = false;
+                //Console.WriteLine("Timer started.");
+            }
+        }
+
+        public void Stop()
+        {
+            if (_started)
+            {
+                InternalTimer.Stop();
+                Signal = DateTime.UtcNow;
+                _started = false;
+                Elapsed = false;
+                //Console.WriteLine("Timer stopped.");
+            }
+        }
+
+        public void Reset()
+        {
+            bool isActive = _started;
+            Stop();
+            
+            if (isActive)
+            {
+                Start();
+            }
         }
     }
 }

@@ -7,6 +7,16 @@ using System.Text;
 
 namespace Orikivo
 {
+    public enum PlaceValue
+    {
+        Null = -1,
+        H = 0,
+        K = 1,
+        M = 2,
+        B = 3,
+        T = 4
+    }
+
     /// <summary>
     /// A formatter tool used to help format simple sentences.
     /// </summary>
@@ -40,6 +50,50 @@ namespace Orikivo
         /// </summary>
         public static string Subscript(string value)
             => MapChars(value, CharMap.Subscript);
+
+        public static string GetShortValue(ulong value, out PlaceValue place)
+        {
+            string text = value.ToString();
+            int valueLength = text.Length; // (12)(11)(10),(9)(8)(7),(6)(5)(4),(3)(2)(1)
+            int placeValue = (int)MathF.Floor(valueLength / 3);
+
+            // displaySize is 3 => 0.00 || 00.0 || 000
+            int leftSize = (valueLength % 3 == 0) ? 3 : valueLength % 3; // 0 = length of 3, 1 = length of 1, 2 = length of 2
+            // use the 0.00 value format, and return the letter indicating its placement value (k = thousands, m = millions, b = billions)
+
+            if (leftSize < (int)PlaceValue.H || leftSize > (int)PlaceValue.T)
+            {
+                place = PlaceValue.Null;
+            }
+            else
+            {
+                place = (PlaceValue)placeValue;
+            }
+
+            if (valueLength <= 3)
+            {
+                return text;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(text.Substring(0, leftSize));
+
+            if (leftSize < 3)
+            {
+                sb.Append('.');
+
+                int pos = valueLength % 3;
+                while (leftSize < 3)
+                {
+                    sb.Append(text.Substring(pos, 1));
+                    pos++;
+                    leftSize++;
+                }
+
+            }
+
+            return sb.ToString();
+        }
 
         public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
             => $"{Format.Url(parsedEmote, emoteUrl)} {emoteName}";
@@ -196,7 +250,7 @@ namespace Orikivo
             => throw new NotImplementedException();
 
         public static string GetNounForm(string word, int count)
-            => $"{word}{(count > 1 || count == 0 || count < 0 ? "s" : "")}";
+            => $"{word}{(count > 1 || count == 0 || count < 0 ? $"{(word.EndsWith("h") ? "e" : "")}s" : "")}";
 
         public static string ReadType<T>()
             => $"**{typeof(T).Name}**";

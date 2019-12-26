@@ -27,7 +27,7 @@ namespace Orikivo
 
         public ContextInfoType Type => ContextInfoType.Parameter;
 
-        public string Id => ContextUtils.ConcatFamilyTree(Family);
+        public string Id => ContextUtils.ConcatFamilyTree(Family, Type);
 
         public string Name { get; }
 

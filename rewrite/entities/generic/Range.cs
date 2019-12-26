@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public struct Range : IRange<int>
+    public struct Range
     {
         public Range(int max, bool includeMinMax = true)
         {

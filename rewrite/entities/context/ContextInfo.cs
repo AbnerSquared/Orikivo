@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using Match = System.Text.RegularExpressions.Match;
 namespace Orikivo
 {
     // TODO: Handle internal indexes, priority, etc.

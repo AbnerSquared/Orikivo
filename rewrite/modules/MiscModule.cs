@@ -23,14 +23,14 @@ namespace Orikivo
         private readonly DiscordSocketClient _client;
         private InfoService _help;
         private readonly CommandService _commandService;
-        private readonly OriConsoleService _logger;
+        //private readonly LogService _logger;
         private readonly GameManager _gameManager;
         public MiscModule(DiscordSocketClient client, CommandService commandService,
-            OriConsoleService logger, GameManager gameManager)
+            /*LogService logger,*/ GameManager gameManager)
         {
             _client = client;
             _commandService = commandService;
-            _logger = logger;
+            //_logger = logger;
             _gameManager = gameManager;
         }
 
@@ -46,7 +46,7 @@ namespace Orikivo
             }
 
             [Command("add")]
-            [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+            [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
             [Summary("Adds a greeting to the collection of greetings for this guild.")]
             public async Task AddGreetingAsync([Remainder]string greeting)
             {
@@ -62,7 +62,7 @@ namespace Orikivo
             }
 
             [Command("remove"), Alias("rm")]
-            [BindTo(TrustLevel.Inherit)]
+            [Access(TrustLevel.Inherit)]
             [Summary("Removes the greeting at the specified index (zero-based)."), RequireContext(ContextType.Guild)]
             public async Task RemoveGreetingAsync(int index)
             {
@@ -72,7 +72,7 @@ namespace Orikivo
             }
 
             [Command("clear")]
-            [BindTo(TrustLevel.Owner)]
+            [Access(TrustLevel.Owner)]
             [Summary("Clears all custom greetings written for this guild."), RequireContext(ContextType.Guild)]
             public async Task ClearGreetingsAsync()
             {
@@ -81,7 +81,7 @@ namespace Orikivo
             }
 
             [Command("toggle")]
-            [BindTo(TrustLevel.Owner)]
+            [Access(TrustLevel.Owner)]
             [Summary("Toggles the ability to use greetings whenever a user joins."), RequireContext(ContextType.Guild)]
             public async Task ToggleGreetingsAsync()
             {
@@ -91,7 +91,7 @@ namespace Orikivo
         }
 
         [Command("defaultrole"), Priority(1)]
-        [BindTo(TrustLevel.Owner), RequireContext(ContextType.Guild)]
+        [Access(TrustLevel.Owner), RequireContext(ContextType.Guild)]
         public async Task SetDefaultRoleAsync(SocketRole role)
         {
             Context.Server.Options.DefaultRoleId = role.Id;
@@ -105,20 +105,20 @@ namespace Orikivo
         }
 
         [Command("mute")]
-        [BindTo(TrustLevel.Owner)]
+        [Access(TrustLevel.Owner)]
         [RequireBotPermission(ChannelPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task MuteUserAsync(SocketGuildUser user, double seconds)
         {
             if (!Context.Server.Options.MuteRoleId.HasValue)
             {
-                RestRole muteRole = Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(66560)).Result;
+                RestRole muteRole = Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(66560), null, false, false).Result;
                 Context.Server.Options.MuteRoleId = muteRole.Id;
             }
 
             SocketRole role = Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value);
             if (role == null)
             {
-                RestRole muteRole = Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(66560)).Result;
+                RestRole muteRole = Context.Guild.CreateRoleAsync("Muted", new GuildPermissions(66560), null, false, false).Result;
                 Context.Server.Options.MuteRoleId = muteRole.Id;
             }
 
@@ -136,7 +136,7 @@ namespace Orikivo
         }
 
         [Command("unmute")]
-        [BindTo(TrustLevel.Owner)]
+        [Access(TrustLevel.Owner)]
         [RequireBotPermission(ChannelPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task UnmuteUserAsync(SocketGuildUser user)
         {
@@ -152,7 +152,7 @@ namespace Orikivo
         }
 
         [Command("setrole")]
-        [BindTo(TrustLevel.Owner)]
+        [Access(TrustLevel.Owner)]
         [RequirePermissions(GuildPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task SetRoleAsync(SocketGuildUser user, SocketRole role)
         {
@@ -183,11 +183,11 @@ namespace Orikivo
 
         // this is used to give the specified user the trust role
         //[Command("trust")]
-        [BindTo(TrustLevel.Owner), RequireContext(ContextType.Guild)]
+        [Access(TrustLevel.Owner), RequireContext(ContextType.Guild)]
         public async Task TrustUserAsync(SocketGuildUser user) {}
 
         [Command("newcustomcommand")]
-        [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+        [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
             GuildCommand command = new GuildCommand(name);
@@ -202,7 +202,7 @@ namespace Orikivo
         }
 
         [Command("deletecustomcommand")]
-        [BindTo(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+        [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task DeleteCustomCommandAsync(string name)
         {
             if (Context.Server.Options.Commands.Any(x => x.Name.ToLower() == name.ToLower()))
@@ -215,7 +215,7 @@ namespace Orikivo
         }
 
         [Command("closereport")]
-        [BindTo(TrustLevel.Dev)]
+        [Access(TrustLevel.Dev)]
         public async Task SetReportStatusAsync(int id, string reason = null)
         {
             if (Context.Global.Reports.Contains(id))
@@ -234,8 +234,8 @@ namespace Orikivo
         }
 
         [Cooldown(300)]
-        [RequireUserAccount]
-        [ArgSeparatorChar(',')]
+        [RequireUser]
+        [ArgSeparator(',')]
         [Command("report"), Priority(1)]
         [Summary("Create a **Report** for a specified **Command**.")]
         public async Task ReportAsync([Summary("The **Command** to report.")]string context, string title, string content, params ReportTag[] tags)
@@ -266,7 +266,7 @@ namespace Orikivo
             // TODO: Create an easier way to handle group commands that can execute without a subvalue.
             [Command("")]
             [Cooldown(10)]
-            [RequireUserAccount]
+            [RequireUser]
             [Summary("A **CasinoType** activity that randomly offers a reward value.")]
             public async Task GimiAsync()
             {
@@ -280,14 +280,14 @@ namespace Orikivo
             }
 
             [Command("risk"), Priority(0)]
-            [RequireUserAccount]
+            [RequireUser]
             public async Task GetGimiRiskAsync()
             {
                 //await Context.Channel.SendMessageAsync($"> Your **Risk** is currently set to **{Context.Account.Gimi.Risk}**%.");
             }
 
             [Command("risk"), Priority(1)]
-            [RequireUserAccount]
+            [RequireUser]
             public async Task SetGimiRiskAsync(int risk)
             {
                 //Context.Account.Gimi.SetRisk(risk);
@@ -295,14 +295,14 @@ namespace Orikivo
             }
 
             // find names that sound and work better.
-            [RequireUserAccount]
+            [RequireUser]
             [Command("earn"), Priority(0)]
             public async Task SetGimiEarnAsync()
             {
                 //await Context.Channel.SendMessageAsync($"> Your **Earn** is currently set to {Context.Account.Gimi.Earn}.");
             }
 
-            [RequireUserAccount]
+            [RequireUser]
             [Command("earn"), Priority(1)]
             public async Task SetGimiEarnAsync(int earn)
             {
@@ -310,7 +310,7 @@ namespace Orikivo
                 //await Context.Channel.SendMessageAsync($"> Your **Earn** has been set to **{Context.Account.Gimi.Earn}**.");
             }
 
-            [RequireUserAccount]
+            [RequireUser(AccountHandling.ReadOnly)]
             [Command("slots")]
             public async Task GetGimiSlotsAsync()
             {
@@ -318,7 +318,7 @@ namespace Orikivo
             }
 
             [Command("clear")]
-            [RequireUserAccount]
+            [RequireUser]
             [Cooldown(86400)]
             public async Task RegenGimiSlotsAsync()
             {
@@ -331,14 +331,14 @@ namespace Orikivo
         public class StatsGroup : OriModuleBase<OriCommandContext>
         {
             [Command("")]
-            [RequireUserAccount]
+            [RequireUser]
             [Summary("Get information on all of the generic stats stored.")]
             public async Task GetStatsAync()
             {
                 await Context.Channel.SendMessageAsync($"**Commands Used**: {Context.Account.GetStat(Stat.CommandsUsed)}");
             }
 
-            [RequireUserAccount]
+            [RequireUser]
             [Command("gimi")]
             [Summary("Get all of the stats related to **Gimi**.")]
             public async Task GetGimiStatsAsync()
@@ -374,14 +374,14 @@ namespace Orikivo
 
         [Command("profile"), Alias("pf")]
         [Summary("Gets the **OriUser** object from yourself.")]
-        [RequireUserAccount]
+        [RequireUser]
         public async Task GetUserTestAsync()
         {
             await Context.Channel.SendMessageAsync(Context.Account.ToString());
         }
 
         // TODO: Create a context system to allow for getting specific option values alongside being able to set them.
-        [RequireUserAccount]
+        [RequireUser]
         [Command("options"), Alias("config", "cfg")]
         [Summary("Returns all of your customized preferences.")]
         public async Task GetUserOptionsAsync()
@@ -403,7 +403,7 @@ namespace Orikivo
 
         [Command("guildprofile"), Alias("server", "gpf")]
         [Summary("Gets the **OriGuild** object for the current **SocketGuild**.")]
-        [RequireUserAccount]
+        [RequireUser]
         public async Task GetGuildTestAsync()
         {
             await Context.Channel.SendMessageAsync(Context.Server.ToString());

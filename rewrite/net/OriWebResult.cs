@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 
-namespace Orikivo
+namespace Orikivo.Net
 {
     // the result of a call made with OriWebClient
     public class OriWebResult

@@ -3,8 +3,9 @@ using System.Threading;
 
 namespace Orikivo
 {
+    // NOTE: This was designed by another person from StackOverflow.
     /// <summary>
-    /// A static provider that allows for thread-safe random construction.
+    /// A static provider that allows for the thread-safe usage of <see cref="Random"/>.
     /// </summary>
     public static class RandomProvider
     {

@@ -3,7 +3,6 @@
     // TODO: Determine the varying types of experience that can exist.
     public enum ExpType
     {
-        Global = 1,
-        Guild = 2
+        Global = 1
     }
 }

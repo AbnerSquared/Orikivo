@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace Orikivo
+namespace Orikivo.Net
 {
     public interface IHttpRateLimit
     {
-        Task<bool> CanRequestAsync(HttpMethodType requestType, string url);
+        Task<bool> CanRequestAsync(HttpMethod requestType, string url);
         Task OnSuccessAsync(OriWebResult result);
     }
 }

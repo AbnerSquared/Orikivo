@@ -29,7 +29,7 @@ namespace Orikivo
         /// <summary>
         /// The value used to find the command matching this object.
         /// </summary>
-        public string Id => ContextUtils.ConcatFamilyTree(Family);
+        public string Id => ContextUtils.ConcatFamilyTree(Family, Type);
 
         public string Name { get; }
 

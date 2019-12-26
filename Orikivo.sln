@@ -5,9 +5,13 @@ VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo", "Orikivo.csproj", "{0F1F10C1-F166-4D56-B8E7-D41279EDC987}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Ascii", "..\Orikivo.Ascii\Orikivo.Ascii.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "..\Orikivo.Ascii\Orikivo.Text.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Drawing", "..\Orikivo.Drawing\Orikivo.Drawing.csproj", "{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Gaming", "..\Orikivo.Gaming\Orikivo.Gaming.csproj", "{A4F80A79-58F4-4605-8525-4D1378FD780C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oscii", "..\Oscii\Oscii.csproj", "{D9AC7F46-1BD2-4540-A96B-5A9CAB0B1ED6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +31,14 @@ Global
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9AC7F46-1BD2-4540-A96B-5A9CAB0B1ED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9AC7F46-1BD2-4540-A96B-5A9CAB0B1ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9AC7F46-1BD2-4540-A96B-5A9CAB0B1ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9AC7F46-1BD2-4540-A96B-5A9CAB0B1ED6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

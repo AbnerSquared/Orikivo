@@ -31,7 +31,7 @@ namespace Orikivo
             Dictionary<string, int> stats,
             Dictionary<string, MeritData> merits,
             Dictionary<string, int> upgrades,
-            Dictionary<string, BoosterData> boosters,
+            Dictionary<string, BoostData> boosters,
             Dictionary<string, DateTime> cooldowns,
             UserOptions options)
         {
@@ -46,7 +46,7 @@ namespace Orikivo
             Stats = stats ?? new Dictionary<string, int>();
             Merits = merits ?? new Dictionary<string, MeritData>();
             Upgrades = upgrades ?? new Dictionary<string, int>();
-            Boosters = boosters ?? new Dictionary<string, BoosterData>();
+            Boosters = boosters ?? new Dictionary<string, BoostData>();
             Cooldowns = cooldowns ?? new Dictionary<string, DateTime>();
             ProcessCooldowns = new Dictionary<string, DateTime>();
             Options = options ?? UserOptions.Default;
@@ -67,7 +67,7 @@ namespace Orikivo
             Merits = new Dictionary<string, MeritData>();
             Upgrades = new Dictionary<string, int>();
             Items = new Dictionary<string, ItemData>();
-            Boosters = new Dictionary<string, BoosterData>();
+            Boosters = new Dictionary<string, BoostData>();
             Options = UserOptions.Default;
         }
 
@@ -141,7 +141,7 @@ namespace Orikivo
         /// All information about boosters that the user currently has.
         /// </summary>
         [JsonProperty("boosters")]
-        public Dictionary<string, BoosterData> Boosters { get; }
+        public Dictionary<string, BoostData> Boosters { get; }
 
         [JsonProperty("items")]
         public Dictionary<string, ItemData> Items { get; }
@@ -298,17 +298,19 @@ namespace Orikivo
         /// <summary>
         /// Sets or updates a cooldown for a user.
         /// </summary>
-        public void SetCooldown(CooldownType type, string id, double seconds)
+        public void SetCooldown(CooldownType type, string id, TimeSpan duration)
         {
+            DateTime expiresOn = DateTimeUtils.GetTimeIn(duration);
             string key = $"{type.ToString().ToLower()}:{id}";
+
             if (type.EqualsAny(CooldownType.Command, CooldownType.Global))
             {
-                if (!ProcessCooldowns.TryAdd(key, DateTimeUtils.GetTimeIn(seconds)))
-                    ProcessCooldowns[key] = DateTimeUtils.GetTimeIn(seconds);
+                if (!ProcessCooldowns.TryAdd(key, expiresOn))
+                    ProcessCooldowns[key] = expiresOn;
             }
 
-            if (!Cooldowns.TryAdd(key, DateTimeUtils.GetTimeIn(seconds)))
-                Cooldowns[key] = DateTimeUtils.GetTimeIn(seconds);
+            if (!Cooldowns.TryAdd(key, expiresOn))
+                Cooldowns[key] = expiresOn;
         }
 
         /// <summary>
@@ -334,8 +336,9 @@ namespace Orikivo
         }
 
         public override bool Equals(object obj)
-            => ReferenceEquals(null, obj) || obj == null || GetType() != obj.GetType() ? false :
-            ReferenceEquals(this, obj) ? true : Equals(obj as IJsonEntity);
+            => obj is null || obj == null || GetType() != obj.GetType() ?
+            false : ReferenceEquals(this, obj) ?
+            true : Equals(obj as IJsonEntity);
 
         public bool Equals(IJsonEntity obj)
             => Id == obj.Id;

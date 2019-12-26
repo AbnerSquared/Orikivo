@@ -13,10 +13,10 @@ namespace Orikivo
         {
             Task.Run(async () =>
             {
-                OriConsoleConfig oriConsoleConfig = OriConsoleConfig.Default;
-                oriConsoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
-                oriConsoleConfig.BackgroundColor = ConsoleColor.Black;
-                oriConsoleConfig.TextColor = ConsoleColor.White;
+                ConsoleConfig consoleConfig = ConsoleConfig.Default;
+                consoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
+                consoleConfig.BackgroundColor = ConsoleColor.Black;
+                consoleConfig.TextColor = ConsoleColor.White;
 
                 // A simple little boot tune for fun:
                 /*
@@ -30,19 +30,21 @@ namespace Orikivo
                 */
 
                 OriClientBuilder builder = new OriClientBuilder();
-                builder.ConsoleConfig = oriConsoleConfig;
-                builder.LogConfig = OriLogConfig.Default;
+                builder.ConsoleConfig = consoleConfig;
+                builder.LogConfig = LogConfig.Default;
+
                 builder.AddTypeReader<GameMode>(new GameModeTypeReader());
                 builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
                 builder.AddTypeReader<GuildEvent>(new GuildEventTypeReader());
+                builder.AddTypeReader<RasterizerType>(new RasterizerTypeTypeReader());
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
 
-                OriClient oriClient = builder.Build();
-                await oriClient.SetGameAsync("Minecraft", activity: ActivityType.Listening);
-                await oriClient.SetStatusAsync(UserStatus.DoNotDisturb);
-                await oriClient.StartAsync();
+                OriClient client = builder.Build();
+                await client.SetGameAsync("Minecraft", activity: ActivityType.Listening);
+                await client.SetStatusAsync(UserStatus.DoNotDisturb);
+                await client.StartAsync();
             }).GetAwaiter().GetResult();
         }
     }

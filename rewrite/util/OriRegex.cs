@@ -39,6 +39,7 @@ namespace Orikivo
         {
             capturedEmotes = new List<Emote>();
             MatchCollection matches = new Regex(EmoteParsePattern).Matches(content);
+
             foreach (Match match in matches)
                 if (match.Success)
                     capturedEmotes.Add(Emote.Parse(match.Value));
@@ -71,7 +72,5 @@ namespace Orikivo
             matches.ToList().ForEach(x => { Console.WriteLine(x.Value.Trim()); args.Add(x.Value.Trim()); });
             return match.Success ? args : null;
         }
-
-
     }
 }
