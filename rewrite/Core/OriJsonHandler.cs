@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -41,8 +42,7 @@ namespace Orikivo
             {
                 using (JsonWriter writer = new JsonTextWriter(stream))
                 {
-                    // ??=
-                    serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
+                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
                     serializer.Serialize(stream, obj);
                 }
             }
@@ -117,9 +117,15 @@ namespace Orikivo
             return tmp;
         }
 
+        public static string GetJsonPath<T>(ulong id) where T : IJsonEntity
+            => GetDirectoryIndex<T>() + string.Format(JsonFrame, id);
+
+        public static bool JsonExists<T>(ulong id) where T : IJsonEntity
+            => File.Exists(GetJsonPath<T>(id));
+
         private static string GetDirectoryIndex<T>()
         {
-            if (typeof(T) == typeof(OriUser))
+            if (typeof(T) == typeof(User))
                 return Directory.CreateDirectory(@"..\data\users\").FullName;
 
             if (typeof(T) == typeof(OriGuild))

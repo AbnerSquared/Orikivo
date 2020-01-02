@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,15 +44,15 @@ namespace Orikivo
                 throw new Exception("The game session has already started.");
 
             await AddReceiverAsync(context.Guild);
-            Identity user = new Identity(context.Account.Id, context.Account.Name, context.Guild.Id, IdentityTag.Host);
+            Identity user = new Identity(context.Account.Id, context.Account.Username, context.Guild.Id, IdentityTag.Host);
             await AddUserAsync(user);
             IsInitialized = true;
         }
 
-        internal async Task AddUserAsync(OriUser user, SocketGuild guild)
+        internal async Task AddUserAsync(User user, SocketGuild guild)
         {
             await AddReceiverAsync(guild);
-            await AddUserAsync(new Identity(user.Id, user.Name, guild.Id));
+            await AddUserAsync(new Identity(user.Id, user.Username, guild.Id));
         }
 
         private async Task AddUserAsync(Identity user)

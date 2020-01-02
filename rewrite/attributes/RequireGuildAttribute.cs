@@ -4,6 +4,32 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    [Flags]
+    public enum HuskFlag
+    {
+
+    }
+
+    public class RequireHuskAttribute : PreconditionAttribute
+    {
+        public HuskFlag Flag { get; }
+
+        public RequireHuskAttribute(HuskFlag flag)
+        {
+            Flag = flag;
+        }
+
+        public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
+        {
+            OriCommandContext Context = context as OriCommandContext;
+            Context.Container.GetOrAddUser(Context.User);
+
+            // Context.Account.Husk;
+
+            return PreconditionResult.FromSuccess();
+        }
+    }
+
     /// <summary>
     /// A precondition that marks a command to require the guild it was executed in to have an account.
     /// </summary>

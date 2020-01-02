@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Orikivo
             return null;
         }
 
-        public IReadOnlyList<MeritInfo> Merits { get; private set; }
+        public IReadOnlyList<Merit> Merits { get; private set; }
     }
 
     /// <summary>
@@ -140,7 +141,7 @@ namespace Orikivo
 
         // Gets the prefix that the client should be looking for.
         private string GetContextPrefix(OriCommandContext Context)
-            => Context.Account?.Options.Prefix ?? Context.Server?.Options.Prefix ?? Context.Global.Prefix;
+            => Context.Account?.Config.Prefix ?? Context.Server?.Options.Prefix ?? Context.Global.Prefix;
 
         // PROCESS: 1. Check for cooldowns. 2. Check within custom commands. 3. Attempt to execute, catch if there was an exception error.
         

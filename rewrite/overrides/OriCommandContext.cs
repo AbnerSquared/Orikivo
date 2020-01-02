@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,8 +13,28 @@ namespace Orikivo
     /// </summary>
     public class OriCommandContext : SocketCommandContext
     {
-        public OriUser Account { get; internal set; } // TODO: Override SocketUser with OriUser variant.
-        public OriGuild Server { get; internal set; }
+        //public User Account { get; internal set; }
+        public User Account
+        {
+            get
+            {
+                Container.TryGetUser(User.Id, out User u);
+                return u;
+            }
+            set => Container.AddOrUpdateUser(User.Id, value);
+        }
+
+        //public OriGuild Server { get; internal set; }
+        public OriGuild Server
+        {
+            get
+            {
+                Container.TryGetGuild(Guild.Id, out OriGuild s);
+                return s;
+            }
+            set => Container.AddOrUpdateGuild(Guild.Id, value);
+        }
+
         public OriGlobal Global { get; }
         public OriJsonContainer Container { get; }
 
@@ -26,21 +47,12 @@ namespace Orikivo
             Global = Container.Global;
             if (Guild != null)
             {
-                Server = Container.GetOrAddGuild(Guild);
+                Container.GetOrAddGuild(Guild);
                 Server.TryUpdateName(Guild.Name);
                 Server.TryUpdateOwner(Guild.OwnerId);
                 Console.WriteLine("[Debug] -- Guild account found or built. --");
             }
-            if (User != null)
-            {
-                if (Container.TryGetUser(User.Id, out OriUser account))
-                {
-                    Account = account;
-                    Console.WriteLine("[Debug] -- User account found. --");
-                }
-                else
-                    Console.WriteLine("[Debug] -- User account not found. --");
-            }
+            Console.WriteLine($"[Debug] -- User {(Account == null ? "does not have an" : "has an")} account. --");
         }
     }
 }

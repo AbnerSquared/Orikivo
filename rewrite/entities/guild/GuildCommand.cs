@@ -20,7 +20,7 @@ namespace Orikivo
         }
 
         [JsonProperty("author")]
-        public OriAuthor Author { get; }
+        public Author Author { get; }
 
         [JsonProperty("name")]
         public string Name { get; }

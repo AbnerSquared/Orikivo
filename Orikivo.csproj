@@ -30,19 +30,19 @@
   <ItemGroup>
     <Compile Remove="legacy\**" />
     <Compile Remove="Overhaul\**" />
-    <Compile Remove="rewrite\entities\discord\**" />
+    <Compile Remove="rewrite\Entities\discord\**" />
     <Compile Remove="rewrite\lobby\**" />
     <Compile Remove="source\**" />
     <Compile Remove="Systems\**" />
     <EmbeddedResource Remove="legacy\**" />
     <EmbeddedResource Remove="Overhaul\**" />
-    <EmbeddedResource Remove="rewrite\entities\discord\**" />
+    <EmbeddedResource Remove="rewrite\Entities\discord\**" />
     <EmbeddedResource Remove="rewrite\lobby\**" />
     <EmbeddedResource Remove="source\**" />
     <EmbeddedResource Remove="Systems\**" />
     <None Remove="legacy\**" />
     <None Remove="Overhaul\**" />
-    <None Remove="rewrite\entities\discord\**" />
+    <None Remove="rewrite\Entities\discord\**" />
     <None Remove="rewrite\lobby\**" />
     <None Remove="source\**" />
     <None Remove="Systems\**" />
@@ -83,6 +83,10 @@
     <ProjectReference Include="..\Orikivo.Ascii\Orikivo.Text.csproj" />
     <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
     <ProjectReference Include="..\Orikivo.Gaming\Orikivo.Gaming.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="final\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties assets_4fonts_4legacy_1json__JsonSchema="http://json-schema.org/draft-04/schema" /></VisualStudio></ProjectExtensions>

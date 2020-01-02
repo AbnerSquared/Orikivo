@@ -37,9 +37,11 @@ namespace Orikivo
                 builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
                 builder.AddTypeReader<GuildEvent>(new GuildEventTypeReader());
                 builder.AddTypeReader<RasterizerType>(new RasterizerTypeTypeReader());
+                builder.AddTypeReader<MeritGroup>(new MeritGroupTypeReader());
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
+                builder.AddModule<WorldModule>();
 
                 OriClient client = builder.Build();
                 await client.SetGameAsync("Minecraft", activity: ActivityType.Listening);

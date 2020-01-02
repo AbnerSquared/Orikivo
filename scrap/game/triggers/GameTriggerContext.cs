@@ -10,7 +10,7 @@ namespace Orikivo
     {
         public GameTriggerContext(SocketUser user) => throw new NotImplementedException();
 
-        public OriAuthor Author { get; }
+        public Author Author { get; }
         public string GameId { get; }
         public ulong ChannelId { get; }
         public ulong MessageId { get; }

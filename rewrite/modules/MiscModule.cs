@@ -12,6 +12,7 @@ using Orikivo.Drawing;
 using SysColor = System.Drawing.Color;
 using Color = Discord.Color;
 using System.Reflection;
+using Orikivo.Unstable;
 
 namespace Orikivo
 {
@@ -273,8 +274,8 @@ namespace Orikivo
                 GimiService gimi = new GimiService(Context.Account);
                 int returns = gimi.Get();
                 Context.Account.SetStat(returns > 0 ? GimiStat.CurrentLossStreak : GimiStat.CurrentWinStreak, 0);
-                Context.Account.UpdateStat(returns > 0 ? GimiStat.CurrentWinStreak : GimiStat.CurrentLossStreak, 1);
-                Context.Account.UpdateStat(returns > 0 ? GimiStat.TimesWon : GimiStat.TimesLost, 1);
+                //Context.Account.UpdateStat(returns > 0 ? GimiStat.CurrentWinStreak : GimiStat.CurrentLossStreak, 1);
+                //Context.Account.UpdateStat(returns > 0 ? GimiStat.TimesWon : GimiStat.TimesLost, 1);
             
                 await Context.Channel.SendMessageAsync($"You got: {returns}");
             }
@@ -327,6 +328,7 @@ namespace Orikivo
             }
         }
 
+        /*
         [Group("stats")]
         public class StatsGroup : OriModuleBase<OriCommandContext>
         {
@@ -355,7 +357,7 @@ namespace Orikivo
 
                 await Context.Channel.SendMessageAsync(sb.ToString());
             }
-        }
+        }*/
 
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]
@@ -374,7 +376,7 @@ namespace Orikivo
 
         [Command("profile"), Alias("pf")]
         [Summary("Gets the **OriUser** object from yourself.")]
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         public async Task GetUserTestAsync()
         {
             await Context.Channel.SendMessageAsync(Context.Account.ToString());
@@ -386,17 +388,17 @@ namespace Orikivo
         [Summary("Returns all of your customized preferences.")]
         public async Task GetUserOptionsAsync()
         {
-            UserOptions options = Context.Account.Options;
+            UserConfig config = Context.Account.Config;
             // TODO: Separate into a formatting class.
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"> **Prefix** `{options.Prefix ?? "null"}`");
+            sb.AppendLine($"> **Prefix** `{config.Prefix ?? "null"}`");
             sb.AppendLine($"> This is an optional property that can be used as your personal prefix with **Orikivo.**");
             sb.AppendLine();
-            sb.AppendLine($"> **Privacy** `{options.Privacy}`");
+            sb.AppendLine($"> **Notifier** `{config.Notifier}`");
             sb.AppendLine($"> This property defines how public your Discord account is.");
             sb.AppendLine();
-            sb.AppendLine($"> **Nickname** `{options.Nickname ?? "null"}`");
-            sb.AppendLine($"> This property defines an optional name that can be set across **Orikivo**.");
+            //sb.AppendLine($"> **Nickname** `{options.Nickname ?? "null"}`");
+            //sb.AppendLine($"> This property defines an optional name that can be set across **Orikivo**.");
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }

@@ -4,6 +4,6 @@ namespace Orikivo
 {
     public interface ICasinoResult
     {
-        List<StatUpdatePacket> StatsToChange { get; set; }
+        //List<StatUpdatePacket> StatsToChange { get; set; }
     }
 }

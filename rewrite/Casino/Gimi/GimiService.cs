@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Orikivo.Unstable;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,17 +8,17 @@ namespace Orikivo
     // TODO: Create CasinoService mechanics.
     public class GimiService
     {
-        public GimiService(OriUser user)
+        public GimiService(User user)
         {
-            Risk = user.GetAttribute(GimiAttribute.Risk);
-            Earn = user.GetAttribute(GimiAttribute.Earn);
-            RiskOverload = user.GetUpgrade(GimiUpgrade.RiskOverload);
-            EarnExpander = user.GetUpgrade(GimiUpgrade.MaxExpander);
+            //Risk = user.GetAttribute(GimiAttribute.Risk);
+            //Earn = user.GetAttribute(GimiAttribute.Earn);
+            //RiskOverload = user.GetUpgrade(GimiUpgrade.RiskOverload);
+            //EarnExpander = user.GetUpgrade(GimiUpgrade.MaxExpander);
             MaxEarn = GetMaxEarn();
             MaxRisk = GetMaxRisk();
-            GoldSlot = user.GetAttribute(GimiAttribute.GoldSlot); // the number that is its winnable value.
-            CurseSlot = user.GetAttribute(GimiAttribute.CurseSlot); // the number that is its winnable value.
-            WinDir = user.GetAttribute(GimiAttribute.WinDirection) == 1;
+            //GoldSlot = user.GetAttribute(GimiAttribute.GoldSlot); // the number that is its winnable value.
+            //CurseSlot = user.GetAttribute(GimiAttribute.CurseSlot); // the number that is its winnable value.
+            //WinDir = user.GetAttribute(GimiAttribute.WinDirection) == 1;
             if (GoldSlot == 0)
                 GoldSlot = GetSlot();
             if (CurseSlot == 0)

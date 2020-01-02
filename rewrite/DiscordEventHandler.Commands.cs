@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,27 +25,27 @@ namespace Orikivo
             string baseMsg = GetBaseMessage(Context.Message);
 
             // Check for Global Cooldown
-            if (Context.Account?.ProcessCooldowns.ContainsKey(Cooldown.GLOBAL) ?? false)
-                await Context.Channel.WarnCooldownAsync(Context.Account, Context.Account.ProcessCooldowns[Cooldown.GLOBAL]);
+            if (Context.Account?.InternalCooldowns.ContainsKey(Cooldown.GLOBAL) ?? false)
+                await Context.Channel.WarnCooldownAsync(Context.Account, Context.Account.InternalCooldowns[Cooldown.GLOBAL]);
 
             if (Context.Account != null)
             {
                 // check command for cooldowns.
                 InfoService helperService = new InfoService(_commandService, Context.Global);
                 // in the case of custom command cooldowns, you would need to ignore them here;
-                foreach (KeyValuePair<string, DateTime> pair in Context.Account.GetCooldownsFor(CooldownType.Command))
+                foreach (Unstable.CooldownData data in Context.Account.GetCooldownsOfType(CooldownType.Command))
                 {
-                    List<string> aliases = helperService.GetAliasesFor(pair.Key);
+                    List<string> aliases = helperService.GetAliasesFor(data.Id);
                     if (aliases.Count == 0)
-                        aliases.Add(pair.Key.Substring("command:".Length));
+                        aliases.Add(data.Id.Substring("command:".Length));
 
                     foreach (string alias in aliases)
                     {
                         if (baseMsg == GetContextPrefix(Context) + alias)
                         {
-                            if (Context.Account.IsOnCooldown(pair.Key))
+                            if (Context.Account.IsOnCooldown(data.Id))
                             {
-                                await Context.Channel.WarnCooldownAsync(Context.Account, pair);
+                                await Context.Channel.WarnCooldownAsync(Context.Account, data);
                                 return;
                             }
                         }
@@ -73,10 +74,8 @@ namespace Orikivo
             
             // if not on a cooldown OR has a custom command within, proceed with default execution.
             // CONCEPT: PERFORM a test run, in which it checks if everything correctly runs before actually committing to it
-            // CONCEPT: INSTEAD of sending the messages in the command, send it in the results?
+            // CONCEPT: INSTEAD of sending the messages in the command, send it an IResult class called CommandResult?
             IResult result = await _commandService.ExecuteAsync(Context, argPos, _provider, MultiMatchHandling.Exception);
-            //if (!((ExecuteResult)result).IsSuccess)
-            //    await Context.Channel.CatchAsync(((ExecuteResult)result).Exception);
         }
 
         private string GetBaseMessage(SocketUserMessage message)
@@ -88,63 +87,70 @@ namespace Orikivo
         {
             await context.Channel.SendMessageAsync(command.Message.Build());
         }
-
         /// <summary>
         /// These are the set of tasks that are executed when a user successfully calls a command.
         /// </summary>
-        private async Task OnCommandExecutedAsync(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
+        private async Task OnCommandExecutedAsync(Optional<CommandInfo> info, ICommandContext context, IResult result)
         {
             OriCommandContext Context = context as OriCommandContext;
 
+            Context.Account?.SetCooldown(CooldownType.Global, "base", TimeSpan.FromSeconds(1));
+
             if (!result.IsSuccess)
             {
-                // TODO: Since an Exception is never thrown from here,
-                // we need to find a workaround outside of _commandService.ExecuteAsync();
-                // A solution could be to execute all commands from a command that catches exceptions to display.
-                //_logger.Debug("Command.Failed");
-                await Context.Channel.ThrowAsync(result.ErrorReason);
-                //_logger.WriteLine(result.ErrorReason);
+                if (result is ExecuteResult)
+                    if (!result.IsSuccess)
+                        await Context.Channel.CatchAsync(((ExecuteResult)result).Exception);
                 return;
             }
 
             //_logger.Debug("Command.Success");
 
             /* Determine if there's a cooldown to be set. */
-            if (commandInfo.IsSpecified)
+            if (info.IsSpecified)
             {
-                CooldownAttribute attribute = commandInfo.Value.Attributes.GetAttribute<CooldownAttribute>();
-                if (attribute != null)
+                CooldownAttribute cooldown = info.Value.Attributes.GetAttribute<CooldownAttribute>();
+                if (cooldown != null)
                 {
-                    Context.Account?.SetCooldown(CooldownType.Command, $"{(Checks.NotNull(commandInfo.Value.Name) ? commandInfo.Value.Name : commandInfo.Value.Module.Group)}+{commandInfo.Value.Priority}", attribute.Duration);
-                    //_logger.Debug("Reset cooldown.");
+                    string commandId = $"{(Checks.NotNull(info.Value.Name) ? info.Value.Name : info.Value.Module.Group)}+{info.Value.Priority}";
+                    Context.Account?.SetCooldown(CooldownType.Command, commandId, cooldown.Duration);
                 }
 
-                RequireUserAttribute requireUser = commandInfo.Value.Attributes.GetAttribute<RequireUserAttribute>();
-                if (requireUser != null)
+                RequireUserAttribute requireUser = info.Value.Preconditions.GetAttribute<RequireUserAttribute>();
+                if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false || cooldown != null)
                 {
-                    if (requireUser.Handling == AccountHandling.ReadWrite || attribute != null)
-                    {
-                        // SAVING
-                        //if (Context.Account != null)
-                        //    await _invoker.InvokeUserUpdatedAsync(Context.Account);
+                    Context.Container.TrySaveUser(Context.Account);
+                    await CheckStatsAsync(Context, Context.Account);
+                }
+                //else if (requireUser?.Handling == AccountHandling.ReadOnly)
+                //    if (!OriJsonHandler.JsonExists<User>(Context.Account.Id))
+                //        Context.Container.TrySaveUser(Context.Account);
 
-                        // CONCEPT: Instead of configuring users at handle, we need to be able to track user updates.
-                        // A solution would be to use a UserManager.UpdateUser(UserProperties), which could change all the values
-                        // there and keep track of them to place into a list, from which can be invoked for an event.
-
-                        OriJsonHandler.Save(Context.Container.Global, "global.json");
+                RequireGuildAttribute requireGuild = info.Value.Preconditions.GetAttribute<RequireGuildAttribute>();
+                if (requireGuild != null)
+                {
+                    if (requireGuild.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly))
                         Context.Container.TrySaveGuild(Context.Server);
-                        //Context.Account?.UpdateStat(Stat.CommandsUsed, 1);
-
-                        // TODO: Create UserHandler.CompareCriteriaAsync(); 
-                        //await _merits.CheckUserAsync(Context.Account);
-                        Context.Container.TrySaveUser(Context.Account);
-                    }
+                    //else if (requireGuild.Handling == AccountHandling.ReadOnly)
+                    //    if (!OriJsonHandler.JsonExists<OriGuild>(Context.Server.Id))
+                    //        Context.Container.TrySaveGuild(Context.Server);
                 }
+
+                // RequireGlobalAttribute
+                OriJsonHandler.Save(Context.Container.Global, "global.json");
             }
+        }
 
+        private async Task CheckStatsAsync(OriCommandContext context, User user)
+        {
+            var matchedMerits = GameDatabase.Merits.Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
+            if (matchedMerits.Count() > 0)
+            {
+                foreach (KeyValuePair<string, Merit> merit in matchedMerits)
+                    user.Merits.Add(merit.Key, merit.Value.GetData());
 
-            
+                await context.Channel.NotifyMeritAsync(user, matchedMerits);
+            }
         }
     }
 }

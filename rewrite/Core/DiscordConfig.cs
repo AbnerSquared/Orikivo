@@ -34,7 +34,7 @@ namespace Orikivo
                     CaseSensitiveCommands = false,
                     DefaultRunMode = RunMode.Async,
                     LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
-                    ThrowOnError = true
+                    ThrowOnError = true, 
                     //QuotationMarkAliasMap = null
                 };
                 return serviceConfig;

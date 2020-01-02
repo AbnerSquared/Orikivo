@@ -24,7 +24,7 @@ namespace Orikivo
             {
                 if (_autoBuild)
                 {
-                    Context.Account = Context.Container.GetOrAddUser(Context.User);
+                    Context.Container.GetOrAddUser(Context.User);
                     return PreconditionResult.FromSuccess();
                 }
 

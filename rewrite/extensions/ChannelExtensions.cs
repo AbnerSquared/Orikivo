@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,16 +11,19 @@ namespace Orikivo
 {
     public static class ChannelExtensions
     {
+        public static async Task NotifyMeritAsync(this ISocketMessageChannel channel, User user, IEnumerable<KeyValuePair<string, Merit>> merits)
+            => await MessageUtils.NotifyMeritAsync(channel, user, merits);
+
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, OriUser user, KeyValuePair<string, DateTime> cooldown)
+        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, User user, Unstable.CooldownData cooldown)
             => await MessageUtils.WarnCooldownAsync(channel, user, cooldown);
 
         /// <summary>
         /// Attempts to warn a user about a global cooldown preventing any command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, OriUser user, DateTime globalExpires)
+        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel, User user, DateTime globalExpires)
             => await MessageUtils.WarnCooldownAsync(channel, user, globalExpires);
 
         // TODO: Create custom error embed presets and default to this if there isn't one set.
