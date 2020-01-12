@@ -1,120 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-using Match = System.Text.RegularExpressions.Match;
+
 namespace Orikivo
 {
-    // TODO: Handle internal indexes, priority, etc.
-    // TODO: Simplify the Regex, if possible.
-    // this class is used to help read complete regex searches of help context
-    public struct ContextInfo
-    {
+    // TODO: Handle guide parsing ==> :name OR guide name
+    public struct InfoContext
+    {   
+        //                                    MODULES            GROUPS            ROOT        INDEX              TYPE       PARAM                 PAGE
+        private const string MAIN_PARSER = @"^((?:[A-Za-z_]+\.)*)((?:[A-Za-z_]+ )*)([A-Za-z_]+)(?:(?:\+(\d{1,3}))?([\.\*\(]?)([A-Za-z_]*)\)?)?(?: +(\d{1,3}))? *"; // Regex.Match
+        /*
+            Input: module.module.module.group group group command+1(param) 2
+
+            module
+                module
+                    module
+                        group
+                            group
+                                group command+1(param)
+            PAGE 2
+
+            Group 0: Match ==> module.module.module.group group group command+1(param) 2
+            Group 1: Modules ==> module.module.module.
+            Group 2: Groups ==> group group group
+            Group 3: Root ==> command
+            Group 4: Index ==> 1
+            Group 5: Type ==> (
+            Group 6: Parameter ==> param
+            Group 7: Page ==> 2
+         */
+        
+        private const string MODULE_PARSER = @"(?:([A-Za-z_]+)\.)*"; // Regex.Matches
+        private const string GROUP_PARSER = @"(?:([A-Za-z_]+) )*"; // Regex.Matches
+
         public string Content { get; private set; }
-        public bool IsSuccess { get; private set; }
-        public ContextError? Error { get; private set; }
-        public bool HasParameter => Checks.NotNull(Parameter);
-        public bool HasPriority => _priority.HasValue;
-        public bool HasRoot => Checks.NotNull(Root);
+        public bool IsSuccess => !Checks.NotNull(ErrorReason);
+
+        public string ErrorReason { get; private set; }
+
         public List<string> Modules { get; private set; }
         public List<string> Groups { get; private set; }
-        private string _root;
-        public string Root
-        {
-            get
-            {
-                StringBuilder sb = new StringBuilder();
 
-                if (Groups?.Count > 0)
-                    sb.Append($"{string.Join(' ', Groups)} ");
-
-                sb.Append(_root);
-
-                return sb.ToString();
-            }
-        }
-
+        public string Root { get; private set; }
         public string Parameter { get; private set; }
 
-        private int? _priority;
-        public int Priority => _priority ?? 0;
+        public InfoType? Type { get; private set; }
+        public int Priority { get; private set; }
+        public bool HasPriority { get; private set; }
+        public int Page { get; private set; }
 
-        private int? _index;
-        public int Index => _index ?? 0;
-
-        public ContextInfoType? Type { get; private set; }
-
-        public ContextSearchMethod? SearchFormat { get; private set; }
-
-        public static ContextInfo Parse(string content)
+        public static InfoContext Parse(string content)
         {
-            ContextInfo ctx = new ContextInfo();
+            InfoContext ctx = new InfoContext();
+            Match m = new Regex(MAIN_PARSER).Match(content);
 
-            if (!Checks.NotNull(content))
+            ctx.Content = content;
+
+            if (!m.Success)
             {
-                ctx.IsSuccess = false;
-                ctx.Error = ContextError.EmptyValue;
+                ctx.ErrorReason = ("The content specified failed to successfully parse.");
                 return ctx;
             }
 
-            content = content.ToLower();
+            ctx.Modules = new Regex(MODULE_PARSER)
+                .Matches(m.Groups[1].Value)
+                .Where(x => x.Success)
+                .Select(x => x.Groups[1].Value)
+                .ToList();
 
-            Match m = OriRegex.ParseContext(content);
+            ctx.Groups = new Regex(GROUP_PARSER)
+                .Matches(m.Groups[2].Value)
+                .Where(x => x.Success)
+                .Select(x => x.Groups[1].Value)
+                .ToList();
 
-            ctx.IsSuccess = m.Groups[0].Success;
-            if (ctx.IsSuccess)
-                ctx.Content = content;
+            ctx.Root = m.Groups[2].Value + m.Groups[3].Value;
 
-            ctx._index = int.TryParse(m.Groups[1].Value, out int i) ?
-                i : int.TryParse(m.Groups[3].Value, out i) ?
-                i : int.TryParse(m.Groups[8].Value, out i) ?
-                i : (int?)null;
+            ctx.HasPriority = m.Groups[4].Success;
 
+            if (ctx.HasPriority)
+                ctx.Priority = int.TryParse(m.Groups[4].Value, out int index) ? index : 0;
+            
+            
+            ctx.Type = GetTypeValue(m.Groups[5].Value);
 
-            ctx.SearchFormat = m.Groups[2].Success ?
-                ContextSearchMethod.All : m.Groups[10].Success ?
-                GetSearchFormat(m.Groups[10].Value) : (ContextSearchMethod?)null;
+            // If an overload index is specified AND the type (if specified) is not a command
+            if (ctx.Type.GetValueOrDefault(InfoType.Command) != InfoType.Command && m.Groups[4].Success)
+            {
+                ctx.ErrorReason = $"{ctx.Type?.ToString()}s does not support overload indexing.";
 
-            ctx.Modules = m.Groups[4].Success ?
-                OriRegex.GetContextModules(m.Groups[4].Value) : null;
+                return ctx;
+            }
 
-            ctx.Groups = m.Groups[5].Success ?
-                OriRegex.GetContextGroups(m.Groups[5].Value) : null;
+            ctx.Parameter = m.Groups[6].Value;
 
-            ctx._root = m.Groups[6].Value;
+            // If a parameter is specified AND the type (if specified) is not a command
+            if (ctx.Type.GetValueOrDefault(InfoType.Command) != InfoType.Command && Checks.NotNull(m.Groups[6].Value))
+            {
+                ctx.ErrorReason = $"{ctx.Type.ToString()}s does not support parameters.";
+                return ctx;
+            }
 
-            ctx.Type = GetType(m.Groups[7].Value);
-
-            ctx._priority = m.Groups[9].Success ?
-                int.Parse(m.Groups[9].Value) : (int?)null;
-
-            ctx.Parameter = m.Groups[11].Value;
+            ctx.Page = (int.TryParse(m.Groups[7].Value, out int page) ? page : 1) - 1;
 
             return ctx;
         }
 
-        public static ContextInfoType? GetType(string type)
-        {
-            if (!Checks.NotNull(type))
-                return null;
-
-            return type switch
+        private static InfoType? GetTypeValue(string marker)
+            => marker switch
             {
-                "m" => ContextInfoType.Module,
-                "g" => ContextInfoType.Group,
-                "c" => ContextInfoType.Command,
-                _ => throw new Exception("The specified HelperContextType does not exist."),
+                "." => InfoType.Module,
+                "*" => InfoType.Group,
+                "(" => InfoType.Command,
+                _ => null
             };
-        }
-
-        public static ContextSearchMethod GetSearchFormat(string format)
-        {
-            return format switch
-            {
-                "~" => ContextSearchMethod.List,
-                "*" => ContextSearchMethod.Verbose,
-                _ => ContextSearchMethod.Default,
-            };
-        }
     }
 }

@@ -17,18 +17,18 @@ namespace Orikivo
         public static string GetSeverityIcon(int reportCount)
             => reportCount >= CRITICAL_THRESHOLD ? CRITICAL_EMOJI : reportCount >= YIELD_THRESHOLD ? YIELD_EMOJI : STABLE_EMOJI;
 
-        public static string GetSeverityIcon(IDisplayInfo info)
+        public static string GetSeverityIcon(ContextNode info)
             => GetSeverityIcon(info.Reports.Where(x => x.State == ReportState.Open).Count());
 
-        public static ParameterMod GetMod(ParameterInfo parameter)
+        public static ParameterTag GetMod(ParameterInfo parameter)
         {
-            ParameterMod mod = 0;
+            ParameterTag mod = 0;
             if (parameter.IsOptional)
-                mod |= ParameterMod.Optional;
+                mod |= ParameterTag.Optional;
             if (parameter.IsRemainder)
-                mod |= ParameterMod.Trailing;
+                mod |= ParameterTag.Trailing;
             if (parameter.Type == typeof(SocketUser))
-                mod |= ParameterMod.Mentionable;
+                mod |= ParameterTag.Mentionable;
 
             return mod;
         }
@@ -53,6 +53,7 @@ namespace Orikivo
             return aliases;
         }
 
+        /*
         public static string WriteDisplayContent(GuildDisplayInfo info)
         {
             StringBuilder sb = new StringBuilder();
@@ -65,12 +66,12 @@ namespace Orikivo
             }
 
             return sb.ToString();
-        }
+        }*/
 
-        public static string WriteDisplayContent(ModuleDisplayInfo info)
+        public static string WriteDisplayContent(ModuleNode info)
         {
             StringBuilder sb = new StringBuilder();
-            if (!info.IsGroup)
+            if (!Checks.NotNull(info.Group))
             {
                 /* {ConcatFamilyTree(info.Family.Skip(1).ToList())} */
                 sb.AppendLine($"**{info.Name}**");
@@ -82,24 +83,30 @@ namespace Orikivo
                 if (info.Commands.Count > 0)
                 {
                     sb.AppendLine($"**Commands** {OriFormat.Subscript($"({info.Commands.Count})")}:");
-                    sb.AppendLine($"{string.Join(" ", info.Commands.Select(x => x.BlockName).Concat(info.Submodules.Where(x => x.IsGroup).Select(x => x.BlockName)).OrderBy(x => x[1]).ToList())}");
+                    sb.AppendJoin(" ", info.Commands
+                        .Select(x => $"`{x.Name}`")
+                        .Concat(info.Submodules.Where(x => Checks.NotNull(x.Group))
+                        .Select(x => $"`{x.Name}*`"))
+                        .OrderBy(x => x[1]));
                 }
-                IEnumerable<ModuleDisplayInfo> subs = info.Submodules.Where(x => x.IsGroup == false);
+
+                IEnumerable<ModuleNode> subs = info.Submodules.Where(x => !Checks.NotNull(x.Group));
                 if (subs.Count() > 0)
                 {
                     sb.AppendLine($"**Submodules** {OriFormat.Subscript($"({subs.Count()})")}:");
-                    sb.AppendLine($"{string.Join("\n", subs.Select(x => $"{GetSeverityIcon(x.Reports?.Count ?? 0)}**{x.Name}** {OriFormat.Subscript($"(+{x.TotalCommands})")}"))}");
+                    sb.AppendJoin("\n", subs
+                        .Select(x => $"{GetSeverityIcon(x.Reports?.Count ?? 0)}**{x.Name}** {OriFormat.Subscript($"(+{x.CommandCount})")}"));
                 }
             }
             else
             {
                 sb.AppendLine($"{(info.Aliases.Count > 0 ? $"[**{info.Name}**, {string.Join(", ", info.Aliases.OrderByDescending(x => x.Length))}]" : $"**{info.Name}**")}");
-                sb.AppendLine($"{string.Join("\n", info.Commands.Select(x => WriteCommandOverloads(x)))}");
+                sb.AppendJoin("\n", info.Commands.Select(x => WriteCommandOverloads(x)));
             }
             return sb.ToString();
         }
 
-        public static string WriteCommandOverloads(CommandDisplayInfo info)
+        public static string WriteCommandOverloads(CommandNode info)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(string.Join("\n", info.Overloads.Select(x =>
@@ -108,124 +115,21 @@ namespace Orikivo
                 // List<string> name = x.Name.Split(' ').ToList();
                 // string.Join(' ', name.Select(y => name.IndexOf(y) == (name.Count - 1) ? $"**{y}**" : y)
                 string fullName = x.Name;
-                if (x.IsInGroup)
+                if (Checks.NotNull(x.Group))
                 {
-                    fullName = info.GroupName;
+                    fullName = info.Group;
                     if (!string.IsNullOrWhiteSpace(x.Name))
                         fullName += $" {x.Name}";
                 }
                 List<string> name = fullName.Split(' ').ToList();
                 ob.Append($"> {string.Join(' ', name.Select(y => name.IndexOf(y) == (name.Count - 1) ? $"**{y}**" : y))}");
-                ob.Append($"{(info.HasMultiple ? OriFormat.Subscript($"+{x.Priority}") : "")}({string.Join(", ", x.Parameters.Select(y => y.SyntaxName))})");
+                ob.Append($"{(info.Overloads.Count > 1 ? OriFormat.Subscript($"+{x.Index}") : "")}({string.Join(", ", x.Parameters.Select(y => y.Syntax))})");
                 return ob.ToString();
             })));
             return sb.ToString();
         }
 
-        public static string WriteDisplayContent(CommandDisplayInfo info)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            string name =
-                    info.IsInGroup ?
-                    Checks.NotNull(info.Name) ?
-                    $"{info.GroupName} **{info.Name}**" :
-                    $"**{info.GroupName}**" :
-                    $"**{info.Name}**";
-
-            if (info.HasMultiple)
-            {
-                
-
-                sb.AppendLine($"{(info.Aliases.Count > 0 ? $"[{name}, {string.Join(", ", info.Aliases)}]" : name)}");
-                sb.AppendLine($"• **Overloads** {OriFormat.Subscript($"({info.Overloads.Count})")}:");
-                sb.Append(WriteCommandOverloads(info));
-            }
-            else
-            {
-                // NAMING
-                sb.Append($"{(info.Aliases.Count > 0 ? $"[{name}, {string.Join(", ", info.Aliases.OrderByDescending(x => x.Length))}]" : name)}");
-                // PARAMETERS
-                sb.AppendLine($"{string.Join(", ", info.Default.Parameters.Select(x => x.SyntaxName))})");
-                if (info.Summary != null)
-                    sb.AppendLine($"⇛ {info.Default.Summary}");
-
-                // EXTRA
-                
-                if (info.Default.TrustLevel.HasValue)
-                    sb.AppendLine($"> **Access**: {info.Default.TrustLevel.Value.ToString()}");
-                if (info.Default.CooldownLength.HasValue)
-                    sb.AppendLine($"> **Cooldown**: {OriFormat.GetShortTime(info.Default.CooldownLength.Value)}");
-                if (info.Default.Permissions != null)
-                    sb.AppendLine($"> **Permissions**: {string.Join(", ", info.Default.Permissions.Select(x => $"`{x.ToString()}`"))}");
-
-                sb.Append($"> **ID**: `{info.Id}`");
-
-            }
-
-            return sb.ToString();
-        }
-
-        public static string WriteDisplayContent(OverloadDisplayInfo info)
-        {
-            string name =
-                    info.IsInGroup ?
-                    Checks.NotNull(info.Name) ?
-                    $"{info.GroupName} **{info.Name}**" :
-                    $"**{info.GroupName}**" :
-                    $"**{info.Name}**";
-
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{name}({string.Join(", ", info.Parameters.Select(x => x.SyntaxName))}) {OriFormat.Subscript($"+{info.Priority}")}");
-            if (info.Summary != null)
-                sb.AppendLine($"⇛ {info.Summary}");
-
-            if (info.TrustLevel.HasValue)
-                sb.AppendLine($"> **Access**: {info.TrustLevel.Value.ToString()}");
-            if (info.CooldownLength.HasValue)
-                sb.AppendLine($"> **Cooldown**: {OriFormat.GetShortTime(info.CooldownLength.Value)}");
-            if (info.Permissions != null)
-                sb.AppendLine($"> **Permissions**: {string.Join(", ", info.Permissions.Select(x => $"`{x.ToString()}`"))}");
-
-            sb.Append($"> **ID**: `{info.Id}`");
-
-            return sb.ToString();
-        }
-
-        // guildcommands
-        public static string WriteDisplayContent(CustomDisplayInfo info)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"**{info.Name}**()"); // info.Mentions
-
-            if (info.HasImage)
-                sb.AppendLine("`Contains Imagery`");
-
-            if (info.Author != null)
-                sb.AppendLine($"> **Creator**: **{info.Author.Name}**");
-
-            sb.Append($"> **ID**: `{info.Id}`");
-
-            return sb.ToString();
-        }
-
-
-        public static string WriteDisplayContent(ParameterDisplayInfo info)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"**{info.Name}**[{info.CommandName}{OriFormat.Subscript($"+{info.CommandPriority}")}]{(info.IsOptional ? $" = **{info.DefaultValue?.ToString() ?? "null"}**" : "")}");
-            if (info.Summary != null)
-                sb.AppendLine($"⇛ {info.Summary}");
-
-            if (info.Mod > 0)
-            {
-                sb.AppendLine($"> **Mods**: {string.Join(", ", EnumUtils.GetValues<ParameterMod>().Where(x => info.Mod.HasFlag(x)).Select(x => $"`{x.ToString()}`"))}");
-            }
-            sb.AppendLine($"> typeof(**{info.ValueType.Name}**)");
-            
-            return sb.ToString();
-        }
-
+        /*
         public static List<ContextValue> GetFamilyTree(ParameterInfo parameter)
         {
             List<ContextValue> values = new List<ContextValue>();
@@ -259,7 +163,7 @@ namespace Orikivo
         }
 
         // TODO: Use depth to group up modules and commands to properly get its ID.
-        public static string ConcatFamilyTree(List<ContextValue> family, ContextInfoType infoType)
+        public static string ConcatFamilyTree(List<ContextValue> family, InfoType infoType)
         {
             if (!Checks.NotNull(family))
                 return string.Empty;
@@ -272,7 +176,7 @@ namespace Orikivo
                 if (i == family.Count - 1) // what this does on the last match.
                     break;
 
-                if (family[i + 1].Type == ContextInfoType.Parameter) // what todo when the next value is a parameter.
+                if (family[i + 1].Type == InfoType.Parameter) // what todo when the next value is a parameter.
                     sb.Append('(');
                 else
                     sb.Append(GetValueSeparator(family[i]));
@@ -285,10 +189,11 @@ namespace Orikivo
         {
             return value.Type switch
             {
-                ContextInfoType.Module => ".",
-                ContextInfoType.Group => " ",
+                InfoType.Module => ".",
+                InfoType.Group => " ",
                 _ => string.Empty
             };
         }
+        */
     }
 }

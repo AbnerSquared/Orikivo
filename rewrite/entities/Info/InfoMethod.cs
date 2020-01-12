@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum ContextSearchMethod
+    public enum InfoMethod
     {
         Default = 1,
         List = 2,

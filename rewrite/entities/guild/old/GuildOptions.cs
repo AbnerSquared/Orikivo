@@ -21,7 +21,7 @@ namespace Orikivo
             Dictionary<GuildRole, ulong> customRoles,
             ulong? systemChannelId,
             List<ulong> selfAssignRoles,
-            ExceptionSeverity exceptionLevel, List<GuildCommand> commands)
+            ErrorLevel exceptionLevel, List<GuildCommand> commands)
         {
             Prefix = prefix; // prevent editing prefix config
             // allow MaxLobbies, which defines the limit to the lobbies that can be open on your server at a time. Default is 1.
@@ -40,7 +40,7 @@ namespace Orikivo
             {
                 GuildOptions guildOptions = new GuildOptions();
                 guildOptions.Prefix = null;
-                guildOptions.Exceptions = ExceptionSeverity.Default;
+                guildOptions.Exceptions = ErrorLevel.Default;
                 //guildOptions.PrivacyDeny = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
                 guildOptions.SystemRoles = new Dictionary<GuildRole, ulong>();
@@ -77,7 +77,7 @@ namespace Orikivo
         public string Prefix { get; set; }
 
         [JsonProperty("ex_level")]
-        public ExceptionSeverity Exceptions { get; set; }
+        public ErrorLevel Exceptions { get; set; }
 
         /// <summary>
         /// The ID of the channel that Orikivo will send event calls to. If left empty, it will attempt to use the system channel set on Discord.

@@ -76,6 +76,84 @@ namespace Orikivo
             return stream;
         }
 
+        [Command("border")]
+        public async Task DrawBorderAsync()
+        {
+            using (Bitmap tmp = new Bitmap(32, 32))
+                using (PixelGraphics g = new PixelGraphics())
+                using (Bitmap border = g.DrawBorder(tmp, GammaColor.GammaGreen, 2))
+                    await SendPngAsync("../tmp/border.png", border);
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("cardmask")]
+        public async Task DrawCardMaskAsync()
+        {
+            using (GraphicsService g = new GraphicsService())
+            {
+                CardDetails d = new CardDetails(Context.Account, Context.User);
+
+                using (Bitmap card = g.DrawCard(d, GammaColorMap.GammaGreen))
+                {
+                    using (PixelGraphics p = new PixelGraphics())
+                    {
+                        Grid<float> mask = p.GetOpacityMask(card);
+
+                        using (Bitmap gradient = p.DrawGradient(GammaColorMap.GammaGreen, card.Width, card.Height, 0.0f, GradientColorHandling.Snap))
+                            using (Bitmap result = p.SetOpacityMask(gradient, mask))
+                                await SendPngAsync($"../tmp/{Context.User.Id}_gradient_card_mask.png", result);
+                    }
+                }
+            }
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("mask")]
+        public async Task DrawMaskAsync()
+        {
+            using (GraphicsService g = new GraphicsService())
+            {
+                CardDetails d = new CardDetails(Context.Account, Context.User);
+
+                using (Bitmap card = g.DrawCard(d, GammaColorMap.GammaGreen))
+                {
+                    using (PixelGraphics p = new PixelGraphics())
+                    {
+                        Grid<float> mask = p.GetOpacityMask(card);
+
+                        Grid<SysColor> pixels = new Grid<SysColor>(card.Size, new GammaColor(0, 0, 0, 255));
+
+                        pixels.SetEachValue((int x, int y) =>
+                            GammaColor.Merge(new GammaColor(0, 0, 0, 255),
+                                new GammaColor(255, 255, 255, 255),
+                                mask.GetValue(x, y)));
+
+                        using (Bitmap masked = GraphicsUtils.CreateRgbBitmap(pixels.Values))
+                            await SendPngAsync($"../tmp/{Context.User.Id}_card_mask.png", masked);
+                    }
+                }
+            }
+            /*
+            using (Bitmap tmp = new Bitmap(32, 32))
+            using (PixelGraphics g = new PixelGraphics())
+            {
+                using (Bitmap image = g.DrawBorder(tmp, GammaColor.GammaGreen, 2))
+                {
+                    Grid<float> mask = g.GetOpacityMask(image);
+
+                    Grid<SysColor> pixels = new Grid<SysColor>(image.Size, new GammaColor(0, 0, 0, 255));
+
+                    pixels.ForEachValue((int x, int y) =>
+                        GammaColor.Merge(new GammaColor(0, 0, 0, 255),
+                            new GammaColor(255, 255, 255, 255), 
+                            mask.GetValue(x, y)));
+
+                    using (Bitmap masked = GraphicsUtils.CreateBitmap(pixels.Values))
+                        await SendPngAsync("../tmp/mask.png", masked);
+                }
+            }*/
+        }
+
         [Command("gradient")]
         public async Task DrawGradientAsync()
         {
@@ -251,7 +329,7 @@ namespace Orikivo
                 to.Add(GammaColor.ClosestMatch((GammaColor)bmp.Palette.Entries[i], GammaColorMap.Glass.Values));
 
             ColorMap[] colorMaps = BitmapHandler.CreateColorMaps(bmp.Palette.Entries, to.ToArray());
-            BitmapHandler.SetColorMaps(bmp, colorMaps);
+            BitmapHandler.ReplacePalette(bmp, colorMaps);
 
             string path = $"../tmp/{Context.User.Id}_gpfp.png";
             await SendPngAsync(path, bmp);
@@ -263,12 +341,12 @@ namespace Orikivo
         {
             string path = $"../tmp/{Context.User.Id}_bits.png";
             Grid<GammaColor> colors = new Grid<GammaColor>(8, 8);
-            colors.ForEachValue(delegate (int x, int y)
+            colors.SetEachValue(delegate (int x, int y)
             {
                 return GammaColorMap.Default[(Gamma)x];
             });
 
-            using (Bitmap bmp = GraphicsUtils.CreateBitmap(colors.Cast<SysColor>().Values))
+            using (Bitmap bmp = GraphicsUtils.CreateRgbBitmap(colors.Cast<SysColor>().Values))
                 bmp.Save(path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
@@ -303,7 +381,7 @@ namespace Orikivo
             MemoryStream gifStream = new MemoryStream();
             using (GifEncoder encoder = new GifEncoder(gifStream))
             {
-                List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateBitmap(f)).ToList();
+                List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f)).ToList();
                 encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                 foreach (Bitmap frame in frames)
@@ -393,7 +471,7 @@ namespace Orikivo
                 MemoryStream gifStream = new MemoryStream();
                 using (GifEncoder encoder = new GifEncoder(gifStream))
                 {
-                    List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateBitmap(f)).ToList();
+                    List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f)).ToList();
                     encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                     foreach (Bitmap frame in frames)
@@ -509,7 +587,7 @@ namespace Orikivo
 
         public async Task SendPngAsync(string path, Grid<GammaColor> grid)
         {
-            await SendPngAsync(path, GraphicsUtils.CreateBitmap(grid));
+            await SendPngAsync(path, GraphicsUtils.CreateRgbBitmap(grid));
         }
 
         public async Task SendPngAsync(string path, Bitmap bmp)
@@ -791,7 +869,7 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(msg.Build());
         }
 
-        [Command("favorite"), Alias("fav"), Access(TrustLevel.Dev)]
+        [Command("favorite"), Alias("fav"), Access(AccessLevel.Dev)]
         public async Task SetFavoriteAsync(ulong messageId)
         {
             IMessage message = Context.Channel.GetMessageAsync(messageId).Result;

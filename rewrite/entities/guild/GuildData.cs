@@ -5,7 +5,16 @@ namespace Orikivo.Unstable
 {
     public class GuildData
     {
+        public GuildData() { }
         public static GuildData Empty = new GuildData { Exp = 0, ActiveExp = 0, LastMessage = null };
+
+        [JsonConstructor]
+        internal GuildData(ulong exp, DateTime? lastMessage, ulong activeExp)
+        {
+            Exp = exp;
+            LastMessage = lastMessage;
+            ActiveExp = activeExp;
+        }
 
         [JsonProperty("exp")]
         public ulong Exp { get; private set; } // total exp earned from participation within in a guild

@@ -16,8 +16,9 @@ namespace Orikivo
             MongoClient client = new MongoClient(connection);
 
             IMongoDatabase userDb = client.GetDatabase("main");
-
-            await userDb.CreateCollectionAsync("users");
+            // something like DatabaseUser
+            await userDb.CreateCollectionAsync("users"); // TODO: Use mongo instead of JSON.
+            // edit the users directly from the database to simply stuff, and make a class that handles that directly.
             
 
         }

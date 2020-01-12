@@ -7,6 +7,24 @@ namespace Orikivo
 {
     public static class StringExtensions
     {
+        public static bool StartsWithAny(this string s, params string[] markers)
+        {
+            foreach (string marker in markers)
+                if (s.StartsWith(marker))
+                    return true;
+
+            return false;
+        }
+
+        public static bool EndsWithAny(this string s, params string[] markers)
+        {
+            foreach (string marker in markers)
+                if (s.EndsWith(marker))
+                    return true;
+
+            return false;
+        }
+
         public static string Escape(this string s)
             => $"\\{s}";
         public static string Escape(this string s, IEnumerable<string> args)

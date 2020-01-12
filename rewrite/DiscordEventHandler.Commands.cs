@@ -12,30 +12,26 @@ namespace Orikivo
 
     public partial class DiscordEventHandler /* #CommandHandler */
     {
-        private async Task InvokeCommandAsync(OriCommandContext context, int argPos)
-        {
-            // Check for Global Cooldown
-            // Check for Guild Commands
-            // Check for Command Cooldown
-        }
-
         private async Task ExecuteCommandAsync(OriCommandContext Context, int argPos)
         {
             //_logger.Debug("Analyzing context...");
             string baseMsg = GetBaseMessage(Context.Message);
 
-            // Check for Global Cooldown
-            if (Context.Account?.InternalCooldowns.ContainsKey(Cooldown.GLOBAL) ?? false)
-                await Context.Channel.WarnCooldownAsync(Context.Account, Context.Account.InternalCooldowns[Cooldown.GLOBAL]);
+           
 
             if (Context.Account != null)
             {
+                Console.WriteLine($"Checking account...");
+                // Check for Global Cooldown
+                if (Context.Account.InternalCooldowns.ContainsKey(Cooldown.GLOBAL))
+                    await Context.Channel.WarnCooldownAsync(Context.Account, Context.Account.InternalCooldowns[Cooldown.GLOBAL]);
+
                 // check command for cooldowns.
                 InfoService helperService = new InfoService(_commandService, Context.Global);
                 // in the case of custom command cooldowns, you would need to ignore them here;
-                foreach (Unstable.CooldownData data in Context.Account.GetCooldownsOfType(CooldownType.Command))
+                foreach (CooldownData data in Context.Account.GetCooldownsOfType(CooldownType.Command))
                 {
-                    List<string> aliases = helperService.GetAliasesFor(data.Id);
+                    List<string> aliases = helperService.GetAliases(data.Id.Substring(VarBase.COMMAND_SUBST.Length));
                     if (aliases.Count == 0)
                         aliases.Add(data.Id.Substring("command:".Length));
 
@@ -57,6 +53,7 @@ namespace Orikivo
             // make sure to apply a global cooldown in the case of a successful custom command.
             if (Context.Server != null)
             {
+                Console.WriteLine($"Checking server...");
                 if (Context.Server.Options.Commands != null)
                 {
                     foreach (GuildCommand custom in Context.Server.Options.Commands)
@@ -71,11 +68,13 @@ namespace Orikivo
                     }
                 }
             }
-            
+
             // if not on a cooldown OR has a custom command within, proceed with default execution.
             // CONCEPT: PERFORM a test run, in which it checks if everything correctly runs before actually committing to it
             // CONCEPT: INSTEAD of sending the messages in the command, send it an IResult class called CommandResult?
-            IResult result = await _commandService.ExecuteAsync(Context, argPos, _provider, MultiMatchHandling.Exception);
+
+            Console.WriteLine($"Executing command...");
+            await _commandService.ExecuteAsync(Context, argPos, _provider, MultiMatchHandling.Exception);
         }
 
         private string GetBaseMessage(SocketUserMessage message)
@@ -95,12 +94,19 @@ namespace Orikivo
             OriCommandContext Context = context as OriCommandContext;
 
             Context.Account?.SetCooldown(CooldownType.Global, "base", TimeSpan.FromSeconds(1));
-
+            Console.WriteLine($"Command executed...");
             if (!result.IsSuccess)
             {
                 if (result is ExecuteResult)
+                {
                     if (!result.IsSuccess)
                         await Context.Channel.CatchAsync(((ExecuteResult)result).Exception);
+                }
+                else
+                {
+                    await Context.Channel.ThrowAsync(result.ErrorReason);
+                }
+
                 return;
             }
 
@@ -122,9 +128,13 @@ namespace Orikivo
                     Context.Container.TrySaveUser(Context.Account);
                     await CheckStatsAsync(Context, Context.Account);
                 }
-                //else if (requireUser?.Handling == AccountHandling.ReadOnly)
-                //    if (!OriJsonHandler.JsonExists<User>(Context.Account.Id))
-                //        Context.Container.TrySaveUser(Context.Account);
+                else if (!OriJsonHandler.JsonExists<User>(Context.User.Id)) // if a file doesn't exist
+                {
+                    if (Context.Account == null)
+                        Context.Container.GetOrAddUser(Context.User);
+
+                    Context.Container.TrySaveUser(Context.Account);
+                }
 
                 RequireGuildAttribute requireGuild = info.Value.Preconditions.GetAttribute<RequireGuildAttribute>();
                 if (requireGuild != null)
@@ -149,7 +159,8 @@ namespace Orikivo
                 foreach (KeyValuePair<string, Merit> merit in matchedMerits)
                     user.Merits.Add(merit.Key, merit.Value.GetData());
 
-                await context.Channel.NotifyMeritAsync(user, matchedMerits);
+                if (!user.Config.Notifier.HasFlag(NotifyDeny.Merit))
+                    await context.Channel.NotifyMeritAsync(user, matchedMerits);
             }
         }
     }

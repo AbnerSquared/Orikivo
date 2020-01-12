@@ -55,7 +55,7 @@ namespace Orikivo
                     var keys = merits.Select(x => x.Key);
                     int collected = user.Merits.Keys.Where(k => keys.Contains(k)).Count();
 
-                    sb.AppendLine($"**{type.ToString()} ({collected}/{(type == MeritGroup.Chaotic ? "???" : total.ToString())})**");
+                    sb.AppendLine($"**{type.ToString()} ({collected}/{(type == MeritGroup.Chaos ? "???" : total.ToString())})**");
                     if (GetMeritGroupSummary(type) != null)
                         sb.AppendLine($"`{GetMeritGroupSummary(type)}`");
                 }
@@ -90,7 +90,7 @@ namespace Orikivo
         private static string GetMeritGroupSummary(MeritGroup group)
             => group switch
             {
-                MeritGroup.Chaotic => "The impossible made possible.",
+                MeritGroup.Chaos => "The impossible made possible.",
                 MeritGroup.Misc => "A random collection of objectives.",
                 _ => null
             };

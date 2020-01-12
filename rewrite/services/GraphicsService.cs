@@ -80,7 +80,7 @@ namespace Orikivo
 
             BitmapLayer avatar = new BitmapLayer
             {
-                Source = GraphicsUtils.ForceColors(BitmapHandler.GetHttpImage(details.AvatarUrl), colors),
+                Source = GraphicsUtils.SetPalette(BitmapHandler.GetHttpImage(details.AvatarUrl), colors),
                 Offset = new Point(4, 4),
                 Padding = new Padding(right: 2)
             };

@@ -85,11 +85,11 @@ namespace Orikivo
 
         private async Task CheckCommandAsync(SocketMessage arg)
         {
-
+            Console.WriteLine($"Checking command...");
             //_logger.Debug($"Orikivo has {(arg.Author.Id == _client.CurrentUser.Id ? "sent" : "received")} a message.");
 
             // command syntax
-            
+
             // always ignore bots.
             if (arg.Author.IsBot)
                 return;

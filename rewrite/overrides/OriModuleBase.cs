@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // based off of Discord.Addons.Interactive
-    // extending modulebase to support dynamic events
     public abstract class OriModuleBase<T> : ModuleBase<T>
         where T : OriCommandContext
     {

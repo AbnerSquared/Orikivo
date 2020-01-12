@@ -25,7 +25,7 @@ namespace Orikivo
             {
                 StringBuilder sb = new StringBuilder();
 
-                sb.AppendLine($"> {OriFormat.GetNounForm("Merit", merits.Count())} Unlocked");
+                sb.AppendLine($"> You have earned {(merits.Count() > 1 ? "new merits!" : "a new merit!")}");
                 sb.AppendJoin("\n", merits.Select(x => "• " + Format.Bold(x.Value.Name)));
 
                 await channel.SendMessageAsync(sb.ToString());
@@ -87,7 +87,42 @@ namespace Orikivo
         /// Catches a possible Exception and sends its information to the specified channel.
         /// </summary>
         public static async Task<RestUserMessage> CatchAsync(ISocketMessageChannel channel, Exception ex, RequestOptions options = null)
-            => await channel.SendMessageAsync(OriFormat.Error("Yikes!", "An exception has been thrown.", ex.Message, ex.StackTrace/*?.Split('\n')[0]*/), options: options);
+        {
+            string[] errorPaths = ex.StackTrace.Split('\n');
+            StringBuilder error = new StringBuilder();
+
+            error.Append("**Yikes!**");
+            error.AppendLine();
+            error.Append("An exception has been thrown.");
+
+            error.Append("```");
+            error.AppendLine();
+
+            error.Append(ex.Message);
+            error.AppendLine();
+            error.Append("```");
+            error.AppendLine();
+
+            error.Append("```bf");
+            error.AppendLine();
+
+            for (int i = 0; i < errorPaths.Length; i++)
+            {
+                if ((error.Length + errorPaths[i].Length) < 1997)
+                {
+                    error.AppendLine(errorPaths[i]);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            error.Append("```");
+
+            // OriFormat.Error("Yikes!", "An exception has been thrown.", ex.Message, ex.StackTrace/*?.Split('\n')[0]*/)
+            return await channel.SendMessageAsync(error.ToString(), options: options);
+        }
         // $"**Yikes!**\nAn exception has been thrown.```{ex.Message}```\n```bf\n{ex.StackTrace}```"
 
         /// <summary>

@@ -27,7 +27,7 @@ namespace Orikivo
         /// <summary>
         /// Opens a new report.
         /// </summary>
-        public int Open(User user, OverloadDisplayInfo overload, ReportBody info, params ReportTag[] tags)
+        public int Open(User user, OverloadNode overload, ReportBody info, params ReportTag[] tags)
         {
             Reports.Add(new Report(CaseCount, overload, user, info, tags));
             int id = CaseCount;

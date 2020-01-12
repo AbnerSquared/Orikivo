@@ -1,13 +1,13 @@
 ﻿namespace Orikivo
 {
-    public enum ContextInfoType
+    public enum InfoType
     {
+        Unknown = 0,
         Module = 1,
         Group = 2,
         Command = 3,
         Overload = 4,
         Parameter = 5,
-        Custom = 6,
-        Guild = 7
+        Guide = 6
     }
 }

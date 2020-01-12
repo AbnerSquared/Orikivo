@@ -47,7 +47,7 @@ namespace Orikivo
             }
 
             [Command("add")]
-            [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+            [Access(AccessLevel.Inherit), RequireContext(ContextType.Guild)]
             [Summary("Adds a greeting to the collection of greetings for this guild.")]
             public async Task AddGreetingAsync([Remainder]string greeting)
             {
@@ -63,7 +63,7 @@ namespace Orikivo
             }
 
             [Command("remove"), Alias("rm")]
-            [Access(TrustLevel.Inherit)]
+            [Access(AccessLevel.Inherit)]
             [Summary("Removes the greeting at the specified index (zero-based)."), RequireContext(ContextType.Guild)]
             public async Task RemoveGreetingAsync(int index)
             {
@@ -73,7 +73,7 @@ namespace Orikivo
             }
 
             [Command("clear")]
-            [Access(TrustLevel.Owner)]
+            [Access(AccessLevel.Owner)]
             [Summary("Clears all custom greetings written for this guild."), RequireContext(ContextType.Guild)]
             public async Task ClearGreetingsAsync()
             {
@@ -82,7 +82,7 @@ namespace Orikivo
             }
 
             [Command("toggle")]
-            [Access(TrustLevel.Owner)]
+            [Access(AccessLevel.Owner)]
             [Summary("Toggles the ability to use greetings whenever a user joins."), RequireContext(ContextType.Guild)]
             public async Task ToggleGreetingsAsync()
             {
@@ -92,7 +92,7 @@ namespace Orikivo
         }
 
         [Command("defaultrole"), Priority(1)]
-        [Access(TrustLevel.Owner), RequireContext(ContextType.Guild)]
+        [Access(AccessLevel.Owner), RequireContext(ContextType.Guild)]
         public async Task SetDefaultRoleAsync(SocketRole role)
         {
             Context.Server.Options.DefaultRoleId = role.Id;
@@ -106,7 +106,7 @@ namespace Orikivo
         }
 
         [Command("mute")]
-        [Access(TrustLevel.Owner)]
+        [Access(AccessLevel.Owner)]
         [RequireBotPermission(ChannelPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task MuteUserAsync(SocketGuildUser user, double seconds)
         {
@@ -137,7 +137,7 @@ namespace Orikivo
         }
 
         [Command("unmute")]
-        [Access(TrustLevel.Owner)]
+        [Access(AccessLevel.Owner)]
         [RequireBotPermission(ChannelPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task UnmuteUserAsync(SocketGuildUser user)
         {
@@ -153,7 +153,7 @@ namespace Orikivo
         }
 
         [Command("setrole")]
-        [Access(TrustLevel.Owner)]
+        [Access(AccessLevel.Owner)]
         [RequirePermissions(GuildPermission.ManageRoles), RequireContext(ContextType.Guild)]
         public async Task SetRoleAsync(SocketGuildUser user, SocketRole role)
         {
@@ -184,11 +184,11 @@ namespace Orikivo
 
         // this is used to give the specified user the trust role
         //[Command("trust")]
-        [Access(TrustLevel.Owner), RequireContext(ContextType.Guild)]
+        [Access(AccessLevel.Owner), RequireContext(ContextType.Guild)]
         public async Task TrustUserAsync(SocketGuildUser user) {}
 
         [Command("newcustomcommand")]
-        [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+        [Access(AccessLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
             GuildCommand command = new GuildCommand(name);
@@ -203,7 +203,7 @@ namespace Orikivo
         }
 
         [Command("deletecustomcommand")]
-        [Access(TrustLevel.Inherit), RequireContext(ContextType.Guild)]
+        [Access(AccessLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task DeleteCustomCommandAsync(string name)
         {
             if (Context.Server.Options.Commands.Any(x => x.Name.ToLower() == name.ToLower()))
@@ -216,7 +216,7 @@ namespace Orikivo
         }
 
         [Command("closereport")]
-        [Access(TrustLevel.Dev)]
+        [Access(AccessLevel.Dev)]
         public async Task SetReportStatusAsync(int id, string reason = null)
         {
             if (Context.Global.Reports.Contains(id))
@@ -234,6 +234,7 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync($"> There are {Context.Global.Reports.Count} reports.");
         }
 
+        /*
         [Cooldown(300)]
         [RequireUser]
         [ArgSeparator(',')]
@@ -244,14 +245,15 @@ namespace Orikivo
             _help ??= new InfoService(_commandService, Context.Global, Context.Server);
             ContextSearchResult result = _help.GetContext(context);
 
-            if (result.IsSuccess && (result.Type == ContextInfoType.Command || result.Type == ContextInfoType.Overload))
+            if (result.IsSuccess && (result.Type == InfoType.Command || result.Type == InfoType.Overload))
             {
-                int id = Context.Global.Reports.Open(Context.Account, result.Type == ContextInfoType.Command ? (result.Value as CommandDisplayInfo).Default : (result.Value as OverloadDisplayInfo), new ReportBody(title, content), tags);
+                int id = Context.Global.Reports.Open(Context.Account, result.Type == InfoType.Command ? (result.Value as CommandNode).Default :
+                    (result.Value as OverloadNode), new ReportBody(title, content), tags);
                 await Context.Channel.SendMessageAsync($"> **Report** #{id} has been submitted.");
                 return;
             }
             await Context.Channel.SendMessageAsync("> I could not find any ContextValue objects matching your context.");
-        }
+        }*/
 
         [Command("report"), Priority(0)]
         [Summary("Get the **Report** submitted with the corresponding id.")]
@@ -366,7 +368,7 @@ namespace Orikivo
             try
             {
                 _help ??= new InfoService(_commandService, Context.Global, Context.Server);
-                await Context.Channel.SendMessageAsync(_help.GetHelpFor(context));
+                await Context.Channel.SendMessageAsync(_help.GetPanel(context));
             }
             catch (Exception ex)
             {

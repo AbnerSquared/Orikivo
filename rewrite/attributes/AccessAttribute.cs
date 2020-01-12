@@ -9,10 +9,10 @@ namespace Orikivo
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class AccessAttribute : PreconditionAttribute
     {
-        public TrustLevel Level { get; }
+        public AccessLevel Level { get; }
         public bool DevOverride { get; }
         // in short, this makes it so that commands can prevent the developer from overriding guild owner only options.
-        public AccessAttribute(TrustLevel level, bool devOverride = true)
+        public AccessAttribute(AccessLevel level, bool devOverride = true)
         {
             Level = level;
             DevOverride = devOverride;
@@ -23,15 +23,15 @@ namespace Orikivo
             OriCommandContext Context = context as OriCommandContext;
             switch(Level)
             {
-                case TrustLevel.Dev:
+                case AccessLevel.Dev:
                     if (Context.User.Id != OriGlobal.DevId)
                         return PreconditionResult.FromError("This command can only be executed by a developer.");
                     break;
-                case TrustLevel.Owner:
+                case AccessLevel.Owner:
                     if (Context.User.Id != OriGlobal.DevId && Context.User.Id != Context.Server.OwnerId)
                         return PreconditionResult.FromError("This command can only be executed by this guild's owner.");
                     break;
-                case TrustLevel.Inherit:
+                case AccessLevel.Inherit:
                     if (Context.Server.Options.TrustRoleId.HasValue ?
                         Context.User.Id != OriGlobal.DevId && Context.User.Id != Context.Server.OwnerId && !Context.Guild.Users.Any(x => x.Roles.Contains(Context.Guild.GetRole(Context.Server.Options.TrustRoleId.Value)) && x.Id == Context.User.Id) :
                         Context.User.Id != OriGlobal.DevId && Context.User.Id != Context.Server.OwnerId)

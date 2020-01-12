@@ -4,6 +4,6 @@
     public enum MeritGroup
     {
         Misc = 0,
-        Chaotic = 4
+        Chaos = 4
     }
 }

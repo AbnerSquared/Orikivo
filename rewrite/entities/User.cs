@@ -17,36 +17,48 @@ namespace Orikivo.Unstable
             ulong balance,
             ulong tokenBalance,
             ulong debt,
+            Dictionary<string, ItemData> items,
             Dictionary<ulong, GuildData> connections,
             ObjectiveData objectives,
             Dictionary<string, DateTime> cooldowns,
             Dictionary<ExpType, ulong> expData,
-            Dictionary<string, ItemData> items,
+            int ascent,
             Dictionary<string, long> stats,
             Dictionary<string, MeritData> merits,
-            Dictionary<string, int> upgrades,
             List<BoosterData> boosters,
+            Dictionary<string, int> upgrades,
             HuskBrain brain,
-            Husk husk)
+            Husk husk,
+            UserConfig config,
+            CardConfig card)
         {
             Id = id;
             Username = username;
             Discriminator = discriminator;
             CreatedAt = createdAt;
+
             Balance = balance;
             TokenBalance = tokenBalance;
             Debt = debt;
+
+            Items = items;
             Connections = connections;
             Objectives = objectives;
+
             Cooldowns = cooldowns;
+
             ExpData = expData;
-            Items = items;
-            Upgrades = upgrades;
+            Ascent = ascent;
+
             Stats = stats;
             Merits = merits;
             Boosters = boosters;
+            Upgrades = upgrades;
+
             Brain = brain;
             Husk = husk;
+            Config = config;
+            Card = card;
         }
 
         public User(SocketUser user)
@@ -55,20 +67,26 @@ namespace Orikivo.Unstable
             Username = user.Username;
             Discriminator = user.Discriminator;
             CreatedAt = DateTime.UtcNow;
+
             Balance = 0;
             TokenBalance = 0;
             Debt = 0;
+
             Items = new Dictionary<string, ItemData>();
             Connections = new Dictionary<ulong, GuildData>();
             Objectives = new ObjectiveData();
+
             Cooldowns = new Dictionary<string, DateTime>();
             InternalCooldowns = new Dictionary<string, DateTime>();
+
             ExpData = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };
             Ascent = 0;
+
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
             Boosters = new List<BoosterData>();
             Upgrades = new Dictionary<string, int>();
+
             Brain = new HuskBrain();
             Husk = null;
             Config = new UserConfig();
@@ -170,6 +188,7 @@ namespace Orikivo.Unstable
         /// <summary>
         /// A collection of upgrades specified by their unique identifier.
         /// </summary>
+        [JsonProperty("upgrades")]
         public Dictionary<string, int> Upgrades { get; } = new Dictionary<string, int>();
 
         [JsonProperty("brain")]

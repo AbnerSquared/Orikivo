@@ -63,26 +63,4 @@ namespace Orikivo
 
         public UserStatus Status { get; set; }
     }
-
-    /// <summary>
-    /// Represents the configurations that can be applied to the design of a card.
-    /// </summary>
-    public class CardConfig
-    {
-        /// <summary>
-        /// The <see cref="FontFace"/> that is used when drawing the card.
-        /// </summary>
-        public string NameFontId { get; set; }
-        public string CounterFontId { get; set; } // the font used when drawing counters
-
-        public CardAvatarScale AvatarScale { get; set; }
-
-
-    }
-
-    public enum CardAvatarScale
-    {
-        Small = 16,
-        Large = 32
-    }
 }

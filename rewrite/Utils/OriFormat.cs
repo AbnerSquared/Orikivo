@@ -76,6 +76,27 @@ namespace Orikivo
             {')', '₎'}
         };
 
+        public static string TypeName(Type t)
+            =>
+
+               t == typeof(sbyte) ? "sbyte" :
+               t == typeof(byte) ? "byte" :
+
+               t == typeof(short) ? "short" :
+               t == typeof(ushort) ? "ushort" :
+
+               t == typeof(int) ? "int" :
+               t == typeof(uint) ? "uint" :
+
+               t == typeof(long) ? "long" :
+               t == typeof(ulong) ? "ulong" :
+
+               t == typeof(double) ? "double" :
+               t == typeof(float) ? "float" :
+
+               t == typeof(string) ? "string" :
+               t.Name;
+
         /// <summary>
         /// Attempts to map all known characters to its subscript variant.
         /// </summary>

@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum ContextError
+    public enum InfoError
     {
         EmptyValue = 1,
         FailedMatch = 2,

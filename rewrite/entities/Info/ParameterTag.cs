@@ -3,7 +3,7 @@
 namespace Orikivo
 {
     [Flags]
-    public enum ParameterMod
+    public enum ParameterTag
     {
         Optional = 1,
         Trailing = 2,

@@ -39,7 +39,7 @@ namespace Orikivo
             Votes = votes ?? new List<VoteInfo>();
         }
 
-        internal Report(int id, OverloadDisplayInfo overload, User user, ReportBody reportInfo, params ReportTag[] tags)
+        internal Report(int id, OverloadNode overload, User user, ReportBody reportInfo, params ReportTag[] tags)
         {
             Id = id;
             CommandId = overload.Id;

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Orikivo
 {
-    public enum ExceptionSeverity
+    public enum ErrorLevel
     {
         Quiet = 1, // doesn't send anything upon a command incorrectly working
         Default = 2, // includes unknown command errors

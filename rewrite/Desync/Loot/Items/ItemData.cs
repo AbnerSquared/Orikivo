@@ -26,13 +26,19 @@ namespace Orikivo
             Unique = unique;
         }
 
+        [JsonIgnore]
         public int Count => StackCount ?? 1;
+
+        [JsonProperty("id")]
         public string Id { get; }
+
+        [JsonProperty("stack_count")]
         public int? StackCount { get; internal set; }
 
         /// <summary>
         /// Unique information about the item, if one is specified.
         /// </summary>
+        [JsonProperty("unique")]
         public UniqueItemData Unique { get; }
     }
 }
