@@ -17,6 +17,7 @@ namespace Orikivo
                 consoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
                 consoleConfig.BackgroundColor = ConsoleColor.Black;
                 consoleConfig.TextColor = ConsoleColor.White;
+                //consoleConfig.OutputPath = "../logs/";
 
                 // A simple little boot tune for fun:
                 /*

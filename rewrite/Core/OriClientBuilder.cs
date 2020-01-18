@@ -32,9 +32,13 @@ namespace Orikivo
             Services
                 .AddSingleton(new CommandService(DiscordConfig.DefaultServiceConfig)) /* The command service used to handle all commands and modules.  */
                 .AddSingleton<OriNetworkService>() /* Handles the connection to Discord. */
-                //.AddSingleton<LogService>() /* Handles all called events in general. Is connected with DiscordEventHandler. */
-                .AddSingleton<DiscordEventHandler>() /* Manages all events that occur from the Discord API. */
-                .AddSingleton<OriJsonContainer>() /* A data container that is passed along all inheriting classes. */
+                .AddSingleton<LogService>()
+/* Handles all called events in general. Is connected with DiscordEventHandler. */
+.AddSingleton<OriJsonContainer>() /* A data container that is passed along all inheriting classes. */
+
+.AddSingleton<EventHandler>() /* Manages all events that occur from the Discord API. */
+                .AddSingleton<CommandHandler>()
+                
                 /* TODO: Create a message handler that can create internal handles for separate users. */
                 .AddSingleton<GameManager>() /* Handles all of the processes relating to game lobbies and so forth. */
                 .AddSingleton(Config); // Root configuration for Orikivo.

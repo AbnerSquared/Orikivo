@@ -3,34 +3,20 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Orikivo.Unstable
 {
     public class User : IDiscordEntity<SocketUser>, IJsonEntity
     {
-        [JsonConstructor]
+        [JsonConstructor, BsonConstructor]
         internal User(
-            ulong id,
-            string username,
-            string discriminator,
-            DateTime createdAt,
-            ulong balance,
-            ulong tokenBalance,
-            ulong debt,
-            Dictionary<string, ItemData> items,
-            Dictionary<ulong, GuildData> connections,
-            ObjectiveData objectives,
-            Dictionary<string, DateTime> cooldowns,
-            Dictionary<ExpType, ulong> expData,
-            int ascent,
-            Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits,
-            List<BoosterData> boosters,
-            Dictionary<string, int> upgrades,
-            HuskBrain brain,
-            Husk husk,
-            UserConfig config,
-            CardConfig card)
+            ulong id, string username, string discriminator, DateTime createdAt,
+            ulong balance, ulong tokenBalance, ulong debt,
+            Dictionary<string, ItemData> items, Dictionary<ulong, GuildData> connections,
+            ObjectiveData objectives, Dictionary<string, DateTime> cooldowns, Dictionary<ExpType, ulong> expData,
+            int ascent, Dictionary<string, long> stats, Dictionary<string, MeritData> merits, List<BoosterData> boosters,
+            Dictionary<string, int> upgrades, HuskBrain brain, Husk husk, UserConfig config, CardConfig card)
         {
             Id = id;
             Username = username;
@@ -94,115 +80,137 @@ namespace Orikivo.Unstable
         }
 
         // Discord
-        [JsonProperty("id")]
+        [JsonProperty("id"), BsonId]
         public ulong Id { get; }
 
-        [JsonProperty("username")]
+        [JsonProperty("username"), BsonElement("username")]
         public string Username { get; private set; }
 
-        [JsonProperty("discriminator")]
+        [JsonProperty("discriminator"), BsonElement("discriminator")]
         public string Discriminator { get; private set; }
 
-        [JsonProperty("created_at")]
+        [JsonProperty("created_at"), BsonElement("created_at")]
         public DateTime CreatedAt { get; }
 
         /// <summary>
         /// The <see cref="User"/>'s global balance, in use for both the world and client.
         /// </summary>
-        [JsonProperty("balance")]
+        [JsonProperty("balance"), BsonElement("balance")]
         public ulong Balance { get; internal set; } = 0; // from earnings/winnings
 
         /// <summary>
         /// The <see cref="User"/>'s balance, primarily from voting.
         /// </summary>
-        [JsonProperty("tokens")]
+        [JsonProperty("tokens"), BsonElement("tokens")]
         public ulong TokenBalance { get; private set; } = 0; // from voting
 
         /// <summary>
         /// Represents the <see cref="User"/>'s negative funds.
         /// </summary>
-        [JsonProperty("debt")]
+        [JsonProperty("debt"), BsonElement("debt")]
         public ulong Debt { get; internal set; } = 0; // from negative funds
 
         /// <summary>
         /// Represents the <see cref="User"/>'s complete collection of digital items.
         /// </summary>
-        [JsonProperty("items")]
+        [JsonProperty("items"), BsonElement("items")]
         public Dictionary<string, ItemData> Items { get; } = new Dictionary<string, ItemData>();
 
-        [JsonProperty("connections")]
+        [JsonProperty("connections"), BsonElement("connections")]
         public Dictionary<ulong, GuildData> Connections { get; } = new Dictionary<ulong, GuildData>();
 
-        [JsonProperty("objectives")]
+        [JsonProperty("objectives"), BsonElement("objectives")]
         public ObjectiveData Objectives { get; } = new ObjectiveData();
 
         /// <summary>
         /// A collection of cooldowns, typically utilized by an <see cref="Item"/>.
         /// </summary>
-        [JsonProperty("cooldowns")]
+        [JsonProperty("cooldowns"), BsonElement("cooldowns")]
         public Dictionary<string, DateTime> Cooldowns { get; } = new Dictionary<string, DateTime>();
 
         /// <summary>
         /// A collection of internal cooldowns for the current process.
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, BsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
-        
+
 
 
         // experience
-
-        [JsonProperty("exp")]
+        [JsonProperty("exp"), BsonElement("exp")]
         public Dictionary<ExpType, ulong> ExpData { get; } = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };
 
         
         /// <summary>
         /// Represents the <see cref="User"/>'s global experience.
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, BsonIgnore]
         public ulong Exp => ExpData[ExpType.Global];
         // stats (the stored object type of a stat must be defined elsewhere)
 
-        [JsonIgnore]
+         
+        [JsonIgnore, BsonIgnore]
         public int Level => ExpConvert.AsLevel(Exp);
 
         /// <summary>
         /// Represents the total number of level resets.
         /// </summary>
-        [JsonProperty("ascent")]
+        [JsonProperty("ascent"), BsonElement("ascent")]
         public int Ascent { get; set; } = 0;
         
         // Maybe revert to string, int ??
-        [JsonProperty("stats")]
+        [JsonProperty("stats"), BsonElement("stats")]
         public Dictionary<string, long> Stats { get; } = new Dictionary<string, long>(); // Type:{JSON} (example: Int32:0)
 
         
         
-        [JsonProperty("merits")]
+        [JsonProperty("merits"), BsonElement("merits")]
         public Dictionary<string, MeritData> Merits { get; } = new Dictionary<string, MeritData>();
 
-        [JsonProperty("boosters")]
+        [JsonProperty("boosters"), BsonElement("boosters")]
         public List<BoosterData> Boosters { get; } = new List<BoosterData>();
 
         /// <summary>
         /// A collection of upgrades specified by their unique identifier.
         /// </summary>
-        [JsonProperty("upgrades")]
+        [JsonProperty("upgrades"), BsonElement("upgrades")]
         public Dictionary<string, int> Upgrades { get; } = new Dictionary<string, int>();
 
-        [JsonProperty("brain")]
+        [JsonProperty("brain"), BsonElement("brain")]
         public HuskBrain Brain { get; } = new HuskBrain();
         
-        [JsonProperty("husk")]
+        [JsonProperty("husk"), BsonElement("husk")]
         public Husk Husk { get; private set; } = null;
 
-        [JsonProperty("config")]
+        [JsonProperty("config"), BsonElement("config")]
         public UserConfig Config { get; } //= UserConfig.Default;
 
-        [JsonProperty("card")]
+        [JsonProperty("card"), BsonElement("card")]
         public CardConfig Card { get; set; }
 
+        // TODO: make the type of integer consistent with balances
+        public void Give(long value)
+        {
+            if (((long)Debt - value) < 0)
+            {
+                Debt = 0;
+                Balance += (ulong)(value - (long)Debt);
+            }
+            else
+                Debt -= (ulong)value;
+        }
+
+        public void Take(long value)
+        {
+            if (((long)Balance - value) < 0)
+            {
+                Balance = 0;
+                Debt += (ulong)(value - (long)Balance);
+            }
+            else
+                Balance -= (ulong)value;
+        }
         public void SetCooldown(Claimable claimable, out bool updated)
         {
             string id = $"{CooldownType.Claimable.ToString().ToLower()}:{claimable.Id}";

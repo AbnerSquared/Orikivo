@@ -22,7 +22,7 @@ namespace Orikivo.Unstable
                 BypassCriteriaOnGift = true,
                 GiftLimit = 1,
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Entity,
+                Tag = ItemTag.Callable,
                 ToOwn = u => u.Debt >= 1000,
                 Value = 40,
                 CanBuy = true,

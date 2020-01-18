@@ -30,7 +30,7 @@ namespace Orikivo
             }
         }
 
-        public static string GetStatNameOrDefault(string stat)
+        public static string GetNameOrDefault(string stat)
         {
             Dictionary<string, string> statNames = new Dictionary<string, string>
             { ["times_cried"] = "Times Cried" };

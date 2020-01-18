@@ -44,7 +44,12 @@ namespace Orikivo.Unstable
         /// Represents what the <see cref="Husk"/> is currently doing at specific locations.
         /// </summary>
         [JsonProperty("flag")]
-        public HuskFlag Flag { get; private set; }        
+        public HuskFlag Flag { get; private set; }     
+        
+        // Where the husk is currently located. This stores a sector/field, area, construct and market id.
+        [JsonProperty("location")]
+        public string LocationId { get; private set; }
+        
     }
 
     public class HuskAttributes

@@ -228,58 +228,21 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync($"> I could not find any reports matching #{id}.");
         }
 
-        [Command("reports")]
-        public async Task ReportsAsync()
-        {
-            await Context.Channel.SendMessageAsync($"> There are {Context.Global.Reports.Count} reports.");
-        }
-
-        /*
-        [Cooldown(300)]
-        [RequireUser]
-        [ArgSeparator(',')]
-        [Command("report"), Priority(1)]
-        [Summary("Create a **Report** for a specified **Command**.")]
-        public async Task ReportAsync([Summary("The **Command** to report.")]string context, string title, string content, params ReportTag[] tags)
-        {
-            _help ??= new InfoService(_commandService, Context.Global, Context.Server);
-            ContextSearchResult result = _help.GetContext(context);
-
-            if (result.IsSuccess && (result.Type == InfoType.Command || result.Type == InfoType.Overload))
-            {
-                int id = Context.Global.Reports.Open(Context.Account, result.Type == InfoType.Command ? (result.Value as CommandNode).Default :
-                    (result.Value as OverloadNode), new ReportBody(title, content), tags);
-                await Context.Channel.SendMessageAsync($"> **Report** #{id} has been submitted.");
-                return;
-            }
-            await Context.Channel.SendMessageAsync("> I could not find any ContextValue objects matching your context.");
-        }*/
-
-        [Command("report"), Priority(0)]
-        [Summary("Get the **Report** submitted with the corresponding id.")]
-        public async Task GetReportAsync(int id)
-        {
-            await Context.Channel.SendMessageAsync(Context.Global.Reports.Contains(id) ? Context.Global.Reports[id].ToString() : $"> I could not find any reports matching #{id}.");
-        }
-
         [Group("gimi")]
         public class GimiGroup : OriModuleBase<OriCommandContext>
         {
             // TODO: Figure out how to handle group commands with an empty subvalue.
             // TODO: Create an easier way to handle group commands that can execute without a subvalue.
             [Command("")]
-            [Cooldown(10)]
+            //[Cooldown(5)]
             [RequireUser]
-            [Summary("A **CasinoType** activity that randomly offers a reward value.")]
+            [Summary("A **CasinoType** activity that randomly offers a reward value (if you're lucky enough).")]
             public async Task GimiAsync()
             {
-                GimiService gimi = new GimiService(Context.Account);
-                int returns = gimi.Get();
-                Context.Account.SetStat(returns > 0 ? GimiStat.CurrentLossStreak : GimiStat.CurrentWinStreak, 0);
-                //Context.Account.UpdateStat(returns > 0 ? GimiStat.CurrentWinStreak : GimiStat.CurrentLossStreak, 1);
-                //Context.Account.UpdateStat(returns > 0 ? GimiStat.TimesWon : GimiStat.TimesLost, 1);
-            
-                await Context.Channel.SendMessageAsync($"You got: {returns}");
+                Gimi gimi = new Gimi(Context.Account);
+                GimiResult result = gimi.Next();
+
+                await Context.Channel.SendMessageAsync(result.ApplyAndDisplay(Context.Account));
             }
 
             [Command("risk"), Priority(0)]
@@ -329,37 +292,6 @@ namespace Orikivo
                 await Context.Channel.SendMessageAsync("> **Gimi** slots cleared.");
             }
         }
-
-        /*
-        [Group("stats")]
-        public class StatsGroup : OriModuleBase<OriCommandContext>
-        {
-            [Command("")]
-            [RequireUser]
-            [Summary("Get information on all of the generic stats stored.")]
-            public async Task GetStatsAync()
-            {
-                await Context.Channel.SendMessageAsync($"**Commands Used**: {Context.Account.GetStat(Stat.CommandsUsed)}");
-            }
-
-            [RequireUser]
-            [Command("gimi")]
-            [Summary("Get all of the stats related to **Gimi**.")]
-            public async Task GetGimiStatsAsync()
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"> Gimi");
-                sb.AppendLine($"> **Stats**");
-                sb.AppendLine($"**{Context.Account.GetStat(GimiStat.TimesWon)}+{Context.Account.GetStat(GimiStat.TimesWonGold)}**W : **{Context.Account.GetStat(GimiStat.TimesLost)}+{Context.Account.GetStat(GimiStat.TimesLostCursed)}**L : **{Context.Account.GetStat(GimiStat.TimesPlayed)}**P");
-                sb.AppendLine($"${Context.Account.GetStat(GimiStat.TotalAmountWon)} Earned : ${Context.Account.GetStat(GimiStat.TotalAmountLost)} Lost");
-                sb.AppendLine($"Longest Win Streak: {Context.Account.GetStat(GimiStat.LargestWinStreakLength)} (${Context.Account.GetStat(GimiStat.LargestWinStreakAmount)}");
-                sb.AppendLine($"Longest Gold Streak: {Context.Account.GetStat(GimiStat.LargestGoldStreakLength)}");
-                sb.AppendLine($"Longest Loss Streak: {Context.Account.GetStat(GimiStat.LargestLossStreakLength)} (${Context.Account.GetStat(GimiStat.LargestLossStreakAmount)})");
-                sb.AppendLine($"Longest Curse Streak: {Context.Account.GetStat(GimiStat.LargestCurseStreakLength)}");
-
-                await Context.Channel.SendMessageAsync(sb.ToString());
-            }
-        }*/
 
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]

@@ -4,12 +4,12 @@ namespace Orikivo.Unstable
 {
     public class Npc
     {
-        string Id;
-        string Name;
-        NpcPersonality Personality;
-        List<Relation> InitialRelations;
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public Personality Personality { get; set; }
 
-        // string => TriggerId, NpcDialogue => Responses
-        Dictionary<string, NpcDialogue> Dialogue { get; } = new Dictionary<string, NpcDialogue>();
+        // a list of initial relationships with other NPCs.
+        public List<Relationship> Relations { get; set; }
+
     }
 }

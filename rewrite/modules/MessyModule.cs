@@ -36,6 +36,8 @@ namespace Orikivo
             _gameManager = manager;
         }
 
+        public static Grid<ConwayCell> Pattern = ConwayRenderer.GetRandomPattern(128, 128);
+
         private List<Stream> GetTextFrames(params string[] texts)
         {
             if (texts.Length == 0)
@@ -47,7 +49,7 @@ namespace Orikivo
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
             PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
-            using (PixelGraphics poxel = new PixelGraphics(config))
+            using (GraphicsWriter poxel = new GraphicsWriter(config))
             {
                 poxel.DefaultOptions = new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) };
                 for (int i = 0; i < texts.Length; i++)
@@ -64,7 +66,7 @@ namespace Orikivo
             return frames;
         }
 
-        private Stream DrawFrame(PixelGraphics graphics, string content, GammaColor color, CanvasOptions options)
+        private Stream DrawFrame(GraphicsWriter graphics, string content, GammaColor color, CanvasOptions options)
         {
             MemoryStream stream = new MemoryStream();
             using (Bitmap frame = graphics.DrawString(content, color, options))
@@ -76,11 +78,24 @@ namespace Orikivo
             return stream;
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("balance"), Alias("money", "bal")]
+        public async Task GetMoneyAsync()
+        {
+            StringBuilder values = new StringBuilder();
+
+            values.AppendLine($"**Balance**: 💸 **{Context.Account.Balance.ToString("##,0.###")}**");
+            values.AppendLine($"**Tokens**: 🏷️ **{Context.Account.TokenBalance.ToString("##,0.###")}**");
+            values.AppendLine($"**Debt**: 📃 **{Context.Account.Debt.ToString("##,0.###")}**");
+
+            await Context.Channel.SendMessageAsync(values.ToString());
+        }
+
         [Command("border")]
         public async Task DrawBorderAsync()
         {
             using (Bitmap tmp = new Bitmap(32, 32))
-                using (PixelGraphics g = new PixelGraphics())
+                using (GraphicsWriter g = new GraphicsWriter())
                 using (Bitmap border = g.DrawBorder(tmp, GammaColor.GammaGreen, 2))
                     await SendPngAsync("../tmp/border.png", border);
         }
@@ -93,13 +108,13 @@ namespace Orikivo
             {
                 CardDetails d = new CardDetails(Context.Account, Context.User);
 
-                using (Bitmap card = g.DrawCard(d, GammaColorMap.GammaGreen))
+                using (Bitmap card = g.DrawCard(d, GammaPalette.GammaGreen))
                 {
-                    using (PixelGraphics p = new PixelGraphics())
+                    using (GraphicsWriter p = new GraphicsWriter())
                     {
                         Grid<float> mask = p.GetOpacityMask(card);
 
-                        using (Bitmap gradient = p.DrawGradient(GammaColorMap.GammaGreen, card.Width, card.Height, 0.0f, GradientColorHandling.Snap))
+                        using (Bitmap gradient = p.DrawGradient(GammaPalette.GammaGreen, card.Width, card.Height, 0.0f, GradientColorHandling.Snap))
                             using (Bitmap result = p.SetOpacityMask(gradient, mask))
                                 await SendPngAsync($"../tmp/{Context.User.Id}_gradient_card_mask.png", result);
                     }
@@ -115,9 +130,9 @@ namespace Orikivo
             {
                 CardDetails d = new CardDetails(Context.Account, Context.User);
 
-                using (Bitmap card = g.DrawCard(d, GammaColorMap.GammaGreen))
+                using (Bitmap card = g.DrawCard(d, GammaPalette.GammaGreen))
                 {
-                    using (PixelGraphics p = new PixelGraphics())
+                    using (GraphicsWriter p = new GraphicsWriter())
                     {
                         Grid<float> mask = p.GetOpacityMask(card);
 
@@ -161,11 +176,11 @@ namespace Orikivo
             { Width = 64, Height = 32, Angle = AngleF.Right,
                 ColorHandling  = GradientColorHandling.Blend };
 
-            gradient.Markers[0.0f] = GammaColorMap.NeonRed[Gamma.Min];
-            gradient.Markers[0.25f] = GammaColorMap.GammaGreen[Gamma.Standard];
-            gradient.Markers[0.5f] = GammaColorMap.NeonRed[Gamma.Bright];
-            gradient.Markers[0.75f] = GammaColorMap.Alconia[Gamma.Brighter];
-            gradient.Markers[1.0f] = GammaColorMap.Glass[Gamma.Max];
+            gradient.Markers[0.0f] = GammaPalette.NeonRed[Gamma.Min];
+            gradient.Markers[0.25f] = GammaPalette.GammaGreen[Gamma.Standard];
+            gradient.Markers[0.5f] = GammaPalette.NeonRed[Gamma.Bright];
+            gradient.Markers[0.75f] = GammaPalette.Alconia[Gamma.Brighter];
+            gradient.Markers[1.0f] = GammaPalette.Glass[Gamma.Max];
 
             await SendPngAsync("../tmp/gradient.png", gradient.Build());
         }
@@ -183,30 +198,16 @@ namespace Orikivo
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("card")]
-        public async Task GetCardAsync(bool allCaps = false,
-            bool useFoxtrot = true, bool autoResize = false,
-             int? ascent = null, ulong? balance = null, ulong? debt = null, ulong? exp = null,
-            string name = null, string program = null, ulong? currentExp = null, ulong? nextExp = null)
+        public async Task GetCardAsync()
         {
             try
             {
-                Console.WriteLine("Initializing graphics service...");
                 using (GraphicsService graphics = new GraphicsService())
                 {
-                    Console.WriteLine("Writing card details...");
                     CardDetails d = new CardDetails(Context.Account, Context.User);
+                    Bitmap card = graphics.DrawCard(d, GammaPalette.Glass, false, true);
 
-                    d.Ascent = ascent ?? d.Ascent;
-                    d.Balance = balance ?? d.Balance;
-                    d.Debt = debt ?? d.Debt;
-                    d.Exp = exp ?? d.Exp;
-                    d.Name = name ?? d.Name;
-                    d.Program = program ?? d.Program;
-
-                    Console.WriteLine("Drawing card...");
-                    Bitmap card = graphics.DrawCard(d, GammaColorMap.Glass, autoResize, useFoxtrot, allCaps, currentExp, nextExp);
-
-                    await SendPngAsync($"../tmp/{Context.User.Id}_card.png", card);
+                    await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
                 }
             }
             catch (Exception ex)
@@ -225,6 +226,34 @@ namespace Orikivo
 
             await Context.Channel.SendMessageAsync($"The timer has timed out. ({OriFormat.GetShortTime(timer.ElapsedTime.TotalSeconds)})");
 
+        }
+
+        [Command("chattest")]
+        public async Task ChatTestAsync()
+        {
+            try
+            {
+                MessageCollector collector = new MessageCollector(Context.Client);
+                DialogueMatchAction action = new DialogueMatchAction(Context);
+
+                MatchOptions options = new MatchOptions
+                {
+                    ResetTimeoutOnAttempt = true,
+                    Timeout = TimeSpan.FromSeconds(20),
+                    Action = action
+                };
+
+                Func<SocketMessage, int, bool> filter = delegate (SocketMessage message, int index)
+                {
+                    return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
+                };
+
+                await collector.MatchAsync(filter, options);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
         }
 
         [Command("question")]
@@ -326,7 +355,7 @@ namespace Orikivo
             List<SysColor> to = new List<SysColor>();
 
             for (int i = 0; i < bmp.Palette.Entries.Length; i++)
-                to.Add(GammaColor.ClosestMatch((GammaColor)bmp.Palette.Entries[i], GammaColorMap.Glass.Values));
+                to.Add(GammaColor.ClosestMatch((GammaColor)bmp.Palette.Entries[i], GammaPalette.Glass.Values));
 
             ColorMap[] colorMaps = BitmapHandler.CreateColorMaps(bmp.Palette.Entries, to.ToArray());
             BitmapHandler.ReplacePalette(bmp, colorMaps);
@@ -340,13 +369,13 @@ namespace Orikivo
         public async Task DrawBitsAsync()
         {
             string path = $"../tmp/{Context.User.Id}_bits.png";
-            Grid<GammaColor> colors = new Grid<GammaColor>(8, 8);
+            Grid<SysColor> colors = new Grid<SysColor>(8, 8);
             colors.SetEachValue(delegate (int x, int y)
             {
-                return GammaColorMap.Default[(Gamma)x];
+                return GammaPalette.Default[(Gamma)x];
             });
 
-            using (Bitmap bmp = GraphicsUtils.CreateRgbBitmap(colors.Cast<SysColor>().Values))
+            using (Bitmap bmp = GraphicsUtils.CreateRgbBitmap(colors.Values))
                 bmp.Save(path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
@@ -373,15 +402,15 @@ namespace Orikivo
         public async Task RunLifeAsync(int width, int height, int duration, int delay = 100)
         {
             string path = $"../tmp/{Context.User.Id}_cgol.gif";
-            GammaColorMap colors = GammaColorMap.Glass;
+            GammaPalette colors = GammaPalette.Glass;
             Grid<ConwayCell> pattern = ConwayRenderer.GetRandomPattern(width, height);
             ConwayRenderer simulator = new ConwayRenderer(colors[Gamma.Max], colors[Gamma.Min], null, pattern);
-            List<Grid<GammaColor>> rawFrames = simulator.Run(duration);
+            List<Grid<SysColor>> rawFrames = simulator.Run(duration);
 
             MemoryStream gifStream = new MemoryStream();
             using (GifEncoder encoder = new GifEncoder(gifStream))
             {
-                List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f)).ToList();
+                List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f.Values)).ToList();
                 encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                 foreach (Bitmap frame in frames)
@@ -415,9 +444,9 @@ namespace Orikivo
             string path = $"../tmp/STATIC_MESH_{KeyBuilder.Generate(8)}.png";
 
             MeshRenderer renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
-                GammaColorMap.GammaGreen, GetRasterizer(rasterizer));
+                GammaPalette.GammaGreen, GetRasterizer(rasterizer));
 
-            Grid<GammaColor> frame = renderer.Render(Mesh.Cube,
+            Grid<SysColor> frame = renderer.Render(Mesh.Cube,
                 new Vector3(posX, posY, posZ), 
                 new Vector3(rotX, rotY, rotZ));
 
@@ -446,12 +475,12 @@ namespace Orikivo
             try
             {
                 string path = $"../tmp/MESH_{KeyBuilder.Generate(8)}.gif";
-                GammaColorMap colors = GammaColorMap.GammaGreen;
+                GammaPalette colors = GammaPalette.GammaGreen;
 
                 MeshRenderer renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
-                    GammaColorMap.GammaGreen, GetRasterizer(rasterizer));
+                    GammaPalette.GammaGreen, GetRasterizer(rasterizer));
 
-                List<Grid<GammaColor>> frames = renderer.Animate(ticks, new Model(Mesh.Cube),
+                List<Grid<SysColor>> frames = renderer.Animate(ticks, new Model(Mesh.Cube),
                     new Vector3(offsetX, offsetY, offsetZ),
                     new Vector3(rotX, rotY, rotZ),
                     new Vector3(velocityX, velocityY, velocityZ));
@@ -464,14 +493,14 @@ namespace Orikivo
             }
         }
 
-        private async Task SendGifAsync(string path, List<Grid<GammaColor>> rawFrames, int delay = 100, int? loop = null)
+        private async Task SendGifAsync(string path, List<Grid<SysColor>> rawFrames, int delay = 100, int? loop = null)
         {
             try
             {
                 MemoryStream gifStream = new MemoryStream();
                 using (GifEncoder encoder = new GifEncoder(gifStream))
                 {
-                    List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f)).ToList();
+                    List<Bitmap> frames = rawFrames.Select(f => GraphicsUtils.CreateRgbBitmap(f.Values)).ToList();
                     encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                     foreach (Bitmap frame in frames)
@@ -498,13 +527,14 @@ namespace Orikivo
 
         [Command("cgold")]
         [Summary("Simulates **Conway's Game of Life** with a color decay system.")]
-        public async Task RunLifeDecayAsync(int width, int height, int duration, ulong decayLength, int delay = 100)
-        {
+        public async Task RunLifeDecayAsync(int duration, ulong decayLength, int delay = 100)
+        {// int width, int height, 
             string path = $"../tmp/{Context.User.Id}_cgol.gif";
-            GammaColorMap colors = GammaColorMap.GammaGreen;
-            Grid<ConwayCell> pattern = ConwayRenderer.GetRandomPattern(width, height);
-            ConwayRenderer simulator = new ConwayRenderer(colors[Gamma.Max], colors[Gamma.Min], decayLength, pattern);
-            List<Grid<GammaColor>> rawFrames = simulator.Run(duration);
+            GammaPalette colors = GammaPalette.Alconia;
+            Grid<ConwayCell> pattern = Pattern;
+            ConwayRenderer simulator = new ConwayRenderer(GammaPalette.GammaGreen[Gamma.Standard], colors[Gamma.Min], decayLength, pattern);
+            simulator.ActiveColor = GammaPalette.GammaGreen[Gamma.Max];
+            List<Grid<SysColor>> rawFrames = simulator.Run(duration);
 
             await SendGifAsync(path, rawFrames, delay);
         }
@@ -520,15 +550,15 @@ namespace Orikivo
             List<Stream> frames = new List<Stream>();
             CanvasOptions options = new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), Width = 47 };
             float t = 0.00f;
-            using (PixelGraphics poxel = new PixelGraphics(config))
+            using (GraphicsWriter poxel = new GraphicsWriter(config))
             {
                 poxel.SetFont(font);
                 
                 for (float h = 0; h < 24 * framesPerHour; h++)
                 {
                     Console.WriteLine($"HOUR:{t}");
-                    GammaColorMap colors = TimeCycle.FromHour(t);
-                    poxel.Colors = colors;
+                    GammaPalette colors = TimeCycle.FromHour(t);
+                    poxel.Palette = colors;
                     options.BackgroundColor = colors[Gamma.Min];
 
                     frames.Add(DrawFrame(poxel, t.ToString("00.00H"), colors[Gamma.Max], options));
@@ -570,9 +600,9 @@ namespace Orikivo
                 FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
                 // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
                 char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
-                GammaColorMap colors = TimeCycle.FromHour(hour);
+                GammaPalette colors = TimeCycle.FromHour(hour);
                 PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap, Colors = colors };
-                using (PixelGraphics poxel = new PixelGraphics(config))
+                using (GraphicsWriter poxel = new GraphicsWriter(config))
                 using (Bitmap bmp = poxel.DrawString(hour.ToString("00.00H").ToUpper(), font,
                     new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = colors[Gamma.Min] }))
                     BitmapHandler.Save(bmp, path, ImageFormat.Png);
@@ -585,9 +615,9 @@ namespace Orikivo
             }
         }
 
-        public async Task SendPngAsync(string path, Grid<GammaColor> grid)
+        public async Task SendPngAsync(string path, Grid<SysColor> grid)
         {
-            await SendPngAsync(path, GraphicsUtils.CreateRgbBitmap(grid));
+            await SendPngAsync(path, GraphicsUtils.CreateRgbBitmap(grid.Values));
         }
 
         public async Task SendPngAsync(string path, Bitmap bmp)
@@ -605,12 +635,12 @@ namespace Orikivo
             try
             {
                 string path = $"../tmp/{Context.User.Id}_time.png";
-                GammaColorMap colors = TimeCycle.FromUtcNow();
+                GammaPalette palette = TimeCycle.FromUtcNow();
 
                 using (GraphicsService graphics = new GraphicsService())
                 {
-                    using (Bitmap bmp = graphics.DrawString(DateTime.UtcNow.ToString("hh:mm tt").ToUpper(), colors))
-                        await SendPngAsync(path, bmp);
+                    Bitmap bmp = graphics.DrawString(DateTime.UtcNow.ToString("hh:mm tt").ToUpper(), Gamma.Max, palette);
+                    await Context.Channel.SendImageAsync(bmp, path);
                 }
             }
             catch (Exception ex)
@@ -648,21 +678,16 @@ namespace Orikivo
         /// Creates a GIFASCII animation from a given .txt file with an optional specified delay.
         /// </summary>
         /// <param name="delay">The length of delay per frame (in milliseconds).</param>
-        [Command("drawanimf")]
+        [Command("animateasciif")]
         [Summary("Creates a GIFASCII animation from a given .txt file with an optional specified delay (in milliseconds).")]
+        [RequireAttachment(FileFormat.Text, "frames")]
         public async Task DrawAnimAsync([Summary("The length of delay per frame (in milliseconds).")]int delay = 150, int? loop = null)
         {
-            if (Context.Message.Attachments.Count == 0)
-                throw new Exception("You need to send a .txt file containing the frames!");
-
-            if (!Context.Message.Attachments.Any(x => EnumUtils.GetUrlType(x.Filename) == UrlType.Text))
-                throw new Exception("You need to send a .txt file containing the frames!");
-
-            Attachment textFile = Context.Message.Attachments.Where(x => EnumUtils.GetUrlType(x.Filename) == UrlType.Text).First();
+            Attachment content = Context.Message.Attachments.Where(x => EnumUtils.GetUrlType(x.Filename) == UrlType.Text).First();
 
             using (OriWebClient client = new OriWebClient())
             {
-                OriWebResult urlResult = await client.RequestAsync(textFile.Url);
+                OriWebResult urlResult = await client.RequestAsync(content.Url);
 
                 string[] urlFrames = ParseFrames(urlResult.RawContent);
 
@@ -761,7 +786,7 @@ namespace Orikivo
             // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
             PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
-            using (PixelGraphics poxel = new PixelGraphics(config))
+            using (GraphicsWriter poxel = new GraphicsWriter(config))
             using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
                     BitmapHandler.Save(bmp, path, ImageFormat.Png);
 
@@ -778,7 +803,7 @@ namespace Orikivo
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
             PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
-            using (PixelGraphics poxel = new PixelGraphics(config))
+            using (GraphicsWriter poxel = new GraphicsWriter(config))
             using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
                     BitmapHandler.Save(bmp, path, ImageFormat.Png);
 

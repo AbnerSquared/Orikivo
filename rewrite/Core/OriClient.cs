@@ -31,15 +31,20 @@ namespace Orikivo
         private ConsoleConfig ConsoleConfig { get; }
         private LogConfig LogConfig { get; }
         private OriNetworkService Network => Provider.GetRequiredService<OriNetworkService>();
-        //private LogService Console => Provider.GetRequiredService<LogService>();
+        private LogService Logger => Provider.GetRequiredService<LogService>();
 
         public async Task StartAsync(string token = "")
         {
             Console.WriteLine("-- Now launching Orikivo. --");
-            //Console.ConsoleConfig = ConsoleConfig;
-            //Console.LogConfig = LogConfig;
+            
+            if (ConsoleConfig != null)
+                Logger.ConsoleConfig = ConsoleConfig;
 
-            Provider.GetRequiredService<DiscordEventHandler>();
+            if (LogConfig != null)
+                Logger.LogConfig = LogConfig;
+
+            Provider.GetRequiredService<EventHandler>();
+            Provider.GetRequiredService<CommandHandler>();
             await Network.CompileAsync(TypeReaders, Modules, token);
             await Network.StartAsync();
             await Task.Delay(-1); // once this starts, calling from OriClient no longer works.

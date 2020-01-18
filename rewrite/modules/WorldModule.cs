@@ -30,7 +30,7 @@ namespace Orikivo
         [RequireUser(AccountHandling.ReadOnly)]
         public async Task GetAllStatsAsync()
         {
-            string stats = string.Join("\n", Context.Account.Stats.Select(s => $"{WorldService.GetStatNameOrDefault(s.Key)}: {s.Value}"));
+            string stats = string.Join("\n", Context.Account.Stats.Select(s => $"{WorldService.GetNameOrDefault(s.Key)}: {s.Value}"));
             await Context.Channel.SendMessageAsync(stats == "" ? "No stats." : stats);
         }
 
