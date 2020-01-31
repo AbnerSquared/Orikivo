@@ -101,7 +101,7 @@ namespace Orikivo
         /// Attempts to map all known characters to its subscript variant.
         /// </summary>
         public static string Subscript(string value)
-            => MapChars(value, CharMap.Subscript);
+            => SetUnicodeMap(value, UnicodeMap.Subscript);
 
         public static string GetShortValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
         {
@@ -175,7 +175,7 @@ namespace Orikivo
         public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
             => $"{Format.Url(parsedEmote, emoteUrl)} {emoteName}";
 
-        public static string CodeBlock(string value, CodeType? type = null)
+        public static string Code(string value, CodeType? type = null)
             => $"```{type?.ToString().ToLower()}\n{value}```";
 
         public static string CropGameId(string value)
@@ -183,7 +183,7 @@ namespace Orikivo
 
         public static string Position(int i)
         {
-            string value = PosNotation(i, false);
+            string value = Notate(i, false);
             return i switch
             {
                 1 => $"{value}st",
@@ -194,7 +194,7 @@ namespace Orikivo
         }
 
         private const string POS_NOTATION = "##,0.###";
-        public static string PosNotation(int i, bool includeDecimals = true)
+        public static string Notate(int i, bool includeDecimals = true)
             => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
@@ -229,32 +229,17 @@ namespace Orikivo
             return sb.ToString();
         }
 
-        public static string Lobby(string name, string id, string host, string gameMode)
-            => string.Format(LobbyDataFormatter, name, id, host, gameMode);
-
-        public static readonly string LobbyDataFormatter = "> **{0}**#{1} `{2}`\n> ⇛ Playing **{3}**";
-
-        public static readonly string ChatFormatter = "[{0}]: \"{1}\"";
-
-        public static string GameChat(string author, string message)
-            => string.Format(ChatFormatter, author, message);
-
-        public static readonly string UserCounterFormatter = "Users (**{0}**/**{1}**):";
-
-        public static string UserCounter(int userCount, int userLimit)
-            => string.Format(UserCounterFormatter, userCount, userLimit);
-
         public static string Hyperlink(string url)
             => Format.Url(Path.GetFileName(url), url);
 
         public static string CreateVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
-        private static string MapChars(string value, CharMap mapType)
+        public static string SetUnicodeMap(string value, UnicodeMap mapType)
         {
             Dictionary<char, char> map = null;
             switch(mapType)
             {
-                case CharMap.Subscript:
+                case UnicodeMap.Subscript:
                     map = _subscriptMap;
                     break;
                 default:
@@ -298,29 +283,6 @@ namespace Orikivo
             .Replace("{time.millisecond}", time.Millisecond.ToString()) // fff
             .Replace("{time.post}", time.ToString(@"tt"));
         }
-
-        private static bool IsLeapYear(int year)
-            => year % 4 == 0;
-        /*
-            {user}
-            {user.name}
-            {user.id}
-            {user.pos}
-            {guild}
-            {guild.id}
-            {guild.userCount}
-            {date}
-            {time}
-            {time.year}
-            {time.month}
-            {time.week}
-            {time.day}
-            {time.hour}
-            {time.minute}
-            {time.second}
-            {time.post}
-        */
-
 
         // Convert HTML format tags and convert them into Discord markup tags?
         public static string ConvertHtmlTags(string value)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Orikivo.Drawing;
+using System.Collections.Generic;
 
 namespace Orikivo.Unstable
 {
@@ -6,24 +7,9 @@ namespace Orikivo.Unstable
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string ImagePath { get; set; }
+        public List<Sprite> Images { get; set; }
 
-        public List<CreatureTag> CreatureTable { get; set; }
-    }
-
-    public enum CreatureTag
-    {
-        
-    }
-
-    public enum LootTag
-    {
-
-    }
-
-    // a creature that may contain loot and such
-    public class Creature
-    {
-        public List<LootTag> LootTable { get; set; }
+        public List<FieldEffect> Effects { get; set; }
+        public DiscoveryTable Discoverables { get; set; }
     }
 }

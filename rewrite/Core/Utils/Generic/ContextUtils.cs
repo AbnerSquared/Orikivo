@@ -77,7 +77,7 @@ namespace Orikivo
                 sb.AppendLine($"**{info.Name}**");
                 if (info.Summary != null)
                 {
-                    sb.AppendLine(OriFormat.CodeBlock(info.Summary));
+                    sb.AppendLine(OriFormat.Code(info.Summary));
                 }
 
                 if (info.Commands.Count > 0)

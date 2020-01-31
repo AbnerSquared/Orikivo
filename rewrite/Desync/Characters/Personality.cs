@@ -8,7 +8,7 @@ namespace Orikivo.Unstable
     /// </summary>
     public class Personality
     {
-        public PersonalityArchetype Archetype { get; set; }
+        public Archetype Archetype { get; set; }
 
         // a multiplier set for each dialogue tone that affects their relations.
         public Dictionary<DialogueTone, float> ImpactRates { get; }

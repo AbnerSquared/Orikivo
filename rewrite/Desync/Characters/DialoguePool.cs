@@ -7,7 +7,7 @@ namespace Orikivo.Unstable
     /// <summary>
     /// Represents a conversation pool, usually for an <see cref="Npc"/> or <see cref="Vendor"/>.
     /// </summary>
-    public class DialoguePool
+    public class DialoguePool // A 
     {
         /// <summary>
         /// Represents the initial response on the start of a conversation.

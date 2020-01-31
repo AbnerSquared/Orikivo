@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the character map that be used with OriFormat.
     /// </summary>
-    public enum CharMap
+    public enum UnicodeMap
     {
         /// <summary>
         /// Marks the map reader to convert subscript.

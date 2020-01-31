@@ -14,7 +14,7 @@ namespace Orikivo.Unstable
 
         public Func<User, bool> Criteria { get; set; }
 
-        public RewardInfo Reward { get; set; }
+        public Reward Reward { get; set; }
 
         public MeritData GetData()
             => new MeritData(DateTime.UtcNow, Reward == null ? null : (bool?) false);

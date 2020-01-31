@@ -357,7 +357,7 @@ namespace Orikivo
 
             #endregion
 
-            return card.DisposeBuild();
+            return card.BuildAndDispose();
         }
     }
 }

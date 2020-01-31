@@ -7,7 +7,9 @@ namespace Orikivo.Unstable
     public static class GameDatabase
     {
         public static World World => new World { };
-
+        // TODO: Implement world design. World => Field => Sector => Area => Construct
+        //     Fields are wildlands. Sectors reside within a field, as some sort of safe zone.
+        //     Areas are small gatherings within sectors. Constructs are a building within an area.
         public static Dictionary<string, Item> Items => new Dictionary<string, Item>
         {
             ["pocket_lawyer"] = new Item
@@ -31,7 +33,7 @@ namespace Orikivo.Unstable
                 {
                     UseLimit = 1,
                     BreakOnLastUse = true,
-                    CooldownLength = TimeSpan.FromHours(24),
+                    Cooldown = TimeSpan.FromHours(24),
                     OnUse = u => u.Debt = 0 }
             }
         };
@@ -39,7 +41,7 @@ namespace Orikivo.Unstable
         public static Dictionary<string, Merit> Merits => new Dictionary<string, Merit>
         {
             ["test"] = new Merit { Criteria = x => x.GetStat("times_cried") == 1,
-                Name = "Shedding Tears", Summary = "Cry.", Group = MeritGroup.Misc, Reward = new RewardInfo { Money = 10 } }
+                Name = "Shedding Tears", Summary = "Cry.", Group = MeritGroup.Misc, Reward = new Reward { Money = 10 } }
         };
 
         public static Dictionary<string, Claimable> Claimables => new Dictionary<string, Claimable>();

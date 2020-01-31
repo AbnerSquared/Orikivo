@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Orikivo.Drawing;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace Orikivo.Unstable
 {
@@ -6,7 +8,9 @@ namespace Orikivo.Unstable
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string ImagePath { get; set; }
+        public Sprite Map { get; set; }
         public List<Area> Areas { get; set; }
+    
+        public Point Position { get; set; }
     }
 }

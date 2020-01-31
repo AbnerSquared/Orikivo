@@ -2,7 +2,7 @@
 
 namespace Orikivo.Unstable
 {
-    public class RewardInfo
+    public class Reward
     {
         public Dictionary<string, int> ItemIds { get; set; } = new Dictionary<string, int>();
         public ulong? Money { get; set; }

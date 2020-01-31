@@ -18,11 +18,14 @@ namespace Orikivo.Unstable
 
         public DialogueType Type { get; set; }
 
+        // This is used both to determine how an NPC will handle the dialogue AND how an NPC will look when speaking the dialogue.
+        public DialogueTone Tone { get; set; }
+
         // a list of possible responses.
         public List<string> ReplyIds { get; set; }
 
         // gets the best reply that fits with the NPC's personality.
-        public string GetBestReplyId(PersonalityArchetype personality)
+        public string GetBestReplyId(Archetype personality)
         {
             // for now, just get a random reply.
             return Randomizer.Choose(ReplyIds);

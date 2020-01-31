@@ -2,6 +2,6 @@
 {
     public class GuildObjective : Objective
     {
-        int RequiredUsers;
+        public int RequiredUsers { get; set; }
     }
 }

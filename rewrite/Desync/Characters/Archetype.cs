@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the generalized personality of an <see cref="Npc"/>.
     /// </summary>
-    public enum PersonalityArchetype
+    public enum Archetype
     {
         /// <summary>
         /// Marks an <see cref="Npc"/> as a generic person without any swayed opinions.

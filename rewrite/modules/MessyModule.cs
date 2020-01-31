@@ -78,6 +78,50 @@ namespace Orikivo
             return stream;
         }
 
+        [Command("animtimeline")]
+        public async Task AnimateTimelineAsync(double delay)
+        {
+            using (GraphicsWriter artist = new GraphicsWriter())
+            {
+                using (TimelineAnimator animator = new TimelineAnimator())
+                {
+                    animator.Ticks = 500;
+                    animator.Viewport = new Size(128, 128);
+
+                    Keyframe initial = new Keyframe(0, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
+                    Keyframe mid = new Keyframe(250, 1.0f, new Vector2(32, 32), 359.9f, new Vector2(1, 1));
+                    Keyframe quarter = new Keyframe(375, 1.0f, new Vector2(16, 16), 180.0f, new Vector2(2, 2));
+                    Keyframe final = new Keyframe(500, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
+
+                    List<Keyframe> keyframes = new List<Keyframe>();
+                    keyframes.Add(mid);
+                    keyframes.Add(quarter);
+                    keyframes.Add(final);
+
+
+                    TimelineLayer square = new TimelineLayer(
+                        artist.DrawSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32),
+                        keyframes,
+                        0, 500,
+                        initial);
+
+                    TimelineLayer background = new TimelineLayer(
+                        artist.DrawSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128),
+                        new List<Keyframe>(),
+                        0, 500,
+                        new Keyframe(0, 1.0f, Vector2.Zero, 0.0f, Vector2.One));
+
+
+                    animator.Layers.Add(background);
+                    animator.Layers.Add(square);
+
+                    MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(delay));
+
+                    await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", Quality.Bpp8);
+                }
+            }
+        }
+
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("balance"), Alias("money", "bal")]
         public async Task GetMoneyAsync()

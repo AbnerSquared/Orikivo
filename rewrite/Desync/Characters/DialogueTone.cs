@@ -2,8 +2,11 @@
 {
     public enum DialogueTone
     {
-        Positive = 1,
-        Negative = 2
+        Neutral = 1,
+        Happy = 2,
+        Sad = 3,
+        Confused = 4,
+        Shocked = 5
     }
 
 }

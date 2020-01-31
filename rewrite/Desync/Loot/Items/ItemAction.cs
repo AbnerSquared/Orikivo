@@ -6,13 +6,13 @@ namespace Orikivo.Unstable
     {
         public int? UseLimit { get; set; } = null;
 
-        public TimeSpan? CooldownLength { get; set; } = null;
+        public TimeSpan? Cooldown { get; set; } = null;
 
         public Action<User> OnUse { get; set; } = null;
 
         public bool BreakOnLastUse { get; set; } = true;
 
         // a decay timer that starts when the item is first used.
-        public TimeSpan? DecayLength { get; set; } = null;
+        public TimeSpan? Decay { get; set; } = null;
     }
 }

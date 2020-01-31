@@ -15,6 +15,7 @@ using Image = System.Drawing.Image;
 
 namespace Orikivo
 {
+    // TODO: Handle notifiers outside of MessageUtils
     /// <summary>
     /// Provides help with extra methods that revolve around sending messages.
     /// </summary>
@@ -31,7 +32,7 @@ namespace Orikivo
         public static readonly Dictionary<OriError, MessageBuilder> ErrorPresets = new Dictionary<OriError, MessageBuilder>();
         // NotifyAsync() ?? Creates a notification pop-up.
 
-            // TODO: Optimize later on.
+        // TODO: Rather than notify instantly, append the notifier for the next message the user calls.
         public static async Task NotifyMeritAsync(ISocketMessageChannel channel, User user, IEnumerable<Merit> merits)
         {
             if (!user.IsOnCooldown(Cooldown.Notify))
@@ -78,6 +79,61 @@ namespace Orikivo
                 return await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options);
         }
 
+
+        /*
+                 /// <summary>
+        /// Sends an image to the specified channel and disposes of it.
+        /// </summary>
+        public static async Task<RestUserMessage> SendImageAsync(ISocketMessageChannel channel, Bitmap bmp, string path,
+            GraphicsFormat format = GraphicsFormat.Png, RequestOptions options = null)
+        {
+            using (bmp)
+                BitmapHandler.Save(bmp, path, GetImageFormat(format));
+
+            return await channel.SendFileAsync(path);
+        }
+
+        // TODO: Implement SendAttachmentAsync, where sending an Attachment object is possible.
+
+        // TODO: Create local embed attachment handling
+        public static async Task SendImageAsync(ISocketMessageChannel channel, Bitmap bmp, string path, string content = "",
+            bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        {
+
+        }
+
+        public static async Task SendImageAsync(ISocketMessageChannel channel, Bitmap bmp, string path, Message message, RequestOptions options = null)
+        {
+
+        }
+
+        /// <summary>
+        /// Sends a GIF to the specified channel and disposes of it from a specified <see cref="MemoryStream"/>.
+        /// </summary>
+        public static async Task<RestUserMessage> SendGifAsync(ISocketMessageChannel channel, MemoryStream gif, string path,
+            Quality quality = Quality.Bpp8, RequestOptions options = null)
+        {
+            using (Image img = Image.FromStream(gif))
+                using (Image quantized = EncodeUtils.Quantize(img, quality))
+                    BitmapHandler.Save(quantized, path, GetImageFormat(GraphicsFormat.Gif));
+
+            return await channel.SendFileAsync(path);
+        }
+
+        public static async Task SendGifAsync(ISocketMessageChannel channel, MemoryStream gif, string path,
+            Quality quality = Quality.Bpp8, string content = "", bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        {
+
+        }
+
+        public static async Task SendGifAsync(ISocketMessageChannel channel, MemoryStream gif, string path,
+            Quality quality = Quality.Bpp8, Message message = null, RequestOptions options = null)
+        {
+
+        }
+
+             */
+
         /// <summary>
         /// Sends an image to the specified channel and disposes of it.
         /// </summary>
@@ -97,8 +153,11 @@ namespace Orikivo
             Quality quality = Quality.Bpp8, RequestOptions options = null)
         {
             using (Image img = Image.FromStream(gif))
-                using (Image quantized = EncodeUtils.Quantize(img, quality))
-                    BitmapHandler.Save(quantized, path, GetImageFormat(GraphicsFormat.Gif));
+                img.Save(path, GetImageFormat(GraphicsFormat.Gif));
+                //using (Image quantized = EncodeUtils.Quantize(img, quality))
+                //    BitmapHandler.Save(quantized, path, GetImageFormat(GraphicsFormat.Gif));
+            gif.Dispose();
+
 
             return await channel.SendFileAsync(path);
         }
@@ -121,6 +180,8 @@ namespace Orikivo
             return await SendMessageAsync(channel, ErrorPresets[error].Build(), options);
         }
 
+
+        // TODO: If the stack trace is too large, send the exception to a .txt file.
         /// <summary>
         /// Catches a possible Exception and sends its information to the specified channel.
         /// </summary>

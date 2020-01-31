@@ -8,6 +8,8 @@ namespace Orikivo.Unstable
         public string Name { get; set; }
         public Personality Personality { get; set; }
 
+        public NpcSheet Sheet { get; set; }
+
         // a list of initial relationships with other NPCs.
         public List<Relationship> Relations { get; set; }
 

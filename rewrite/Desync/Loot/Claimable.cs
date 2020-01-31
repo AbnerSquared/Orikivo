@@ -15,7 +15,7 @@ namespace Orikivo.Unstable
         // cooldown length before streak reset
         public TimeSpan MaxStreakSpan { get; set; }
 
-        public Dictionary<int, RewardInfo> RewardTiers { get; set; } = new Dictionary<int, RewardInfo>();
+        public Dictionary<int, Reward> RewardTiers { get; set; } = new Dictionary<int, Reward>();
         // claimable rewards
     }
 

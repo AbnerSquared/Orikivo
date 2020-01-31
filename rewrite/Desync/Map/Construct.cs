@@ -6,6 +6,7 @@ namespace Orikivo.Unstable
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public List<Npc> Npcs { get; set; }
+        public List<ConstructLevel> Levels { get; set; }
     }
+
 }

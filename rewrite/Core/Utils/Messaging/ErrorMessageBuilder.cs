@@ -1,4 +1,6 @@
-﻿namespace Orikivo
+﻿using System.IO;
+
+namespace Orikivo
 {
     public class ErrorMessageBuilder
     {
@@ -13,5 +15,13 @@
         public OriColor Color { get; set; } // can be left empty.
         public Message Build()
             => new Message(this);
+
+        public Stream GetTextFile(string fileName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        // TODO: Maybe create a class that contains a FileStream and name?
+        // In this case, this could make saving easier.
     }
 }
