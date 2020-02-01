@@ -194,8 +194,11 @@ namespace Orikivo
         }
 
         private const string POS_NOTATION = "##,0.###";
-        public static string Notate(int i, bool includeDecimals = true)
+        public static string Notate(int i, bool includeDecimals = false)
             => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
+
+        public static string Notate(ulong u, bool includeDecimals = false)
+            => u.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
         {
@@ -234,10 +237,10 @@ namespace Orikivo
 
         public static string CreateVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
-        public static string SetUnicodeMap(string value, UnicodeMap mapType)
+        public static string SetUnicodeMap(string value, UnicodeMap type)
         {
             Dictionary<char, char> map = null;
-            switch(mapType)
+            switch(type)
             {
                 case UnicodeMap.Subscript:
                     map = _subscriptMap;
@@ -256,7 +259,7 @@ namespace Orikivo
         /// <summary>
         /// Parses the format of a greeting and replaces all specified keys into their known type.
         /// </summary>
-        public static string ParseGreeting(string greeting, GuildEventContext context) // TODO: Create literal parser u U P I C v V T y m M d D DIM d DOY H h m s t
+        public static string ParseGreeting(string greeting, EventContext context) // TODO: Create literal parser u U P I C v V T y m M d D DIM d DOY H h m s t
         {
             DateTime time = context.User.JoinedAt?.ToUniversalTime().UtcDateTime ?? DateTime.UtcNow;
             return greeting

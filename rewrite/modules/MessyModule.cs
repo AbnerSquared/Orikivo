@@ -8,6 +8,7 @@ using Orikivo.Drawing.Graphics3D;
 using Orikivo.Gaming;
 using Orikivo.Net;
 using Orikivo.Text;
+using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -76,6 +77,27 @@ namespace Orikivo
             }
 
             return stream;
+        }
+
+        [Command("parseevent")]
+        public async Task ParseEventAsync([Remainder] string content)
+        {
+            EventContext context = new EventContext(Context.Server, Context.Guild, Context.Guild.GetUser(Context.User.Id));
+
+            StringBuilder result = new StringBuilder();
+
+            result.AppendLine("```bf");
+           
+
+            result.AppendLine("Input:");
+            result.AppendLine(content);
+
+            result.AppendLine("```");
+
+            result.AppendLine("**Output**:");
+            result.Append(GameDatabase.ParseEvent(content, context));
+
+            await Context.Channel.SendMessageAsync(result.ToString());
         }
 
         [Command("animtimeline")]
@@ -863,7 +885,7 @@ namespace Orikivo
                 return;
             }
 
-            string result = OriFormat.ParseGreeting(content, new GuildEventContext(Context.Server, Context.Guild, Context.Guild.GetUser(Context.User.Id)));
+            string result = OriFormat.ParseGreeting(content, new EventContext(Context.Server, Context.Guild, Context.Guild.GetUser(Context.User.Id)));
             await Context.Channel.SendMessageAsync(result);
         }
 
@@ -1004,7 +1026,7 @@ namespace Orikivo
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
-
+        /*
         [Command("windowtest")]
         public async Task WindowTestAsync([Remainder]string message = null)
         {
@@ -1055,7 +1077,7 @@ namespace Orikivo
                 await Context.Channel.CatchAsync(ex);
             }
         }
-
+        */
         [Command("randomchoose")]
         public async Task ChooseTestAsync(int times = 8, bool allowRepeats = true)
         {

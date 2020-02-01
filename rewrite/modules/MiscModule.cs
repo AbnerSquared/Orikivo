@@ -53,7 +53,7 @@ namespace Orikivo
             {
                 try
                 {
-                    Context.Server.Options.Events.Add(new GuildEventData(GuildEvent.UserJoin) { Message = greeting });
+                    Context.Server.Options.Events.Add(new GuildEvent(EventType.UserJoin) { Message = greeting });
                     await Context.Channel.SendMessageAsync($"> Greeting **#{Context.Server.Options.Greetings.Count - 1}** has been included.");
                 }
                 catch(Exception e)
@@ -77,7 +77,7 @@ namespace Orikivo
             [Summary("Clears all custom greetings written for this guild."), RequireContext(ContextType.Guild)]
             public async Task ClearGreetingsAsync()
             {
-                Context.Server.Options.Events.RemoveAll(x => x.Type == GuildEvent.UserJoin);
+                Context.Server.Options.Events.RemoveAll(x => x.Type == EventType.UserJoin);
                 await Context.Channel.SendMessageAsync($"> All greetings have been cleared.");
             }
 
@@ -191,7 +191,7 @@ namespace Orikivo
         [Access(AccessLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
-            GuildCommand command = new GuildCommand(name);
+            GuildCommand command = new GuildCommand(Context.User, name);
             MessageBuilder message = new MessageBuilder(content, imageUrl);
             
             if (isEmbed)
@@ -262,40 +262,24 @@ namespace Orikivo
 
             // find names that sound and work better.
             [RequireUser]
-            [Command("earn"), Priority(0)]
-            public async Task SetGimiEarnAsync()
+            [Command("range"), Priority(0)]
+            public async Task SetGimiRangeAsync()
             {
                 //await Context.Channel.SendMessageAsync($"> Your **Earn** is currently set to {Context.Account.Gimi.Earn}.");
             }
 
             [RequireUser]
-            [Command("earn"), Priority(1)]
-            public async Task SetGimiEarnAsync(int earn)
+            [Command("range"), Priority(1)]
+            public async Task SetGimiRangeAsync(int earn)
             {
                 //Context.Account.Gimi.SetEarn(earn);
                 //await Context.Channel.SendMessageAsync($"> Your **Earn** has been set to **{Context.Account.Gimi.Earn}**.");
-            }
-
-            [RequireUser(AccountHandling.ReadOnly)]
-            [Command("slots")]
-            public async Task GetGimiSlotsAsync()
-            {
-                //await Context.Channel.SendMessageAsync($">>> **Gold**#{Context.Account.Gimi.GoldSlot}\n**Curse**#{Context.Account.Gimi.CurseSlot}");
-            }
-
-            [Command("clear")]
-            [RequireUser]
-            [Cooldown(86400)]
-            public async Task RegenGimiSlotsAsync()
-            {
-                //Context.Account.Gimi.ClearSlots();
-                await Context.Channel.SendMessageAsync("> **Gimi** slots cleared.");
             }
         }
 
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]
-        public async Task GetHelpInfoAsync([Remainder][Summary("The **ContextInfo** containing what to search for.")]string context = null)
+        public async Task GetHelpInfoAsync([Remainder][Summary("The **InfoContext** that defines your search.")]string context = null)
         {
             try
             {
@@ -320,19 +304,23 @@ namespace Orikivo
         [RequireUser]
         [Command("options"), Alias("config", "cfg")]
         [Summary("Returns all of your customized preferences.")]
-        public async Task GetUserOptionsAsync()
+        public async Task GetOptionsAsync()
         {
             UserConfig config = Context.Account.Config;
+
             // TODO: Separate into a formatting class.
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"> **Prefix** `{config.Prefix ?? "null"}`");
-            sb.AppendLine($"> This is an optional property that can be used as your personal prefix with **Orikivo.**");
+            sb.AppendLine($"> **Prefix** • `{config.Prefix ?? "null"}`");
+            sb.AppendLine($"> An optional property that allows you to set your own personal prefix when using **Orikivo.**");
             sb.AppendLine();
-            sb.AppendLine($"> **Notifier** `{config.Notifier}`");
-            sb.AppendLine($"> This property defines how public your Discord account is.");
+            sb.AppendLine($"> **Notifier** • `{config.Notifier}`");
+            sb.AppendLine($"> Controls the notifiers that have permission to notify you.");
             sb.AppendLine();
-            //sb.AppendLine($"> **Nickname** `{options.Nickname ?? "null"}`");
-            //sb.AppendLine($"> This property defines an optional name that can be set across **Orikivo**.");
+            sb.AppendLine($"> **Tooltips** `{config.Tooltips}`");
+            sb.AppendLine($"> A marker that determines if tooltips will be shown when executing certain commands.");
+            sb.AppendLine();
+            sb.AppendLine($"> **Debug** `{config.Debug}`");
+            sb.AppendLine($"> A marker that labels you as a debug tester. ");
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }

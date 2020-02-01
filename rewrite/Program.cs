@@ -36,7 +36,7 @@ namespace Orikivo
 
                 builder.AddTypeReader<GameMode>(new GameModeTypeReader());
                 builder.AddTypeReader<ReportTag>(new ReportTagTypeReader());
-                builder.AddTypeReader<GuildEvent>(new GuildEventTypeReader());
+                builder.AddTypeReader<EventType>(new GuildEventTypeReader());
                 builder.AddTypeReader<RasterizerType>(new RasterizerTypeTypeReader());
                 builder.AddTypeReader<MeritGroup>(new MeritGroupTypeReader());
 

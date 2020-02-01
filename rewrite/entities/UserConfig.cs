@@ -4,15 +4,28 @@ namespace Orikivo.Unstable
 {
     public class UserConfig
     {
+        private static UserFlag GetFlagValue(bool tooltips, bool debug)
+        {
+            UserFlag flag = 0;
+
+            if (tooltips)
+                flag |= UserFlag.Tooltips;
+
+            if (debug)
+                flag |= UserFlag.Debug;
+
+            return flag;
+        }
+
+
         public UserConfig() { }
 
         [JsonConstructor]
-        internal UserConfig(string prefix, NotifyDeny notifier, bool tooltips, bool debug)
+        internal UserConfig(string prefix, NotifyDeny notifier, UserFlag flag)
         {
             Prefix = prefix;
             Notifier = notifier;
-            Tooltips = tooltips;
-            Debug = debug;
+            Flag = flag;
         }
 
         /// <summary>
@@ -27,16 +40,19 @@ namespace Orikivo.Unstable
         [JsonProperty("notifier")]
         public NotifyDeny Notifier { get; set; }
 
+        [JsonProperty("flags")]
+        public UserFlag Flag { get; set; } = 0;
+
         /// <summary>
         /// A marker that determines if tooltips will be shown when executing certain commands.
         /// </summary>
-        [JsonProperty("tooltips")]
-        public bool Tooltips { get; set; }
+        [JsonIgnore]
+        public bool Tooltips { get => Flag.HasFlag(UserFlag.Tooltips); set => Flag = GetFlagValue(value, Debug); }
 
         /// <summary>
-        /// A marker that labels the <see cref="User"/> has a debugger.
+        /// A marker that labels the <see cref="User"/> as a debug tester.
         /// </summary>
-        [JsonProperty("debug")]
-        public bool Debug { get; set; }
+        [JsonIgnore]
+        public bool Debug { get => Flag.HasFlag(UserFlag.Debug); set => Flag = GetFlagValue(Tooltips, value); }
     }
 }

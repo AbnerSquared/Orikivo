@@ -12,6 +12,8 @@ namespace Orikivo.Unstable
 
         public MeritGroup Group { get; set; } = MeritGroup.Misc;
 
+        public MeritRank Rank { get; set; }
+
         public Func<User, bool> Criteria { get; set; }
 
         public Reward Reward { get; set; }
@@ -19,7 +21,6 @@ namespace Orikivo.Unstable
         public MeritData GetData()
             => new MeritData(DateTime.UtcNow, Reward == null ? null : (bool?) false);
     }
-
     // loot is stuff like:
     // - sockets, which enhance your digital features
     // - new backpacks to store more stuff at a time

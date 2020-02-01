@@ -16,9 +16,9 @@ namespace Orikivo
         [JsonConstructor]
         public GuildOptions(
             string prefix,
-            List<GuildEventData> events,
+            List<GuildEvent> events,
             bool? allowEvents,
-            Dictionary<GuildRole, ulong> customRoles,
+            Dictionary<SystemRole, ulong> customRoles,
             ulong? systemChannelId,
             List<ulong> selfAssignRoles,
             ErrorLevel exceptionLevel, List<GuildCommand> commands)
@@ -43,10 +43,10 @@ namespace Orikivo
                 guildOptions.Exceptions = ErrorLevel.Default;
                 //guildOptions.PrivacyDeny = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
-                guildOptions.SystemRoles = new Dictionary<GuildRole, ulong>();
+                guildOptions.SystemRoles = new Dictionary<SystemRole, ulong>();
                 guildOptions.Commands = new List<GuildCommand>();
                 guildOptions.UseEvents = false;
-                guildOptions.Events = new List<GuildEventData> { new GuildEventData(GuildEvent.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
+                guildOptions.Events = new List<GuildEvent> { new GuildEvent(EventType.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
                 guildOptions.SelfRoles = new List<ulong>();
                 return guildOptions;
             }
@@ -98,7 +98,7 @@ namespace Orikivo
         /// A collection of events that write a body of text upon matching with an event that is called.
         /// </summary>
         [JsonProperty("events")]
-        public List<GuildEventData> Events { get; set; }
+        public List<GuildEvent> Events { get; set; }
 
         /// <summary>
         /// Specifies an embedder to integrate with a called event. If left empty, it will simply send itself as a message. (Note: Writing key shortcuts also work here)
@@ -110,7 +110,7 @@ namespace Orikivo
         /// Roles that are integrated with services such as muting, trusting, or default entry roles.
         /// </summary>
         [JsonProperty("system_roles")]
-        public Dictionary<GuildRole, ulong> SystemRoles { get; private set; }
+        public Dictionary<SystemRole, ulong> SystemRoles { get; private set; }
 
         /// <summary>
         /// All <see cref="IRole"/> objects that a user can automatically earn upon reaching the specified level bound to the role.
@@ -129,15 +129,15 @@ namespace Orikivo
         {
             get
             {
-                return SystemRoles.ContainsKey(GuildRole.Muted) ?
-                    SystemRoles[GuildRole.Muted] :
+                return SystemRoles.ContainsKey(SystemRole.Muted) ?
+                    SystemRoles[SystemRole.Muted] :
                     (ulong?) null;
             }
             set
             {
                 if (value.HasValue)
-                    if (!SystemRoles.TryAdd(GuildRole.Muted, value.Value))
-                        SystemRoles[GuildRole.Muted] = value.Value;
+                    if (!SystemRoles.TryAdd(SystemRole.Muted, value.Value))
+                        SystemRoles[SystemRole.Muted] = value.Value;
             }
         }
 
@@ -146,15 +146,15 @@ namespace Orikivo
         {
             get
             {
-                return SystemRoles.ContainsKey(GuildRole.Trusted) ?
-                    SystemRoles[GuildRole.Trusted] :
+                return SystemRoles.ContainsKey(SystemRole.Trusted) ?
+                    SystemRoles[SystemRole.Trusted] :
                     (ulong?) null;
             }
             set
             {
                 if (value.HasValue)
-                    if (!SystemRoles.TryAdd(GuildRole.Trusted, value.Value))
-                        SystemRoles[GuildRole.Trusted] = value.Value;
+                    if (!SystemRoles.TryAdd(SystemRole.Trusted, value.Value))
+                        SystemRoles[SystemRole.Trusted] = value.Value;
             }
         }
 
@@ -163,15 +163,15 @@ namespace Orikivo
         {
             get
             {
-                return SystemRoles.ContainsKey(GuildRole.Default) ?
-                    SystemRoles[GuildRole.Default] :
+                return SystemRoles.ContainsKey(SystemRole.Default) ?
+                    SystemRoles[SystemRole.Default] :
                     (ulong?) null;
             }
             set
             {
                 if (value.HasValue)
-                    if (!SystemRoles.TryAdd(GuildRole.Default, value.Value))
-                        SystemRoles[GuildRole.Default] = value.Value;
+                    if (!SystemRoles.TryAdd(SystemRole.Default, value.Value))
+                        SystemRoles[SystemRole.Default] = value.Value;
             }
         }
 
@@ -179,10 +179,10 @@ namespace Orikivo
         public bool HasPrefix => Checks.NotNull(Prefix);
 
         [JsonIgnore]
-        public IReadOnlyList<GuildEventData> Greetings => Events.Where(x => x.Type == GuildEvent.UserJoin).ToList();
+        public IReadOnlyList<GuildEvent> Greetings => Events.Where(x => x.Type == EventType.UserJoin).ToList();
 
-        public void AddEvent(GuildEvent type, string message, string imageUrl = null)
-            => Events.Add(new GuildEventData(type) { Message = message, ImageUrl = imageUrl });
+        public void AddEvent(EventType type, string message, string imageUrl = null)
+            => Events.Add(new GuildEvent(type) { Message = message, ImageUrl = imageUrl });
 
         public void AddSelfRole(ulong roleId)
         {

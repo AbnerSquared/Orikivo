@@ -94,7 +94,7 @@ namespace Orikivo
 
         // TODO: Possibly create EventContext, which would contain OriGuild, SocketGuild, and SocketUser.
         public string Greet(SocketGuild guild, SocketGuildUser user)
-            => OriFormat.ParseGreeting(Randomizer.Choose(Options.Greetings ?? GuildOptions.Default.Greetings).Message, new GuildEventContext(this, guild, user));
+            => OriFormat.ParseGreeting(Randomizer.Choose(Options.Greetings ?? GuildOptions.Default.Greetings).Message, new EventContext(this, guild, user));
         
         private void EnsureActionDataFor(ulong userId)
         {

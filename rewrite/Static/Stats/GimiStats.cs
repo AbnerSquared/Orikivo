@@ -10,10 +10,8 @@
 
         // CONFIG
         internal static string Risk = "gimi:risk";
-        internal static string Earn = "gimi:earn";
-        internal static string GoldSlot = "gimi:gold_slot";
-        internal static string CurseSlot = "gimi:curse_slot";
-        internal static string WinDirection = "gimi:win_direction";
+        internal static string Range = "gimi:earn";
+        internal static string WinDirection = "gimi:win_dir";
 
         // STATS
         internal static string TimesPlayed = "gimi:times_played";

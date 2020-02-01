@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Orikivo.Drawing;
 using Orikivo.Unstable;
 using System;
 using System.Collections.Generic;
@@ -10,22 +11,24 @@ namespace Orikivo
     // the service that handles all RPG related actions
     public class WorldService
     {
-        public static void ClaimMeritAsync(User user, string id)
+        /// <summary>
+        /// Attempts to update a <see cref="User"/> with the <see cref="Reward"/> that is attached to the specified <see cref="Merit"/>.
+        /// </summary>
+        public static void ClaimMerit(User user, string id)
         {
-            if (GameDatabase.Merits.ContainsKey(id))
+            if (GameDatabase.Merits.ContainsKey(id) && user.HasMerit(id))
             {
-                if (user.HasMerit(id))
+                if (GameDatabase.Merits[id].Reward != null && (!user.Merits[id].IsClaimed ?? false))
                 {
-                    if (GameDatabase.Merits[id].Reward != null && (!user.Merits[id].IsClaimed ?? false))
-                        
-                        foreach ((Item item, int amount) in GameDatabase.Merits[id].Reward.ItemIds.Select(x => (GameDatabase.GetItem(x.Key), x.Value)))
-                        {
-                            user.AddItem(item.Id, amount);
-                        }
+                    foreach ((Item item, int amount) in GameDatabase.Merits[id].Reward.ItemIds.Select(x => (GameDatabase.GetItem(x.Key), x.Value)))
+                        user.AddItem(item.Id, amount);
 
                     user.Balance += GameDatabase.Merits[id].Reward.Money.GetValueOrDefault(0);
+
                     if (GameDatabase.Merits[id].Reward.Exp.HasValue)
-                       user.UpdateExp(GameDatabase.Merits[id].Reward.Exp.Value.exp, GameDatabase.Merits[id].Reward.Exp.Value.type);
+                        user.UpdateExp(GameDatabase.Merits[id].Reward.Exp.Value.exp, GameDatabase.Merits[id].Reward.Exp.Value.type);
+
+                    user.Merits[id].IsClaimed = true;
                 }
             }
         }
@@ -39,7 +42,7 @@ namespace Orikivo
         }
 
         // display a list of merits for a specific user.
-        public static Message GetMeritContentAsync(User user, MeritGroup? group = null)
+        public static Message GetMeritPanel(User user, MeritGroup? group = null)
         {
             if (group == null)
             {
@@ -55,9 +58,9 @@ namespace Orikivo
                     var keys = merits.Select(x => x.Key);
                     int collected = user.Merits.Keys.Where(k => keys.Contains(k)).Count();
 
-                    sb.AppendLine($"**{type.ToString()} ({collected}/{(type == MeritGroup.Chaos ? "???" : total.ToString())})**");
+                    sb.AppendLine($"> **{type.ToString()}** `{RangeF.Convert(0, merits.Count(), 0.0f, 100.0f, collected)}%`");
                     if (GetMeritGroupSummary(type) != null)
-                        sb.AppendLine($"`{GetMeritGroupSummary(type)}`");
+                        sb.AppendLine($"> {GetMeritGroupSummary(type)}");
                 }
 
                 return new MessageBuilder { Content = sb.ToString() }.Build();
@@ -66,21 +69,44 @@ namespace Orikivo
             {
                 StringBuilder sb = new StringBuilder();
 
-                sb.AppendLine($"**Merits ({group.Value.ToString()})**:");
+                sb.AppendLine("**Merits**");
+                if (Checks.NotNull(group))
+                    sb.AppendLine($"{group.Value.ToString()}");
+
+                sb.AppendLine();
 
                 foreach (KeyValuePair<string, Merit> merit in GameDatabase.Merits.Where(x => x.Value.Group == group))
                 {
                     bool unlocked = user.HasMerit(merit.Key);
 
-                    sb.Append($"`{merit.Key}` **{merit.Value.Name}**");
-                    if (unlocked && merit.Value.Reward != null)
-                        sb.Append($" ({(user.Merits[merit.Key].IsClaimed.Value ? "Claimed" : "Unclaimed")})");
-                    if (merit.Value.Summary != null)
-                        sb.Append($": {merit.Value.Summary}");
+                    // LINE 1
+                    sb.Append($"`{merit.Key}`");
+                    sb.Append(" • ");
+                    sb.Append($"**{merit.Value.Name}**");
+
+                    // LINE 2 (?)
+                    if (Checks.NotNull(merit.Value.Summary))
+                        sb.Append($"⇛ {merit.Value.Summary}");
+
                     sb.AppendLine();
 
                     if (unlocked)
-                        sb.AppendLine($"> Unlocked **{user.Merits[merit.Key].AchievedAt.ToString("M/d/yyyy @ HH:mm")}**");
+                        sb.AppendLine($"> Achieved **{user.Merits[merit.Key].AchievedAt.ToString("M/d/yyyy @ HH:mm tt")}**");
+
+                    if (unlocked && merit.Value.Reward != null)
+                    {
+                        sb.Append("Reward: ");
+
+                        // TODO: Use a listing format system. just gather all of the proper naming
+                        sb.Append("**");
+
+                        sb.AppendJoin(", ", merit.Value.Reward.GetNames());
+
+                        sb.Append("**");
+                        sb.Append($" ({(user.Merits[merit.Key].IsClaimed.Value ? "Claimed" : "Unclaimed")})");
+                    }
+
+                    
                 }
 
                 return new MessageBuilder { Content = sb.ToString() }.Build();
@@ -90,8 +116,8 @@ namespace Orikivo
         private static string GetMeritGroupSummary(MeritGroup group)
             => group switch
             {
-                MeritGroup.Chaos => "The impossible made possible.",
-                MeritGroup.Misc => "A random collection of objectives.",
+                MeritGroup.Chaos => "Achievements somehow made possible.",
+                MeritGroup.Misc => "Ungrouped accomplishments.",
                 _ => null
             };
     }

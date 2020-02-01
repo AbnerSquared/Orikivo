@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     // This defines the role that will be used in those certain cases
-    public enum GuildRole
+    public enum SystemRole
     {
         Default = 1,
         Muted = 2,

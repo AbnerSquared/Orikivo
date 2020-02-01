@@ -1,21 +1,25 @@
 ﻿using Discord.WebSocket;
+using System;
 
 namespace Orikivo
 {
     /// <summary>
-    /// Context used to assist when parsing any matching keys from a <see cref="GuildEvent"/>.
+    /// Context used to assist when parsing any matching keys from a <see cref="EventType"/>.
     /// </summary>
-    public class GuildEventContext
+    public class EventContext
     {
-        internal GuildEventContext(OriGuild server, SocketGuild guild, SocketGuildUser user)
+        internal EventContext(OriGuild server, SocketGuild guild, SocketGuildUser user)
         {
             Server = server;
             Guild = guild;
             User = user;
+            ReceivedAt = DateTime.UtcNow;
         }
 
         public OriGuild Server { get; }
         public SocketGuild Guild { get; }
         public SocketGuildUser User { get; }
+
+        public DateTime ReceivedAt { get; }
     }
 }

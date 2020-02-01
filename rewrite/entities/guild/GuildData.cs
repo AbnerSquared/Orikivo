@@ -3,10 +3,15 @@ using System;
 
 namespace Orikivo.Unstable
 {
+    // this is for individual users.
     public class GuildData
     {
-        public GuildData() { }
-        public static GuildData Empty = new GuildData { Exp = 0, ActiveExp = 0, LastMessage = null };
+        public GuildData()
+        {
+            Exp = 0;
+            ActiveExp = 0;
+            LastMessage = null;
+        }
 
         [JsonConstructor]
         internal GuildData(ulong exp, DateTime? lastMessage, ulong activeExp)

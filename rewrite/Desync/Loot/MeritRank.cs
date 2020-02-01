@@ -1,51 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Orikivo.Unstable
+﻿namespace Orikivo.Unstable
 {
-    public class Reward
+    public enum MeritRank
     {
-        public Dictionary<string, int> ItemIds { get; set; } = new Dictionary<string, int>();
-        public ulong? Money { get; set; }
-        public (ExpType type, ulong exp)? Exp { get; set; }
-
-
-        /// <summary>
-        /// Returns all values specified within the <see cref="Reward"/> as a human-readable collection.
-        /// </summary>
-        public List<string> GetNames()
-        {
-            List<string> values = new List<string>();
-
-            foreach(KeyValuePair<string, int> item in ItemIds)
-            {
-                string name = GameDatabase.GetItem(item.Key).Name;
-
-                if (item.Value > 1)
-                    name += $" (x{OriFormat.Notate(item.Value)})";
-
-                values.Add(name);
-            }
-
-            values = values.OrderBy(x => x).ToList();
-
-            if (Exp.HasValue)
-            {
-                string exp = $"{OriFormat.Notate(Exp.Value.exp)} Exp";
-
-                if (Exp.Value.type != ExpType.Global)
-                    exp += $" ({Exp.Value.type})";
-
-                values.Insert(0, exp);
-            }
-
-            if (Money.HasValue)
-                values.Insert(0, $"{OriFormat.Notate(Money.Value)} Orite");
-
-            return values;
-        }
+        Bronze = 1,
+        Silver = 2,
+        Gold = 3,
+        Platinum = 4,
+        Diamond = 5
     }
-
     // loot is stuff like:
     // - sockets, which enhance your digital features
     // - new backpacks to store more stuff at a time

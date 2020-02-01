@@ -14,7 +14,7 @@ namespace Orikivo
         [RequireUser]
         public async Task GetMeritsAsync(MeritGroup? group = null)
         {
-            await Context.Channel.SendMessageAsync(WorldService.GetMeritContentAsync(Context.Account, group));
+            await Context.Channel.SendMessageAsync(WorldService.GetMeritPanel(Context.Account, group));
         }
 
         [Command("cry")]
