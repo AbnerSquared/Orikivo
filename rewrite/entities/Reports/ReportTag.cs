@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// A collection of tags that can be used to group reports.
+    /// A collection of tags that can be used to group a <see cref="Report"/>.
     /// </summary>
     [System.Flags]
     public enum ReportTag
@@ -27,12 +27,12 @@
         Visual = 4,
 
         /// <summary>
-        /// Marks a report as derived from an exception.
+        /// Marks a report as derived from an exception. (Generated Only)
         /// </summary>
         Exception = 5,
 
         /// <summary>
-        /// Marks a report as automatically generated.
+        /// Marks a report as automatically generated. (Generated Only)
         /// </summary>
         Auto = 6
     }

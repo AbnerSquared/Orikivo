@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Orikivo.Drawing;
+using System.IO;
 
 namespace Orikivo
 {
@@ -12,7 +13,7 @@ namespace Orikivo
 
         public string StackTrace { get; set; } // at C:/ok.cs: line 1
 
-        public OriColor Color { get; set; } // can be left empty.
+        public GammaColor Color { get; set; } // can be left empty.
         public Message Build()
             => new Message(this);
 

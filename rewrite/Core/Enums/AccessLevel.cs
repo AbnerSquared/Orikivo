@@ -3,7 +3,7 @@
     public enum AccessLevel
     {
         /// <summary>
-        /// Inherit's the access level from a <see cref="OriGuild"/>'s config.
+        /// Inherit's the access level from a <see cref="Unstable.Guild"/>'s config.
         /// </summary>
         Inherit = 1,
 

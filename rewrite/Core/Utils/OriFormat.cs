@@ -235,62 +235,38 @@ namespace Orikivo
         public static string Hyperlink(string url)
             => Format.Url(Path.GetFileName(url), url);
 
-        public static string CreateVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
+        public static string GetVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
         public static string SetUnicodeMap(string value, UnicodeMap type)
         {
-            Dictionary<char, char> map = null;
-            switch(type)
+            Dictionary<char, char> map = type switch
             {
-                case UnicodeMap.Subscript:
-                    map = _subscriptMap;
-                    break;
-                default:
-                    throw new Exception("The specified CharMapType was not found.");
-            }
-            foreach (char c in value)
+                UnicodeMap.Subscript => _subscriptMap,
+                _ => throw new ArgumentException("The specified UnicodeMap does not exist.")
+            };
+
+            foreach (char c in GetUniqueChars(value))
                 if (map.ContainsKey(c))
                     value = value.Replace(c, map[c]);
+
             return value;
         }
 
-        // ({[A-Za-z._]}) <= Regex format. Regex.Matches(Pattern);
-        // use Regex to single out the {} values.
         /// <summary>
-        /// Parses the format of a greeting and replaces all specified keys into their known type.
+        /// Returns a string in which each repeated character is removed.
         /// </summary>
-        public static string ParseGreeting(string greeting, EventContext context) // TODO: Create literal parser u U P I C v V T y m M d D DIM d DOY H h m s t
+        private static string GetUniqueChars(string value)
         {
-            DateTime time = context.User.JoinedAt?.ToUniversalTime().UtcDateTime ?? DateTime.UtcNow;
-            return greeting
-                .Replace("{user}", context.User.Mention)
-            .Replace("{user.name}", context.User.Username)
-            .Replace("{user.id}", context.User.Id.ToString())
-            .Replace("{user.pos}", (context.Guild.Users.OrderBy(x => x.JoinedAt.Value).ToList().IndexOf(context.User) + 1).ToString())//context.Guild.MemberCount.ToString()) // ToPosition
-            .Replace("{guild}", context.Guild.Name)
-            .Replace("{guild.id}", context.Guild.Id.ToString())
-            .Replace("{guild.users}", context.Guild.MemberCount.ToString()) // PlaceValue
-            .Replace("{date}", time.ToString(@"MM-dd-yyyy"))
-            .Replace("{time}", time.ToString(@"MM-dd-yyyy HH:mm:ss tt"))
-            .Replace("{time.year}", time.Year.ToString())
-            .Replace("{time.month}", time.Month.ToString())
-            .Replace("{time.Month}", time.ToString(@"MMMM"))
-            .Replace("{time.day}", time.Day.ToString())
-            .Replace("{time.daysInMonth}", DateTime.DaysInMonth(time.Year, time.Month).ToString())
-            .Replace("{time.Day}", time.DayOfWeek.ToString())
-            .Replace("{time.dayOfYear}", time.DayOfYear.ToString())
-            .Replace("{time.hour}", (time.Hour % 12 == 0 ? 12 : time.Hour % 12).ToString()) // 12h
-            .Replace("{time.Hour}", time.Hour.ToString()) // 24h
-            .Replace("{time.minute}", time.Minute.ToString())
-            .Replace("{time.second}", time.Second.ToString())
-            .Replace("{time.millisecond}", time.Millisecond.ToString()) // fff
-            .Replace("{time.post}", time.ToString(@"tt"));
+            string unique = "";
+
+            foreach (char c in value)
+                if (!unique.Contains(c))
+                    unique += c;
+
+            return unique;
         }
 
-        // Convert HTML format tags and convert them into Discord markup tags?
-        public static string ConvertHtmlTags(string value)
-            => throw new NotImplementedException();
-
+        // TODO: Implement all noun forms based on the end of the word
         public static string GetNounForm(string word, int count)
             => $"{word}{(count > 1 || count == 0 || count < 0 ? $"{(word.EndsWith("h") ? "e" : "")}s" : "")}";
 
@@ -318,6 +294,7 @@ namespace Orikivo
             return $"**{n}**{t}";
         }
 
+        // Might be scrapped.
         /// <summary>
         /// Returns the specified value into a JSON-friendly string.
         /// </summary>
@@ -343,6 +320,7 @@ namespace Orikivo
             return sb.ToString();
         }
 
+        // TODO: Figure out a better way to filter the symbols utilized.
         public static string TextChannelName(string value)
         {
             const int MAX_LENGTH = 100;

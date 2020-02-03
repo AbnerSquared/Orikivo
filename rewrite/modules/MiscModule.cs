@@ -14,6 +14,8 @@ using Color = Discord.Color;
 using System.Reflection;
 using Orikivo.Unstable;
 
+#pragma warning disable CS1998
+
 namespace Orikivo
 {
     // TODO: Place actual command functions into a Service variant. (MiscService.cs)
@@ -53,7 +55,7 @@ namespace Orikivo
             {
                 try
                 {
-                    Context.Server.Options.Events.Add(new GuildEvent(EventType.UserJoin) { Message = greeting });
+                    Context.Server.Options.Events.Add(new GuildEvent(EventType.UserJoin, greeting));
                     await Context.Channel.SendMessageAsync($"> Greeting **#{Context.Server.Options.Greetings.Count - 1}** has been included.");
                 }
                 catch(Exception e)
@@ -301,13 +303,16 @@ namespace Orikivo
         }
 
         // TODO: Create a context system to allow for getting specific option values alongside being able to set them.
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("options"), Alias("config", "cfg")]
         [Summary("Returns all of your customized preferences.")]
         public async Task GetOptionsAsync()
         {
-            UserConfig config = Context.Account.Config;
+            await Context.Channel.SendMessageAsync(Context.Account.Config.GetPanel());
+        }
 
+        /*
+         
             // TODO: Separate into a formatting class.
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"> **Prefix** • `{config.Prefix ?? "null"}`");
@@ -320,10 +325,10 @@ namespace Orikivo
             sb.AppendLine($"> A marker that determines if tooltips will be shown when executing certain commands.");
             sb.AppendLine();
             sb.AppendLine($"> **Debug** `{config.Debug}`");
-            sb.AppendLine($"> A marker that labels you as a debug tester. ");
+            sb.AppendLine($"> A marker that labels you as a debug tester.");
+             
+             */
 
-            await Context.Channel.SendMessageAsync(sb.ToString());
-        }
 
         [Command("guildprofile"), Alias("server", "gpf")]
         [Summary("Gets the **OriGuild** object for the current **SocketGuild**.")]
@@ -332,13 +337,6 @@ namespace Orikivo
         {
             await Context.Channel.SendMessageAsync(Context.Server.ToString());
         }
-
-        // TODO: Might scrap all around. The DisplayEntityFormat is kind of a mess.
-        //[Command("displayformat"), Alias("dispfmt"), Priority(0)]
-        //[Summary("Shows your current **EntityDisplayFormat**.")]
-
-        //[Command("displayformat"), Alias("dispfmt"), Priority(1)]
-        //[Summary("Set your **EntityDisplayFormat** to the specified type.")]
 
         [Command("version")]
         public async Task GetVersionAsync()

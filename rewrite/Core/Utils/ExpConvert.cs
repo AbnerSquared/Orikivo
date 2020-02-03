@@ -7,7 +7,9 @@ namespace Orikivo
     /// </summary>
     public static class ExpConvert
     {
-        // exp to level
+        /// <summary>
+        /// Converts the experience specified to its level counterpart.
+        /// </summary>
         public static int AsLevel(ulong exp)
         {
             exp = exp > MaxExp ? MaxExp : exp;
@@ -20,7 +22,9 @@ namespace Orikivo
             return level;
         }
 
-        // level to exp
+        /// <summary>
+        /// Reverts the specified level to its experience value.
+        /// </summary>
         public static ulong AsExp(int level)
         {
             level = level > AsLevel(MaxExp) ? AsLevel(MaxExp) : level;

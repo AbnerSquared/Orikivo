@@ -13,6 +13,8 @@ namespace Orikivo.Unstable
         }
 
         [JsonProperty("prefix")]
+        [Aliases("pfx")]
+        [Subtitle("A value that will define the default prefix for all users in this server.")]
         public string Prefix { get; set; }
     }
 }

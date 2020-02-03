@@ -83,6 +83,7 @@ namespace Orikivo
                     sb.Append($"`{merit.Key}`");
                     sb.Append(" • ");
                     sb.Append($"**{merit.Value.Name}**");
+                    sb.AppendLine();
 
                     // LINE 2 (?)
                     if (Checks.NotNull(merit.Value.Summary))
@@ -95,7 +96,7 @@ namespace Orikivo
 
                     if (unlocked && merit.Value.Reward != null)
                     {
-                        sb.Append("Reward: ");
+                        sb.Append("> Reward: ");
 
                         // TODO: Use a listing format system. just gather all of the proper naming
                         sb.Append("**");

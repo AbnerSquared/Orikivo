@@ -4,10 +4,24 @@ using System.Text;
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents how errors are handled.
+    /// </summary>
     public enum ErrorLevel
     {
-        Quiet = 1, // doesn't send anything upon a command incorrectly working
-        Default = 2, // includes unknown command errors
-        Critical = 3 // only incorporates 'Oops! An error has occured.' errors; actual exceptions
+        /// <summary>
+        /// All errors will be disabled (not recommended).
+        /// </summary>
+        Quiet = 1,
+
+        /// <summary>
+        /// All errors are shown.
+        /// </summary>
+        Verbose = 2,
+
+        /// <summary>
+        /// Errors are only shown when an <see cref="Exception"/> occurs during execution.
+        /// </summary>
+        Critical = 3
     }
 }

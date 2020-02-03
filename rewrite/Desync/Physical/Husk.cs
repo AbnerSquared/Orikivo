@@ -6,10 +6,11 @@ namespace Orikivo.Unstable
     public class Husk
     {
         // the husk always starts out in the headmaster's sector (Sector 27)
-        public Husk()
+        public Husk(string locationId)
         {
             ClaimedAt = DateTime.UtcNow;
-            Backpack = new Backpack();
+            // TODO: Handle default backpack creation
+            Backpack = new Backpack(4);
             Flag = 0; // the husk isn't doing anything.
         }
 
@@ -38,13 +39,16 @@ namespace Orikivo.Unstable
         /// Represents the <see cref="Husk"/>'s collection of physical items.
         /// </summary>
         [JsonProperty("backpack")]
-        public Backpack Backpack { get; private set; } = new Backpack();
+        public Backpack Backpack { get; private set; }
+        // TODO: Make WorldItem variants that specify a slot size, which can take more space than others.
 
         /// <summary>
         /// Represents what the <see cref="Husk"/> is currently doing at specific locations.
         /// </summary>
         [JsonProperty("flag")]
-        public HuskFlag Flag { get; private set; }     
+        public HuskFlag Flag { get; private set; }
+        
+        // there should be a method that gets all flags for a husk based on their current state
         
         // Where the husk is currently located. This stores a sector/field, area, construct and market id.
         [JsonProperty("location")]
@@ -70,8 +74,9 @@ namespace Orikivo.Unstable
         public int Intel { get; set; }
     }
 
-    public class HuskGear
+    public class HuskStatus
     {
-
+        // public List<Injury> Injuries {get; set;}
+        // public 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Orikivo.Drawing;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,19 +13,19 @@ namespace Orikivo
         /// <summary>
         /// Gets the color object derived from the status of a Discord user.
         /// </summary>
-        public static OriColor GetColorByStatus(UserStatus status)
+        public static System.Drawing.Color GetColorByStatus(UserStatus status)
         {
-            return status.EqualsAny(UserStatus.Offline, UserStatus.Invisible) ? new OriColor(0x747F8D)
-                : status == UserStatus.DoNotDisturb ? new OriColor(0xF04747)
-                : status.EqualsAny(UserStatus.AFK, UserStatus.Idle) ? new OriColor(0xFAA61A)
-                : status == UserStatus.Online ? new OriColor(0x43B581)
+            return status.EqualsAny(UserStatus.Offline, UserStatus.Invisible) ? new GammaColor(0x747F8D)
+                : status == UserStatus.DoNotDisturb ? new GammaColor(0xF04747)
+                : status.EqualsAny(UserStatus.AFK, UserStatus.Idle) ? new GammaColor(0xFAA61A)
+                : status == UserStatus.Online ? new GammaColor(0x43B581)
                 : throw new Exception("The UserStatus given is unspecified.");
         }
 
-        public static OriColor GetColorByReport(int reportCount)
+        public static GammaColor GetColorByReport(int reportCount)
             => reportCount >= ContextUtils.CRITICAL_THRESHOLD ?
-            new OriColor(0xE75A70) : reportCount >= ContextUtils.YIELD_THRESHOLD ?
-            new OriColor(0xFFAC33) : new OriColor(0x55ACEE);
+            new GammaColor(0xE75A70) : reportCount >= ContextUtils.YIELD_THRESHOLD ?
+            new GammaColor(0xFFAC33) : new GammaColor(0x55ACEE);
 
         // TODO: actually give this a reason to exist.
         public static string CreatePageIndex(int currentPage, int maxPage, string text = null)

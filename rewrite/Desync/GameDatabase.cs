@@ -1,14 +1,65 @@
-﻿using System;
+﻿using Orikivo.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Orikivo.Unstable
 {
-
     public static class GameDatabase
     {
-        public static World World => new World { };
+        public static World World => new World
+        {
+            Id = "world0",
+            Name = "Test World",
+            Boundary = new System.Drawing.SizeF(512, 512),
+            Sectors = new List<Sector>
+            {
+                new Sector
+                {
+                    Id = "sector0",
+                    Name = "Test Sector",
+                    Position = new Vector2(16, 356),
+                    Areas = new List<Area>
+                    {
+                        new Area
+                        {
+                            Id = "area0",
+                            Name = "Test Area",
+                            Region = new RegionF(0, 0, 32, 32),
+                            Constructs = new List<Construct>
+                            {
+                                new Construct
+                                {
+                                    Id = "construct0",
+                                    Name = "Test Construct",
+                                    Layers = new List<ConstructLayer>
+                                    {
+                                        new ConstructLayer
+                                        {
+                                            Level = 0,
+                                            Npcs = new List<Npc>
+                                            {
+                                                new Npc
+                                                {
+                                                    Id = "npc0",
+                                                    Name = "Test NPC",
+                                                    Personality = new Personality
+                                                    {
+                                                        Archetype = Archetype.Generic
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
         // TODO: Implement world design. World => Field => Sector => Area => Construct
         //     Fields are wildlands. Sectors reside within a field, as some sort of safe zone.
         //     Areas are small gatherings within sectors. Constructs are a building within an area.
@@ -22,7 +73,8 @@ namespace Orikivo.Unstable
                 Quotes = new List<string>
                 {
                     "You'll get the chance to dispute in court, you'll see.",
-                    "ORS doesn't stand a chance." },
+                    "ORS doesn't stand a chance."
+                },
                 BypassCriteriaOnGift = true,
                 GiftLimit = 1,
                 Rarity = ItemRarity.Common,
@@ -36,7 +88,8 @@ namespace Orikivo.Unstable
                     UseLimit = 1,
                     BreakOnLastUse = true,
                     Cooldown = TimeSpan.FromHours(24),
-                    OnUse = u => u.Debt = 0 }
+                    OnUse = u => u.Debt = 0
+                }
             }
         };
 
@@ -240,13 +293,22 @@ namespace Orikivo.Unstable
                     "p"
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("tt")
-            },
+            }
         };
 
         public static Dictionary<string, Merit> Merits => new Dictionary<string, Merit>
         {
-            ["test"] = new Merit { Criteria = x => x.GetStat("times_cried") == 1,
-                Name = "Shedding Tears", Summary = "Cry.", Group = MeritGroup.Misc, Reward = new Reward { Money = 10 } }
+            ["test"] = new Merit
+            {
+                Criteria = x => x.GetStat("times_cried") == 1,
+                Name = "Shedding Tears",
+                Summary = "Cry.",
+                Group = MeritGroup.Misc,
+                Reward = new Reward
+                {
+                    Money = 10
+                }
+            }
         };
 
         public static Dictionary<string, Claimable> Claimables => new Dictionary<string, Claimable>();
@@ -262,7 +324,6 @@ namespace Orikivo.Unstable
         public static Booster GetBooster(string id)
             => Boosters[id];
         
-
         public static Item GetItem(string name)
             => Items[name];
 
@@ -305,7 +366,6 @@ namespace Orikivo.Unstable
             // return markers if invalid
             return "{" + id + "}";
         }
-        
     }
 
     // loot is stuff like:
@@ -328,7 +388,5 @@ namespace Orikivo.Unstable
     //   - Font Face Modifiers, which change how the font is written
     //   - Backgrounds, which are displayed behind a card.
     //   - Merit Slots, which allow you to display the icon of a merit onto a card
-
-
     // - Interface Enhancements, which modifies how Orikivo visually displays content to you
 }

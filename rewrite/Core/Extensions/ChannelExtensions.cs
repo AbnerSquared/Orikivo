@@ -69,6 +69,6 @@ namespace Orikivo
         /// Gets the URL bound to a voice channel to allow users to participate in screen sharing.
         /// </summary>
         public static string GetUrl(this IVoiceChannel channel)
-            => OriFormat.CreateVoiceChannelUrl(channel.GuildId, channel.Id);
+            => OriFormat.GetVoiceChannelUrl(channel.GuildId, channel.Id);
     }
 }

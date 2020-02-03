@@ -30,7 +30,7 @@ namespace Orikivo
 
         public GraphicsService()
         {
-            PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = GetDefaultCharMap() };
+            GraphicsConfig config = new GraphicsConfig { CharMap = GetDefaultCharMap() };
 
             _graphics = new GraphicsWriter(config);
 

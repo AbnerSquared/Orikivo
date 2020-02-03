@@ -8,16 +8,11 @@ namespace Orikivo
     // BalanceData, DebtData, TokenData, ExpData, LevelData, AscentData 
     public struct VarData
     {
-        public static VarData FromCurrency(CurrencyType type, ulong value)
+        public static VarData FromCurrency(string type, ulong value)
         {
-            string currencyType = type switch
-            {
-                CurrencyType.Generic => "balance",
-                CurrencyType.Vote => "token",
-                CurrencyType.Debt => "debt"
-            };
+            // balance, token, debt
 
-            return new VarData(currencyType, value);
+            return new VarData(type, value);
         }
         public static VarData FromExp(ulong exp)
         {

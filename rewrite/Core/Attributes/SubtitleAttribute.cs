@@ -3,9 +3,9 @@
 namespace Orikivo
 {
     /// <summary>
-    /// Marks a module to contain a subtitle that is read as a quick description.
+    /// An <see cref="Attribute"/> that stores a short description for the value it is applied to.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class SubtitleAttribute : Attribute
     {
         public SubtitleAttribute(string subtitle)

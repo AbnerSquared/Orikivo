@@ -40,13 +40,16 @@ namespace Orikivo
             {
                 GuildOptions guildOptions = new GuildOptions();
                 guildOptions.Prefix = null;
-                guildOptions.Exceptions = ErrorLevel.Default;
+                guildOptions.Exceptions = ErrorLevel.Verbose;
                 //guildOptions.PrivacyDeny = GuildPrivacyDeny.Internal; // this hides everything except emojis in the guild by default.
                 // separate emojis with duplicate names by guild id? by default, you can just use the first instance of an emoji with that name.
                 guildOptions.SystemRoles = new Dictionary<SystemRole, ulong>();
                 guildOptions.Commands = new List<GuildCommand>();
                 guildOptions.UseEvents = false;
-                guildOptions.Events = new List<GuildEvent> { new GuildEvent(EventType.UserJoin) { Message = "Welcome to the server, {mention_user}!" } };
+                guildOptions.Events = new List<GuildEvent>
+                {
+                    new GuildEvent(EventType.UserJoin, "Welcome to the server, {user}!")
+                };
                 guildOptions.SelfRoles = new List<ulong>();
                 return guildOptions;
             }
@@ -182,7 +185,7 @@ namespace Orikivo
         public IReadOnlyList<GuildEvent> Greetings => Events.Where(x => x.Type == EventType.UserJoin).ToList();
 
         public void AddEvent(EventType type, string message, string imageUrl = null)
-            => Events.Add(new GuildEvent(type) { Message = message, ImageUrl = imageUrl });
+            => Events.Add(new GuildEvent(type, message, imageUrl));
 
         public void AddSelfRole(ulong roleId)
         {

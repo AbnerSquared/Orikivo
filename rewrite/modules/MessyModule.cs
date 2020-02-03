@@ -49,15 +49,15 @@ namespace Orikivo
             FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
-            PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
+            GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
             using (GraphicsWriter poxel = new GraphicsWriter(config))
             {
-                poxel.DefaultOptions = new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) };
+                poxel.DefaultOptions = new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) };
                 for (int i = 0; i < texts.Length; i++)
                 {
                     MemoryStream stream = new MemoryStream();
 
-                    using (Bitmap frame = poxel.DrawString(texts[i], font, OriColor.OriGreen))
+                    using (Bitmap frame = poxel.DrawString(texts[i], font, GammaColor.GammaGreen))
                         frame.Save(stream, ImageFormat.Png);
 
                     frames.Add(stream);
@@ -456,7 +456,7 @@ namespace Orikivo
             else
             {
                 MessageBuilder mb = new MessageBuilder();
-                string url = OriFormat.CreateVoiceChannelUrl(Context.Guild.Id, user.VoiceChannel.Id);
+                string url = OriFormat.GetVoiceChannelUrl(Context.Guild.Id, user.VoiceChannel.Id);
                 mb.Embedder = Embedder.Default;
                 mb.Content = $"> **{Format.Url(user.VoiceChannel.Name, url)}** ({user.VoiceChannel.Users.Count}/{user.VoiceChannel.UserLimit?.ToString() ?? "∞"})";
                 await Context.Channel.SendMessageAsync(mb.Build());
@@ -612,7 +612,7 @@ namespace Orikivo
             string path = $"../tmp/{Context.User.Id}_time.gif";
             FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
-            PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
+            GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
             List<Stream> frames = new List<Stream>();
             CanvasOptions options = new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), Width = 47 };
             float t = 0.00f;
@@ -667,7 +667,7 @@ namespace Orikivo
                 // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
                 char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
                 GammaPalette colors = TimeCycle.FromHour(hour);
-                PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap, Colors = colors };
+                GraphicsConfig config = new GraphicsConfig { CharMap = charMap, Palette = colors };
                 using (GraphicsWriter poxel = new GraphicsWriter(config))
                 using (Bitmap bmp = poxel.DrawString(hour.ToString("00.00H").ToUpper(), font,
                     new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = colors[Gamma.Min] }))
@@ -847,13 +847,15 @@ namespace Orikivo
         [Summary("Draws a pixelated string.")]
         public async Task DrawTextAsync([Remainder]string text)
         {
+            EmbedBuilder eb = new EmbedBuilder();
+            
             string path = $"../tmp/{Context.User.Id}_text.png";
             FontFace font = OriJsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
             // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
-            PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
+            GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
             using (GraphicsWriter poxel = new GraphicsWriter(config))
-            using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
+            using (Bitmap bmp = poxel.DrawString(text, font, GammaColor.GammaGreen, new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) }))
                     BitmapHandler.Save(bmp, path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
@@ -868,25 +870,12 @@ namespace Orikivo
             // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
             char[][][][] charMap = OriJsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
-            PixelGraphicsConfig config = new PixelGraphicsConfig { CharMap = charMap };
+            GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
             using (GraphicsWriter poxel = new GraphicsWriter(config))
-            using (Bitmap bmp = poxel.DrawString(text, font, OriColor.OriGreen, new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }))
+            using (Bitmap bmp = poxel.DrawString(text, font, GammaColor.GammaGreen, new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) }))
                     BitmapHandler.Save(bmp, path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
-        }
-
-        [Command("eventparsetest")]
-        public async Task EventParseTestAsync([Remainder]string content)
-        {
-            if (!Checks.NotNull(content))
-            {
-                await ReplyAsync("you numnut.");
-                return;
-            }
-
-            string result = OriFormat.ParseGreeting(content, new EventContext(Context.Server, Context.Guild, Context.Guild.GetUser(Context.User.Id)));
-            await Context.Channel.SendMessageAsync(result);
         }
 
         [RequireUser]
@@ -1008,6 +997,7 @@ namespace Orikivo
             }
         }
 
+        /*
         [Command("colorconvert")]
         [Summary("A unit tests that ensures the **GammaColor** class is converting as intended.")]
         public async Task ColorAsync()
@@ -1026,6 +1016,7 @@ namespace Orikivo
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
+        */
         /*
         [Command("windowtest")]
         public async Task WindowTestAsync([Remainder]string message = null)

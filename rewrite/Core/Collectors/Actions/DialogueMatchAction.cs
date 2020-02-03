@@ -472,7 +472,7 @@ namespace Orikivo
 
                 await message.DeleteAsync();
 
-                await Context.Channel.SendImageAsync(Npc.Sheet.GetDisplayImage(loop.Tone, Palette), "../tmp/npc.png");
+                //await Context.Channel.SendImageAsync(Npc.Sheet.GetDisplayImage(loop.Tone, Palette), "../tmp/npc.png");
                 await InitialMessage.ModifyAsync(x => x.Content = chat.ToString());
                 
                 return ActionResult.Continue;

@@ -4,7 +4,7 @@ namespace Orikivo.Unstable
 {
     public struct TimeBlock
     {
-        TimeSpan From;
-        TimeSpan To;
+        public TimeSpan From { get; set; }
+        public TimeSpan To { get; set; }
     }
 }

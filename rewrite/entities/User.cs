@@ -7,6 +7,11 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Orikivo.Unstable
 {
+    // Balance => Orite
+    // TokenBalance => Voken
+    // GuildBalance => Gini
+    // Debt => Etiro
+
     public class User : IDiscordEntity<SocketUser>, IJsonEntity
     {
         [JsonConstructor, BsonConstructor]
@@ -159,7 +164,6 @@ namespace Orikivo.Unstable
         [JsonProperty("ascent"), BsonElement("ascent")]
         public int Ascent { get; set; } = 0;
         
-        // Maybe revert to string, int ??
         [JsonProperty("stats"), BsonElement("stats")]
         public Dictionary<string, long> Stats { get; } = new Dictionary<string, long>(); // Type:{JSON} (example: Int32:0)
 
@@ -222,7 +226,7 @@ namespace Orikivo.Unstable
                 if (updated)
                 {
                     // Set up/update the streak stats
-                    if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.MaxStreakSpan) // if the streak will reset.
+                    if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.PreserveDuration) // if the streak will reset.
                         SetStat(claimable.StreakId, 1);
                     else
                         UpdateStat(claimable.StreakId, 1);
@@ -264,7 +268,7 @@ namespace Orikivo.Unstable
                     if (canUpdate)
                     {
                         // Set up/update the streak stats
-                        if ((DateTime.UtcNow - Cooldowns[id]) >= info.MaxStreakSpan) // if the streak will reset.
+                        if ((DateTime.UtcNow - Cooldowns[id]) >= info.PreserveDuration) // if the streak will reset.
                             SetStat(info.StreakId, 1);
                         else
                             UpdateStat(info.StreakId, 1);

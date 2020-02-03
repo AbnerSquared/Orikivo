@@ -2,7 +2,7 @@
 
 namespace Orikivo
 {
-    public class OriBaseUser
+    public class BaseUser
     {
         public string Username { get; }
         public ulong Id { get; }

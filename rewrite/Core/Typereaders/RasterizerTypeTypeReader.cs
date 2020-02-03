@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public class GameModeTypeReader : TypeReader
+    public class RasterizerTypeTypeReader : TypeReader
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider provider)
         {
-            if (Enum.TryParse(input, true, out GameMode result))
+            if (Enum.TryParse(input, true, out RasterizerType result))
                 return Task.FromResult(TypeReaderResult.FromSuccess(result));
             return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Input did not match any parsable value."));
         }
