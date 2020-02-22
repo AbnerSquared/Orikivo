@@ -10,9 +10,24 @@ namespace Orikivo.Unstable
     public class DialoguePool // A 
     {
         /// <summary>
-        /// Represents the initial response on the start of a conversation.
+        /// Represents the generic response on the start of a conversation.
         /// </summary>
         public string Entry { get; set; }
+
+        /// <summary>
+        /// Represents the generic response on the end of a conversation.
+        /// </summary>
+        public string Exit { get; set; }
+
+        /// <summary>
+        /// Represents the generic response on a conversation timeout.
+        /// </summary>
+        public string Timeout { get; set; }
+
+        /// <summary>
+        /// Determines if this <see cref="DialoguePool"/> can be randomly chosen or not.
+        /// </summary>
+        public bool Generic { get; set; }
 
         public List<Dialogue> Dialogue { get; set; }
 
@@ -22,7 +37,7 @@ namespace Orikivo.Unstable
         public Dialogue GetDialogue(string id)
         {
             if (!Dialogue.Any(x => x.Id == id))
-                throw new ArgumentException($"No dialogue was found by the ID of '{id}'.");
+                throw new ArgumentException($"Could not find any dialogue with an ID of '{id}'.");
 
             return Dialogue.First(x => x.Id == id);
         }

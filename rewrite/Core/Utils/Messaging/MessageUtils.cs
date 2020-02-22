@@ -32,10 +32,12 @@ namespace Orikivo
         public static readonly Dictionary<OriError, MessageBuilder> ErrorPresets = new Dictionary<OriError, MessageBuilder>();
         // NotifyAsync() ?? Creates a notification pop-up.
 
+
+
         // TODO: Rather than notify instantly, append the notifier for the next message the user calls.
         public static async Task NotifyMeritAsync(ISocketMessageChannel channel, User user, IEnumerable<Merit> merits)
         {
-            if (!user.IsOnCooldown(Cooldown.Notify))
+            if (!user.IsOnCooldown(Cooldowns.Notify))
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -43,26 +45,26 @@ namespace Orikivo
                 sb.AppendJoin("\n", merits.Select(x => "• " + Format.Bold(x.Name)));
 
                 await channel.SendMessageAsync(sb.ToString());
-                user.SetCooldown(CooldownType.Global, Cooldown.Notify, TimeSpan.FromSeconds(3.0));
+                user.SetCooldown(CooldownType.Global, Cooldowns.Notify, TimeSpan.FromSeconds(3.0));
             }
         }
 
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, User user, Unstable.CooldownData cooldown)
-            => await WarnCooldownAsync(channel, user, cooldown);
+        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, User user, CooldownData cooldown, RequestOptions options = null)
+            => await WarnCooldownAsync(channel, user, cooldown.ExpiresOn, options);
 
         /// <summary>
         /// Attempts to warn a user about a global cooldown preventing any command execution.
         /// </summary>
-        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, User user, DateTime globalExpires)
+        public static async Task WarnCooldownAsync(ISocketMessageChannel channel, User user, DateTime globalExpires, RequestOptions options = null)
         {
-            if (!user.IsOnCooldown(Cooldown.Notify))
+            if (!user.IsOnCooldown(Cooldowns.Notify))
             {
                 //RestUserMessage msg = 
-                await channel.SendMessageAsync($"You are sending requests too quickly!\nTime left: **{DateTimeUtils.TimeSince(globalExpires).ToString(@"hh\:mm\:ss")}**");
-                user.SetCooldown(CooldownType.Global, Cooldown.Notify, TimeSpan.FromSeconds(3.0));
+                await channel.SendMessageAsync($"You are sending requests too quickly!\nTime left: **{DateTimeUtils.TimeSince(globalExpires).ToString(@"hh\:mm\:ss")}**", options: options);
+                user.SetCooldown(CooldownType.Global, Cooldowns.Notify, TimeSpan.FromSeconds(3.0));
                 //await Task.Delay(TimeSpan.FromSeconds(3));
                 //await msg.DeleteAsync();
             }
@@ -74,7 +76,7 @@ namespace Orikivo
         public static async Task<RestUserMessage> SendMessageAsync(ISocketMessageChannel channel, Message message, RequestOptions options = null)
         {
             if (Checks.NotNull(message.AttachmentUrl))
-                return await channel.SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options);
+                return await channel.SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options, message.IsSpoiler);
             else
                 return await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options);
         }
@@ -137,20 +139,22 @@ namespace Orikivo
         /// <summary>
         /// Sends an image to the specified channel and disposes of it.
         /// </summary>
-        public static async Task<RestUserMessage> SendImageAsync(ISocketMessageChannel channel, Bitmap bmp, string path,
-            GraphicsFormat format = GraphicsFormat.Png, RequestOptions options = null)
+        public static async Task<RestUserMessage> SendImageAsync(ISocketMessageChannel channel,
+            Bitmap bmp, string path, string text = null, bool isTTS = false, Embed embed = null,
+            GraphicsFormat format = GraphicsFormat.Png, RequestOptions options = null, bool isSpoiler = false)
         {
             using (bmp)
                 BitmapHandler.Save(bmp, path, GetImageFormat(format));
 
-            return await channel.SendFileAsync(path);
+            return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler);
         }
 
         /// <summary>
         /// Sends a GIF to the specified channel and disposes of it from a specified <see cref="MemoryStream"/>.
         /// </summary>
         public static async Task<RestUserMessage> SendGifAsync(ISocketMessageChannel channel, MemoryStream gif, string path,
-            Quality quality = Quality.Bpp8, RequestOptions options = null)
+            string text = null, bool isTTS = false, Embed embed = null,
+            Quality quality = Quality.Bpp8, RequestOptions options = null, bool isSpoiler = false)
         {
             using (Image img = Image.FromStream(gif))
                 img.Save(path, GetImageFormat(GraphicsFormat.Gif));
@@ -159,7 +163,7 @@ namespace Orikivo
             gif.Dispose();
 
 
-            return await channel.SendFileAsync(path);
+            return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler);
         }
 
         /// <summary>

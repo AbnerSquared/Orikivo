@@ -55,7 +55,7 @@ namespace Orikivo
         private List<GameAttribute> LastAttributesUpdated { get; set; } = new List<GameAttribute>();
 
         // TODO: It could be possible to make the game client function independently from Discord.
-        public async Task<TaskQueuePacket> StartAsync(BaseSocketClient client, GameLobby lobby, GameDisplay display, GameData data, CancellationToken token)
+        public async Task<TaskQueuePacket> StartAsync(BaseSocketClient client, GameLobby lobby, GameDisplay display, GameClientData data, CancellationToken token)
         {
             Data.Root = data; // unite parent data to task data.
             Console.WriteLine($"-- Now starting task. ({Id}) --");

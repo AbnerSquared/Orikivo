@@ -47,6 +47,15 @@ namespace Orikivo
                         .AppendLine("• When using the `help` command, you can explicitly specify the overload of a command by writing its index after the name of a command (`help command+index`).")
                         .AppendLine("• You can also learn more about the parameter of a command by writing the name of the parameter you wish learn about after the command name (`help command(parameter`).")
                         .ToString()
+                    },
+                    new GuideChapter
+                    {
+                        Number = 2,
+                        Title = "Initializing Husks",
+                        Content = new StringBuilder()
+                        .AppendLine("Husks are an integral part of **Orikivo**. In order to start utilizing one, you can type `awaken`, which will set up your very own **Husk**.")
+                        .AppendLine("**Husks** are a physical counterpart to your digital account. They are being controlled by your actions in the real world, which can be used to explore and gather materials that can be used to upgrade your digital progress.")
+                        .ToString()
                     }
                 }
             }
@@ -67,6 +76,60 @@ namespace Orikivo
 
         // BASE
 
+        public string GetActions(User user)
+        {
+            StringBuilder panel = new StringBuilder();
+            // Husk system
+            if (user.Husk != null)
+            {
+                panel.AppendLine();
+                panel.AppendLine("**Actions**");
+                panel.Append("• ");
+                panel.AppendLine(user.Husk.Location.GetSummary());
+
+                ModuleInfo main = _commands.Modules.First(x => x.Name == "Actions");
+                List<CommandNode> actions = new List<CommandNode>();
+
+                foreach (CommandInfo action in main.Commands)
+                {
+                    if (actions.Any(x => x.Name == action.Name))
+                        continue;
+
+                    // Flag checking
+                    CheckFlagsAttribute flags = action.Preconditions.GetAttribute<CheckFlagsAttribute>();
+                    RequireLocationAttribute check = action.Attributes.GetAttribute<RequireLocationAttribute>();
+
+                    if (flags != null)
+                    {
+                        if (!flags.Check(user.Brain))
+                            continue;
+                    }
+
+                    if (check != null)
+                    {
+                        if (!check.Check(user.Husk.Location))
+                            continue;
+                    }
+
+                    actions.Add(new CommandNode(GetCommands(action.Name, main)));
+                }
+
+                panel.AppendJoin(" • ", actions.Select(delegate (CommandNode x)
+                {
+                    string term = $"`{x.Name}`";
+
+                    if (x.Overloads.Count > 1)
+                        term += $"**+{x.Overloads.Count - 1}**";
+
+                    return term;
+                }));
+
+                
+            }
+
+            return panel.ToString();
+        }
+
         private string GetMainPanel(User user = null)
         {
 
@@ -74,11 +137,11 @@ namespace Orikivo
             bool showTooltips = user?.Config?.Tooltips ?? true;
 
             StringBuilder panel = new StringBuilder();
-            panel.Append("> **Help Menu**");
+            panel.AppendLine("> **Help Menu**");
 
             if (showTooltips)
             {
-                panel.AppendLine();
+                //panel.AppendLine();
                 panel.AppendLine("> Use `help <name>` to learn more about a command, module, or action.");
             }
 
@@ -134,7 +197,51 @@ namespace Orikivo
                 }
             }
 
-            // TODO: Deal with actions later
+            // Husk system
+            if (user.Husk != null)
+            {
+                panel.AppendLine();
+                panel.AppendLine("**Actions**");
+                panel.Append("• ");
+                panel.AppendLine(user.Husk.Location.GetSummary());
+
+                ModuleInfo main = _commands.Modules.First(x => x.Name == "Actions");
+                List<CommandNode> actions = new List<CommandNode>();
+
+                foreach (CommandInfo action in main.Commands)
+                {
+                    if (actions.Any(x => x.Name == action.Name))
+                        continue;
+
+                    // Flag checking
+                    CheckFlagsAttribute flags = action.Preconditions.GetAttribute<CheckFlagsAttribute>();
+                    RequireLocationAttribute check = action.Attributes.GetAttribute<RequireLocationAttribute>();
+
+                    if (flags != null)
+                    {
+                        if (!flags.Check(user.Brain))
+                            continue;
+                    }
+
+                    if (check != null)
+                    {
+                        if (!check.Check(user.Husk.Location))
+                            continue;
+                    }
+
+                    actions.Add(new CommandNode(GetCommands(action.Name, main)));
+                }
+
+                panel.AppendJoin(" • ", actions.Select(delegate(CommandNode x)
+                {
+                    string term = $"`{x.Name}`";
+
+                    if (x.Overloads.Count > 1)
+                        term += $"**+{x.Overloads.Count - 1}**";
+
+                    return term;
+                }));
+            }
 
             return panel.ToString();
         }
@@ -144,9 +251,23 @@ namespace Orikivo
             if (!Checks.NotNull(content))
                 return GetMainPanel(user);
 
-            // TODO: Include chapter parsing
-            if (Guides.Any(x => x.Id == content.ToLower()))
-                return Guides.First(x => x.Id == content.ToLower()).GetChapter(1);
+            // TODO: Clean up chapter parsing (Regex).
+            bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));
+            bool hasIndex = isGuideName && content.Split(' ').Count() == 2;
+
+            if (isGuideName)
+            {
+                if (hasIndex)
+                {
+                    if (int.TryParse(content.Split(' ')[1], out int index))
+                        return Guides.First(x => content.ToLower().StartsWith(x.Id)).GetChapter(index);
+                }
+                else if (Guides.Any(x => x.Id == content.ToLower()))
+                    return Guides.First(x => x.Id == content.ToLower()).GetChapter(1);
+
+            }
+
+            
 
             ContextNode ctx = Search(content);
 
@@ -370,7 +491,8 @@ namespace Orikivo
         public IEnumerable<ModuleInfo> GetBaseModules(string name)
             => GetBaseModules().Where(m => MODULE_MATCHER.Invoke(m, name));
 
-        public IEnumerable<ModuleInfo> Modules => _commands.Modules;
+        // remove all visuals on modules with the HideAttribute.
+        public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(x => x is HideAttribute));
 
         public IEnumerable<ModuleInfo> GetModules(string name)
             => Modules.Where(m => MODULE_MATCHER.Invoke(m, name));

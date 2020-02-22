@@ -1,10 +1,10 @@
-﻿namespace Orikivo.Unstable
+﻿using System;
+
+namespace Orikivo
 {
-    [System.Flags]
+    [Flags]
     public enum HuskState
     {
-        Active,
-        Injured,
-        Uninitialized
+        
     }
 }

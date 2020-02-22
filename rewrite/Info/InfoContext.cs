@@ -4,7 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace Orikivo
 {
-    // TODO: Handle guide parsing ==> :name OR guide name
+    /// <summary>
+    /// Represents the context of a method search.
+    /// </summary>
     public struct InfoContext
     {   
         //                                    MODULES            GROUPS            ROOT        INDEX              TYPE       PARAM                 PAGE

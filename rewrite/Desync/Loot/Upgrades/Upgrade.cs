@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orikivo
 {
     /// <summary>
-    /// Defines the properties of an upgrade.
+    /// Represents an attachable mechanic or skillset.
     /// </summary>
     public class Upgrade
     {
@@ -27,7 +27,7 @@ namespace Orikivo
         public string Summary { get; internal set; }
 
         /// <summary>
-        /// The tiers of this upgrade. For every value added is a new tier.
+        /// The tiers of the <see cref="Upgrade"/>. For every value added is a new tier.
         /// </summary>
         [JsonProperty("tiers")]
         public List<UpgradeTier> Tiers { get; internal set; }

@@ -10,6 +10,19 @@ namespace Orikivo
         public static List<TEnum> GetValues<TEnum>() where TEnum : Enum
             => typeof(TEnum).GetEnumValues().Cast<TEnum>().ToList();
 
+        // gets all active flags on an enum.
+        public static List<TEnum> GetFlags<TEnum>(TEnum value) where TEnum : Enum
+        {
+            List<TEnum> flags = new List<TEnum>();
+            foreach(TEnum flag in GetValues<TEnum>())
+            {
+                if (value.HasFlag(flag))
+                    flags.Add(flag);
+            }
+
+            return flags;
+        }
+
         public static UrlType? GetUrlType(string url)
         {
             if (string.IsNullOrWhiteSpace(url))

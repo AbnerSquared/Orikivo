@@ -166,8 +166,6 @@ namespace Orikivo.Unstable
         
         [JsonProperty("stats"), BsonElement("stats")]
         public Dictionary<string, long> Stats { get; } = new Dictionary<string, long>(); // Type:{JSON} (example: Int32:0)
-
-        
         
         [JsonProperty("merits"), BsonElement("merits")]
         public Dictionary<string, MeritData> Merits { get; } = new Dictionary<string, MeritData>();
@@ -185,7 +183,7 @@ namespace Orikivo.Unstable
         public HuskBrain Brain { get; } = new HuskBrain();
         
         [JsonProperty("husk"), BsonElement("husk")]
-        public Husk Husk { get; private set; } = null;
+        public Husk Husk { get; internal set; } = null;
 
         [JsonProperty("config"), BsonElement("config")]
         public UserConfig Config { get; } //= UserConfig.Default;
@@ -226,7 +224,7 @@ namespace Orikivo.Unstable
                 if (updated)
                 {
                     // Set up/update the streak stats
-                    if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.PreserveDuration) // if the streak will reset.
+                    if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.Preservation) // if the streak will reset.
                         SetStat(claimable.StreakId, 1);
                     else
                         UpdateStat(claimable.StreakId, 1);
@@ -258,7 +256,7 @@ namespace Orikivo.Unstable
 
             if (type == CooldownType.Claimable)
             {
-                Claimable info = GameDatabase.GetClaimable(name);
+                Claimable info = WorldEngine.GetClaimable(name);
 
                 if (Cooldowns.ContainsKey(id))
                 {
@@ -268,7 +266,7 @@ namespace Orikivo.Unstable
                     if (canUpdate)
                     {
                         // Set up/update the streak stats
-                        if ((DateTime.UtcNow - Cooldowns[id]) >= info.PreserveDuration) // if the streak will reset.
+                        if ((DateTime.UtcNow - Cooldowns[id]) >= info.Preservation) // if the streak will reset.
                             SetStat(info.StreakId, 1);
                         else
                             UpdateStat(info.StreakId, 1);

@@ -8,14 +8,14 @@ using System.Text;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents a possible issue or suggestion, as described by a <see cref="User"/>.
+    /// Represents a possible issue or suggestion declared by a <see cref="User"/>.
     /// </summary>
     public class Report : ReportBody, IReport
     {
         public const int CooldownLength = 2700;
 
         /// <summary>
-        /// Creates a new <see cref="Report"/> from an <see cref="Exception"/>.
+        /// Constructs a new <see cref="Report"/> from an <see cref="Exception"/>.
         /// </summary>
         internal static Report FromException<TException>(int id, TException exception, string commandId) where TException : Exception
             => new Report(id, commandId, typeof(TException).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);

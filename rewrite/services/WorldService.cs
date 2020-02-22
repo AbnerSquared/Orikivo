@@ -16,17 +16,17 @@ namespace Orikivo
         /// </summary>
         public static void ClaimMerit(User user, string id)
         {
-            if (GameDatabase.Merits.ContainsKey(id) && user.HasMerit(id))
+            if (WorldEngine.Merits.ContainsKey(id) && user.HasMerit(id))
             {
-                if (GameDatabase.Merits[id].Reward != null && (!user.Merits[id].IsClaimed ?? false))
+                if (WorldEngine.Merits[id].Reward != null && (!user.Merits[id].IsClaimed ?? false))
                 {
-                    foreach ((Item item, int amount) in GameDatabase.Merits[id].Reward.ItemIds.Select(x => (GameDatabase.GetItem(x.Key), x.Value)))
+                    foreach ((Item item, int amount) in WorldEngine.Merits[id].Reward.ItemIds.Select(x => (WorldEngine.GetItem(x.Key), x.Value)))
                         user.AddItem(item.Id, amount);
 
-                    user.Balance += GameDatabase.Merits[id].Reward.Money.GetValueOrDefault(0);
+                    user.Balance += WorldEngine.Merits[id].Reward.Money.GetValueOrDefault(0);
 
-                    if (GameDatabase.Merits[id].Reward.Exp.HasValue)
-                        user.UpdateExp(GameDatabase.Merits[id].Reward.Exp.Value.exp, GameDatabase.Merits[id].Reward.Exp.Value.type);
+                    if (WorldEngine.Merits[id].Reward.Exp.HasValue)
+                        user.UpdateExp(WorldEngine.Merits[id].Reward.Exp.Value.exp, WorldEngine.Merits[id].Reward.Exp.Value.type);
 
                     user.Merits[id].IsClaimed = true;
                 }
@@ -52,7 +52,7 @@ namespace Orikivo
 
                 foreach (MeritGroup type in EnumUtils.GetValues<MeritGroup>())
                 {
-                    var merits = GameDatabase.Merits.Where(x => x.Value.Group == type);
+                    var merits = WorldEngine.Merits.Where(x => x.Value.Group == type);
                     int total = merits.Count();
 
                     var keys = merits.Select(x => x.Key);
@@ -75,7 +75,7 @@ namespace Orikivo
 
                 sb.AppendLine();
 
-                foreach (KeyValuePair<string, Merit> merit in GameDatabase.Merits.Where(x => x.Value.Group == group))
+                foreach (KeyValuePair<string, Merit> merit in WorldEngine.Merits.Where(x => x.Value.Group == group))
                 {
                     bool unlocked = user.HasMerit(merit.Key);
 

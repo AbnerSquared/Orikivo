@@ -222,7 +222,7 @@ namespace Orikivo
             Console.WriteLine($"Drawing money counter...");
             #region Balance Display
 
-            Calculator.MinusRem(details.Balance, details.Debt);
+            Calc.MinusRem(details.Balance, details.Debt);
             bool inDebt = details.Debt > details.Balance;
             ulong balance = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
             string bal = OriFormat.GetShortValue(balance, out PlaceValue value);
@@ -359,5 +359,12 @@ namespace Orikivo
 
             return card.BuildAndDispose();
         }
+
+        //private DrawableLayer DrawAvatar();
+        // private DrawableLayer DrawBorder();
+        // private DrawableLayer DrawLevel();
+        // private DrawableLayer DrawMoney();
+        // private DrawableLayer DrawName();
+        // private DrawableLayer DrawMerits();
     }
 }

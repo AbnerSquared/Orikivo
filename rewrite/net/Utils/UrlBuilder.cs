@@ -6,14 +6,14 @@ namespace Orikivo.Net
 {
     // TODO: System.UriBuilder exists. This could be scrapped.
     /// <summary>
-    /// A tool used to simplify URI construction.
+    /// A tool used to simplify URL construction.
     /// </summary>
-    public class UriBuilder
+    public class UrlBuilder
     {
         /// <summary>
         /// Creates a new UriBuilder with a specified baseURL.
         /// </summary>
-        public UriBuilder(string baseUrl)
+        public UrlBuilder(string baseUrl)
         {
             if (!Checks.NotNull(baseUrl))
                 throw new ArgumentNullException("A UriBuilder requires a valid base URL.");
@@ -43,7 +43,7 @@ namespace Orikivo.Net
         /// <summary>
         /// Sets the endpoint for the URI.
         /// </summary>
-        public UriBuilder WithNewEndpoint(string endpoint)
+        public UrlBuilder WithNewEndpoint(string endpoint)
         {
             Endpoint = endpoint.Trim('/');
             return this;
@@ -52,7 +52,7 @@ namespace Orikivo.Net
         /// <summary>
         /// Concatenates an endpoint to the existing endpoint set in place.
         /// </summary>
-        public UriBuilder WithEndpoint(string endpoint)
+        public UrlBuilder WithEndpoint(string endpoint)
         {
             Endpoint += $"{(Checks.NotNull(endpoint) ? "/" : string.Empty)}{endpoint.Trim('/')}";
             return this;
@@ -61,13 +61,13 @@ namespace Orikivo.Net
         /// <summary>
         /// Creates a query argument and adds it into the argument pool.
         /// </summary>
-        public UriBuilder WithArg(string key, string value)
+        public UrlBuilder WithArg(string key, string value)
             => WithArg(new QueryArg(key, value));
 
         /// <summary>
         /// Adds a query argument into the argument pool.
         /// </summary>
-        public UriBuilder WithArg(QueryArg arg)
+        public UrlBuilder WithArg(QueryArg arg)
         {
             Args.Add(arg);
             return this;
@@ -77,13 +77,13 @@ namespace Orikivo.Net
         /// <summary>
         /// Appends a collection of query arguments for the URI.
         /// </summary>
-        public UriBuilder WithArgs(params QueryArg[] args)
+        public UrlBuilder WithArgs(params QueryArg[] args)
             => WithArgs(args.ToList());
 
         /// <summary>
         /// Appends a collection of query arguments for the URI.
         /// </summary>
-        public UriBuilder WithArgs(IEnumerable<QueryArg> args)
+        public UrlBuilder WithArgs(IEnumerable<QueryArg> args)
         {
             Args.AddRange(args);
             return this;
@@ -107,8 +107,8 @@ namespace Orikivo.Net
         /// <summary>
         /// Creates a new copy of the UriBuilder with its specified base URL.
         /// </summary>
-        public UriBuilder Copy()
-            => new UriBuilder(BaseUrl);
+        public UrlBuilder Copy()
+            => new UrlBuilder(BaseUrl);
 
         /* NOTES:
          In short, endpoints are always split using '/'.

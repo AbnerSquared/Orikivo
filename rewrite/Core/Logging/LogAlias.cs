@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// A shortcut reference that points to a specified object.
+    /// Represents a shortcut reference that points to a specified object.
     /// </summary>
     public enum LogAlias
     {

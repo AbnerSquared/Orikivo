@@ -21,6 +21,9 @@ namespace Orikivo
         public async Task<IUserMessage> WhisperAsync(IUser user, string text = "", bool isTTS = false, Embed embed = null, RequestOptions options = null)
             => await GetOrCreateDMChannel(user).SendMessageAsync(text, isTTS, embed, options);
 
+        //public async Task<IUserMessage> WhisperAsync(IUser user, Bitmap image, string path, string text = "", bool isTTS = false, Embed embed = null, RequestOptions = null)
+        //    => await GetOrCreateDMChannel(user).SendImageAsync(image, path, text, isTTS, embed, options);
+
         /// <summary>
         /// Sends a direct message to the specified user.
         /// </summary>

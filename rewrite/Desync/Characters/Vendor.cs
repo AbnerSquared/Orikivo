@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Unstable
 {
-    public class Vendor
-    {
-        public string Id { get; }
-        public string Name { get; }
+    // TODO: Make the market system a more generic structure, so Vendors can be portable Markets.
 
-        public float SellRate { get; }
-        public float BuyRate { get; }
-        public List<ItemTag> LikedItemTags { get; }
-        public List<ItemTag> DislikedItemTags { get; }
-        public bool OnlyBuyLikedItems { get; }
-        public List<TimeBlock> Schedule { get; }
+    /// <summary>
+    /// Represents a worker for a specific <see cref="Market"/>.
+    /// </summary>
+    public class Vendor : Npc
+    {
+        public List<ItemTag> LikedTags { get; set; }
+        public List<ItemTag> DislikedTags { get; set; }
+        public bool OnlyBuyLiked { get; set; }
+        public Schedule Schedule { get; set; }
     }
 }

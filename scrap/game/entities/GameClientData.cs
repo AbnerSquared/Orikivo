@@ -3,10 +3,10 @@
 namespace Orikivo
 {
     // this is the root game client data that is passed down to each game client.
-    public class GameData
+    public class GameClientData
     {
         // attributes and triggers can be left empty.
-        internal GameData(List<Player> players, List<GameAttribute> attributes = null, List<GameTrigger> triggers = null)
+        internal GameClientData(List<Player> players, List<GameAttribute> attributes = null, List<GameTrigger> triggers = null)
         {
             Attributes = attributes ?? new List<GameAttribute>();
             Players = players;

@@ -13,7 +13,7 @@ namespace Orikivo
         }
 
         // the game client data.
-        public GameData Root { get; internal set; }
+        public GameClientData Root { get; internal set; }
         public string TaskId { get; }
         public List<Player> Players => Root?.Players;
         public List<GameAttribute> TaskAttributes { get; } = new List<GameAttribute>();

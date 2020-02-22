@@ -92,6 +92,35 @@ namespace Orikivo
         }
 
         /// <summary>
+        /// Chooses a collection of elements at random from a specified collection.
+        /// </summary>
+        public static IEnumerable<T> ChooseMany<T>(IEnumerable<T> args, int times, int maxRepeats)
+        {
+            if (times > (args.Count() * maxRepeats)) // TODO: Handle maxRepeatLogic
+                throw new Exception("Since the chosen elements cannot be repeated, you cannot get a collection of elements larger than the one specified.");
+
+            List<T> bag = args.ToList(); // prevents editing args.
+            List<T> chosen = new List<T>();
+            Dictionary<T, int> repeated = new Dictionary<T, int>();
+            for (int i = 0; i < times; i++)
+            {
+                int j = RandomProvider.Instance.Next(bag.Count);
+                //Console.WriteLine($"I: {i}\nJ: {j}\nBag.Count: {bag.Count}");
+                chosen.Add(bag[j]);
+
+                // add a repeating listener
+                if (!repeated.TryAdd(bag[j], 1))
+                    repeated[bag[j]] += 1;
+
+                // the moment it's equal to the maximum number of repeats, prevent it from being chosen again.
+                if (repeated[bag[j]] >= maxRepeats)
+                    bag.RemoveAt(j);
+            }
+
+            return chosen;
+        }
+
+        /// <summary>
         /// Rolls a 6-sided dice and returns the result.
         /// </summary>
         /// <returns></returns>

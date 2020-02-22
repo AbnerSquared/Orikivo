@@ -30,7 +30,9 @@ namespace Orikivo
 
         public bool Elapsed { get; private set; }
 
-        public TimeSpan ElapsedTime => TimeStarted.HasValue ? DateTime.UtcNow - TimeStarted.Value : Signal.HasValue ? Signal.Value - TimeStarted.Value : TimeSpan.Zero;
+        public TimeSpan ElapsedTime => TimeStarted.HasValue ?
+            DateTime.UtcNow - TimeStarted.Value : Signal.HasValue ?
+            Signal.Value - TimeStarted.Value : TimeSpan.Zero;
 
         public TaskCompletionSource<bool> CompletionSource { get; private set; }
 

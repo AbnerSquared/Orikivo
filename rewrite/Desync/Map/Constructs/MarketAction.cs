@@ -1,5 +1,18 @@
 ﻿namespace Orikivo.Unstable
 {
+    public enum MarketState
+    {
+        Menu, // in main menu
+        Sell, // in sell menu
+        SellConfirm, // multiple counter thing
+        SellComplete, // sold an item
+        Buy, // in buy menu
+        BuyConfirm, // multiple counter thing
+        BuyComplete, // bought an item
+        SellRevert, // bought item back
+        View // inspecting item
+    }
+
     public enum MarketAction
     {
         Enter, // entering the market

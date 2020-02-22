@@ -4,16 +4,26 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-
+    /// <summary>
+    /// Represents a handler for collecting inbound messages on <see cref="Discord"/>.
+    /// </summary>
     public class MessageCollector
     {
         private readonly BaseSocketClient _client;
 
+        /// <summary>
+        /// Constructs a new <see cref="MessageCollector"/> with the specified <see cref="BaseSocketClient"/>.
+        /// </summary>
+        /// <param name="client">The <see cref="BaseSocketClient"/> that will be used to read inbound messages.</param>
         public MessageCollector(BaseSocketClient client)
         {
             _client = client;
         }
 
+        // Elapsed time is only updated on the end of a message collector
+        /// <summary>
+        /// Represents the amount time that passed during a handled process (only updated at the end of each handling).
+        /// </summary>
         public TimeSpan? ElapsedTime { get; private set; }
 
         public async Task MatchAsync(MessageFilter filter, MatchOptions options = null)
@@ -76,8 +86,19 @@ namespace Orikivo
             Console.WriteLine("Match handled.");
         }
 
+        /// <summary>
+        /// Tells the <see cref="MessageCollector"/> to attempt to match a single message.
+        /// </summary>
+        /// <param name="filter">The filter that will be used to compare messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task<FilterMatch> TryFilterAsync(MessageFilter filter, FilterOptions options = null)
             => await TryFilterAsync(filter.Judge, options);
+
+        /// <summary>
+        /// Tells the <see cref="MessageCollector"/> to attempt to match a single message.
+        /// </summary>
+        /// <param name="filter">The raw filter that will be used to compare messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task<FilterMatch> TryFilterAsync(Func<SocketMessage, int, bool> filter, FilterOptions options = null)
         {
             options ??= FilterOptions.Default;
@@ -121,8 +142,19 @@ namespace Orikivo
             return match;
         }
 
+        /// <summary>
+        /// Tells the <see cref="MessageCollector"/> to begin collecting messages.
+        /// </summary>
+        /// <param name="filter">The filter that will be used when comparing messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task<FilterCollection> CollectAsync(MessageFilter filter, CollectionOptions options = null)
             => await CollectAsync(filter.JudgeMany, options);
+
+        /// <summary>
+        /// Tells the <see cref="MessageCollector"/> to begin collecting messages.
+        /// </summary>
+        /// <param name="filter">The raw filter that will be used when comparing messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task<FilterCollection> CollectAsync(Func<SocketMessage, FilterCollection, int, bool> filter, CollectionOptions options = null)
         {
             options ??= CollectionOptions.Default;

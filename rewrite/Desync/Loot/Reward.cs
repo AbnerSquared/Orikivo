@@ -19,7 +19,7 @@ namespace Orikivo.Unstable
 
             foreach(KeyValuePair<string, int> item in ItemIds)
             {
-                string name = GameDatabase.GetItem(item.Key).Name;
+                string name = WorldEngine.GetItem(item.Key).Name;
 
                 if (item.Value > 1)
                     name += $" (x{OriFormat.Notate(item.Value)})";

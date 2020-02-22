@@ -1,5 +1,8 @@
 ﻿namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents the effect that a <see cref="Dialogue"/> provides.
+    /// </summary>
     public enum DialogueTone
     {
         Neutral = 1,

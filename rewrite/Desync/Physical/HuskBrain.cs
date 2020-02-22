@@ -1,33 +1,94 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents a <see cref="Husk"/>'s memory.
+    /// </summary>
     public class HuskBrain
     {
-        public HuskBrain() { }
-        [JsonConstructor]
-        internal HuskBrain(List<Relationship> relations, List<string> discoveredAreaIds)
+        public HuskBrain()
         {
-            Relations = relations ?? new List<Relationship>();
+            Relations = new Dictionary<string, float>();
+            DiscoveredAreaIds = new List<string>();
+            Maps = new Dictionary<string, byte[]>();
+            Catalogs = new Dictionary<string, CatalogData>();
+            Flags = new List<string>();
+        }
+
+        [JsonConstructor]
+        internal HuskBrain(Dictionary<string, float> relations, List<string> discoveredAreaIds, Dictionary<string, CatalogData> catalogs, List<string> flags)
+        {
+            Relations = relations ?? new Dictionary<string, float>();
             DiscoveredAreaIds = discoveredAreaIds ?? new List<string>();
+            Catalogs = catalogs ?? new Dictionary<string, CatalogData>();
+            Flags = flags ?? new List<string>();
         }
 
         [JsonProperty("relations")]
-        public List<Relationship> Relations { get; } = new List<Relationship>();
+        public Dictionary<string, float> Relations { get; } = new Dictionary<string, float>();
 
         [JsonProperty("area_ids")]
         public List<string> DiscoveredAreaIds { get; } = new List<string>();
 
         // you should keep track of market purchases, so they know when an item is out of stock or whatknot
 
+        // keep track of market purchases.
+        [JsonProperty("catalogs")]
+        public Dictionary<string, CatalogData> Catalogs { get; } = new Dictionary<string, CatalogData>();
+
+        public CatalogData GetOrGenerateCatalog(Market market)
+        {
+            if (!Catalogs.ContainsKey(market.Id))
+            {
+                Catalogs.Add(market.Id, market.GenerateCatalog().Compress());
+            }
+            else if (!market.IsActive(Catalogs[market.Id].GeneratedAt))
+            {
+                Catalogs[market.Id] = market.GenerateCatalog().Compress();
+            }
+            
+            return Catalogs[market.Id];
+        }
+
+
+        public void AddOrUpdateRelationship(Relationship relationship)
+        {
+            if (!Relations.TryAdd(relationship.NpcId, relationship.Value))
+                Relations[relationship.NpcId] = relationship.Value;
+        }
         // TODO: Make a sheet that covers a map
         // that sheet would slowly be erased based on visibility and position
         // 0 => out of visible range, 1 => visible/already seen 2 => mapped
 
+        // you would read the maps as 00000000 per byte, where each byte can store up to 8 pixels
+        [JsonProperty("maps")]
+        public Dictionary<string, byte[]> Maps { get; set; }
 
-        // This is for events and such, where once the user completes certain tasks, they will be marked here.
-        [JsonProperty("progression")]
-        public Dictionary<string, long> ProgressFlags { get; } = new Dictionary<string, long>();
+        // Flags store the id of an event that they completed.
+        /// <summary>
+        /// Represents the <see cref="Husk"/>'s completion of a <see cref="World"/>'s storyline.
+        /// </summary>
+        [JsonProperty("flags")]
+        public List<string> Flags { get; } = new List<string>();
+
+        public Relationship GetOrCreateRelationship(Npc npc)
+        {
+            if (!Relations.ContainsKey(npc.Id))
+                Relations.Add(npc.Id, 0.0f);
+
+            return new Relationship(npc.Id, Relations[npc.Id]);
+        }
+
+        public bool HasFlag(string id)
+            => Flags.Contains(id);
+
+        public void SetFlag(string id)
+        {
+            if (!Flags.Contains(id))
+                Flags.Add(id);
+        }
     }
 }

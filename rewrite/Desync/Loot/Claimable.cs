@@ -22,7 +22,7 @@ namespace Orikivo.Unstable
         /// <summary>
         /// The amount of time a streak can go before being reset.
         /// </summary>
-        public TimeSpan PreserveDuration { get; set; }
+        public TimeSpan Preservation { get; set; }
 
         /// <summary>
         /// Specifies a collection of <see cref="Reward"/> values bound to a streak amount.

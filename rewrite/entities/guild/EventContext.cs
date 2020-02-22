@@ -4,7 +4,7 @@ using System;
 namespace Orikivo
 {
     /// <summary>
-    /// Context used to assist when parsing any matching keys from a <see cref="EventType"/>.
+    /// Context used to assist when parsing any matching keys from an <see cref="EventType"/>.
     /// </summary>
     public class EventContext
     {

@@ -1,5 +1,6 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Unstable
 {
@@ -19,6 +20,17 @@ namespace Orikivo.Unstable
 
         public List<RegionF> Barriers { get; set; }
 
-        public float DistanceRatio { get; set; }
+        /// <summary>
+        /// Determines the travel time ratio for this <see cref="World"/>.
+        /// </summary>
+        public float Scale { get; set; }
+
+        public Sector GetSector(string id)
+        {
+            return Sectors.First(x => x.Id == id);
+        }
+
+        public Field GetField(string id)
+            => Fields.First(x => x.Id == id);
     }
 }

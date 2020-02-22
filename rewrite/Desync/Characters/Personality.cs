@@ -11,6 +11,6 @@ namespace Orikivo.Unstable
         public Archetype Archetype { get; set; }
 
         // a multiplier set for each dialogue tone that affects their relations.
-        public Dictionary<DialogueTone, float> ImpactRates { get; }
+        public Dictionary<DialogueTone, float> ToneImpactRates { get; }
     }
 }

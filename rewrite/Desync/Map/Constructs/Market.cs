@@ -1,25 +1,39 @@
-﻿using System;
+﻿using Orikivo.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Orikivo.Unstable
 {
-    public class Market
+    // have a handler when you try to enter a market and its closed.
+    public class Market : Construct
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-
-        // what the outside of the market looks like
-        public string ExteriorImagePath { get; set; }
-
-        // what the inside of the market looks like
-        public string InteriorImagePath { get; set; }
-        
-        // a generic list of tags that this market sells
+        // this is the image that is used as the background for vendors.
+        public Sprite Interior { get; set; }
         public LootTable Table { get; set; } // the tags of the groups of items that it can sell.
         
         // a list of workers that work here
         public List<Vendor> Vendors { get; set; }
+
+        private List<Npc> _npcs;
+
+
+        public override List<Npc> Npcs
+        {
+            get
+            {
+                if (IsActive())
+                {
+                    List<Npc> npcs = ((Npc)GetActive()).AsList();
+                    npcs.AddRange(_npcs);
+                    return npcs;
+                }
+                else
+                    return _npcs;
+            }
+            set => _npcs = value;
+        }
 
         // marked true if the market supports the buying of items
         public bool CanBuyFrom { get; set; }
@@ -30,44 +44,79 @@ namespace Orikivo.Unstable
         // a multiplier applied to items that are sold
         public float SellRate { get; set; }
 
+        // formats a string in which a schedule is formatted.
+        public string ShowSchedule()
+        {
+            StringBuilder schedule = new StringBuilder();
+            schedule.AppendLine($"**Schedule** ({Name}):");
+            foreach (Vendor vendor in Vendors)
+            {
+                if (!(vendor.Schedule.Length > 0))
+                    continue;
+
+                schedule.AppendLine($"**{vendor.Name}**");
+                foreach(Shift shift in vendor.Schedule.Shifts.OrderBy(x => x.Day))
+                {
+                    schedule.Append($"> **{shift.Day}**: ");
+                    schedule.Append($"**{(shift.StartingHour).ToString("00")}:{(shift.StartingMinute).ToString("00")}**-");
+                    int minutes = shift.StartingMinute + shift.Length.Minutes;
+                    schedule.Append($"**{(shift.StartingHour + shift.Length.Hours + Math.Floor((double)(minutes / 60))).ToString("00")}:{(minutes % 60).ToString("00")}**");
+                    schedule.AppendLine();
+                }
+            }
+
+            return schedule.ToString();
+        }
+
+        // returns a bool showing if the market is currently open.
+        public bool IsActive()
+            => Vendors.Any(x => x.Schedule.IsActive());
+
+        public bool IsAvailable(DateTime time)
+            => Vendors.Any(x => x.Schedule.IsAvailable(time));
+
+        // gets the currently active vendor.
+        public Vendor GetActive()
+            => IsActive() ? Vendors.First(x => x.Schedule.IsActive()) : null;
+
+        // get the vendor that will be available at that time.
+        public Vendor GetAvailable(DateTime time)
+            => Vendors.First(x => x.Schedule.IsAvailable(time));
+
+        // checks if a time is synced up with the currently active shift
+        public bool IsActive(DateTime time)
+            => Vendors.Any(x => x.Schedule.IsActive(time));
+
+        /// <summary>
+        /// Returns the next available <see cref="TimeBlock"/> at the specified <see cref="DateTime"/>.
+        /// </summary>
+        public TimeBlock GetNextBlock(DateTime time) // TODO: Optimize.
+            => Vendors.Select(x => x.Schedule.GetNextBlock(time)).Where(x => (x.From - time).TotalSeconds > 0).OrderBy(x => x.From - time).First();
 
         // creates a new list of items to sell for the day
         public MarketCatalog GenerateCatalog()
         {
-            IEnumerable<Item> loot = GameDatabase.Items
-                .Where(x => Table.Groups.Any(t => x.Value.Tag.HasFlag(t)))
+            IEnumerable<Item> loot = WorldEngine.Items
+                .Where(x => Table.Groups?.Any(t => x.Value.Tag.HasFlag(t)) ?? true)
                 .Where(x => x.Value.Tag.HasFlag(Table.RequiredTags))
                 .Select(x => x.Value);
 
-            List<Item> catalog = Randomizer.ChooseMany(loot, Table.Capacity, loot.Count() < Table.Capacity).ToList();
+            List<Item> catalog = Table.MaxStack <= 0 ? Randomizer.ChooseMany(loot, Table.Capacity, true).ToList() :
+                Randomizer.ChooseMany(loot, Table.Capacity, Table.MaxStack).ToList();
 
-            return new MarketCatalog(catalog);
+            Dictionary<Item, int> items = new Dictionary<Item, int>();
+
+            foreach (Item item in catalog)
+            {
+                if (items.ContainsKey(item))
+                    continue;
+
+                items.Add(item, catalog.Where(x => x == item).Count());
+            }
+
+            return new MarketCatalog(items);
         }
 
         // Get schedule from Vendor shifts.
-    }
-
-    public class MarketCatalog
-    {
-        public MarketCatalog(List<Item> items)
-        {
-            Items = items;
-            GeneratedAt = DateTime.UtcNow;
-        }
-
-        public DateTime GeneratedAt { get; set; }
-        public List<Item> Items { get; }
-    }
-
-    public class LootTable
-    {
-        // these tags are required to be on the items.
-        public ItemTag RequiredTags { get; set; }
-
-        // as long as one of these tags are on the item, it counts
-        public List<ItemTag> Groups { get; set; }
-
-        // the most amount of items a market can hold at a time.
-        public int Capacity { get; set; }
     }
 }

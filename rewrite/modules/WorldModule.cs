@@ -1,4 +1,6 @@
 ﻿using Discord.Commands;
+using Discord.WebSocket;
+using Orikivo.Unstable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,9 +30,16 @@ namespace Orikivo
 
         [Command("stats")]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetAllStatsAsync()
+        public async Task GetAllStatsAsync(SocketUser user = null)
         {
-            string stats = string.Join("\n", Context.Account.Stats.Select(s => $"{WorldService.GetNameOrDefault(s.Key)}: {s.Value}"));
+            user ??= Context.User;
+            Context.Container.TryGetUser(user.Id, out User account);
+
+            string stats = string.Join("\n", account.Stats.Select(s => $"{WorldService.GetNameOrDefault(s.Key)}: {s.Value}"));
+
+            if (Context.User.Id != user.Id)
+                stats = $"> **Stats** ({user.Username})\n" + stats;
+
             await Context.Channel.SendMessageAsync(stats == "" ? "No stats." : stats);
         }
 

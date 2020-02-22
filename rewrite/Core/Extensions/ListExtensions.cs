@@ -22,6 +22,19 @@ namespace Orikivo
             // add a wrapping ability
         }
 
+        /// <summary>
+        /// Returns a new <see cref="List{T}"/> in which all of the inner lists are merged together.
+        /// </summary>
+        public static List<T> Merge<T>(this IEnumerable<List<T>> set)
+        {
+            List<T> result = new List<T>();
+
+            foreach (List<T> list in set)
+                result.AddRange(list);
+
+            return result;
+        }
+
         public static void AddRange<T>(this List<T> list, params T[] ts)
         {
             if (ts.Length > 0)
@@ -34,8 +47,14 @@ namespace Orikivo
                 action(item);
         }
 
-        public static string WriteValues<T>(this IEnumerable<T> source)
-            => string.Join(", ", source);
+        public static string ConcatString<T>(this IEnumerable<T> source, string separator = ", ")
+            => string.Join(separator, source.Select(x => x.ToString()));
+
+        
+
+        // ensures that the underlying type is as specified.
+        public static IEnumerable<TAttribute> FilterAttributes<TAttribute>(this IEnumerable<Attribute> attributes) where TAttribute : Attribute
+            => attributes.Where(x => x.GetType() == typeof(TAttribute)).Select(x => x as TAttribute);
 
         public static TAttribute GetAttribute<TAttribute>(this IEnumerable<Attribute> attributes) where TAttribute : Attribute
             => attributes.FirstOrDefault(a => a.GetType() == typeof(TAttribute)) as TAttribute;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    // split important services, instead of using a root DiscordEventHandler
+    // TODO: Implement ignoring when a MessageCollector is currently in use for a user.
     public class CommandHandler
     {
         private readonly CommandService _service;
@@ -189,7 +189,7 @@ namespace Orikivo
         public async Task CheckStatsAsync(OriCommandContext ctx, User user)
         {
             // Check the stats for any possible merits
-            var merits = GameDatabase.Merits.Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
+            var merits = WorldEngine.Merits.Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
 
             if (merits.Count() > 0)
             {

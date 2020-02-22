@@ -11,7 +11,9 @@ namespace Orikivo
         public string Name { get; set; }
         public List<string> Aliases { get; set; } = new List<string>();
 
-        // this is what is used to parse the events.
+        /// <summary>
+        /// Represents the function used to convert the <see cref="EventMarker"/> into a readable <see cref="string"/>.
+        /// </summary>
         public Func<EventContext, string> Writer { get; set; }
     }
 }

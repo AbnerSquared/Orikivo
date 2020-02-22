@@ -1,30 +1,36 @@
 ﻿using Newtonsoft.Json;
+using Orikivo.Drawing;
 using System;
 
 namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents a <see cref="User"/>'s physical entity in a <see cref="World"/>.
+    /// </summary>
     public class Husk
     {
         // the husk always starts out in the headmaster's sector (Sector 27)
-        public Husk(string locationId)
+        public Husk(Locator locator)
         {
             ClaimedAt = DateTime.UtcNow;
             // TODO: Handle default backpack creation
+            Attributes = new HuskAttributes { MaxSight = 15, MaxHealth = 10, MaxSpeed = 10 };
             Backpack = new Backpack(4);
-            Flag = 0; // the husk isn't doing anything.
+            State = 0; // the husk isn't doing anything.
+            Location = locator;
         }
 
         [JsonConstructor]
-        internal Husk(DateTime claimedAt, HuskAttributes attributes, Backpack backpack, HuskFlag flag)
+        internal Husk(DateTime claimedAt, HuskAttributes attributes, Backpack backpack, HuskState flag)
         {
             ClaimedAt = claimedAt;
             Attributes = attributes;
             Backpack = backpack;
-            Flag = flag;
+            State = flag;
         }
 
         /// <summary>
-        /// The UTC time at which this <see cref="Husk"/> was claimed.
+        /// The time (in <see cref="DateTime.UtcNow"/>) at which this <see cref="Husk"/> was synchronized.
         /// </summary>
         [JsonProperty("claimed_at")]
         public DateTime ClaimedAt { get; }
@@ -43,35 +49,44 @@ namespace Orikivo.Unstable
         // TODO: Make WorldItem variants that specify a slot size, which can take more space than others.
 
         /// <summary>
-        /// Represents what the <see cref="Husk"/> is currently doing at specific locations.
+        /// Represents how a <see cref="Husk"/> currently exists.
         /// </summary>
-        [JsonProperty("flag")]
-        public HuskFlag Flag { get; private set; }
-        
-        // there should be a method that gets all flags for a husk based on their current state
+        [JsonProperty("state")]
+        public HuskState State { get; private set; }
         
         // Where the husk is currently located. This stores a sector/field, area, construct and market id.
+        
+        /// <summary>
+        /// Represents where a <see cref="Husk"/> is currently located.
+        /// </summary>
         [JsonProperty("location")]
-        public string LocationId { get; private set; }
+        public Locator Location { get; private set; }
+
+        /// <summary>
+        /// Represents where a <see cref="Husk"/> is heading, if any.
+        /// </summary>
+        [JsonProperty("movement")]
+        public MovementInfo Movement { get; internal set; }
+
+        /// <summary>
+        /// Represents where a <see cref="Husk"/> is located coordinate-wise within a <see cref="World"/>.
+        /// </summary>
+        [JsonProperty("position")]
+        public Vector2 Position { get; internal set; }
         
     }
 
-    public class HuskAttributes
+    public class MovementInfo
     {
-        public HuskAttributes() { }
+        public LocationType Type { get; set; }
 
-        [JsonConstructor]
-        internal HuskAttributes(int maxHp, int intel)
-        {
-            MaxHp = maxHp;
-            Intel = intel;
-        }
+        //
+        public string LocationId { get; set; }
 
-        [JsonProperty("max_hp")]
-        public int MaxHp { get; set; }
-
-        [JsonProperty("intel")]
-        public int Intel { get; set; }
+        // the time at which they will arrive at the location.
+        // you DO NOT update the user's current position until they either cancel
+        // or they arrive.
+        public DateTime Arrival { get; set; }
     }
 
     public class HuskStatus

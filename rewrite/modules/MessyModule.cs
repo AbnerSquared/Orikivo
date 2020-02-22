@@ -79,6 +79,85 @@ namespace Orikivo
             return stream;
         }
 
+        [Command("mapbits")]
+        public async Task MapBitsAsync()
+        {
+            int width = RandomProvider.Instance.Next(1, 6);
+            int height = RandomProvider.Instance.Next(1, 6);
+            Grid<bool> from = new Grid<bool>(width, height, false);
+
+            from.SetEachValue((x, y) => Randomizer.NextBool());
+
+            byte[] bytes = WorldEngine.CompressMap(from);
+            Grid<bool> to = WorldEngine.DecompressMap(width, height, bytes);
+
+            StringBuilder maps = new StringBuilder();
+
+            maps.AppendLine("**Original**:");
+            maps.Append("```");
+            maps.Append(from.ToString());
+            maps.AppendLine("```");
+
+            maps.AppendLine("**Compressed**:");
+            maps.Append("```");
+            maps.Append(string.Join(" ", bytes));
+            maps.AppendLine("```");
+
+            maps.AppendLine("**Restored**:");
+            maps.Append("```");
+            maps.Append(from.ToString());
+            maps.AppendLine("```");
+
+            await Context.Channel.SendMessageAsync(maps.ToString());
+        }
+
+        [Command("claim"), Priority(0)]
+        [Summary("Displays a list of claimable **Merits**.")]
+        [RequireUser]
+        public async Task GetClaimableAsync()
+        {
+            if (Context.Account.Merits.Any(x => !x.Value.IsClaimed ?? false))
+            {
+                StringBuilder claimable = new StringBuilder();
+                claimable.AppendLine($"**Claimable Merits:**");
+
+                foreach(string id in Context.Account.Merits.Where(x => !x.Value.IsClaimed ?? false).Select(x => x.Key))
+                {
+                    Merit merit = WorldEngine.GetMerit(id);
+
+                    claimable.AppendLine($"`{id}` • **{merit.Name}**");
+                }
+
+                await Context.Channel.SendMessageAsync(claimable.ToString());
+                return;
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("There aren't any available merits to claim.");
+            }
+        }
+
+        [Command("claim"), Priority(1)]
+        [Summary("Claims a specified **Merit**.")]
+        [RequireUser]
+        public async Task ClaimMeritAsync(string id)
+        {
+            if (Context.Account.HasMerit(id))
+            {
+                if (Context.Account.Merits[id].IsClaimed ?? true)
+                {
+                    await Context.Channel.SendMessageAsync("This merit has either already been claimed or doesn't have a reward attached.");
+                    return;
+                }
+                else
+                {
+                    Merit merit = WorldEngine.GetMerit(id);
+
+                    await Context.Channel.SendMessageAsync(merit.Claim(Context.Account));
+                }
+            }
+        }
+
         [Command("parseevent")]
         public async Task ParseEventAsync([Remainder] string content)
         {
@@ -95,7 +174,7 @@ namespace Orikivo
             result.AppendLine("```");
 
             result.AppendLine("**Output**:");
-            result.Append(GameDatabase.ParseEvent(content, context));
+            result.Append(WorldEngine.ParseEvent(content, context));
 
             await Context.Channel.SendMessageAsync(result.ToString());
         }
@@ -139,7 +218,7 @@ namespace Orikivo
 
                     MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(delay));
 
-                    await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", Quality.Bpp8);
+                    await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", quality: Quality.Bpp8);
                 }
             }
         }
@@ -264,13 +343,16 @@ namespace Orikivo
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("card")]
-        public async Task GetCardAsync()
+        public async Task GetCardAsync(SocketUser user = null)
         {
+            user ??= Context.User;
+            Context.Container.TryGetUser(user.Id, out User account);
+
             try
             {
                 using (GraphicsService graphics = new GraphicsService())
                 {
-                    CardDetails d = new CardDetails(Context.Account, Context.User);
+                    CardDetails d = new CardDetails(account, user);
                     Bitmap card = graphics.DrawCard(d, GammaPalette.Glass, false, true);
 
                     await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
@@ -300,7 +382,7 @@ namespace Orikivo
             try
             {
                 MessageCollector collector = new MessageCollector(Context.Client);
-                DialogueMatchAction action = new DialogueMatchAction(Context);
+                ChatHandler action = new ChatHandler(Context);
 
                 MatchOptions options = new MatchOptions
                 {
@@ -369,7 +451,7 @@ namespace Orikivo
 
             sb.Append($"The **MessageFilter** found **{c.Count}** successful {OriFormat.GetNounForm("match", c.Count)}. ({OriFormat.GetShortTime(collector.ElapsedTime?.TotalSeconds ?? 0)})");
             if (c.Count > 0)
-                sb.Append(Format.Code($"{string.Join("\n", c.Matches.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
+                sb.Append(Format.Code($"{string.Join("\n", c.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
@@ -1090,10 +1172,10 @@ namespace Orikivo
         {
             List<int> values = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Old: {{ {values.WriteValues()} }}");
+            sb.AppendLine($"Old: {{ {values.ConcatString()} }}");
             List<int> shuffledValues = Randomizer.Shuffle(values).ToList();
-            sb.AppendLine($"OldEnsure: {{ {values.WriteValues()} }}");
-            sb.AppendLine($"New: {{ {shuffledValues.WriteValues()} }}");
+            sb.AppendLine($"OldEnsure: {{ {values.ConcatString()} }}");
+            sb.AppendLine($"New: {{ {shuffledValues.ConcatString()} }}");
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
 

@@ -43,6 +43,7 @@ namespace Orikivo
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
                 builder.AddModule<WorldModule>();
+                builder.AddModule<HuskActions>();
 
                 OriClient client = builder.Build();
                 await client.SetGameAsync("Minecraft", activity: ActivityType.Listening);

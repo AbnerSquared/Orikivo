@@ -166,11 +166,11 @@ namespace Orikivo
 
                 Debug("ConsoleConfig.SetColorPair");
 
-                if (config.WindowPosition.HasValue)
-                    WindowPosition = config.WindowPosition.Value;
+                if (config.Position.HasValue)
+                    WindowPosition = config.Position.Value;
 
-                if (config.WindowSize.HasValue)
-                    WindowSize = config.WindowSize.Value;
+                if (config.Size.HasValue)
+                    WindowSize = config.Size.Value;
 
                 Debug("ConsoleConfig.SetWindow");
 

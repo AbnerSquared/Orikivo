@@ -47,7 +47,7 @@ namespace Orikivo
         }
 
         [Name("Graphics")]
-        [Summary("Debugger commands that utilizes graphical input.")]
+        [Summary("Debugging commands that utilizes graphical input.")]
         public class GraphicsModule : OriModuleBase<OriCommandContext>
         {
             private readonly GraphicsService _graphics;
@@ -69,7 +69,7 @@ namespace Orikivo
             [Option(typeof(PaletteType), "palette")]
             [Option(typeof(Gamma), "background")]
             [Option(typeof(Padding), "padding")]
-            public async Task DrawTextAsync([Remainder]string content)
+            public async Task DrawStringAsync([Remainder]string content)
             {
                 // new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new OriColor(0x0C525F) }
                 // TODO: Implment OptionAttribute parsing
@@ -80,7 +80,7 @@ namespace Orikivo
         }
 
         [Name("Filters")]
-        [Summary("Debugger commands that focus on testing message filtering methods.")]
+        [Summary("Debugging commands that focus on testing message filtering methods.")]
         public class FilterModule : OriModuleBase<OriCommandContext>
         {
 

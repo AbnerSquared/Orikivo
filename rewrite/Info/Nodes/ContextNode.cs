@@ -7,7 +7,6 @@ using System.Text;
 namespace Orikivo
 {
     // GuideNode : For the list of Guides that can be read (help beginner)
-    // ActionNode : For the available actions you can do as your Husk
     public abstract class ContextNode : ContentNode
     {
         protected ContextNode(ModuleInfo module)

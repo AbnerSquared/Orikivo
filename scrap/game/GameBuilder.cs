@@ -242,7 +242,7 @@ namespace Orikivo
 
         public GameTask ExitTask { get; private set; }
 
-        public GameData BaseData { get; private set; }
+        public GameClientData BaseData { get; private set; }
     }
 
     // create a function determining what to do upon starting from a specific task.

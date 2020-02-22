@@ -17,14 +17,17 @@ namespace Orikivo.Unstable
         /// Disables notifiers related to mail.
         /// </summary>
         Mail = 2,
+
         /// <summary>
         /// Disables notifiers related to errors.
         /// </summary>
         Error = 4,
+
         /// <summary>
-        /// Disables notifiers related to a <see cref="Orikivo.Unstable.Merit"/>.
+        /// Disables notifiers related to a <see cref="Unstable.Merit"/>.
         /// </summary>
         Merit = 8,
+
         /// <summary>
         /// All notifiers are disabled.
         /// </summary>

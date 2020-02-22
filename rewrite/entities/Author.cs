@@ -4,7 +4,7 @@ using Orikivo.Unstable;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents an author, the creator of the object that it is bound to.
+    /// Represents the creator of an assigned object.
     /// </summary>
     public class Author
     {
@@ -16,7 +16,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Creates an author with the specified name.
+        /// Constructs an <see cref="Author"/> with a specified name.
         /// </summary>
         public Author(string name)
         {
@@ -24,7 +24,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Creates an author from a specified user.
+        /// Constructs an <see cref="Author"/> from a specified <see cref="User"/>.
         /// </summary>
         public Author(User user) : this(user.ToString())
         {
@@ -32,13 +32,13 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// The name of the author.
+        /// The name of the <see cref="Author"/>.
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; }
 
         /// <summary>
-        /// The unique identifier of the author, if one was specified.
+        /// The unique identifier of the <see cref="Author"/>, if one was specified.
         /// </summary>
         [JsonProperty("id")]
         public ulong? Id { get; }

@@ -44,6 +44,8 @@ namespace Orikivo
                 }
 
                 Text = sb.ToString();
+                IsTTS = builder.IsTTS;
+                IsSpoiler = builder.IsSpoiler;
 
                 
             }
@@ -74,5 +76,7 @@ namespace Orikivo
         public string AttachmentUrl { get; }
         public Embed Embed { get; }
         public bool IsTTS { get; }
+
+        public bool IsSpoiler { get; }
     }
 }

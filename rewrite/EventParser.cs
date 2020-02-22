@@ -1,99 +1,16 @@
-﻿using Orikivo.Drawing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Orikivo.Unstable
 {
-    public static class GameDatabase
+    /// <summary>
+    /// Handles <see cref="EventContext"/> parsing.
+    /// </summary>
+    public static class EventParser
     {
-        public static World World => new World
-        {
-            Id = "world0",
-            Name = "Test World",
-            Boundary = new System.Drawing.SizeF(512, 512),
-            Sectors = new List<Sector>
-            {
-                new Sector
-                {
-                    Id = "sector0",
-                    Name = "Test Sector",
-                    Position = new Vector2(16, 356),
-                    Areas = new List<Area>
-                    {
-                        new Area
-                        {
-                            Id = "area0",
-                            Name = "Test Area",
-                            Region = new RegionF(0, 0, 32, 32),
-                            Constructs = new List<Construct>
-                            {
-                                new Construct
-                                {
-                                    Id = "construct0",
-                                    Name = "Test Construct",
-                                    Layers = new List<ConstructLayer>
-                                    {
-                                        new ConstructLayer
-                                        {
-                                            Level = 0,
-                                            Npcs = new List<Npc>
-                                            {
-                                                new Npc
-                                                {
-                                                    Id = "npc0",
-                                                    Name = "Test NPC",
-                                                    Personality = new Personality
-                                                    {
-                                                        Archetype = Archetype.Generic
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        // TODO: Implement world design. World => Field => Sector => Area => Construct
-        //     Fields are wildlands. Sectors reside within a field, as some sort of safe zone.
-        //     Areas are small gatherings within sectors. Constructs are a building within an area.
-        public static Dictionary<string, Item> Items => new Dictionary<string, Item>
-        {
-            ["pocket_lawyer"] = new Item
-            {
-                Id = "pocket_lawyer",
-                Name = "Pocket Lawyer",
-                Summary = "Constantly puts up with ORS to keep you safe.",
-                Quotes = new List<string>
-                {
-                    "You'll get the chance to dispute in court, you'll see.",
-                    "ORS doesn't stand a chance."
-                },
-                BypassCriteriaOnGift = true,
-                GiftLimit = 1,
-                Rarity = ItemRarity.Common,
-                Tag = ItemTag.Callable,
-                ToOwn = u => u.Debt >= 1000,
-                Value = 40,
-                CanBuy = true,
-                CanSell = false,
-                Action = new ItemAction
-                {
-                    UseLimit = 1,
-                    BreakOnLastUse = true,
-                    Cooldown = TimeSpan.FromHours(24),
-                    OnUse = u => u.Debt = 0
-                }
-            }
-        };
-
-        public static Dictionary<string, EventMarker> EventMarkers => new Dictionary<string, EventMarker>
+        public static Dictionary<string, EventMarker> Markers => new Dictionary<string, EventMarker>
         {
             ["user"] = new EventMarker
             {
@@ -296,44 +213,13 @@ namespace Orikivo.Unstable
             }
         };
 
-        public static Dictionary<string, Merit> Merits => new Dictionary<string, Merit>
-        {
-            ["test"] = new Merit
-            {
-                Criteria = x => x.GetStat("times_cried") == 1,
-                Name = "Shedding Tears",
-                Summary = "Cry.",
-                Group = MeritGroup.Misc,
-                Reward = new Reward
-                {
-                    Money = 10
-                }
-            }
-        };
 
-        public static Dictionary<string, Claimable> Claimables => new Dictionary<string, Claimable>();
-
-        public static Dictionary<string, Booster> Boosters => new Dictionary<string, Booster>();
-
-        public static Claimable GetClaimable(string id)
-            => Claimables[id];
-
-        public static Merit GetMerit(string id)
-            => Merits[id];
-
-        public static Booster GetBooster(string id)
-            => Boosters[id];
-        
-        public static Item GetItem(string name)
-            => Items[name];
-
-        // used for guild events, not related at all to the Desync measures
-        public static string ParseEvent(string content, EventContext context)
+        public static string Parse(string content, EventContext context)
         {
             StringBuilder result = new StringBuilder();
             bool marker = false;
             string id = "";
-            foreach(char c in content)
+            foreach (char c in content)
             {
                 if (c == '{' && !marker)
                 {
@@ -344,7 +230,7 @@ namespace Orikivo.Unstable
                 if (c == '}' && marker)
                 {
                     marker = false;
-                    result.Append(TryParseMarker(id, context));
+                    result.Append(TryParse(id, context));
                     id = "";
                     continue;
                 }
@@ -358,10 +244,10 @@ namespace Orikivo.Unstable
             return result.ToString();
         }
 
-        private static string TryParseMarker(string id, EventContext context)
+        private static string TryParse(string id, EventContext context)
         {
-            if (EventMarkers.Values.Any(x => x.Name == id || x.Aliases.Contains(id)))
-                return EventMarkers.Values.First(x => x.Name == id || x.Aliases.Contains(id)).Writer.Invoke(context);
+            if (Markers.Values.Any(x => x.Name == id || x.Aliases.Contains(id)))
+                return Markers.Values.First(x => x.Name == id || x.Aliases.Contains(id)).Writer.Invoke(context);
 
             // return markers if invalid
             return "{" + id + "}";

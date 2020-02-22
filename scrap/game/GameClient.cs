@@ -33,7 +33,7 @@ namespace Orikivo
         // the Id of the game client, deriving from its game.
         public string Id { get; }
         // the client's own data that is passed along each game.
-        private GameData Data { get; }
+        private GameClientData Data { get; }
 
         private CancellationTokenSource GameToken { get; } = new CancellationTokenSource();
 

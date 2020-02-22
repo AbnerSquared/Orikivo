@@ -36,7 +36,10 @@ namespace Orikivo
         public Embedder Embedder { get; set; }
 
         [JsonProperty("is_tts")]
-        public bool IsTTS { get; set; }
+        public bool IsTTS { get; set; } = false;
+
+        [JsonProperty("is_spoiler")]
+        public bool IsSpoiler { get; set; } = false;
 
         [JsonIgnore]
         public bool HasUrl => Checks.NotNull(Url);

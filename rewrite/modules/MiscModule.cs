@@ -193,6 +193,8 @@ namespace Orikivo
         [Access(AccessLevel.Inherit), RequireContext(ContextType.Guild)]
         public async Task SetCustomCommandAsync(string name, bool isEmbed, string imageUrl, [Remainder] string content = null)
         {
+            Grid<float> values = new Grid<float>(4, 4, 0.0f);
+
             GuildCommand command = new GuildCommand(Context.User, name);
             MessageBuilder message = new MessageBuilder(content, imageUrl);
             
@@ -286,7 +288,7 @@ namespace Orikivo
             try
             {
                 _help ??= new InfoService(_commandService, Context.Global, Context.Server);
-                await Context.Channel.SendMessageAsync(_help.GetPanel(context));
+                await Context.Channel.SendMessageAsync(_help.GetPanel(context, Context.Account));
             }
             catch (Exception ex)
             {
