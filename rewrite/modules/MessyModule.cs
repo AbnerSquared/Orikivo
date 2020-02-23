@@ -174,7 +174,7 @@ namespace Orikivo
             result.AppendLine("```");
 
             result.AppendLine("**Output**:");
-            result.Append(WorldEngine.ParseEvent(content, context));
+            result.Append(EventParser.Parse(content, context));
 
             await Context.Channel.SendMessageAsync(result.ToString());
         }

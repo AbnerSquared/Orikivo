@@ -106,7 +106,7 @@ namespace Orikivo.Unstable
 
         public Sector GetSector()
         {
-            if (!Checks.NotNull(ConstructId))
+            if (!Checks.NotNull(SectorId))
                 throw new System.Exception("The Locator is not currently in a sector.");
 
             return WorldEngine.World.GetSector(SectorId);

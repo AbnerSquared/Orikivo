@@ -291,7 +291,7 @@ namespace Orikivo
                 t = 'm';
             }
             
-            return $"**{n}**{t}";
+            return $"**{n.ToString("#.##")}**{t}";
         }
 
         // Might be scrapped.

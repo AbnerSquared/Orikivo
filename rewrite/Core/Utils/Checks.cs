@@ -24,6 +24,9 @@ namespace Orikivo
 
         public static bool NotNullOrEmpty<T>(IEnumerable<T> source, string name = null)
         {
+            if (source == null)
+                return false;
+
             if (source?.Count() == 0) // Maybe check if all inner values are null as well.
             {
                 if (!string.IsNullOrWhiteSpace(name))

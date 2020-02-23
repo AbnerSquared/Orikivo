@@ -61,11 +61,17 @@ namespace Orikivo
 
         // If no ID was given, show a list of IDs that the user can travel to in their current position.
         // This is only if they are NOT in a construct
-        [RequireLocation(LocationType.Area)]
+        [RequireLocation(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(0)] // This is used to travel to any viable location based on its current location.
         [Summary("View a list of available locations you can travel to in your current **Area**.")]
         public async Task GoToAsync()
         {
+            if (!WorldEngine.CanMove(Context.Account.Husk))
+            {
+                await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
+                return;
+            }
+
             await Context.Channel.SendMessageAsync(WorldEngine.ShowLocations(Context.Account.Husk));
         }
 
@@ -82,14 +88,14 @@ namespace Orikivo
         // [Command("chat")]
 
         [RequireUser]
-        [RequireLocation(LocationType.Construct)]
+        [RequireLocation(LocationType.Construct | LocationType.Area)]
         [Command("leave")]
-        [Summary("Leave the current **Construct** you are in.")]
+        [Summary("Leave the current **Location** you are in.")]
         public async Task LeaveConstructAsync()
         {
-            if (WorldEngine.TryLeaveConstruct(Context.Account.Husk))
+            if (WorldEngine.TryLeave(Context.Account.Husk))
             {
-                await Context.Channel.SendMessageAsync($"You are now back in **{Context.Account.Husk.Location.GetInnerName()}**.");
+                await Context.Channel.SendMessageAsync($"You are now in **{Context.Account.Husk.Location.GetInnerName()}**.");
             }
         }
 
@@ -246,32 +252,68 @@ namespace Orikivo
         }
 
         [RequireUser]
-        [RequireLocation(LocationType.Area)]
+        [RequireLocation(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(1)] // This is used to travel to any viable location based on its current location.
         [Summary("Travel to a specified **Construct**.")]
         public async Task GoToAsync(string id)
         {
-            TravelResult result = WorldEngine.TryGoTo(Context.Account.Husk, id, out Construct attempted);
-
-            switch(result)
+            if (!WorldEngine.CanMove(Context.Account.Husk))
             {
-                case TravelResult.Success:
-                    if (attempted.Image != null)
-                        await Context.Channel.SendFileAsync(attempted.Image.Path, $"Welcome to **{attempted.Name}**.");
-                    else
-                    await Context.Channel.SendMessageAsync($"Welcome to **{attempted.Name}**.");
-                    break;
-                case TravelResult.Closed:
-                    if (attempted.Tag.HasFlag(ConstructTag.Market))
-                        await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed. Come back in **{(((Market)attempted).GetNextBlock(DateTime.UtcNow).From - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}**.");
-                    else
-                        await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed.");
-                    break;
+                await Context.Channel.SendMessageAsync("You are currently in transit, and cannot perform any actions.");
+                return;
+            }
 
-                case TravelResult.Invalid:
-                default:
-                    await Context.Channel.SendMessageAsync("I'm sorry, but I could not find the location you were referring to. Did you by any chance misspell?");
-                    break;
+            if (Context.Account.Husk.Location.GetInnerType() == LocationType.Sector)
+            {
+                TravelResult result = WorldEngine.TryGoTo(Context.Account.Husk, id, out Area attempted);
+
+                switch (result)
+                {
+                    case TravelResult.Start:
+                        StringBuilder travel = new StringBuilder();
+                        travel.AppendLine($"Now travelling to **{attempted.Name}**.");
+                        MovementInfo info = Context.Account.Husk.Movement;
+
+                        travel.Append($"Expected Arrival: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
+                        await Context.Channel.SendMessageAsync(travel.ToString());
+                        break;
+                    case TravelResult.Success:
+                        if (attempted.Image != null)
+                            await Context.Channel.SendFileAsync(attempted.Image.Path, $"Welcome to **{attempted.Name}**.");
+                        else
+                            await Context.Channel.SendMessageAsync($"Welcome to **{attempted.Name}**.");
+                        break;
+
+                    case TravelResult.Invalid:
+                    default:
+                        await Context.Channel.SendMessageAsync("I'm sorry, but I could not find the location you were referring to. Did you by any chance misspell?");
+                        break;
+                }
+            }
+            else
+            {
+                TravelResult result = WorldEngine.TryGoTo(Context.Account.Husk, id, out Construct attempted);
+
+                switch (result)
+                {
+                    case TravelResult.Success:
+                        if (attempted.Image != null)
+                            await Context.Channel.SendFileAsync(attempted.Image.Path, $"Welcome to **{attempted.Name}**.");
+                        else
+                            await Context.Channel.SendMessageAsync($"Welcome to **{attempted.Name}**.");
+                        break;
+                    case TravelResult.Closed:
+                        if (attempted.Tag.HasFlag(ConstructTag.Market))
+                            await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed. Come back in **{(((Market)attempted).GetNextBlock(DateTime.UtcNow).From - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}**.");
+                        else
+                            await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed.");
+                        break;
+
+                    case TravelResult.Invalid:
+                    default:
+                        await Context.Channel.SendMessageAsync("I'm sorry, but I could not find the location you were referring to. Did you by any chance misspell?");
+                        break;
+                }
             }
         }
     }

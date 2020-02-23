@@ -27,7 +27,7 @@ namespace Orikivo.Unstable
         public bool Enforce { get; set; }
 
         public float Length => GetTotalDistance();
-        public float Time => GetTotalTime();
+        public TimeSpan Time => GetTime();
 
         // TODO: Implement travel speed calculation.
         public Vector2 GetCurrentPosition(DateTime startedAt)
@@ -217,6 +217,11 @@ namespace Orikivo.Unstable
             time += GetTime(last, To);
 
             return time;
+        }
+
+        public TimeSpan GetTime()
+        {
+            return TimeSpan.FromSeconds(GetTotalTime());
         }
 
         private float GetTotalDistance()

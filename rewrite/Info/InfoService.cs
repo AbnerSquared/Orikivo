@@ -82,6 +82,7 @@ namespace Orikivo
             // Husk system
             if (user.Husk != null)
             {
+                bool canMove = WorldEngine.CanMove(user.Husk);
                 panel.AppendLine();
                 panel.AppendLine("**Actions**");
                 panel.Append("• ");
@@ -89,7 +90,7 @@ namespace Orikivo
 
                 ModuleInfo main = _commands.Modules.First(x => x.Name == "Actions");
                 List<CommandNode> actions = new List<CommandNode>();
-
+                
                 foreach (CommandInfo action in main.Commands)
                 {
                     if (actions.Any(x => x.Name == action.Name))
@@ -107,6 +108,9 @@ namespace Orikivo
 
                     if (check != null)
                     {
+                        if (!canMove)
+                            continue;
+
                         if (!check.Check(user.Husk.Location))
                             continue;
                     }

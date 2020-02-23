@@ -30,6 +30,19 @@ namespace Orikivo.Unstable
                     Entrance = new Vector2(0, 16),
                     // Small 64, Medium 128, Large 256
                     Scale = SectorScale.Small,
+                    Structures = new List<Structure>
+                    {
+                        new Structure
+                        {
+                            Position = new Vector2(36, 24),
+                            Type = StructureType.Decoration
+                        },
+                        new Structure
+                        {
+                            Position = new Vector2(64, 64),
+                            Type = StructureType.Tent
+                        }
+                    },
                     Areas = new List<Area>
                     {
                         new Area
@@ -158,10 +171,10 @@ namespace Orikivo.Unstable
                         {
                             Id = "area1",
                             Name = "Area B",
-                            Region = new RegionF(32, 32, 16, 16),
+                            Region = new RegionF(48, 48, 16, 16),
                             Entrances = new List<Vector2>
                             {
-                                new Vector2(16, 8)
+                                new Vector2(48, 56)
                             },
                             Constructs = new List<Construct>
                             {
@@ -204,7 +217,7 @@ namespace Orikivo.Unstable
         public static void Initialize(User user)
         {
             user.Husk = new Husk(GetLocator("area0"));
-            user.Husk.Position = GetPosition("area0");
+            user.Husk.Position = GetAreaPosition("area0");
             user.Brain.SetFlag(HuskFlags.Initialized);
         }
 
@@ -1022,12 +1035,24 @@ namespace Orikivo.Unstable
             return false;
         }
 
-        public static bool TryLeaveConstruct(Husk husk)
+        public static bool TryLeave(Husk husk)
         {
-            if (husk.Location.GetInnerType() != LocationType.Construct)
-                throw new ArgumentException("The specified Husk is not inside a construct.");
+            if (!husk.Location.GetInnerType().EqualsAny(LocationType.Area, LocationType.Construct))
+                return false;
 
-            husk.Location.ConstructId = null;
+
+            if (husk.Location.GetInnerType() == LocationType.Area)
+            {
+                
+                Vector2 entrance = husk.Location.GetArea().Entrances?.FirstOrDefault() ?? husk.Location.GetArea().Region.Point;
+                husk.Location.X = entrance.X;
+                husk.Location.Y = entrance.Y;
+                husk.Location.AreaId = null;
+            }
+
+            if (husk.Location.GetInnerType() == LocationType.Construct)
+                husk.Location.ConstructId = null;
+
             return true;
         }
         public static TravelResult TryGoTo(Husk husk, string id, out Area attempted)
@@ -1037,21 +1062,104 @@ namespace Orikivo.Unstable
             if (husk.Location.GetInnerType() != LocationType.Sector)
                 throw new ArgumentException("The specified Husk is not within a sector.");
 
-            // 1. search each area to see if an id matches
-            // - if an id does match, calculate the route to go from your position to the desired area
-            
-            // 2. if the specified information are coordinates
-            // - if the coordinates are accessible, calculate the route to go from your position to the coords
-            
-            // 3. if the specified id for a structure matches
-            // - pass the coordinates of the structure onto the route, and calculate the route
-            
-            // otherwise, if it is out of bounds or the point is inaccessible, the game will let you know.
 
-            // once all of the needed information is found, apply the ArrivalData to a husk
+            if (husk.Movement != null)
+            {
+                if (!husk.Movement.Complete)
+                    throw new ArgumentException("Husk is currently in transit.");
+                else
+                    UpdateLocation(husk, husk.Movement);
+            }
 
-            // TODO: create travel time calculation and Arrival data
-            throw new NotImplementedException();
+            foreach (Area area in husk.Location.GetSector().Areas)
+            {
+                if (area.Id == id)
+                {
+                    attempted = area;
+
+                    Route route = CreateRoute(husk.Location.X, husk.Location.Y, area.Region);
+
+                    
+                    var now = DateTime.UtcNow;
+
+                    MovementInfo info = new MovementInfo(LocationType.Area, area.Id, now, now.Add(route.Time));
+
+                    // if the travel time is short enough, just instantly go to the location.
+                    if (route.GetTime().TotalSeconds <= 1f)
+                    {
+                        UpdateLocation(husk, info);
+                        return TravelResult.Success;
+                    }
+
+                    husk.Movement = info;
+                    return TravelResult.Start;
+                }
+            }
+
+            // TODO: Handle Structure.Id and Structure.Position to determine if they can travel there.
+
+            // foreach structure
+            // if (visible)
+            // if (structure.id == id) => true
+            
+            /*
+             
+            foreach (Structure structure in husk.Location.GetSector().Structures)
+            {
+                if (structure.Position.X == x && structure.Position.Y == y)
+            } 
+
+             */
+
+            return TravelResult.Invalid;
+
+                // 1. search each area to see if an id matches
+                // - if an id does match, calculate the route to go from your position to the desired area
+
+                // 2. if the specified information are coordinates
+                // - if the coordinates are accessible, calculate the route to go from your position to the coords
+
+                // 3. if the specified id for a structure matches
+                // - pass the coordinates of the structure onto the route, and calculate the route
+
+                // otherwise, if it is out of bounds or the point is inaccessible, the game will let you know.
+
+                // once all of the needed information is found, apply the ArrivalData to a husk
+
+                // TODO: create travel time calculation and Arrival data
+        }
+
+        public static bool CanMove(Husk husk)
+        {
+            if (husk.Movement != null)
+            {
+                if (!husk.Movement.Complete)
+                    return false;
+                else
+                    UpdateLocation(husk, husk.Movement);
+            }
+
+            return true;
+        }
+        public static Route CreateRoute(float x, float y, RegionF region)
+        {
+            // TODO: create point and other route implementation at locations.
+            // for now, it's just direct routes.
+            Route route = new Route { Enforce = true, From = new Vector2(x, y), To = region.Point };
+            return route;
+        }
+
+        // assumed for area.
+        public static void UpdateLocation(Husk husk, MovementInfo info)
+        {
+            husk.Location.AreaId = info.LocationId;
+            if (info.Type == LocationType.Area)
+            {
+                Vector2 pos = GetAreaPosition(info.LocationId);
+                husk.Location.X = pos.X;
+                husk.Location.Y = pos.Y;
+                husk.Movement = null;
+            }
         }
 
         public static TravelResult TryGoTo(Husk husk, string id, out Construct attempted)
@@ -1093,6 +1201,9 @@ namespace Orikivo.Unstable
             npcs.Append("**Available NPCs** (");
             if (husk.Location.GetInnerType() == LocationType.Area)
             {
+                if (husk.Location.GetArea().Npcs.Count == 0)
+                    return $"There isn't anyone to talk to in **{husk.Location.GetInnerName()}**.";
+
                 Area area = husk.Location.GetArea();
                 npcs.AppendLine($"{area.Name}):");
                 npcs.AppendJoin("\n", GetNpcs(husk).Select(x => $"> `{x.Id}` • {x.Name}"));
@@ -1162,6 +1273,15 @@ namespace Orikivo.Unstable
             summary.Append("You are currently in **");
 
             Sector sector = World.GetSector(sectorId);
+
+            if (!Checks.NotNull(areaId))
+            {
+                summary.Append(sector.Name);
+                summary.Append("**.");
+                return summary.ToString();
+            }
+
+
             Area area = sector.GetArea(areaId);
 
             if (Checks.NotNull(constructId))
@@ -1266,10 +1386,13 @@ namespace Orikivo.Unstable
 
             List<Structure> visible = new List<Structure>();
 
-            foreach (Structure structure in sector.Structures)
+            if (Checks.NotNullOrEmpty(sector.Structures))
             {
-                if (viewable.Contains(structure.Position))
-                    visible.Add(structure);
+                foreach (Structure structure in sector.Structures)
+                {
+                    if (viewable.Contains(structure.Position))
+                        visible.Add(structure);
+                }
             }
 
             return visible;
@@ -1292,7 +1415,7 @@ namespace Orikivo.Unstable
         // TODO: Account for SECTOR, FIELD, or AREA scaled position.
         //  this returns a locations coordinates for an area in a sector, or sector in a world.
         // this is used to easily store a user's position if they are in an area.
-        private static Vector2 GetPosition(string id)
+        private static Vector2 GetAreaPosition(string id)
         {
             Locator locator = GetLocator(id);
 
