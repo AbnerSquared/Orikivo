@@ -3,7 +3,7 @@
 namespace Orikivo.Unstable
 {
     /// <summary>
-    /// Represents a non-playable character.
+    /// Represents a non-playable character in a <see cref="World"/>.
     /// </summary>
     public class Npc
     {

@@ -42,7 +42,7 @@ namespace Orikivo
         public bool IsSpoiler { get; set; } = false;
 
         [JsonIgnore]
-        public bool HasUrl => Checks.NotNull(Url);
+        public bool HasUrl => Check.NotNull(Url);
 
         [JsonIgnore]
         public bool HideUrl { get; set; } = false;
@@ -51,7 +51,7 @@ namespace Orikivo
         public bool IsLocalUrl { get; set; } = false;
 
         [JsonIgnore]
-        public bool CanEmbedUrl => Checks.NotNull(Embedder) && EnumUtils.GetUrlType(Url).Value == UrlType.Image;
+        public bool CanEmbedUrl => Check.NotNull(Embedder) && EnumUtils.GetUrlType(Url).Value == UrlType.Image;
 
         [JsonIgnore]
         public UrlType? FileType => HasUrl ? EnumUtils.GetUrlType(Url) : null;

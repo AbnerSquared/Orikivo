@@ -88,13 +88,13 @@ namespace Orikivo
 
         public void TrySaveUser(User user)
         {
-            if (Checks.NotNull(user))
+            if (Check.NotNull(user))
                 SaveUser(user);
         }
 
         public void TrySaveGuild(OriGuild guild)
         {
-            if (Checks.NotNull(guild))
+            if (Check.NotNull(guild))
                 SaveGuild(guild);
         }
         // saves the guild to its directory

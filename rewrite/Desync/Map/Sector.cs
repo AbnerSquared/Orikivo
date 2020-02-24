@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace Orikivo.Unstable
 {
+
+
     public class Sector
     {
         public string Id { get; set; }

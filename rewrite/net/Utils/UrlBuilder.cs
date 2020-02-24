@@ -15,7 +15,7 @@ namespace Orikivo.Net
         /// </summary>
         public UrlBuilder(string baseUrl)
         {
-            if (!Checks.NotNull(baseUrl))
+            if (!Check.NotNull(baseUrl))
                 throw new ArgumentNullException("A UriBuilder requires a valid base URL.");
             BaseUrl = baseUrl.Trim('/', ' ', '\n') + '/';
         }
@@ -54,7 +54,7 @@ namespace Orikivo.Net
         /// </summary>
         public UrlBuilder WithEndpoint(string endpoint)
         {
-            Endpoint += $"{(Checks.NotNull(endpoint) ? "/" : string.Empty)}{endpoint.Trim('/')}";
+            Endpoint += $"{(Check.NotNull(endpoint) ? "/" : string.Empty)}{endpoint.Trim('/')}";
             return this;
         }
 
@@ -127,7 +127,7 @@ namespace Orikivo.Net
         /// Returns the string format of the UriBuilder.
         /// </summary>
         public override string ToString()
-            => $"{BaseUrl}{(Checks.NotNull(Endpoint) ? Endpoint : string.Empty)}{Query}";
+            => $"{BaseUrl}{(Check.NotNull(Endpoint) ? Endpoint : string.Empty)}{Query}";
 
         
     }

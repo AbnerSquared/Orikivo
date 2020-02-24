@@ -75,7 +75,7 @@ namespace Orikivo
         /// </summary>
         public static async Task<RestUserMessage> SendMessageAsync(ISocketMessageChannel channel, Message message, RequestOptions options = null)
         {
-            if (Checks.NotNull(message.AttachmentUrl))
+            if (Check.NotNull(message.AttachmentUrl))
                 return await channel.SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options, message.IsSpoiler);
             else
                 return await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options);

@@ -29,7 +29,7 @@ namespace Orikivo
         /// </summary>
         public async Task<IUserMessage> WhisperAsync(IUser user, Message message, RequestOptions options = null)
         {
-            if (Checks.NotNull(message.AttachmentUrl))
+            if (Check.NotNull(message.AttachmentUrl))
                 return await GetOrCreateDMChannel(user).SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options);
             else
                 return await WhisperAsync(user, message.Text, message.IsTTS, message.Embed, options);

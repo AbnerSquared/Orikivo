@@ -27,7 +27,7 @@ namespace Orikivo
                 if (!user.Husk.Backpack.ItemIds.TryAdd(item.Key, item.Value))
                     user.Husk.Backpack.ItemIds[item.Key] += item.Value;
 
-                if (Checks.NotNull(marketId))
+                if (Check.NotNull(marketId))
                 {
                     user.Brain.Catalogs[marketId].ItemIds[item.Key] -= item.Value;
                 }

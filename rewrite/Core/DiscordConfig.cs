@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Orikivo
 {
+    /// <summary>
+    /// Represents the configuration for an <see cref="OriClient"/>.
+    /// </summary>
     public class DiscordConfig
     {
         // make discord config separate into their own variables, and create configs when done

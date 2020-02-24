@@ -41,7 +41,7 @@ namespace Orikivo
         public void Update(string content, ElementProperties properties = null)
         {
             // prevent newlines
-            Content = Checks.NotNull(content) ? AllowNewLine ? content : content.Replace('\n', ' ') : "null";
+            Content = Check.NotNull(content) ? AllowNewLine ? content : content.Replace('\n', ' ') : "null";
             if (properties != null)
                 Update(properties);
         }

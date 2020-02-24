@@ -32,8 +32,8 @@ namespace Orikivo
         {
             await message.ModifyAsync(delegate (MessageProperties x)
             {
-                x.Content = Checks.NotNull(text) ? text : x.Content;
-                x.Embed = Checks.NotNull(embed) ? embed : x.Embed;
+                x.Content = Check.NotNull(text) ? text : x.Content;
+                x.Embed = Check.NotNull(embed) ? embed : x.Embed;
                 }, options);
         }
 
@@ -41,7 +41,7 @@ namespace Orikivo
             string path, string text = null, bool isTTS = false, Embed embed = null, bool deleteLastMessage = false,
             RequestOptions options = null, bool isSpoiler = false)
         {
-            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendGifAsync(gif, path, Checks.NotNull(text) ? text : message.Content, isTTS, Checks.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options: options, isSpoiler: isSpoiler);
+            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendGifAsync(gif, path, Check.NotNull(text) ? text : message.Content, isTTS, Check.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options: options, isSpoiler: isSpoiler);
 
             if (deleteLastMessage)
                 await message.DeleteAsync();
@@ -53,7 +53,7 @@ namespace Orikivo
             string path, string text = null, bool isTTS = false, Embed embed = null, bool deleteLastMessage = false,
             RequestOptions options = null, bool isSpoiler = false)
         {
-            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendImageAsync(image, path, Checks.NotNull(text) ? text : message.Content, isTTS, Checks.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options: options, isSpoiler: isSpoiler);
+            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendImageAsync(image, path, Check.NotNull(text) ? text : message.Content, isTTS, Check.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options: options, isSpoiler: isSpoiler);
 
             if (deleteLastMessage)
                 await message.DeleteAsync();
@@ -65,7 +65,7 @@ namespace Orikivo
             string text = null, bool isTTS = false, Embed embed = null, bool deleteLastMessage = false,
             RequestOptions options = null, bool isSpoiler = false)
         {
-            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendFileAsync(filePath, Checks.NotNull(text) ? text : message.Content, isTTS, Checks.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options);
+            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendFileAsync(filePath, Check.NotNull(text) ? text : message.Content, isTTS, Check.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options);
 
             if (deleteLastMessage)
                 await message.DeleteAsync();
@@ -76,7 +76,7 @@ namespace Orikivo
         public static async Task<RestUserMessage> ReplaceAsync(this RestUserMessage message, string text = null,
             bool isTTS = false, Embed embed = null, bool deleteLastMessage = false, RequestOptions options = null)
         {
-            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendMessageAsync(Checks.NotNull(text) ? text : message.Content, isTTS, Checks.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options);
+            RestUserMessage next = await ((SocketTextChannel)message.Channel).SendMessageAsync(Check.NotNull(text) ? text : message.Content, isTTS, Check.NotNull(embed) ? embed : message.Embeds.FirstOrDefault(x => x.Type == EmbedType.Rich), options);
 
             if (deleteLastMessage)
                 await message.DeleteAsync();

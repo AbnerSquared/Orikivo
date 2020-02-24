@@ -31,7 +31,7 @@ namespace Orikivo
         private List<ElementMetadata> _children;
         public List<ElementMetadata> Children
             => IsParent ? _children : throw new Exception("The element specified is not a parent.");
-        public bool HasParent => Checks.NotNull(ParentId);
+        public bool HasParent => Check.NotNull(ParentId);
         public bool IsParent => Type == ElementType.Group;
 
         public override string ToString() // this can be optimized

@@ -30,7 +30,7 @@ namespace Orikivo
         public string Name { get; private set; }
         public GamePrivacy Privacy { get; private set; }
         public string Password { get; private set; }
-        public bool IsProtected => Checks.NotNull(Password);
+        public bool IsProtected => Check.NotNull(Password);
         public GameMode Mode { get; private set; }
         public List<GameReceiver> Receivers { get; } = new List<GameReceiver>();
         public List<Identity> Users { get; } = new List<Identity>();

@@ -168,15 +168,15 @@ namespace Orikivo
                 {
                     panel.Append($"> **{module.Name}**");
 
-                    if (Checks.NotNull(module.Subtitle) || module.Commands.Count > 0)
+                    if (Check.NotNull(module.Subtitle) || module.Commands.Count > 0)
                         panel.Append(": ");
 
-                    if (Checks.NotNull(module.Subtitle))
+                    if (Check.NotNull(module.Subtitle))
                         panel.AppendLine(module.Subtitle);
 
                     if (module.Commands.Count > 0)
                     {
-                        if (Checks.NotNull(module.Subtitle))
+                        if (Check.NotNull(module.Subtitle))
                             panel.Append("> ");
 
                         int inserted = 0;
@@ -252,7 +252,7 @@ namespace Orikivo
 
         public string GetPanel(string content = null, User user = null)
         {
-            if (!Checks.NotNull(content))
+            if (!Check.NotNull(content))
                 return GetMainPanel(user);
 
             // TODO: Clean up chapter parsing (Regex).
@@ -331,7 +331,7 @@ namespace Orikivo
 
             if (type == InfoType.Command)
             {
-                if (!Checks.NotNullOrEmpty(commands))
+                if (!Check.NotNullOrEmpty(commands))
                     throw new ResultNotFoundException($"No commands could be found that matched the name '{ctx.Root}'.");
 
                 // If a priority was specified, slim the search down to that specific command
@@ -339,7 +339,7 @@ namespace Orikivo
                 {
                     commands = commands.Where(x => x.Priority == ctx.Priority);
 
-                    if (!Checks.NotNullOrEmpty(commands))
+                    if (!Check.NotNullOrEmpty(commands))
                         throw new ResultNotFoundException($"The priority for the specified command does not exist.");
 
                     if (commands.Count() > 1)
@@ -349,12 +349,12 @@ namespace Orikivo
                 }
 
                 // If a parameter was specified, attempt to find the best match possible
-                if (Checks.NotNull(ctx.Parameter))
+                if (Check.NotNull(ctx.Parameter))
                 {
                     IEnumerable<ParameterInfo> parameters = new List<ParameterInfo>();
                     commands.ForEach(x => parameters = parameters.Concat(GetParameters(x, ctx.Parameter)));
 
-                    if (!Checks.NotNullOrEmpty(parameters))
+                    if (!Check.NotNullOrEmpty(parameters))
                         throw new ResultNotFoundException("The parameter specified could not be found within any of the commands");
 
                     if (parameters.Count() > 1)
@@ -436,7 +436,7 @@ namespace Orikivo
 
             Console.WriteLine(string.Join("\n", values.Select(x => x.Name)));
 
-            if (!Checks.NotNullOrEmpty(values))
+            if (!Check.NotNullOrEmpty(values))
                 throw new ResultNotFoundException($"No matches were found when searching for a value of the name '{name}'.");
 
             if (values.Where(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)).Count() > 0)
@@ -469,7 +469,7 @@ namespace Orikivo
         {
             ModuleInfo module = null;
 
-            if (!Checks.NotNullOrEmpty(ctx.Modules))
+            if (!Check.NotNullOrEmpty(ctx.Modules))
                 foreach (string name in ctx.Modules)
                     module = GetModule(name, module);
 
@@ -480,7 +480,7 @@ namespace Orikivo
         {
             IEnumerable<ModuleInfo> modules = GetModules(parent, name);
 
-            if (!Checks.NotNullOrEmpty(modules))
+            if (!Check.NotNullOrEmpty(modules))
                 throw new ResultNotFoundException($"No matches were found when searching for matching modules of the name '{name}'.");
 
             if (modules.Count() > 1) // Add support for ambiguity.
@@ -529,7 +529,7 @@ namespace Orikivo
         {
             ModuleInfo group = null;
 
-            if (!Checks.NotNullOrEmpty(ctx.Groups))
+            if (!Check.NotNullOrEmpty(ctx.Groups))
                 foreach (string name in ctx.Groups)
                     group = GetGroup(name, group ?? parent);
             
@@ -540,7 +540,7 @@ namespace Orikivo
         {
             IEnumerable<ModuleInfo> groups = GetGroups(parent, name);
 
-            if (!Checks.NotNullOrEmpty(groups))
+            if (!Check.NotNullOrEmpty(groups))
                 throw new ResultNotFoundException($"No matches were found when searching for matching groups of the name '{name}'.");
 
             if (groups.Count() > 1) // Add support for ambiguity.
@@ -585,7 +585,7 @@ namespace Orikivo
 
             //parent.Commands.ForEach(x => Console.WriteLine("COMMAND::" + x.Name + ":: " + string.Join(", ", x.Aliases)));
 
-            if (!Checks.NotNull(parent.Group))
+            if (!Check.NotNull(parent.Group))
                 if (includeChildren)
                     parent.Submodules.Select(x => GetCommands(name, x)).ToList().ForEach(x => commands = commands.Concat(x));
 

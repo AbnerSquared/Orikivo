@@ -213,7 +213,6 @@ namespace Orikivo.Unstable
             }
         };
 
-
         public static string Parse(string content, EventContext context)
         {
             StringBuilder result = new StringBuilder();

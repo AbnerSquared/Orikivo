@@ -3,7 +3,7 @@
 namespace Orikivo
 {
     /// <summary>
-    /// A tool used to to catch any mistakes an object might have to throw exceptions accordingly.
+    /// Represents a strict handler for possible exceptions.
     /// </summary>
     public static class Catch
     {

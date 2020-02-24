@@ -9,16 +9,16 @@ namespace Orikivo
 {
     public enum PlaceValue
     {
-        Null = -1,
-        H = 0,
-        K = 1,
-        M = 2,
-        B = 3,
-        T = 4
+        Null = -1, // 0
+        H = 0,     // 100
+        K = 1,     // 1,000
+        M = 2,     // 1,000,000
+        B = 3,     // 1,000,000,000
+        T = 4      // 1,000,000,000,000
     }
 
     /// <summary>
-    /// A formatter tool used to help format simple sentences.
+    /// A utility class that handles string formatting.
     /// </summary>
     public static class OriFormat
     {
@@ -205,30 +205,23 @@ namespace Orikivo
             StringBuilder sb = new StringBuilder();
             // if embedded, the reaction is placed on the title.
             if (!isEmbedded)
-                if (Checks.NotNull(reaction))
+                if (Check.NotNull(reaction))
                     sb.AppendLine(Format.Bold(reaction));
 
-            if (Checks.NotNull(title))
+            if (Check.NotNull(title))
                 sb.Append(title);
 
-            if (Checks.NotNull(reason))
+            if (Check.NotNull(reason))
                 sb.Append($"```{reason}```");
 
-            if (Checks.NotNull(stackTrace))
+            if (Check.NotNull(stackTrace))
             {
-                if (Checks.NotNull(reason))
+                if (Check.NotNull(reason))
                     sb.AppendLine();
 
                 sb.Append($"```bf\n{stackTrace}```");
             }
 
-            return sb.ToString();
-        }
-
-        // Create a notification pop-up text.
-        public static string Notify()
-        {
-            StringBuilder sb = new StringBuilder();
             return sb.ToString();
         }
 

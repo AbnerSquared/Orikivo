@@ -3,6 +3,9 @@
 namespace Orikivo.Unstable
 {
     // TODO: Use private set handler when used.
+    /// <summary>
+    /// Represents a location cache.
+    /// </summary>
     public class Locator
     {
         public Locator() { }
@@ -36,15 +39,18 @@ namespace Orikivo.Unstable
         [JsonProperty("build_layer")]
         public int? ConstructLayer { get; set; }
 
+        /// <summary>
+        /// Returns the ID of the location at which the <see cref="Husk"/> is currently at.
+        /// </summary>
         public string GetInnerId()
         {
-            if (Checks.NotNull(FieldId))
+            if (Check.NotNull(FieldId))
                 return FieldId;
-            else if (Checks.NotNull(SectorId))
+            else if (Check.NotNull(SectorId))
             {
-                if (Checks.NotNull(AreaId))
+                if (Check.NotNull(AreaId))
                 {
-                    if (Checks.NotNull(ConstructId))
+                    if (Check.NotNull(ConstructId))
                         return ConstructId;
 
                     return AreaId;
@@ -56,15 +62,18 @@ namespace Orikivo.Unstable
             throw new System.Exception("There is not an available ID to use.");
         }
 
+        /// <summary>
+        /// Returns the type of location at which the <see cref="Husk"/> is currently at.
+        /// </summary>
         public LocationType GetInnerType()
         {
-            if (Checks.NotNull(FieldId))
+            if (Check.NotNull(FieldId))
                 return LocationType.Field;
-            else if (Checks.NotNull(SectorId))
+            else if (Check.NotNull(SectorId))
             {
-                if (Checks.NotNull(AreaId))
+                if (Check.NotNull(AreaId))
                 {
-                    if (Checks.NotNull(ConstructId))
+                    if (Check.NotNull(ConstructId))
                         return LocationType.Construct;
 
                     return LocationType.Area;
@@ -76,15 +85,19 @@ namespace Orikivo.Unstable
             throw new System.Exception("There is not an available ID to use.");
         }
 
+        /// <summary>
+        /// Returns the name of the location at which the <see cref="Husk"/> is currently at.
+        /// </summary>
+        /// <returns></returns>
         public string GetInnerName()
         {
-            if (Checks.NotNull(FieldId))
+            if (Check.NotNull(FieldId))
                 return GetField().Name;
-            else if (Checks.NotNull(SectorId))
+            else if (Check.NotNull(SectorId))
             {
-                if (Checks.NotNull(AreaId))
+                if (Check.NotNull(AreaId))
                 {
-                    if (Checks.NotNull(ConstructId))
+                    if (Check.NotNull(ConstructId))
                         return GetConstruct().Name;
 
                     return GetArea().Name;
@@ -98,7 +111,7 @@ namespace Orikivo.Unstable
 
         public Field GetField()
         {
-            if (!Checks.NotNull(FieldId))
+            if (!Check.NotNull(FieldId))
                 throw new System.Exception("The locator is not currently in a field.");
 
             return WorldEngine.World.GetField(FieldId);
@@ -106,7 +119,7 @@ namespace Orikivo.Unstable
 
         public Sector GetSector()
         {
-            if (!Checks.NotNull(SectorId))
+            if (!Check.NotNull(SectorId))
                 throw new System.Exception("The Locator is not currently in a sector.");
 
             return WorldEngine.World.GetSector(SectorId);
@@ -114,7 +127,7 @@ namespace Orikivo.Unstable
 
         public Construct GetConstruct()
         {
-            if (!Checks.NotNull(ConstructId))
+            if (!Check.NotNull(ConstructId))
                 throw new System.Exception("The Locator is not currently in a construct.");
 
             return WorldEngine.World.GetSector(SectorId).GetArea(AreaId).GetConstruct(ConstructId);
@@ -122,7 +135,7 @@ namespace Orikivo.Unstable
 
         public Area GetArea()
         {
-            if (!Checks.NotNull(AreaId))
+            if (!Check.NotNull(AreaId))
                 throw new System.Exception("The Locator is not currently in an area.");
 
             return WorldEngine.World.GetSector(SectorId).GetArea(AreaId);
@@ -132,16 +145,18 @@ namespace Orikivo.Unstable
         [JsonProperty("id")]
         public string Id { get; set; }
 
-        // Husk.Position => World Position
-        // Husk.Location.X => Sector Position
+        /// <summary>
+        /// Represents a <see cref="Husk"/>'s relative x-coordinate in a location.
+        /// </summary>
         [JsonProperty("x")]
         public float X { get; set; }
 
+        /// <summary>
+        /// Represents a <see cref="Husk"/>'s relative y-coordinate in a location.
+        /// </summary>
         [JsonProperty("y")]
         public float Y { get; set; }
 
-        [JsonProperty("scale")]
-        public MapScale Scale { get; set; }
         public string GetSummary()
         {
             return WorldEngine.GetLocationSummary(WorldId, SectorId, AreaId, ConstructId, ConstructLayer);

@@ -13,7 +13,7 @@
 
         public string WindowId { get; internal set; }
         public string Name { get; }
-        public string Id => $"{(Checks.NotNull(WindowId) ? $"{WindowId}:": "")}tab.{Name}";
+        public string Id => $"{(Check.NotNull(WindowId) ? $"{WindowId}:": "")}tab.{Name}";
         public bool IncludeHeader { get; internal set; } = true;
         public bool IncludeFooter { get; internal set; } = true;
     }

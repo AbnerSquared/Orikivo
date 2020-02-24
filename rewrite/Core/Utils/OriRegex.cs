@@ -7,58 +7,71 @@ using System.Text.RegularExpressions;
 
 namespace Orikivo
 {
+    /// <summary>
+    /// A utility class that provides common <see cref="Regex"/> methods.
+    /// </summary>
     public static class OriRegex
     {
-        // OriHelperService
-
-        // the context parsing pattern needs to be reworked; ^c => (  ^m => {  ^g => [ if this is used for the root context, the closing brackets can be ignored i.e.
-        // ] } )
-        public static readonly string ContextParsePattern = @"(?:^(?:(?=\d+$)(\d+)$)?$)|(?:^(all|~)(?: )?(?:(?=\d+$)(\d+)$)?$)|(?:^((?:\w+(?:\^m)?\.)*)((?:\w+(?:\^g)? )*)(\w+)(?:(?=\^)\^(c|(?:m|g)(?: (\d+))?$))?(?:(?=\+)\+(\d{1,3}))?( \d+$|~(?:(?: \d+$)|$)|\*(?:(?: \d+$)|$))?(?:(?=\()\((\w+)\)?$)?$)";
-        public static readonly string ModuleParsePattern = @"(?:(\w+)(?:\^m)?\.)";
-        public static readonly string GroupParsePattern = @"(?:(\w+)(?:\^g)? )";
-
-        // OriStat
+        /// <summary>
+        /// Gets the <see cref="Regex"/> pattern that is used to parse stats (unused).
+        /// </summary>
         public static readonly string StatParsePattern = @"^(\w+):(\w+)$";
 
-        // Discord
+        /// <summary>
+        /// Gets the <see cref="Regex"/> pattern that is used to parse an <see cref="Emote"/>.
+        /// </summary>
         public static readonly string EmoteParsePattern = @"<a?:\w{2,32}:\d{1,20}>";
 
-        // Lobby Triggers:
-        public static readonly string TriggerKeyPattern = @"^(\w+)(?:$| )";
-        public static readonly string TriggerParsePatternFormat = @"^{0}((?:(?: \w+)*)?)(?: +)?$";
-        public static readonly string TriggerArgParsePattern = @"(?: (\w+))"; // make object parse patterns
-        // and append the corresponding object parse values into the trigger parse format.
-
         // TODO: Create custom parser for Double and Int32.
-        public static bool ContainsEmote(string content)
-        {
-            return new Regex(EmoteParsePattern).Match(content).Success;
-        }
 
-        public static bool CaptureEmotes(string content, out List<Emote> capturedEmotes)
+        /// <summary>
+        /// Determines if the specified <see cref="string"/> contains a parseable emote.
+        /// </summary>
+        public static bool ContainsEmote(string content)
+            => new Regex(EmoteParsePattern).Match(content).Success;
+
+        /// <summary>
+        /// Attempts to capture emotes from a specified <see cref="string"/>.
+        /// </summary>
+        /// <param name="emotes">A collection of captured emotes.</param>
+        public static bool TryCaptureEmotes(string content, out List<Emote> emotes)
         {
-            capturedEmotes = new List<Emote>();
+            emotes = new List<Emote>();
             MatchCollection matches = new Regex(EmoteParsePattern).Matches(content);
 
             foreach (Match match in matches)
                 if (match.Success)
-                    capturedEmotes.Add(Emote.Parse(match.Value));
+                    emotes.Add(Emote.Parse(match.Value));
 
-            if (capturedEmotes.Count == 0)
+            if (emotes.Count == 0)
                 return false;
 
             return true;
         }
 
-        public static Match ParseContext(string context)
-            => new Regex(ContextParsePattern).Match(context);
+        /// <summary>
+        /// Returns all captured emotes from a specified <see cref="string"/>.
+        /// </summary>
+        public static List<Emote> CaptureEmotes(string content)
+        {
+            List<Emote> emotes = new List<Emote>();
 
-        public static List<string> GetContextModules(string moduleContext)
-            => new Regex(ModuleParsePattern).Matches(moduleContext).Where(x => x.Success).Select(x => x.Groups[1].Value).ToList();
+            foreach (Match match in new Regex(EmoteParsePattern).Matches(content))
+                if (match.Success)
+                    emotes.Add(Emote.Parse(match.Value));
 
-        public static List<string> GetContextGroups(string groupContext)
-            => new Regex(GroupParsePattern).Matches(groupContext).Where(x => x.Success).Select(x => x.Groups[1].Value).ToList();
+            return emotes;
+        }
 
+        // TODO: Either scrap or modify custom command parsing.
+        /*
+        
+        // Lobby Triggers:
+        public static readonly string TriggerKeyPattern = @"^(\w+)(?:$| )";
+        public static readonly string TriggerParsePatternFormat = @"^{0}((?:(?: \w+)*)?)(?: +)?$";
+        public static readonly string TriggerArgParsePattern = @"(?: (\w+))"; // make object parse patterns
+        // and append the corresponding object parse values into the trigger parse format. 
+        
         public static string GetTriggerKey(string context)
             => new Regex(TriggerKeyPattern).Match(context).Groups[0].Value.Trim();
 
@@ -69,8 +82,14 @@ namespace Orikivo
             Console.WriteLine(match.Groups[0].Value);
             MatchCollection matches = new Regex(TriggerArgParsePattern).Matches(match.Groups[0].Value);
 
-            matches.ToList().ForEach(x => { Console.WriteLine(x.Value.Trim()); args.Add(x.Value.Trim()); });
+            matches.ToList().ForEach(x =>
+            {
+                Console.WriteLine(x.Value.Trim());
+                args.Add(x.Value.Trim());
+            });
+
             return match.Success ? args : null;
         }
+        */
     }
 }

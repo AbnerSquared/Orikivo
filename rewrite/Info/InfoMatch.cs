@@ -6,7 +6,7 @@ namespace Orikivo
     {
         public InfoMatch(ModuleInfo module)
         {
-            Type = Checks.NotNull(module.Group) ? InfoType.Group : InfoType.Module;
+            Type = Check.NotNull(module.Group) ? InfoType.Group : InfoType.Module;
             Name = module.Name;
         }
 

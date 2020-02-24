@@ -12,7 +12,7 @@ namespace Orikivo.Net
         /// </summary>
         internal QueryArg(string key, string value)
         {
-            if (!Checks.NotNull(key) || !Checks.NotNull(value))
+            if (!Check.NotNull(key) || !Check.NotNull(value))
                 throw new ArgumentNullException("A key or value that was specified is null.");
             Key = key;
             Value = value;

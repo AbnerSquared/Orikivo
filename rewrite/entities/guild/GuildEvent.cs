@@ -11,7 +11,7 @@ namespace Orikivo
     {
         public GuildEvent(EventType type, string message, string imageUrl = null)
         {
-            if (Checks.NotNull(imageUrl))
+            if (Check.NotNull(imageUrl))
             {
                 UrlType? url = EnumUtils.GetUrlType(imageUrl);
 
@@ -35,6 +35,6 @@ namespace Orikivo
         public string ImageUrl { get; set; }
 
         [JsonIgnore]
-        public bool HasImage => Checks.NotNull(ImageUrl);
+        public bool HasImage => Check.NotNull(ImageUrl);
     }
 }

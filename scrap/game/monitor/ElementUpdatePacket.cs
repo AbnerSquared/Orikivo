@@ -56,7 +56,7 @@
         /// <summary>
         /// The element that is automatically generated with the properties specified. If an element is not set, this is the default value.
         /// </summary>
-        public Element AutoElement => !Checks.NotNull(Content) && !Checks.NotNull(Name) && Config == null ? null : new Element(Content, Name, Config);
+        public Element AutoElement => !Check.NotNull(Content) && !Check.NotNull(Name) && Config == null ? null : new Element(Content, Name, Config);
 
         private Element InternalElement;
     }

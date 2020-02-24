@@ -8,7 +8,7 @@
             Privacy = privacy;
             Password = password;
             receiverConfig = receiverConfig ?? GameReceiverConfig.Default;
-            if (Checks.NotNull(name))
+            if (Check.NotNull(name))
             {
                 Name = name;
                 receiverConfig.Name = name;

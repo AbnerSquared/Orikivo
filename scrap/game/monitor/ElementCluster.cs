@@ -199,7 +199,7 @@ namespace Orikivo
             switch (error)
             {
                 case ElementUpdateError.ImmutableElement:
-                    return Checks.NotNull(packet.ElementId) ? Checks.NotNull(packet.GroupId) ?
+                    return Check.NotNull(packet.ElementId) ? Check.NotNull(packet.GroupId) ?
                         ContainsGroup(packet.GroupId) ? GetGroup(packet.GroupId).GetElement(packet.ElementId).Immutable : false :
                         ContainsElement(packet.ElementId) ? GetElement(packet.ElementId).Immutable : false : false;
 
@@ -207,20 +207,20 @@ namespace Orikivo
                     return CanAddElement;
 
                 case ElementUpdateError.GroupCapacityReached:
-                    return Checks.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) ?
+                    return Check.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) ?
                         GetGroup(packet.GroupId).CanAddElement : false : false;
 
                 case ElementUpdateError.ElementNotFound:
-                    return Checks.NotNull(packet.ElementId) ? ContainsElement(packet.ElementId) : false;
+                    return Check.NotNull(packet.ElementId) ? ContainsElement(packet.ElementId) : false;
 
                 case ElementUpdateError.ElementUnspecified:
-                    return Checks.NotNull(packet.ElementId);
+                    return Check.NotNull(packet.ElementId);
 
                 case ElementUpdateError.GroupNotFound:
-                    return Checks.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) : false;
+                    return Check.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) : false;
 
                 case ElementUpdateError.GroupUnspecified:
-                    return Checks.NotNull(packet.GroupId);
+                    return Check.NotNull(packet.GroupId);
 
                 case ElementUpdateError.ContentUnspecified:
                     return packet.Element != null;
@@ -232,7 +232,7 @@ namespace Orikivo
                     return packet.Index.HasValue;
 
                 case ElementUpdateError.IndexOutOfRange:
-                    return packet.Index.HasValue ? Checks.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) ?
+                    return packet.Index.HasValue ? Check.NotNull(packet.GroupId) ? ContainsGroup(packet.GroupId) ?
                         packet.Index.Value.IsInRange(GetGroup(packet.GroupId).ElementCount) : false :
                         packet.Index.Value.IsInRange(Count) : false;
 

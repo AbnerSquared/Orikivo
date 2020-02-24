@@ -32,7 +32,7 @@ namespace Orikivo
         public string Group { get; protected set; }
         public string Subtitle { get; protected set; }
         public int CommandCount => Submodules.Sum(x => x.CommandCount) + Commands.Count;
-        public bool IsGroup => Checks.NotNull(Group);
+        public bool IsGroup => Check.NotNull(Group);
         public List<ModuleNode> Submodules { get; protected set; }
         public List<CommandNode> Commands { get; protected set; }
 
@@ -49,7 +49,7 @@ namespace Orikivo
                     format.Append(" •()");
                     format.AppendLine();
 
-                    if (Checks.NotNull(Summary))
+                    if (Check.NotNull(Summary))
                     {
                         format.Append("⇛ ");
                         format.Append(Summary);
@@ -67,7 +67,7 @@ namespace Orikivo
                             {
                                 format.AppendLine();
 
-                                string name = Checks.NotNull(overload.Name) ? $"{Group} **{overload.Name}**" :
+                                string name = Check.NotNull(overload.Name) ? $"{Group} **{overload.Name}**" :
                                     $"**{Group}**";
 
                                 format.Append("> ");
@@ -95,7 +95,7 @@ namespace Orikivo
                 {
                     format.Append($"**{Name}**");
 
-                    if (Checks.NotNull(Summary))
+                    if (Check.NotNull(Summary))
                     {
                         format.Append($"```{Summary}```");
                     }
@@ -137,10 +137,10 @@ namespace Orikivo
 
                             format.Append($"**{submodule.Name}**");
 
-                            if (Checks.NotNull(submodule.Summary) || submodule.Commands.Count > 0)
+                            if (Check.NotNull(submodule.Summary) || submodule.Commands.Count > 0)
                                 format.Append(": ");
 
-                            if (Checks.NotNull(submodule.Subtitle))
+                            if (Check.NotNull(submodule.Subtitle))
                             {
                                 format.AppendLine(Subtitle);
                             }
@@ -173,7 +173,7 @@ namespace Orikivo
 
 
                 // id
-                if (Checks.NotNull(Id))
+                if (Check.NotNull(Id))
                 {
                     format.AppendLine();
                     format.Append($"**ID**: `{Id}`");

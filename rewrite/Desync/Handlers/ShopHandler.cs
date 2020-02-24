@@ -173,7 +173,7 @@ namespace Orikivo
             State = state;
 
             if (State != MarketState.View)
-                menu.AppendLine(GetReply(Checks.NotNull(reply) ? reply : GetNextResponse()));
+                menu.AppendLine(GetReply(Check.NotNull(reply) ? reply : GetNextResponse()));
 
             menu.AppendLine(GetMenuContent());
             menu.Append(GetMenuFooter());
@@ -279,13 +279,13 @@ namespace Orikivo
 
             details.AppendLine($"**{item.Name}** • {WriteValue(Last.Value)}");
 
-            if (Checks.NotNullOrEmpty(item.Quotes))
+            if (Check.NotNullOrEmpty(item.Quotes))
                 details.AppendLine($"> *\"{Randomizer.Choose(item.Quotes)}\"*");
 
             details.Append("**#**");
             details.AppendJoin(", ", EnumUtils.GetFlags(item.Tag).Select(x => $"`{x.ToString()}`"));
 
-            if (Checks.NotNull(item.Summary))
+            if (Check.NotNull(item.Summary))
             {
                 details.AppendLine();
                 details.Append($"```{item.Summary}```");
@@ -332,7 +332,7 @@ namespace Orikivo
 
         private Trigger ParseMessage(SocketMessage message, string separator = " ")
         {
-            if (!Checks.NotNull(message.Content))
+            if (!Check.NotNull(message.Content))
                 return new Trigger { IsSuccess = false };
 
             string[] args = message.Content.Split(separator);

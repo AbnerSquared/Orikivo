@@ -8,16 +8,16 @@ namespace Orikivo
     {
         public Message(MessageBuilder builder)
         {
-            if (Checks.NotNull(builder.Embedder))
+            if (Check.NotNull(builder.Embedder))
             {
                 Text = string.Empty;
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.Description = builder.Content;
                 if (builder.Embedder.Color.HasValue)
                     embed.WithColor(new Color(builder.Embedder.Color.Value.R, builder.Embedder.Color.Value.G, builder.Embedder.Color.Value.B));
-                if (Checks.NotNull(builder.Embedder.Footer))
+                if (Check.NotNull(builder.Embedder.Footer))
                     embed.WithFooter(builder.Embedder.Footer);
-                if (Checks.NotNull(builder.Embedder.Header))
+                if (Check.NotNull(builder.Embedder.Header))
                     embed.WithTitle(builder.Embedder.Header);
                 if (builder.HasUrl && builder.CanEmbedUrl)
                 {
@@ -31,7 +31,7 @@ namespace Orikivo
             else
             {
                 StringBuilder sb = new StringBuilder();
-                if (Checks.NotNull(builder.Content))
+                if (Check.NotNull(builder.Content))
                     sb.AppendLine(builder.Content);
                 if (builder.HasUrl)
                 {
@@ -53,16 +53,16 @@ namespace Orikivo
 
         public Message(ErrorMessageBuilder builder)
         {
-            if (Checks.NotNull(builder.Color))
+            if (Check.NotNull(builder.Color))
             {
                 EmbedBuilder embed = new EmbedBuilder();
 
                 embed.WithColor(builder.Color);
 
-                if (Checks.NotNull(builder.Reaction))
+                if (Check.NotNull(builder.Reaction))
                     embed.WithTitle(Format.Bold(builder.Reaction));
 
-                embed.WithDescription(OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Checks.NotNull(builder.Color)));
+                embed.WithDescription(OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Check.NotNull(builder.Color)));
 
                 Embed = embed.Build();
             }

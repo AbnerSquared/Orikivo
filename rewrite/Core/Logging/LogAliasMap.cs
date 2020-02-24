@@ -53,7 +53,7 @@ namespace Orikivo
         /// <param name="shortcut">The shortcut value that refers to the specified <see cref="LogAlias"/>.</param>
         public void SetAlias(LogAlias alias, string shortcut)
         {
-            if (!Checks.NotNull(shortcut))
+            if (!Check.NotNull(shortcut))
                 throw new NullReferenceException("The shortcut specified was empty.");
 
             Aliases[alias] = shortcut;

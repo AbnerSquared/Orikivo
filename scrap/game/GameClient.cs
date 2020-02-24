@@ -56,7 +56,7 @@ namespace Orikivo
                     TaskQueuePacket route = await CurrentTask.StartAsync(_client, _lobby, _display, Data, GameToken.Token).ConfigureAwait(false);
                     Console.WriteLine($"-- The current task has completed. ({CurrentTask.Id}) --");
 
-                    if (!Checks.NotNull(route.NextTaskId))
+                    if (!Check.NotNull(route.NextTaskId))
                     {
                         if (CurrentTask.Id == ExitTask?.Id)
                             _active = false;

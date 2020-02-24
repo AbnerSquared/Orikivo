@@ -80,7 +80,7 @@ namespace Orikivo
             await Channel?.UpdateAsync();
             if (Channel == null)
                 return;
-            if (Checks.NotNull(reason))
+            if (Check.NotNull(reason))
                 await Channel.SendMessageAsync(reason ?? "An unknown reason was given.");
             if (delay.HasValue)
                 await Task.Delay(delay.Value);

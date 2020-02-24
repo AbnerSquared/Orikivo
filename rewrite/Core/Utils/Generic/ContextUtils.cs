@@ -37,7 +37,7 @@ namespace Orikivo
         {
             List<string> aliases = command.Aliases.Where(x => x != command.Name).ToList();
 
-            if (Checks.NotNull(command.Module.Group))
+            if (Check.NotNull(command.Module.Group))
             {
                 string groupName = command.Module.Group;
 
@@ -46,7 +46,7 @@ namespace Orikivo
                     .Select(x => x.Replace($"{groupName} ", string.Empty).Trim())
                     .Where(x => x != command.Name).ToList();
 
-                if (!Checks.NotNull(command.Name))
+                if (!Check.NotNull(command.Name))
                     aliases.Clear();
             }
 
@@ -71,7 +71,7 @@ namespace Orikivo
         public static string WriteDisplayContent(ModuleNode info)
         {
             StringBuilder sb = new StringBuilder();
-            if (!Checks.NotNull(info.Group))
+            if (!Check.NotNull(info.Group))
             {
                 /* {ConcatFamilyTree(info.Family.Skip(1).ToList())} */
                 sb.AppendLine($"**{info.Name}**");
@@ -85,12 +85,12 @@ namespace Orikivo
                     sb.AppendLine($"**Commands** {OriFormat.Subscript($"({info.Commands.Count})")}:");
                     sb.AppendJoin(" ", info.Commands
                         .Select(x => $"`{x.Name}`")
-                        .Concat(info.Submodules.Where(x => Checks.NotNull(x.Group))
+                        .Concat(info.Submodules.Where(x => Check.NotNull(x.Group))
                         .Select(x => $"`{x.Name}*`"))
                         .OrderBy(x => x[1]));
                 }
 
-                IEnumerable<ModuleNode> subs = info.Submodules.Where(x => !Checks.NotNull(x.Group));
+                IEnumerable<ModuleNode> subs = info.Submodules.Where(x => !Check.NotNull(x.Group));
                 if (subs.Count() > 0)
                 {
                     sb.AppendLine($"**Submodules** {OriFormat.Subscript($"({subs.Count()})")}:");
@@ -115,7 +115,7 @@ namespace Orikivo
                 // List<string> name = x.Name.Split(' ').ToList();
                 // string.Join(' ', name.Select(y => name.IndexOf(y) == (name.Count - 1) ? $"**{y}**" : y)
                 string fullName = x.Name;
-                if (Checks.NotNull(x.Group))
+                if (Check.NotNull(x.Group))
                 {
                     fullName = info.Group;
                     if (!string.IsNullOrWhiteSpace(x.Name))

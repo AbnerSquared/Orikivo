@@ -5,15 +5,18 @@ using System.Linq;
 
 namespace Orikivo.Unstable
 {
-    public class MarketCatalog
+    /// <summary>
+    /// Represents a limited collection of <see cref="Item"/> values.
+    /// </summary>
+    public class Catalog
     {
-        public MarketCatalog(Dictionary<Item, int> items)
+        public Catalog(Dictionary<Item, int> items)
         {
             Items = items;
             GeneratedAt = DateTime.UtcNow;
         }
 
-        internal MarketCatalog(CatalogData data)
+        internal Catalog(CatalogData data)
         {
             GeneratedAt = data.GeneratedAt;
             Items = data.ItemIds.ToDictionary(x => WorldEngine.GetItem(x.Key), y => y.Value);

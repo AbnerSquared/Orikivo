@@ -13,7 +13,7 @@ namespace Orikivo
         public static Embedder Default
             => new Embedder { Color = GammaColor.GammaGreen };
 
-        public StringLocale Locale { get; set; } = StringLocale.English;
+        public TextLocale Locale { get; set; } = TextLocale.English;
         public GammaColor? Color { get; set; } // GammaColor
         public string Footer { get; set; }
         public string Author { get; set; }

@@ -23,7 +23,7 @@ namespace Orikivo.Unstable
                 panel.Append("** • `");
 
                 string value = property.GetValue(this, null)?.ToString();
-                if (Checks.NotNull(value))
+                if (Check.NotNull(value))
                     panel.Append(value);
                 else
                     panel.Append("null");
@@ -31,7 +31,7 @@ namespace Orikivo.Unstable
 
                 string subtitle = property.GetCustomAttribute<SubtitleAttribute>()?.Subtitle;
                 
-                if (Checks.NotNull(subtitle))
+                if (Check.NotNull(subtitle))
                     panel.AppendLine($"> {subtitle}");
 
                 panel.AppendLine();

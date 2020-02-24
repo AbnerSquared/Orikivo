@@ -8,6 +8,7 @@ using System.Text;
 
 namespace Orikivo.Unstable
 {
+    // TODO: Once the methods are figured out, make this class non-static, from which is loaded from a cache.
     /// <summary>
     /// Represents the main process of a <see cref="Unstable.World"/>.
     /// </summary>
@@ -64,7 +65,7 @@ namespace Orikivo.Unstable
                                     CanSellFrom = true,
                                     SellRate = 0.7f,
                                     Tag = ConstructTag.Market,
-                                    Table = new LootTable
+                                    Table = new GeneratorTable
                                     {
                                         Capacity = 4,
                                         RequiredTags = ItemTag.Physical,
@@ -1082,7 +1083,7 @@ namespace Orikivo.Unstable
                     
                     var now = DateTime.UtcNow;
 
-                    MovementInfo info = new MovementInfo(LocationType.Area, area.Id, now, now.Add(route.Time));
+                    TravelData info = new TravelData(LocationType.Area, area.Id, now, now.Add(route.Time));
 
                     // if the travel time is short enough, just instantly go to the location.
                     if (route.GetTime().TotalSeconds <= 1f)
@@ -1150,12 +1151,12 @@ namespace Orikivo.Unstable
         }
 
         // assumed for area.
-        public static void UpdateLocation(Husk husk, MovementInfo info)
+        public static void UpdateLocation(Husk husk, TravelData info)
         {
-            husk.Location.AreaId = info.LocationId;
+            husk.Location.AreaId = info.Id;
             if (info.Type == LocationType.Area)
             {
-                Vector2 pos = GetAreaPosition(info.LocationId);
+                Vector2 pos = GetAreaPosition(info.Id);
                 husk.Location.X = pos.X;
                 husk.Location.Y = pos.Y;
                 husk.Movement = null;
@@ -1274,7 +1275,7 @@ namespace Orikivo.Unstable
 
             Sector sector = World.GetSector(sectorId);
 
-            if (!Checks.NotNull(areaId))
+            if (!Check.NotNull(areaId))
             {
                 summary.Append(sector.Name);
                 summary.Append("**.");
@@ -1284,7 +1285,7 @@ namespace Orikivo.Unstable
 
             Area area = sector.GetArea(areaId);
 
-            if (Checks.NotNull(constructId))
+            if (Check.NotNull(constructId))
             {
                 Construct construct = area.GetConstruct(constructId);
 
@@ -1304,7 +1305,7 @@ namespace Orikivo.Unstable
             summary.Append("** (");
             summary.Append(sector.Name);
 
-            if (Checks.NotNull(constructId))
+            if (Check.NotNull(constructId))
             {
                 summary.Append(", ");
                 summary.Append(area.Name);
@@ -1386,7 +1387,7 @@ namespace Orikivo.Unstable
 
             List<Structure> visible = new List<Structure>();
 
-            if (Checks.NotNullOrEmpty(sector.Structures))
+            if (Check.NotNullOrEmpty(sector.Structures))
             {
                 foreach (Structure structure in sector.Structures)
                 {

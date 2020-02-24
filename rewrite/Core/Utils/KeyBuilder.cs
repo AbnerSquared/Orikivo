@@ -1,17 +1,32 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// A static helper used to easily create random strings.
+    /// Represents a class that simplifies random string generation.
     /// </summary>
     public static class KeyBuilder
     {
         private static readonly string _alphanumeric = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789";
 
         /// <summary>
-        /// Randomly generates a key of a specified size.
+        /// Generates a new key with a specified length.
         /// </summary>
-        /// <param name="size">The size of the key.</param>
-        public static string Generate(int size)
-            => Randomizer.GetChars(_alphanumeric, (size > 256) ? 256 : (size < 1 ? 1 : size));
+        /// <param name="len">The length of the key to generate.</param>
+        public static string Generate(int len)
+            => Randomizer.GetChars(_alphanumeric, len); // OLD_MAX_LENGTH => 256
+
+        /// <summary>
+        /// Generates a specified amount of keys at a specified length.
+        /// </summary>
+        /// <param name="len">The length of the keys to generate.</param>
+        /// <param name="amount">The total amount of keys that will be generated.</param>
+        public static string[] GenerateMany(int len, int amount)
+        {
+            string[] keys = new string[amount];
+
+            for (int i = 0; i < amount; i++)
+                keys[i] = Generate(len);
+
+            return keys;
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace Orikivo.Unstable
     {
         // this is the image that is used as the background for vendors.
         public Sprite Interior { get; set; }
-        public LootTable Table { get; set; } // the tags of the groups of items that it can sell.
+        public GeneratorTable Table { get; set; } // the tags of the groups of items that it can sell.
         
         // a list of workers that work here
         public List<Vendor> Vendors { get; set; }
@@ -94,7 +94,7 @@ namespace Orikivo.Unstable
             => Vendors.Select(x => x.Schedule.GetNextBlock(time)).Where(x => (x.From - time).TotalSeconds > 0).OrderBy(x => x.From - time).First();
 
         // creates a new list of items to sell for the day
-        public MarketCatalog GenerateCatalog()
+        public Catalog GenerateCatalog()
         {
             IEnumerable<Item> loot = WorldEngine.Items
                 .Where(x => Table.Groups?.Any(t => x.Value.Tag.HasFlag(t)) ?? true)
@@ -114,7 +114,7 @@ namespace Orikivo.Unstable
                 items.Add(item, catalog.Where(x => x == item).Count());
             }
 
-            return new MarketCatalog(items);
+            return new Catalog(items);
         }
 
         // Get schedule from Vendor shifts.

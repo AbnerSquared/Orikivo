@@ -14,15 +14,15 @@ namespace Orikivo
             StringBuilder command = new StringBuilder();
 
             // Getting the full name of the command
-            if (Checks.NotNull(parameter.Command.Module.Group))
+            if (Check.NotNull(parameter.Command.Module.Group))
             {
                 command.Append(parameter.Command.Module.Group);
 
-                if (Checks.NotNull(parameter.Command.Name))
+                if (Check.NotNull(parameter.Command.Name))
                     command.Append(' ');
             }
 
-            if (Checks.NotNull(parameter.Command.Name))
+            if (Check.NotNull(parameter.Command.Name))
                 command.Append(parameter.Command.Name);
 
             Command = command.ToString();
@@ -112,7 +112,7 @@ namespace Orikivo
                 format.AppendLine();
 
                 // summary
-                if (Checks.NotNull(Summary))
+                if (Check.NotNull(Summary))
                 {
                     format.Append("⇛ ");
                     format.Append(Summary);
@@ -140,7 +140,7 @@ namespace Orikivo
                 }
 
                 // parsing examples
-                if (Checks.NotNull(ParseExamples))
+                if (Check.NotNull(ParseExamples))
                 {
                     format.Append("> ");
                     format.Append("**Example**: ");
@@ -151,7 +151,7 @@ namespace Orikivo
                 // id
 
                 // id
-                if (Checks.NotNull(Id))
+                if (Check.NotNull(Id))
                 {
                     format.AppendLine();
                     format.Append($"**ID**: `{Id}`");

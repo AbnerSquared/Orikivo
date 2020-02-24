@@ -2,6 +2,9 @@
 
 namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents a simple structure in a <see cref="Field"/> or <see cref="Sector"/>.
+    /// </summary>
     public class Structure
     {
         public StructureType Type { get; set; }

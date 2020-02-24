@@ -43,15 +43,15 @@ namespace Orikivo
             {
                 StringBuilder format = new StringBuilder();
 
-                if (Checks.NotNull(Group))
+                if (Check.NotNull(Group))
                 {
                     format.Append(Group);
 
-                    if (Checks.NotNull(Name))
+                    if (Check.NotNull(Name))
                         format.Append(' ');
                 }
 
-                if (Checks.NotNull(Name))
+                if (Check.NotNull(Name))
                     format.Append(Name);
 
                 return format.ToString();
@@ -63,9 +63,9 @@ namespace Orikivo
             {
                 StringBuilder format = new StringBuilder();
 
-                if (Checks.NotNull(Group))
+                if (Check.NotNull(Group))
                 {
-                    if (!Checks.NotNull(Name))
+                    if (!Check.NotNull(Name))
                     {
                         format.Append(Format.Bold(Group));
 
@@ -77,7 +77,7 @@ namespace Orikivo
                     }
                 }
 
-                if (Checks.NotNull(Name))
+                if (Check.NotNull(Name))
                     format.Append(Format.Bold(Name));
 
                 // parameters
@@ -117,9 +117,9 @@ namespace Orikivo
                 }
 
                 // grouping
-                if (Checks.NotNull(Group))
+                if (Check.NotNull(Group))
                 {
-                    if (!Checks.NotNull(Name))
+                    if (!Check.NotNull(Name))
                     {
                         format.Append(Format.Bold(Group));
                         
@@ -131,7 +131,7 @@ namespace Orikivo
                     }
                 }
 
-                if (Checks.NotNull(Name))
+                if (Check.NotNull(Name))
                 {
                     // name
                     if (Aliases.Count > 1)
@@ -145,7 +145,7 @@ namespace Orikivo
                         // extra aliases AFTER main name
 
 
-                        if (Checks.NotNull(Group))
+                        if (Check.NotNull(Group))
                         {
                             format.AppendJoin(", ", Aliases.Select(x => x.Substring(Group.Length + 1)).Where(x => x != Name).OrderBy(x => x.Length));
                         }
@@ -189,7 +189,7 @@ namespace Orikivo
 
                 // summary
 
-                if (Checks.NotNull(Summary))
+                if (Check.NotNull(Summary))
                 {
                     format.Append("⇛ ");
                     format.Append(Summary);
@@ -219,7 +219,7 @@ namespace Orikivo
                 // permissions
 
                 // id
-                if (Checks.NotNull(Id))
+                if (Check.NotNull(Id))
                 {
                     format.AppendLine();
                     format.Append($"**ID**: `{Id}`");

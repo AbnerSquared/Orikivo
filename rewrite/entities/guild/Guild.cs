@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents a guild account for <see cref="Orikivo"/>.
+    /// </summary>
     public class Guild
     {
         public Guild(SocketGuild guild)

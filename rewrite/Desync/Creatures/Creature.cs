@@ -25,7 +25,7 @@ namespace Orikivo.Unstable
         public CreatureArchetype Archetype { get; set; }
 
         // make sure it relates to a creature tho
-        public LootTable Table { get; set; }
+        public GeneratorTable Table { get; set; }
 
         public CreatureAction GetNextAction(ActionLog interaction)
         {

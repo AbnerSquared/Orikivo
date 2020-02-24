@@ -27,7 +27,7 @@ namespace Orikivo
         public string GameId { get; }
 
         public string Name { get; }
-        public string Id => $"{(Checks.NotNull(GameId) ? $"game.{GameId}:" : "")}tab.{Name}";
+        public string Id => $"{(Check.NotNull(GameId) ? $"game.{GameId}:" : "")}tab.{Name}";
 
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Orikivo
         internal bool UpdateWindow(GameState state, TabUpdatePacket packet)
         {
             GameWindow window = GetWindow(state);
-            if (Checks.NotNull(packet.TabId))
+            if (Check.NotNull(packet.TabId))
                 return window.GetTab(packet.TabId).Update(packet).IsSuccess;
             return window.CurrentTab.Update(packet).IsSuccess;
         }

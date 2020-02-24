@@ -104,7 +104,7 @@ namespace Orikivo
         public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
 
         [JsonIgnore]
-        public bool HasImage => Checks.NotNull(ImageUrl);
+        public bool HasImage => Check.NotNull(ImageUrl);
 
         [JsonIgnore]
         public int Upvotes => Votes.Where(x => x.Vote == VoteType.Upvote).Count();
@@ -117,7 +117,7 @@ namespace Orikivo
             if (IsClosed)
                 throw new Exception("The report specified has already been closed.");
             State = ReportState.Closed;
-            if (Checks.NotNull(reason))
+            if (Check.NotNull(reason))
                 CloseReason = reason;
         }
 
@@ -150,17 +150,17 @@ namespace Orikivo
 
             bool edited = false;
             ReportBody old = new ReportBody(Title, Content, ImageUrl);
-            if (Checks.NotNull(title))
+            if (Check.NotNull(title))
             {
                 Title = title;
                 edited = true;
             }
-            if (Checks.NotNull(content))
+            if (Check.NotNull(content))
             {
                 Content = content;
                 edited = true;
             }
-            if (Checks.NotNull(imageUrl))
+            if (Check.NotNull(imageUrl))
             {
                 ImageUrl = imageUrl;
                 edited = true;
@@ -180,7 +180,7 @@ namespace Orikivo
             if (IsClosed)
             {
                 sb.AppendLine($"> This report has been closed.");
-                if (Checks.NotNull(CloseReason))
+                if (Check.NotNull(CloseReason))
                     sb.AppendLine($"> `{CloseReason.Escape("`")}`");
             }
             sb.AppendLine($"**{Title}** #{Id}");

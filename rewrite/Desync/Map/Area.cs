@@ -15,7 +15,7 @@ namespace Orikivo.Unstable
         public string Name { get; set; }
 
         /// <summary>
-        /// Represents the size of this <see cref="Area"/>.
+        /// Represents the size and position of the <see cref="Area"/>.
         /// </summary>
         public RegionF Region { get; set; }
 

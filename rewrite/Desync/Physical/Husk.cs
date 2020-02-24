@@ -66,7 +66,7 @@ namespace Orikivo.Unstable
         /// Represents where a <see cref="Husk"/> is heading, if any.
         /// </summary>
         [JsonProperty("movement")]
-        public MovementInfo Movement { get; internal set; }
+        public TravelData Movement { get; internal set; }
 
         /// <summary>
         /// Represents where a <see cref="Husk"/> is located coordinate-wise within a <see cref="World"/>.
@@ -74,44 +74,6 @@ namespace Orikivo.Unstable
         [JsonProperty("position")]
         public Vector2 Position { get; internal set; }
         
-    }
-
-    public class MovementInfo
-    {
-        [JsonConstructor]
-        internal MovementInfo(LocationType type, string locationId, DateTime startedAt, DateTime arrival)
-        {
-            Type = type;
-            LocationId = locationId;
-            StartedAt = startedAt;
-            Arrival = arrival;
-        }
-
-        [JsonProperty("type")]
-        public LocationType Type { get; set; }
-
-        //
-        [JsonProperty("id")]
-        public string LocationId { get; set; }
-
-        // the time at which they will arrive at the location.
-        // you DO NOT update the user's current position until they either cancel
-        // or they arrive.
-        [JsonProperty("started_at")]
-        public DateTime StartedAt { get; set; }
-
-        [JsonProperty("arrival")]
-        public DateTime Arrival { get; set; }
-
-        // only used if the location type is an area.
-        [JsonProperty("x")]
-        public float X { get; set; } = 0;
-
-        [JsonProperty("y")]
-        public float Y { get; set; } = 0;
-
-        [JsonIgnore]
-        public bool Complete => (DateTime.UtcNow - Arrival).TotalSeconds > 0;
     }
 
     public class HuskStatus

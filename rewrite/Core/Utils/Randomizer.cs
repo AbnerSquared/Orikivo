@@ -6,7 +6,7 @@ using System.Linq;
 namespace Orikivo
 {
     /// <summary>
-    /// A tool that enhances and expands upon RNG-based methods.
+    /// Represents a utility class that expands upon <see cref="Random"/>.
     /// </summary>
     public static class Randomizer
     {
@@ -15,7 +15,7 @@ namespace Orikivo
         /// </summary>
         public static IEnumerable<T> Shuffle<T>(IEnumerable<T> args)
         {
-            if (!Checks.NotNull(args))
+            if (!Check.NotNull(args))
                 throw new NullReferenceException("The arguments cannot be null.");
 
             T[] sourceArray = args.ToArray();
@@ -30,22 +30,22 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Chooses an element at random from a collection.
+        /// Selects an element at random from a collection.
         /// </summary>
         public static T Choose<T>(IEnumerable<T> args)
         {
-            if (!Checks.NotNull(args))
+            if (!Check.NotNull(args))
                 throw new NullReferenceException("The arguments specified cannot be null.");
 
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
         }
 
         /// <summary>
-        /// Takes an element at random and removes it from a specified collection.
+        /// Selects and removes an element at random from a collection.
         /// </summary>
         public static T Take<T>(List<T> args)
         {
-            if (!Checks.NotNull(args))
+            if (!Check.NotNull(args))
                 throw new NullReferenceException("The arguments specified cannot be null.");
             
             int j = RandomProvider.Instance.Next(args.Count());
@@ -55,12 +55,12 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Takes a collection of elements at random and removes all of them from a specified collection.
+        /// Selects and removes a collection of elements at random from a collection.
         /// </summary>
         public static IEnumerable<T> TakeMany<T>(List<T> args, int times)
         {
             if (times > args.Count)
-                throw new Exception("You can't take more than the collection of arguments specified.");
+                throw new ArgumentException("You can't take more than the collection of arguments specified.");
 
             List<T> elements = new List<T>();
             for (int i = 0; i < times; i++)
@@ -70,7 +70,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Chooses a collection of elements at random from a specified collection.
+        /// Selects a collection of elements at random from a collection.
         /// </summary>
         public static IEnumerable<T> ChooseMany<T> (IEnumerable<T> args, int times, bool allowRepeats = false)
         {
@@ -92,7 +92,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Chooses a collection of elements at random from a specified collection.
+        /// Selects a collection of elements at random from a collection.
         /// </summary>
         public static IEnumerable<T> ChooseMany<T>(IEnumerable<T> args, int times, int maxRepeats)
         {
@@ -119,26 +119,25 @@ namespace Orikivo
 
             return chosen;
         }
-
+        // TODO: Implement rolling of the dice in their own class.
         /// <summary>
-        /// Rolls a 6-sided dice and returns the result.
+        /// Rolls a <see cref="Dice.Default"/>.
         /// </summary>
-        /// <returns></returns>
         public static int Roll()
             => Roll(Dice.Default);
 
         /// <summary>
-        /// Rolls a dice and returns the result.
+        /// Rolls a <see cref="Dice"/>.
         /// </summary>
         public static int Roll(Dice dice)
         {
-            int result = (int)(Math.Truncate((double)(RandomProvider.Instance.Next(1, dice.Sides * dice.Length) / dice.Length)) % dice.Sides);
-            Console.WriteLine(string.Format(OriFormat.DebugFormat, $"Rolled a {dice.Sides}-sided dice and got {result}."));
+            int result = (int)(Math.Truncate((double)(RandomProvider.Instance.Next(1, dice.Size * dice.Length) / dice.Length)) % dice.Size);
+            Console.WriteLine(string.Format(OriFormat.DebugFormat, $"Rolled a {dice.Size}-sided dice and got {result}."));
             return result;
         }
 
         /// <summary>
-        /// Rolls a dice a specified number of times and returns all results.
+        /// Rolls a <see cref="Dice"/> a specified number of times.
         /// </summary>
         public static List<int> Roll(Dice dice, int times)
         {
@@ -156,20 +155,18 @@ namespace Orikivo
             Dictionary<Dice, int> die = new Dictionary<Dice, int>();
             foreach ((Dice dice, int times) in rolls)
             {
-                if (die.ContainsKey(dice))
+                if (!die.TryAdd(dice, times))
                     die[dice] += times;
-                else
-                    die[dice] = times;
             }
 
             List<DiceRoll> diceRolls = new List<DiceRoll>();
             foreach ((Dice dice, int times) in die)
-                diceRolls.Add(new DiceRoll(dice, times, Roll(dice, times)));
+                diceRolls.Add(new DiceRoll(dice, Roll(dice, times)));
             return new DiceResult(diceRolls);
         }
 
         /// <summary>
-        /// Gets a collection of random characters from a specified string of characters.
+        /// Gets a collection of random characters from a specified string.
         /// </summary>
         public static string GetChars(string branch, int len)
         {
@@ -181,10 +178,16 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Gets a collection of random integers within a specified upper bound.
+        /// Gets a collection of random full-range integers.
         /// </summary>
-        public static int[] GetRandInts(int upperBound, int len, bool allowRepeats = true)
-            => GetRandInts(0, upperBound, len, allowRepeats);
+        public static int[] GetRandInts(int length, bool canRepeat = true)
+            => GetRandInts(int.MinValue, int.MaxValue, length, canRepeat);
+
+        /// <summary>
+        /// Gets a collection of random non-negative integers within a specified upper bound.
+        /// </summary>
+        public static int[] GetRandInts(int upperBound, int length, bool allowRepeats = true)
+            => GetRandInts(0, upperBound, length, allowRepeats);
 
         /// <summary>
         /// Gets a collection of random integers within a specified bound.
@@ -207,22 +210,26 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Returns a new random <see cref="GammaColor"/> with a randomized RGB value.
+        /// Returns a random <see cref="GammaColor"/> by a raw Unicode value.
         /// </summary>
         public static GammaColor NextColor()
             => new GammaColor((uint)RandomProvider.Instance.Next(0x000000, 0xFFFFFF));
 
         /// <summary>
-        /// Returns a new random <see cref="GammaColor"/> with a randomized hue.
+        /// Returns a random <see cref="GammaColor"/> by hue.
         /// </summary>
         public static GammaColor NextColorHue()
             => GammaColor.FromHsl(Next(RangeF.Degree), 0.0f, 1.0f);
 
+        /// <summary>
+        /// Returns a <see cref="bool"/> at random.
+        /// </summary>
+        /// <param name="chance">The specified chance at which the <see cref="bool"/> will be true.</param>
         public static bool NextBool(float chance = 0.5f)
             => RandomProvider.Instance.NextDouble() > chance;
 
         /// <summary>
-        /// Returns a random integer that is within the specified range.
+        /// Returns a random 32-bit integer that is within the specified range.
         /// </summary>
         public static int Next(RangeF range)
         {

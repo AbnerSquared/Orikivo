@@ -36,7 +36,7 @@ namespace Orikivo
         private const string GROUP_PARSER = @"(?:([A-Za-z_]+) )*"; // Regex.Matches
 
         public string Content { get; private set; }
-        public bool IsSuccess => !Checks.NotNull(ErrorReason);
+        public bool IsSuccess => !Check.NotNull(ErrorReason);
 
         public string ErrorReason { get; private set; }
 
@@ -97,7 +97,7 @@ namespace Orikivo
             ctx.Parameter = m.Groups[6].Value;
 
             // If a parameter is specified AND the type (if specified) is not a command
-            if (ctx.Type.GetValueOrDefault(InfoType.Command) != InfoType.Command && Checks.NotNull(m.Groups[6].Value))
+            if (ctx.Type.GetValueOrDefault(InfoType.Command) != InfoType.Command && Check.NotNull(m.Groups[6].Value))
             {
                 ctx.ErrorReason = $"{ctx.Type.ToString()}s do not support parameters.";
                 return ctx;

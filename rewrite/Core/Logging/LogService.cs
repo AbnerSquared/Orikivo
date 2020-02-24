@@ -106,7 +106,7 @@ namespace Orikivo
             private set
             {
 
-                if (Checks.NotNull(value))
+                if (Check.NotNull(value))
                     Console.Title = value;
 
                 Debug("ConsoleConfig.SetTitle");
@@ -231,7 +231,7 @@ namespace Orikivo
             {
                 WriteLine(string.Format(OriFormat.DebugFormat, content));
 
-                if (Checks.NotNull(OutputPath))
+                if (Check.NotNull(OutputPath))
                     WriteToFileAsync(string.Format(OriFormat.DebugFormat, content));
             }
             
@@ -251,7 +251,7 @@ namespace Orikivo
                 RestoreColors();
             }
 
-            if (Checks.NotNull(OutputPath))
+            if (Check.NotNull(OutputPath))
                 WriteToFileAsync(message);
         }
 
@@ -260,12 +260,12 @@ namespace Orikivo
         /// </summary>
         public Task LogAsync(LogMessage log)
         {
-            if (Checks.NotNull(Colors?[log.Severity]) && Colors[log.Severity] != (BackgroundColor, TextColor))
+            if (Check.NotNull(Colors?[log.Severity]) && Colors[log.Severity] != (BackgroundColor, TextColor))
                 SetTempColors(Colors[log.Severity]?.BackgroundColor, Colors[log.Severity]?.TextColor);
 
             StringBuilder value = new StringBuilder();
 
-            if (Checks.NotNull(EntryFormat))
+            if (Check.NotNull(EntryFormat))
                 value.AppendLine(EntryFormat
                     .Replace(Aliases[LogAlias.Name], OriGlobal.ClientName)
                     .Replace(Aliases[LogAlias.ClientVersion], OriGlobal.ClientVersion)
@@ -273,24 +273,24 @@ namespace Orikivo
                     .Replace(Aliases[LogAlias.LogSeverity], log.Severity.ToString())
                     .Replace(Aliases[LogAlias.LogSource], log.Source));
 
-            if (Checks.NotNull(ExceptionFormat) && Checks.NotNull(log.Exception))
+            if (Check.NotNull(ExceptionFormat) && Check.NotNull(log.Exception))
                 value.AppendLine(ExceptionFormat
                     .Replace(Aliases[LogAlias.Exception], log.Exception?.ToString())
                     .Replace(Aliases[LogAlias.ExceptionType], log.Exception?.GetType().Name)
                     .Replace(Aliases[LogAlias.ExceptionMessage], log.Exception?.Message));
 
-            if (Checks.NotNull(MessageFormat) && Checks.NotNull(log.Message))
+            if (Check.NotNull(MessageFormat) && Check.NotNull(log.Message))
                 value.AppendLine(MessageFormat
                     .Replace(Aliases[LogAlias.LogMessage], log.Message));
 
-            if (Checks.NotNull(ExitFormat))
+            if (Check.NotNull(ExitFormat))
                 value.Append(ExitFormat);
 
             return Task.Run(async () =>
             {
                 await Console.Out.WriteLineAsync(value.ToString());
 
-                if (Checks.NotNull(OutputPath))
+                if (Check.NotNull(OutputPath))
                     await WriteToFileAsync(value.ToString());
 
                 RestoreColors();
@@ -299,7 +299,7 @@ namespace Orikivo
 
         private async Task WriteToFileAsync(string content)
         {
-            if (Checks.NotNull(OutputPath))
+            if (Check.NotNull(OutputPath))
             {
                 string directory = Directory.CreateDirectory(OutputPath).FullName;
                 string path = $"{directory}{DateTime.UtcNow.ToString("MM-dd-yyyy")}_log.txt";

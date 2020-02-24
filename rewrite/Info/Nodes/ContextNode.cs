@@ -58,11 +58,11 @@ namespace Orikivo
             // For modules
             while(parent != null)
             {
-                id.Insert(0, Checks.NotNull(parent.Group) ? parent.Group + " " : parent.Name + ".");
+                id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + " " : parent.Name + ".");
                 parent = parent.Parent;
             }
 
-            id.Append(Checks.NotNull(module.Group) ? module.Group + "*" : module.Name + ".");
+            id.Append(Check.NotNull(module.Group) ? module.Group + "*" : module.Name + ".");
 
             return id.ToString().ToLower();
         }
@@ -72,9 +72,9 @@ namespace Orikivo
             StringBuilder id = new StringBuilder();
             id.Append(GetId(command.Module));
 
-            if (Checks.NotNull(command.Name))
+            if (Check.NotNull(command.Name))
             {
-                if (Checks.NotNull(command.Module.Group))
+                if (Check.NotNull(command.Module.Group))
                     id.Replace('*', ' ');
 
                 id.Append(command.Name);
@@ -85,7 +85,7 @@ namespace Orikivo
                 if (command.Module.Commands.Where(x => x.Name == command.Name).Count() > 1)
                     id.Append($"+{command.Priority}");
 
-            if (Checks.NotNull(command.Module.Group) && !Checks.NotNull(command.Name))
+            if (Check.NotNull(command.Module.Group) && !Check.NotNull(command.Name))
                 id.Replace('*', '(');
             else
                 id.Append('(');

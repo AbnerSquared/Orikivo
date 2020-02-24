@@ -272,7 +272,7 @@ namespace Orikivo
                     case TravelResult.Start:
                         StringBuilder travel = new StringBuilder();
                         travel.AppendLine($"Now travelling to **{attempted.Name}**.");
-                        MovementInfo info = Context.Account.Husk.Movement;
+                        TravelData info = Context.Account.Husk.Movement;
 
                         travel.Append($"Expected Arrival: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
                         await Context.Channel.SendMessageAsync(travel.ToString());

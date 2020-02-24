@@ -59,11 +59,10 @@ namespace Orikivo.Unstable
             if (!Relations.TryAdd(relationship.NpcId, relationship.Value))
                 Relations[relationship.NpcId] = relationship.Value;
         }
-        // TODO: Make a sheet that covers a map
-        // that sheet would slowly be erased based on visibility and position
-        // 0 => out of visible range, 1 => visible/already seen 2 => mapped
 
-        // you would read the maps as 00000000 per byte, where each byte can store up to 8 pixels
+        /// <summary>
+        /// Represents a cache of maps as compressed bytes.
+        /// </summary>
         [JsonProperty("maps")]
         public Dictionary<string, byte[]> Maps { get; set; }
 

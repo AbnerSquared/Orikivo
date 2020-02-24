@@ -4,14 +4,57 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Text;
 
 namespace Orikivo.Unstable
 {
+    /// <summary>
+    /// Represents a notification cache.
+    /// </summary>
+    public class Notifier
+    {
+        public const int MAX_NOTIFIER_DISPLAY = 4;  // if there is more, do +2 more... after all notifications.
+        public Notifier() { }
+
+        [JsonConstructor]
+        internal Notifier(List<string> notifications)
+        {
+            Notifications = notifications;
+        }
+
+        // TODO: Create NotifyType
+        [JsonProperty("notifications")]
+        public List<string> Notifications { get; set; }
+
+        public void Append(string notification)
+        {
+            Notifications.Add(notification);
+        }
+
+        // returns a string with all notifications, and clears the cache.
+        /// <summary>
+        /// Returns a <see cref="string"/> formatting all existing notifications and clears them.
+        /// </summary>
+        public string Release()
+        {
+            StringBuilder notifier = new StringBuilder();
+            foreach(string notif in Notifications)
+            {
+                notifier.AppendLine($"> {notif}");
+            }
+
+            Notifications.Clear();
+            return notifier.ToString();
+        }
+    }
     // Balance => Orite
     // TokenBalance => Voken
     // GuildBalance => Gini
     // Debt => Etiro
 
+    /// <summary>
+    /// Represents a user account for <see cref="Orikivo"/>.
+    /// </summary>
     public class User : IDiscordEntity<SocketUser>, IJsonEntity
     {
         [JsonConstructor, BsonConstructor]
@@ -373,7 +416,7 @@ namespace Orikivo.Unstable
         }
 
         // updates the username and discriminator of a user if anything was changed.
-        public void SetIdentity(SocketUser user)
+        public void Update(SocketUser user)
         {
             if (Id != user.Id)
                 throw new Exception("The user specified must have the same matching ID as the account.");

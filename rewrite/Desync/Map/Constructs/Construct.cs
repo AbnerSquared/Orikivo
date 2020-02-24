@@ -1,12 +1,13 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Orikivo.Unstable
 {
 
-
-    public class Construct // a simple building or such in an area.
+    /// <summary>
+    /// Represents a building in an <see cref="Area"/>.
+    /// </summary>
+    public class Construct
     {
         public string Id { get; set; }
         public string Name { get; set; }
@@ -21,16 +22,4 @@ namespace Orikivo.Unstable
         /// </summary>
         public virtual Schedule Schedule { get => throw new System.NotImplementedException(); }
     }
-
-    public class ConstructGroup : Construct // a building with multiple layers
-    {
-        public List<ConstructLayer> Layers { get; set; }
-        public ConstructLayer GetLevel(int level)
-        {
-            return Layers.First(x => x.Level == level);
-        }
-
-        public override List<Npc> Npcs => Layers.Select(x => x.Npcs).Merge();
-    }
-
 }

@@ -179,7 +179,7 @@ namespace Orikivo
         }
 
         [JsonIgnore]
-        public bool HasPrefix => Checks.NotNull(Prefix);
+        public bool HasPrefix => Check.NotNull(Prefix);
 
         [JsonIgnore]
         public IReadOnlyList<GuildEvent> Greetings => Events.Where(x => x.Type == EventType.UserJoin).ToList();

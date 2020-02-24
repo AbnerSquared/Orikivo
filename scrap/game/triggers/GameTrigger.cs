@@ -67,7 +67,7 @@ namespace Orikivo
                     result.ArgId = Arg.Id;
                     string argMessage = m.Groups[1].Value;
 
-                    if (Arg.IsOptional && !Checks.NotNull(argMessage))
+                    if (Arg.IsOptional && !Check.NotNull(argMessage))
                     {
                         result.Objects.Add(Arg.DefaultValue);
                         // You don't add the Arg.OnParseSuccess packets on a default value.
@@ -171,7 +171,7 @@ namespace Orikivo
                     return false;
 
                 case GameObjectType.String:
-                    if (Checks.NotNull(message))
+                    if (Check.NotNull(message))
                         obj = new GameObject(GameObjectType.String, message);
                     else
                         obj = new GameObject(GameObjectType.String, "");

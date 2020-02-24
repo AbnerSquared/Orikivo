@@ -5,10 +5,10 @@ namespace Orikivo.Unstable
     /// <summary>
     /// Represents a rough configuration for a <see cref="Market"/>'s catalog.
     /// </summary>
-    public class LootTable
+    public class GeneratorTable
     {
         /// <summary>
-        /// Represents the required tags an <see cref="Item"/> must have in order to be selected when generating a <see cref="MarketCatalog"/>.
+        /// Represents the required tags an <see cref="Item"/> must have in order to be selected when generating a <see cref="Catalog"/>.
         /// </summary>
         public ItemTag RequiredTags { get; set; }
 
@@ -20,13 +20,13 @@ namespace Orikivo.Unstable
 
         // the most amount of items a market can hold at a time.
         /// <summary>
-        /// Represents the most a <see cref="MarketCatalog"/> can sell at a given time.
+        /// Represents the most a <see cref="Catalog"/> can sell at a given time.
         /// </summary>
         public int Capacity { get; set; }
 
         // the most a market can have of ONE item.
         /// <summary>
-        /// Represents the most a <see cref="MarketCatalog"/> can generate of a single <see cref="Item"/>.
+        /// Represents the most a <see cref="Catalog"/> can generate of a single <see cref="Item"/>.
         /// </summary>
         public int MaxStack { get; set; }
     }

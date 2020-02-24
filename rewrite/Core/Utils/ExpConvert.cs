@@ -3,10 +3,20 @@
 namespace Orikivo
 {
     /// <summary>
-    /// A utility class that handles conversion formulas between experience values.
+    /// Represents a class that handles conversion relating to experience.
     /// </summary>
     public static class ExpConvert
     {
+        /// <summary>
+        /// Represents the maximum upper bound of experience possible.
+        /// </summary>
+        public static ulong MaxExp => 0;
+
+        /// <summary>
+        /// Represents the maximum level possible.
+        /// </summary>
+        public static int MaxLevel => AsLevel(MaxExp);
+
         /// <summary>
         /// Converts the experience specified to its level counterpart.
         /// </summary>
@@ -17,13 +27,11 @@ namespace Orikivo
             // FORMULA GOES HERE
 
             int level = 0;
-
-
             return level;
         }
 
         /// <summary>
-        /// Reverts the specified level to its experience value.
+        /// Converts the level specified to its raw experience.
         /// </summary>
         public static ulong AsExp(int level)
         {
@@ -32,11 +40,12 @@ namespace Orikivo
             // REV FORMULA GOES HERE
 
             ulong exp = 0;
-
             return exp;
         }
 
-        // exp between two levels
+        /// <summary>
+        /// Returns the experience between two specified levels.
+        /// </summary>
         public static ulong ExpBetween(int from, int to)
         {
             if (from > to)
@@ -44,23 +53,18 @@ namespace Orikivo
 
             ulong fromExp = AsExp(from);
             ulong toExp = AsExp(to);
-
             return toExp - fromExp;
         }
 
-        // the most exp anyone can obtain
-        public static ulong MaxExp = 0;
+        /// <summary>
+        /// Returns the remaining experience required to reach the specified level.
+        /// </summary>
+        public static ulong ExpToLevel(ulong exp, int level)
+            => AsExp(level) - exp < 0 ? 0 : AsExp(level) - exp; 
 
-        // the highest level anyone can reach
-        //public static int MaxLevel => AsLevel(MaxExp);
-
-        // exp to reach a specified level, starting from specified exp. if it's less than the current exp, return 0.
-        public static ulong ExpToLevel(ulong exp, int level) =>
-            AsExp(level) - exp < 0 ?
-            0 :
-            AsExp(level) - exp; 
-
-        // exp to reach the next level
+        /// <summary>
+        /// Returns the remaining experience required to reach the next level.
+        /// </summary>
         public static ulong ExpToNext(ulong exp) =>
             ExpToLevel(exp, AsLevel(exp) + 1);
     }

@@ -70,7 +70,7 @@ namespace Orikivo
                 StringBuilder sb = new StringBuilder();
 
                 sb.AppendLine("**Merits**");
-                if (Checks.NotNull(group))
+                if (Check.NotNull(group))
                     sb.AppendLine($"{group.Value.ToString()}");
 
                 sb.AppendLine();
@@ -86,7 +86,7 @@ namespace Orikivo
                     sb.AppendLine();
 
                     // LINE 2 (?)
-                    if (Checks.NotNull(merit.Value.Summary))
+                    if (Check.NotNull(merit.Value.Summary))
                         sb.Append($"⇛ {merit.Value.Summary}");
 
                     sb.AppendLine();

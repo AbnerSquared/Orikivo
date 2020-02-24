@@ -34,7 +34,7 @@ namespace Orikivo
             sb.Append(currentPage);
             sb.Append(" of ");
             sb.Append(maxPage);
-            if (Checks.NotNull(text))
+            if (Check.NotNull(text))
                 sb.Insert(0, $"{text} | ");
             return sb.ToString();
         }

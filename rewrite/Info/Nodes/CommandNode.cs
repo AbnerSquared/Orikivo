@@ -54,9 +54,9 @@ namespace Orikivo
                     StringBuilder format = new StringBuilder();
 
                     // Group
-                    if (Checks.NotNull(Group))
+                    if (Check.NotNull(Group))
                     {
-                        if (!Checks.NotNull(Name))
+                        if (!Check.NotNull(Name))
                         {
                             format.Append(Format.Bold(Group));
 
@@ -68,13 +68,13 @@ namespace Orikivo
                         }
                     }
                     // Name
-                    if (Checks.NotNull(Name))
+                    if (Check.NotNull(Name))
                         format.Append(Format.Bold(Name));
 
                     format.AppendLine();
 
                     // Main summary
-                    if (Checks.NotNull(MainSummary))
+                    if (Check.NotNull(MainSummary))
                     {
                         format.Append("⇛ ");
                         format.Append(MainSummary);
@@ -85,7 +85,7 @@ namespace Orikivo
                     format.AppendLine();
 
                     // Write ID (DEBUG)
-                    if (Checks.NotNull(Id))
+                    if (Check.NotNull(Id))
                     {
                         format.AppendLine();
                         format.Append($"**ID**: `{Id}`");

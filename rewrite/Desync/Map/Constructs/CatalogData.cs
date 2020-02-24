@@ -6,7 +6,9 @@ using System.Linq;
 
 namespace Orikivo.Unstable
 {
-    // this is used to store the memory of this catalog.
+    /// <summary>
+    /// Represents a compressed <see cref="Catalog"/>.
+    /// </summary>
     public class CatalogData
     {
         [JsonConstructor]
@@ -16,7 +18,9 @@ namespace Orikivo.Unstable
             ItemIds = itemIds;
         }
 
-
+        /// <summary>
+        /// Represents the <see cref="DateTime"/> at which the <see cref="Catalog"/> was generated.
+        /// </summary>
         [JsonProperty("generated_at")]
         public DateTime GeneratedAt { get; }
 
@@ -26,9 +30,12 @@ namespace Orikivo.Unstable
         [JsonIgnore]
         public int Count => ItemIds.Values.Sum();
 
-        public MarketCatalog Decompress()
+        /// <summary>
+        /// Returns a <see cref="Catalog"/> from the <see cref="CatalogData"/>'s decompressed values.
+        /// </summary>
+        public Catalog Decompress()
         {
-            return new MarketCatalog(this);
+            return new Catalog(this);
         }
     }
 }
