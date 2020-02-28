@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Orikivo.Desync
 {
     // This will be utilized to handle NPC image generation in correlation to the location
     // the top down map will be generated

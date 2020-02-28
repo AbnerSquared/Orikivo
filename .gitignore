@@ -1,4 +1,4 @@
 ﻿legacy/
 bin/
 obj/
-rewrite/lobby/
+src/lobby/
