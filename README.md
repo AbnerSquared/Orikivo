@@ -1,5 +1,5 @@
 # Orikivo
-A Discord.NET bot in development for over a year.
+An upcoming Discord.NET bot.
 
 ## Main Goals
 I want this bot to be a new way to handle cooperative games across Discord. I also wanted a new way that user accounts were handled, taking a unique approach to what a user can do, such as having stats, merits, unique experience values for each field, and booster mechanics.
@@ -11,3 +11,4 @@ Whenever you submit an issue, try to make sure it fits any of the following ques
 - Does the code follow C# standards?
 - Does it require an extension outside of System.*?
 - Can a function be created to replace repetitive methods?
+- Is there a better way to structure classes?
