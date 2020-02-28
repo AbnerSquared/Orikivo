@@ -1,8 +1,8 @@
 # Orikivo
-An upcoming Discord.NET bot.
+An upcoming Discord.NET bot. The main story arc and structure represents a fragment of an upcoming game's story.
 
-## Main Goals
-I want this bot to be a new way to handle cooperative games across Discord. I also wanted a new way that user accounts were handled, taking a unique approach to what a user can do, such as having stats, merits, unique experience values for each field, and booster mechanics.
+## Objectives
+This bot has been in development for quite a long time. While one of the goals was to make some of the classes applicable to a possible future game framework, I wanted to create an RPG/Animal Crossing-esque kind of game system. This handles how items functions, map/world mechanics and travelling all around.
 
 ## Submitting Issues
 Whenever you submit an issue, try to make sure it fits any of the following questions:
