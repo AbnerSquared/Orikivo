@@ -30,20 +30,20 @@
   <ItemGroup>
     <Compile Remove="legacy\**" />
     <Compile Remove="Overhaul\**" />
-    <Compile Remove="rewrite\Entities\discord\**" />
-    <Compile Remove="rewrite\lobby\**" />
+    <Compile Remove="src\Entities\discord\**" />
+    <Compile Remove="src\lobby\**" />
     <Compile Remove="source\**" />
     <Compile Remove="Systems\**" />
     <EmbeddedResource Remove="legacy\**" />
     <EmbeddedResource Remove="Overhaul\**" />
-    <EmbeddedResource Remove="rewrite\Entities\discord\**" />
-    <EmbeddedResource Remove="rewrite\lobby\**" />
+    <EmbeddedResource Remove="src\Entities\discord\**" />
+    <EmbeddedResource Remove="src\lobby\**" />
     <EmbeddedResource Remove="source\**" />
     <EmbeddedResource Remove="Systems\**" />
     <None Remove="legacy\**" />
     <None Remove="Overhaul\**" />
-    <None Remove="rewrite\Entities\discord\**" />
-    <None Remove="rewrite\lobby\**" />
+    <None Remove="src\Entities\discord\**" />
+    <None Remove="src\lobby\**" />
     <None Remove="source\**" />
     <None Remove="Systems\**" />
   </ItemGroup>
