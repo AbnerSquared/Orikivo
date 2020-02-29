@@ -7,6 +7,7 @@ using Orikivo.Desync;
 
 namespace Orikivo
 {
+
     // TODO: Integrate ReportContainer for the help service.
     /// <summary>
     /// A help service which provides information on all commands as an override to <see cref="CommandService"/>.
@@ -96,7 +97,7 @@ namespace Orikivo
             // Husk system
             if (user.Husk != null)
             {
-                bool canMove = WorldEngine.CanMove(user.Husk);
+                bool canMove = WorldEngine.CanMove(user, user.Husk);
                 panel.AppendLine();
                 panel.AppendLine("**Actions**");
                 panel.Append("• ");

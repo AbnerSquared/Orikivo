@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Orikivo.Net
 {
-    // handles web requests, api calls, and so forth
     public class OriWebClient : IDisposable
     {
         public static OriWebClient Default = new OriWebClient();

@@ -153,7 +153,7 @@ namespace Orikivo
                 {
                     Merit merit = WorldEngine.GetMerit(id);
 
-                    await Context.Channel.SendMessageAsync(merit.Claim(Context.Account));
+                    await Context.Channel.SendMessageAsync(merit.ClaimAndDisplay(Context.Account));
                 }
             }
         }

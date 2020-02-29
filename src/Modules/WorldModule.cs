@@ -6,17 +6,19 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    [Name("World")]
-    //[Subtitle("ok woomer")]
-    [Summary("Commands that relate to the world and digital client.")]
-    public class WorldModule : OriModuleBase<OriCommandContext>
+    [Name("Digital")]
+    [Summary("Commands that relate to the digital client.")]
+    public class DigitalModule : OriModuleBase<OriCommandContext>
     {
         [Command("merits")]
-        [Summary("View a collection of merits")]
+        [Summary("View a summary about your current **Merit** progression.")]
         [RequireUser]
         public async Task GetMeritsAsync(MeritGroup? group = null)
         {
-            await Context.Channel.SendMessageAsync(WorldService.GetMeritPanel(Context.Account, group));
+            if (group.HasValue)
+                await Context.Channel.SendMessageAsync(Context.Account, MeritHandler.ViewCategory(Context.Account, group.Value));
+            else
+                await Context.Channel.SendMessageAsync(Context.Account, MeritHandler.ViewDefault(Context.Account));
         }
 
         [Command("cry")]
@@ -25,7 +27,15 @@ namespace Orikivo
         public async Task CryAsync()
         {
             Context.Account.UpdateStat("times_cried", 1);
-            await Context.Channel.SendMessageAsync("You have cried.");
+            await Context.Channel.SendMessageAsync(Context.Account, "You have cried.");
+        }
+
+        [RequireUser]
+        [Command("notifications")]
+        public async Task ViewNotificationsAsync(int page = 1)
+        {
+            // TODO: Paginator.
+            await Context.Channel.SendMessageAsync(Context.Account.Notifier.Display());
         }
 
         [Command("stats")]
@@ -35,13 +45,12 @@ namespace Orikivo
             user ??= Context.User;
             Context.Container.TryGetUser(user.Id, out User account);
 
-            string stats = string.Join("\n", account.Stats.Select(s => $"{WorldService.GetNameOrDefault(s.Key)}: {s.Value}"));
+            string stats = string.Join("\n", account.Stats.Select(s => $"{StatHandler.GetNameOrDefault(s.Key)}: {s.Value}"));
 
             if (Context.User.Id != user.Id)
                 stats = $"> **Stats** ({user.Username})\n" + stats;
 
-            await Context.Channel.SendMessageAsync(stats == "" ? "No stats." : stats);
+            await Context.Channel.SendMessageAsync(Context.Account, stats == "" ? "No stats." : stats);
         }
-
     }
 }

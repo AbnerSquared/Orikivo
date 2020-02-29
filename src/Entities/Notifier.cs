@@ -1,45 +1,104 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Represents a notification cache.
+    /// Represents a <see cref="Notification"/> cache.
     /// </summary>
     public class Notifier
     {
         public const int MAX_NOTIFIER_DISPLAY = 4;  // if there is more, do +2 more... after all notifications.
-        public Notifier() { }
+        public Notifier()
+        {
+            Notifications = new List<Notification>();
+        }
 
         [JsonConstructor]
-        internal Notifier(List<string> notifications)
+        internal Notifier(List<Notification> notifications)
         {
             Notifications = notifications;
         }
 
-        // TODO: Create NotifyType
         [JsonProperty("notifications")]
-        public List<string> Notifications { get; set; }
+        public List<Notification> Notifications { get; set; } = new List<Notification>();
 
-        public void Append(string notification)
+        [JsonIgnore]
+        public DateTime? LastNotified { get; set; }
+
+        /// <summary>
+        /// Appends a new <see cref="Notification"/> to the <see cref="Notifier"/>.
+        /// </summary>
+        public void Append(string content)
         {
-            Notifications.Add(notification);
+            Notifications.Add(new Notification(content));
         }
 
-        // returns a string with all notifications, and clears the cache.
         /// <summary>
-        /// Returns a <see cref="string"/> formatting all existing notifications and clears them.
+        /// Returns a <see cref="string"/> that displays all existing notifications.
         /// </summary>
-        public string Release()
+        public string Display()
         {
             StringBuilder notifier = new StringBuilder();
-            foreach(string notif in Notifications)
+
+            int i = 0;
+            foreach (Notification n in Notifications.OrderByDescending(x => x.SentAt))
             {
-                notifier.AppendLine($"> {notif}");
+                notifier.AppendLine($"> {n.Content} ({OriFormat.Time(n.SentAt)})");
+
+                if (!n.Read)
+                    n.Read = true;
             }
 
+            return notifier.ToString();
+        }
+
+        // clears all read notifications
+        public void ClearRead()
+            => Notifications.RemoveAll(x => x.Read);
+
+        // clears all notifications
+        public void Clear()
+        {
             Notifications.Clear();
+        }
+
+        // determines if the notifier can notify
+        [JsonIgnore]
+        public bool CanNotify => Notifications.Any(x => !x.Read);
+
+        // returns a string with all notifications, and clears the cache.
+        // Returns a <see cref="string"/> formatting all existing notifications and clears them.
+        /// <summary>
+        /// Returns a <see cref="string"/> that summarizes all notifications.
+        /// </summary>
+        public string Notify()
+        {
+            StringBuilder notifier = new StringBuilder();
+
+            int i = 0;
+            foreach(Notification n in Notifications.Where(x => !x.Read).OrderByDescending(x => x.SentAt))
+            {
+                if (i < 4)
+                {
+                    notifier.AppendLine($"> {n.Content}");
+                    n.Read = true;
+                }
+                else
+                {
+                    int remainder = Notifications.Count - i;
+
+                    if (remainder > 0)
+                        notifier.Append($"**+{OriFormat.Notate(remainder)}** more...");
+
+                    break;
+                }
+                i++;
+            }
+
             return notifier.ToString();
         }
     }

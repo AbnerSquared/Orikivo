@@ -20,7 +20,7 @@ namespace Orikivo.Desync
         [JsonConstructor, BsonConstructor]
         internal User(
             ulong id, string username, string discriminator, DateTime createdAt,
-            ulong balance, ulong tokenBalance, ulong debt,
+            Notifier notifier, ulong balance, ulong tokenBalance, ulong debt,
             Dictionary<string, ItemData> items, Dictionary<ulong, GuildData> connections,
             ObjectiveData objectives, Dictionary<string, DateTime> cooldowns, Dictionary<ExpType, ulong> expData,
             int ascent, Dictionary<string, long> stats, Dictionary<string, MeritData> merits, List<BoosterData> boosters,
@@ -30,6 +30,8 @@ namespace Orikivo.Desync
             Username = username;
             Discriminator = discriminator;
             CreatedAt = createdAt;
+
+            Notifier = Check.NotNull(notifier) ? notifier : new Notifier();
 
             Balance = balance;
             TokenBalance = tokenBalance;
@@ -61,6 +63,8 @@ namespace Orikivo.Desync
             Username = user.Username;
             Discriminator = user.Discriminator;
             CreatedAt = DateTime.UtcNow;
+
+            Notifier = new Notifier();
 
             Balance = 0;
             TokenBalance = 0;
@@ -99,6 +103,9 @@ namespace Orikivo.Desync
 
         [JsonProperty("created_at"), BsonElement("created_at")]
         public DateTime CreatedAt { get; }
+
+        [JsonProperty("notifier"), BsonElement("notifier")]
+        public Notifier Notifier { get; internal set; }
 
         /// <summary>
         /// The <see cref="User"/>'s global balance, in use for both the world and client.

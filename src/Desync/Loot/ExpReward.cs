@@ -1,50 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Orikivo.Desync
+﻿namespace Orikivo.Desync
 {
-    // represents an item and money cache as a gift for an objective or merit.
-    public class Reward
+    public class ExpReward
     {
-        public Dictionary<string, int> ItemIds { get; set; } = new Dictionary<string, int>();
-        public ulong? Money { get; set; }
-        public ExpReward Exp { get; set; }
-
-
-        /// <summary>
-        /// Returns all values specified within the <see cref="Reward"/> as a human-readable collection.
-        /// </summary>
-        public List<string> GetNames()
+        public ExpReward(ExpType type, ulong value)
         {
-            List<string> values = new List<string>();
-
-            foreach((string id, int amount) in ItemIds)
-            {
-                string name = WorldEngine.GetItem(id).Name;
-
-                if (amount > 1)
-                    name += $" (x{OriFormat.Notate(amount)})";
-
-                values.Add(name);
-            }
-
-            values = values.OrderBy(x => x).ToList();
-
-            if (Exp != null)
-            {
-                string exp = $"{OriFormat.Notate(Exp.Value)} Exp";
-
-                if (Exp.Type != ExpType.Global)
-                    exp += $" ({Exp.Type})";
-
-                values.Insert(0, exp);
-            }
-
-            if (Money.HasValue)
-                values.Insert(0, $"{OriFormat.Notate(Money.Value)} Orite");
-
-            return values;
+            Type = type;
+            Value = value;
         }
+
+        public ExpType Type { get; set; }
+        public ulong Value { get; set; }
     }
 
     // loot is stuff like:

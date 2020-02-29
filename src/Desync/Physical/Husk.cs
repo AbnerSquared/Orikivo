@@ -14,19 +14,19 @@ namespace Orikivo.Desync
         {
             ClaimedAt = DateTime.UtcNow;
             // TODO: Handle default backpack creation
-            Attributes = new HuskAttributes { MaxSight = 15, MaxHealth = 10, MaxSpeed = 10 };
+            Attributes = new HuskAttributes { MaxSight = 15, MaxHealth = 10, MaxSpeed = 10, MaxExposure = 5 };
             Backpack = new Backpack(4);
-            State = 0; // the husk isn't doing anything.
             Location = locator;
+            Status = new HuskStatus(Attributes);
         }
 
         [JsonConstructor]
-        internal Husk(DateTime claimedAt, HuskAttributes attributes, Backpack backpack, HuskState flag)
+        internal Husk(DateTime claimedAt, HuskAttributes attributes, Backpack backpack, HuskStatus status)
         {
             ClaimedAt = claimedAt;
             Attributes = attributes;
             Backpack = backpack;
-            State = flag;
+            Status = status;
         }
 
         /// <summary>
@@ -49,10 +49,10 @@ namespace Orikivo.Desync
         // TODO: Make WorldItem variants that specify a slot size, which can take more space than others.
 
         /// <summary>
-        /// Represents how a <see cref="Husk"/> currently exists.
+        /// Represents the <see cref="Husk"/>'s current physical wellness.
         /// </summary>
-        [JsonProperty("state")]
-        public HuskState State { get; private set; }
+        [JsonProperty("status")]
+        public HuskStatus Status { get; private set; }
         
         // Where the husk is currently located. This stores a sector/field, area, construct and market id.
         
@@ -74,11 +74,5 @@ namespace Orikivo.Desync
         [JsonProperty("position")]
         public Vector2 Position { get; internal set; }
         
-    }
-
-    public class HuskStatus
-    {
-        // public List<Injury> Injuries {get; set;}
-        // public 
     }
 }

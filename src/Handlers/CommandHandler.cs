@@ -143,20 +143,36 @@ namespace Orikivo
                 ctx.Account?.SetCooldown(CooldownType.Command, id, cooldown.Duration);
             }
 
+            if (ctx.Account?.Husk != null)
+            {
+                WorldEngine.CanMove(ctx.Account, ctx.Account.Husk);
+            }
+
+            bool notified = ctx.Account?.Notifier.LastNotified.HasValue ?? false;
+
+            if (notified)
+            {
+                _logger.Debug("User was notified.");
+                ctx.Account.Notifier.LastNotified = null;
+            }
             // Clear all expired boosters and such
             // TODO: Create expiration check
 
             // Check if the user was updated or doesn't exist to save
             RequireUserAttribute requireUser = command.Preconditions.GetAttribute<RequireUserAttribute>();
 
-            if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false || cooldown != null)
+            if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false
+                || cooldown != null
+                || notified)
             {
+                // Check if any stats now meet certain criteria
+                CheckStats(ctx, ctx.Account);
+
                 //Console.WriteLine("User updated. Now saving...");
                 _logger.Debug("User updated. Now saving...");
                 ctx.Container.TrySaveUser(ctx.Account);
 
-                // Check if any stats now meet certain criteria
-                await CheckStatsAsync(ctx, ctx.Account);
+                
             }
             else if (!JsonHandler.JsonExists<User>(ctx.User.Id))
             {
@@ -182,11 +198,10 @@ namespace Orikivo
 
             // For now, just save global data until a workaround is found
             JsonHandler.Save(ctx.Container.Global, "global.json");
-        
         }
 
         // TODO: make the notification system for merits apply to the next message on the command that the user executes
-        public async Task CheckStatsAsync(OriCommandContext ctx, User user)
+        public void CheckStats(OriCommandContext ctx, User user)
         {
             // Check the stats for any possible merits
             var merits = WorldEngine.Merits.Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
@@ -194,10 +209,12 @@ namespace Orikivo
             if (merits.Count() > 0)
             {
                 foreach (KeyValuePair<string, Merit> merit in merits)
+                {
                     user.Merits.Add(merit.Key, merit.Value.GetData());
 
-                if (!user.Config.Notifier.HasFlag(NotifyDeny.Merit))
-                    await ctx.Channel.NotifyMeritAsync(user, merits.Select(x => x.Value));
+                    if (!user.Config.Notifier.HasFlag(NotifyDeny.Merit))
+                        user.Notifier.Append($"Merit unlocked: **{merit.Value.Name}**");
+                }
             }
         }
     }

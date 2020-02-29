@@ -34,7 +34,7 @@ namespace Orikivo
             summary.AppendLine(Context.Account.Husk.Location.GetSummary());
             summary.Append("You are free to explore.");
 
-            await Context.Channel.SendMessageAsync(summary.ToString());
+            await Context.Channel.SendMessageAsync(Context.Account, summary.ToString());
 
         }
 
@@ -46,13 +46,13 @@ namespace Orikivo
             StringBuilder relations = new StringBuilder();
 
             if (Context.Account.Brain.Relations.Count == 0)
-                await Context.Channel.SendMessageAsync("You don't seem to know anyone. Get out there and talk to others!");
+                await Context.Channel.SendMessageAsync(Context.Account, "You don't seem to know anyone. Get out there and talk to others!");
             else
             {
                 relations.AppendLine("Relationships:");
                 relations.AppendJoin("\n", Context.Account.Brain.Relations.Select(x => $"`{x.Key}` [**{Relationship.GetLevel(x.Value).ToString()}**]"));
 
-                await Context.Channel.SendMessageAsync(relations.ToString());
+                await Context.Channel.SendMessageAsync(Context.Account, relations.ToString());
             }
         }
 
@@ -66,7 +66,7 @@ namespace Orikivo
         [Summary("View a list of available locations you can travel to in your current **Area**.")]
         public async Task GoToAsync()
         {
-            if (!WorldEngine.CanMove(Context.Account.Husk))
+            if (!WorldEngine.CanMove(Context.Account, Context.Account.Husk))
             {
                 await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
                 return;
@@ -105,7 +105,7 @@ namespace Orikivo
         [Summary("Shows all available NPCs you are able to chat with.")]
         public async Task ShowNpcsAsync()
         {
-            await Context.Channel.SendMessageAsync(WorldEngine.ShowNpcs(Context.Account.Husk));
+            await Context.Channel.SendMessageAsync(Context.Account, WorldEngine.ShowNpcs(Context.Account.Husk));
         }
 
         // TODO: Create Chat command for Sectors, so that if an NPC was seen inside a view radius, 
@@ -127,7 +127,7 @@ namespace Orikivo
             }
             else
             {
-                await Context.Channel.SendMessageAsync("Unable to determine specified individual. Please refer to our NPC tracker (`chat`).");
+                await Context.Channel.SendMessageAsync(Context.Account, "Unable to determine specified individual. Please refer to our NPC tracker (`chat`).");
             }
         }
 
@@ -144,7 +144,7 @@ namespace Orikivo
             }
             else
             {
-                await Context.Channel.SendMessageAsync("An error has occurred when initializing the shop.");
+                await Context.Channel.SendMessageAsync(Context.Account, "An error has occurred when initializing the shop.");
             }
         }
 
@@ -228,38 +228,15 @@ namespace Orikivo
 
         }
 
-
-        [RequireUser]
-        [RequireLocation(LocationType.Area)]
-        [Summary("View a list of all available **Areas** you can travel to.")]
-        public async Task TravelAsync()
-        {
-            // Available Areas (Sector 0)
-            // 
-        }
-
-        // because free roaming is difficult, i want to incorporate a system.
-        // start the user at the Area.EntranceDirection.
-        //
-
-
-        [RequireUser]
-        [RequireLocation(LocationType.Area)]
-        [Summary("Travel to a specified **Area**. (Travel time is calculated)")]
-        public async Task TravelAsync(string id)
-        {
-
-        }
-
         [RequireUser]
         [RequireLocation(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(1)] // This is used to travel to any viable location based on its current location.
         [Summary("Travel to a specified **Construct**.")]
         public async Task GoToAsync(string id)
         {
-            if (!WorldEngine.CanMove(Context.Account.Husk))
+            if (!WorldEngine.CanMove(Context.Account, Context.Account.Husk))
             {
-                await Context.Channel.SendMessageAsync("You are currently in transit, and cannot perform any actions.");
+                await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
                 return;
             }
 

@@ -76,6 +76,8 @@ namespace Orikivo
             {')', '₎'}
         };
 
+        public static string Time(DateTime time)
+            => time.ToString("M/d/yyyy @ HH:mm tt");
         public static string Debug(string content)
             => string.Format(DebugFormat, content);
 

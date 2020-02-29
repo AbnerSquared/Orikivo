@@ -7,13 +7,19 @@ namespace Orikivo.Desync
     /// </summary>
     public class HuskAttributes
     {
+        internal static readonly string Health = "hp";
+        internal static readonly string Sight = "sight";
+        internal static readonly string Exposure = "exposure";
+        internal static readonly string Speed = "speed";
+
         public HuskAttributes() { }
 
         [JsonConstructor]
-        internal HuskAttributes(int maxHp, int maxRange, int maxSpeed)
+        internal HuskAttributes(int maxHp, int maxSight, int maxExposure, int maxSpeed)
         {
             MaxHealth = maxHp;
-            MaxSight = maxRange;
+            MaxSight = maxSight;
+            MaxExposure = maxExposure;
             MaxSpeed = maxSpeed;
         }
 
@@ -29,6 +35,7 @@ namespace Orikivo.Desync
         [JsonProperty("max_sight")]
         public int MaxSight { get; set; }
 
+        // IN MINUTES
         /// <summary>
         /// Represents a <see cref="Husk"/>'s max resistance to wild exposure. This determines how long they can remain outside of a <see cref="Sector"/> before they start taking damage.
         /// </summary>

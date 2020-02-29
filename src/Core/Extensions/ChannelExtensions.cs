@@ -88,6 +88,22 @@ namespace Orikivo
             return next;
         }
 
+        public static async Task<RestUserMessage> SendMessageAsync(this ISocketMessageChannel channel, User user, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        {
+            StringBuilder content = new StringBuilder();
+
+            if (user.Notifier.CanNotify)
+            {
+                content.AppendLine(user.Notifier.Notify());
+                user.Notifier.LastNotified = DateTime.UtcNow;
+            }
+            
+            if (Check.NotNull(text))
+                content.AppendLine(text);
+
+            return await channel.SendMessageAsync(content.ToString(), isTTS, embed, options);
+        }
+
         /// <summary>
         /// Attempts to warn a user about a cooldown that is currently preventing command execution.
         /// </summary>

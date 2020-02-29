@@ -12,6 +12,8 @@ namespace Orikivo.Desync
         /// </summary>
         public ItemTag RequiredTags { get; set; }
 
+        public ItemType RequiredType { get; set; } = ItemType.Physical;
+
         // as long as one of these tags are on the item, it counts
         /// <summary>
         /// Represents the groups an <see cref="Item"/> must have at least one <see cref="ItemTag"/> matching for. If none are specified, the <see cref="Item"/> is only selected based on <see cref="RequiredTags"/>.

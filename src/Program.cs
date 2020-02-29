@@ -43,7 +43,7 @@ namespace Orikivo
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
-                builder.AddModule<WorldModule>();
+                builder.AddModule<DigitalModule>();
                 builder.AddModule<HuskActions>();
 
                 Client client = builder.Build();

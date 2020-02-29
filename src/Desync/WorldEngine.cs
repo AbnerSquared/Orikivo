@@ -68,7 +68,7 @@ namespace Orikivo.Desync
                                     Table = new GeneratorTable
                                     {
                                         Capacity = 4,
-                                        RequiredTags = ItemTag.Physical,
+                                        RequiredType = ItemType.Physical,
                                         MaxStack = 2
                                     },
                                     Vendors = new List<Vendor>
@@ -410,7 +410,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Physical
+                Type = ItemType.Physical,
             },
             ["test_item_2"] = new Item
             {
@@ -426,7 +426,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Physical
+                Type = ItemType.Physical,
             },
             ["test_item_1"] = new Item
             {
@@ -442,7 +442,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Physical
+                Type = ItemType.Physical,
             },
             ["pocket_lawyer"] = new Item
             {
@@ -458,6 +458,7 @@ namespace Orikivo.Desync
                 GiftLimit = 1,
                 Rarity = ItemRarity.Common,
                 Tag = ItemTag.Callable,
+                Type = ItemType.Digital,
                 ToOwn = u => u.Debt >= 1000,
                 Value = 40,
                 CanBuy = true,
@@ -477,7 +478,7 @@ namespace Orikivo.Desync
             ["test"] = new Merit
             {
                 Id = "test",
-                Criteria = x => x.GetStat("times_cried") == 1,
+                Criteria = x => x.GetStat("times_cried") >= 1,
                 Name = "Shedding Tears",
                 Summary = "Cry.",
                 Group = MeritGroup.Misc,
@@ -998,11 +999,20 @@ namespace Orikivo.Desync
         public static Merit GetMerit(string id)
             => Merits[id];
 
+        public static IEnumerable<Merit> GetMerits(MeritGroup group)
+            => Merits.Values.Where(x => x.Group == group);
+
         public static Booster GetBooster(string id)
             => Boosters[id];
 
         public static Item GetItem(string name)
             => Items[name];
+
+        public static IEnumerable<Item> GetRealItems()
+            => Items.Values.Where(x => x.Type == ItemType.Physical);
+
+        public static IEnumerable<Item> GetDigitalItems()
+            => Items.Values.Where(x => x.Type == ItemType.Digital);
         #endregion
 
         #region Checks
@@ -1130,18 +1140,38 @@ namespace Orikivo.Desync
                 // TODO: create travel time calculation and Arrival data
         }
 
-        public static bool CanMove(Husk husk)
+        public static bool CanMove(User user, Husk husk)
         {
             if (husk.Movement != null)
             {
                 if (!husk.Movement.Complete)
                     return false;
-                else
-                    UpdateLocation(husk, husk.Movement);
+
+                if (!user.Config.Notifier.HasFlag(NotifyDeny.Travel))
+                {
+                    user.Notifier.Append($"You have arrived at **{GetLocationName(husk.Location.GetInnerType(), husk.Location.GetInnerId(), husk.Movement.Id)}**.");
+                }
+
+                UpdateLocation(husk, husk.Movement);
             }
 
             return true;
         }
+
+        private static string GetLocationName(LocationType innerType, string innerId, string id)
+        {
+            if (innerType == LocationType.Sector)
+            {
+                Sector s = World.GetSector(innerId);
+
+                if (s.Areas.Any(x => x.Id == id))
+                    return s.GetArea(id).Name;
+
+            }
+
+            throw new ArgumentException("The specified inner location does not lead to the specified ID.");
+        }
+
         public static Route CreateRoute(float x, float y, RegionF region)
         {
             // TODO: create point and other route implementation at locations.
@@ -1268,7 +1298,7 @@ namespace Orikivo.Desync
                 throw new Exception("The specified Husk is currently at an invalid location.");
         }
 
-        public static string GetLocationSummary(string worldId, string sectorId, string areaId, string constructId = null, int? constructLayer = null)
+        public static string GetLocationSummary(string worldId, string sectorId, string areaId, string constructId = null, int? constructLayer = null, TravelData travel = null)
         {
             StringBuilder summary = new StringBuilder();
             summary.Append("You are currently in **");
@@ -1312,6 +1342,11 @@ namespace Orikivo.Desync
             }
 
             summary.Append(").");
+
+            if (travel != null)
+            {
+                // TODO: handle => You are currently walking to **Area A** (in **Sector 0**).
+            }
 
             return summary.ToString();
         }

@@ -34,6 +34,11 @@ namespace Orikivo.Desync
         public ItemTag Tag { get; set; } = 0;
 
         /// <summary>
+        /// Represents the type that the <see cref="Item"/> is designed for.
+        /// </summary>
+        public ItemType Type { get; set; }
+
+        /// <summary>
         /// Represents the rarity of the <see cref="Item"/>.
         /// </summary>
         public ItemRarity Rarity { get; set; } = ItemRarity.Common;

@@ -97,9 +97,20 @@ namespace Orikivo.Desync
         public Catalog GenerateCatalog()
         {
             IEnumerable<Item> loot = WorldEngine.Items
-                .Where(x => Table.Groups?.Any(t => x.Value.Tag.HasFlag(t)) ?? true)
-                .Where(x => x.Value.Tag.HasFlag(Table.RequiredTags))
-                .Select(x => x.Value);
+                .Where(delegate (KeyValuePair<string, Item> x)
+                {
+                    if (x.Value.Type != Table.RequiredType)
+                        return false;
+
+                    if (Table.RequiredTags != 0)
+                        if (!x.Value.Tag.HasFlag(Table.RequiredTags))
+                            return false;
+
+                    if (!(Table.Groups?.Any(t => x.Value.Tag.HasFlag(t)) ?? true))
+                        return false;
+
+                    return true;
+                }).Select(x => x.Value);
 
             List<Item> catalog = Table.MaxStack <= 0 ? Randomizer.ChooseMany(loot, Table.Capacity, true).ToList() :
                 Randomizer.ChooseMany(loot, Table.Capacity, Table.MaxStack).ToList();
