@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191130.5" />
-    <PackageReference Include="Discord.Net.Core" Version="2.2.0-dev-20191130.5" />
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191226.1" />
+    <PackageReference Include="Discord.Net.Core" Version="2.2.0-dev-20191226.1" />
   </ItemGroup>
 
   <ItemGroup>
