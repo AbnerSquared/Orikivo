@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Orikivo.Ascii\Orikivo.Text.csproj" />
+    <ProjectReference Include="..\Orikivo.Text\Orikivo.Text.csproj" />
   </ItemGroup>
 
 </Project>

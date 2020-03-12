@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo", "Orikivo.Core\Orikivo.csproj", "{0F1F10C1-F166-4D56-B8E7-D41279EDC987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo", "Orikivo\Orikivo.csproj", "{0F1F10C1-F166-4D56-B8E7-D41279EDC987}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "Orikivo.Ascii\Orikivo.Text.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "Orikivo.Text\Orikivo.Text.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Drawing", "Orikivo.Drawing\Orikivo.Drawing.csproj", "{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}"
 EndProject

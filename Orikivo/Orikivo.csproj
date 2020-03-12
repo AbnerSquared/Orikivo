@@ -74,9 +74,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Orikivo.Ascii\Orikivo.Text.csproj" />
     <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
     <ProjectReference Include="..\Orikivo.Gaming\Orikivo.Gaming.csproj" />
+    <ProjectReference Include="..\Orikivo.Text\Orikivo.Text.csproj" />
   </ItemGroup>
 
   <ItemGroup>
