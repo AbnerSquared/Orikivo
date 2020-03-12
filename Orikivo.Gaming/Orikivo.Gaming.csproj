@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="v1\**" />
+    <EmbeddedResource Remove="v1\**" />
+    <None Remove="v1\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191130.5" />
+    <PackageReference Include="Discord.Net.Core" Version="2.2.0-dev-20191130.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Orikivo.Ascii\Orikivo.Text.csproj" />
+  </ItemGroup>
+
+</Project>
