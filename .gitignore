@@ -6,3 +6,9 @@ bin/
 obj/
 src/lobby/
 .vs/
+Orikivo.Drawing/bin/
+Orikivo.Drawing/obj/
+Orikivo.Drawing/.git/
+Orikivo.Text/.git/
+Orikivo.Text/bin/
+Orikivo.Text/obj/
