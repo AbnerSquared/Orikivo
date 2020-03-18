@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Orikivo.Drawing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,11 +43,12 @@ namespace Orikivo
                 builder.AddTypeReader<EventType>(new EnumTypeReader<EventType>());
                 builder.AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>());
                 builder.AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>());
+                builder.AddTypeReader<Operator>(new EnumTypeReader<Operator>());
 
                 builder.AddModule<MiscModule>();
                 builder.AddModule<MessyModule>();
                 builder.AddModule<DigitalModule>();
-                builder.AddModule<HuskActions>();
+                builder.AddModule<Actions>();
 
                 Client client = builder.Build();
                 //Client.EnsureDefaultServices(client.Provider);

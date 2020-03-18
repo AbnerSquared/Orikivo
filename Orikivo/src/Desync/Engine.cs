@@ -14,11 +14,12 @@ namespace Orikivo.Desync
     /// </summary>
     public static class Engine
     {
+        // TODO: Transfer to .JSON file.
         public static World World => new World
         {
             Id = "world0",
             Name = "Test World",
-            Boundary = new Vector2(512, 512),
+            Perimeter = new Vector2(512, 512),
             Scale = 1.0f, // 1 pixel in the world would take 1 minute at default ratio.
             // sectors are 1/4 of the distance ratio
             Sectors = new List<Sector>
@@ -27,18 +28,23 @@ namespace Orikivo.Desync
                 {
                     Id = "sector0",
                     Name = "Sector 0",
+                    Exterior = new Sprite(@"..\assets\exterior\exterior_test.png"),
                     Entrance = new Vector2(0, 16),
                     Structures = new List<Structure>
                     {
                         new Structure
                         {
-                            Region = new RegionF(36, 24, 1, 1),
-                            Tag = StructureType.Decoration
+                            Id = "str_decor",
+                            Name = "The Devoid Fountain",
+                            Perimeter = new RegionF(36, 24, 1, 1),
+                            Type = StructureType.Decoration
                         },
                         new Structure
                         {
-                            Region = new RegionF(64, 64, 1, 1),
-                            Tag = StructureType.Tent
+                            Id = "str_tent",
+                            Name = "Tent",
+                            Perimeter = new RegionF(64, 64, 1, 1),
+                            Type = StructureType.Tent
                         }
                     },
                     Areas = new List<Area>
@@ -47,7 +53,7 @@ namespace Orikivo.Desync
                         {
                             Id = "area0",
                             Name = "Area A",
-                            Region = new RegionF(0, 0, 32, 32),
+                            Perimeter = new RegionF(0, 0, 32, 32),
                             Entrances = new List<Vector2>
                             {
                                 new Vector2(32, 16)
@@ -62,9 +68,9 @@ namespace Orikivo.Desync
                                     CanSellFrom = true,
                                     SellRate = 0.7f,
                                     Tag = ConstructType.Market,
-                                    Table = new CatalogGenerator
+                                    Catalog = new CatalogGenerator
                                     {
-                                        Capacity = 4,
+                                        Size = 4,
                                         RequiredType = ItemType.Physical,
                                         MaxStack = 2
                                     },
@@ -83,7 +89,9 @@ namespace Orikivo.Desync
                                                 Shifts = new List<Shift>
                                                 {
                                                     new Shift(DayOfWeek.Saturday, 0, 0, TimeSpan.FromHours(22)),
-                                                    new Shift(DayOfWeek.Sunday, 0, 0, TimeSpan.FromHours(16))
+                                                    new Shift(DayOfWeek.Sunday, 0, 0, TimeSpan.FromHours(16)),
+                                                    new Shift(DayOfWeek.Tuesday, 0, 0, TimeSpan.FromHours(22)),
+                                                    new Shift(DayOfWeek.Wednesday, 0, 0, TimeSpan.FromHours(22))
                                                 }
                                             }
                                         }
@@ -131,11 +139,11 @@ namespace Orikivo.Desync
                                 {
                                     Id = "construct0",
                                     Name = "Construct G1",
-                                    Layers = new List<Floor>
+                                    Floors = new List<Floor>
                                     {
                                         new Floor
                                         {
-                                            Level = 0,
+                                            Index = 0,
                                             Npcs = new List<Npc>
                                             {
                                                 new Npc
@@ -169,7 +177,7 @@ namespace Orikivo.Desync
                         {
                             Id = "area1",
                             Name = "Area B",
-                            Region = new RegionF(48, 48, 16, 16),
+                            Perimeter = new RegionF(48, 48, 16, 16),
                             Entrances = new List<Vector2>
                             {
                                 new Vector2(48, 56)
@@ -180,11 +188,11 @@ namespace Orikivo.Desync
                                 {
                                     Id = "construct1",
                                     Name = "Construct B1",
-                                    Layers = new List<Floor>
+                                    Floors = new List<Floor>
                                     {
                                         new Floor
                                         {
-                                            Level = 0,
+                                            Index = 0,
                                             Npcs = new List<Npc>
                                             {
                                                 new Npc
@@ -211,45 +219,17 @@ namespace Orikivo.Desync
             }
         };
 
-        // converts the specified literal type for a location into its location type.
-        public static LocationType GetEnumType<TLocation>() where TLocation : Location
-        {
-            throw new NotImplementedException();
-        }
-
-        public static LocationType GetChildrenTypes(LocationType type)
-            => type switch
-            {
-                LocationType.Area => LocationType.Construct | LocationType.Structure,
-                LocationType.Field => LocationType.Construct | LocationType.Structure,
-                LocationType.World  => LocationType.Field | LocationType.Sector,
-                LocationType.Sector => LocationType.Area | LocationType.Construct | LocationType.Structure,
-                _ => 0
-            };
-
-        // This starts out the husk at the starting location of the world.
         public static void Initialize(User user)
         {
-            user.Husk = new Husk(Locate("area0"));
-            user.Husk.Position = GetAreaPosition("area0");
+            var location = World.Find("area0");
+
+            if (location == null)
+                throw new ArgumentException("The specified initial location ID does not point to a location.");
+
+            user.Husk = new Husk(location.GetLocator());
             user.Brain.SetFlag(HuskFlags.Initialized);
         }
 
-        public static Locator Locate(string id)
-        {
-            Location location = World.Find(id);
-            // TODO: use the scaled x/y location.
-            Locator result = new Locator { WorldId = World.Id, Id = location.Id, X = location.Perimeter.Y, Y = location.Perimeter.X};
-
-            
-
-            throw new ArgumentException("No matching ID could be found in any of the underlying world locations.");
-        }
-        
-        #region Mapping
-        /// <summary>
-        /// Returns an <see cref="Array"/> of bytes that represents a <see cref="User"/>'s compressed map progress.
-        /// </summary>
         public static byte[] CompressMap(Grid<bool> data)
         {
             // amount of bytes that need to be stored
@@ -285,9 +265,6 @@ namespace Orikivo.Desync
             return bytes;
         }
 
-        /// <summary>
-        /// Returns a <see cref="Grid{bool}"/> that represents a <see cref="User"/>'s exploration progress of a <see cref="Map"/>.
-        /// </summary>
         public static Grid<bool> DecompressMap(int width, int height, byte[] data)
         {
             Grid<bool> progress = new Grid<bool>(width, height, false);
@@ -307,9 +284,7 @@ namespace Orikivo.Desync
             return progress;
         }
 
-        /// <summary>
-        /// Returns a map for a specified location that includes a <see cref="User"/>'s completion progress.
-        /// </summary>
+        // TODO: Use Orikivo.Desync.Map instead.
         public static Bitmap GetMap(string id, HuskBrain brain, GammaPalette palette)
         {
             if (!(World.Id == id) && !World.Sectors.Any(x => x.Id == id))
@@ -359,14 +334,15 @@ namespace Orikivo.Desync
             if (World.Sectors.Any(x => x.Id == id))
             {
                 Sector sector = World.GetSector(id);
+
                 if (sector.Map != null)
                     return DecompressMap(sector.Map.Width, sector.Map.Height, data);
             }
 
             throw new ArgumentException("The specified ID does not exists for any Sector or World.");
         }
-        #endregion
 
+        // TODO: Handle definitions in a .JSON file or somewhere else.
         #region Dictionaries
         public static Dictionary<string, Item> Items => new Dictionary<string, Item>
         {
@@ -473,7 +449,7 @@ namespace Orikivo.Desync
         {
             ["test"] = new DialoguePool
             {
-                Generic = false,
+                Generic = true,
                 Entry = "Hello.",
                 Exit = "Sorry, but I have to go.",
                 Timeout = "Sorry, but I have to go.",
@@ -989,29 +965,31 @@ namespace Orikivo.Desync
             => Items.Values.Where(x => x.Type == ItemType.Digital);
         #endregion
 
-        #region Checks
-        public static bool CanShop(Husk husk, out Market market)
+        // TODO: Handle if the market is currently open in these methods.
+        public static bool CanShopAt(Husk husk, Construct construct)
         {
-            market = null;
-            Location location = husk.Location.GetLocation();
-            if (location.Type == LocationType.Construct)
+            if (IsInLocation(husk, out Market market))
             {
-                Construct construct = location as Construct;
-
-                if (construct.Tag.HasFlag(ConstructType.Market))
-                {
-                    market = (Market)construct;
-                    return true;
-                }
+                return true;
             }
 
             return false;
         }
 
-        public static bool CanChat(Husk husk, string npcId, out Npc npc)
+        public static bool CanShopAtCurrentLocation(Husk husk, out Market market)
+        {
+            if (IsInLocation(husk, out market))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool CanChatWithNpc(Husk husk, string npcId, out Npc npc)
         {
             npc = null;
-            List<Npc> npcs = GetNpcs(husk);
+            var npcs = GetVisibleNpcs(husk);
 
             if (npcs.Any(x => x.Id == npcId))
             {
@@ -1032,17 +1010,81 @@ namespace Orikivo.Desync
             if (location.Type == LocationType.Area)
             {
                 Area area = (location as Area);
-                Vector2 entrance = area.Entrances?.FirstOrDefault() ?? area.Region.Position;
+                Vector2 entrance = area.Entrances?.FirstOrDefault() ?? area.Perimeter.Position;
                 husk.Location.X = entrance.X;
                 husk.Location.Y = entrance.Y;
-                husk.Location.Id = null;
+
+                // this should point back to the sector.
+                husk.Location.Id = location.GetParent().Id;
             }
 
-            //if (location.Type == LocationType.Construct)
+            if (location.Type == LocationType.Construct)
+            {
+                var parent = location.GetParent();
+
+                if (parent == null)
+                    throw new ArgumentException("The specified location does not have a parent to exit.");
+
+                if (parent?.Type == LocationType.Area)
+                {
+                    var pos = parent.Perimeter.Origin;
+                    husk.Location.X = pos.X;
+                    husk.Location.Y = pos.Y;
+
+                    husk.Location.Id = parent.Id;
+                }
+
+                else
+                {
+                    // just move their position to the outskirts of the inner location.
+                    // TODO: Implement entrance references for locations.
+                    husk.Location.X = location.Perimeter.X;
+                    husk.Location.Y = location.Perimeter.Y;
+                    husk.Location.Id = parent.Id;
+                }
+            }
 
             return true;
         }
-        public static TravelResult TryGoTo(Husk husk, string id, out Area attempted)
+          
+        public static TravelResult TryGoTo(Husk husk, float x, float y, out Destination attempted)
+        {
+            attempted = null;
+
+            if (!(LocationType.Sector | LocationType.Field | LocationType.World).HasFlag(husk.Location.GetInnerType()))
+                throw new ArgumentException("The specified Husk is not within a coordinate-based location.");
+
+            if (husk.Destination != null)
+            {
+                if (!husk.Destination.Complete)
+                    throw new ArgumentException("Husk is currently in transit.");
+                else
+                    UpdateLocation(husk, husk.Destination);
+            }
+
+            Route route = CreateRoute(husk.Location.X, husk.Location.Y, x, y);
+            var now = DateTime.UtcNow;
+
+            // TODO: Implement region naming
+            // sector.GetInnerRegion(float x, float y);
+            // iterates through all specified regions, and returns the one that contains those coordinates
+            Destination info = new Destination(husk.Location.WorldId, husk.Location.Id, x, y, now, now.Add(route.Time));
+            attempted = info;
+
+            // if the travel time is short enough, just instantly go to the location.
+            if (route.GetTime().TotalSeconds <= 1f)
+            {
+                UpdateLocation(husk, info);
+                return TravelResult.Instant;
+            }
+
+            husk.Destination = info;
+
+            return TravelResult.Start;
+        }
+
+        // TODO: Merge try go to methods together
+        public static TravelResult TryGoToInSector(Husk husk, HuskBrain brain, string id, out Region attempted)
         {
             attempted = null;
 
@@ -1051,12 +1093,12 @@ namespace Orikivo.Desync
 
             Sector sector = husk.Location.GetLocation() as Sector;
 
-            if (husk.Movement != null)
+            if (husk.Destination != null)
             {
-                if (!husk.Movement.Complete)
+                if (!husk.Destination.Complete)
                     throw new ArgumentException("Husk is currently in transit.");
                 else
-                    UpdateLocation(husk, husk.Movement);
+                    UpdateLocation(husk, husk.Destination);
             }
 
             foreach (Area area in sector.Areas)
@@ -1065,112 +1107,50 @@ namespace Orikivo.Desync
                 {
                     attempted = area;
 
-                    Route route = CreateRoute(husk.Location.X, husk.Location.Y, area.Region);
-
-                    
+                    Route route = CreateRoute(husk.Location.X, husk.Location.Y, area.Perimeter);
                     var now = DateTime.UtcNow;
 
-                    TravelData info = new TravelData(LocationType.Area, area.Id, now, now.Add(route.Time));
+                    Destination info = new Destination(area.GetLocator(), now, now.Add(route.Time));
 
                     // if the travel time is short enough, just instantly go to the location.
                     if (route.GetTime().TotalSeconds <= 1f)
                     {
                         UpdateLocation(husk, info);
-                        return TravelResult.Success;
+                        return TravelResult.Instant;
                     }
 
-                    husk.Movement = info;
+                    husk.Destination = info;
                     return TravelResult.Start;
                 }
             }
 
-            // TODO: Handle Structure.Id and Structure.Position to determine if they can travel there.
-
-            // foreach structure
-            // if (visible)
-            // if (structure.id == id) => true
-            
-            /*
-             
-            foreach (Structure structure in husk.Location.GetSector().Structures)
+            foreach (Structure structure in sector.Structures.Where(x => brain.HasDiscovered(x.Id)))
             {
-                if (structure.Position.X == x && structure.Position.Y == y)
-            } 
+                if (structure.Id == id)
+                {
+                    attempted = structure;
 
-             */
+                    Route route = CreateRoute(husk.Location.X, husk.Location.Y, structure.Perimeter);
+                    var now = DateTime.UtcNow;
+
+                    Destination info = new Destination(husk.Location.WorldId, husk.Location.Id, structure.Perimeter.Origin.X, structure.Perimeter.Origin.Y, now, now.Add(route.Time));
+
+                    // if the travel time is short enough, just instantly go to the location.
+                    if (route.GetTime().TotalSeconds <= 1f)
+                    {
+                        UpdateLocation(husk, info);
+                        return TravelResult.Instant;
+                    }
+
+                    husk.Destination = info;
+                    return TravelResult.Start;
+                }
+            }
 
             return TravelResult.Invalid;
-
-                // 1. search each area to see if an id matches
-                // - if an id does match, calculate the route to go from your position to the desired area
-
-                // 2. if the specified information are coordinates
-                // - if the coordinates are accessible, calculate the route to go from your position to the coords
-
-                // 3. if the specified id for a structure matches
-                // - pass the coordinates of the structure onto the route, and calculate the route
-
-                // otherwise, if it is out of bounds or the point is inaccessible, the game will let you know.
-
-                // once all of the needed information is found, apply the ArrivalData to a husk
-
-                // TODO: create travel time calculation and Arrival data
         }
 
-        public static bool CanMove(User user, Husk husk)
-        {
-            if (husk.Movement != null)
-            {
-                if (!husk.Movement.Complete)
-                    return false;
-
-                if (!user.Config.Notifier.HasFlag(NotifyDeny.Travel))
-                {
-                    user.Notifier.Append($"You have arrived at **{GetLocationName(husk.Location.GetInnerType(), husk.Location.Id, husk.Movement.Id)}**.");
-                }
-
-                UpdateLocation(husk, husk.Movement);
-            }
-
-            return true;
-        }
-
-        private static string GetLocationName(LocationType innerType, string innerId, string id)
-        {
-            if (innerType == LocationType.Sector)
-            {
-                Sector s = World.GetSector(innerId);
-
-                if (s.Areas.Any(x => x.Id == id))
-                    return s.GetArea(id).Name;
-
-            }
-
-            throw new ArgumentException("The specified inner location does not lead to the specified ID.");
-        }
-
-        public static Route CreateRoute(float x, float y, RegionF region)
-        {
-            // TODO: create point and other route implementation at locations.
-            // for now, it's just direct routes.
-            Route route = new Route { Enforce = true, From = new Vector2(x, y), To = region.Position };
-            return route;
-        }
-
-        // assumed for area.
-        public static void UpdateLocation(Husk husk, TravelData info)
-        {
-            husk.Location.Id = info.Id;
-            if (info.Type == LocationType.Area)
-            {
-                Vector2 pos = GetAreaPosition(info.Id);
-                husk.Location.X = pos.X;
-                husk.Location.Y = pos.Y;
-                husk.Movement = null;
-            }
-        }
-
-        public static TravelResult TryGoTo(Husk husk, string id, out Construct attempted)
+        public static TravelResult TryGoToInArea(Husk husk, string id, out Construct attempted)
         {
             attempted = null;
 
@@ -1192,296 +1172,365 @@ namespace Orikivo.Desync
                     }
 
                     husk.Location.Id = construct.Id;
-                    return TravelResult.Success;
+                    return TravelResult.Instant;
                 }
             }
 
             return TravelResult.Invalid;
         }
-        #endregion
 
-        #region Descriptors
+        public static bool CanMove(User user, Husk husk)
+        {
+            if (husk.Destination != null)
+            {
+                if (!husk.Destination.Complete)
+                    return false;
 
-        //  return the list of routes they themselves can go to.
+                if (!user.Config.Notifier.HasFlag(NotifyDeny.Travel))
+                {
+                    // GetLocationName(husk.Location.GetInnerType(), husk.Location.Id, husk.Destination.Id)
+                    user.Notifier.Append($"You have arrived at **{husk.Destination.GetInnerName()}**.");
+                }
+
+                UpdateLocation(husk, husk.Destination);
+                husk.Destination = null;
+            }
+
+            return true;
+        }
+
+        public static void UpdateLocation(Husk husk, Locator info)
+        {
+            if (husk.Location.Id == info.Id)
+                husk.Location = info;
+            else
+                husk.Location = info.GetLocation().GetLocator();
+        }
+
         public static string ShowNpcs(Husk husk)
         {
-            StringBuilder npcs = new StringBuilder();
+           var npcs = GetVisibleNpcs(husk);
+            
+           if (npcs?.Count() > 0)
+           {
+                var result = new StringBuilder();
+                var summaries = npcs.Select(x => $"> `{x.Id}` • {x.Name}");
 
-            npcs.Append("**Available NPCs** (");
-            if (husk.Location.GetInnerType() == LocationType.Area)
-            {
-                if ((husk.Location.GetLocation() as Area).Npcs.Count == 0)
-                    return $"There isn't anyone to talk to in **{husk.Location.GetInnerName()}**.";
+                result.AppendLine($"**Available NPCs** ({husk.Location.GetInnerName()}):");
+                result.AppendJoin("\n", summaries);
 
-                Area area = husk.Location.GetLocation() as Area;
-                npcs.AppendLine($"{area.Name}):");
-                npcs.AppendJoin("\n", GetNpcs(husk).Select(x => $"> `{x.Id}` • {x.Name}"));
-            }
-            else if (husk.Location.GetInnerType() == LocationType.Construct)
-            {
-                Construct construct = husk.Location.GetLocation() as Construct;
-                npcs.AppendLine($"{construct.Name}):");
-                npcs.AppendJoin("\n", GetNpcs(husk).Select(x => $"> `{x.Id}` • {x.Name}"));
-            }
-            else
-                throw new Exception("The specified Husk is currently not within an area or construct.");
+                return result.ToString();
+           }
 
-            return npcs.ToString();
+            return $"There isn't anyone to talk to in **{husk.Location.GetInnerName()}**.";
         }
 
-        // an area shows a list of constructs
-        // a sector shows a list of areas AND points of interest based on a users view radius.
-        public static string ShowLocations(Husk husk)
+        public static string ShowLocations(Husk husk, HuskBrain brain)
         {
             Location location = husk.Location.GetLocation();
-            StringBuilder routes = new StringBuilder();
-            if (location.Type == LocationType.Area)
+            var locations = new StringBuilder();
+
+            switch (location.Type)
             {
-                Area area = location as Area;
+                case LocationType.Area:
+                    var area = location as Area;
+                    locations.AppendLine($"**Available Locations** ({area.Name}):");
 
-                routes.AppendLine($"**Available Locations** ({area.Name}):");
+                    if (area.Constructs?.Count > 0)
+                    {
+                        locations.AppendLine($"**Available Locations** ({area.Name}):");
+                        locations.AppendJoin("\n", area.Constructs.Select(x => $"> `{x.Id}` • {x.Name}"));
+                        return locations.ToString();
+                    }
 
-                if (area.Constructs.Count > 0)
-                    routes.AppendJoin("\n", area.Constructs.Select(x => $"> `{x.Id}` • {x.Name}"));
-                else
-                    routes.Append("There isn't anything close by. Maybe try going to a different area?");
+                    return "There isn't anything close by. Maybe try going to a different area?";
 
-                return routes.ToString();
+                case LocationType.Sector:
+                    var sector = location as Sector;
+                    var structures = GetVisibleStructures(husk, sector);
+
+                    if (sector.Areas?.Count == 0 && structures?.Count() == 0)
+                        return "There isn't anything close by. Try looking around!";
+
+                    if (sector.Areas?.Count > 0)
+                    {
+                        locations.AppendLine($"**Available Areas** ({sector.Name}):");
+                        locations.AppendJoin("\n", sector.Areas.Select(x => $"> `{x.Id} • {x.Name}`"));
+                    }
+
+                    if (structures?.Count() > 0)
+                    {
+                        locations.AppendLine();
+                        locations.AppendLine($"**Points of Interest**:");
+
+                        var summaries = structures.Select(x =>
+                        brain.HasDiscovered(x.Id)
+                        ? $"> `{x.Id}` • {x.Name}"
+                        : $"`> ({x.Perimeter.Position.X}, {x.Perimeter.Position.Y})` • Unknown Structure");
+
+                        locations.AppendJoin("\n", summaries);
+                    }
+
+                    return locations.ToString();
+
+                default:
+                    throw new Exception("The specified Husk is currently at an invalid location.");
             }
-            else if (location.Type == LocationType.Sector)
-            {
-                Sector sector = location as Sector;
-
-                routes.AppendLine($"**Available Areas** ({sector.Name}):");
-
-                if (sector.Areas.Count > 0)
-                    routes.AppendJoin("\n", sector.Areas.Select(x => $"> `{x.Id} • {x.Name}`"));
-
-                List<Structure> structures = GetVisibleStructures(husk.Attributes.MaxSight, husk.Location.X, husk.Location.Y, sector);
-                if (structures.Count > 0)
-                {
-                    routes.AppendLine();
-                    routes.AppendLine($"**Points of Interest**:");
-                    // TODO: Implement structure naming and ID ref once discovered.
-                    routes.AppendJoin("\n", structures.Select(x => $"> `({x.Region.Position.X}, {x.Region.Position.Y})`  • Structure"));
-                }
-
-                if (sector.Areas.Count == 0 && structures.Count == 0)
-                {
-                    routes.Append("There isn't anything close by. Try looking around!");
-                }
-
-                return routes.ToString();
-            }
-            else
-                throw new Exception("The specified Husk is currently at an invalid location.");
         }
 
-        public static string GetLocationSummary(string id, float x, float y)
+        public static string GetLocationSummary(string id)
         {
-            StringBuilder summary = new StringBuilder();
-            summary.Append("You are currently in **");
-
             Location location = World.Find(id);
 
-            // TODO: Figure out the location depth.
+            if (location == null)
+                return "You are currently in the **void**.";
 
-            throw new NotImplementedException();
-        }
-
-        public static string GetLocationSummary(string worldId,
-            string sectorId,
-            string areaId, 
-            string constructId = null,
-            int? constructLayer = null,
-            TravelData travel = null)
-        {
             StringBuilder summary = new StringBuilder();
-            summary.Append("You are currently in **");
 
-            Sector sector = World.GetSector(sectorId);
+            summary.Append("You are currently in ");
 
-            if (!Check.NotNull(areaId))
+            if (location.Type == LocationType.Construct)
             {
-                summary.Append(sector.Name);
-                summary.Append("**.");
-                return summary.ToString();
-            }
-
-
-            Area area = sector.GetArea(areaId);
-
-            if (Check.NotNull(constructId))
-            {
-                Construct construct = area.GetConstruct(constructId);
-
-                if (construct.Tag.HasFlag(ConstructType.Highrise))
+                if ((location as Construct).Tag == ConstructType.Floor)
                 {
-                    Floor level = ((Highrise)construct).GetLevel(constructLayer.GetValueOrDefault(0));
-                    summary.Append($"{level.Name} ({construct.Name} {level.Level}F)");
+                    summary.Append($"**{location.Name}** at **{location.GetParent()?.Name} - {(location as Floor).Index}F**");
                 }
                 else
-                    summary.Append(construct.Name);
+                {
+                    summary.Append($"**{location.Name}**");
+                }
             }
             else
             {
-                summary.Append(area.Name);
+                summary.Append($"**{location.Name}**");
             }
 
-            summary.Append("** (");
-            summary.Append(sector.Name);
+            Location parent = location.GetParent();
+            int index = 0;
 
-            if (Check.NotNull(constructId))
+            if (parent != null)
             {
-                summary.Append(", ");
-                summary.Append(area.Name);
+                summary.Append(" (");
+                int insertPoint = summary.Length;
+
+                while (parent != null)
+                {
+                    if (index > 0)
+                    {
+                        summary.Insert(insertPoint, $"{parent.Name}, ");
+                    }
+                    else
+                    {
+                        summary.Append(parent.Name);
+                    }
+
+                    parent = parent.GetParent();
+                    index++;
+                }
+
+                summary.Append(")");
             }
 
-            summary.Append(").");
-
-            if (travel != null)
-            {
-                // TODO: handle => You are currently walking to **Area A** (in **Sector 0**).
-            }
+            summary.Append(".");
 
             return summary.ToString();
         }
 
-        #endregion
-
-        #region Calculations
         public static readonly float TimePerPixel = 60.0f;
 
-        public static float GetVelocity()
-        {
-            //use Husk.MaxSpeed
-            throw new NotImplementedException();
-        }
+        public static float GetBaseSpeed()
+            => 1.0f / (TimePerPixel * World.Scale);
 
-        /// <summary>
-        /// Returns an <see cref="Npc"/> collection that a <see cref="Husk"/> can currently interact with.
-        /// </summary>
-        public static List<Npc> GetNpcs(Husk husk)
+        public static float GetBaseSpeedAt(LocationType type)
+            => 1.0f / (TimePerPixel * World.Scale * GetScaleMultiplier(type));
+
+        public static IEnumerable<Npc> GetVisibleNpcs(Husk husk)
         {
             Location location = husk.Location.GetLocation();
-            if (location.Type == LocationType.Area)
+
+            switch (location.Type)
             {
-                return (location as Area).Npcs;
+                case LocationType.Area:
+                    return (location as Area).Npcs;
+
+                case LocationType.Construct:
+                    var construct = location as Construct;
+
+                    if (construct.Tag.HasFlag(ConstructType.Highrise))
+                        return (construct as Highrise).Npcs;
+
+                    return construct.Npcs;
+
+                case LocationType.Sector:
+                    return GetVisibleNpcs(husk, location as Sector);
+
+                default:
+                    throw new ArgumentException("The specified Husk is currently at a location that does not support NPCs.");
             }
-            else if (location.Type == LocationType.Construct)
-            {
-                Construct construct = location as Construct;
-
-                if (construct.Tag.HasFlag(ConstructType.Highrise))
-                {
-                    return ((Highrise)construct).Npcs;
-                }
-
-                return construct.Npcs;
-            }
-
-            throw new Exception("The specified Husk is currently not within an area or construct.");
         }
 
-        // for view radius, sector is 1.0, field is 0.5, and world is 0.25 strength.
-        // this is used for sectors, as NPCs can travel and whatknot
-        private static List<Npc> GetVisibleNpcs(float viewRadius, Vector2 pos, Sector sector)
+        private static IEnumerable<Npc> GetVisibleNpcs(Husk husk, Sector sector)
         {
-            Circle viewable = new Circle(pos, viewRadius);
-
-            List<Npc> visible = new List<Npc>();
+            CircleF sight = GetSightHitbox(husk);
 
             foreach ((Vector2 Position, Npc Npc) in sector.Npcs)
-                if (viewable.Contains(Position))
-                    visible.Add(Npc);
-
-            return visible;
+            {
+                if (sight.Contains(Position))
+                    yield return Npc;
+            }
         }
 
-        // TODO: Create GetVisibleRoutes(), which would utilize an intersection check for routes and circles.
-        // public static List<Route> GetVisibleRoutes(float viewRadius, Vector2 pos, Sector sector)
-
-        
-        // returns a list of IDs that are visible in a specified area
-        private static List<Structure> GetVisibleStructures(float viewRadius, float x, float y, Sector sector)
+        public static bool IsInLocation<TLocation>(Husk husk, out TLocation location)
+            where TLocation : Location
         {
-            Circle viewable = new Circle(x, y, viewRadius);
+            location = default;
+            var current = husk.Location.GetLocation();
 
-            List<Structure> visible = new List<Structure>();
-
-            if (Check.NotNullOrEmpty(sector.Structures))
+            if (current is TLocation)
             {
-                foreach (Structure structure in sector.Structures)
+                location = current as TLocation;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsInLocation(Husk husk, LocationType type, out Location location)
+        {
+            location = null;
+            var current = husk.Location.GetLocation();
+
+            if (current.Type == type)
+            {
+                location = current;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static CircleF GetSightHitbox(Husk husk)
+            => new CircleF(husk.Location.X, husk.Location.Y, husk.Status.Sight * GetScaleMultiplier(husk.Location.GetInnerType()));
+
+        public static bool TryIdentifyStructure(Husk husk, HuskBrain brain, Structure structure)
+        {
+            if (structure != null)
+            {
+                if (brain.HasDiscovered(structure.Id))
+                    return false;
+
+                brain.MarkAsDiscovered(structure.Id);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsNearStructure(Husk husk, Structure structure)
+        {
+            CircleF sight = GetSightHitbox(husk);
+
+            if (structure != null)
+                return sight.Intersects(structure.Perimeter);
+
+            return false;
+        }
+
+        public static bool IsNearClosestStructure(Husk husk, out Structure closest)
+        {
+            CircleF sight = GetSightHitbox(husk);
+            closest = GetClosestStructure(husk);
+
+            if (closest != null)
+                return sight.Intersects(closest.Perimeter);
+
+            return false;
+        }
+
+        private static IEnumerable<Structure> GetVisibleStructures(Husk husk, Sector sector)
+        {
+            CircleF sight = GetSightHitbox(husk);
+
+            if (!(sector.Structures?.Count > 0))
+                yield break;
+
+            foreach (Structure structure in sector.Structures)
+            {
+                if (sight.Intersects(structure.Perimeter))
+                    yield return structure;
+            }
+        }
+
+        private static Structure GetClosestStructure(Husk husk)
+        {
+            CircleF sight = GetSightHitbox(husk);
+
+            if (!IsInLocation(husk, out Sector sector))
+                throw new ArgumentException("The specified Husk is not currently within a valid location.");
+
+            Structure closest = null;
+            float nearest = float.MaxValue;
+
+            foreach (Structure structure in sector.Structures)
+            {
+                Line line = LineFromSightToRegion(sight, structure);
+                float distance = line.GetLength();
+
+                if (distance < nearest)
                 {
-                    if (viewable.Contains(structure.Region.Position))
-                        visible.Add(structure);
+                    nearest = distance;
+                    closest = structure;
                 }
             }
 
-            return visible;
+            return closest;
         }
 
-        // ensure that the husk travelling is in a location that supports routes.
-        // routes are a path reference from one location to the other.
+        private static Line LineFromSightToRegion(CircleF sight, Region region)
+        {
+            Line fromOrigin = sight.LineFromOrigin(region.Perimeter.Origin);
+            var quad = new Quad(region.Perimeter);
+            Vector2? intersection = fromOrigin.GetClosestIntersection(quad);
+
+            if (intersection.HasValue)
+                fromOrigin.B = intersection.Value;
+
+            return fromOrigin;
+        }
+
+        private static Route CreateRoute(float x, float y, RegionF region)
+            => new Route
+            {
+                Enforce = true,
+                From = new Vector2(x, y),
+                To = region.Origin
+            };
+
+        private static Route CreateRoute(float x, float y, float u, float v)
+            => new Route
+            {
+                Enforce = true,
+                From = new Vector2(x, y),
+                To = new Vector2(u, v)
+            };
+
+        // TODO: Finish creating method.
         public static List<Route> GetRoutes(Husk husk)
         {
+            // ensure that the husk travelling is in a location that supports routes.
+            // routes are a path reference from one location to the other.
+            // route progression is determined by if the path intersects with a barrier
+            // otherwise, Routes can be placed, and could be enforced.
+            // TODO: Account for possible barriers in the surrounding area.
+
             // use user's current position.
-            List<Route> routes = new List<Route>();
+            var routes = new List<Route>();
             // if the user is in an AREA, do not account for travel time when listing CONSTRUCTS.
             // if the user is in a SECTOR, account for AREAS
 
 
             return routes;
             // foreach route, you would want to get the travel time based on position.
-        }
-
-        // TODO: Account for SECTOR, FIELD, or AREA scaled position.
-        //  this returns a locations coordinates for an area in a sector, or sector in a world.
-        // this is used to easily store a user's position if they are in an area.
-        private static Vector2 GetAreaPosition(string id)
-        {
-            Locator locator = Locate(id);
-
-            //Sector s = World.GetSector(locator.SectorId);
-            //Area a = s.GetArea(locator.AreaId);
-            throw new NotImplementedException();
-            //return new Vector2(a.Region.X + (a.Region.Width / 2), a.Region.Y + (a.Region.Height / 2));
-        }
-
-        // route progression is determined by if the path intersects with a barrier
-        // otherwise, Routes can be placed, and could be enforced.
-        // TODO: Account for possible barriers in the surrounding area.
-
-        public static Vector2 GetCurrentPosition(Vector2 from, Vector2 to, DateTime startedAt, TimeSpan travelTime)
-        {
-            TimeSpan remaining = DateTime.UtcNow - startedAt;
-            
-            float progress = RangeF.Convert(0.0f, (float)travelTime.TotalSeconds, 0.0f, 1.0f, (float)remaining.TotalSeconds);
-
-            float xDiff = (to.X - from.X) * progress;
-            float yDiff = (to.Y - from.Y) * progress;
-
-            // This should get the current position the user would be at if they stopped, based on their starting time and location.
-            return new Vector2(from.X + xDiff, from.Y + yDiff);
-        }
-        private static TimeSpan GetTravelTime(Vector2 from, Vector2 to, LocationType type)
-        {
-            // get x diff
-            float dx = MathF.Abs(to.X - from.X);
-            
-            // get y diff
-            float dy = MathF.Abs(to.Y - from.Y);
-            
-            // get map scale multiplier
-            float scalar = GetScaleMultiplier(type);
-
-            // this should be the direct distance (pythagorean's theorem)
-            float c = MathF.Sqrt((dx * dx) + (dy * dy));
-
-            // 20 ticks * TravelRatio (60 seconds per tick) = 1200 seconds (20 minutes)
-            float ticks = c * scalar;
-
-            return TimeSpan.FromSeconds(ticks * TimePerPixel);
         }
 
         public static float GetScaleMultiplier(LocationType type)
@@ -1494,6 +1543,5 @@ namespace Orikivo.Desync
                 _ => throw new ArgumentException("Invalid scale.")
             };
         }
-        #endregion
     }
 }

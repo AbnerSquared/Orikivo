@@ -5,13 +5,17 @@ namespace Orikivo.Desync
 {
     // TODO: Implement Schedules and separate NPCs from locations.
     /// <summary>
-    /// Represents an accessable building in a <see cref="Location"/>.
+    /// Represents an accessible building in a <see cref="Location"/>.
     /// </summary>
     public class Construct : Location
     {
         public override LocationType Type => LocationType.Construct;
 
-        public Sprite Image { get; set; }
+        /// <summary>
+        /// Represents the background that is used for an <see cref="Npc"/> when talking.
+        /// </summary>
+        public Sprite Interior { get; set; }
+
         public ConstructType Tag { get; set; }
 
         public virtual List<Npc> Npcs { get; set; } = new List<Npc>();

@@ -8,7 +8,7 @@ namespace Orikivo.Desync
     // If there is a location with an identical ID, it will instead be referred by its
     // longitude and latitude.
     /// <summary>
-    /// Represents the central land for an <see cref="Engine"/>.
+    /// Represents a massive central body of land for an <see cref="Engine"/>.
     /// </summary>
     public class World
     {
@@ -25,12 +25,12 @@ namespace Orikivo.Desync
 
         public List<Sector> Sectors { get; set; }
 
+        public List<Route> Routes { get; set; }
+
         /// <summary>
         /// Represents the size of this <see cref="World"/>.
         /// </summary>
-        public Vector2 Boundary { get; set; }
-
-        public List<Barrier> Barriers { get; set; }
+        public Vector2 Perimeter { get; set; }
 
         /// <summary>
         /// Determines the travel time ratio for this <see cref="World"/>.
@@ -38,52 +38,53 @@ namespace Orikivo.Desync
         public float Scale { get; set; }
 
         public Sector GetSector(string id)
-        {
-            return Sectors.First(x => x.Id == id);
-        }
+            => Sectors?.FirstOrDefault(x => x.Id == id);
 
         public Field GetField(string id)
-            => Fields.First(x => x.Id == id);
+            => Fields?.FirstOrDefault(x => x.Id == id);
 
         /// <summary>
         /// Attempts to find the specified <see cref="Location"/>. If no results were found, this returns null.
         /// </summary>
         /// <param name="id">The ID of the <see cref="Location"/> to find.</param>
         public Location Find(string id)
-            => GetLocations().FirstOrDefault(x => x.Id == id);
+            => GetChildren().FirstOrDefault(x => x.Id == id);
 
         // gets all locations of a specified type
-        public IEnumerable<Location> Select(LocationType type)
-            => GetLocations().Where(x => x.Type.HasFlag(type));
+        public IEnumerable<Location> Filter(LocationType type)
+            => GetChildren().Where(x => x.Type.HasFlag(type));
 
-        public IEnumerable<TLocation> Select<TLocation>()
+        public IEnumerable<TLocation> Filter<TLocation>()
             where TLocation : Location
-            => GetLocations().Where(x => x is TLocation).Select(x => x as TLocation);
-
-        // attempt to get the parent of a specified location id.
-        public Location Backtrack(string id)
-            => GetLocations().FirstOrDefault(x => x.Children.Any(y => y.Id == id));
-
-        internal List<Location> GetLocations()
+            => GetChildren().Where(x => x is TLocation).Select(x => x as TLocation);
+            
+        internal List<Location> GetChildren(bool includeInnerChildren = true)
         {
             List<Location> locations = new List<Location>();
 
             if (Fields?.Count > 0)
             {
                 locations.AddRange(Fields);
-                
-                foreach (Field field in Fields)
-                    locations.AddRange(field.Structures);
+
+                if (includeInnerChildren)
+                {
+                    foreach (Field field in Fields)
+                    {
+                        locations.AddRange(field.Constructs);
+                    }
+                }
             }
 
             if (Sectors?.Count > 0)
             {
                 locations.AddRange(Sectors);
-                
-                foreach (Sector sector in Sectors)
+
+                if (includeInnerChildren)
                 {
-                    locations.AddRange(sector.Areas);
-                    locations.AddRange(sector.Structures);
+                    foreach (Sector sector in Sectors)
+                    {
+                        locations.AddRange(sector.GetChildren());
+                    }
                 }
             }
 

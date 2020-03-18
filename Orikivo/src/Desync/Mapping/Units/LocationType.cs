@@ -10,7 +10,6 @@
         Field = 0b10,
         Sector = 0b100,
         Area = 0b1000,
-        Construct = 0b10000,
-        Structure = 0b100000
+        Construct = 0b10000
     }
 }

@@ -19,6 +19,11 @@
         /// <summary>
         /// Defines the <see cref="Structure"/> as a simple vanity.
         /// </summary>
-        Decoration = 3
+        Decoration = 3,
+
+        /// <summary>
+        /// Defines the <see cref="Structure"/> as a custom entry.
+        /// </summary>
+        Custom = 4
     }
 }

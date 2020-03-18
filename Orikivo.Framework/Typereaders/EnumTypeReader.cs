@@ -8,7 +8,8 @@ namespace Orikivo
     /// Defines a reader class for <see cref="Enum"/> values.
     /// </summary>
     /// <typeparam name="TEnum">Represents the <see cref="Enum"/> to compare.</typeparam>
-    public class EnumTypeReader<TEnum> : TypeReader where TEnum : struct
+    public sealed class EnumTypeReader<TEnum> : TypeReader
+        where TEnum : struct
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
         {

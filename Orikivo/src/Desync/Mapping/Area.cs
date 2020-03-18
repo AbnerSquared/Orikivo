@@ -15,14 +15,9 @@ namespace Orikivo.Desync
         public override LocationType Type => LocationType.Area;
 
         /// <summary>
-        /// Represents the size and position of the <see cref="Area"/>.
-        /// </summary>
-        public RegionF Region { get; set; }
-
-        /// <summary>
         /// Represents the image that is shown whenever a <see cref="Husk"/> enters this <see cref="Area"/>. If none was specified, the image will be hidden.
         /// </summary>
-        public Sprite Image { get; set; }
+        public Sprite Exterior { get; set; }
 
         // Each specified entrance must be touching one side of the specified region.
         /// <summary>
@@ -35,14 +30,26 @@ namespace Orikivo.Desync
         /// </summary>
         public List<Construct> Constructs { get; set; }
 
+        public List<Structure> Structures { get; set; }
+
+        // TODO: Remove references to NPCs,
+        // as they will now be handled outside of land
         /// <summary>
         /// Represents the collection of interactive characters in this <see cref="Area"/>.
         /// </summary>
         public List<Npc> Npcs { get; set; }
 
         public Construct GetConstruct(string id)
+            => Constructs?.FirstOrDefault(x => x.Id == id);
+
+        public override List<Location> GetChildren(bool includeInnerChildren = true)
         {
-            return Constructs.First(x => x.Id == id);
+            var children = new List<Location>();
+
+            if (Constructs?.Count > 0)
+                children.AddRange(Constructs);
+
+            return children;
         }
     }
 }

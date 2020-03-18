@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Orikivo.Desync
 {
+    // TODO: Just use Points to calculate,
+    // instead of having 3 separate properties.
     // TODO: Create GetCurrentPosition(), which returns a Vector2 based on which the time it was initiated.
     /// <summary>
     /// Represents an enforced <see cref="Path"/>.
@@ -24,6 +26,10 @@ namespace Orikivo.Desync
         /// Where the <see cref="Route"/> is leading to.
         /// </summary>
         public Vector2 To { get; set; }
+
+        public TransportType Transport { get; set; }
+
+        public float TravelSpeed { get; set; }
 
         // If true, this route has to be taken from the start.
         // otherwise, the player will travel to the nearest point before going the rest of that route.
@@ -199,9 +205,20 @@ namespace Orikivo.Desync
             return time;
         }
 
+        private float GetSpeed(bool isPath)
+        {
+            float scale = Engine.GetBaseSpeedAt(LocationType.Sector);
+            float boost = isPath ? 1.10f : 1.00f;
+            float speed = 10.0f;
+
+            return speed * scale * boost;
+        }
+
         private float GetTime(Vector2 a, Vector2 b, bool isPath = true)
         {
-            return CalcF.Distance(a, b) / (Engine.TimePerPixel * Engine.World.Scale * Engine.GetScaleMultiplier(LocationType.Sector) * (isPath ? 1.25f : 1.00f));
+            float speed = GetSpeed(isPath);     
+            float dist = CalcF.Distance(a, b);
+            return dist / speed;
         }
         
         // this is the true total time, if the player were to be travelling on the route.

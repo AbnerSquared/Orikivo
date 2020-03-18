@@ -13,9 +13,14 @@ namespace Orikivo
     public static class JsonHandler
     {
         private const string DEFAULT_DIRECTORY = @"..\data\";
+
         internal static readonly string JsonFrame = "{0}.json";
+
         internal static readonly string GlobalFileName = "global";
+
+
         internal static string BaseDirectory = DEFAULT_DIRECTORY;
+        internal static JsonSerializerSettings SerializerSettings = DefaultSerializerSettings;
 
         public static JsonSerializerSettings DefaultSerializerSettings
             => new JsonSerializerSettings
@@ -25,47 +30,55 @@ namespace Orikivo
                 Formatting = Formatting.Indented
             };
 
-        public static void SetDirectory(string directory)
+        public static void SetBaseDirectory(string directory)
             => BaseDirectory = directory;
 
-        public static void ResetDirectory()
+        public static void ResetBaseDirectory()
             => BaseDirectory = DEFAULT_DIRECTORY;
 
-        public static void SaveJsonEntity<T>(T obj, JsonSerializer serializer = null)
-            where T : IJsonEntity
-            => Save(obj, string.Format(JsonFrame, obj.Id), serializer);
+        public static void SetSerializerSettings(JsonSerializerSettings settings)
+            => SerializerSettings = settings;
+
+        public static void ResetSerializerSettings()
+            => SerializerSettings = DefaultSerializerSettings;
+
+        public static string Serialize(object obj)
+            => JsonConvert.SerializeObject(obj, SerializerSettings);
+
+        public static string Serialize(object obj, params JsonConverter[] converters)
+            => JsonConvert.SerializeObject(obj, converters);
+
+        public static T Deserialize<T>(string value)
+            => JsonConvert.DeserializeObject<T>(value, SerializerSettings);
+
+        public static T Deserialize<T>(string value, params JsonConverter[] converters)
+            => JsonConvert.DeserializeObject<T>(value, converters);
 
         /// <summary>
         /// Saves an object to a specified local path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="obj">The object to serialize as JSON.</param>
         /// <param name="path">The local path to save to.</param>
-        /// <param name="serializer"></param>
-        public static void Save<T>(T obj, string path, JsonSerializer serializer = null)
+        public static void Save(object obj, string path, JsonSerializer serializer = null)
         {
             // path = GetDirectory() + path;
             using (StreamWriter stream = File.CreateText(path))
             {
                 using (JsonWriter writer = new JsonTextWriter(stream))
                 {
-                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+                    serializer ??= JsonSerializer.Create(SerializerSettings);
                     serializer.Serialize(stream, obj);
                 }
             }
         }
 
-        public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
-            => Load<T>(GetDirectory() + string.Format(JsonFrame, id), serializer);
-
         /// <summary>
         /// Loads an object by the specified local path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="path">The local path of the object.</param>
         /// <param name="serializer">The serializer to use when loading this object.</param>
-        /// <param name="throwOnEmpty">Defines whether or not an empty object should throw an Exception.</param>
-        public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmpty = false)
+        /// <param name="throwOnEmpty">Determines if an empty object should throw an <see cref="Exception"/></param>
+        public static T Load<T>(string path, JsonSerializer serializer, bool throwOnEmpty = false)
         {
             if (!File.Exists(path))
             {
@@ -77,11 +90,13 @@ namespace Orikivo
             {
                 using (JsonReader reader = new JsonTextReader(stream))
                 {
-                    serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
+                    serializer ??= JsonSerializer.Create(SerializerSettings);
                     T tmp = serializer.Deserialize<T>(reader);
+
                     if (throwOnEmpty)
                         if (tmp == null)
-                            throw new Exception("The file deserialized returned as empty.");
+                            throw new NullReferenceException("The file deserialized returned as empty.");
+
                     return tmp == null ? default : tmp;
                 }
             }
@@ -91,8 +106,8 @@ namespace Orikivo
         /// Loads an object by the specified local path.
         /// </summary>
         /// <param name="path">The local path of the object.</param>
-        /// <param name="converter">The JSON converter to use when deserializing.</param>
-        public static T Load<T>(string path, JsonConverter converter)
+        /// <param name="converters">The JSON converter to use when deserializing.</param>
+        public static T Load<T>(string path, params JsonConverter[] converters)
         {
             if (!File.Exists(path))
             {
@@ -102,7 +117,7 @@ namespace Orikivo
 
             using (StreamReader stream = File.OpenText(path))
             {
-                T tmp = Deserialize<T>(stream.ReadToEndAsync().Result, converter);
+                T tmp = Deserialize<T>(stream.ReadToEndAsync().GetAwaiter().GetResult(), converters);
                 return tmp ?? default;
             }
         }
@@ -115,41 +130,46 @@ namespace Orikivo
         public static ConcurrentDictionary<ulong, T> RestoreContainer<T>()
         {
             ConcurrentDictionary<ulong, T> tmp = new ConcurrentDictionary<ulong, T>();
-            List<string> directory = ReadJsonDirectory(GetDirectory());
+            List<string> directory = GetFilePathsFromDirectory(GetCurrentDirectory());
 
             foreach (string path in directory)
             {
                 T value = Load<T>(path);
-                tmp.AddOrUpdate(ulong.Parse(Path.GetFileNameWithoutExtension(path)), value, (k, v) => value);
+                tmp.AddOrUpdate(ulong.Parse(Path.GetFileNameWithoutExtension(path)), value,
+                    (k, v) => value);
             }
             return tmp;
         }
 
-        public static string GetJsonPath<T>(ulong id) where T : IJsonEntity
-            => GetDirectory() + string.Format(JsonFrame, id);
+        public static string GetJsonPath<T>(ulong id)
+            where T : IJsonEntity
+            => GetCurrentDirectory() + string.Format(JsonFrame, id);
 
-        public static bool JsonExists<T>(ulong id) where T : IJsonEntity
+        public static bool JsonExists<T>(ulong id)
+            where T : IJsonEntity
             => File.Exists(GetJsonPath<T>(id));
 
-        private static string GetDirectory()
+        private static bool IsValidFileName(string fileName)
+        {
+            return !fileName.ContainsAny(Path.GetInvalidFileNameChars());
+        }
+
+        private static string GetCurrentDirectory()
             => Directory.CreateDirectory(BaseDirectory).FullName;
 
-        private static List<string> ReadJsonDirectory(string directoryPath)
-            => Directory.Exists(directoryPath) ? Directory.GetFiles(directoryPath, "*.json").ToList() : new List<string>();
+        private static List<string> GetFilePathsFromDirectory(string directoryPath)
+            => Directory.Exists(directoryPath)
+            ? Directory.GetFiles(directoryPath, "*.json").ToList()
+            : new List<string>();
 
-        private static Dictionary<string, T> LoadJsonDirectory<T>(List<string> directory)
+        public static Dictionary<string, T> GetFilesFromDirectory<T>(string directoryPath)
         {
-            Dictionary<string, T> tmp = new Dictionary<string, T>();
-            foreach(string path in directory)
+            var tmp = new Dictionary<string, T>();
+
+            foreach(string path in GetFilePathsFromDirectory(directoryPath))
                 tmp[path] = Load<T>(path);
 
             return tmp;
         }
-
-        public static T Deserialize<T>(string response, JsonConverter converter)
-            => JsonConvert.DeserializeObject<T>(response, converter);
-
-        public static T Deserialize<T>(string response)
-            => JsonConvert.DeserializeObject<T>(response, DefaultSerializerSettings);
     }
 }

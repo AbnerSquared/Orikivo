@@ -2,13 +2,6 @@
 
 namespace Orikivo.Desync
 {
-    public enum RoutineSortOrder
-    {
-        Cycle = 1,
-        Weekly = 2,
-        Daily = 3,
-        Random = 4
-    }
 
     // implement a sleep schedule
 

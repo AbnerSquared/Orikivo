@@ -16,7 +16,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// The duration at which the <see cref="Npc"/> remains at the specified destination.
         /// </summary>
-        public TimeSpan Length { get; set; }
+        public TimeSpan Duration { get; set; }
 
         /// <summary>
         /// If specified, the duration at which the <see cref="Npc"/> remains is randomized by the specified offset, which represents the upper bound.

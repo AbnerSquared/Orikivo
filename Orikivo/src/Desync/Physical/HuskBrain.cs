@@ -14,17 +14,17 @@ namespace Orikivo.Desync
         public HuskBrain()
         {
             Relations = new Dictionary<string, float>();
-            DiscoveredAreaIds = new List<string>();
+            DiscoveredRegionIds = new List<string>();
             Maps = new Dictionary<string, byte[]>();
             Catalogs = new Dictionary<string, CatalogData>();
             Flags = new List<string>();
         }
 
         [JsonConstructor]
-        internal HuskBrain(Dictionary<string, float> relations, List<string> discoveredAreaIds, Dictionary<string, CatalogData> catalogs, List<string> flags)
+        internal HuskBrain(Dictionary<string, float> relations, List<string> discoveredRegionIds, Dictionary<string, CatalogData> catalogs, List<string> flags)
         {
             Relations = relations ?? new Dictionary<string, float>();
-            DiscoveredAreaIds = discoveredAreaIds ?? new List<string>();
+            DiscoveredRegionIds = discoveredRegionIds ?? new List<string>();
             Catalogs = catalogs ?? new Dictionary<string, CatalogData>();
             Flags = flags ?? new List<string>();
         }
@@ -35,9 +35,24 @@ namespace Orikivo.Desync
         [JsonProperty("relations")]
         public Dictionary<string, float> Relations { get; } = new Dictionary<string, float>();
 
-        // TODO: Change how discovered locations are stored.
-        [JsonProperty("area_ids")]
-        public List<string> DiscoveredAreaIds { get; } = new List<string>();
+        [JsonProperty("discovered_region_ids")]
+        public List<string> DiscoveredRegionIds { get; set; }
+
+        // this stores all of the unique names given to a region by you
+        [JsonProperty("region_names")]
+        public Dictionary<string, string> RegionNames { get; set; }
+
+        
+
+        public bool HasDiscovered(string id)
+            => DiscoveredRegionIds.Contains(id);
+
+        public void MarkAsDiscovered(string id)
+        {
+            if (!HasDiscovered(id))
+                DiscoveredRegionIds.Add(id);
+        }
+
 
         [JsonProperty("catalogs")]
         public Dictionary<string, CatalogData> Catalogs { get; } = new Dictionary<string, CatalogData>();
@@ -58,11 +73,11 @@ namespace Orikivo.Desync
         {
             if (!Catalogs.ContainsKey(market.Id))
             {
-                Catalogs.Add(market.Id, market.Table.Generate().Compress());
+                Catalogs.Add(market.Id, market.Catalog.Generate().Compress());
             }
             else if (!market.IsActive(Catalogs[market.Id].GeneratedAt))
             {
-                Catalogs[market.Id] = market.Table.Generate().Compress();
+                Catalogs[market.Id] = market.Catalog.Generate().Compress();
             }
             
             return Catalogs[market.Id];

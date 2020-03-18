@@ -54,25 +54,16 @@ namespace Orikivo.Desync
         [JsonProperty("status")]
         public HuskStatus Status { get; private set; }
         
-        // Where the husk is currently located. This stores a sector/field, area, construct and market id.
-        
         /// <summary>
         /// Represents where a <see cref="Husk"/> is currently located.
         /// </summary>
         [JsonProperty("location")]
-        public Locator Location { get; private set; }
+        public Locator Location { get; internal set; }
 
         /// <summary>
         /// Represents where a <see cref="Husk"/> is heading, if any.
         /// </summary>
-        [JsonProperty("movement")]
-        public TravelData Movement { get; internal set; }
-
-        /// <summary>
-        /// Represents where a <see cref="Husk"/> is located coordinate-wise within a <see cref="World"/>.
-        /// </summary>
-        [JsonProperty("position")]
-        public Vector2 Position { get; internal set; }
-        
+        [JsonProperty("destination")]
+        public Destination Destination { get; internal set; }
     }
 }

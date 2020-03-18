@@ -7,11 +7,11 @@
     {
         public const int RequiredVertices = 3;
 
-        public Polygon(params Vector2[] points)
-        {
-            if (points.Length < 3)
-                throw new System.ArgumentException("There must be at least three vertices for a shape to form.");
-        }
+        //public Polygon(params Vector2[] points)
+        //{
+         //   if (points.Length < 3)
+         //       throw new System.ArgumentException("There must be at least three vertices for a shape to form.");
+        //}
 
         public Vector2[] Points { get; protected set; }
 

@@ -22,7 +22,7 @@ namespace Orikivo.Desync
             foreach (string path in sprites)
             {
                 bank.Import(new Sprite(path,
-                    Path.GetFileNameWithoutExtension(path)));
+                    System.IO.Path.GetFileNameWithoutExtension(path)));
             }
 
             return bank;

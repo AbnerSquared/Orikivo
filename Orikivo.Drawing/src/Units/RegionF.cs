@@ -6,7 +6,10 @@
     public struct RegionF
     {
         public static bool Contains(float x, float y, float width, float height, float u, float v)
-            => u <= x && v <= y && u < x + width && v < y + height;
+            => u <= x
+            && v <= y
+            && u < x + width
+            && v < y + height;
 
         public RegionF(float x, float y, float width, float height)
         {
@@ -28,9 +31,11 @@
 
         public Vector2 Position => new Vector2(X, Y);
 
-        public float Left => X - Width;
+        public Vector2 Origin => new Vector2(X + (Width / 2), Y + (Height / 2));
 
-        public float Top => Y - Height;
+        public float Left => X;
+
+        public float Top => Y;
 
         public float Right => X + Width;
 
@@ -38,5 +43,8 @@
 
         public bool Contains(float x, float y)
             => Contains(X, Y, Width, Height, x, y);
+
+        public bool Contains(Vector2 p)
+            => Contains(p.X, p.Y);
     }
 }

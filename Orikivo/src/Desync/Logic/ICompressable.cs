@@ -2,25 +2,6 @@
 
 namespace Orikivo.Desync.Logic
 {
-    public class Locator
-    {
-        public string Id { get; }
-
-        public float? X { get; }
-
-        public float? Y { get; }
-    }
-
-    public class Trip
-    {
-        public string Id { get; }
-        public float? X { get; }
-        public float? Y { get; }
-
-        public DateTime StartedAt { get; }
-
-    }
-
     public interface ICompressable<T>
     {
         byte[] Compress();

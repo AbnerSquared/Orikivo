@@ -8,6 +8,7 @@ namespace Orikivo.Drawing
     public class ImageChannels
     {
         private ImageChannels() { }
+
         public static ImageChannels FromImage(Bitmap image)
         {
            Grid<Color> pixels = GraphicsUtils.GetPixels(image);

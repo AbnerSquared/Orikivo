@@ -7,7 +7,7 @@ namespace Orikivo
     public static class UserExtensions
     {
         /// <summary>
-        /// Adds a role if the user does not already have it. Otherwise, the role is removed.
+        /// Adds a role if the <paramref name="user"/> does not already have it. Otherwise, the role is removed.
         /// </summary>
         public static async Task ToggleRoleAsync(this IGuildUser user, IRole role, RequestOptions options = null)
         {

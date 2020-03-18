@@ -18,11 +18,11 @@ namespace Orikivo
     {
         private readonly Dictionary<Type, TypeReader> _typeReaders;
         private readonly List<Type> _modules;
-        private readonly ConsoleConfig _consoleConfig;
+        private readonly ConsoleLayout _consoleConfig;
         private readonly LogConfig _logConfig;
 
         internal Client(IConfigurationRoot config, IServiceProvider provider, Dictionary<Type, TypeReader> typeReaders,
-            List<Type> modules, ConsoleConfig consoleConfig, LogConfig loggerConfig)
+            List<Type> modules, ConsoleLayout consoleConfig, LogConfig loggerConfig)
         {
             Config = config;
             Provider = provider;

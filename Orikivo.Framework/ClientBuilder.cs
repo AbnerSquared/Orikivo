@@ -80,9 +80,9 @@ namespace Orikivo
         public List<Type> Modules { get; set; } = new List<Type>();
 
         /// <summary>
-        /// Gets or sets the <see cref="Orikivo.ConsoleConfig"/> to set for the <see cref="Console"/>.
+        /// Gets or sets the <see cref="Orikivo.ConsoleLayout"/> to set for the <see cref="Console"/>.
         /// </summary>
-        public ConsoleConfig ConsoleConfig { get; set; }
+        public ConsoleLayout ConsoleConfig { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="Orikivo.LogConfig"/> to set for a <see cref="LogService"/>.

@@ -13,15 +13,16 @@ namespace Orikivo.Drawing
 
         public GammaColor Color { get; set; }
 
+        // TODO: Fix FontWriter.
         protected override Bitmap GetBaseImage()
         {
             GraphicsConfig config = GraphicsConfig.Default;
             config.CharMap = CharMap;
             config.Fonts.Add(Font);
-            using (GraphicsWriter graphics = new GraphicsWriter(config))
+            using (FontWriter writer = new FontWriter())
             {
-                graphics.SetFont(Font);
-                return graphics.DrawString(Text, Color);
+                writer.SetFont(Font);
+                return writer.DrawString(Text, Color);
             }
         }
     }

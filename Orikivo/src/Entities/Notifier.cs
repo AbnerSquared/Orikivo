@@ -77,22 +77,24 @@ namespace Orikivo.Desync
         /// </summary>
         public string Notify()
         {
+            // TODO: configure based on remaining space.
+            // If there is barely any space, simply do > !100
             StringBuilder notifier = new StringBuilder();
 
             int i = 0;
             foreach(Notification n in Notifications.Where(x => !x.Read).OrderByDescending(x => x.SentAt))
             {
-                if (i < 4)
+                if (i < 3)
                 {
                     notifier.AppendLine($"> {n.Content}");
                     n.Read = true;
                 }
                 else
                 {
-                    int remainder = Notifications.Count - i;
+                    int remainder = Notifications.Where(x => !x.Read).Count();
 
                     if (remainder > 0)
-                        notifier.Append($"**+{OriFormat.Notate(remainder)}** more...");
+                        notifier.AppendLine($" > and **+{OriFormat.Notate(remainder)}** more!");
 
                     break;
                 }

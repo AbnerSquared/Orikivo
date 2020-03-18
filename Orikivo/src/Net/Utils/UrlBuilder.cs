@@ -110,6 +110,13 @@ namespace Orikivo.Net
         public UrlBuilder Copy()
             => new UrlBuilder(BaseUrl);
 
+
+        // moves back a layer
+        public UrlBuilder Backtrack()
+        {
+
+            return this;
+        }
         /* NOTES:
          In short, endpoints are always split using '/'.
          We could expand upon this, allowing a method to move out of an endpoint tab by its '/'.

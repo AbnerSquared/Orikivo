@@ -16,6 +16,7 @@ namespace Orikivo
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
+        private static readonly string _debugFormat = "[Debug] -- {0} --";
 
         /// <summary>
         /// Creates a new <see cref="LogService"/> with the specified parameters.
@@ -25,7 +26,7 @@ namespace Orikivo
         /// <param name="consoleConfig">The configuration used to build the console-side values for the new <see cref="LogService"/>.</param>
         /// <param name="logConfig">The configuration used to handle event-side values for the new <see cref="LogService"/>.</param>
         public LogService(DiscordSocketClient client, CommandService commandService,
-            ConsoleConfig consoleConfig = null, LogConfig logConfig = null)
+            ConsoleLayout consoleConfig = null, LogConfig logConfig = null)
         {
             _client = client;
             _commandService = commandService;
@@ -40,9 +41,9 @@ namespace Orikivo
         }
         
         /// <summary>
-        /// The <see cref="Orikivo.ConsoleConfig"/> to set for the current <see cref="LogService"/>.
+        /// The <see cref="Orikivo.ConsoleLayout"/> to set for the current <see cref="LogService"/>.
         /// </summary>
-        public ConsoleConfig ConsoleConfig { set => SetConsoleConfig(value); }
+        public ConsoleLayout ConsoleConfig { set => SetConsoleConfig(value); }
 
         /// <summary>
         /// The <see cref="Orikivo.LogConfig"/> to set for the current <see cref="LogService"/>.
@@ -154,7 +155,7 @@ namespace Orikivo
 
         private string ExitFormat { get; set; }
 
-        private void SetConsoleConfig(ConsoleConfig config)
+        private void SetConsoleConfig(ConsoleLayout config)
         {
             if (config != null)
             {
@@ -207,7 +208,7 @@ namespace Orikivo
                 TextColor = textColor;
             }
             else
-                Console.WriteLine(string.Format(OriFormat.DebugFormat, "Temporary colors have already been set."));
+                Console.WriteLine(string.Format(_debugFormat, "Temporary colors have already been set."));
         }
 
         private void RestoreColors()
@@ -229,10 +230,10 @@ namespace Orikivo
         {
             if (CanDebug)
             {
-                WriteLine(string.Format(OriFormat.DebugFormat, content));
+                WriteLine(string.Format(_debugFormat, content));
 
                 if (Check.NotNull(OutputPath))
-                    WriteToFileAsync(string.Format(OriFormat.DebugFormat, content));
+                    WriteToFileAsync(string.Format(_debugFormat, content));
             }
             
         }
@@ -267,8 +268,8 @@ namespace Orikivo
 
             if (Check.NotNull(EntryFormat))
                 value.AppendLine(EntryFormat
-                    .Replace(Aliases[LogAlias.Name], OriGlobal.ClientName)
-                    .Replace(Aliases[LogAlias.ClientVersion], OriGlobal.ClientVersion)
+                    //.Replace(Aliases[LogAlias.Name], OriGlobal.ClientName)
+                    //.Replace(Aliases[LogAlias.ClientVersion], OriGlobal.ClientVersion)
                     .Replace(Aliases[LogAlias.Date], DateTime.UtcNow.ToString())
                     .Replace(Aliases[LogAlias.LogSeverity], log.Severity.ToString())
                     .Replace(Aliases[LogAlias.LogSource], log.Source));

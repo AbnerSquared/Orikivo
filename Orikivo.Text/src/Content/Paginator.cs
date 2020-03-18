@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Text
 {
@@ -62,6 +64,51 @@ namespace Orikivo.Text
         public string ToString(string format, string separator, string elementFormat)
         {
             return base.ToString();
+        }
+    }
+
+    public static class Paginate
+    {
+        public static int GetPageCount(int collectionSize, int size)
+        {
+            return (int)Math.Ceiling((double)collectionSize / size);
+        }
+
+        public static int GetValueCountAtPage(int collectionSize, int size, int page)
+        {
+            page = Clamp(0, GetPageCount(collectionSize, size) - 1, page);
+            return Clamp(0, size, collectionSize - (size * page));
+        }
+
+        private static int Clamp(int min, int max, int value)
+            => value < min
+            ? min
+            : value > max
+            ? max
+            : value;
+
+        public static IEnumerable<T> GroupAt<T>(IEnumerable<T> set, int page, int size)
+        {
+            int pageCount = GetPageCount(set.Count(), size);
+
+            if (page < 0 || page >= pageCount)
+                page = 0;
+
+            if (set.Count() == 0)
+                return set;
+
+            var remainder = set.Skip(size * page);
+            var group = new List<T>();
+
+            for (int i = 0; i < size; i++)
+            {
+                if (remainder.Count() - 1 < i)
+                    continue;
+                else
+                    group.Add(remainder.ElementAt(i));
+            }
+
+            return group;
         }
     }
 }

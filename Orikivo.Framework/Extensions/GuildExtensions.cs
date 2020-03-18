@@ -1,10 +1,11 @@
 ﻿using Discord;
+using System.Threading.Tasks;
 
 namespace Orikivo
 {
     public static class GuildExtensions
     {
-        public static bool TryGetEmote(this IGuild guild, string name, out GuildEmote emote)
+        private static bool TryGetEmote(IGuild guild, string name, out GuildEmote emote)
         {
             emote = null;
 
@@ -20,31 +21,15 @@ namespace Orikivo
             return false;
         }
 
-        public static GuildEmote GetEmote(this IGuild guild, string name)
+        /// <summary>
+        /// Attempts to get a specific emote from this <paramref name="guild"/>. If no matching emote could be found, this returns null.
+        /// </summary>
+        public static async Task<GuildEmote> GetEmoteAsync(this IGuild guild, string name, RequestOptions options = null)
         {
-            TryGetEmote(guild, name, out GuildEmote emote);
-            return emote;
-        }
+            if (TryGetEmote(guild, name, out GuildEmote emote))
+                return await guild.GetEmoteAsync(emote.Id, options);
 
-        public static GuildEmote GetEmote(this IGuild guild, ulong id)
-        {
-            TryGetEmote(guild, id, out GuildEmote emote);
-            return emote;
-        }
-
-        public static bool TryGetEmote(this IGuild guild, ulong id, out GuildEmote emote)
-        {
-            emote = null;
-            foreach (GuildEmote guildEmote in guild.Emotes)
-            {
-                if (guildEmote.Id == id)
-                {
-                    emote = guildEmote;
-                    return true;
-                }
-            }
-
-            return false;
+            return null;
         }
     }
 }

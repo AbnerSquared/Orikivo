@@ -2,6 +2,7 @@
 
 namespace Orikivo.Drawing
 {
+
     /// <summary>
     /// Represents a JSON-friendly variant of <see cref="System.Drawing.Size"/>.
     /// </summary>
@@ -16,8 +17,7 @@ namespace Orikivo.Drawing
 
         public Unit(int wh)
         {
-            Width = wh;
-            Height = wh;
+            Width = Height = wh;
         }
 
         [JsonProperty("width")]

@@ -3,6 +3,7 @@ using System.Threading;
 
 namespace Orikivo
 {
+    // TODO: Place RandomProvider into a different class
     // NOTE: This was designed by another person from StackOverflow.
     /// <summary>
     /// Represents a static provider that allows for the thread-safe usage of <see cref="Random"/>.

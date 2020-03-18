@@ -2,15 +2,31 @@
 {
     public class LogicArgument
     {
-        public LogicArgument(string id, LogicMatch matchType, long matchValue)
+        public LogicArgument(string id, LogicMatch match, long value)
         {
             Id = id;
-            MatchType = matchType;
-            MatchValue = matchValue;
+            Match = match;
+            Value = value;
         }
 
         public string Id { get; set; }
-        public LogicMatch MatchType { get; set; }
-        public long MatchValue { get; set; }
+        public LogicMatch Match { get; set; }
+        public long Value { get; set; }
+
+        public bool Judge(User user)
+        {
+            long actual = user.GetStat(Id);
+
+            return Match switch
+            {
+                LogicMatch.GREATER => actual > Value,
+                LogicMatch.GREATER_EQUALS => actual >= Value,
+                LogicMatch.EQUALS => actual == Value,
+                LogicMatch.LESSER_EQUALS => actual <= Value,
+                LogicMatch.LESSER => actual < Value,
+                LogicMatch.NOT_EQUALS => actual != Value,
+                _ => false
+            };
+        }
     }
 }
