@@ -26,15 +26,10 @@ namespace Orikivo
         private readonly DiscordSocketClient _client;
         private InfoService _help;
         private readonly CommandService _commandService;
-        //private readonly LogService _logger;
-        private readonly GameManager _gameManager;
-        public MiscModule(DiscordSocketClient client, CommandService commandService,
-            /*LogService logger,*/ GameManager gameManager)
+        public MiscModule(DiscordSocketClient client, CommandService commandService)
         {
             _client = client;
             _commandService = commandService;
-            //_logger = logger;
-            _gameManager = gameManager;
         }
 
         // make generic events

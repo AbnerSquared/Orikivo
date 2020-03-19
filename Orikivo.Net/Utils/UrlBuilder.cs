@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace Orikivo.Net
 {
-    // TODO: System.UriBuilder exists. This could be scrapped.
     /// <summary>
     /// A tool used to simplify URL construction.
     /// </summary>
@@ -15,8 +14,9 @@ namespace Orikivo.Net
         /// </summary>
         public UrlBuilder(string baseUrl)
         {
-            if (!Check.NotNull(baseUrl))
+            if (string.IsNullOrWhiteSpace(baseUrl))
                 throw new ArgumentNullException("A UriBuilder requires a valid base URL.");
+            
             BaseUrl = baseUrl.Trim('/', ' ', '\n') + '/';
         }
 
@@ -54,7 +54,7 @@ namespace Orikivo.Net
         /// </summary>
         public UrlBuilder WithEndpoint(string endpoint)
         {
-            Endpoint += $"{(Check.NotNull(endpoint) ? "/" : string.Empty)}{endpoint.Trim('/')}";
+            Endpoint += $"{(string.IsNullOrWhiteSpace(endpoint) ? string.Empty : "/")}{endpoint.Trim('/')}";
             return this;
         }
 
@@ -71,7 +71,6 @@ namespace Orikivo.Net
         {
             Args.Add(arg);
             return this;
-
         }
 
         /// <summary>
@@ -127,7 +126,7 @@ namespace Orikivo.Net
         /// Returns the string format of the UriBuilder.
         /// </summary>
         public override string ToString()
-            => $"{BaseUrl}{(Check.NotNull(Endpoint) ? Endpoint : string.Empty)}{Query}";
+            => $"{BaseUrl}{(string.IsNullOrWhiteSpace(Endpoint) ? string.Empty : Endpoint)}{Query}";
 
         
     }

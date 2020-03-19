@@ -1,8 +1,8 @@
-﻿using System.Net.Http;
+﻿using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace Orikivo.Net
 {
-    // the result of a call made with OriWebClient
     public class OriWebResult
     {
         public OriWebResult(HttpResponseMessage response)
@@ -12,7 +12,9 @@ namespace Orikivo.Net
         }
 
         public bool IsSuccess { get; internal set; }
+
         public HttpContent Content { get; internal set; }
+
         public string RawContent => Content.ReadAsStringAsync().Result;
     }
 
@@ -22,12 +24,15 @@ namespace Orikivo.Net
         {
             IsSuccess = response.IsSuccessStatusCode;
             Content = response.Content;
-            Result = JsonHandler.Deserialize<T>(RawContent);
+            Result = JsonConvert.DeserializeObject<T>(RawContent);
         }
 
         public bool IsSuccess { get; internal set; }
+
         public HttpContent Content { get; internal set; }
+
         public string RawContent => Content.ReadAsStringAsync().Result;
+
         public T Result { get; internal set; }
     }
 }

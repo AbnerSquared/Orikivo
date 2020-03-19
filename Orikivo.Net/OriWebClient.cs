@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -16,8 +15,6 @@ namespace Orikivo.Net
             get
             {
                 HttpClient client = new HttpClient();
-                ProductInfoHeaderValue agent = new ProductInfoHeaderValue(OriGlobal.ClientName, OriGlobal.ClientVersion);
-                client.DefaultRequestHeaders.UserAgent.Add(agent);
                 return client;
             }
         }
@@ -43,9 +40,6 @@ namespace Orikivo.Net
             _ensured = ensured;
         }
 
-        // this is used to set up an ApiHandler
-        // you can set the root address of an api service here
-        // and when you request, you just need to type the endpoints.
         public void SetBaseAddress(string address)
             => _client.BaseAddress = new Uri(address);
 
@@ -60,6 +54,7 @@ namespace Orikivo.Net
 
         public async Task<OriWebResult<T>> RequestAsync<T>(string url)
             => await RequestAsync<T>(new Uri(url));
+
         public async Task<OriWebResult<T>> RequestAsync<T>(Uri uri)
         {
             HttpResponseMessage response = await _client.GetAsync(uri);
@@ -68,6 +63,7 @@ namespace Orikivo.Net
 
         public async Task<OriWebResult> RequestAsync(string url)
             => await RequestAsync(new Uri(url));
+
         public async Task<OriWebResult> RequestAsync(Uri uri)
         {
             HttpResponseMessage response = await _client.GetAsync(uri);
@@ -93,13 +89,15 @@ namespace Orikivo.Net
         {
             url.TrimStart('/');
             System.Net.Http.HttpMethod method = new System.Net.Http.HttpMethod(requestType.ToString());
+            
             using (HttpRequestMessage request = new HttpRequestMessage(method, url))
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     request.Content = new StringContent(value, Encoding.UTF8, $"application/{HttpMedia.JSON.ToString().ToLower()}");
-                    request.Content.Headers.ContentType.CharSet = null; // This is the UTF-8 being removed, to make sure it can actually format the value given.
+                    request.Content.Headers.ContentType.CharSet = null;
                 }
+
                 return await SendAsync(request);
             }
         }
@@ -109,17 +107,24 @@ namespace Orikivo.Net
             HttpResponseMessage response = await _client.SendAsync(request);
 
             if (_rateLimit != null)
+            {
                 if (!await _rateLimit.CanRequestAsync((HttpMethod)Enum.Parse(typeof(HttpMethod), request.Method.Method.ToUpper()), request.RequestUri.ToString()))
                     throw new HttpRequestException($"{request.RequestUri} is currently prohibited due to a ratelimit.");
+            }
+
             OriWebResult result = new OriWebResult(response);
+            
             if (result.IsSuccess)
+            {
                 if (_rateLimit != null)
                     await _rateLimit.OnSuccessAsync(result);
+            }
+
             if (_ensured)
                 response.EnsureSuccessStatusCode();
+
             return result;
         }
-
 
         public void Dispose()
             => _client.Dispose();

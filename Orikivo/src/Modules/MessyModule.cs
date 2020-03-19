@@ -12,13 +12,11 @@ using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Color = Discord.Color;
 using Image = System.Drawing.Image;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using Match = System.Text.RegularExpressions.Match;
@@ -1041,12 +1039,15 @@ namespace Orikivo
             await Context.Channel.SendFileAsync(path);
         }
 
+        /*
         [RequireUser]
         [Command("games")]
         [Summary("Returns a list of all visible **Games**.")]
         public async Task ShowLobbiesAsync([Summary("The page index for the list.")]int page = 1) // utilize a paginator.
             => await Context.Channel.SendMessageAsync(_gameManager.IsEmpty ? $"> **Looks like there's nothing here.**" : string.Join('\n', _gameManager.Games.Values.Select(x => x.ToString())));
+        */
 
+        /*
         [RequireUser]
         [Command("joingame"), Alias("jg")]
         [Summary("Join an open **Lobby**.")]
@@ -1067,6 +1068,7 @@ namespace Orikivo
                 }
             }
         }
+        */
 
         [Command("whispertest")]
         public async Task WhisperTestAsync()
@@ -1138,6 +1140,7 @@ namespace Orikivo
             await Context.Guild.GetTextChannel(favoriteChannelId).SendMessageAsync(msg.Build());
         }
 
+        /*
         [Command("creategame"), Alias("crg")]
         [Summary("Create a **Game**.")]
         [RequireUser]
@@ -1158,80 +1161,8 @@ namespace Orikivo
             {
                 await Context.Channel.CatchAsync(ex);
             }
-        }
+        }*/
 
-        /*
-        [Command("colorconvert")]
-        [Summary("A unit tests that ensures the **GammaColor** class is converting as intended.")]
-        public async Task ColorAsync()
-        {
-            Color c = new Color(100, 100, 100);
-            OriColor oriC = (OriColor)c;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"```bf");
-            sb.AppendLine($"Discord.Color.RawValue == {c.RawValue}");
-            sb.AppendLine($"OriColor.Value == {oriC.Value}");
-            sb.AppendLine($"Discord.Color.R == {c.R}\nDiscord.Color.G == {c.G}\nDiscord.Color.B == {c.B}");
-            sb.AppendLine($"OriColor.A == {oriC.A}\nOriColor.R == {oriC.R}\nOriColor.G == {oriC.G}\nOriColor.B == {oriC.B}");
-            sb.AppendLine($"Discord.Color.ToString == {c.ToString()}");
-            sb.AppendLine($"OriColor.ToString == {oriC.ToString()}");
-            sb.AppendLine($"```");
-
-            await Context.Channel.SendMessageAsync(sb.ToString());
-        }
-        */
-        /*
-        [Command("windowtest")]
-        public async Task WindowTestAsync([Remainder]string message = null)
-        {
-            message = Checks.NotNull(message) ? message : "This is a generic message.";
-            try
-            {
-                GameWindow window = new GameWindow(GameWindowProperties.Lobby);
-                
-                window.CurrentTab.GetElement("element.info").Update(OriFormat.Lobby("New Lobby", KeyBuilder.Generate(8), GamePrivacy.Local.ToString(), GameMode.Werewolf.ToString()));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat("Orikivo", "Message 1."), "message-0"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-1"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-2"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-3"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-4"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-5"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat(Context.User.Username, message), "message-6"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat("Orikivo", "Message 8."), "message-7"));
-
-                window.CurrentTab.AddToGroup("elements.console",
-                    new Element(OriFormat.GameChat("Orikivo", "Message 9."), "message-8"));
-
-                window.CurrentTab.GetElement("element.user_info").Update(OriFormat.UserCounter(1, 15));
-
-                window.CurrentTab.AddToGroup("elements.triggers", new Element(new GameTrigger("start").ToString()));
-                window.CurrentTab.AddToGroup("elements.users", new Element(new Identity(Context.User.Id, Context.User.Username, Context.Guild.Id, IdentityTag.Host | IdentityTag.Playing).ToString()));
-                window.CurrentTab.AddToGroup("elements.users", new Element(new Identity(Context.Client.CurrentUser.Id, Context.Client.CurrentUser.Username, Context.Guild.Id, IdentityTag.Playing).ToString()));
-
-                await Context.Channel.SendMessageAsync(window.Content);
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex);
-            }
-        }
-        */
         [Command("randomchoose")]
         public async Task ChooseTestAsync(int times = 8, bool allowRepeats = true)
         {
