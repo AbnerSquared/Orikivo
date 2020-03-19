@@ -1,3 +1,0 @@
-﻿namespace Orikivo.Audio
-{
-}
