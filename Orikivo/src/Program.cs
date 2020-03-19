@@ -38,7 +38,7 @@ namespace Orikivo
                 builder.LogConfig = LogConfig.Default;
                 ClientBuilder.SetDefaultServices(builder.Services);
 
-                builder.AddTypeReader<GameMode>(new EnumTypeReader<GameMode>());
+                
                 builder.AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>());
                 builder.AddTypeReader<EventType>(new EnumTypeReader<EventType>());
                 builder.AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>());

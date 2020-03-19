@@ -1,21 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <RuntimeIdentifiers>win7-x64</RuntimeIdentifiers>
-    <Version>0.0.8-dev</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <LangVersion>8.0</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
+    <OutputType>Exe</OutputType>
+    <Version>0.1.6-dev</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <StartupObject>Orikivo.Program</StartupObject>
-    <ApplicationIcon />
-    <Win32Resource />
     <NeutralLanguage>en-US</NeutralLanguage>
     <Authors>AbnerSquared</Authors>
     <Product>Orikivo</Product>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <ApplicationIcon />
+    <Win32Resource />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -69,8 +68,6 @@
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
-    <PackageReference Include="Unity" Version="5.11.4" />
-    <PackageReference Include="WebSocket4Net" Version="0.15.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -84,6 +81,5 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
   </ItemGroup>
-
-  <ProjectExtensions><VisualStudio><UserProperties assets_4fonts_4legacy_1json__JsonSchema="http://json-schema.org/draft-04/schema" /></VisualStudio></ProjectExtensions>
+  
 </Project>
