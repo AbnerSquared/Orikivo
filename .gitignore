@@ -1,4 +1,14 @@
-﻿legacy/
+﻿Orikivo/legacy/
+Orikivo/scrap/
+Orikivo/src/Entities/discord/
+Orikivo/src/lobby/
 bin/
 obj/
 src/lobby/
+.vs/
+Orikivo.Drawing/bin/
+Orikivo.Drawing/obj/
+Orikivo.Drawing/.git/
+Orikivo.Text/.git/
+Orikivo.Text/bin/
+Orikivo.Text/obj/
