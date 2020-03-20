@@ -21,20 +21,4 @@ namespace Orikivo.Desync
         // a multiplier set for each dialogue tone that affects their relations.
         public Dictionary<DialogueTone, float> ToneImpactRates { get; }
     }
-
-    // how they handle varying tones
-    public class PersonalityTones
-    {
-
-    }
-
-    // this spectrum represents our core motives
-    public class PersonalityAspects
-    {
-        public MindType Mind { get; set; }
-        public EnergyType Energy { get; set; }
-        public NatureType Nature { get; set; }
-        public TacticType Tactics { get; set; }
-        public IdentityType Identity { get; set; }
-    }
 }

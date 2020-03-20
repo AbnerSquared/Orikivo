@@ -1344,6 +1344,12 @@ namespace Orikivo.Desync
         public static float GetBaseSpeedAt(LocationType type)
             => 1.0f / (TimePerPixel * World.Scale * GetScaleMultiplier(type));
 
+        // TODO: This method is meant for BindToRegion, as it will get all visible regions that a husk can currently see.
+        public static IEnumerable<Region> GetVisibleRegions(Husk husk, HuskBrain brain)
+        {
+            throw new NotImplementedException();
+        }
+
         public static IEnumerable<Npc> GetVisibleNpcs(Husk husk)
         {
             Location location = husk.Location.GetLocation();
