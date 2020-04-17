@@ -9,7 +9,7 @@ namespace Orikivo.Desync
     /// </summary>
     public class BindToRegionAttribute : Attribute
     {
-        private enum BindType
+        internal enum BindType
         {
             Ids,
             WorldDepth,
@@ -31,92 +31,134 @@ namespace Orikivo.Desync
         // binds an action to the specified ids
         public BindToRegionAttribute(string id, params string[] rest)
         {
-            Bind = BindType.Ids;
+            var ids = new string[rest.Length + 1];
+
+            ids[0] = id;
+
+            for (int i = 0; i < rest.Length; i++)
+            {
+                ids[i + 1] = rest[i];
+            }
+
+            Ids = ids;
+            Type = BindType.Ids;
         }
 
         // binds an action to the world at the specified depth
         public BindToRegionAttribute(BindDepth depth)
         {
-            Bind = BindType.WorldDepth;
+            Depth = depth;
+            Type = BindType.WorldDepth;
         }
 
         // binds an action to the specified id at the specified depth
         public BindToRegionAttribute(string id, BindDepth depth)
         {
-            Bind = BindType.IdDepth;
+            Id = id;
+            Depth = depth;
+            Type = BindType.IdDepth;
         }
 
         // binds an action at the specified type
         public BindToRegionAttribute(LocationType type)
         {
-            Bind = BindType.Location;
+            Location = type;
+            Type = BindType.Location;
         }
 
         public BindToRegionAttribute(RegionType type)
         {
-            Bind = BindType.Region;
+            Region = type;
+            Type = BindType.Region;
         }
 
         public BindToRegionAttribute(RegionType type, BindDepth depth)
         {
-            Bind = BindType.RegionDepth;
+            Region = type;
+            Depth = depth;
+            Type = BindType.RegionDepth;
         }
 
         // binds an action at the specified type and depth
         public BindToRegionAttribute(LocationType type, BindDepth depth)
         {
-            Bind = BindType.LocationDepth;
+            Location = type;
+            Depth = depth;
+            Type = BindType.LocationDepth;
         }
 
         // binds an action to a specified type of construct
         public BindToRegionAttribute(ConstructType type)
         {
-            Bind = BindType.Construct;
+            Construct = type;
+            Type = BindType.Construct;
         }
 
         // binds an action to a specified type of structure
         public BindToRegionAttribute(StructureType type)
         {
-            Bind = BindType.Structure;
+            Structure = type;
+            Type = BindType.Structure;
         }
 
         // binds an action to the world at the specified coordinate
         public BindToRegionAttribute(float x, float y)
         {
-            Bind = BindType.WorldCoordinate;
+            X = x;
+            Y = y;
+            Type = BindType.WorldCoordinate;
         }
 
         // binds an action to the world at the specified region
         public BindToRegionAttribute(float x, float y, float width, float height)
         {
-            Bind = BindType.WorldPerimeter;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+            Type = BindType.WorldPerimeter;
         }
 
         // binds an action to the world at the specified circle
         public BindToRegionAttribute(float x, float y, float radius)
         {
-            Bind = BindType.WorldCircle;
+            X = x;
+            Y = y;
+            Radius = radius;
+            Type = BindType.WorldCircle;
         }
 
         // binds an action to the specified id at the specified coordinate
         public BindToRegionAttribute(string id, float x, float y)
         {
-            Bind = BindType.IdCoordinate;
+            Id = id;
+            X = x;
+            Y = y;
+            Type = BindType.IdCoordinate;
         }
 
         // binds an action to the specified id at the specified region
         public BindToRegionAttribute(string id, float x, float y, float width, float height)
         {
-            Bind = BindType.IdPerimeter;
+            Id = id;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+            Type = BindType.IdPerimeter;
         }
 
         // binds an action to the specified id at the specified circle
         public BindToRegionAttribute(string id, float x, float y, float radius)
         {
-            Bind = BindType.IdCircle;
+            Id = id;
+            X = x;
+            Y = y;
+            Radius = radius;
+            Type = BindType.IdCircle;
         }
 
-        private BindType Bind { get; }
+        internal BindType Type { get; }
 
         private string Id { get; }
         private string[] Ids { get; }
@@ -125,7 +167,6 @@ namespace Orikivo.Desync
         private RegionType? Region { get; }
         private ConstructType? Construct { get; }
         private StructureType? Structure { get; }
-        
         private float X { get; }
         private float Y { get; }
         private float Width { get; }
@@ -133,6 +174,15 @@ namespace Orikivo.Desync
         private float Radius { get; }
 
         // TODO: Use Engine.GetVisibleRegions(Husk husk);
+
+        public bool Judge(Husk husk, HuskBrain brain)
+        {
+            switch(Type)
+            {
+                default:
+                    return true;
+            }
+        }
 
         public bool Judge(string id)
             => throw new NotImplementedException();

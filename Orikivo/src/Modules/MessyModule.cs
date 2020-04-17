@@ -31,11 +31,11 @@ namespace Orikivo
     public class MessyModule : OriModuleBase<OriCommandContext>
     {
         private readonly DiscordSocketClient _client;
-        private readonly GameManager _gameManager;
-        public MessyModule(DiscordSocketClient client, GameManager manager)
+        //private readonly GameManager _gameManager;
+        public MessyModule(DiscordSocketClient client)
         {
             _client = client;
-            _gameManager = manager;
+            //_gameManager = manager;
         }
 
         public static Grid<ConwayCell> Pattern = ConwayRenderer.GetRandomPattern(128, 128);
@@ -66,6 +66,54 @@ namespace Orikivo
             }
 
             return frames;
+        }
+
+        [Command("debugdraw")]
+        public async Task DebugDrawAsync()
+        {
+            if (Context.Account.Husk.Location.GetInnerType() == LocationType.Sector)
+            {
+                await SendPixelsAsync(Engine.DebugDraw(Context.Account.Husk.Location.GetLocation() as Sector, Context.Account.Husk), $"{Context.User.Id}_DEBUG_DRAW", 2);
+            }
+        }
+
+        private async Task SendPixelsAsync(Grid<SysColor> pixels, string fileName, int imageScale = 1)
+        {
+            Bitmap image = GraphicsUtils.CreateRgbBitmap(pixels.Values);
+
+            if (imageScale > 1)
+                image = GraphicsUtils.Scale(image, imageScale, imageScale);
+
+            using (image)
+                await SendPngAsync($"../tmp/{fileName}.png", image);
+        }
+
+        [Command("drawcircle")]
+        public async Task DrawCircleTestAsync(int imageSize, int originX, int originY, int radius, int imageScale = 1)
+        {
+            Canvas canvas = new Canvas(imageSize, imageSize, GammaPalette.GammaGreen[Gamma.Min]);
+            canvas.DrawCircle(originX, originY, radius, GammaPalette.GammaGreen[Gamma.Standard]);
+
+            await SendPixelsAsync(canvas.Pixels, $"{Context.User.Id}_CIRCLE", imageScale);
+
+        }
+
+        [Command("drawline")]
+        public async Task DrawLineTestAsync(int imageSize, int ax, int ay, int bx, int by, int imageScale)
+        {
+            Canvas canvas = new Canvas(imageSize, imageSize, GammaPalette.GammaGreen[Gamma.Min]);
+            canvas.DrawLine(ax, ay, bx, by, GammaPalette.GammaGreen[Gamma.Standard]);
+
+            await SendPixelsAsync(canvas.Pixels, $"{Context.User.Id}_LINE", imageScale);
+        }
+
+        [Command("drawrect")]
+        public async Task DrawRectTestAsync(int imageSize, int x, int y, int width, int height, int imageScale)
+        {
+            Canvas canvas = new Canvas(imageSize, imageSize, GammaPalette.GammaGreen[Gamma.Min]);
+            canvas.DrawRectangle(x, y, width, height, GammaPalette.GammaGreen[Gamma.Standard]);
+
+            await SendPixelsAsync(canvas.Pixels, $"{Context.User.Id}_RECT", imageScale);
         }
 
         [Command("singleset")]
@@ -1184,10 +1232,10 @@ namespace Orikivo
         {
             List<int> values = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Old: {{ {values.ConcatString()} }}");
+            sb.AppendLine($"Old: {{ {string.Join(", ", values)} }}");
             List<int> shuffledValues = Randomizer.Shuffle(values).ToList();
-            sb.AppendLine($"OldEnsure: {{ {values.ConcatString()} }}");
-            sb.AppendLine($"New: {{ {shuffledValues.ConcatString()} }}");
+            sb.AppendLine($"OldEnsure: {{ {string.Join(", ", values)} }}");
+            sb.AppendLine($"New: {{ {string.Join(", ", shuffledValues)} }}");
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
 

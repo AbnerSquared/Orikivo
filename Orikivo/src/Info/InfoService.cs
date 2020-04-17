@@ -112,8 +112,8 @@ namespace Orikivo
                         continue;
 
                     // Flag checking
-                    CheckFlagsAttribute flags = action.Preconditions.GetAttribute<CheckFlagsAttribute>();
-                    RequireLocationAttribute check = action.Attributes.GetAttribute<RequireLocationAttribute>();
+                    CheckFlagsAttribute flags = action.Preconditions.FindAttribute<CheckFlagsAttribute>();
+                    RequireLocationAttribute check = action.Attributes.FindAttribute<RequireLocationAttribute>();
 
                     if (flags != null)
                     {

@@ -19,7 +19,7 @@ namespace Orikivo.Desync
             => Floors.First(x => x.Index == level);
 
         // TODO: Get rid of NPCs.
-        public override List<Npc> Npcs => Floors.Select(x => x.Npcs).Merge();
+        public override List<Npc> Npcs => Floors.Select(x => x.Npcs).Flatten().ToList();
 
         public override List<Location> GetChildren(bool includeInnerChildren = true)
         {

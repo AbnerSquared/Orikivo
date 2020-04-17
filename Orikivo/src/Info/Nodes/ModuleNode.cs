@@ -13,7 +13,7 @@ namespace Orikivo
         public ModuleNode(ModuleInfo module) : base(module)
         {
             Group = module.Group;
-            Subtitle = module.Attributes.GetAttribute<DescriptionAttribute>()?.Subtitle;
+            Subtitle = module.Attributes.FindAttribute<DescriptionAttribute>()?.Subtitle;
 
             Submodules = module.Submodules.Select(s => new ModuleNode(s)).ToList();
 

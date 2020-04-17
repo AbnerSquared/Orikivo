@@ -19,9 +19,8 @@ namespace Orikivo
             _commands = commands;
         }
 
-        // this is what starts the entire husk system
-        // this can only be used on people who have never started.
         [RequireUser]
+        //[OnlyWhen(LogicGate.NAND, HuskFlags.Initialized)]
         [CheckFlags(Gate.NOT, HuskFlags.Initialized)]
         [Command("awaken")]
         [Summary("Awaken your **Husk** in the physical world for the first time.")]
@@ -87,6 +86,7 @@ namespace Orikivo
         // [Command("chat")]
 
         [RequireUser]
+        // [BindToRegion(LocationType.Construct | LocationType.Area)]
         [RequireLocation(LocationType.Construct | LocationType.Area)]
         [Command("leave")]
         [Summary("Leave the current **Location** you are in.")]
@@ -117,6 +117,7 @@ namespace Orikivo
         }
 
         [RequireUser]
+        // [BindToRegion(LocationType.Construct | LocationType.Area)]
         [RequireLocation(LocationType.Area | LocationType.Construct)]
         [Command("chat"), Priority(0)]
         [Summary("Shows all available NPCs you are able to chat with.")]
@@ -131,6 +132,7 @@ namespace Orikivo
         // likewise, prevent chatting with an npc, if their travel speed is greater than yours, since
         //  you would never be able to catch up.
         [RequireUser]
+        // [BindToRegion(LocationType.Construct | LocationType.Area)]
         [RequireLocation(LocationType.Area | LocationType.Construct)]
         [Command("chat"), Priority(1)]
         [Summary("Initiates conversation with a specified NPC.")]
@@ -158,6 +160,7 @@ namespace Orikivo
 
 
         [RequireUser]
+        // [BindToRegion(ConstructType.Market)]
         [RequireLocation(ConstructType.Market)]
         [Command("shop")]
         [Summary("Go to the current **Vendor** and begin shopping.")]
@@ -175,6 +178,7 @@ namespace Orikivo
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
+        // [OnlyWhen(LogicGate.AND, HuskFlags.Initialized)]
         [CheckFlags(Gate.HAS, HuskFlags.Initialized)]
         [Command("actions"), Alias("act")]
         public async Task GetActionsAsync()
@@ -184,6 +188,7 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync(info.GetActions(Context.Account));
         }
 
+        // [BindToRegion(ConstructType.Market)]
         [RequireLocation(ConstructType.Market)]
         [Command("schedule")]
         [Summary("Gets the current schedule in use for this **Market**.")]
@@ -195,6 +200,7 @@ namespace Orikivo
         
 
         [RequireUser]
+        // [BindToRegion(ConstructType.Highrise)]
         [RequireLocation(ConstructType.Highrise)]
         [Command("goup")]
         [Summary("Travel up a floor.")]
@@ -204,6 +210,7 @@ namespace Orikivo
         }
 
         [RequireUser]
+        // [BindToRegion(ConstructType.Highrise)]
         [RequireLocation(ConstructType.Highrise)]
         [Command("godown")]
         [Summary("Travel down a floor.")]
@@ -213,6 +220,7 @@ namespace Orikivo
         }
 
         [RequireUser]
+        // [BindToRegion(LocationType.World | LocationType.Field | LocationType.Sector)]
         [RequireLocation(LocationType.Sector | LocationType.Field | LocationType.World)]
         [Command("goto"), Priority(2)]
         [Summary("Travel to the specified coordinates.")]
@@ -254,6 +262,7 @@ namespace Orikivo
         }
 
         [RequireUser]
+        // [BindToRegion(LocationType.Sector | LocationType.Area)]
         [RequireLocation(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(1)] // This is used to travel to any viable location based on its current location.
         [Summary("Travel to a specified **Construct**.")]

@@ -7,7 +7,7 @@ using System.Text;
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents a grid that allows for complex generic matrix manipulation.
+    /// Represents a grid that allows for complex matrix manipulation.
     /// </summary>
     public class Grid<T> : IEnumerable<T>
     {

@@ -29,10 +29,10 @@
                 };
 
                 // TODO: Allow color mapping on aliases
-                config.EntryFormat = $"[{config.Aliases[LogAlias.Date]}] {config.Aliases[LogAlias.Name]}\n{config.Aliases[LogAlias.LogSeverity]}.{config.Aliases[LogAlias.LogSource]}";
-                config.ExceptionFormat = $"Oops!\nAn error has occured. [{config.Aliases[LogAlias.ExceptionType]}]\n\n{config.Aliases[LogAlias.ExceptionMessage]}";
-                config.MessageFormat = $"{config.Aliases[LogAlias.LogMessage]}";
-                config.ExitFormat = "-- --";
+                config.EntryFormatting = $"[{config.Aliases[LogAlias.Date]}] {config.Aliases[LogAlias.Name]}\n{config.Aliases[LogAlias.LogSeverity]}.{config.Aliases[LogAlias.LogSource]}";
+                config.ExceptionFormatting = $"Oops!\nAn error has occured. [{config.Aliases[LogAlias.ExceptionType]}]\n\n{config.Aliases[LogAlias.ExceptionMessage]}";
+                config.MessageFormatting = $"{config.Aliases[LogAlias.LogMessage]}";
+                config.ExitFormatting = "-- --";
                 return config;
             }
         }
@@ -50,22 +50,24 @@
         /// <summary>
         /// The formatter value to be used when a log event is first called.
         /// </summary>
-        public string EntryFormat { get; set; }
+        public string EntryFormatting { get; set; }
 
         /// <summary>
         /// The formatter value to be used when an exception occurs during execution.
         /// </summary>
-        public string ExceptionFormat { get; set; }
+        public string ExceptionFormatting { get; set; }
 
         /// <summary>
         /// The formatter value to be used when a generic log message is written.
         /// </summary>
-        public string MessageFormat { get; set; }
+        public string MessageFormatting { get; set; }
 
         /// <summary>
         /// This is the formatter value used when a log event is closing.
         /// </summary>
-        public string ExitFormat { get; set; }
+        public string ExitFormatting { get; set; }
+
+        public string DebugFormatting { get; set; }
 
         /// <summary>
         /// Gets or sets a <see cref="bool"/> value that determines if the <see cref="Console"/> should be logging debug events.

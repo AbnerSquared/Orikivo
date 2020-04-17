@@ -1,16 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Orikivo
+namespace Orikivo.Framework
 {
-    /// <summary>
-    /// Represents the configuration for a <see cref="Client"/>.
-    /// </summary>
-    public class DiscordConfig
+    public static class DiscordConfig
     {
         // make discord config separate into their own variables, and create configs when done
         public static DiscordSocketConfig DefaultSocketConfig
@@ -22,13 +16,14 @@ namespace Orikivo
                     AlwaysDownloadUsers = true,
                     LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
                     MessageCacheSize = 100,
-                    LargeThreshold = 250
+                    LargeThreshold = 250,
+                    RateLimitPrecision = RateLimitPrecision.Millisecond
                 };
                 return socketConfig;
             }
         }
 
-        public static CommandServiceConfig DefaultServiceConfig
+        public static CommandServiceConfig DefaultCommandConfig
         {
             get
             {
@@ -37,7 +32,7 @@ namespace Orikivo
                     CaseSensitiveCommands = false,
                     DefaultRunMode = RunMode.Async,
                     LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
-                    ThrowOnError = true, 
+                    ThrowOnError = true
                     //QuotationMarkAliasMap = null
                 };
                 return serviceConfig;

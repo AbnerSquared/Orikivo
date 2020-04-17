@@ -58,8 +58,8 @@ namespace Orikivo
         {
             await message.ModifyAsync(delegate (MessageProperties x)
             {
-                x.Content = Check.NotNull(text) ? text : x.Content;
-                x.Embed = Check.NotNull(embed) ? embed : x.Embed;
+                x.Content = !string.IsNullOrWhiteSpace(text) ? text : x.Content;
+                x.Embed = embed ?? x.Embed;
                 }, options);
         }
 
@@ -77,7 +77,7 @@ namespace Orikivo
             IUserMessage next = await message.Channel.SendImageAsync(
                 image,
                 path,
-                Check.NotNull(text) ? text : message.Content,
+                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
                 embed ?? message.GetRichEmbed(),
                 options: options,
@@ -101,7 +101,7 @@ namespace Orikivo
         {
             IUserMessage next = await message.Channel.SendFileAsync(
                 filePath,
-                Check.NotNull(text) ? text : message.Content,
+                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
                 message.GetRichEmbed(),
                 options);
@@ -121,7 +121,7 @@ namespace Orikivo
             RequestOptions options = null)
         {
             IUserMessage next = await message.Channel.SendMessageAsync(
-                Check.NotNull(text) ? text : message.Content,
+                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
                 embed ?? message.GetRichEmbed(),
                 options);

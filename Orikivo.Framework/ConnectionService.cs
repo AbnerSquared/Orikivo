@@ -5,64 +5,46 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
-namespace Orikivo
+namespace Orikivo.Framework
 {
-    /// <summary>
-    /// Represents a service that handles a network connection to Discord.
-    /// </summary>
-    public class DiscordNetworkService
+    public class ConnectionService
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
         private readonly IServiceProvider _provider;
         private readonly IConfigurationRoot _config;
-        private readonly LogService _console;
+        private bool _compiled;
 
-        /// <summary>
-        /// Initializes a new <see cref="DiscordNetworkService"/>.
-        /// </summary>
-        public DiscordNetworkService(DiscordSocketClient client, CommandService commandService,
-            IServiceProvider provider, IConfigurationRoot config, LogService console)
+        public ConnectionService(DiscordSocketClient client, CommandService commandService,
+            IServiceProvider provider, IConfigurationRoot config)
         {
             _client = client;
             _commandService = commandService;
             _provider = provider;
             _config = config;
-            _console = console;
-            _console.Debug("Established network service.");
         }
 
-        private bool _compiled;
-
-        /// <summary>
-        /// Compiles the <see cref="DiscordNetworkService"/> by adding all specified type-readers and modules.
-        /// </summary>
         internal async Task CompileAsync(Dictionary<Type, TypeReader> typeReaders, List<Type> modules)
         {
             if (_compiled)
                 return;
 
-            if (!Check.NotNull(_config["keys:discord"]))
+            if (string.IsNullOrWhiteSpace(_config["token"]))
                 throw new NullReferenceException("A specified token is required in order to connect. This can be configured in config.json, at 'keys:discord'.");
 
-            await _client.LoginAsync(TokenType.Bot, _config["keys:discord"]);
+            await _client.LoginAsync(TokenType.Bot, _config["token"]);
 
-            if (Check.NotNullOrEmpty(typeReaders))
+            if (typeReaders?.Count > 0)
                 foreach ((Type type, TypeReader reader) in typeReaders)
                 {
                     _commandService.AddTypeReader(type, reader);
-                    _console.Debug($"Compiled '{type}' to a TypeReader.");
                 }
 
-            if (Check.NotNullOrEmpty(modules))
+            if (modules?.Count > 0)
                 foreach (Type moduleType in modules)
                 {
                     await _commandService.AddModuleAsync(moduleType, _provider);
-                    _console.Debug($"Compiled '{moduleType.Name}' to a Module.");
-
-                    // TODO: Create a file export to retain all module info.
                 }
 
             _compiled = true;
@@ -74,6 +56,13 @@ namespace Orikivo
         public async Task StartAsync()
         {
             await _client.StartAsync();
+        }
+
+        public async Task SetStatusAsync(StatusConfig config)
+        {
+            await SetStatusAsync(config.Status);
+            if (config.Activity != null)
+                await SetGameAsync(config.Activity.Name, config.Activity.StreamUrl, config.Activity.Type);
         }
 
         /// <summary>
@@ -98,7 +87,8 @@ namespace Orikivo
         /// Removes the specified command module.
         /// </summary>
         /// <typeparam name="TModule">The module to remove.</typeparam>
-        public async Task RemoveModuleAsync<TModule>() where TModule : class
+        public async Task RemoveModuleAsync<TModule>()
+            where TModule : class
             => await _commandService.RemoveModuleAsync(typeof(TModule));
 
         /// <summary>

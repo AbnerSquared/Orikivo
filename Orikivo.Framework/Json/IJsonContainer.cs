@@ -6,15 +6,16 @@ namespace Orikivo
     /// Represents a generic JSON container.
     /// </summary>
     /// <typeparam name="TKey">The key that points to a corresponding object.</typeparam>
-    /// <typeparam name="TObject">The object that the JSON container will revolve around.</typeparam>
-    public interface IJsonContainer<TKey, TObject>
+    /// <typeparam name="TValue">The object that the JSON container will revolve around.</typeparam>
+    public interface IJsonContainer<TKey, TValue>
     {
-        void Restore(string directory);
-        ConcurrentDictionary<TKey, TObject> Directory { get; }
-        TObject GetOrAdd(TObject @object);
-        bool TryGet(TKey key, out TObject @object);
-        void AddOrUpdate(TObject @object);
-        void Save(TObject @object);
+        string DirectoryPath { get; }
+        ConcurrentDictionary<TKey, TValue> Source { get; }
+        void Reload();
+        TValue GetOrAdd(TKey key);
+        bool TryGet(TKey key, out TValue value);
+        void AddOrUpdate(TKey key, TValue value);
+        void Save(TKey key);
         void SaveAll();
     }
 }

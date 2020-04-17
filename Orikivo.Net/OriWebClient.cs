@@ -25,7 +25,7 @@ namespace Orikivo.Net
 
         public HttpRequestHeaders Headers => _client.DefaultRequestHeaders;
 
-        internal OriWebClient()
+        public OriWebClient()
         {
             _client = DefaultHttpClient;
         }

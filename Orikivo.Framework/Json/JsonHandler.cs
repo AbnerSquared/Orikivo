@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Orikivo
+namespace Orikivo.Framework.Json
 {
     /// <summary>
     /// Represents a handler for JSON serialization and file management.
@@ -15,10 +15,7 @@ namespace Orikivo
         private const string DEFAULT_DIRECTORY = @"..\data\";
 
         internal static readonly string JsonFrame = "{0}.json";
-
         internal static readonly string GlobalFileName = "global";
-
-
         internal static string BaseDirectory = DEFAULT_DIRECTORY;
         internal static JsonSerializerSettings SerializerSettings = DefaultSerializerSettings;
 
@@ -117,50 +114,48 @@ namespace Orikivo
 
             using (StreamReader stream = File.OpenText(path))
             {
-                T tmp = Deserialize<T>(stream.ReadToEndAsync().GetAwaiter().GetResult(), converters);
+                string value = stream.ReadToEndAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                T tmp = Deserialize<T>(value, converters);
                 return tmp ?? default;
             }
         }
 
-        public static JsonContainer<TKey, TObject> RestoreContainer<TKey, TObject>(string directory)
-        {
-            throw new NotImplementedException();
-        }
+        public static ConcurrentDictionary<string, T> DeserializeCurrentDirectory<T>()
+            => DeserializeDirectory<T>(GetCurrentDirectory());
 
-        public static ConcurrentDictionary<ulong, T> RestoreContainer<T>()
+        public static ConcurrentDictionary<string, T> DeserializeDirectory<T>(string directoryPath)
         {
-            ConcurrentDictionary<ulong, T> tmp = new ConcurrentDictionary<ulong, T>();
-            List<string> directory = GetFilePathsFromDirectory(GetCurrentDirectory());
+            var tmp = new ConcurrentDictionary<string, T>();
+            List<string> directory = GetFilePathsFromDirectory(directoryPath);
 
             foreach (string path in directory)
             {
                 T value = Load<T>(path);
-                tmp.AddOrUpdate(ulong.Parse(Path.GetFileNameWithoutExtension(path)), value,
-                    (k, v) => value);
+                tmp.AddOrUpdate(path, value, (k, v) => value);
             }
+
             return tmp;
         }
 
-        public static string GetJsonPath<T>(ulong id)
-            where T : IJsonEntity
-            => GetCurrentDirectory() + string.Format(JsonFrame, id);
-
-        public static bool JsonExists<T>(ulong id)
-            where T : IJsonEntity
-            => File.Exists(GetJsonPath<T>(id));
-
-        private static bool IsValidFileName(string fileName)
+        public static ConcurrentDictionary<TKey, TValue> DeserializeDirectory<TKey, TValue>(string directoryPath, StringConverter<TKey> keyConverter)
         {
-            return !fileName.ContainsAny(Path.GetInvalidFileNameChars());
+            var tmp = new ConcurrentDictionary<TKey, TValue>();
+            List<string> directory = GetFilePathsFromDirectory(directoryPath);
+
+            foreach (string path in directory)
+            {
+                TValue value = Load<TValue>(path);
+                tmp.AddOrUpdate(keyConverter.Deserializer.Invoke(path), value, (k, v) => value);
+            }
+
+            return tmp;
         }
 
-        private static string GetCurrentDirectory()
-            => Directory.CreateDirectory(BaseDirectory).FullName;
+        public static string GetCurrentFilePath(string key)
+            => GetCurrentDirectory() + string.Format(JsonFrame, key);
 
-        private static List<string> GetFilePathsFromDirectory(string directoryPath)
-            => Directory.Exists(directoryPath)
-            ? Directory.GetFiles(directoryPath, "*.json").ToList()
-            : new List<string>();
+        public static bool JsonExists(string path)
+            => File.Exists(GetCurrentFilePath(path));
 
         public static Dictionary<string, T> GetFilesFromDirectory<T>(string directoryPath)
         {
@@ -171,5 +166,19 @@ namespace Orikivo
 
             return tmp;
         }
+
+        public static bool IsValidFileName(string name)
+        {
+            var invalid = Path.GetInvalidFileNameChars();
+            return !name.Any(x => invalid.Contains(x));
+        }
+
+        private static string GetCurrentDirectory()
+            => Directory.CreateDirectory(BaseDirectory).FullName;
+
+        private static List<string> GetFilePathsFromDirectory(string directoryPath)
+            => Directory.Exists(directoryPath)
+            ? Directory.GetFiles(directoryPath, "*.json").ToList()
+            : new List<string>();
     }
 }

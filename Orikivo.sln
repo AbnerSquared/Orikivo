@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Framework", "Orikiv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Net", "Orikivo.Net\Orikivo.Net.csproj", "{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Audio", "Orikivo.Audio\Orikivo.Audio.csproj", "{F01EBE74-4CE7-4CD5-8531-C3F5701F7B54}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,10 +45,6 @@ Global
 		{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F01EBE74-4CE7-4CD5-8531-C3F5701F7B54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F01EBE74-4CE7-4CD5-8531-C3F5701F7B54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F01EBE74-4CE7-4CD5-8531-C3F5701F7B54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F01EBE74-4CE7-4CD5-8531-C3F5701F7B54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

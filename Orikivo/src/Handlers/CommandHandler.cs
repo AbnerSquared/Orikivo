@@ -135,7 +135,7 @@ namespace Orikivo
         private async Task UpdateAsync(CommandInfo command, OriCommandContext ctx)
         {
             // Manage or update cooldowns
-            CooldownAttribute cooldown = command.Attributes.GetAttribute<CooldownAttribute>();
+            CooldownAttribute cooldown = command.Attributes.FindAttribute<CooldownAttribute>();
 
             if (cooldown != null)
             {
@@ -159,7 +159,7 @@ namespace Orikivo
             // TODO: Create expiration check
 
             // Check if the user was updated or doesn't exist to save
-            RequireUserAttribute requireUser = command.Preconditions.GetAttribute<RequireUserAttribute>();
+            RequireUserAttribute requireUser = command.Preconditions.FindAttribute<RequireUserAttribute>();
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false
                 || cooldown != null
@@ -183,7 +183,7 @@ namespace Orikivo
             }
 
             // Check if the guild was updated or doesn't exist to save
-            RequireGuildAttribute requireGuild = command.Preconditions.GetAttribute<RequireGuildAttribute>();
+            RequireGuildAttribute requireGuild = command.Preconditions.FindAttribute<RequireGuildAttribute>();
             if (requireGuild?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
                 ctx.Container.TrySaveGuild(ctx.Server);

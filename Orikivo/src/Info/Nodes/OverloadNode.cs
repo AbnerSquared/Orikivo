@@ -15,8 +15,8 @@ namespace Orikivo
             Group = command.Module.Group; // Use Family to get the full group
             Index = command.Priority;
             Count = command.Module.Commands.Where(x => x.Name == command.Name).Count(); // You could probably use command.Module to get all of the other ones
-            Cooldown = command.Attributes.GetAttribute<CooldownAttribute>()?.Duration;
-            Access = command.Attributes.GetAttribute<AccessAttribute>()?.Level;
+            Cooldown = command.Attributes.FindAttribute<CooldownAttribute>()?.Duration;
+            Access = command.Attributes.FindAttribute<AccessAttribute>()?.Level;
             //Permissions = ... // This could probably use RequireBotPermissions and RequireUserPermissions
             Parameters = command.Parameters.Select(p => new ParameterNode(p)).ToList();
         }

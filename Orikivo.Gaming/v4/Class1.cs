@@ -270,6 +270,11 @@ namespace Orikivo.Arcade
         public void BindKey(Key key) { }
     }
 
+    public class ControllerProperties
+    {
+        public Key[] Keys;
+    }
+
     public class Input
     {
         public Player Player; // who executed this input?

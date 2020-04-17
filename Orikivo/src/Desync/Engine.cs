@@ -36,14 +36,14 @@ namespace Orikivo.Desync
                         {
                             Id = "str_decor",
                             Name = "The Devoid Fountain",
-                            Perimeter = new RegionF(36, 24, 1, 1),
+                            Perimeter = new RegionF(35, 23, 1, 1),
                             Type = StructureType.Decoration
                         },
                         new Structure
                         {
                             Id = "str_tent",
                             Name = "Tent",
-                            Perimeter = new RegionF(64, 64, 1, 1),
+                            Perimeter = new RegionF(63, 63, 1, 1),
                             Type = StructureType.Tent
                         }
                     },
@@ -56,7 +56,7 @@ namespace Orikivo.Desync
                             Perimeter = new RegionF(0, 0, 32, 32),
                             Entrances = new List<Vector2>
                             {
-                                new Vector2(32, 16)
+                                new Vector2(32, 15)
                             },
                             Constructs = new List<Construct>
                             {
@@ -177,10 +177,10 @@ namespace Orikivo.Desync
                         {
                             Id = "area1",
                             Name = "Area B",
-                            Perimeter = new RegionF(48, 48, 16, 16),
+                            Perimeter = new RegionF(47, 47, 16, 16),
                             Entrances = new List<Vector2>
                             {
-                                new Vector2(48, 56)
+                                new Vector2(47, 55)
                             },
                             Constructs = new List<Construct>
                             {
@@ -340,6 +340,66 @@ namespace Orikivo.Desync
             }
 
             throw new ArgumentException("The specified ID does not exists for any Sector or World.");
+        }
+
+        // TODO: Finish this. This should make imagining the visual mapping of a world much easier.
+        // and allows you to see how the constructor for regions and stuff works.
+        public static Bitmap DebugDraw(Location location)
+        {
+            throw new NotImplementedException("Incomplete.");
+        }
+
+        public static Grid<Color> DebugDraw(Sector sector, Husk husk)
+        {
+            var canvas = new Canvas((int)MathF.Floor(sector.Perimeter.Width),
+                (int)MathF.Floor(sector.Perimeter.Height),
+                GammaPalette.GammaGreen[Gamma.Min]);
+
+            canvas.DrawCircle((int)MathF.Floor(husk.Location.X),
+                (int)MathF.Floor(husk.Location.Y),
+                husk.Status.Sight,
+                GammaPalette.GammaGreen[Gamma.Standard]);
+
+            if (canvas.Pixels.Contains((int)MathF.Floor(husk.Location.X), (int)MathF.Floor(husk.Location.Y)))
+                canvas.Pixels.SetValue(GammaPalette.Alconia[Gamma.Min], (int)MathF.Floor(husk.Location.X), (int)MathF.Floor(husk.Location.Y));
+
+                if (sector.Regions?.Count > 0)
+                foreach (Region region in sector.Regions)
+                    canvas.DrawRectangle((int)MathF.Floor(region.Perimeter.X),
+                        (int)MathF.Floor(region.Perimeter.Y),
+                        (int)MathF.Floor(region.Perimeter.Width),
+                        (int)MathF.Floor(region.Perimeter.Height),
+                        GammaPalette.GammaGreen[Gamma.Dim]);
+
+            foreach (Area area in sector.Areas)
+            {
+                canvas.DrawRectangle((int)MathF.Floor(area.Perimeter.X),
+                    (int)MathF.Floor(area.Perimeter.Y),
+                    (int)MathF.Floor(area.Perimeter.Width),
+                    (int)MathF.Floor(area.Perimeter.Height),
+                    GammaPalette.GammaGreen[Gamma.Bright]);
+
+                if (area.Entrances?.Count > 0)
+                    foreach (var entrance in area.Entrances)
+                    {
+                        if (canvas.Pixels.Contains((int)MathF.Floor(entrance.X), (int)MathF.Floor(entrance.Y)))
+                            canvas.Pixels.SetValue(GammaPalette.GammaGreen[Gamma.Max],
+                                (int)MathF.Floor(entrance.X),
+                                (int)MathF.Floor(entrance.Y));
+                    }
+            }
+
+            foreach (Structure structure in sector.Structures)
+                canvas.DrawRectangle((int)MathF.Floor(structure.Perimeter.X),
+                    (int)MathF.Floor(structure.Perimeter.Y),
+                    (int)MathF.Floor(structure.Perimeter.Width),
+                    (int)MathF.Floor(structure.Perimeter.Height),
+                    GammaPalette.NeonRed[Gamma.Max]);
+
+            
+
+            return canvas.Pixels;
+
         }
 
         // TODO: Handle definitions in a .JSON file or somewhere else.
