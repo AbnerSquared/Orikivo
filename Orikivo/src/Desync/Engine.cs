@@ -517,8 +517,8 @@ namespace Orikivo.Desync
                 {
                     new Dialogue
                     {
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Id = "1",
                         Entries = new List<string>
                         {
@@ -532,8 +532,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Neutral,
                         Id = "2",
                         Entries = new List<string>
                         {
@@ -546,8 +546,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Id = "3",
                         Entries = new List<string>
                         {
@@ -561,8 +561,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Confused,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Confused,
                         Id = "4",
                         Entries = new List<string>
                         {
@@ -576,8 +576,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "5",
                         Entries = new List<string>
                         {
@@ -591,8 +591,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Neutral,
                         Id = "6",
                         Entries = new List<string>
                         {
@@ -605,8 +605,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Id = "7",
                         Entries = new List<string>
                         {
@@ -621,8 +621,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Confused,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Confused,
                         Id = "8",
                         Entries = new List<string>
                         {
@@ -635,8 +635,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Question,
-                        Tone = DialogueTone.Happy,
+                        Type = DialogType.Question,
+                        Tone = DialogTone.Happy,
                         Id = "9",
                         Entries = new List<string>
                         {
@@ -651,8 +651,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "10",
                         Entries = new List<string>
                         {
@@ -666,8 +666,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "11",
                         Entries = new List<string>
                         {
@@ -681,8 +681,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Confused,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Confused,
                         Id = "12",
                         Entries = new List<string>
                         {
@@ -695,8 +695,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Id = "13",
                         Entries = new List<string>
                         {
@@ -710,8 +710,8 @@ namespace Orikivo.Desync
                     },
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "14",
                         Entries = new List<string>
                         {
@@ -725,8 +725,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "15",
                         Entries = new List<string>
                         {
@@ -740,8 +740,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Happy,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Happy,
                         Id = "16",
                         Entries = new List<string>
                         {
@@ -755,8 +755,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "17",
                         Entries = new List<string>
                         {
@@ -770,8 +770,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Neutral,
                         Id = "18",
                         Entries = new List<string>
                         {
@@ -784,8 +784,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Shocked,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Shocked,
                         Id = "19",
                         Entries = new List<string>
                         {
@@ -799,8 +799,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Reply,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Reply,
+                        Tone = DialogTone.Neutral,
                         Id = "20",
                         Entries = new List<string>
                         {
@@ -814,8 +814,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Happy,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Happy,
                         Id = "21",
                         Entries = new List<string>
                         {
@@ -828,8 +828,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Id = "22",
                         Entries = new List<string>
                         {
@@ -843,8 +843,8 @@ namespace Orikivo.Desync
 
                     new Dialogue
                     {
-                        Type = DialogueType.End,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.End,
+                        Tone = DialogTone.Neutral,
                         Id = "23",
                         Entries = new List<string>
                         {
@@ -867,8 +867,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "0",
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "What the heck is this?"
@@ -881,8 +881,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "3",
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "Nobody knows. Why'd you even walk up to me in the first place?"
@@ -894,8 +894,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "1",
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "I'm outta here."
@@ -908,8 +908,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "2",
-                        Type = DialogueType.End,
-                        Tone = DialogueTone.Happy,
+                        Type = DialogType.End,
+                        Tone = DialogTone.Happy,
                         Entries = new List<string>
                         {
                             "See you around!"
@@ -932,8 +932,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "0",
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "Who are you?"
@@ -946,8 +946,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "3",
-                        Type = DialogueType.Answer,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Answer,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "Does it matter?"
@@ -959,8 +959,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "1",
-                        Type = DialogueType.Initial,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.Initial,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "I need to go."
@@ -973,8 +973,8 @@ namespace Orikivo.Desync
                     new Dialogue
                     {
                         Id = "2",
-                        Type = DialogueType.End,
-                        Tone = DialogueTone.Neutral,
+                        Type = DialogType.End,
+                        Tone = DialogTone.Neutral,
                         Entries = new List<string>
                         {
                             "Goodbye."

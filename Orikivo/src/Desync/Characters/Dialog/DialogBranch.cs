@@ -1,28 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Orikivo.Desync
 {
-    // adjust relationship level on the end of a dialog branch.
     public class DialogBranch
     {
         public string Id { get; set; }
 
         public List<Dialog> Dialogs { get; set; }
 
-        // the topic
-        public DialogTopic Topic { get; set; }
+        // gets the list of starting dialogs to choose from based on the npc and player.
+        public List<Dialog> GetEntryDialogs(Npc npc, Husk husk, HuskBrain brain)
+        {
+            throw new NotImplementedException();
+        }
 
-        // for the NPC
-        public DialogTailor Tailor { get; set; }
+        // gets the best reply for a dialog based on the criteria met for an NPC.
+        public Dialog GetBestReply(Npc npc, Husk husk, HuskBrain brain)
+        {
+            throw new NotImplementedException();
+        }
 
-        // for the user
-        public DialogRecipient Recipient { get; set; }
-
-        // how important this branch is for a user.
-        public float Impact { get; set; }
-
-        // TODO: Figure out a class that will update a user's objectives, or gifts
-        // IF the dialog results in giving a gift to someone, etc.
+        // gets a collection of available replies for the player to use based
+        // on the criteria met.
+        public List<Dialog> GetAvailableReplys(Npc npc, Husk husk, HuskBrain brain)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

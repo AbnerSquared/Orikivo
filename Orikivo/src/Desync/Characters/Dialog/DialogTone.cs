@@ -4,7 +4,7 @@
     /// <summary>
     /// Represents the effect that a <see cref="Dialogue"/> provides.
     /// </summary>
-    public enum DialogueTone
+    public enum DialogTone
     {
         Neutral = 1,
         Happy = 2,

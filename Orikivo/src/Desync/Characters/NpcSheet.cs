@@ -14,7 +14,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// A list of facial expressions that this <see cref="Npc"/> might use when speaking.
         /// </summary>
-        public Dictionary<DialogueTone, Sprite> Reactions { get; set; }
+        public Dictionary<DialogTone, Sprite> Reactions { get; set; }
         
         public Sprite Body { get; set; }
         public Point BodyOffset { get; set; }
@@ -34,16 +34,16 @@ namespace Orikivo.Desync
         // overlay head
         // body frame
 
-        public Sprite GetReactionOrDefault(DialogueTone tone)
+        public Sprite GetReactionOrDefault(DialogTone tone)
         {
             if (Reactions.ContainsKey(tone))
                 return Reactions[tone];
 
-            return Reactions[DialogueTone.Neutral];
+            return Reactions[DialogTone.Neutral];
         }
 
         // TODO: Move to GraphicsHandler
-        public Bitmap GetDisplayImage(DialogueTone tone, GammaPalette palette)
+        public Bitmap GetDisplayImage(DialogTone tone, GammaPalette palette)
         {
             Bitmap result = new Bitmap(72, 64);
 

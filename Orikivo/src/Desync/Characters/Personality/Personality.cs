@@ -19,6 +19,6 @@ namespace Orikivo.Desync
         public Archetype Archetype { get; set; }
 
         // a multiplier set for each dialogue tone that affects their relations.
-        public Dictionary<DialogueTone, float> ToneImpactRates { get; }
+        public Dictionary<DialogTone, float> ToneImpactRates { get; }
     }
 }

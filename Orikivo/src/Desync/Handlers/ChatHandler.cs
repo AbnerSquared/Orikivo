@@ -11,7 +11,15 @@ using Discord;
 
 namespace Orikivo
 {
-
+    public enum ChatState
+    {
+        Entry, // when you first start talking to an npc
+        Speak, // when you are currently speaking to an npc
+        Trade, // when you are willing to trade with an npc
+        Gift, // when you are gifting to an npc
+        Request, // when you are getting a request from an npc
+        Give // when you are giving to an npc
+    }
     /// <summary>
     /// Represents a custom dialogue session for an <see cref="Desync.Npc"/>.
     /// </summary>
@@ -27,7 +35,11 @@ namespace Orikivo
 
         public OriCommandContext Context { get; }
 
-        public IUserMessage InitialMessage { get; private set; }
+
+        private Husk Husk => Context.Account.Husk;
+        private HuskBrain Brain => Context.Account.Brain;
+
+        public IUserMessage MessageReference { get; private set; }
 
         public DialoguePool Pool { get; }
 
@@ -51,9 +63,9 @@ namespace Orikivo
 
             // only if a sheet is supplied, should it be drawn.
             if (Npc.Appearance != null)
-                InitialMessage = await Context.Channel.SendImageAsync(Npc.Appearance.GetDisplayImage(DialogueTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox(Pool.Entry));
+                MessageReference = await Context.Channel.SendImageAsync(Npc.Appearance.GetDisplayImage(DialogTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox(Pool.Entry));
             else
-                InitialMessage = await Context.Channel.SendMessageAsync(GetReplyBox(Pool.Entry));
+                MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox(Pool.Entry));
         }
 
         private string GetReplyBox(string response, bool showReplies = true)
@@ -77,13 +89,13 @@ namespace Orikivo
                 Dialogue response = Pool.GetDialogue(message.Content);
                 Dialogue loop = Pool.GetDialogue(response.GetBestReplyId(Npc.Personality.Archetype));
 
-                if (loop.Type == DialogueType.End)
+                if (loop.Type == DialogType.End)
                 {
-                    await InitialMessage.ModifyAsync(x => x.Content = GetReplyBox(loop.NextEntry(), false));
+                    await MessageReference.ModifyAsync(x => x.Content = GetReplyBox(loop.NextEntry(), false));
                     return ActionResult.Success;
                 }
 
-                if (loop.Type == DialogueType.Answer)
+                if (loop.Type == DialogType.Answer)
                 {
                     ResponseIds = Pool.GetEntryTopics().Select(x => x.Id).ToList();
                 }
@@ -94,7 +106,7 @@ namespace Orikivo
                 else
                 {
                     chat.AppendLine($"> **No responses available. Closing...**");
-                    await InitialMessage.ModifyAsync(x => x.Content = chat.ToString());
+                    await MessageReference.ModifyAsync(x => x.Content = chat.ToString());
                     return ActionResult.Fail;
                 }
 
@@ -103,22 +115,22 @@ namespace Orikivo
                 await message.DeleteAsync();
 
                 //await Context.Channel.SendImageAsync(Npc.Sheet.GetDisplayImage(loop.Tone, Palette), "../tmp/npc.png");
-                await InitialMessage.ModifyAsync(x => x.Content = chat.ToString());
+                await MessageReference.ModifyAsync(x => x.Content = chat.ToString());
                 
                 return ActionResult.Continue;
             }
             else
             {
-                string old = InitialMessage.Content;
+                string old = MessageReference.Content;
 
-                await InitialMessage.ModifyAsync(x => x.Content = $"> **Please input a correct response ID.**\n" + old);
+                await MessageReference.ModifyAsync(x => x.Content = $"> **Please input a correct response ID.**\n" + old);
                 return ActionResult.Continue;
             }
         }
 
         public override async Task OnTimeoutAsync(SocketMessage message)
         {
-            await InitialMessage.ModifyAsync(x => x.Content = GetReplyBox(Pool.Timeout, false));
+            await MessageReference.ModifyAsync(x => x.Content = GetReplyBox(Pool.Timeout, false));
         }
     }
 }

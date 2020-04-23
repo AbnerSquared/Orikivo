@@ -32,7 +32,7 @@ namespace Orikivo.Desync
         public List<Dialogue> Dialogue { get; set; }
 
         public List<Dialogue> GetEntryTopics()
-            => Dialogue.Where(x => x.Type == DialogueType.Initial).ToList();
+            => Dialogue.Where(x => x.Type == DialogType.Initial).ToList();
 
         public Dialogue GetDialogue(string id)
         {

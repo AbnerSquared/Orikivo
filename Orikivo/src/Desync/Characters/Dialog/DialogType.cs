@@ -6,7 +6,7 @@
     /// <summary>
     /// Represents the way a <see cref="Dialogue"/> entry is handled.
     /// </summary>
-    public enum DialogueType
+    public enum DialogType
     {
         /// <summary>
         /// Represents a starting topic for a conversation.
@@ -14,7 +14,7 @@
         Initial = 1,
 
         /// <summary>
-        /// Marks the end of a conversation.
+        /// Closes a conversation.
         /// </summary>
         End = 2,
 

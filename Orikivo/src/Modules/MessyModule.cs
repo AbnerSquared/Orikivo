@@ -450,13 +450,13 @@ namespace Orikivo
                         Head = bank.GetSprite("noname_head"),
                         HeadOffset = new Point(28, 5),
                         FaceOffset = new Point(28, 5),
-                        Reactions = new Dictionary<DialogueTone, Sprite>
+                        Reactions = new Dictionary<DialogTone, Sprite>
                         {
-                            [DialogueTone.Neutral] = bank.GetSprite("noname_neutral"),
-                            [DialogueTone.Happy] = bank.GetSprite("noname_happy"),
-                            [DialogueTone.Sad] = bank.GetSprite("noname_sad"),
-                            [DialogueTone.Confused] = bank.GetSprite("noname_confused"),
-                            [DialogueTone.Shocked] = bank.GetSprite("noname_shocked")
+                            [DialogTone.Neutral] = bank.GetSprite("noname_neutral"),
+                            [DialogTone.Happy] = bank.GetSprite("noname_happy"),
+                            [DialogTone.Sad] = bank.GetSprite("noname_sad"),
+                            [DialogTone.Confused] = bank.GetSprite("noname_confused"),
+                            [DialogTone.Shocked] = bank.GetSprite("noname_shocked")
                         }
                     }
                 };
