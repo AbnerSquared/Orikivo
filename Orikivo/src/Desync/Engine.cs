@@ -18,7 +18,7 @@ namespace Orikivo.Desync
         public static World World => new World
         {
             Id = "world0",
-            Name = "Test World",
+            Name = "Okonos",
             Perimeter = new Vector2(512, 512),
             Scale = 1.0f, // 1 pixel in the world would take 1 minute at default ratio.
             // sectors are 1/4 of the distance ratio
@@ -71,7 +71,7 @@ namespace Orikivo.Desync
                                     Catalog = new CatalogGenerator
                                     {
                                         Size = 4,
-                                        RequiredType = ItemType.Physical,
+                                        Dimension = ItemDimension.Physical,
                                         MaxStack = 2
                                     },
                                     Vendors = new List<Vendor>
@@ -82,7 +82,11 @@ namespace Orikivo.Desync
                                             Name = "Vendor",
                                             Personality = new Personality
                                             {
-                                                Archetype = Archetype.Generic
+                                                Mind = MindType.Extravert,
+                                                Energy = EnergyType.Intuitive,
+                                                Nature = NatureType.Thinking,
+                                                Tactics = TacticType.Judging,
+                                                Identity = IdentityType.Assertive
                                             },
                                             Schedule = new Schedule
                                             {
@@ -104,7 +108,11 @@ namespace Orikivo.Desync
                                             Name = "Theta",
                                             Personality = new Personality
                                             {
-                                                Archetype = Archetype.Generic
+                                                Mind = MindType.Extravert,
+                                                Energy = EnergyType.Intuitive,
+                                                Nature = NatureType.Thinking,
+                                                Tactics = TacticType.Judging,
+                                                Identity = IdentityType.Assertive
                                             }
                                         },
                                     }
@@ -121,7 +129,11 @@ namespace Orikivo.Desync
                                             Name = "Alpha",
                                             Personality = new Personality
                                             {
-                                                Archetype = Archetype.Generic
+                                                Mind = MindType.Extravert,
+                                                Energy = EnergyType.Intuitive,
+                                                Nature = NatureType.Thinking,
+                                                Tactics = TacticType.Judging,
+                                                Identity = IdentityType.Assertive
                                             }
                                         },
                                         new Npc
@@ -130,7 +142,11 @@ namespace Orikivo.Desync
                                             Name = "Beta",
                                             Personality = new Personality
                                             {
-                                                Archetype = Archetype.Generic
+                                                Mind = MindType.Extravert,
+                                                Energy = EnergyType.Intuitive,
+                                                Nature = NatureType.Thinking,
+                                                Tactics = TacticType.Judging,
+                                                Identity = IdentityType.Assertive
                                             }
                                         }
                                     }
@@ -152,7 +168,11 @@ namespace Orikivo.Desync
                                                     Name = "NPC A1.1",
                                                     Personality = new Personality
                                                     {
-                                                        Archetype = Archetype.Generic
+                                                        Mind = MindType.Extravert,
+                                                        Energy = EnergyType.Intuitive,
+                                                        Nature = NatureType.Thinking,
+                                                        Tactics = TacticType.Judging,
+                                                        Identity = IdentityType.Assertive
                                                     }
                                                 }
                                             }
@@ -168,7 +188,11 @@ namespace Orikivo.Desync
                                     Name = "Area Guide",
                                     Personality = new Personality
                                     {
-                                        Archetype = Archetype.Generic
+                                        Mind = MindType.Extravert,
+                                        Energy = EnergyType.Intuitive,
+                                        Nature = NatureType.Thinking,
+                                        Tactics = TacticType.Judging,
+                                        Identity = IdentityType.Assertive
                                     }
                                 }
                             }
@@ -201,7 +225,11 @@ namespace Orikivo.Desync
                                                     Name = "NPC B1.1",
                                                     Personality = new Personality
                                                     {
-                                                        Archetype = Archetype.Generic
+                                                        Mind = MindType.Extravert,
+                                                        Energy = EnergyType.Intuitive,
+                                                        Nature = NatureType.Thinking,
+                                                        Tactics = TacticType.Judging,
+                                                        Identity = IdentityType.Assertive
                                                     }
                                                 }
                                             }
@@ -227,7 +255,7 @@ namespace Orikivo.Desync
                 throw new ArgumentException("The specified initial location ID does not point to a location.");
 
             user.Husk = new Husk(location.GetLocator());
-            user.Brain.SetFlag(HuskFlags.Initialized);
+            user.Brain.SetFlag(DesyncFlags.Initialized);
         }
 
         public static byte[] CompressMap(Grid<bool> data)
@@ -420,7 +448,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Type = ItemType.Physical,
+                Dimension = ItemDimension.Physical,
             },
             ["test_item_2"] = new Item
             {
@@ -436,7 +464,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Type = ItemType.Physical,
+                Dimension = ItemDimension.Physical,
             },
             ["test_item_1"] = new Item
             {
@@ -452,7 +480,7 @@ namespace Orikivo.Desync
                 CanBuy = true,
                 CanSell = true,
                 Rarity = ItemRarity.Common,
-                Type = ItemType.Physical,
+                Dimension = ItemDimension.Physical,
             },
             ["pocket_lawyer"] = new Item
             {
@@ -468,7 +496,7 @@ namespace Orikivo.Desync
                 GiftLimit = 1,
                 Rarity = ItemRarity.Common,
                 Tag = ItemTag.Callable,
-                Type = ItemType.Digital,
+                Dimension = ItemDimension.Digital,
                 ToOwn = u => u.Debt >= 1000,
                 Value = 40,
                 CanBuy = true,
@@ -1015,14 +1043,11 @@ namespace Orikivo.Desync
         public static Booster GetBooster(string id)
             => Boosters[id];
 
-        public static Item GetItem(string name)
-            => Items[name];
+        public static Item GetItem(string id)
+            => Items[id];
 
-        public static IEnumerable<Item> GetRealItems()
-            => Items.Values.Where(x => x.Type == ItemType.Physical);
-
-        public static IEnumerable<Item> GetDigitalItems()
-            => Items.Values.Where(x => x.Type == ItemType.Digital);
+        public static IEnumerable<Item> GetItemsByDimension(ItemDimension dimension)
+            => Items.Values.Where(x => x.Dimension == dimension);
         #endregion
 
         // TODO: Handle if the market is currently open in these methods.
@@ -1184,7 +1209,7 @@ namespace Orikivo.Desync
                 }
             }
 
-            foreach (Structure structure in sector.Structures.Where(x => brain.HasDiscovered(x.Id)))
+            foreach (Structure structure in sector.Structures.Where(x => brain.HasDiscoveredRegion(x.Id)))
             {
                 if (structure.Id == id)
                 {
@@ -1237,6 +1262,39 @@ namespace Orikivo.Desync
             }
 
             return TravelResult.Invalid;
+        }
+
+        public static void Recover(User user, Memorial memorial)
+        {
+            if (!user.Brain.Memorials.Contains(memorial))
+                return;
+
+            // TODO: create a system that allows you to selectively recover items
+            user.Husk.Backpack = memorial.Backpack;
+
+            user.Brain.Memorials.Remove(memorial);
+        }
+
+        public static bool CanAct(User user)
+        {
+            if (user.Husk == null)
+            {
+                if (user.Brain.ResyncAt.HasValue)
+                {
+                    if ((DateTime.UtcNow - user.Brain.ResyncAt.Value).TotalSeconds > 0)
+                    {
+                        user.Husk = new Husk(World.Find("ctr0").GetLocator());
+                        user.Brain.ResyncAt = null;
+                        return true;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static bool CanMove(User user, Husk husk)
@@ -1324,9 +1382,18 @@ namespace Orikivo.Desync
                         locations.AppendLine($"**Points of Interest**:");
 
                         var summaries = structures.Select(x =>
-                        brain.HasDiscovered(x.Id)
+                        brain.HasDiscoveredRegion(x.Id)
                         ? $"> `{x.Id}` • {x.Name}"
-                        : $"`> ({x.Perimeter.Position.X}, {x.Perimeter.Position.Y})` • Unknown Structure");
+                        : $"> `({x.Perimeter.Position.X}, {x.Perimeter.Position.Y})` • Unknown Structure");
+
+                        locations.AppendJoin("\n", summaries);
+                    }
+
+                    if (brain.Memorials?.Where(x => x.Location.Id == sector.Id).Count() > 0)
+                    {
+                        locations.Append("\n");
+                        var summaries = brain.Memorials.Select(x =>
+                        $">` ({x.Location.X}, {x.Location.Y})` • Memorial");
 
                         locations.AppendJoin("\n", summaries);
                     }
@@ -1482,10 +1549,10 @@ namespace Orikivo.Desync
         {
             if (structure != null)
             {
-                if (brain.HasDiscovered(structure.Id))
+                if (brain.HasDiscoveredRegion(structure.Id))
                     return false;
 
-                brain.MarkAsDiscovered(structure.Id);
+                brain.IdentifyRegion(structure.Id);
                 return true;
             }
 
@@ -1500,6 +1567,20 @@ namespace Orikivo.Desync
                 return sight.Intersects(structure.Perimeter);
 
             return false;
+        }
+
+        public static bool IsNearPoint(Husk husk, Vector2 point)
+        {
+            CircleF sight = GetSightHitbox(husk);
+
+            return sight.Contains(point);
+        }
+
+        public static bool IsNearPoint(Husk husk, float x, float y)
+        {
+            CircleF sight = GetSightHitbox(husk);
+
+            return sight.Contains(new Vector2(x, y));
         }
 
         public static bool IsNearClosestStructure(Husk husk, out Structure closest)
@@ -1539,7 +1620,7 @@ namespace Orikivo.Desync
 
             foreach (Structure structure in sector.Structures)
             {
-                Line line = LineFromSightToRegion(sight, structure);
+                Line line = HitboxEngine.GetLineFromOriginToRegion(sight, structure);
                 float distance = line.GetLength();
 
                 if (distance < nearest)
@@ -1552,17 +1633,7 @@ namespace Orikivo.Desync
             return closest;
         }
 
-        private static Line LineFromSightToRegion(CircleF sight, Region region)
-        {
-            Line fromOrigin = sight.LineFromOrigin(region.Perimeter.Origin);
-            var quad = new Quad(region.Perimeter);
-            Vector2? intersection = fromOrigin.GetClosestIntersection(quad);
-
-            if (intersection.HasValue)
-                fromOrigin.B = intersection.Value;
-
-            return fromOrigin;
-        }
+        
 
         private static Route CreateRoute(float x, float y, RegionF region)
             => new Route

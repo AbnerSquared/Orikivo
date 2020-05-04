@@ -11,16 +11,18 @@ namespace Orikivo.Desync
         internal static readonly string Sight = "sight";
         internal static readonly string Exposure = "exposure";
         internal static readonly string Speed = "speed";
+        internal static readonly string Reach = "reach";
 
         public HuskAttributes() { }
 
         [JsonConstructor]
-        internal HuskAttributes(int maxHp, int maxSight, int maxExposure, int maxSpeed)
+        internal HuskAttributes(int maxHp, int maxSight, int maxExposure, int maxSpeed, int maxReach)
         {
             MaxHealth = maxHp;
             MaxSight = maxSight;
             MaxExposure = maxExposure;
             MaxSpeed = maxSpeed;
+            MaxReach = maxReach;
         }
 
         /// <summary>
@@ -47,5 +49,11 @@ namespace Orikivo.Desync
         /// </summary>
         [JsonProperty("max_speed")]
         public int MaxSpeed { get; set; }
+
+        /// <summary>
+        /// Represents a <see cref="Husk"/>'s max possible interactive distance. This determines how close they have to be to an object or location to interact with it.
+        /// </summary>
+        [JsonProperty("max_reach")]
+        public int MaxReach { get; set; }
     }
 }

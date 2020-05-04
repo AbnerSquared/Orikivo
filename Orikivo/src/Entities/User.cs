@@ -22,7 +22,7 @@ namespace Orikivo.Desync
             ulong id, string username, string discriminator, DateTime createdAt,
             Notifier notifier, ulong balance, ulong tokenBalance, ulong debt,
             Dictionary<string, ItemData> items, Dictionary<ulong, GuildData> connections,
-            ObjectiveData objectives, Dictionary<string, DateTime> cooldowns, Dictionary<ExpType, ulong> expData,
+            ObjectiveMainData objectives, Dictionary<string, DateTime> cooldowns, Dictionary<ExpType, ulong> expData,
             int ascent, Dictionary<string, long> stats, Dictionary<string, MeritData> merits, List<BoosterData> boosters,
             Dictionary<string, int> upgrades, HuskBrain brain, Husk husk, UserConfig config, CardConfig card)
         {
@@ -72,7 +72,7 @@ namespace Orikivo.Desync
 
             Items = new Dictionary<string, ItemData>();
             Connections = new Dictionary<ulong, GuildData>();
-            Objectives = new ObjectiveData();
+            Objectives = new ObjectiveMainData();
 
             Cooldowns = new Dictionary<string, DateTime>();
             InternalCooldowns = new Dictionary<string, DateTime>();
@@ -135,7 +135,7 @@ namespace Orikivo.Desync
         public Dictionary<ulong, GuildData> Connections { get; } = new Dictionary<ulong, GuildData>();
 
         [JsonProperty("objectives"), BsonElement("objectives")]
-        public ObjectiveData Objectives { get; } = new ObjectiveData();
+        public ObjectiveMainData Objectives { get; } = new ObjectiveMainData();
 
         /// <summary>
         /// A collection of cooldowns, typically utilized by an <see cref="Item"/>.

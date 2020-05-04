@@ -37,6 +37,7 @@ namespace Orikivo
 
 
         private Husk Husk => Context.Account.Husk;
+
         private HuskBrain Brain => Context.Account.Brain;
 
         public IUserMessage MessageReference { get; private set; }
@@ -53,17 +54,17 @@ namespace Orikivo
 
         public GammaPalette Palette { get; set; }
         
-        public Relationship Relationship { get; set; }
+        public AffinityData Relationship { get; set; }
 
         public override async Task OnStartAsync()
         {
 
             ResponseIds = Pool.GetEntryTopics().Select(x => x.Id).ToList();
-            Relationship = Context.Account.Brain.GetOrCreateRelationship(Npc);
+            Relationship = Context.Account.Brain.GetOrAddAffinity(Npc);
 
             // only if a sheet is supplied, should it be drawn.
-            if (Npc.Appearance != null)
-                MessageReference = await Context.Channel.SendImageAsync(Npc.Appearance.GetDisplayImage(DialogTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox(Pool.Entry));
+            if (Npc.Model != null)
+                MessageReference = await Context.Channel.SendImageAsync(Npc.Model.Render(DialogTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox(Pool.Entry));
             else
                 MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox(Pool.Entry));
         }
@@ -87,7 +88,7 @@ namespace Orikivo
                 StringBuilder chat = new StringBuilder();
 
                 Dialogue response = Pool.GetDialogue(message.Content);
-                Dialogue loop = Pool.GetDialogue(response.GetBestReplyId(Npc.Personality.Archetype));
+                Dialogue loop = Pool.GetDialogue(response.GetBestReplyId(Npc.Personality));
 
                 if (loop.Type == DialogType.End)
                 {

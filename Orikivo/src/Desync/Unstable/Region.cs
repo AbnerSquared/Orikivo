@@ -444,7 +444,7 @@ namespace Orikivo.Desync.Unstable
         public int Size;
 
         // the variant that this catalog is meant for.
-        public ItemType Type;
+        public ItemDimension Type;
 
         // info about each random item entry, if no entry is chosen, it can be left blank
         // this means it can be possible to roll an empty catalog, which means a market could be

@@ -21,7 +21,7 @@ namespace Orikivo
 
         [RequireUser]
         //[OnlyWhen(LogicGate.NAND, HuskFlags.Initialized)]
-        [CheckFlags(Gate.NOT, HuskFlags.Initialized)]
+        [CheckFlags(Gate.NOT, DesyncFlags.Initialized)]
         [Command("awaken")]
         [Summary("Awaken your **Husk** in the physical world for the first time.")]
         public async Task AwakenAsync()
@@ -41,6 +41,12 @@ namespace Orikivo
         [Summary("View a quick summary about the relations of everybody you know.")]
         public async Task GetRelationsAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             StringBuilder relations = new StringBuilder();
 
             if (Context.Account.Brain.Relations.Count == 0)
@@ -48,7 +54,7 @@ namespace Orikivo
             else
             {
                 relations.AppendLine("Relationships:");
-                relations.AppendJoin("\n", Context.Account.Brain.Relations.Select(x => $"`{x.Key}` [**{Relationship.GetLevel(x.Value).ToString()}**]"));
+                relations.AppendJoin("\n", Context.Account.Brain.Relations.Select(x => $"`{x.Key}` [**{AffinityData.GetLevel(x.Value).ToString()}**]"));
 
                 await Context.Channel.SendMessageAsync(Context.Account, relations.ToString());
             }
@@ -64,6 +70,12 @@ namespace Orikivo
         [Summary("View a list of available locations you can travel to in your current **Area**.")]
         public async Task GoToAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             if (!Engine.CanMove(Context.Account, Context.Account.Husk))
             {
                 await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
@@ -92,6 +104,12 @@ namespace Orikivo
         [Summary("Leave the current **Location** you are in.")]
         public async Task LeaveConstructAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             if (Engine.TryLeave(Context.Account.Husk))
             {
                 await Context.Channel.SendMessageAsync($"You are now in **{Context.Account.Husk.Location.GetInnerName()}**.");
@@ -104,6 +122,12 @@ namespace Orikivo
         [Summary("Determine the **Structure** you are currently at.")]
         public async Task IdentifyAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             if (!Engine.IsNearClosestStructure(Context.Account.Husk, out Structure structure))
             {
                 await Context.Channel.SendMessageAsync("You are not near a structure.");
@@ -123,6 +147,12 @@ namespace Orikivo
         [Summary("Shows all available NPCs you are able to chat with.")]
         public async Task ShowNpcsAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             await Context.Channel.SendMessageAsync(Context.Account, Engine.ShowNpcs(Context.Account.Husk));
         }
 
@@ -138,6 +168,12 @@ namespace Orikivo
         [Summary("Initiates conversation with a specified NPC.")]
         public async Task ChatAsync(string id)
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             if (Engine.CanChatWithNpc(Context.Account.Husk, id, out Npc npc))
             {
                 // TODO: Handle how dialogue pools are chosen.
@@ -155,7 +191,38 @@ namespace Orikivo
         [Summary("View your current status.")]
         public async Task ViewStatusAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             await Context.Channel.SendMessageAsync(HuskHandler.ViewStatus(Context.Account, Context.Account.Husk));
+        }
+
+        [RequireUser]
+        [Access(AccessLevel.Dev)]
+        [Command("desync")]
+        [Summary("commit die, and respawn.")]
+        public async Task DesyncAsync()
+        {
+
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You're already desynchronized.");
+                return;
+            }
+            // TODO: implement resync distance time
+            // implement item selection from backpack.
+
+            Memorial memorial = Context.Account.Husk.GetMemorial();
+            Context.Account.Husk = null;
+            Context.Account.Brain.Memorials.Add(memorial);
+            var now = DateTime.UtcNow;
+            Context.Account.Brain.ResyncAt = now.AddSeconds(10);
+
+            string timer = OriFormat.GetShortTime((Context.Account.Brain.ResyncAt.Value - now).TotalSeconds);
+            await Context.Channel.SendMessageAsync($"You have been desychronized. You will be resynchronized in {timer}.");
         }
 
 
@@ -166,6 +233,12 @@ namespace Orikivo
         [Summary("Go to the current **Vendor** and begin shopping.")]
         public async Task ShopAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             if (Engine.CanShopAtCurrentLocation(Context.Account.Husk, out Market market))
             {
                 ShopHandler shop = new ShopHandler(Context, market, PaletteType.Glass);
@@ -179,7 +252,7 @@ namespace Orikivo
 
         [RequireUser(AccountHandling.ReadOnly)]
         // [OnlyWhen(LogicGate.AND, HuskFlags.Initialized)]
-        [CheckFlags(Gate.HAS, HuskFlags.Initialized)]
+        [CheckFlags(Gate.HAS, DesyncFlags.Initialized)]
         [Command("actions"), Alias("act")]
         public async Task GetActionsAsync()
         {
@@ -194,6 +267,12 @@ namespace Orikivo
         [Summary("Gets the current schedule in use for this **Market**.")]
         public async Task GetScheduleAsync()
         {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
             await Context.Channel.SendMessageAsync(((Market)(Context.Account.Husk.Location.GetLocation() as Construct)).ShowSchedule());
         }
 
@@ -206,7 +285,6 @@ namespace Orikivo
         [Summary("Travel up a floor.")]
         public async Task GoUpAsync()
         {
-
         }
 
         [RequireUser]
@@ -217,6 +295,63 @@ namespace Orikivo
         public async Task GoDownAsync()
         {
 
+        }
+
+        [RequireUser]
+        [RequireLocation(LocationType.Sector | LocationType.Field | LocationType.World)]
+        [Command("recover")]
+        [Summary("If near a memorial, recover its belongings.")]
+        public async Task RecoverAsync()
+        {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
+            if (!Engine.CanMove(Context.Account, Context.Account.Husk))
+            {
+                await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
+                return;
+            }
+
+            foreach (Memorial memorial in Context.Account.Brain.Memorials)
+            {
+                if (Engine.IsNearPoint(Context.Account.Husk, memorial.Location.X, memorial.Location.Y))
+                {
+                    Engine.Recover(Context.Account, memorial);
+                    await Context.Channel.SendMessageAsync("You have recovered your belongings.");
+                    return;
+                }
+            }
+
+            await Context.Channel.SendMessageAsync("You are not near a memorial.");
+        }
+
+        [RequireUser]
+        [Command("backpack")]
+        [Summary("View your backpack.")]
+        public async Task ViewBackpackAsync()
+        {
+            if (!Engine.CanAct(Context.Account))
+            {
+                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                return;
+            }
+
+            if (Context.Account.Husk?.Backpack?.ItemIds?.Count() == 0)
+            {
+                await Context.Channel.SendMessageAsync("You do not have any items in your backpack.");
+                return;
+            }
+
+            var items = new StringBuilder();
+            foreach(var item in Context.Account.Husk.Backpack.GetItems())
+            {
+                items.AppendLine($"> **{item.Name}** (x{Context.Account.Husk.Backpack.ItemIds[item.Id]})");
+            }
+
+            await Context.Channel.SendMessageAsync(items.ToString());
         }
 
         [RequireUser]
@@ -255,7 +390,7 @@ namespace Orikivo
 
                 case TravelResult.Invalid:
                 default:
-                    await Context.Channel.SendMessageAsync("I'm sorry, but I could not pinpoints the coordinates you were referring to. Did you by any chance mistype?");
+                    await Context.Channel.SendMessageAsync("I'm sorry, but I could not pinpoint the coordinates you were referring to. Did you by any chance mistype?");
                     break;
             }
 
@@ -373,7 +508,7 @@ namespace Orikivo
 
                 await collector.MatchAsync(filter, options);
 
-                Context.Account.Brain.AddOrUpdateRelationship(handler.Relationship);
+                Context.Account.Brain.AddOrUpdateAffinity(handler.Relationship);
             }
             catch (Exception e)
             {

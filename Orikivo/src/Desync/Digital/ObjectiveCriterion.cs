@@ -2,7 +2,8 @@
 {
     public class ObjectiveCriterion
     {
-        public string Name { get; }
-        public int ExpectedValue { get; }
+        public string Id { get; set; }
+
+        public int ExpectedValue { get; set; }
     }
 }

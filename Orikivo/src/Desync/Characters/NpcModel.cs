@@ -9,17 +9,19 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents a collection of image references for drawing an <see cref="Npc"/>.
     /// </summary>
-    public class NpcApparel
+    public class NpcModel
     {
         /// <summary>
-        /// A list of facial expressions that this <see cref="Npc"/> might use when speaking.
+        /// Stores a list of facial expressions a character might use.
         /// </summary>
         public Dictionary<DialogTone, Sprite> Reactions { get; set; }
         
         public Sprite Body { get; set; }
+
         public Point BodyOffset { get; set; }
 
         public Sprite Head { get; set; }
+
         public Point HeadOffset { get; set; }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace Orikivo.Desync
         }
 
         // TODO: Move to GraphicsHandler
-        public Bitmap GetDisplayImage(DialogTone tone, GammaPalette palette)
+        public Bitmap Render(DialogTone tone, GammaPalette palette)
         {
             Bitmap result = new Bitmap(72, 64);
 
@@ -66,13 +68,5 @@ namespace Orikivo.Desync
             result = GraphicsUtils.Scale(result, 2, 2);
             return result;
         }
-    }
-
-    public class NpcOutfit
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-
-        public Sprite Torso { get; set; }
     }
 }

@@ -12,10 +12,11 @@ namespace Orikivo.Desync
     public class CatalogData
     {
         [JsonConstructor]
-        internal CatalogData(DateTime generatedAt, Dictionary<string, int> itemIds)
+        internal CatalogData(DateTime generatedAt, Dictionary<string, int> itemIds, Dictionary<string, float> discounts)
         {
             GeneratedAt = generatedAt;
             ItemIds = itemIds;
+            Discounts = discounts ?? new Dictionary<string, float>();
         }
 
         /// <summary>
@@ -26,6 +27,9 @@ namespace Orikivo.Desync
 
         [JsonProperty("item_ids")]
         public Dictionary<string, int> ItemIds { get; }
+
+        [JsonProperty("discounts")]
+        public Dictionary<string, float> Discounts { get; }
 
         [JsonIgnore]
         public int Count => ItemIds.Values.Sum();

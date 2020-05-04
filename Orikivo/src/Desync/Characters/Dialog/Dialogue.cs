@@ -26,7 +26,7 @@ namespace Orikivo.Desync
         // if none is set, ignore.
         public DialogCriterion Criterion { get; set; }
 
-        public string GetBestReplyId(Archetype personality)
+        public string GetBestReplyId(Personality personality)
         {
             // TODO: Create a system for choosing best replies.
             return Randomizer.Choose(ReplyIds);

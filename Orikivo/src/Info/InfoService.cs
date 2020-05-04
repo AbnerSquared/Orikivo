@@ -98,6 +98,7 @@ namespace Orikivo
             if (user.Husk != null)
             {
                 bool canMove = Engine.CanMove(user, user.Husk);
+                bool canAct = Engine.CanAct(user);
                 panel.AppendLine();
                 panel.AppendLine("**Actions**");
                 panel.Append("• ");
@@ -124,6 +125,9 @@ namespace Orikivo
                     if (check != null)
                     {
                         if (!canMove)
+                            continue;
+
+                        if (!canAct)
                             continue;
 
                         if (!check.Check(user.Husk.Location))

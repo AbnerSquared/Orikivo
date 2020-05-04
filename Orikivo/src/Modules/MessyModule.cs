@@ -437,13 +437,17 @@ namespace Orikivo
                     Name = "No-Name",
                     Personality = new Personality
                     {
-                        Archetype = Archetype.Generic
+                        Mind = MindType.Extravert,
+                        Energy = EnergyType.Intuitive,
+                        Nature = NatureType.Thinking,
+                        Tactics = TacticType.Judging,
+                        Identity = IdentityType.Assertive
                     },
-                    Relations = new List<Relationship>
+                    Relations = new List<AffinityData>
                     {
-                        new Relationship("npc1", 0.2f)
+                        new AffinityData("npc1", 0.2f)
                     },
-                    Appearance = new NpcApparel
+                    Model = new NpcModel
                     {
                         Body = bank.GetSprite("noname_body"),
                         BodyOffset = new Point(20, 16),

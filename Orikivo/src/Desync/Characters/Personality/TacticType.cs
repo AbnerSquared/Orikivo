@@ -1,9 +1,11 @@
 ﻿namespace Orikivo.Desync
 {
-    // our approach to work, planning, and decision-making
+    /// <summary>
+    /// Represents a character's approach to planning and decision-making.
+    /// </summary>
     public enum TacticType
     {
-        Judging = 1,
-        Prospecting = 2
+        Judging = 0,
+        Prospecting = 1
     }
 }

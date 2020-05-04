@@ -13,6 +13,10 @@ namespace Orikivo.Desync
         // what will be spoken if the chat handler times out.
         public string OnTimeout { get; set; }
 
+        // what is spoken if the NPC cannot talk right now
+        // (if the player exhausted all possible dialog)
+        public string OnUnavailable { get; set; }
+
         // determines if this dialog can be randomly selected or not.
         public bool IsGeneric { get; set; }
     }

@@ -11,6 +11,6 @@
 
         public ItemTag Groups { get; set; }
 
-        public float Weight { get; set; }
+        public int Weight { get; set; }
     }
 }

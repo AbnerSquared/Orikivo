@@ -1,9 +1,11 @@
 ﻿namespace Orikivo.Desync
 {
-    // how confident we are in our abilities and decisions
+    /// <summary>
+    /// Represents how confident a character is in their abilities and decisions.
+    /// </summary>
     public enum IdentityType
     {
-        Assertive = 1,
-        Turbulent = 2
+        Assertive = 0,
+        Turbulent = 1
     }
 }

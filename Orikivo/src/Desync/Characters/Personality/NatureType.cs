@@ -1,9 +1,11 @@
 ﻿namespace Orikivo.Desync
 {
-    // how we make decisions and cope with emotions
+    /// <summary>
+    /// Represents a character's process on how they make decisions and cope with emotions.
+    /// </summary>
     public enum NatureType
     {
-        Thinking = 1,
-        Feeling = 2
+        Thinking = 0,
+        Feeling = 1
     }
 }

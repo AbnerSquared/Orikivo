@@ -321,8 +321,8 @@ namespace Orikivo
         {
             State = MarketState.Menu;
             
-            if (Vendor.Appearance != null)
-                Initial = await Context.Channel.SendImageAsync(Vendor.Appearance.GetDisplayImage(DialogTone.Neutral, Palette), "../tmp/npc.png",
+            if (Vendor.Model != null)
+                Initial = await Context.Channel.SendImageAsync(Vendor.Model.Render(DialogTone.Neutral, Palette), "../tmp/npc.png",
                     GetCurrentMenu(MarketState.Menu));
             else
                 Initial = await Context.Channel.SendMessageAsync(GetCurrentMenu(MarketState.Menu));

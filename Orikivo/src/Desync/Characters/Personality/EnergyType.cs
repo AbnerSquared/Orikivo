@@ -1,9 +1,11 @@
 ﻿namespace Orikivo.Desync
 {
-    // how we see the world and process information
+    /// <summary>
+    /// Represents how a character sees the world and processes information.
+    /// </summary>
     public enum EnergyType
     {
-        Observant = 1,
-        Intuitive = 2
+        Observant = 0,
+        Intuitive = 1
     }
 }

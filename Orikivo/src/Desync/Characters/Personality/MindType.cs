@@ -1,9 +1,11 @@
 ﻿namespace Orikivo.Desync
 {
-    // how we interact with surroundings
+    /// <summary>
+    /// Represents how a character interacts with their surroundings.
+    /// </summary>
     public enum MindType
     {
-        Introvert = 1,
-        Extravert = 2
+        Introvert = 0,
+        Extravert = 1
     }
 }

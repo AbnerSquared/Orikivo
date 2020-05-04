@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the explicit type an <see cref="Item"/> was meant for.
     /// </summary>
-    public enum ItemType
+    public enum ItemDimension
     {
         /// <summary>
         /// Defines the <see cref="Item"/> as a physical object meant for a <see cref="Husk"/>.

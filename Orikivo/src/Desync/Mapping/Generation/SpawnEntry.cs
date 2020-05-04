@@ -4,6 +4,6 @@
     {
         public string CreatureId { get; set; }
         public CreatureTag Groups { get; set; }
-        public float Weight { get; set; }
+        public int Weight { get; set; }
     }
 }

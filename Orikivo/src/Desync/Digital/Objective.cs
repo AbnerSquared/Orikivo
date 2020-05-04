@@ -2,11 +2,18 @@
 
 namespace Orikivo.Desync
 {
-    public class Objective // GuildObjective : IObjective
+
+    public class Objective
     {
-        // how hard an objective is.
-        public int Rank { get; }
-        public IReadOnlyList<ObjectiveCriterion> Criteria { get; }
-        public Dictionary<string, int> Trackers { get; }
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Represents the ID of the flag to be added when this objective is completed.
+        /// </summary>
+        public string SuccessId { get; set; }
+        
+        public ObjectiveRank Rank { get; set; }
+
+        public List<ObjectiveCriterion> Criteria { get; }
     }
 }

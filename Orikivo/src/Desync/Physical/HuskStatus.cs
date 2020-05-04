@@ -10,11 +10,14 @@ namespace Orikivo.Desync
     {
         public HuskStatus(HuskAttributes attributes)
         {
-            Attributes = new Dictionary<string, int>();
-            Attributes.Add(HuskAttributes.Health, attributes.MaxHealth);
-            Attributes.Add(HuskAttributes.Sight, attributes.MaxSight);
-            Attributes.Add(HuskAttributes.Exposure, attributes.MaxExposure);
-            Attributes.Add(HuskAttributes.Speed, attributes.MaxSpeed);
+            Attributes = new Dictionary<string, int>
+            {
+                { HuskAttributes.Health, attributes.MaxHealth },
+                { HuskAttributes.Sight, attributes.MaxSight },
+                { HuskAttributes.Exposure, attributes.MaxExposure },
+                { HuskAttributes.Speed, attributes.MaxSpeed },
+                { HuskAttributes.Reach, attributes.MaxReach }
+            };
         }
 
         [JsonConstructor]
@@ -48,7 +51,7 @@ namespace Orikivo.Desync
         [JsonIgnore]
         public int Sight
         {
-            get => Attributes [HuskAttributes.Sight];
+            get => Attributes[HuskAttributes.Sight];
             set => Attributes[HuskAttributes.Sight] = value;
         }
 
@@ -62,8 +65,15 @@ namespace Orikivo.Desync
         [JsonIgnore]
         public int Speed
         {
-            get => Attributes [HuskAttributes.Speed];
+            get => Attributes[HuskAttributes.Speed];
             set => Attributes[HuskAttributes.Speed] = value;
+        }
+
+        [JsonIgnore]
+        public int Reach
+        {
+            get => Attributes[HuskAttributes.Reach];
+            set => Attributes[HuskAttributes.Reach] = value;
         }
 
         // public List<Injury> Injuries {get; set;}

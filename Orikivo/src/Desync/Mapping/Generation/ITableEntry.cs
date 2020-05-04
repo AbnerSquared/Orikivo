@@ -2,6 +2,6 @@
 {
     public interface ITableEntry
     {
-        float Weight { get; set; }
+        int Weight { get; set; }
     }
 }

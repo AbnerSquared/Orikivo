@@ -16,20 +16,31 @@ namespace Orikivo.Desync
             GeneratedAt = DateTime.UtcNow;
         }
 
+        public Catalog(Dictionary<Item, int> entries, Dictionary<string, float> discounts)
+        {
+            Items = Items;
+            Discounts = discounts;
+            GeneratedAt = DateTime.UtcNow;
+        }
+
         internal Catalog(CatalogData data)
         {
             GeneratedAt = data.GeneratedAt;
             Items = data.ItemIds.ToDictionary(x => Engine.GetItem(x.Key), y => y.Value);
+            Discounts = data.Discounts ?? new Dictionary<string, float>();
         }
 
         public DateTime GeneratedAt { get; set; }
+
         public Dictionary<Item, int> Items { get; }
+
+        public Dictionary<string, float> Discounts { get; }
 
         public int Count => Items.Values.Sum();
 
         public CatalogData Compress()
         {
-            return new CatalogData(GeneratedAt, Items.ToDictionary(x => x.Key.Id, y => y.Value));
+            return new CatalogData(GeneratedAt, Items.ToDictionary(x => x.Key.Id, y => y.Value), Discounts);
         }
     }
 }

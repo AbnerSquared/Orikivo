@@ -21,12 +21,19 @@ namespace Orikivo.Desync
         }
 
         [JsonConstructor]
-        internal Husk(DateTime claimedAt, HuskAttributes attributes, Backpack backpack, HuskStatus status)
+        internal Husk(DateTime claimedAt,
+            HuskAttributes attributes,
+            Backpack backpack,
+            HuskStatus status,
+            Locator location,
+            Destination destination)
         {
             ClaimedAt = claimedAt;
             Attributes = attributes;
             Backpack = backpack;
             Status = status;
+            Location = location;
+            Destination = destination;
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace Orikivo.Desync
         /// Represents the <see cref="Husk"/>'s collection of physical items.
         /// </summary>
         [JsonProperty("backpack")]
-        public Backpack Backpack { get; private set; }
+        public Backpack Backpack { get; internal set; }
         // TODO: Make WorldItem variants that specify a slot size, which can take more space than others.
 
         /// <summary>
@@ -65,5 +72,10 @@ namespace Orikivo.Desync
         /// </summary>
         [JsonProperty("destination")]
         public Destination Destination { get; internal set; }
+
+        public Memorial GetMemorial()
+        {
+            return new Memorial { Backpack = Backpack, Location = Location };
+        }
     }
 }

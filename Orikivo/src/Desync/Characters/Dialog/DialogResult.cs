@@ -4,10 +4,14 @@ namespace Orikivo.Desync
 {
     public class DialogResult
     {
-        // this method updates the husk and its brain accordingly.
-        public Action<Husk, HuskBrain> Handler { get; set; }
+        /// <summary>
+        /// Represents an action to be applied to a Husk and HuskBrain after the completion of this dialog.
+        /// </summary>
+        public Action<Husk, HuskBrain> Post { get; set; }
 
-        // changes the relationship with this NPC by this.
+        /// <summary>
+        /// Represents the value that an affinity between a character is changed by.
+        /// </summary>
         public float Impact { get; set; }
     }
 }
