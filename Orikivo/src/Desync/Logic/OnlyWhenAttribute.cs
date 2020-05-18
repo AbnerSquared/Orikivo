@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Orikivo.Desync
 {
-
-    // this checks flags and stats; flags are simply a 0 OR 1 state, and stats have a long value equipped. The Engine class handles the object type that stat actually stores
-    // stats might be converted to bytes.
+    /// <summary>
+    /// Represents an <see cref="Attribute"/> that allows a command to execute only when the specified values match.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class OnlyWhenAttribute : Attribute
     {
@@ -22,31 +23,17 @@ namespace Orikivo.Desync
             Type = JudgeType.Flag;
         }
 
-        // for husks
         public OnlyWhenAttribute(LogicGate gate, string flag, params string[] rest)
         {
             Gate = gate;
 
-            var flags = new string[rest.Length + 1];
-
-            flags[0] = flag;
-
-            for (int i = 0; i < rest.Length; i++)
-                flags[i] = rest[i + 1];
-
-
-            Flags = flags;
+            Flags = rest.Prepend(flag);
             Type = JudgeType.Flag;
         }
 
-        // for users
         public OnlyWhenAttribute(string valueA, LogicMatch match, long valueB)
         {
-            var matches = new (string, LogicMatch, long)[1];
-
-            matches[0] = (valueA, match, valueB);
-
-            Matches = matches;
+            Matches = new List<LogicArgument> { new LogicArgument(valueA, match, valueB) };
             Type = JudgeType.Stat;
         }
 
@@ -54,36 +41,35 @@ namespace Orikivo.Desync
 
         private LogicGate Gate { get; }
 
-        private (string, LogicMatch, long)[] Matches { get; }
+        private IEnumerable<LogicArgument> Matches { get; }
 
-        private string[] Flags { get; }
+        private IEnumerable<string> Flags { get; }
 
-        public bool Judge(Husk husk, HuskBrain brain)
+        public bool Judge(User user, HuskBrain brain)
         {
-            if (Type != JudgeType.Flag)
-                throw new ArgumentException("This Attribute was set up for a User.");
-
-            return JudgeFlags(brain.Flags.ToArray(), Gate, Flags);
-        }
-
-        public bool Judge(User user)
-        {
-            if (Type != JudgeType.Stat)
-                throw new ArgumentException("This Attribute was set up for a Husk.");
-
-
-            foreach ((string id, LogicMatch logic, long expected) in Matches)
+            switch(Type)
             {
-                long actual = user.GetStat(id);
+                case JudgeType.Flag:
+                    return JudgeFlags(brain.Flags.ToArray(), Gate, Flags);
 
-                if (!Compare(actual, logic, expected))
-                    return false;
+                case JudgeType.Stat:
+
+                    foreach ((string id, LogicMatch logic, long expected) in Matches)
+                    {
+                        long actual = user.GetStat(id);
+
+                        if (!Compare(actual, logic, expected))
+                            return false;
+                    }
+
+                    return true;
+
+                default:
+                    throw new Exception("Invalid JudgeType specified.");
             }
-
-            return true;
         }
 
-        private static bool JudgeFlags(string[] actualFlags, LogicGate gate, string[] expectedFlags)
+        private static bool JudgeFlags(IEnumerable<string> actualFlags, LogicGate gate, IEnumerable<string> expectedFlags)
         {
             switch(gate)
             {

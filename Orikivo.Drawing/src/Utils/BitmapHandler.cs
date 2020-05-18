@@ -101,11 +101,10 @@ namespace Orikivo.Drawing
 
             return nonEmptyLen;
         }
-
+        // TODO: Determine file type before making it a Bitmap.
         // creates a new bitmap from a direct stream.
         public static Bitmap GetHttpImage(string url)
         {
-            // TODO: Determine file type before making it a Bitmap.
             using (WebClient webClient = new WebClient())
                 using (Stream stream = webClient.OpenRead(url))
                     return new Bitmap(stream);

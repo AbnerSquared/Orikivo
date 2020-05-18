@@ -5,6 +5,9 @@ namespace Orikivo.Drawing.Graphics2D
     // TODO: Apply Union and Except methods
     public class CircleF
     {
+        public static bool Contains(float x, float y, float radius, float u, float v)
+            => MathF.Pow(u - x, 2) + MathF.Pow(v - y, 2) <= MathF.Pow(radius, 2);
+
         public CircleF(float x, float y, float radius)
         {
             Origin = new Vector2(x, y);
@@ -134,6 +137,9 @@ namespace Orikivo.Drawing.Graphics2D
             => Origin.Offset(x, y);
 
         public bool Contains(Vector2 p)
-            => MathF.Pow(p.X - Origin.X, 2) + MathF.Pow(p.Y - Origin.Y, 2) <= MathF.Pow(Radius, 2);
+            => Contains(Origin.X, Origin.Y, Radius, p.X, p.Y);
+
+        public bool Contains(float x, float y)
+            => Contains(Origin.X, Origin.Y, Radius, x, y);
     }
 }

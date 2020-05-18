@@ -14,7 +14,7 @@ namespace Orikivo.Desync
         {
             ClaimedAt = DateTime.UtcNow;
             // TODO: Handle default backpack creation
-            Attributes = new HuskAttributes { MaxSight = 15, MaxHealth = 10, MaxSpeed = 10, MaxExposure = 5 };
+            Attributes = new HuskAttributes { MaxSight = 15, MaxReach = 2, MaxHealth = 10, MaxSpeed = 10, MaxExposure = 5 };
             Backpack = new Backpack(4);
             Location = locator;
             Status = new HuskStatus(Attributes);
@@ -73,9 +73,28 @@ namespace Orikivo.Desync
         [JsonProperty("destination")]
         public Destination Destination { get; internal set; }
 
-        public Memorial GetMemorial()
+        /// <summary>
+        /// Generates a new <see cref="Memorial"/> at the <see cref="Husk"/>'s current position.
+        /// </summary>
+        public Memorial SetMemorial()
         {
-            return new Memorial { Backpack = Backpack, Location = Location };
+            return new Memorial
+            {
+                Backpack = Backpack,
+                Location = Location
+            };
         }
+
+        public void UseItem(Item item)
+        {
+            if (Backpack.Contains(item))
+            {
+
+            }
+        }
+
+        [JsonIgnore]
+        public EntityHitbox Hitbox
+            => new EntityHitbox(Location.X, Location.Y, Status.Sight, Status.Reach);
     }
 }

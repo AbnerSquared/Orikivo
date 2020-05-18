@@ -34,9 +34,10 @@ namespace Orikivo.Desync
             Perimeter = GetPerimeter(position, scale);
         }
 
-        // TODO: Implement inheritdoc
-        /// <inheritdoc/>
         public override LocationType Type => LocationType.Sector;
+
+        public override ChildType GetAllowedChildren()
+            => ChildType.Area | ChildType.Construct | ChildType.Structure | ChildType.Region;
 
         public List<Region> Regions { get; set; }
 
@@ -91,7 +92,20 @@ namespace Orikivo.Desync
             }
 
             if (Constructs?.Count > 0)
+            {
                 children.AddRange(Constructs);
+
+                if (includeInnerChildren)
+                {
+                    foreach(Construct construct in Constructs)
+                    {
+                        if (construct.Tag == ConstructType.Highrise)
+                        {
+                            children.AddRange(construct.GetChildren());
+                        }
+                    }
+                }
+            }
 
             return children;
         }
@@ -99,15 +113,10 @@ namespace Orikivo.Desync
         public override List<Region> GetRegions()
         {
             var regions = new List<Region>();
+            regions.AddRange(GetChildren(false));
 
             if (Regions?.Count > 0)
                 regions.AddRange(Regions);
-
-            if (Areas?.Count > 0)
-                regions.AddRange(Areas);
-
-            if (Constructs?.Count > 0)
-                regions.AddRange(Constructs);
 
             if (Structures?.Count > 0)
                 regions.AddRange(Structures);

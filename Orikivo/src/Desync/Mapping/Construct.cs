@@ -16,7 +16,7 @@ namespace Orikivo.Desync
         /// </summary>
         public Sprite Interior { get; set; }
 
-        public ConstructType Tag { get; set; }
+        public ConstructType Tag { get; set; } = ConstructType.Default;
 
         public virtual List<Npc> Npcs { get; set; } = new List<Npc>();
 

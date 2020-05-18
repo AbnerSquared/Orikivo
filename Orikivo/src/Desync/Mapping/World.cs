@@ -70,7 +70,7 @@ namespace Orikivo.Desync
                 {
                     foreach (Field field in Fields)
                     {
-                        locations.AddRange(field.Constructs);
+                        locations.AddRange(field.GetChildren());
                     }
                 }
             }

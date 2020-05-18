@@ -13,7 +13,7 @@ namespace Orikivo
         {
             Id = id;
             StackCount = stackCount;
-            Unique = unique;
+            Data = unique;
         }
 
         internal ItemData(string id, int stackCount)
@@ -27,7 +27,7 @@ namespace Orikivo
         {
             // TODO: Check if the ID points to an item that is unique.
             Id = id;
-            Unique = unique;
+            Data = unique;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Orikivo
         /// <summary>
         /// Represents the unique properties of an <see cref="Item"/>, if the <see cref="Item"/> is unique.
         /// </summary>
-        [JsonProperty("unique")]
-        public UniqueItemData Unique { get; }
+        [JsonProperty("data")]
+        public UniqueItemData Data { get; }
     }
 }

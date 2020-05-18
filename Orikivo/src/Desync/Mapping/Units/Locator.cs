@@ -42,6 +42,12 @@ namespace Orikivo.Desync
         [JsonProperty("y")]
         public float Y { get; set; }
 
+        [JsonIgnore]
+        public float Longitude { get; }
+
+        [JsonIgnore]
+        public float Latitude { get; }
+
         /// <summary>
         /// Returns the <see cref="LocationType"/> at which the <see cref="Husk"/> is currently at.
         /// </summary>

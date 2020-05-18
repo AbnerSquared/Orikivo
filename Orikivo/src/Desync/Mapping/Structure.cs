@@ -5,7 +5,8 @@
     /// </summary>
     public class Structure : Region
     {
-        public override RegionType Subtype => RegionType.Biome;
+        public override RegionType Subtype => RegionType.Structure;
+
         /// <summary>
         /// Defines the specific type of <see cref="Structure"/> this is.
         /// </summary>

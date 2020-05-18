@@ -44,6 +44,9 @@ namespace Orikivo.Desync
         public Structure GetStructure(string id)
             => Structures?.FirstOrDefault(x => x.Id == id);
 
+        public override ChildType GetAllowedChildren()
+            => ChildType.Area | ChildType.Construct | ChildType.Structure | ChildType.Biome | ChildType.Barrier;
+
         public override List<Location> GetChildren(bool includeInnerChildren = true)
         {
             var children = new List<Location>();
@@ -58,7 +61,20 @@ namespace Orikivo.Desync
             }
 
             if (Constructs?.Count > 0)
+            {
                 children.AddRange(Constructs);
+
+                if (includeInnerChildren)
+                {
+                    foreach (Construct construct in Constructs)
+                    {
+                        if (construct.Tag == ConstructType.Highrise)
+                        {
+                            children.AddRange(construct.GetChildren());
+                        }
+                    }
+                }
+            }
 
             return children;
         }
@@ -66,11 +82,16 @@ namespace Orikivo.Desync
         public override List<Region> GetRegions()
         {
             var regions = new List<Region>();
-            regions.AddRange(Biomes);
-            regions.AddRange(Constructs);
-            regions.AddRange(Structures);
-            regions.AddRange(Barriers);
-            regions.AddRange(Areas);
+            regions.AddRange(GetChildren(false));
+
+            if (Structures?.Count > 0)
+                regions.AddRange(Structures);
+
+            if (Barriers?.Count > 0)
+                regions.AddRange(Barriers);
+
+            if (Biomes?.Count > 0)
+                regions.AddRange(Biomes);
 
             return regions;
         }

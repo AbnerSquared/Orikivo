@@ -16,10 +16,18 @@ namespace Orikivo.Desync
         public List<Floor> Floors { get; set; }
 
         public Floor GetFloor(int level)
-            => Floors.First(x => x.Index == level);
+        {
+            Floor floor = Floors.First(x => x.Index == level);
+            floor.ParentId = Id;
+
+            return floor;
+        }
 
         // TODO: Get rid of NPCs.
         public override List<Npc> Npcs => Floors.Select(x => x.Npcs).Flatten().ToList();
+
+        public override ChildType GetAllowedChildren()
+            => ChildType.Floor;
 
         public override List<Location> GetChildren(bool includeInnerChildren = true)
         {

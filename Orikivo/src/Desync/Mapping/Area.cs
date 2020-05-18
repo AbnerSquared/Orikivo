@@ -10,14 +10,7 @@ namespace Orikivo.Desync
     /// </summary>
     public class Area : Location
     {
-        private string _sectorId;
-
         public override LocationType Type => LocationType.Area;
-
-        /// <summary>
-        /// Represents the image that is shown whenever a <see cref="Husk"/> enters this <see cref="Area"/>. If none was specified, the image will be hidden.
-        /// </summary>
-        public Sprite Exterior { get; set; }
 
         // Each specified entrance must be touching one side of the specified region.
         /// <summary>
@@ -42,14 +35,41 @@ namespace Orikivo.Desync
         public Construct GetConstruct(string id)
             => Constructs?.FirstOrDefault(x => x.Id == id);
 
+        public override ChildType GetAllowedChildren()
+            => ChildType.Construct | ChildType.Structure;
+
         public override List<Location> GetChildren(bool includeInnerChildren = true)
         {
             var children = new List<Location>();
 
             if (Constructs?.Count > 0)
+            {
                 children.AddRange(Constructs);
+
+                if (includeInnerChildren)
+                {
+                    foreach(Construct construct in Constructs)
+                    {
+                        if (construct.Tag == ConstructType.Highrise)
+                            children.AddRange(construct.GetChildren());
+                    }
+                }
+            }
 
             return children;
         }
+
+        public override List<Region> GetRegions()
+        {
+            var regions = new List<Region>();
+
+            regions.AddRange(GetChildren(false));
+
+            if (Structures?.Count > 0)
+                regions.AddRange(Structures);
+
+            return regions;
+        }
+        
     }
 }

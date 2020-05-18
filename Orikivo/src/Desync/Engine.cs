@@ -159,6 +159,7 @@ namespace Orikivo.Desync
                                     {
                                         new Floor
                                         {
+                                            Id = "floor0",
                                             Index = 0,
                                             Npcs = new List<Npc>
                                             {
@@ -495,7 +496,7 @@ namespace Orikivo.Desync
                 BypassCriteriaOnGift = true,
                 GiftLimit = 1,
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Callable,
+                Tag = ItemType.Summon,
                 Dimension = ItemDimension.Digital,
                 ToOwn = u => u.Debt >= 1000,
                 Value = 40,
@@ -503,8 +504,8 @@ namespace Orikivo.Desync
                 CanSell = false,
                 Action = new ItemAction
                 {
-                    UseLimit = 1,
-                    BreakOnLastUse = true,
+                    Durability = 1,
+                    DeleteOnBreak = true,
                     Cooldown = TimeSpan.FromHours(24),
                     OnUse = u => u.Debt = 0
                 }
@@ -1594,7 +1595,7 @@ namespace Orikivo.Desync
             return false;
         }
 
-        private static IEnumerable<Structure> GetVisibleStructures(Husk husk, Sector sector)
+        internal static IEnumerable<Structure> GetVisibleStructures(Husk husk, Sector sector)
         {
             CircleF sight = GetSightHitbox(husk);
 
@@ -1608,7 +1609,7 @@ namespace Orikivo.Desync
             }
         }
 
-        private static Structure GetClosestStructure(Husk husk)
+        internal static Structure GetClosestStructure(Husk husk)
         {
             CircleF sight = GetSightHitbox(husk);
 

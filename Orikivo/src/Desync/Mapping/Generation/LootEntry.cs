@@ -9,7 +9,7 @@
 
         public string ItemId { get; set; }
 
-        public ItemTag Groups { get; set; }
+        public ItemType Groups { get; set; }
 
         public int Weight { get; set; }
     }

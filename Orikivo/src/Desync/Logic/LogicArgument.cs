@@ -1,4 +1,6 @@
-﻿namespace Orikivo.Desync
+﻿using System;
+
+namespace Orikivo.Desync
 {
     public class LogicArgument
     {
@@ -27,6 +29,13 @@
                 LogicMatch.NOT_EQUALS => actual != Value,
                 _ => false
             };
+        }
+
+        internal void Deconstruct(out string id, out LogicMatch match, out long value)
+        {
+            id = Id;
+            match = Match;
+            value = Value;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Represents a collection of groups that the <see cref="Item"/> represents.
         /// </summary>
-        public ItemTag Tag { get; set; } = 0;
+        public ItemType Tag { get; set; } = 0;
 
         /// <summary>
         /// Represents the dimension that the <see cref="Item"/> is designed for.
@@ -47,6 +47,11 @@ namespace Orikivo.Desync
         /// Represents the value of the <see cref="Item"/>.
         /// </summary>
         public ulong Value { get; set; } = 0;
+
+        /// <summary>
+        /// Represents the maximum stack that this <see cref="Item"/> can go to.
+        /// </summary>
+        public int StackSize { get; set; } = 1;
 
         /// <summary>
         /// Determines if the <see cref="Item"/> can be sold.

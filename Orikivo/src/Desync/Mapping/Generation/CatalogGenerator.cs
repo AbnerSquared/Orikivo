@@ -11,7 +11,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Represents the required tags an <see cref="Item"/> must have in order to be selected when generating a <see cref="Catalog"/>.
         /// </summary>
-        public ItemTag RequiredTags { get; set; }
+        public ItemType RequiredTags { get; set; }
 
         /// <summary>
         /// Represents the dimension that this generator is meant for.
@@ -23,7 +23,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Represents the groups an <see cref="Item"/> must have at least one <see cref="ItemTag"/> matching for. If none are specified, the <see cref="Item"/> is only selected based on <see cref="RequiredTags"/>.
         /// </summary>
-        public List<ItemTag> Groups { get; set; }
+        public List<ItemType> Groups { get; set; }
 
         // the most amount of items a market can hold at a time.
         /// <summary>
@@ -182,7 +182,7 @@ namespace Orikivo.Desync
     {
         public string ItemId { get; set; }
 
-        public ItemTag Groups { get; set; }
+        public ItemType Groups { get; set; }
 
         // The most amount of times this entry can be chosen.
         public int? MaxAllowed { get; set; }

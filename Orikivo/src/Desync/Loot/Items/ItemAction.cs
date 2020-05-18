@@ -9,9 +9,9 @@ namespace Orikivo.Desync
     public class ItemAction
     {
         /// <summary>
-        /// Gets or sets the total amount of time the <see cref="Item"/> can be used.
+        /// Gets or sets the total amount of times that the <see cref="Item"/> can be used.
         /// </summary>
-        public int? UseLimit { get; set; } = null;
+        public int? Durability { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the cooldown that is applied to the <see cref="Item"/> used.
@@ -26,7 +26,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Determines if the <see cref="Item"/> is automatically deleted when unusable.
         /// </summary>
-        public bool BreakOnLastUse { get; set; } = true;
+        public bool DeleteOnBreak { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the total amount of time that the <see cref="Item"/> exists for when it is first used.

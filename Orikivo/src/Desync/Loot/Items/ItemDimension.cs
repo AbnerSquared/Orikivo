@@ -1,7 +1,7 @@
 ﻿namespace Orikivo.Desync
 {
     /// <summary>
-    /// Defines the explicit type an <see cref="Item"/> was meant for.
+    /// Defines the explicit dimension an <see cref="Item"/> was meant for.
     /// </summary>
     public enum ItemDimension
     {

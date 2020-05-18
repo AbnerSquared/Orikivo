@@ -14,15 +14,15 @@ namespace Orikivo
     public class Actions : OriModuleBase<OriCommandContext>
     {
         private readonly CommandService _commands;
+
         public Actions(CommandService commands)
         {
             _commands = commands;
         }
 
         [RequireUser]
-        //[OnlyWhen(LogicGate.NAND, HuskFlags.Initialized)]
-        [CheckFlags(Gate.NOT, DesyncFlags.Initialized)]
         [Command("awaken")]
+        [OnlyWhen(LogicGate.NAND, DesyncFlags.Initialized)]
         [Summary("Awaken your **Husk** in the physical world for the first time.")]
         public async Task AwakenAsync()
         {
@@ -47,7 +47,7 @@ namespace Orikivo
                 return;
             }
 
-            StringBuilder relations = new StringBuilder();
+            var relations = new StringBuilder();
 
             if (Context.Account.Brain.Relations.Count == 0)
                 await Context.Channel.SendMessageAsync(Context.Account, "You don't seem to know anyone. Get out there and talk to others!");
@@ -65,7 +65,7 @@ namespace Orikivo
 
         // If no ID was given, show a list of IDs that the user can travel to in their current position.
         // This is only if they are NOT in a construct
-        [RequireLocation(LocationType.Area | LocationType.Sector)]
+        [BindToRegion(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(0)] // This is used to travel to any viable location based on its current location.
         [Summary("View a list of available locations you can travel to in your current **Area**.")]
         public async Task GoToAsync()
@@ -98,9 +98,9 @@ namespace Orikivo
         // [Command("chat")]
 
         [RequireUser]
-        // [BindToRegion(LocationType.Construct | LocationType.Area)]
-        [RequireLocation(LocationType.Construct | LocationType.Area)]
+        
         [Command("leave")]
+        [BindToRegion(LocationType.Construct | LocationType.Area)]
         [Summary("Leave the current **Location** you are in.")]
         public async Task LeaveConstructAsync()
         {
@@ -215,7 +215,7 @@ namespace Orikivo
             // TODO: implement resync distance time
             // implement item selection from backpack.
 
-            Memorial memorial = Context.Account.Husk.GetMemorial();
+            Memorial memorial = Context.Account.Husk.SetMemorial();
             Context.Account.Husk = null;
             Context.Account.Brain.Memorials.Add(memorial);
             var now = DateTime.UtcNow;
@@ -251,8 +251,7 @@ namespace Orikivo
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        // [OnlyWhen(LogicGate.AND, HuskFlags.Initialized)]
-        [CheckFlags(Gate.HAS, DesyncFlags.Initialized)]
+        [OnlyWhen(LogicGate.AND, DesyncFlags.Initialized)]
         [Command("actions"), Alias("act")]
         public async Task GetActionsAsync()
         {

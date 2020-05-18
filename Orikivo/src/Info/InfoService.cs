@@ -113,12 +113,13 @@ namespace Orikivo
                         continue;
 
                     // Flag checking
-                    CheckFlagsAttribute flags = action.Preconditions.FindAttribute<CheckFlagsAttribute>();
+                    OnlyWhenAttribute precondition = action.Preconditions.FindAttribute<OnlyWhenAttribute>();
+                    // replace with BindToRegion when ready
                     RequireLocationAttribute check = action.Attributes.FindAttribute<RequireLocationAttribute>();
 
-                    if (flags != null)
+                    if (precondition != null)
                     {
-                        if (!flags.Check(user.Brain))
+                        if (!precondition.Judge(user, user.Brain))
                             continue;
                     }
 

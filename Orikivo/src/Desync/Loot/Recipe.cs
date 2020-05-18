@@ -1,6 +1,4 @@
-﻿using Orikivo.Desync;
-
-namespace Orikivo
+﻿namespace Orikivo.Desync
 {
     /// <summary>
     /// Represents a crafting recipe for an <see cref="Item"/>.
@@ -8,7 +6,7 @@ namespace Orikivo
     public class Recipe
     {
         // a collection of items (as IDs) that are required to craft
-        public string[] RequiredItemIds { get; set; }
+        public RecipeComponent[] Components { get; set; }
 
         // a collection of tools and workbenches (as IDs) that are needed to craft
         public string[] RequiredToolIds { get; set; }
@@ -17,6 +15,6 @@ namespace Orikivo
         public string ResultId { get; set; }
 
         // the amount of the result
-        public int ResultCount { get; set; } = 1;
+        public int ResultAmount { get; set; } = 1;
     }
 }

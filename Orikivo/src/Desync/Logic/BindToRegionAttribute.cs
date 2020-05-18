@@ -1,131 +1,121 @@
 ﻿using Orikivo.Drawing;
 using Orikivo.Drawing.Graphics2D;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Desync
 {
     /// <summary>
     /// Defines a location-based precondition that an action is bound to when true.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class BindToRegionAttribute : Attribute
     {
-        internal enum BindType
-        {
-            Ids,
-            WorldDepth,
-            IdDepth,
-            Region,
-            Location,
-            RegionDepth,
-            LocationDepth,
-            Construct,
-            Structure,
-            WorldCoordinate,
-            WorldPerimeter,
-            WorldCircle,
-            IdCoordinate,
-            IdPerimeter,
-            IdCircle
-        }
-
-        // binds an action to the specified ids
+        /// <summary>
+        /// Binds an action to an array of <see cref="Desync.Region"/> references.
+        /// </summary>
+        /// <param name="id">The primary ID that represents a <see cref="Desync.Location"/> reference.</param>
+        /// <param name="rest">The rest of the IDs, if any.</param>
         public BindToRegionAttribute(string id, params string[] rest)
         {
-            var ids = new string[rest.Length + 1];
-
-            ids[0] = id;
-
-            for (int i = 0; i < rest.Length; i++)
-            {
-                ids[i + 1] = rest[i];
-            }
-
-            Ids = ids;
-            Type = BindType.Ids;
+            Ids = rest.Prepend(id);
         }
 
-        // binds an action to the world at the specified depth
-        public BindToRegionAttribute(BindDepth depth)
-        {
-            Depth = depth;
-            Type = BindType.WorldDepth;
-        }
-
-        // binds an action to the specified id at the specified depth
-        public BindToRegionAttribute(string id, BindDepth depth)
+        /// <summary>
+        /// Binds an action to a <see cref="Desync.Region"/> reference at the specified depth.
+        /// </summary>
+        /// <param name="id">The primary ID that represents a <see cref="Desync.Location"/> reference.</param>
+        /// <param name="depth">The depth at which this action is allowed, if any.</param>
+        public BindToRegionAttribute(string id, BindDepth depth = BindDepth.At)
         {
             Id = id;
             Depth = depth;
-            Type = BindType.IdDepth;
         }
 
-        // binds an action at the specified type
-        public BindToRegionAttribute(LocationType type)
-        {
-            Location = type;
-            Type = BindType.Location;
-        }
-
-        public BindToRegionAttribute(RegionType type)
-        {
-            Region = type;
-            Type = BindType.Region;
-        }
-
-        public BindToRegionAttribute(RegionType type, BindDepth depth)
+        /// <summary>
+        /// Binds an action to a specified <see cref="RegionType"/>.
+        /// </summary>
+        /// <param name="type">The type of region that allows for this action.</param>
+        /// <param name="depth">The depth at which this action is allowed, if any.</param>
+        public BindToRegionAttribute(RegionType type, BindDepth depth = BindDepth.At)
         {
             Region = type;
             Depth = depth;
-            Type = BindType.RegionDepth;
         }
 
-        // binds an action at the specified type and depth
-        public BindToRegionAttribute(LocationType type, BindDepth depth)
+        /// <summary>
+        /// Binds an action to a specified <see cref="LocationType"/>.
+        /// </summary>
+        /// <param name="type">The type of location that allows for this action.</param>
+        /// <param name="depth">The depth at which this action is allowed, if any.</param>
+        public BindToRegionAttribute(LocationType type, BindDepth depth = BindDepth.At)
         {
+            Region = RegionType.Location;
             Location = type;
             Depth = depth;
-            Type = BindType.LocationDepth;
         }
 
-        // binds an action to a specified type of construct
+        /// <summary>
+        /// Binds an action to a specified <see cref="ConstructType"/>.
+        /// </summary>
+        /// <param name="type">The type of construct that allows for this action.</param>
         public BindToRegionAttribute(ConstructType type)
         {
+            Region = RegionType.Location;
+            Location = LocationType.Construct;
             Construct = type;
-            Type = BindType.Construct;
         }
 
-        // binds an action to a specified type of structure
-        public BindToRegionAttribute(StructureType type)
+        /// <summary>
+        /// Binds an action to a specified <see cref="StructureType"/>.
+        /// </summary>
+        /// <param name="type">The type of structure that allows for this action.</param>
+        public BindToRegionAttribute(StructureType type, InteractionType interaction = InteractionType.View)
         {
+            Region = RegionType.Structure;
             Structure = type;
-            Type = BindType.Structure;
+            Interaction = interaction;
         }
 
-        // binds an action to the world at the specified coordinate
-        public BindToRegionAttribute(float x, float y)
+        /// <summary>
+        /// Binds an action to a specified coordinate in a <see cref="World"/>.
+        /// </summary>
+        /// <param name="x">The x-position of this coordinate.</param>
+        /// <param name="y">The y-position of this coordinate.</param>
+        public BindToRegionAttribute(float x, float y, InteractionType interaction = InteractionType.View)
         {
             X = x;
             Y = y;
-            Type = BindType.WorldCoordinate;
+            Interaction = interaction;
         }
 
-        // binds an action to the world at the specified region
+        /// <summary>
+        /// Binds an action to a specified perimeter in a <see cref="World"/>.
+        /// </summary>
+        /// <param name="x">The x-position of the top-left point for this perimeter.</param>
+        /// <param name="y">The y-position of the top-left point for this perimeter.</param>
+        /// <param name="width">The width of this perimeter.</param>
+        /// <param name="height">The height of this perimeter.</param>
         public BindToRegionAttribute(float x, float y, float width, float height)
         {
             X = x;
             Y = y;
             Width = width;
             Height = height;
-            Type = BindType.WorldPerimeter;
         }
 
-        // binds an action to the world at the specified circle
+        /// <summary>
+        /// Binds an action to a specified circle in a <see cref="World"/>.
+        /// </summary>
+        /// <param name="x">The x-position for the origin of the circle.</param>
+        /// <param name="y">The y-position for the origin of the circle.</param>
+        /// <param name="radius">The radius of the circle.</param>
         public BindToRegionAttribute(float x, float y, float radius)
         {
             X = x;
             Y = y;
             Radius = radius;
-            Type = BindType.WorldCircle;
         }
 
         // binds an action to the specified id at the specified coordinate
@@ -134,10 +124,16 @@ namespace Orikivo.Desync
             Id = id;
             X = x;
             Y = y;
-            Type = BindType.IdCoordinate;
         }
 
-        // binds an action to the specified id at the specified region
+        /// <summary>
+        /// Binds an action to a specified ID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         public BindToRegionAttribute(string id, float x, float y, float width, float height)
         {
             Id = id;
@@ -145,7 +141,6 @@ namespace Orikivo.Desync
             Y = y;
             Width = width;
             Height = height;
-            Type = BindType.IdPerimeter;
         }
 
         // binds an action to the specified id at the specified circle
@@ -155,76 +150,124 @@ namespace Orikivo.Desync
             X = x;
             Y = y;
             Radius = radius;
-            Type = BindType.IdCircle;
         }
 
-        internal BindType Type { get; }
-
         private string Id { get; }
-        private string[] Ids { get; }
-        private BindDepth? Depth { get; }
-        private LocationType? Location { get; }
+
+        // is the user in any location that matches an ID here
+
+        private IEnumerable<string> Ids { get; }
+
+        // if a depth is set, is the user, in the location's id
+        // or is the user AT the location's id?
+        private BindDepth Depth { get; }
+
+        // is the region the user in match this?
         private RegionType? Region { get; }
+
+        // is the location the user in match this
+        private LocationType? Location { get; }
+
+        // is the location a construct AND
+        // the construct the user is in match this
         private ConstructType? Construct { get; }
+
+        // is the user within a structure's region AND
+        // is the structure they are near match this
         private StructureType? Structure { get; }
-        private float X { get; }
-        private float Y { get; }
+
+        // does the user need to see the location or be able to touch the location?
+        private InteractionType Interaction { get; }
+
+
+        // point, perimeter, or circle
+        private float? X { get; }
+        private float? Y { get; }
+
+        // perimeter
         private float Width { get; }
         private float Height { get; }
+
+        // circle
         private float Radius { get; }
 
         // TODO: Use Engine.GetVisibleRegions(Husk husk);
 
-        public bool Judge(Husk husk, HuskBrain brain)
+        public bool Judge(Husk husk)
         {
-            switch(Type)
+            if (Ids?.Count() > 0)
             {
-                default:
-                    return true;
+                return Ids.Contains(husk.Location.Id);
             }
+
+            if (Region.HasValue)
+            {
+                Location location = husk.Location.GetLocation();
+
+                if (Structure.HasValue)
+                {
+                    var results = location.Filter(Structure.Value);
+
+                    if (results.Any(x => (Interaction == InteractionType.View ? husk.Hitbox.Sight : husk.Hitbox.Reach)
+                    .Intersects(x.Perimeter)))
+                        return true;
+                }
+
+                if (Location.HasValue)
+                {
+                    if (Construct.HasValue)
+                    {
+                        if (!Construct.Value.HasFlag((location as Construct).Tag))
+                            return false;
+                    }
+
+                    if (!Location.Value.HasFlag(location.Type))
+                        return false;
+                }
+
+                if (!Region.Value.HasFlag(location.Subtype))
+                    return false;
+            }
+
+            if (X.HasValue && Y.HasValue)
+            {
+                float x = husk.Location.X;
+                float y = husk.Location.Y;
+
+                if (Check.NotNull(Id))
+                {
+                    if (Id != husk.Location.Id)
+                        return false;
+                }
+
+                if (Width > 0 && Height > 0)
+                {
+                    return RegionF.Contains(X.Value, Y.Value, Width, Height, x, y);
+                }
+
+                if (Radius > 0)
+                {
+                    return CircleF.Contains(X.Value, Y.Value, Radius, x, y);
+                }
+
+                return (Interaction == InteractionType.View ? husk.Hitbox.Sight : husk.Hitbox.Reach)
+                    .Contains(X.Value, Y.Value);
+            }
+
+            if (Check.NotNull(Id))
+            {
+                if (Depth == BindDepth.In)
+                {
+                    Location location = Engine.World.Find(Id);
+
+                    return location.GetChildren().Any(x => x.Id == husk.Location.Id);
+                }
+
+                return Id == husk.Location.Id;
+            }
+
+            Console.WriteLine("No eligible regions were matched.");
+            return false;
         }
-
-        public bool Judge(string id)
-            => throw new NotImplementedException();
-
-        public bool Judge(RegionType region)
-            => throw new NotImplementedException();
-
-        public bool Judge(Region region)
-            => throw new NotImplementedException();
-
-        public bool Judge(LocationType location)
-            => throw new NotImplementedException();
-
-        public bool Judge(Location location)
-            => throw new NotImplementedException();
-
-        public bool Judge(ConstructType construct)
-            => throw new NotImplementedException();
-
-        public bool Judge(Construct construct)
-            => throw new NotImplementedException();
-
-        public bool Judge(StructureType structure)
-            => throw new NotImplementedException();
-
-        public bool Judge(Structure structure)
-            => throw new NotImplementedException();
-
-        public bool Judge(RegionF region)
-            => throw new NotImplementedException();
-
-        public bool Judge(CircleF circle)
-            => throw new NotImplementedException();
-
-        public bool Judge(Locator locator)
-            => throw new NotImplementedException();
-
-        public bool Judge(string id, RegionF region)
-            => throw new NotImplementedException();
-
-        public bool Judge(string id, CircleF circle)
-            => throw new NotImplementedException();
-
     }
 }

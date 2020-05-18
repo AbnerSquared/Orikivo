@@ -10,8 +10,8 @@ namespace Orikivo.Desync
     /// </summary>
     public class Vendor : Npc
     {
-        public List<ItemTag> LikedTags { get; set; }
-        public List<ItemTag> DislikedTags { get; set; }
+        public List<ItemType> LikedTags { get; set; }
+        public List<ItemType> DislikedTags { get; set; }
         public bool OnlyBuyLiked { get; set; }
         public Schedule Schedule { get; set; }
     }

@@ -300,7 +300,7 @@ namespace Orikivo.Desync.Unstable
         public string ItemId;
 
         // the specific groups
-        public ItemTag Groups;
+        public ItemType Groups;
 
         // the rarity for this loot entry to appear.
         public float Weight { get; set; }
@@ -417,7 +417,7 @@ namespace Orikivo.Desync.Unstable
     public class CatalogSpecialEntry
     {
         // the groups that this special is applied to.
-        public ItemTag Groups;
+        public ItemType Groups;
 
         // the max % bonus that can be applied.
         public float Max;
@@ -444,7 +444,7 @@ namespace Orikivo.Desync.Unstable
         public int Size;
 
         // the variant that this catalog is meant for.
-        public ItemDimension Type;
+        public ItemDimension Dimension;
 
         // info about each random item entry, if no entry is chosen, it can be left blank
         // this means it can be possible to roll an empty catalog, which means a market could be
@@ -464,7 +464,7 @@ namespace Orikivo.Desync.Unstable
         public string ItemId;
 
         // the group of items that can be selected
-        public ItemTag Groups;
+        public ItemType Groups;
 
         // the amount of times this entry can provide an item
         public int MaxAllowed;

@@ -1,5 +1,8 @@
 ﻿namespace Orikivo.Desync
 {
+    /// <summary>
+    /// Defines all of the possible region types that can be set in a <see cref="World"/>.
+    /// </summary>
     public enum RegionType
     {
         Default = 0b1,

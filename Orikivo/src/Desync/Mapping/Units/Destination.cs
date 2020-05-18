@@ -3,10 +3,9 @@ using System;
 
 namespace Orikivo.Desync
 {
-    // could be renamed to Trip
     // TODO: Implement cancelling and updating at the % of completion.
     /// <summary>
-    /// Represents the current travel process for a <see cref="Husk"/>.
+    /// Represents a current travel process for a <see cref="Husk"/>.
     /// </summary>
     public class Destination : Locator
     {
