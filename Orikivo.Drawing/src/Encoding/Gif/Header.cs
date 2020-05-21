@@ -1,11 +1,10 @@
 ﻿namespace Orikivo.Drawing.Encoding.Gif
 {
+    // This is always used at the start of a GIF
+    // The version can either be set to 87a, or 89a
     public class Header
     {
-        // Signature: GIF, 3 bytes (ALWAYS KEEP)
-        byte[] Signature = { (byte) 'G', (byte) 'I', (byte) 'F' };
-        // Version: 87a || 89a, 3 bytes (ALWAYS KEEP)
-        byte[] Version = { (byte)'8', (byte)'7', (byte)'a' };
-        
+        private const string SIGNATURE = "GIF";
+        private const string VERSION = "89a"; // or 87a
     }
 }

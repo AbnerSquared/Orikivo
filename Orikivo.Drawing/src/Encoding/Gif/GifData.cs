@@ -1,6 +1,42 @@
 ﻿namespace Orikivo.Drawing.Encoding.Gif
 {
     /*
+     
+        Block Name                  Required   Label       Ext.   Vers.
+        Application Extension       Opt. (*)   0xFF (255)  yes    89a
+        Comment Extension           Opt. (*)   0xFE (254)  yes    89a
+        Global Color Table          Opt. (1)   none        no     87a
+        Graphic Control Extension   Opt. (*)   0xF9 (249)  yes    89a
+        Header                      Req. (1)   none        no     N/A
+        Image Descriptor            Opt. (*)   0x2C (044)  no     87a (89a)
+        Local Color Table           Opt. (*)   none        no     87a
+        Logical Screen Descriptor   Req. (1)   none        no     87a (89a)
+        Plain Text Extension        Opt. (*)   0x01 (001)  yes    89a
+        Trailer                     Req. (1)   0x3B (059)  no     87a
+        
+        Unlabeled Blocks
+        Header                      Req. (1)   none        no     N/A
+        Logical Screen Descriptor   Req. (1)   none        no     87a (89a)
+        Global Color Table          Opt. (1)   none        no     87a
+        Local Color Table           Opt. (*)   none        no     87a
+        
+        Graphic-Rendering Blocks
+        Plain Text Extension        Opt. (*)   0x01 (001)  yes    89a
+        Image Descriptor            Opt. (*)   0x2C (044)  no     87a (89a)
+        
+        Control Blocks
+        Graphic Control Extension   Opt. (*)   0xF9 (249)  yes    89a
+        
+        Special Purpose Blocks
+        Trailer                     Req. (1)   0x3B (059)  no     87a
+        Comment Extension           Opt. (*)   0xFE (254)  yes    89a
+        Application Extension       Opt. (*)   0xFF (255)  yes    89a
+        
+        legend:           (1)   if present, at most one occurrence
+                          (*)   zero or more occurrences
+                          (+)   one or more occurrences 
+    */
+    /*
        FILE_TYPE = "GIF";
        FILE_VERSION = "89a"; // or 87a
        FILE_TRAILER = 0x3B; // ;
@@ -61,10 +97,13 @@
     // if GifVersion is Gif87a, it CANNOT support extensions
     public class GifData
     {
-        Header Header { get; set; }
-        ScreenDescriptor LogicalScreenDescriptor { get; set; }
-        ImageBlock[] Images { get; set; }
+        // This is used to mark the end of a GIF data stream. This should always be the final byte
+        private const byte TRAILER = 0x3B;
 
-        byte Trailer;
+        public Header Header;
+        public ScreenDescriptor LogicalScreenDescriptor;
+
+        public ColorTriplet[] GlobalColorTable;
+        public ImageBlock[] Images;
     }
 }

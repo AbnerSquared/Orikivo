@@ -70,6 +70,7 @@ namespace Orikivo.Drawing.Encoding
             {
                 // This makes sure that the color palettes for the GIF are neatly stored.
                 EncodeUtils.CreateGifStream(image, source, Quality); 
+
                 if (_isFirstImage)
                 {
                     WriteHeader(source, image.Width, image.Height);
