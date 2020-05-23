@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
+    // marks a command to require an attachment
+    // an attachment could be another argument.
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class RequireAttachmentAttribute : PreconditionAttribute
     {

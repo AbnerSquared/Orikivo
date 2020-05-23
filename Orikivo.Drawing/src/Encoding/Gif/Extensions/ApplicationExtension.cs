@@ -30,7 +30,7 @@
         // that can be inserted.
         public DataBlock[] ApplicationData;
 
-        protected override byte[] GetInternalData()
+        protected override byte[] GetByteArray()
         {
             throw new System.NotImplementedException();
         }

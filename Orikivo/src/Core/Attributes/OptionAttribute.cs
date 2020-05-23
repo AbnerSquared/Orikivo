@@ -4,6 +4,11 @@ using System.Linq;
 
 namespace Orikivo
 {
+    // this is an option expansion that can easily be ignored for a command
+    // a command that requires base arguments will stay that way
+    // however, an option allows for advanced configurations for a command
+    // that might be otherwise harder to initialize normally.
+    // this way, some arguments can be easily ignored.
     /// <summary>
     /// Represents an <see cref="Attribute"/> that marks a command with an option that can be specified to adjust how the command functions.
     /// </summary>

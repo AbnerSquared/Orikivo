@@ -58,7 +58,7 @@ namespace Orikivo.Desync
                     panel.Append("null");
                 panel.AppendLine("`");
 
-                string subtitle = property.GetCustomAttribute<DescriptionAttribute>()?.Subtitle;
+                string subtitle = property.GetCustomAttribute<DescriptionAttribute>()?.Content;
                 
                 if (Check.NotNull(subtitle))
                     panel.AppendLine($"> {subtitle}");

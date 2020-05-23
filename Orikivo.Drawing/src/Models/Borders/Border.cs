@@ -6,7 +6,9 @@
     public class Border
     {
         public BorderEdge Edge { get; set; } = BorderEdge.Outside;
+
         public System.Drawing.Color Color { get; set; }
-        public int Width { get; set; }
+
+        public int Thickness { get; set; }
     }
 }

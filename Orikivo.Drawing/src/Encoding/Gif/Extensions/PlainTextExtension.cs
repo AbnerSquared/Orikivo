@@ -45,9 +45,40 @@
         // The data value representing the plain text.
         public DataBlock[] PlainTextData;
 
-        protected override byte[] GetInternalData()
+        protected override byte[] GetByteArray()
         {
-            throw new System.NotImplementedException();
+            var bytes = new byte[BlockSize.Value]; // 12
+
+            // 00000000--------
+            bytes[0] = (byte)(GridLeftPosition & 0xFF);
+
+            // --------00000000
+            bytes[1] = (byte)((GridLeftPosition >> 8) & 0xFF);
+
+            // 00000000--------
+            bytes[2] = (byte)(GridTopPosition & 0xFF);
+
+            // --------00000000
+            bytes[3] = (byte)((GridTopPosition >> 8) & 0xFF);
+
+            // 00000000--------
+            bytes[4] = (byte)(GridWidth & 0xFF);
+
+            // --------00000000
+            bytes[5] = (byte)((GridWidth >> 8) & 0xFF);
+
+            // 00000000--------
+            bytes[6] = (byte)(GridHeight & 0xFF);
+
+            // --------00000000
+            bytes[7] = (byte)((GridHeight >> 8) & 0xFF);
+
+            bytes[8] = CellWidth;
+            bytes[9] = CellHeight;
+            bytes[10] = ForegroundColorIndex;
+            bytes[11] = BackgroundColorIndex;
+
+            return bytes;
         }
     }
 }

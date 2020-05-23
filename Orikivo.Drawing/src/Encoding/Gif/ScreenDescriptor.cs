@@ -1,14 +1,5 @@
 ﻿namespace Orikivo.Drawing.Encoding.Gif
 {
-    public enum ColorSortFlag : byte
-    {
-        // bit 4 is the only bit that utilizes this flag
-        Unordered = 0, // 00000000
-        DecreasingFrequency = 16 // 00010000
-    }
-
-    
-
     public class ScreenDescriptor
     {
         // Logical Screen Descriptor (get from GIF)
@@ -38,7 +29,6 @@
         // Size of Global Color Table
         // This uses the same method as the Color Resolution data.
         // This will be automatically retrieved by calculating the length of the global color table
-
 
         // Byte 6
         // Background Color Index

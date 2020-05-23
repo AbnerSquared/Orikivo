@@ -6,5 +6,13 @@
     {
         private const string SIGNATURE = "GIF";
         private const string VERSION = "89a"; // or 87a
+
+
+        private byte[] GetByteArray()
+        {
+            var bytes = new byte[6];
+
+            return bytes;
+        }
     }
 }

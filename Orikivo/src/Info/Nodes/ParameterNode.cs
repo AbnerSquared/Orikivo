@@ -31,7 +31,7 @@ namespace Orikivo
             DefaultValue = parameter.DefaultValue;
             ValueType = parameter.Type;
             Tag = GetTagValue(parameter);
-            ParseExamples = parameter.Attributes.FindAttribute<ParseExampleAttribute>()?.Examples;
+            ParseExamples = parameter.Attributes.FindAttribute<ExampleAttribute>()?.Examples;
         }
 
         private static ParameterTag GetTagValue(ParameterInfo parameter)

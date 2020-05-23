@@ -2,6 +2,9 @@
 
 namespace Orikivo
 {
+    // TODO: figure out how to utilize this argument separator
+    // in its actual purpose
+    // a custom command parser might very well be required.
     /// <summary>
     /// An attribute that marks a command to use an alternate parameter separator.
     /// </summary>
@@ -17,7 +20,7 @@ namespace Orikivo
 
         public ArgSeparatorAttribute(string separator)
         {
-            Separator = separator.ToString();
+            Separator = separator;
         }
     }
 }

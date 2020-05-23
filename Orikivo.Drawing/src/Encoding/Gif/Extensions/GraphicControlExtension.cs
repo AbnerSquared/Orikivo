@@ -40,7 +40,7 @@ namespace Orikivo.Drawing.Encoding.Gif
 
         // This encodes all of the specified values into the proper formatting.
         // This does not provide the completely built extension block.
-        protected override byte[] GetInternalData()
+        protected override byte[] GetByteArray()
         {
             var bytes = new byte[BlockSize.Value]; // 4
 

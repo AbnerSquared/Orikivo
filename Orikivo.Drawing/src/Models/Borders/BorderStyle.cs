@@ -2,6 +2,6 @@
 {
     public enum BorderStyle
     {
-        Solid = 1,
+        Solid = 1
     }
 }

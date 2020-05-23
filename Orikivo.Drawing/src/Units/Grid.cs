@@ -108,7 +108,7 @@ namespace Orikivo.Drawing
         public Grid<TValue> Select<TValue>(Func<T, TValue> selector)
         {
             Grid<TValue> result = new Grid<TValue>(Size);
-            ForEachValue((int x, int y) => result.SetValue(selector.Invoke(GetValue(x, y)), x, y));
+            ForEachValue((int x, int y, T t) => result.SetValue(selector.Invoke(t), x, y));
 
             return result;
         }
@@ -303,11 +303,11 @@ namespace Orikivo.Drawing
                 action.Invoke(GetRow(y));
         }
 
-        public void ForEachValue(Action<int, int> action)
+        public void ForEachValue(Action<int, int, T> action)
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    action.Invoke(x, y);
+                    action.Invoke(x, y, GetValue(x, y));
         }
 
         private (int x, int y) GetPosition(int i)

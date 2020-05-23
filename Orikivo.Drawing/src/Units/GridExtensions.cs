@@ -78,7 +78,10 @@ namespace Orikivo.Drawing
         // this adds up all float values on this grid.
         public static float Sum(this Grid<float> grid)
         {
-            throw new NotImplementedException();
+            float sum = 0;
+            grid.ForEachValue((x, y, z) => sum += z);
+
+            return sum; 
         }
 
         // this sums all of the columns, and returns an array of all summed columns.
@@ -90,7 +93,23 @@ namespace Orikivo.Drawing
         // this sums all of the rows, and returns an array of all summed rows
         public static float[] SumRows(this Grid<float> grid)
         {
-            throw new NotImplementedException();
+            var rowSums = new float[grid.Height];
+            int i = 0;
+
+            grid.ForEachRow(delegate (float[] row)
+            {
+                float sum = 0;
+
+                for (int r = 0; r < row.Length; r++)
+                {
+                    sum += row[r];
+                }
+
+                rowSums[i] = sum;
+                i++;
+            });
+
+            return rowSums;
         }
 
         // adds up all float values on a specified row.
@@ -106,12 +125,12 @@ namespace Orikivo.Drawing
 
         public static Grid<float> Ceiling(this Grid<float> grid)
         {
-            throw new NotImplementedException();
+            return grid.Select(x => MathF.Ceiling(x));
         }
 
         public static Grid<float> Floor(this Grid<float> grid)
         {
-            throw new NotImplementedException();
+            return grid.Select(x => MathF.Floor(x));
         }
 
         // removes all decimals
@@ -131,15 +150,13 @@ namespace Orikivo.Drawing
             throw new NotImplementedException();
         }
 
-
         public static Grid<Vector2> Offset(this Grid<Vector2> grid, Vector2 v)
-        {
-            throw new NotImplementedException();
-        }
+            => Offset(grid, v.X, v.Y);
 
-        public static Grid<Vector2> Offset(this Grid<Vector2> grid, float x, float y)
+        public static Grid<Vector2> Offset(this Grid<Vector2> grid, float u, float v)
         {
-            throw new NotImplementedException();
+            grid.ForEachValue((int x, int y, Vector2 z) => z.Offset(u, v));
+            return grid;
         }
 
         public static Grid<T?> GetRegionOrDefault<T>(this Grid<T> grid, int x, int y, int width, int height) where T : struct

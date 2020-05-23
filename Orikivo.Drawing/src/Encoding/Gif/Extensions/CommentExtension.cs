@@ -10,7 +10,7 @@
 
         public DataBlock[] CommentData;
 
-        protected override byte[] GetInternalData()
+        protected override byte[] GetByteArray()
         {
             throw new System.NotImplementedException();
         }

@@ -3,7 +3,7 @@
 namespace Orikivo
 {
     /// <summary>
-    /// An attribute that marks a command to apply a usage cooldown on the account that executed the command.
+    /// Marks a command with a usage cooldown on the account that executed the command.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class CooldownAttribute : Attribute

@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Orikivo
 {
+    // Scrap once BindToRegion is complete.
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RequireLocationAttribute : Attribute
     {

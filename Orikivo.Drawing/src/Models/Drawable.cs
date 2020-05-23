@@ -60,7 +60,7 @@ namespace Orikivo.Drawing
 
         public void SetBorder(GammaColor color, int width, BorderEdge edge = BorderEdge.Outside)
         {
-            Border = new Border { Color = color, Width = width, Edge = edge };
+            Border = new Border { Color = color, Thickness = width, Edge = edge };
         } // LeftBorder, TopBorder, RightBorder, BottomBorder
 
         public void ClearBorder()

@@ -5,12 +5,12 @@
         public string Value;
         public Markdown Flag { get; set; }
 
-        public bool Bold;
-        public bool Italics;
-        public bool Strike;
-        public bool Underline;
-        public bool Spoiler;
-        public bool Code;
-        public bool Quote;
+        public bool Bold; // **VALUE**
+        public bool Italics; // *VALUE*
+        public bool Strike; // ~~VALUE~~
+        public bool Underline; // __VALUE__
+        public bool Spoiler; // ||VALUE||
+        public bool Code; // `VALUE` OR ```VALUE```
+        public bool Quote; // > VALUE
     }
 }

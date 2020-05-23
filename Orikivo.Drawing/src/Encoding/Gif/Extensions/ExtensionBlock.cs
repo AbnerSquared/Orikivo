@@ -8,6 +8,6 @@
         protected abstract byte Label { get; }
         protected abstract byte? BlockSize { get; }
 
-        protected abstract byte[] GetInternalData();
+        protected abstract byte[] GetByteArray();
     }
 }

@@ -3,16 +3,16 @@
 namespace Orikivo
 {
     /// <summary>
-    /// An <see cref="Attribute"/> that stores a short description for the value it is applied to.
+    /// An <see cref="Attribute"/> that stores a short description for the command it is applied to.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class DescriptionAttribute : Attribute
     {
-        public DescriptionAttribute(string subtitle)
+        public DescriptionAttribute(string content)
         {
-            Subtitle = subtitle;
+            Content = content;
         }
 
-        public string Subtitle { get; }
+        public string Content { get; }
     }
 }
