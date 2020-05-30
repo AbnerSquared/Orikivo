@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Orikivo.Framework;
 
 namespace Orikivo
 {
-    internal static class ClientExtensions
+    public static class ClientExtensions
     {
         /// <summary>
         /// Ensures that the <see cref="IServiceProvider"/> contains the required services for the default <see cref="Client"/>.
@@ -18,12 +19,14 @@ namespace Orikivo
         /// </summary>
         public static ClientBuilder SetDefaultServices(this ClientBuilder builder)
         {
-            builder
-                .AddSingleton<DiscordNetworkService>() // Handles the connection to Discord.
+            builder.Services
                 .AddSingleton<LogService>() // Handles all logging for Orikivo.
                 .AddSingleton<OriJsonContainer>() // A data container that is passed along all inheriting classes.
                 .AddSingleton<EventHandler>() // Manages all events that occur from the Discord API.
                 .AddSingleton<CommandHandler>();
+
+            builder.SocketConfig = DiscordConfig.DefaultSocketConfig;
+            builder.CommandConfig = DiscordConfig.DefaultCommandConfig;
 
             return builder;
         }

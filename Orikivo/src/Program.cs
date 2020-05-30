@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Orikivo.Drawing;
+using Orikivo.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,45 +16,38 @@ namespace Orikivo
         {
             Task.Run(async () =>
             {
-                CancellationTokenSource _cancelSource = new CancellationTokenSource();
-                ConsoleConfig consoleConfig = ConsoleConfig.Default;
-                consoleConfig.Title = $"Orikivo: {OriGlobal.ClientVersion}";
-                consoleConfig.BackgroundColor = ConsoleColor.Black;
-                consoleConfig.TextColor = ConsoleColor.White;
-                //consoleConfig.OutputPath = "../logs/";
+                var _cancelSource = new CancellationTokenSource();
+                var layout = new ConsoleLayout
+                {
+                    Title = $"Orikivo: {OriGlobal.ClientVersion}",
+                    BackgroundColor = ConsoleColor.DarkCyan,
+                    ForegroundColor = ConsoleColor.Cyan,
+                    CursorVisible = false
+                };
 
-                // A simple little boot tune for fun:
-                /*
-                Console.Beep(800, 300);
-                Thread.Sleep(200);
-                Console.Beep(700, 200);
-                Console.Beep(600, 200);
-                Console.Beep(900, 200);
-                Console.Beep(700, 200);
-                Console.Beep(800, 200);
-                */
+                layout.Set();
 
-                ClientBuilder builder = new ClientBuilder();
-                builder.ConsoleConfig = consoleConfig;
-                builder.LogConfig = LogConfig.Default;
-                ClientBuilder.SetDefaultServices(builder.Services);
+                var builder = new ClientBuilder();
+                builder.SetDefaultServices();
 
-                
-                builder.AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>());
-                builder.AddTypeReader<EventType>(new EnumTypeReader<EventType>());
-                builder.AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>());
-                builder.AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>());
-                builder.AddTypeReader<Operator>(new EnumTypeReader<Operator>());
+                builder
+                    .AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>())
+                    .AddTypeReader<EventType>(new EnumTypeReader<EventType>())
+                    .AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>())
+                    .AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>())
+                    .AddTypeReader<Operator>(new EnumTypeReader<Operator>());
 
-                builder.AddModule<MiscModule>();
-                builder.AddModule<MessyModule>();
-                builder.AddModule<DigitalModule>();
-                builder.AddModule<Actions>();
+                builder
+                    .AddModule<CoreModule>()
+                    .AddModule<MessyModule>()
+                    .AddModule<DigitalModule>()
+                    .AddModule<Actions>();
 
-                Client client = builder.Build();
-                //Client.EnsureDefaultServices(client.Provider);
-                await client.SetGameAsync("Minecraft", activity: ActivityType.Listening);
-                await client.SetStatusAsync(UserStatus.DoNotDisturb);
+                Client client = builder.Build()
+                    .WithStatus(UserStatus.DoNotDisturb)
+                    .WithActivity("Minecraft", type: ActivityType.Listening);
+
+                client.EnsureDefaultServices();
                 await client.StartAsync(_cancelSource.Token);
             }).GetAwaiter().GetResult();
         }

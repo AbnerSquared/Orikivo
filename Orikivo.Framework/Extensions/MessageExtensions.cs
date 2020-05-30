@@ -52,9 +52,8 @@ namespace Orikivo
             this IMessage message,
             IMessageChannel channel,
             RequestOptions options = null)
-            => await channel.SendMessageAsync(message.Content, message.IsTTS, message.GetRichEmbed(), options);
+            => await channel.SendMessageAsync(message.Content, message.IsTTS, message.GetRichEmbed()?.Build(), options);
 
-        // extracts the content from the specified message.
         /// <summary>
         /// Extracts the content from this <paramref name="message"/>.
         /// </summary>
@@ -64,19 +63,17 @@ namespace Orikivo
             {
                 Content = message.Content,
                 IsTTS = message.IsTTS,
-                Embed = message.GetRichEmbed()?.ToEmbedBuilder()
+                Embed = message.GetRichEmbed()
             };
         }
         
-        // attempts to get a rich embed from the specified message; otherwise, null.
         /// <summary>
         /// Attempts to return an <see cref="EmbedType.Rich"/> <see cref="Embed"/> from this <paramref name="message"/>. If none could be found, this return null.
         /// </summary>
-        public static Embed GetRichEmbed(this IMessage message)
+        public static EmbedBuilder GetRichEmbed(this IMessage message)
             => message.Embeds
             .FirstOrDefault(x => x.Type == EmbedType.Rich)?
             .ToEmbedBuilder()
-            .Build()
             ?? null;
     }
 }

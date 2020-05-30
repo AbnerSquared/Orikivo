@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Orikivo.Framework
 {
@@ -15,6 +16,8 @@ namespace Orikivo.Framework
         public static string LogDirectory { get; set; }
 
         public static bool DebugAllowed { get; set; }
+
+        public static bool FileAllowed { get; set; }
 
         public static ConsoleColor? ForegroundColor
         {
@@ -78,7 +81,7 @@ namespace Orikivo.Framework
         public static void WriteLine(string content)
             => Console.WriteLine(content);
 
-        private static void SetTemporaryColors(ConsoleColor? foreground, ConsoleColor? background)
+        internal static void SetTemporaryColors(ConsoleColor? foreground, ConsoleColor? background)
         {
             _foregroundColor = ForegroundColor;
             _backgroundColor = BackgroundColor;
@@ -86,7 +89,7 @@ namespace Orikivo.Framework
             BackgroundColor = background;
         }
 
-        private static void RestoreColors()
+        internal static void RestoreColors()
         {
             ForegroundColor = _foregroundColor;
             BackgroundColor = _backgroundColor;
@@ -94,17 +97,26 @@ namespace Orikivo.Framework
             _backgroundColor = null;
         }
 
-        private static void WriteToFile(string content)
+        internal static void WriteToFile(string content)
         {
-            if (string.IsNullOrWhiteSpace(LogDirectory))
+            if (!FileAllowed)
                 return;
 
             var path = Directory.CreateDirectory($"../logs/{LogDirectory}").FullName + GetLogFileName();
 
             using (StreamWriter writer = File.AppendText(path))
-            {
                 writer.WriteLine(content);
-            }
+        }
+
+        internal static async Task WriteToFileAsync(string content)
+        {
+            if (!FileAllowed)
+                return;
+
+            var path = Directory.CreateDirectory($"../logs/{LogDirectory}").FullName + GetLogFileName();
+
+            using (StreamWriter writer = File.AppendText(path))
+                await writer.WriteLineAsync(content);
         }
 
         private static string GetLogFileName()
@@ -112,7 +124,7 @@ namespace Orikivo.Framework
             var file = new StringBuilder();
 
             file.Append(DateTime.UtcNow.ToString("MM_dd_yyyy"));
-            file.Append("_LOG.txt");
+            file.Append("_log.txt");
 
             return file.ToString();
         }

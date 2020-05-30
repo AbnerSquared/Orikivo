@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 
 namespace Orikivo
 {
+    // Arcadia class
     public class GuildCommand
     {
         [JsonConstructor]

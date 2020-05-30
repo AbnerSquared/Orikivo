@@ -2,6 +2,7 @@
 
 namespace Orikivo.Desync
 {
+    // could be repurposed for arcadia
     // used to set up objectives.
     public class ObjectiveInfo
     {

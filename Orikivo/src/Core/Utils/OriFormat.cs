@@ -22,11 +22,9 @@ namespace Orikivo
     /// </summary>
     public static class OriFormat
     {
-        public static readonly string DebugFormat = "[Debug] -- {0} --";
         public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
 
         // TODO: You could use the Minic FontFace to utilize a way to draw sub/superscript on larger fonts.
-        // ᵃᵇᶜᵈᵉᶠᵍʰᶤʲᵏˡᵐᶯᵒᵖʳˢᵗᵘᵛʷˣʸᶻ (superscript)
         private static readonly Dictionary<char, char> _superscriptMap = new Dictionary<char, char>
         {
             {'a', 'ᵃ'},
@@ -56,7 +54,7 @@ namespace Orikivo
             {'y', 'ʸ'},
             {'z', 'ᶻ'},
         };
-        // ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ (subscript)
+
         private static readonly Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
         {
             {'0', '₀'},
@@ -78,10 +76,8 @@ namespace Orikivo
 
         public static string Time(DateTime time)
             => time.ToString("M/d/yyyy @ HH:mm tt");
-        public static string Debug(string content)
-            => string.Format(DebugFormat, content);
 
-        public static string TypeName(Type t)
+        public static string HumanizeType(Type t)
             =>
 
                t == typeof(sbyte) ? "sbyte" :
@@ -108,7 +104,7 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        public static string GetShortValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
+        public static string SummarizeValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
         {
             string text = value.ToString();
             int valueLength = text.Length; // (12)(11)(10),(9)(8)(7),(6)(5)(4),(3)(2)(1)
@@ -118,9 +114,9 @@ namespace Orikivo
             int leftSize = (valueLength % 3 == 0) ? 3 : valueLength % 3; // 0 = length of 3, 1 = length of 1, 2 = length of 2
             // use the 0.00 value format, and return the letter indicating its placement value (k = thousands, m = millions, b = billions)
 
-            if (leftSize < (int)PlaceValue.H || leftSize > (int)PlaceValue.T)
+            if (leftSize < (int)Orikivo.PlaceValue.H || leftSize > (int)Orikivo.PlaceValue.T)
             {
-                place = PlaceValue.Null;
+                place = Orikivo.PlaceValue.Null;
             }
             else
             {
@@ -177,6 +173,9 @@ namespace Orikivo
             return sb.ToString();
         }
 
+        public static string HyperlinkEmote(Emote emote)
+            => HyperlinkEmote(emote.ToString(), emote.Url, emote.Name);
+
         public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
             => $"{Format.Url(parsedEmote, emoteUrl)} {emoteName}";
 
@@ -188,7 +187,7 @@ namespace Orikivo
 
         public static string Position(int i)
         {
-            string value = Notate(i, false);
+            string value = PlaceValue(i, false);
             return i switch
             {
                 1 => $"{value}st",
@@ -199,10 +198,10 @@ namespace Orikivo
         }
 
         private const string POS_NOTATION = "##,0.###";
-        public static string Notate(int i, bool includeDecimals = false)
+        public static string PlaceValue(int i, bool includeDecimals = false)
             => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
 
-        public static string Notate(ulong u, bool includeDecimals = false)
+        public static string PlaceValue(ulong u, bool includeDecimals = false)
             => u.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
@@ -240,6 +239,7 @@ namespace Orikivo
             Dictionary<char, char> map = type switch
             {
                 UnicodeMap.Subscript => _subscriptMap,
+                UnicodeMap.Superscript => _superscriptMap,
                 _ => throw new ArgumentException("The specified UnicodeMap does not exist.")
             };
 

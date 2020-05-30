@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
+    // Moderation class
     /// <summary>
     /// Represents a parseable marker when writing events.
     /// </summary>

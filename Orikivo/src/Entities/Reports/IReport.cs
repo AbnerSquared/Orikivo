@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
+    // Moderation class
+    // The report system might either be scrapped,
+    // or extracted for alternate uses
     /// <summary>
     /// Represents a generic report.
     /// </summary>
@@ -16,7 +19,7 @@ namespace Orikivo
 
         DateTime CreatedAt { get; }
 
-        List<ReportTag> Tags { get; }
+        ReportTag Tag { get; }
 
         ReportState State { get; }
 

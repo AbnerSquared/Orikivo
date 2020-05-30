@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Desync
 {
+    // Orikivo-based custom item property
     /// <summary>
     /// Defines the explicit dimension an <see cref="Item"/> was meant for.
     /// </summary>

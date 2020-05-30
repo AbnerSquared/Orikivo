@@ -2,7 +2,7 @@
 
 namespace Orikivo.Desync
 {
-
+    
     /// <summary>
     /// Represents an action for an <see cref="Item"/>.
     /// </summary>

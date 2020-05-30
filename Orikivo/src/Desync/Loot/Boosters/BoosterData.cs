@@ -3,7 +3,7 @@ using System;
 
 namespace Orikivo.Desync
 {
-
+    // for Arcadia
     public class BoosterData
     {
         public BoosterData(BoosterType type, float rate, TimeSpan? decayLength = null, int? useLimit = null)

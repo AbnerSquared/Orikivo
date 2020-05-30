@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Desync
 {
+    // for Arcadia
     // used to set each part of a card manually
     public class CardLayout
     {

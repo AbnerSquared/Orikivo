@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Desync
 {
+    // for Arcadia
     public class CardStatus
     {
         public string DesignId { get; set; }

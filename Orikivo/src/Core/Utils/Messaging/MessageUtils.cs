@@ -87,11 +87,11 @@ namespace Orikivo
         /// Sends an image to the specified channel and disposes of it.
         /// </summary>
         public static async Task<IUserMessage> SendImageAsync(IMessageChannel channel,
-            Bitmap bmp, string path, string text = null, bool isTTS = false, Embed embed = null,
+            System.Drawing.Image image, string path, string text = null, bool isTTS = false, Embed embed = null,
             GraphicsFormat format = GraphicsFormat.Png, RequestOptions options = null, bool isSpoiler = false)
         {
-            using (bmp)
-                BitmapHandler.Save(bmp, path, GetImageFormat(format));
+            using (image)
+                BitmapHandler.Save(image, path, GetImageFormat(format));
 
             return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler);
         }

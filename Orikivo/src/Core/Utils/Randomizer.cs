@@ -1,4 +1,5 @@
 ﻿using Orikivo.Drawing;
+using Orikivo.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,12 +78,12 @@ namespace Orikivo
             if (times > args.Count() && !allowRepeats)
                 throw new Exception("Since the chosen elements cannot be repeated, you cannot get a collection of elements larger than the one specified.");
 
-            List<T> bag = args.ToList(); // prevents editing args.
+            List<T> bag = args.ToList();
             List<T> chosen = new List<T>();
             for (int i = 0; i < times; i++)
             {
                 int j = RandomProvider.Instance.Next(bag.Count);
-                Console.WriteLine($"I: {i}\nJ: {j}\nBag.Count: {bag.Count}");
+                Logger.Debug($"I: {i}\nJ: {j}\nBag.Count: {bag.Count}");
                 chosen.Add(bag[j]);
                 if (!allowRepeats)
                     bag.RemoveAt(j);
@@ -99,13 +100,12 @@ namespace Orikivo
             if (times > (args.Count() * maxRepeats)) // TODO: Handle maxRepeatLogic
                 throw new Exception("Since the chosen elements cannot be repeated, you cannot get a collection of elements larger than the one specified.");
 
-            List<T> bag = args.ToList(); // prevents editing args.
+            List<T> bag = args.ToList();
             List<T> chosen = new List<T>();
             Dictionary<T, int> repeated = new Dictionary<T, int>();
             for (int i = 0; i < times; i++)
             {
                 int j = RandomProvider.Instance.Next(bag.Count);
-                //Console.WriteLine($"I: {i}\nJ: {j}\nBag.Count: {bag.Count}");
                 chosen.Add(bag[j]);
 
                 // add a repeating listener
@@ -119,7 +119,7 @@ namespace Orikivo
 
             return chosen;
         }
-        // TODO: Implement rolling of the dice in their own class.
+
         /// <summary>
         /// Rolls a <see cref="Dice.Default"/>.
         /// </summary>
@@ -132,7 +132,7 @@ namespace Orikivo
         public static int Roll(Dice dice)
         {
             int result = (int)(Math.Truncate((double)(RandomProvider.Instance.Next(1, dice.Size * dice.Length) / dice.Length)) % dice.Size);
-            Console.WriteLine(string.Format(OriFormat.DebugFormat, $"Rolled a {dice.Size}-sided dice and got {result}."));
+            Logger.Debug($"Received {result} from a {dice.Size}-sided dice.");
             return result;
         }
 

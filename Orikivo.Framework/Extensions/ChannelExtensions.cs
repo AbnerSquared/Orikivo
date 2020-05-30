@@ -1,10 +1,8 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -25,22 +23,24 @@ namespace Orikivo
         {
             using (image)
             {
-                var encoder = System.Drawing.Imaging.Encoder.Quality;
+                var encoder = Encoder.Quality;
                 EncoderParameter[] args = { new EncoderParameter(encoder, 100) };
                 EncoderParameters parameters = new EncoderParameters(args.Length);
                 for (int i = 0; i < args.Length; i++)
                     parameters.Param[i] = args[i];
-                image.Save(path, GetImageCodec(format), parameters); // bmp can be disposed, as it's simply being stored
+                image.Save(path, GetImageCodec(format), parameters); // bmp can be disposed, as it was already stored
             }
         }
 
         private static ImageCodecInfo GetImageCodec(System.Drawing.Imaging.ImageFormat format)
         {
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+
             foreach (ImageCodecInfo codec in codecs)
                 if (codec.FormatID == format.Guid)
                     return codec;
-            return null; // no matching codec found.
+
+            return null; // No matching codec could be found
         }
 
         public static async Task<IUserMessage> SendMessageAsync(
@@ -79,7 +79,7 @@ namespace Orikivo
                 path,
                 !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
-                embed ?? message.GetRichEmbed(),
+                embed ?? message.GetRichEmbed()?.Build(),
                 options: options,
                 isSpoiler: isSpoiler);
 
@@ -103,7 +103,7 @@ namespace Orikivo
                 filePath,
                 !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
-                message.GetRichEmbed(),
+                embed ?? message.GetRichEmbed()?.Build(),
                 options);
 
             if (deleteLastMessage)
@@ -123,7 +123,7 @@ namespace Orikivo
             IUserMessage next = await message.Channel.SendMessageAsync(
                 !string.IsNullOrWhiteSpace(text) ? text : message.Content,
                 isTTS,
-                embed ?? message.GetRichEmbed(),
+                embed ?? message.GetRichEmbed()?.Build(),
                 options);
 
             if (deleteLastMessage)
@@ -153,7 +153,10 @@ namespace Orikivo
             {
                 if (!embed.Image.HasValue)
                 {
-                    embed = embed.ToEmbedBuilder().WithImageUrl($"attachment://{Path.GetFileName(path)}").Build();
+                    embed = embed
+                        .ToEmbedBuilder()
+                        .WithImageUrl($"attachment://{Path.GetFileName(path)}")
+                        .Build();
                 }
             }
 

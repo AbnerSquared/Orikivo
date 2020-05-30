@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Orikivo
@@ -37,9 +38,12 @@ namespace Orikivo
                 if (property.GetCustomAttribute<IgnoreAttribute>() != null)
                     continue;
 
-                // TODO: Implement AliasesAttribute for properties
-                if (property.Name.ToLower() == propertyName.ToLower())
+                AliasesAttribute aliases = property.GetCustomAttribute<AliasesAttribute>();
+
+                if (property.Name.ToLower() == propertyName.ToLower() || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
+                {
                     return property.GetValue(@class, null);
+                }
             }
 
             return null;
@@ -53,7 +57,9 @@ namespace Orikivo
                 if (property.GetCustomAttribute<IgnoreAttribute>() != null)
                     continue;
 
-                if (property.Name.ToLower() == propertyName.ToLower())
+                AliasesAttribute aliases = property.GetCustomAttribute<AliasesAttribute>();
+
+                if (property.Name.ToLower() == propertyName.ToLower() || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
                     if (property.PropertyType == value.GetType())
                     {
                         property.SetValue(@class, value);

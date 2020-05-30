@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace Orikivo.Desync
 {
+    // for Arcadia
     public class ObjectiveMainData
     {
         public ObjectiveMainData() { }

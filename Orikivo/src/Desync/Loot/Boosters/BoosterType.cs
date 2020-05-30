@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Desync
 {
+    // for Arcadia
     public enum BoosterType
     {
         Money = 1,

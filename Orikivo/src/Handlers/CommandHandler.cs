@@ -2,8 +2,8 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo.Desync;
+using Orikivo.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,18 +14,16 @@ namespace Orikivo
     {
         private readonly CommandService _service;
         private readonly DiscordSocketClient _client;
-        private readonly LogService _logger;
         private readonly OriJsonContainer _container;
         private readonly IServiceProvider _provider;
 
         public CommandHandler(DiscordSocketClient client, CommandService service, OriJsonContainer container,
-            IServiceProvider provider, LogService logger)
+            IServiceProvider provider)
         {
             _client = client;
             _service = service;
             _container = container;
             _provider = provider;
-            _logger = logger;
             _client.MessageReceived += ReadInputAsync;
             _service.CommandExecuted += OnExecutedAsync;
         }
@@ -135,7 +133,7 @@ namespace Orikivo
         private async Task UpdateAsync(CommandInfo command, OriCommandContext ctx)
         {
             // Manage or update cooldowns
-            CooldownAttribute cooldown = command.Attributes.FindAttribute<CooldownAttribute>();
+            CooldownAttribute cooldown = command.Attributes.FirstAttribute<CooldownAttribute>();
 
             if (cooldown != null)
             {
@@ -152,14 +150,12 @@ namespace Orikivo
 
             if (notified)
             {
-                _logger.Debug("User was notified.");
+                Logger.Debug("User was notified.");
                 ctx.Account.Notifier.LastNotified = null;
             }
-            // Clear all expired boosters and such
-            // TODO: Create expiration check
 
             // Check if the user was updated or doesn't exist to save
-            RequireUserAttribute requireUser = command.Preconditions.FindAttribute<RequireUserAttribute>();
+            RequireUserAttribute requireUser = command.Preconditions.FirstAttribute<RequireUserAttribute>();
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false
                 || cooldown != null
@@ -168,8 +164,7 @@ namespace Orikivo
                 // Check if any stats now meet certain criteria
                 CheckStats(ctx, ctx.Account);
 
-                //Console.WriteLine("User updated. Now saving...");
-                _logger.Debug("User updated. Now saving...");
+                Logger.Debug("User updated. Now saving...");
                 ctx.Container.TrySaveUser(ctx.Account);
 
                 
@@ -183,7 +178,8 @@ namespace Orikivo
             }
 
             // Check if the guild was updated or doesn't exist to save
-            RequireGuildAttribute requireGuild = command.Preconditions.FindAttribute<RequireGuildAttribute>();
+            RequireGuildAttribute requireGuild = command.Preconditions.FirstAttribute<RequireGuildAttribute>();
+
             if (requireGuild?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
                 ctx.Container.TrySaveGuild(ctx.Server);
@@ -208,12 +204,14 @@ namespace Orikivo
 
             if (merits.Count() > 0)
             {
-                foreach (KeyValuePair<string, Merit> merit in merits)
+                foreach ((string id, Merit merit) in merits)
                 {
-                    user.Merits.Add(merit.Key, merit.Value.GetData());
+                    user.Merits.Add(id, merit.GetData());
 
-                    if (!user.Config.Notifier.HasFlag(NotifyDeny.Merit))
-                        user.Notifier.Append($"Merit unlocked: **{merit.Value.Name}**");
+                    if (user.Config.Notifier.HasFlag(NotifyDeny.Merit))
+                        break;
+
+                    user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
                 }
             }
         }

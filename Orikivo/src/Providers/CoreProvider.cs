@@ -10,8 +10,6 @@ namespace Orikivo
     public static class CoreProvider
     {
         private static readonly string _before = "🌌 **Pinging...**";
-        private static readonly string _internal = "**Internal**";
-        private static readonly string _gateway = "**Gateway**";
         private static readonly string _after = "🏓 **Pong!**";
         // pings to the specified channel.
         public static async Task<IUserMessage> PingAsync(IMessageChannel channel, BaseSocketClient client)

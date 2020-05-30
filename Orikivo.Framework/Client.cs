@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,39 +17,51 @@ namespace Orikivo.Framework
         private readonly Dictionary<Type, TypeReader> _typeReaders;
         private readonly List<Type> _modules;
 
-        internal Client(IConfigurationRoot config, IServiceProvider provider, Dictionary<Type, TypeReader> typeReaders,
+        internal Client(IServiceProvider provider, Dictionary<Type, TypeReader> typeReaders,
             List<Type> modules)
         {
-            Config = config;
             Provider = provider;
             _typeReaders = typeReaders;
             _modules = modules;
         }
 
         /// <summary>
-        /// Defines the configuration set for the <see cref="Client"/>.
-        /// </summary>
-        public IConfigurationRoot Config { get; }
-
-        /// <summary>
-        /// Defines the global <see cref="IServiceProvider"/>.
+        /// Represents the collection of referenced services from a <see cref="ClientBuilder"/>.
         /// </summary>
         public IServiceProvider Provider { get; }
 
-        public StatusConfig Status { get; set; }
+        public UserStatus Status { get; set; } = UserStatus.Online;
+
+        public ActivityConfig Activity { get; set; }
 
         private ConnectionService Network => Provider.GetRequiredService<ConnectionService>();
 
+        public Client WithActivity(string name, string streamUrl = null, ActivityType type = ActivityType.Playing)
+        {
+            Activity = new ActivityConfig { Name = name, StreamUrl = streamUrl, Type = type };
+            return this;
+        }
+
+        public Client WithActivity(ActivityConfig activity)
+        {
+            Activity = activity;
+            return this;
+        }
+
+        public Client WithStatus(UserStatus status)
+        {
+            Status = status;
+            return this;
+        }
+
         /// <summary>
-        /// Initializes the connection between Discord and the <see cref="Client"/>. Once this starts, methods executed outside of this process will be ignored.
+        /// Initializes the connection between Discord and the <see cref="Client"/>. Once this starts, methods executed outside of this process will be executed once this Task ends.
         /// </summary>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await Network.CompileAsync(_typeReaders, _modules);
-
-            if (Status != null)
-                await Network.SetStatusAsync(Status);
-    
+            await Network.SetStatusAsync(Status);
+            await Network.SetActivityAsync(Activity);
             await Network.StartAsync();
             await Task.Delay(-1, cancellationToken);
         }

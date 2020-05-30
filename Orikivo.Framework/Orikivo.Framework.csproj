@@ -6,6 +6,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Entities\**" />
+    <Compile Remove="Extensions\**" />
+    <Compile Remove="Overrides\**" />
+    <Compile Remove="Typereaders\**" />
+    <EmbeddedResource Remove="Entities\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <EmbeddedResource Remove="Overrides\**" />
+    <EmbeddedResource Remove="Typereaders\**" />
+    <None Remove="Entities\**" />
+    <None Remove="Extensions\**" />
+    <None Remove="Overrides\**" />
+    <None Remove="Typereaders\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191226.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.2" />

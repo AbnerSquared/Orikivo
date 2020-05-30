@@ -3,7 +3,7 @@ using System;
 
 namespace Orikivo
 {
-
+    // Utilized by multiple bot variants; this can be made a global class
     public class MeritData
     {
         [JsonConstructor]

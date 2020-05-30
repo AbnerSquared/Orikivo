@@ -11,7 +11,7 @@ namespace Orikivo
     {
         public ParameterNode(ParameterInfo parameter) : base(parameter)
         {
-            StringBuilder command = new StringBuilder();
+            var command = new StringBuilder();
 
             // Getting the full name of the command
             if (Check.NotNull(parameter.Command.Module.Group))
@@ -31,7 +31,7 @@ namespace Orikivo
             DefaultValue = parameter.DefaultValue;
             ValueType = parameter.Type;
             Tag = GetTagValue(parameter);
-            ParseExamples = parameter.Attributes.FindAttribute<ExampleAttribute>()?.Examples?.ToList();
+            ParseExamples = parameter.Attributes.FirstAttribute<ExampleAttribute>()?.Examples;
         }
 
         private static ParameterTag GetTagValue(ParameterInfo parameter)
@@ -51,8 +51,11 @@ namespace Orikivo
         }
 
         public string Command { get; protected set; }
+
         public int OverloadIndex { get; protected set; }
-        public int OverloadCount { get; protected set; } // How do i get this value?
+
+        public int OverloadCount { get; protected set; }
+
         public string Syntax
         {
             get
@@ -80,10 +83,13 @@ namespace Orikivo
         }
 
         public object DefaultValue { get; protected set; }
-        public List<string> ParseExamples { get; protected set; }
+
+        public IEnumerable<string> ParseExamples { get; protected set; }
+
         public Type ValueType { get; protected set; }
+
         public ParameterTag Tag { get; protected set; }
-        // bool Optional
+
         public override InfoType Type => InfoType.Parameter;
 
         protected override string Formatting
@@ -135,7 +141,7 @@ namespace Orikivo
                 {
                     format.Append("> ");
                     format.Append("typeof ");
-                    format.Append(Format.Bold(OriFormat.TypeName(ValueType))); // maybe convert names with shortcut names to their shortcut name.
+                    format.Append(Format.Bold(OriFormat.HumanizeType(ValueType)));
                     format.AppendLine();
                 }
 
@@ -147,8 +153,6 @@ namespace Orikivo
                     format.AppendJoin(", ", ParseExamples.Select(x => $"`{x}`"));
                     format.AppendLine();
                 }
-
-                // id
 
                 // id
                 if (Check.NotNull(Id))

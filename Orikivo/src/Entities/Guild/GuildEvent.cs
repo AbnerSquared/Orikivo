@@ -3,6 +3,7 @@ using System;
 
 namespace Orikivo
 {
+    // Moderation class
     // TODO: Try removing the set methods from each property.
     /// <summary>
     /// Represents information about what to write in a guild when an event occurs that matches the specified type.
@@ -13,10 +14,10 @@ namespace Orikivo
         {
             if (Check.NotNull(imageUrl))
             {
-                UrlType? url = EnumUtils.GetUrlType(imageUrl);
+                ExtensionType? url = EnumUtils.GetUrlExtension(imageUrl);
 
                 if (url.HasValue)
-                    if (url.Value != UrlType.Image)
+                    if (url.Value != ExtensionType.Image)
                         throw new ArgumentException("The specified URL given is not an image file.");
             }
 

@@ -3,6 +3,9 @@ using System.Drawing;
 
 namespace Orikivo.Framework
 {
+    /// <summary>
+    /// Represents the visual configuration for the <see cref="Console"/>.
+    /// </summary>
     public class ConsoleLayout
     {
         public static ConsoleLayout GetCurrent()

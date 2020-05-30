@@ -3,7 +3,7 @@ using System;
 
 namespace Orikivo.Desync
 {
-    // this is for individual users.
+    // Arcadia class
     public class GuildData
     {
         public GuildData()

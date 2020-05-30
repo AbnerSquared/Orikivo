@@ -44,6 +44,10 @@ namespace Orikivo.Desync
             Memorials = memorials ?? new List<Memorial>();
         }
 
+        // Represents the Husk's experience.
+        [JsonProperty("exp")]
+        public ulong Exp { get; internal set; } = 0;
+
         /// <summary>
         /// Stores a list of all relationships for all known characters.
         /// </summary>

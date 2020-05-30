@@ -139,8 +139,8 @@ namespace Orikivo
             {
                 Merit merit = Engine.GetMerit(meritId);
 
-                if (CanReward(user, merit))
-                    ApplyReward(user, merit.Reward);
+                //if (CanReward(user, merit))
+                    //ApplyReward(user, merit.Reward);
 
                 user.Merits[meritId].IsClaimed = true;
                 return true;
@@ -190,16 +190,6 @@ namespace Orikivo
         private static bool CanReward(User user, Merit merit)
             => merit.Reward != null && (!user.Merits[merit.Id].IsClaimed ?? false);
 
-        // this applies the reward to the user.
-        private static void ApplyReward(User user, Reward reward)
-        {
-            foreach ((string itemId, int amount) in reward.ItemIds)
-                user.AddItem(itemId, amount);
-
-            user.Balance += reward.Money.GetValueOrDefault(0);
-
-            if (reward.Exp != null)
-                user.UpdateExp(reward.Exp.Value, reward.Exp.Type);
-        }
+        
     }
 }

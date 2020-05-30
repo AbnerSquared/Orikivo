@@ -3,6 +3,7 @@ using System;
 
 namespace Orikivo
 {
+    // Moderation class
     /// <summary>
     /// Context used to assist when parsing any matching keys from an <see cref="EventType"/>.
     /// </summary>

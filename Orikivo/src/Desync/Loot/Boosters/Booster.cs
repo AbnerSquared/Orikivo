@@ -2,6 +2,7 @@
 
 namespace Orikivo.Desync
 {
+    // for Arcadia
     public class Booster
     {
         public BoosterType Type { get; set; }

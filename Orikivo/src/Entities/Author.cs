@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Orikivo.Desync;
+﻿using Discord;
+using Newtonsoft.Json;
 
 namespace Orikivo
 {
@@ -16,7 +16,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Constructs an <see cref="Author"/> with a specified name.
+        /// Initializes an <see cref="Author"/> with a specified name.
         /// </summary>
         public Author(string name)
         {
@@ -24,21 +24,21 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Constructs an <see cref="Author"/> from a specified <see cref="User"/>.
+        /// Initializes a new <see cref="Author"/> from a specified <see cref="IUser"/>.
         /// </summary>
-        public Author(User user) : this(user.ToString())
+        public Author(IUser user) : this(user.ToString())
         {
             Id = user.Id;
         }
 
         /// <summary>
-        /// The name of the <see cref="Author"/>.
+        /// Gets a string that represents the name of this <see cref="Author"/>.
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; }
 
         /// <summary>
-        /// The unique identifier of the <see cref="Author"/>, if one was specified.
+        /// The unique identifier of this <see cref="Author"/>, if one was specified.
         /// </summary>
         [JsonProperty("id")]
         public ulong? Id { get; }

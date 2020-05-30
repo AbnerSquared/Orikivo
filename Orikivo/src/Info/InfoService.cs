@@ -7,13 +7,14 @@ using Orikivo.Desync;
 
 namespace Orikivo
 {
-
-    // TODO: Integrate ReportContainer for the help service.
     /// <summary>
-    /// A help service which provides information on all commands as an override to <see cref="CommandService"/>.
+    /// A help service which provides information on all commands as an expansion to <see cref="CommandService"/>.
     /// </summary>
     public class InfoService
     {
+        // the number of commands shown on the side of a module.
+        private const int MAX_COMMAND_DISPLAY = 3;
+
         // TODO: Separate IconHandler, which can manage fallback emojis and custom emojis
         public const int YIELD_THRESHOLD = 1;
         public const int CRITICAL_THRESHOLD = 10;
@@ -95,7 +96,7 @@ namespace Orikivo
         {
             StringBuilder panel = new StringBuilder();
             // Husk system
-            if (user.Husk != null)
+            if (user?.Husk != null)
             {
                 bool canMove = Engine.CanMove(user, user.Husk);
                 bool canAct = Engine.CanAct(user);
@@ -113,9 +114,9 @@ namespace Orikivo
                         continue;
 
                     // Flag checking
-                    OnlyWhenAttribute precondition = action.Preconditions.FindAttribute<OnlyWhenAttribute>();
+                    OnlyWhenAttribute precondition = action.Preconditions.FirstAttribute<OnlyWhenAttribute>();
                     // replace with BindToRegion when ready
-                    RequireLocationAttribute check = action.Attributes.FindAttribute<RequireLocationAttribute>();
+                    BindToRegionAttribute check = action.Attributes.FirstAttribute<BindToRegionAttribute>();
 
                     if (precondition != null)
                     {
@@ -131,7 +132,7 @@ namespace Orikivo
                         if (!canAct)
                             continue;
 
-                        if (!check.Check(user.Husk.Location))
+                        if (!check.Judge(user.Husk))
                             continue;
                     }
 
@@ -147,8 +148,6 @@ namespace Orikivo
 
                     return term;
                 }));
-
-                
             }
 
             return panel.ToString();
@@ -167,7 +166,7 @@ namespace Orikivo
                 panel.AppendLine("> Use `help <name>` to learn more about a command, module, or action.");
 
             // TODO: Handle report status icon management
-            if (Guides.Count > 0)
+            if (Guides.Count() > 0)
             {
                 panel.AppendLine();
                 panel.AppendLine("**Guides**");
@@ -206,7 +205,7 @@ namespace Orikivo
                         int inserted = 0;
                         foreach(CommandNode command in module.Commands.OrderBy(x => x.Name))
                         {
-                            if (inserted >= 3)
+                            if (inserted >= MAX_COMMAND_DISPLAY)
                                 break;
 
                             if (inserted > 0)
@@ -222,10 +221,16 @@ namespace Orikivo
 
                         panel.AppendLine();
                     }
+                    else
+                    {
+                        panel.Append("...");
+                        panel.AppendLine();
+                    }
                 }
             }
 
-            panel.Append(GetActions(user));
+            if (user != null)
+                panel.Append(GetActions(user));
 
             return panel.ToString();
         }
@@ -369,7 +374,7 @@ namespace Orikivo
             }
         }
 
-        public List<InfoMatch> GetMatchingValues(string name)
+        public IEnumerable<InfoMatch> GetMatchingValues(string name)
         {
             List<InfoMatch> values = GetModules(name).Select(x => new InfoMatch(x)).ToList();
 
@@ -387,7 +392,7 @@ namespace Orikivo
             return values;
         }
 
-        public List<InfoMatch> GetMatchingValues(ModuleInfo parent, string name)
+        public IEnumerable<InfoMatch> GetMatchingValues(ModuleInfo parent, string name)
         {
             if (parent == null)
                 return GetMatchingValues(name);
@@ -410,9 +415,7 @@ namespace Orikivo
 
         public InfoMatch GetValue(string name, ModuleInfo parent = null)
         {
-            List<InfoMatch> values = GetMatchingValues(parent, name);
-
-            Console.WriteLine(string.Join("\n", values.Select(x => x.Name)));
+            IEnumerable<InfoMatch> values = GetMatchingValues(parent, name);
 
             if (!Check.NotNullOrEmpty(values))
                 throw new ResultNotFoundException($"No matches were found when searching for a value of the name '{name}'.");
@@ -422,25 +425,6 @@ namespace Orikivo
 
             return values.First();
         }
-
-
-        // REPORTS
-
-        public IEnumerable<Report> GetReports(ModuleInfo module)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Report> GetReports(CommandInfo command)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Report> GetReports(ContextNode node)
-        {
-            throw new NotImplementedException();
-        }
-
 
         // MODULES
         public ModuleInfo GetInnerModule(InfoContext ctx)
@@ -473,7 +457,7 @@ namespace Orikivo
         public IEnumerable<ModuleInfo> GetBaseModules(string name)
             => GetBaseModules().Where(m => MODULE_MATCHER.Invoke(m, name));
 
-        // remove all visuals on modules with the HideAttribute.
+        // remove all visuals on modules with the IgnoreAttribute.
         public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(x => x is IgnoreAttribute));
 
         public IEnumerable<ModuleInfo> GetModules(string name)
@@ -489,7 +473,6 @@ namespace Orikivo
             if (includeChildren)
                 parent.Submodules
                     .Select(m => GetModules(m, name, m.Submodules.Count > 0))
-                    .ToList()
                     .ForEach(x => modules = modules.Concat(x));
 
             return modules;
@@ -497,10 +480,10 @@ namespace Orikivo
 
 
         // GUIDES
-        public List<GuideNode> Guides { get; private set; }
+        public IEnumerable<GuideNode> Guides { get; private set; }
 
         public GuideNode GetGuide(string name)
-            => Guides.First(x => x.Id.ToLower() == name.ToLower());
+            => Guides.First(x => x.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
         // GROUPS
         public ModuleInfo GetInnerGroup(InfoContext ctx, ModuleInfo parent = null)
@@ -540,16 +523,13 @@ namespace Orikivo
             if (includeChildren)
                 parent.Submodules
                     .Select(x => GetGroups(x, name, x.Submodules.Count > 0))
-                    .ToList()
                     .ForEach(x => groups = groups.Concat(x));
 
             return groups;
         }
 
-
         // COMMANDS
         public IEnumerable<CommandInfo> Commands => _commands.Commands;
-
 
         public IEnumerable<CommandInfo> GetCommands(string name)
             => Commands.Where(c => COMMAND_MATCHER.Invoke(c, name));
@@ -561,11 +541,11 @@ namespace Orikivo
 
             IEnumerable<CommandInfo> commands = parent.Commands.Where(x => x.Aliases.Contains(name.ToLower()));
 
-            //parent.Commands.ForEach(x => Console.WriteLine("COMMAND::" + x.Name + ":: " + string.Join(", ", x.Aliases)));
-
             if (!Check.NotNull(parent.Group))
                 if (includeChildren)
-                    parent.Submodules.Select(x => GetCommands(name, x)).ToList().ForEach(x => commands = commands.Concat(x));
+                    parent.Submodules
+                        .Select(x => GetCommands(name, x))
+                        .ForEach(x => commands = commands.Concat(x));
 
             return commands;
         }
@@ -575,8 +555,7 @@ namespace Orikivo
             IEnumerable<CommandInfo> commands = Commands.Where(x => x.Parameters.Any(p => PARAM_MATCHER.Invoke(p, name)));
             IEnumerable<ParameterInfo> parameters = new List<ParameterInfo>();
 
-            commands.ToList().ForEach(x => parameters = parameters.Concat(x.Parameters));
-
+            commands.ForEach(x => parameters = parameters.Concat(x.Parameters));
             return parameters;
         }
 

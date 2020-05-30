@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Discord;
+using Newtonsoft.Json;
 using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,12 @@ namespace Orikivo
         /// Constructs a new <see cref="Report"/> from an <see cref="Exception"/>.
         /// </summary>
         internal static Report FromException<TException>(int id, TException exception, string commandId) where TException : Exception
-            => new Report(id, commandId, typeof(TException).Name, exception.Message, ReportTag.Exception, ReportTag.Auto);
+            => new Report(id, commandId, typeof(TException).Name, exception.Message, ReportTag.Exception | ReportTag.Auto);
 
         [JsonConstructor]
         internal Report(int id, string commandId, Author author, DateTime createdAt,
             DateTime? editedAt, string title, string content, string imageUrl, ReportBody lastInfo, ReportState status,
-            List<VoteInfo> votes, params ReportTag[] tags)
+            List<VoteInfo> votes, ReportTag tag)
         {
             Id = id;
             CommandId = commandId;
@@ -34,12 +35,12 @@ namespace Orikivo
             Content = content;
             ImageUrl = imageUrl;
             LastInfo = lastInfo;
-            Tags = tags?.ToList() ?? new List<ReportTag>();
+            Tag = tag;
             State = status;
             Votes = votes ?? new List<VoteInfo>();
         }
 
-        internal Report(int id, OverloadNode overload, User user, ReportBody reportInfo, params ReportTag[] tags)
+        internal Report(int id, OverloadNode overload, IUser user, ReportBody reportInfo, ReportTag tag)
         {
             Id = id;
             CommandId = overload.Id;
@@ -48,19 +49,19 @@ namespace Orikivo
             Title = reportInfo.Title;
             Content = reportInfo.Content;
             ImageUrl = reportInfo.ImageUrl;
-            Tags = tags?.ToList() ?? new List<ReportTag>();
+            Tag = tag;
             State = ReportState.Open;
             Votes = new List<VoteInfo>();
         }
 
-        private Report(int id, string commandId, string title, string content, params ReportTag[] tags)
+        private Report(int id, string commandId, string title, string content, ReportTag tag)
         {
             Id = id;
             CommandId = commandId;
             Author = new Author(OriGlobal.ClientName);
             Title = title;
             Content = content;
-            Tags = tags?.ToList() ?? new List<ReportTag>();
+            Tag = tag;
         }
 
         [JsonProperty("id")]
@@ -81,8 +82,8 @@ namespace Orikivo
         [JsonProperty("last")] // possible scrap.
         public ReportBody LastInfo { get; private set; }
 
-        [JsonProperty("tags")]
-        public List<ReportTag> Tags { get; }
+        [JsonProperty("tag")]
+        public ReportTag Tag { get; }
 
         [JsonProperty("state")]
         public ReportState State { get; private set; }
@@ -185,8 +186,8 @@ namespace Orikivo
             }
             sb.AppendLine($"**{Title}** #{Id}");
             sb.Append($"{(IsClosed ? "📕 **Closed**" : "📖 **Open**")}");
-            if (Tags.Count > 0)
-                sb.Append($" • {string.Join(' ', Tags.Select(x => $"**#**{x.ToString()}"))}");
+            if (Tag.GetActiveFlags().Count() > 0)
+                sb.Append($" • {string.Join(' ', Tag.GetActiveFlags().Select(x => $"**#**{x.ToString()}"))}");
             sb.AppendLine();
             sb.AppendLine(Content);
             sb.AppendLine($"`{Author.Name}` **@** `{(EditedAt ?? CreatedAt).ToString("MM/dd/yyyy hh:mm:sstt")}`");

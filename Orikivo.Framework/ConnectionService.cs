@@ -31,7 +31,7 @@ namespace Orikivo.Framework
                 return;
 
             if (string.IsNullOrWhiteSpace(_config["token"]))
-                throw new NullReferenceException("A specified token is required in order to connect. This can be configured in config.json, at 'keys:discord'.");
+                throw new NullReferenceException("A token is required in order to connect. This can be configured in config.json, with the name 'token'.");
 
             await _client.LoginAsync(TokenType.Bot, _config["token"]);
 
@@ -39,14 +39,15 @@ namespace Orikivo.Framework
                 foreach ((Type type, TypeReader reader) in typeReaders)
                 {
                     _commandService.AddTypeReader(type, reader);
+                    Logger.Debug($"Compiled '{type.Name}' as a typereader");
                 }
 
             if (modules?.Count > 0)
                 foreach (Type moduleType in modules)
                 {
                     await _commandService.AddModuleAsync(moduleType, _provider);
+                    Logger.Debug($"Compiled '{moduleType.Name}' as a module");
                 }
-
             _compiled = true;
         }
 
@@ -54,47 +55,33 @@ namespace Orikivo.Framework
         /// Starts the connection between Discord and the <see cref="Client"/>.
         /// </summary>
         public async Task StartAsync()
-        {
-            await _client.StartAsync();
-        }
-
-        public async Task SetStatusAsync(StatusConfig config)
-        {
-            await SetStatusAsync(config.Status);
-            if (config.Activity != null)
-                await SetGameAsync(config.Activity.Name, config.Activity.StreamUrl, config.Activity.Type);
-        }
-
-        /// <summary>
-        /// Sets the game for the <see cref="Client"/>.
-        /// </summary>
-        public async Task SetGameAsync(string name, string streamUrl = null, ActivityType type = ActivityType.Playing)
-            => await _client.SetGameAsync(name, streamUrl, type);
+            => await _client.StartAsync();
 
         /// <summary>
         /// Sets the current status for the <see cref="Client"/>.
         /// </summary>
         public async Task SetStatusAsync(UserStatus status)
             => await _client.SetStatusAsync(status);
+
+        /// <summary>
+        /// Sets the activity of the <see cref="Client"/>.
+        /// </summary>
+        public async Task SetActivityAsync(string name, string streamUrl = null, ActivityType type = ActivityType.Playing)
+            => await _client.SetGameAsync(name, streamUrl, type);
+
+        /// <summary>
+        /// Sets the activity of the <see cref="Client"/>.
+        /// </summary>
+        public async Task SetActivityAsync(ActivityConfig activity)
+        {
+            if (activity != null)
+                await SetActivityAsync(activity.Name, activity.StreamUrl, activity.Type);
+        }
         
         /// <summary>
-        /// Stops the connection between Discord and the <see cref="Client"/>.
+        /// Stops the connection to Discord for the <see cref="Client"/>.
         /// </summary>
         public async Task StopAsync()
             => await _client.StopAsync();
-
-        /// <summary>
-        /// Removes the specified command module.
-        /// </summary>
-        /// <typeparam name="TModule">The module to remove.</typeparam>
-        public async Task RemoveModuleAsync<TModule>()
-            where TModule : class
-            => await _commandService.RemoveModuleAsync(typeof(TModule));
-
-        /// <summary>
-        /// Removes the specified command module.
-        /// </summary>
-        public async Task RemoveModuleAsync(Type moduleType)
-            => await _commandService.RemoveModuleAsync(moduleType);
     }
 }

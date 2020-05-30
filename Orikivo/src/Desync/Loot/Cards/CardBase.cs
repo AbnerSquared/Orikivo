@@ -2,6 +2,7 @@
 
 namespace Orikivo.Desync
 {
+    // for Arcadia
     public class CardBase
     {
         public int? BackgroundId { get; set; }

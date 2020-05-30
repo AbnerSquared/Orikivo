@@ -152,12 +152,12 @@ namespace Orikivo
             }
             
             if (amount > 1 && isSellable)
-                summary.Append($"(x{OriFormat.Notate(amount)}) ");
+                summary.Append($"(x{OriFormat.PlaceValue(amount)}) ");
 
             summary.Append($"• {WriteValue(GetItemValue(item, isSellable))}");
 
             if (!isSellable)
-                summary.Append($" (**{OriFormat.Notate(amount)} in stock**)");
+                summary.Append($" (**{OriFormat.PlaceValue(amount)} in stock**)");
 
             return summary.ToString();
         }
@@ -260,7 +260,7 @@ namespace Orikivo
         private string GetTransaction()
         {
             string money = WriteValue(Last.Value);
-            string item = $"**{OriFormat.Notate(Last.Count)}** {OriFormat.GetNounForm("item", Last.Count)}";
+            string item = $"**{OriFormat.PlaceValue(Last.Count)}** {OriFormat.GetNounForm("item", Last.Count)}";
 
             return State switch
             {
@@ -272,7 +272,7 @@ namespace Orikivo
         }
 
         private string WriteValue(ulong value)
-            => $"**💸{OriFormat.Notate(value)}**";
+            => $"**💸{OriFormat.PlaceValue(value)}**";
         private string GetItemDetails(Item item)
         {
             StringBuilder details = new StringBuilder();
@@ -283,7 +283,7 @@ namespace Orikivo
                 details.AppendLine($"> *\"{Randomizer.Choose(item.Quotes)}\"*");
 
             details.Append("**#**");
-            details.AppendJoin(", ", EnumUtils.GetFlags(item.Tag).Select(x => $"`{x.ToString()}`"));
+            details.AppendJoin(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`"));
 
             if (Check.NotNull(item.Summary))
             {

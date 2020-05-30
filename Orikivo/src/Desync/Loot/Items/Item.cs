@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Orikivo.Desync
 {
+    // remove certain properties
+    // make a barebones version of this class
+    // that can be inherited for Orikivo and Arcadia
     /// <summary>
     /// Represents an interactive object for a <see cref="World"/> or <see cref="User"/>.
     /// </summary>

@@ -7,6 +7,7 @@ using System.Text;
 
 namespace Orikivo
 {
+    // Most of the stuff here is for Arcadia.
     public class GuildOptions
     {
         private const int MAX_GAME_LIMIT = 4;

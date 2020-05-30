@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.Rest;
-using Discord.WebSocket;
 using System.Threading.Tasks;
 
 namespace Orikivo
@@ -9,11 +7,13 @@ namespace Orikivo
     public abstract class OriModuleBase<T> : ModuleBase<T>
         where T : SocketCommandContext
     {
-        // TODO: Create singular message handles, like the one in game client.
-        
+        protected override void BeforeExecute(CommandInfo command)
+        {
+            base.BeforeExecute(command);
+        }
+
         private IDMChannel GetOrCreateDMChannel(IUser user)
-            => user.GetOrCreateDMChannelAsync().Result;
-        /* await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult() */
+            => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         /// <summary>
         /// Sends a direct message to the specified user.

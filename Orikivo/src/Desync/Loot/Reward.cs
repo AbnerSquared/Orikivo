@@ -23,7 +23,7 @@ namespace Orikivo.Desync
                 string name = Engine.GetItem(id).Name;
 
                 if (amount > 1)
-                    name += $" (x{OriFormat.Notate(amount)})";
+                    name += $" (x{OriFormat.PlaceValue(amount)})";
 
                 values.Add(name);
             }
@@ -32,7 +32,7 @@ namespace Orikivo.Desync
 
             if (Exp != null)
             {
-                string exp = $"{OriFormat.Notate(Exp.Value)} Exp";
+                string exp = $"{OriFormat.PlaceValue(Exp.Value)} Exp";
 
                 if (Exp.Type != ExpType.Global)
                     exp += $" ({Exp.Type})";
@@ -41,7 +41,7 @@ namespace Orikivo.Desync
             }
 
             if (Money.HasValue)
-                values.Insert(0, $"{OriFormat.Notate(Money.Value)} Orite");
+                values.Insert(0, $"{OriFormat.PlaceValue(Money.Value)} Orite");
 
             return values;
         }

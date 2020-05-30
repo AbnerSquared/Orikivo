@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Orikivo.Framework
 {
+    /// <summary>
+    /// Represents a <see cref="string"/> with assignable colors.
+    /// </summary>
     public struct ConsoleString
     {
         public ConsoleString(string content, ConsoleColor? color = null, ConsoleColor? highlight = null)

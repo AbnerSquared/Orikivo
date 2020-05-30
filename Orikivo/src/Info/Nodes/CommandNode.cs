@@ -13,7 +13,7 @@ namespace Orikivo
         {
             Parent = command.Module.Name; // Use Family to get the full name
             Group = command.Module.Group; // Use Family to get the full group
-            MainSummary = command.Attributes.FindAttribute<BaseSummaryAttribute>()?.Summary;
+            MainSummary = command.Attributes.FirstAttribute<BaseSummaryAttribute>()?.Summary;
 
             Overloads = new List<OverloadNode> { new OverloadNode(command) };
         }
@@ -25,8 +25,8 @@ namespace Orikivo
             Parent = Default.Parent; // Use Family to get the full name
             Group = Default.Group; // Use Family to get the full group
             MainSummary = commands
-                .FirstOrDefault(c => c.Attributes.FindAttribute<BaseSummaryAttribute>() != null)
-                ?.Attributes.FindAttribute<BaseSummaryAttribute>()?.Summary;
+                .FirstOrDefault(c => c.Attributes.FirstAttribute<BaseSummaryAttribute>() != null)
+                ?.Attributes.FirstAttribute<BaseSummaryAttribute>()?.Summary;
             // maybe check to see if all of their names line up
         }
 

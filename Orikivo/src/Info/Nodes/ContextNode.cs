@@ -6,9 +6,12 @@ using System.Text;
 
 namespace Orikivo
 {
-    // GuideNode : For the list of Guides that can be read (help beginner)
     public abstract class ContextNode : ContentNode
     {
+        private const char GROUP_MARKER = '*';
+        private const char MODULE_MARKER = '.';
+        private const char COMMAND_MARKER = '(';
+
         protected ContextNode(ModuleInfo module)
         {
             Id = GetId(module);
@@ -16,7 +19,6 @@ namespace Orikivo
             Aliases = module.Aliases.ToList();
             Summary = module.Summary;
             // Reports = ...
-            // Family = ...
         }
 
         protected ContextNode(CommandInfo command, bool useIndexing = false)
@@ -26,7 +28,6 @@ namespace Orikivo
             Aliases = command.Aliases.ToList();
             Summary = command.Summary;
             // Reports = ...
-            // Family = ...
         }
 
         protected ContextNode(ParameterInfo parameter)
@@ -36,7 +37,6 @@ namespace Orikivo
             Aliases = null;
             Summary = parameter.Summary;
             // Reports = ...
-            // Family = ...
         }
 
         public string Id { get; } // derives from Family
@@ -49,33 +49,33 @@ namespace Orikivo
 
         public static string GetId(ModuleInfo module)
         {
-            StringBuilder id = new StringBuilder();
+            var id = new StringBuilder();
 
             ModuleInfo parent = module.Parent;
 
             // If the module is in a group.
 
             // For modules
-            while(parent != null)
+            while (parent != null)
             {
-                id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + " " : parent.Name + ".");
+                id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + ' ' : parent.Name + MODULE_MARKER);
                 parent = parent.Parent;
             }
 
-            id.Append(Check.NotNull(module.Group) ? module.Group + "*" : module.Name + ".");
+            id.Append(Check.NotNull(module.Group) ? module.Group + GROUP_MARKER : module.Name + MODULE_MARKER);
 
             return id.ToString().ToLower();
         }
 
         public static string GetId(CommandInfo command, bool useOverloadIndex = false)
         {
-            StringBuilder id = new StringBuilder();
+            var id = new StringBuilder();
             id.Append(GetId(command.Module));
 
             if (Check.NotNull(command.Name))
             {
                 if (Check.NotNull(command.Module.Group))
-                    id.Replace('*', ' ');
+                    id.Replace(GROUP_MARKER, ' ');
 
                 id.Append(command.Name);
             }
@@ -86,16 +86,16 @@ namespace Orikivo
                     id.Append($"+{command.Priority}");
 
             if (Check.NotNull(command.Module.Group) && !Check.NotNull(command.Name))
-                id.Replace('*', '(');
+                id.Replace(GROUP_MARKER, COMMAND_MARKER);
             else
-                id.Append('(');
+                id.Append(COMMAND_MARKER);
 
             return id.ToString().ToLower();
         }
 
         public static string GetId(ParameterInfo parameter)
         {
-            StringBuilder id = new StringBuilder();
+            var id = new StringBuilder();
             id.Append(GetId(parameter.Command, true));
             id.Append(parameter.Name);
             return id.ToString().ToLower();

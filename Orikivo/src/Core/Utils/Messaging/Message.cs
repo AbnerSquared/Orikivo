@@ -1,5 +1,4 @@
 ﻿using Discord;
-using System.IO;
 using System.Text;
 
 namespace Orikivo
@@ -13,12 +12,16 @@ namespace Orikivo
                 Text = string.Empty;
                 EmbedBuilder embed = new EmbedBuilder();
                 embed.Description = builder.Content;
+
                 if (builder.Embedder.Color.HasValue)
-                    embed.WithColor(new Color(builder.Embedder.Color.Value.R, builder.Embedder.Color.Value.G, builder.Embedder.Color.Value.B));
+                    embed.WithColor(builder.Embedder.Color.Value);
+
                 if (Check.NotNull(builder.Embedder.Footer))
                     embed.WithFooter(builder.Embedder.Footer);
+
                 if (Check.NotNull(builder.Embedder.Header))
                     embed.WithTitle(builder.Embedder.Header);
+
                 if (builder.HasUrl && builder.CanEmbedUrl)
                 {
                     if (builder.HideUrl)

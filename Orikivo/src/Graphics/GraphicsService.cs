@@ -7,6 +7,7 @@ using Orikivo.Desync;
 
 namespace Orikivo
 {
+    // This service will most likely be moved to Arcadia, as Orikivo only focuses on the RPG graphics handler.
     public class CardFormatter
     {
         public bool AutoSize { get; set; } = false;
@@ -103,9 +104,9 @@ namespace Orikivo
 
         public Bitmap DrawCard(CardDetails details, GammaPalette palette, bool autoResize = false, bool allCaps = false)
         {
-            int level = ExpConvert.AsLevel(details.Exp);
-            ulong nextExp = ExpConvert.AsExp(level + 1);
-            ulong currentExp = ExpConvert.AsExp(level);
+            //int level = ExpConvert.AsLevel(details.Exp);
+            //ulong nextExp = ExpConvert.AsExp(level + 1);
+            //ulong currentExp = ExpConvert.AsExp(level);
 
             CanvasOptions textConfig = new CanvasOptions { BackgroundColor = null, Padding = Padding.Empty };
             FontFace delton = GetFont(FontType.Delton);
@@ -163,6 +164,7 @@ namespace Orikivo
             };
             #endregion
 
+            /*
             Console.WriteLine($"Drawing level icon...");
             #region Level Icon
             // LEVEL ICON
@@ -188,7 +190,9 @@ namespace Orikivo
                 Padding = new Padding(right: 5, bottom: 1)
             };
             #endregion
+            */
 
+            /*
             Console.WriteLine($"Drawing experience bar...");
             #region EXP
             // EXP
@@ -203,7 +207,9 @@ namespace Orikivo
                     levelCounter.Offset.Y + levelCounter.Source.Height + levelCounter.Padding.Height)
             };
             #endregion
+            */
 
+            /*
             Console.WriteLine($"Drawing coin icon...");
             #region Coin Icon
             // COIN ICON
@@ -225,7 +231,7 @@ namespace Orikivo
             Calc.MinusRem(details.Balance, details.Debt);
             bool inDebt = details.Debt > details.Balance;
             ulong balance = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
-            string bal = OriFormat.GetShortValue(balance, out PlaceValue value);
+            string bal = OriFormat.SummarizeValue(balance, out PlaceValue value);
             // BALANCE COUNTER
             BitmapLayer moneyCounter = new BitmapLayer
             {
@@ -238,6 +244,7 @@ namespace Orikivo
                 Padding = new Padding(right: 1)
             };
             #endregion
+            */
 
             // TODO: Split the card drawing process into one method for each layer,
             // from which it can then utilize custom loadouts and such.
@@ -246,12 +253,12 @@ namespace Orikivo
             card.AddLayer(username);
             card.AddLayer(activity);
 
-            card.AddLayer(levelIcon);
-            card.AddLayer(levelCounter);
-            card.AddLayer(expBar);
+            //card.AddLayer(levelIcon);
+            //card.AddLayer(levelCounter);
+            //card.AddLayer(expBar);
 
-            card.AddLayer(coinIcon);
-            card.AddLayer(moneyCounter);
+            //card.AddLayer(coinIcon);
+            //card.AddLayer(moneyCounter);
 
             Console.WriteLine($"Drawing border...");
             #region Border
@@ -336,7 +343,7 @@ namespace Orikivo
 
             
 
-
+            /*
             // SUFFIX OPTIONAL
             if (value > PlaceValue.H)
             {
@@ -354,7 +361,7 @@ namespace Orikivo
 
                 card.AddLayer(valueSuffix);
             }
-
+            */
             #endregion
 
             return card.BuildAndDispose();

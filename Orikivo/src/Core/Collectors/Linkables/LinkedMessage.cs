@@ -95,7 +95,10 @@ namespace Orikivo
 
         // this updates and synchronizes all messages.
         protected async Task UpdateAsync(RequestOptions options = null)
-            => _subscribers.ForEach(async x => await UpdateSubscriberAsync(x, options));
+        {
+            foreach (IUserMessage subscriber in _subscribers)
+                await UpdateSubscriberAsync(subscriber, options);
+        }
 
         private async Task UpdateSubscriberAsync(IUserMessage message, RequestOptions options = null)
         {
@@ -167,7 +170,9 @@ namespace Orikivo
 
         private async Task MarkSubscribersAsync(RequestOptions options = null)
         {
-            _subscribers.ForEach(async x => await x.ModifyAsync(y => y.Content = Check.NotNull(x.Content) ? MarkContent(x.Content) : _onSourceDeleted, options));
+            foreach (IUserMessage subscriber in _subscribers)
+                await subscriber.ModifyAsync(x => x.Content = !string.IsNullOrWhiteSpace(subscriber.Content) ?
+                MarkContent(subscriber.Content) : _onSourceDeleted, options);
         }
 
         private async Task DeleteAllAsync(RequestOptions options = null)
@@ -178,12 +183,13 @@ namespace Orikivo
 
         private async Task DeleteSubscribersAsync(RequestOptions options = null)
         {
-            _subscribers.ForEach(async x => await x.DeleteAsync(options));
+            foreach (IUserMessage subscriber in _subscribers)
+                await subscriber.DeleteAsync(options);
         }
 
         private string MarkContent(string content)
         {
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
 
             result.Append("~~");
             result.Append(content);

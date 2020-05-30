@@ -44,12 +44,12 @@ namespace Orikivo
         /// <summary>
         /// Gets the list of specified modules, if any.
         /// </summary>
-        public List<string> Modules { get; private set; }
+        public IEnumerable<string> Modules { get; private set; }
 
         /// <summary>
         /// Gets the list of specified groups, if any.
         /// </summary>
-        public List<string> Groups { get; private set; }
+        public IEnumerable<string> Groups { get; private set; }
 
         /// <summary>
         /// Gets the main search context of the <see cref="InfoContext"/>.
@@ -72,7 +72,7 @@ namespace Orikivo
         public int Priority { get; private set; }
 
         /// <summary>
-        /// Gets a <see cref="bool"/> that determines if a priority should be specified for the search context.
+        /// Gets a <see cref="bool"/> that determines if a priority can be specified for the search context.
         /// </summary>
         public bool HasPriority { get; private set; }
 
@@ -86,7 +86,7 @@ namespace Orikivo
         /// </summary>
         public static InfoContext Parse(string content)
         {
-            InfoContext ctx = new InfoContext();
+            var ctx = new InfoContext();
             Match m = new Regex(MAIN_PARSER).Match(content);
 
             ctx.Content = content;
@@ -100,14 +100,12 @@ namespace Orikivo
             ctx.Modules = new Regex(MODULE_PARSER)
                 .Matches(m.Groups[1].Value)
                 .Where(x => x.Success)
-                .Select(x => x.Groups[1].Value)
-                .ToList();
+                .Select(x => x.Groups[1].Value);
 
             ctx.Groups = new Regex(GROUP_PARSER)
                 .Matches(m.Groups[2].Value)
                 .Where(x => x.Success)
-                .Select(x => x.Groups[1].Value)
-                .ToList();
+                .Select(x => x.Groups[1].Value);
 
             ctx.Root = m.Groups[2].Value + m.Groups[3].Value;
 

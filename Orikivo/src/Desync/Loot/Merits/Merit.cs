@@ -3,6 +3,7 @@ using System;
 
 namespace Orikivo.Desync
 {
+    // Utilized by multiple bot variants; this can be made a global class
     /// <summary>
     /// Represents an achievement for a <see cref="User"/>.
     /// </summary>

@@ -54,13 +54,13 @@ namespace Orikivo
 
         public GammaPalette Palette { get; set; }
         
-        public AffinityData Relationship { get; set; }
+        public AffinityData Affinity { get; set; }
 
         public override async Task OnStartAsync()
         {
 
             ResponseIds = Pool.GetEntryTopics().Select(x => x.Id).ToList();
-            Relationship = Context.Account.Brain.GetOrAddAffinity(Npc);
+            Affinity = Context.Account.Brain.GetOrAddAffinity(Npc);
 
             // only if a sheet is supplied, should it be drawn.
             if (Npc.Model != null)

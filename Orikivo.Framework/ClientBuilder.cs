@@ -34,6 +34,9 @@ namespace Orikivo.Framework
 
         private IConfigurationBuilder Config { get; }
 
+        /// <summary>
+        /// Represents the collection of services that can be referenced in a <see cref="Client"/>.
+        /// </summary>
         public ServiceCollection Services { get; }
 
         public Dictionary<Type, TypeReader> TypeReaders { get; set; } = new Dictionary<Type, TypeReader>();
@@ -41,6 +44,7 @@ namespace Orikivo.Framework
         public List<Type> Modules { get; set; } = new List<Type>();
 
         public DiscordSocketConfig SocketConfig { get; set; }
+
         public CommandServiceConfig CommandConfig { get; set; }
 
         public void SetConfigPath(string path)
@@ -96,13 +100,12 @@ namespace Orikivo.Framework
         public Client Build()
         {
             Services
-                .AddSingleton(new DiscordSocketClient(SocketConfig ?? DiscordConfig.DefaultSocketConfig))
-                .AddSingleton(new CommandService(CommandConfig ?? DiscordConfig.DefaultCommandConfig))
-                .AddSingleton<ConnectionService>()
-                .AddSingleton(Config);
-
-            return new Client(Config.AddJsonFile(!string.IsNullOrWhiteSpace(_configPath) ? _configPath : CONFIG_FILE_NAME).Build(),
-                Services.BuildServiceProvider(), TypeReaders, Modules);
+                .AddSingleton(new DiscordSocketClient(SocketConfig))
+                .AddSingleton(new CommandService(CommandConfig))
+                .AddSingleton(Config.AddJsonFile(!string.IsNullOrWhiteSpace(_configPath) ? _configPath : CONFIG_FILE_NAME).Build())
+                .AddSingleton<ConnectionService>();
+                
+            return new Client(Services.BuildServiceProvider(), TypeReaders, Modules);
         }
     }
 }

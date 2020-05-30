@@ -4,7 +4,7 @@ using System;
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Represents a reminder for a <see cref="User"/>.
+    /// Represents a notice.
     /// </summary>
     public class Notification
     {
@@ -24,7 +24,7 @@ namespace Orikivo.Desync
         }
 
         /// <summary>
-        /// Represents the content that the <see cref="Notification"/> will display.
+        /// Gets or sets a <see cref="string"/> that represents the content that this <see cref="Notification"/> will display.
         /// </summary>
         [JsonProperty("content")]
         public string Content { get; set; }

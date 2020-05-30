@@ -11,6 +11,9 @@ namespace Orikivo.Desync
     /// </summary>
     public class Notifier
     {
+        /// <summary>
+        /// Defines the max limit that a <see cref="Notifier"/> can display at once on a message.
+        /// </summary>
         public const int MAX_NOTIFIER_DISPLAY = 4;  // if there is more, do +2 more... after all notifications.
         public Notifier()
         {
@@ -94,7 +97,7 @@ namespace Orikivo.Desync
                     int remainder = Notifications.Where(x => !x.Read).Count();
 
                     if (remainder > 0)
-                        notifier.AppendLine($" > and **+{OriFormat.Notate(remainder)}** more!");
+                        notifier.AppendLine($" > and **+{OriFormat.PlaceValue(remainder)}** more!");
 
                     break;
                 }

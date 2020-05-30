@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Discord;
+using Newtonsoft.Json;
 using Orikivo.Desync;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,9 +28,9 @@ namespace Orikivo
         /// <summary>
         /// Opens a new report.
         /// </summary>
-        public int Open(User user, OverloadNode overload, ReportBody info, params ReportTag[] tags)
+        public int Open(IUser user, OverloadNode overload, ReportBody info, ReportTag tag)
         {
-            Reports.Add(new Report(CaseCount, overload, user, info, tags));
+            Reports.Add(new Report(CaseCount, overload, user, info, tag));
             int id = CaseCount;
             CaseCount++;
             return id;

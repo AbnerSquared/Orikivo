@@ -16,58 +16,49 @@ namespace Orikivo.Desync
             Name = guild.Name;
             CreatedAt = DateTime.UtcNow;
             OwnerId = guild.OwnerId;
-            Balance = 0;
-            Exp = 0;
-            Objectives = new List<GuildObjective>();
-            Events = new List<GuildEvent>();
-            Commands = new List<GuildCommand>();
             Config = new GuildConfig();
         }
 
         [JsonConstructor]
         internal Guild(ulong id, string name, DateTime createdAt, ulong ownerId,
-            ulong balance, ulong exp, List<GuildObjective> objectives, List<GuildEvent> events,
-            List<GuildCommand> commands, GuildConfig config)
+            GuildConfig config)
         {
             Id = id;
             Name = name;
             CreatedAt = createdAt;
             OwnerId = ownerId;
-            Balance = balance;
-            Exp = exp;
-            Objectives = objectives ?? new List<GuildObjective>();
-            Events = events ?? new List<GuildEvent>();
-            Commands = commands ?? new List<GuildCommand>();
             Config = config ?? new GuildConfig();
         }
 
+        // Barebones property
         [JsonProperty("id")]
         public ulong Id { get; }
 
+        // Barebones property
         [JsonProperty("name")]
         public string Name { get; private set; }
 
+        // Barebones property
         [JsonProperty("created_at")]
         public DateTime CreatedAt { get; }
 
+        // Barebones property
         [JsonProperty("owner_id")]
         public ulong OwnerId { get; private set; }
         
-        [JsonProperty("balance")]
-        public ulong Balance { get; internal set; }
+        // Arcadia property
+        // public ulong Balance { get; internal set; }
         
-        [JsonProperty("exp")]
-        public ulong Exp { get; internal set; }
-        
-        [JsonProperty("objectives")]
-        public List<GuildObjective> Objectives { get; internal set; }
-        
-        [JsonProperty("events")]
-        public List<GuildEvent> Events { get; internal set; }
-        
-        [JsonProperty("commands")]
-        public List<GuildCommand> Commands { get; internal set; }
+        // Arcadia property
+        // public ulong Exp { get; internal set; }
 
+        // Moderation property
+        // public List<GuildEvent> Events { get; internal set; }
+        
+        // Arcadia property
+        // public List<GuildCommand> Commands { get; internal set; }
+
+        // Barebones property
         [JsonProperty("config")]
         public GuildConfig Config { get; private set; }
 
