@@ -14,5 +14,22 @@ namespace Arcadia
         public Func<Player, bool> Criterion { get; set; }
 
         public Action<Player, GameServer> OnExecute { get; set; }
+
+        public InputResult TryParse(string input)
+        {
+            InputResult result = new InputResult();
+            // name parameters
+            if (input.StartsWith(Name))
+            {
+                result.IsSuccess = true;
+                result.Input = this;
+            }
+            else
+            {
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
     }
 }

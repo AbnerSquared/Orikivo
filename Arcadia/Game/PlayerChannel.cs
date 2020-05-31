@@ -3,7 +3,7 @@
 namespace Arcadia
 
 {
-    public class PlayerConnection
+    public class PlayerChannel
     {
         // who is the user i am bound to?
         public IUser User;

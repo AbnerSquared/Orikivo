@@ -17,5 +17,22 @@ namespace Arcadia
         public Func<Player, bool> Criterion { get; set; }
 
         public Action<Player, GameServer> OnExecute { get; set; }
+
+        public InputResult TryParse(IEmote emote)
+        {
+            InputResult result = new InputResult();
+
+            if (emote == Emote)
+            {
+                result.IsSuccess = true;
+                result.Input = this;
+            }
+            else
+            {
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
     }
 }
