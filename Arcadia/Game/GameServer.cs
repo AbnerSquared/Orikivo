@@ -1,30 +1,19 @@
 ﻿using Discord;
 using Orikivo;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Arcadia
 {
-    // this handles everything related to the actual in-game process.
-    public class GameInfo
-    {
-
-    }
-
-    public interface ISessionPlayer
-    {
-        // this is required for each custom session player
-        Player Player { get; }
-    }
-
     public class GameServer
     {
         public GameServer()
         {
             Id = KeyBuilder.Generate(8);
             DisplayChannels = new List<DisplayChannel>();
-            DisplayChannels.Add(new LobbyDisplayChannel());
+            DisplayChannels.AddRange(DisplayChannel.GetReservedChannels());
             Players = new List<Player>();
             Connections = new List<ServerConnection>();
         }
@@ -33,16 +22,22 @@ namespace Arcadia
         public string Id;
 
         // all base displays for the game server
-        public List<DisplayChannel> DisplayChannels;
+        public List<DisplayChannel> DisplayChannels { get; set; }
 
         // everyone connected to the lobby
-        public List<Player> Players;
+        public List<Player> Players { get; set; }
 
         public Player Host => Players.First(x => x.Host);
 
         // all of the channels that this lobby is connected to
-        public List<ServerConnection> Connections; 
+        public List<ServerConnection> Connections { get; set; }
         // whenever a message or reaction is sent into any of these channels, attempt to figure out who sent it
+
+        // what are the configurations for this current server?
+        public GameServerConfig Config { get; set; }
+
+        // what is currently being played in this server, if a session is active? if this is null, there is no active game.
+        public GameSession Session { get; set; }
 
 
         public DisplayChannel GetDisplayChannel(int frequency)
@@ -85,6 +80,16 @@ namespace Arcadia
 
             return playerConnections;
         }
+
+        // this forcibly ends the current session a server has active
+        public async Task EndSessionAsync()
+        {
+            // this resets all channel frequencies to the lobby
+            // this sets all players that are playing back to normal
+            // this would make the game session null
+            // this would close off all possible player channel connections
+        }
+
 
         // this tells the game manager to update all ServerConnection channels bound to this frequency
         public async Task UpdateAsync()

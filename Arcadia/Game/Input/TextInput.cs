@@ -11,15 +11,15 @@ namespace Arcadia
 
         public KeyType Type => KeyType.Text;
 
-        public Func<Player, bool> Criterion { get; set; }
+        public Func<Player, ServerConnection, GameServer, bool> Criterion { get; set; }
 
-        public Action<Player, GameServer> OnExecute { get; set; }
+        public Action<Player, ServerConnection, GameServer> OnExecute { get; set; }
 
-        public InputResult TryParse(string input)
+        public InputResult TryParse(Input input)
         {
             InputResult result = new InputResult();
             // name parameters
-            if (input.StartsWith(Name))
+            if (input.Text.StartsWith(Name))
             {
                 result.IsSuccess = true;
                 result.Input = this;

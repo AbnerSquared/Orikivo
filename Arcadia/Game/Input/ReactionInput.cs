@@ -14,15 +14,15 @@ namespace Arcadia
         // what method of reaction used is needed to invoke this input? (by default, it is set to any)
         public ReactionFlag Flag { get; set; } = ReactionFlag.Any;
 
-        public Func<Player, bool> Criterion { get; set; }
+        public Func<Player, ServerConnection, GameServer, bool> Criterion { get; set; }
 
-        public Action<Player, GameServer> OnExecute { get; set; }
+        public Action<Player, ServerConnection, GameServer> OnExecute { get; set; }
 
-        public InputResult TryParse(IEmote emote)
+        public InputResult TryParse(Input input)
         {
             InputResult result = new InputResult();
 
-            if (emote == Emote)
+            if (input.Reaction == Emote && Flag.HasFlag(input.Flag))
             {
                 result.IsSuccess = true;
                 result.Input = this;

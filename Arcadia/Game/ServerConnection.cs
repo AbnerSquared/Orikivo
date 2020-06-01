@@ -19,5 +19,9 @@ namespace Arcadia
 
         // what is the frequency of the display am I currently pointing to?
         public int Frequency;
+
+        // is this channel being used to spectate a game?
+        // if so, ignore all commands being used here.
+        public bool Spectator;
     }
 }
