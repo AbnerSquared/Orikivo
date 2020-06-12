@@ -1,5 +1,7 @@
 ﻿using Discord.Commands;
 using Orikivo;
+using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,10 +12,12 @@ namespace Arcadia
     public class Multiplayer : OriModuleBase<OriCommandContext>
     {
         private readonly GameManager _games;
+        private readonly Old.GameManager _gameManager;
 
-        public Multiplayer(GameManager games)
+        public Multiplayer(GameManager games, Old.GameManager gameManager)
         {
             _games = games;
+            _gameManager = gameManager;
         }
 
         [Command("servers")]
@@ -29,7 +33,7 @@ namespace Arcadia
             var servers = new StringBuilder();
             foreach ((string key, GameServer server) in _games.Servers)
             {
-                servers.AppendLine(server.Id);
+                servers.AppendLine($"{server.Id} | {server.Config.Title} ({server.Players.Count} {OriFormat.GetNounForm("player", server.Players.Count)})");
             }
 
             await Context.Channel.SendMessageAsync(servers.ToString());
@@ -48,5 +52,110 @@ namespace Arcadia
             await _games.CreateServerAsync(Context.User, Context.Channel);
             await Context.Channel.SendMessageAsync("You have created your server.");
         }
+
+        [Command("joinserver")]
+        [Summary("Join an existing game server.")]
+        public async Task JoinServerAsync(string id)
+        {
+            if (_games.Servers.ContainsKey(id))
+            {
+                // so, i would need to make two custom actions that are executed once a person joins
+                //_games.
+            }
+        }
+
+        /*
+        [RequireUser]
+        [Command("games")]
+        [Summary("Returns a list of all visible **Games**.")]
+        public async Task ShowLobbiesAsync([Summary("The page index for the list.")]int page = 1) // utilize a paginator.
+            => await Context.Channel.SendMessageAsync(_gameManager.IsEmpty ? $"> **Looks like there's nothing here.**"
+                : string.Join('\n', _gameManager.Games.Values.Select(x => x.ToString())));
+        
+
+        
+        [RequireUser]
+        [Command("joingame"), Alias("jg")]
+        [Summary("Join an open **Lobby**.")]
+        public async Task JoinLobbyAsync([Summary("A string pointing to a specific **Game**.")]string id)
+        {
+            Old.Game game = _gameManager[id];
+            if (game == null)
+                await Context.Channel.SendMessageAsync(_gameManager.ContainsUser(Context.User.Id) ?
+                    "**Wait a minute...**\n> You are already in a game." : $"**No luck.**\n> I couldn't find any games matching #**{id}**.");
+            else
+            {
+                if (game.ContainsUser(Context.User.Id))
+                    await Context.Channel.SendMessageAsync($"**???**\n> You are already in this game.");
+                else
+                {
+                    await _gameManager.AddUserAsync(Context, id);
+                    await Context.Channel.SendMessageAsync($"**Success!**\n> You have joined {game.Lobby.Name}. [{game.Receivers.First(x => x.Id == Context.Guild.Id).Mention}]");
+                }
+            }
+        }
+        
+
+        
+    [Command("creategame"), Alias("crg")]
+    [Summary("Create a **Game**.")]
+    [RequireUser]
+    public async Task StartLobbyAsync([Summary("The **GameMode** to play within the **Game**.")]Old.GameMode mode)
+    {
+        if (_gameManager.ContainsUser(Context.Account.Id))
+        {
+            await Context.Channel.SendMessageAsync($"**Wait a minute...**\n> You are already in a game.");
+            return;
+        }
+        try
+        {
+            Old.Game game = await _gameManager.CreateGameAsync(Context, new Old.GameConfig(mode, $"{Context.User.Username}'s Lobby")).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync($"**Success!**\n> {game.Lobby.Name} has been created. [{game.Receivers[0].Mention}]");
+            await _gameManager.StartGameSessionAsync(game.Id);
+        }
+        catch (Exception ex)
+        {
+            await Context.Channel.CatchAsync(ex);
+        }
+    }
+
+        
+         //[Command("charfill")]
+        public async Task CharFillAsync(char fill, char empty, int width, float percent)
+        {
+            CharFill filler = new CharFill { FillChar = fill, EmptyChar = empty, Width = width, Percent = percent };
+            int filled = (int)MathF.Floor(RangeF.Convert(0.0f, 1.0f, 0, width, percent));
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(filler.FillChar, filled);
+            sb.Append(filler.EmptyChar, filler.Width - filled);
+
+            await Context.Channel.SendMessageAsync(sb.ToString());
+        }
+         
+        //[Command("wolfnode")]
+        public async Task CreateWolfNodeAsync(string sessionName, string sessionId, string privacy, string gameMode, string password = null)
+        {
+            WerewolfInfoNode node = new WerewolfInfoNode { SessionName = sessionName,
+            SessionId = sessionId, Privacy = privacy, GameMode = gameMode, Password = password };
+
+            await Context.Channel.SendMessageAsync(node.ToString());
+        }
+
+        //[Command("consolenode")]
+        public async Task CreateConsoleNodeAsync(string sessionName, string sessionId, string privacy, string gameMode, string message, string author = null)
+        {
+            WerewolfInfoNode node = new WerewolfInfoNode { SessionName = sessionName,
+            SessionId = sessionId, Privacy = privacy, GameMode = gameMode,
+            Messages = new List<MessageNode> {
+                new MessageNode { Author = "Orikivo", Message = "vroom" },
+                new MessageNode { Message = message, Author = author } }
+            };
+
+            await Context.Channel.SendMessageAsync(node.ToString());
+        }
+        
+        */
     }
 }

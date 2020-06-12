@@ -113,7 +113,7 @@ namespace Orikivo
 
                 chat.AppendLine(GetReplyBox(loop.NextEntry()));
 
-                await message.DeleteAsync();
+                //await message.DeleteAsync();
 
                 //await Context.Channel.SendImageAsync(Npc.Sheet.GetDisplayImage(loop.Tone, Palette), "../tmp/npc.png");
                 await MessageReference.ModifyAsync(x => x.Content = chat.ToString());

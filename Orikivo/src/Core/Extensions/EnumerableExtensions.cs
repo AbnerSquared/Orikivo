@@ -12,19 +12,51 @@ namespace Orikivo
                 dictionary[key] = value;
         }
 
-        // shifts all of the elements of the list left by the specific amount.
-        // 
-        // items2 = items.ShiftLeft(1);
-        // example: items2[0] == items[1]; 
-        // referred from stackoverflow
-        // https://stackoverflow.com/questions/18180958/does-code-exist-for-shifting-list-elements-to-left-or-right-by-specified-amount
-        public static IEnumerable<T> ShiftLeft<T>(this IEnumerable<T> list, int count)
+        // shifts all of the elements of an enumerable by a specified amount
+        public static IEnumerable<T> Shift<T>(this IEnumerable<T> enumerable, int shift)
         {
-            T[] arr = list.ToArray();
-            Array.Copy(arr, count, arr, 0, arr.Length - count);
-            Array.Clear(arr, arr.Length - count, count);
+            // if this doesn't shift at all, just return
+            if (shift == 0)
+                return enumerable;
 
-            return arr;
+            // negative values shift left, positive values shift right
+            int direction = Math.Sign(shift);
+            // -1 => less than 0
+            // 1 => greater than 0
+
+            T[] array = enumerable.ToArray();
+
+            // let's say your array is a length of 8
+            // you want to shift -3
+            // -3 is 3 to the left 
+
+            // original
+            // 0        1        2        3        4        5        6        7
+            // array[0] array[1] array[2] array[3] array[4] array[5] array[6] array[7]
+
+            // shift -3 (left)
+            // 0        1        2        3        4        5        6        7
+            // array[3] array[4] array[5] array[6] array[7] null     null     null
+
+            // shift 3 (right)
+            // 0        1        2        3        4        5        6        7
+            // null     null     null     array[0] array[1] array[2] array[3] array[4]
+
+
+            //         source sourceIndex dest destIndex, length
+            Array.Copy(
+                array, // source: What are the values I copy
+                direction > 0 ? 0 : direction * shift, // sourceIndex: Where to start copying -1 * -3 => 3
+                array, // destination: Where are these values being drawn
+                direction > 0 ? shift : 0,     // destinationIndex: Where to start pasting
+                array.Length - Math.Abs(shift)); // length: how long is this array that I am copying
+
+            Array.Clear(array,
+                // if right   | 0 OR arrayLength - abs(shift)
+                direction > 0 ? 0 :  array.Length - (direction * shift), // index
+                Math.Abs(shift)); // length
+
+            return array;
         }
 
         /// <summary>

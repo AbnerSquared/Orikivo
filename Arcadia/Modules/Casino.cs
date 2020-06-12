@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Orikivo;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Arcadia
@@ -9,6 +10,19 @@ namespace Arcadia
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<OriCommandContext>
     {
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("balance"), Alias("money", "bal")]
+        public async Task GetMoneyAsync()
+        {
+            StringBuilder values = new StringBuilder();
+
+            values.AppendLine($"**Balance**: 💸 **{Context.Account.Balance.ToString("##,0.###")}**");
+            values.AppendLine($"**Tokens**: 🏷️ **{Context.Account.TokenBalance.ToString("##,0.###")}**");
+            values.AppendLine($"**Debt**: 📃 **{Context.Account.Debt.ToString("##,0.###")}**");
+
+            await Context.Channel.SendMessageAsync(values.ToString());
+        }
+
         [Group("gimi")]
         public class GimiGroup : OriModuleBase<OriCommandContext>
         {

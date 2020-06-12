@@ -149,7 +149,10 @@ namespace Orikivo
                     return term;
                 }));
             }
-
+            else
+            {
+                panel.Append("Where are you?");
+            }
             return panel.ToString();
         }
 

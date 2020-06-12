@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Drawing;
+using System.IO;
 
 namespace Orikivo.Drawing
 {
@@ -14,6 +15,9 @@ namespace Orikivo.Drawing
         {
             Id = id;
             Path = url;
+
+            if (!File.Exists(Path))
+                throw new System.Exception("The specified path does not point to an existing file.");
 
             using (Bitmap source = GetImage())
             {

@@ -15,7 +15,7 @@ namespace Orikivo.Desync
     public static class Engine
     {
         // TODO: Transfer to .JSON file.
-        public static World World => new World
+        public static World World => new World()
         {
             Id = "world0",
             Name = "Okonos",

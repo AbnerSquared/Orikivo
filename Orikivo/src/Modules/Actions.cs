@@ -98,7 +98,6 @@ namespace Orikivo
         // [Command("chat")]
 
         [RequireUser]
-        
         [Command("leave")]
         [BindToRegion(LocationType.Construct | LocationType.Area)]
         [Summary("Leave the current **Location** you are in.")]

@@ -60,7 +60,10 @@ namespace Orikivo
                 return;
             if (message.Content == "start")
             {
-                await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] A game is already in progress."), ElementUpdateMethod.AddToGroup, groupId: "elements.console"));
+                await Display.UpdateWindowAsync(GameState.Inactive,
+                    new ElementUpdatePacket(new Element($"[Console] A game is already in progress."),
+                    ElementUpdateMethod.AddToGroup,
+                    groupId: "elements.console"));
             }
         }
         //if (userId == _client.CurrentUser.Id)
@@ -70,10 +73,18 @@ namespace Orikivo
             Console.WriteLine($"-- A display update was called. --");
             Receivers.ForEach(async x => { await x.UpdateAsync(_client, Display); Console.WriteLine($"-- ({x.Id}.{x.State}) Display updated. --"); });
         }
+
         private async Task OnUserJoinedAsync(Identity user, GameLobby lobby)
-            => await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has joined."), ElementUpdateMethod.AddToGroup, groupId: "elements.console"));
+            => await Display.UpdateWindowAsync(GameState.Inactive,
+                new ElementUpdatePacket(new Element($"[Console] {user.Name} has joined."),
+                    ElementUpdateMethod.AddToGroup,
+                    groupId: "elements.console"));
+
         private async Task OnUserLeftAsync(Identity user, GameLobby lobby)
-            => await Display.UpdateWindowAsync(GameState.Inactive, new ElementUpdatePacket(new Element($"[Console] {user.Name} has left."), ElementUpdateMethod.AddToGroup, groupId: "elements.console"));
+            => await Display.UpdateWindowAsync(GameState.Inactive,
+                new ElementUpdatePacket(new Element($"[Console] {user.Name} has left."),
+                    ElementUpdateMethod.AddToGroup,
+                    groupId: "elements.console"));
 
         private async Task OnReceiverConnectedAsync(GameReceiver receiver, GameLobby lobby)
             => await receiver.UpdateAsync(_client, Display);

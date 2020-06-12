@@ -41,6 +41,7 @@ namespace Orikivo
                     .AddModule<CoreModule>()
                     .AddModule<MessyModule>()
                     .AddModule<DigitalModule>()
+                    .AddModule<GraphicsModule>()
                     .AddModule<Actions>();
 
                 Client client = builder.Build()

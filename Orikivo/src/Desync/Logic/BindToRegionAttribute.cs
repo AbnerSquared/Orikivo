@@ -215,7 +215,7 @@ namespace Orikivo.Desync
 
                 if (Location.HasValue)
                 {
-                    if (Construct.HasValue)
+                    if (Construct.HasValue && (location as Construct) != null)
                     {
                         if (!Construct.Value.HasFlag((location as Construct).Tag))
                             return false;
