@@ -105,28 +105,29 @@ namespace Arcadia
                 },
 
             });
-                /*
-                Component 2: actions
-                - Note: This component should be linked with the base List<IInput>, to auto-list out all possible inputs from the existing set
+            /*
+            Component 2: actions
+            - Note: This component should be linked with the base List<IInput>, to auto-list out all possible inputs from the existing set
 
-                - Capacity: null
-                
-                - OverrideBaseIndex: true (the list of actions must be specified when drawing the component)
+            - Capacity: null
 
-                - Separator: |
+            - OverrideBaseIndex: true (the list of actions must be specified when drawing the component)
 
-                - ElementFormatter:
-                `{0}`
+            - Separator: |
 
-                - BaseFormatter:
-                **Actions**
-                {0}
+            - ElementFormatter:
+            `{0}`
 
-                - Example:
-                **Actions**
-                `join`|`leave`
-             */
-            
+            - BaseFormatter:
+            **Actions**
+            {0}
+
+            - Example:
+            **Actions**
+            `join`|`leave`
+         */
+
+            /*
             var inputs = new List<IInput>();
 
             inputs.Add(new TextInput
@@ -177,6 +178,7 @@ namespace Arcadia
                     server.GetDisplayChannel(0).Content.GetComponent("message_box").Draw();
                 }
             });
+            */
 
             // commands in the lobby:
 
@@ -187,33 +189,87 @@ namespace Arcadia
             // join: allows you to join the lobby
             // leave: leaves the lobby
 
+            DisplayContent editingContent = new DisplayContent
+            {
+                Components = new List<IComponent>
+                {
+                    new ComponentGroup
+                    {
+                        Id = "message_box",
+                        Formatter = new ComponentFormatter
+                        {
+                            Separator = "\n",
+                            ElementFormatter = "• {0}",
+                            BaseFormatter = "```\n{0}\n```"
+                        },
+                        Capacity = 4,
+                        Values = new string[4] { "", "", "", "" },
+                        Active = true,
+                        Position = 0
+                    },
+
+                    new Component
+                    {
+                        Id = "config",
+                        Formatter = new ComponentFormatter
+                        {
+                            BaseFormatter = "**Config**\n> **Title**: `{0}`\n> **Privacy**: `{1}`\n> **Game**: `{2}`",
+                            OverrideBaseIndex = true
+                        },
+                        Active = true,
+                        Position = 1
+                    },
+
+                    new ComponentGroup
+                    {
+                        Id = "game_config",
+                        Capacity = 8,
+                        Formatter = new ComponentFormatter
+                        {
+                            BaseFormatter = "**{1} Config**\n{0}",
+                            ElementFormatter = "> {0}",
+                            OverrideBaseIndex = true,
+                            Separator = "\n"
+                        },
+                        Active = false,
+                        Position = 2
+                    }
+                }
+            };
+
             var channels = new List<DisplayChannel>();
             
-            // reserved lobby channel
+            // reserved watching channel
             channels.Add(new DisplayChannel
             {
                 Frequency = 0,
+                State = GameState.Waiting,
                 Content = content,
-                Inputs = inputs,
+                Inputs = new List<IInput>(),//inputs,
                 RefreshRate = TimeSpan.FromSeconds(1)
             });
 
-            // reserved configurations channel
-            /*
+            // reserved editing channel
             channels.Add(new DisplayChannel
             {
-                Frequency = -1,
-                Content = content,
-                Inputs = inputs,
+                Frequency = 1,
+                State = GameState.Editing,
+                Content = editingContent,
+                Inputs = new List<IInput>(),
                 RefreshRate = TimeSpan.FromSeconds(1)
-            });*/
+            });
 
+            // reserved watching channel
+
+            // reserved playing channel
             return channels;
         }
 
         // what frequency is this display broadcasting to?
         public int Frequency { get; set; } // default is 0, the lobby.
         // the lobby is always there
+
+        public GameState? State { get; set; } = null; // default is null
 
         // how fast can this display update? minimum of 1 second.
         public TimeSpan RefreshRate { get; set; }
@@ -223,6 +279,20 @@ namespace Arcadia
 
         // what can the player currently do in this display channel? (reaction or text)
         public List<IInput> Inputs { get; set; }
+
+        public IComponent GetComponent(string id)
+        {
+            if (Content == null)
+                return null;
+
+            foreach (IComponent component in Content.Components)
+            {
+                if (component.Id == id)
+                    return component;
+            }
+
+            return null;
+        }
 
         // now to make a version that incorporates arguments
         public override string ToString()

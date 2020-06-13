@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Arcadia.Games;
+using Discord;
 using Discord.WebSocket;
 using Orikivo;
 using System;
@@ -27,12 +28,122 @@ namespace Arcadia
             _client.MessageDeleted += OnMessageDeleted;
         }
 
+        internal static Dictionary<string, GameBuilder> Games => new Dictionary<string, GameBuilder>
+        {
+            ["Trivia"] = new TriviaGame()
+        };
+
         internal Dictionary<string, GameServer> Servers { get; set; }
 
         // this is all channels that are currently bound to a game server
         internal Dictionary<ulong, string> ReservedChannels { get; set; }
 
         internal Dictionary<ulong, string> ReservedUsers { get; set; }
+
+        public static GameBuilder GetGame(string gameId)
+        {
+            if (!Games.ContainsKey(gameId))
+                return null;
+
+            return Games[gameId];
+        }
+
+        // this attempts to join an existing server, if one is present
+        public async Task JoinServerAsync(IUser user, IMessageChannel channel, string serverId)
+        {
+            if (user.IsBot)
+                return;
+
+            // if the user is already in a server
+            if (ReservedUsers.ContainsKey(user.Id))
+            {
+                // and the user is in this server
+                if (ReservedUsers[user.Id] == serverId)
+                {
+                    await channel.SendMessageAsync("You have already joined this server elsewhere.");
+                    return;
+                }
+
+                throw new Exception("Cannot join this server as the user is reserved to a different server");
+            }
+
+            // if the channel this was called in is reserved
+            if (ReservedChannels.ContainsKey(channel.Id))
+            {
+                // and the channel is reserved to this server
+                if (ReservedChannels[channel.Id] != serverId)
+                {
+                    throw new Exception("Cannot initialize a connection to this server as the channel is already reserved to a different server");
+                }
+            }
+
+            // if the specified server doesn't exist
+            if (!Servers.ContainsKey(serverId))
+                throw new Exception("Cannot find a server with the specified ID");
+
+            // otherwise, establish a new connection to this server.
+            GameServer server = Servers[serverId];
+
+            if (server.GetPlayer(user.Id) != null)
+            {
+                await channel.SendMessageAsync("You have already joined this server.");
+                return;
+            }
+            
+            DisplayContent content = server.GetDisplayChannel(GameState.Waiting).Content;
+
+            Player player = new Player
+            {
+                Host = true,
+                User = user,
+                JoinedAt = DateTime.UtcNow,
+                Playing = false
+            };
+
+            server.Players.Add(player);
+            ReservedUsers.Add(user.Id, server.Id);
+
+            content.GetComponent("header")
+                                .Draw(server.Config.Title,
+                                    server.Id,
+                                    server.Config.GameId,
+                                    server.Players.Count,
+                                    "infinite players");
+
+            (content.GetComponent("message_box") as ComponentGroup)
+                    .Append($"[Console] {user.Username} has joined.");
+
+            content.GetComponent("message_box").Draw();
+
+            // if there's a connection already in place, simply update this message.
+            ServerConnection connection = server.Connections.FirstOrDefault(x => x.ChannelId == channel.Id);
+
+            // otherwise, if there isn't a connection, establish a new one.
+            if (connection == null)
+            {
+                IUserMessage internalMessage = await channel.SendMessageAsync(content.ToString());
+
+                connection = new ServerConnection
+                {
+                    ChannelId = channel.Id,
+                    MessageId = internalMessage.Id,
+                    InternalChannel = channel,
+                    InternalMessage = internalMessage,
+                    Frequency = 0,
+                    State = GameState.Waiting,
+                    LastRefreshed = DateTime.UtcNow
+                };
+
+                server.Connections.Add(connection);
+
+                
+                ReservedChannels.Add(channel.Id, server.Id);
+                await channel.SendMessageAsync($"You have joined **{server.Config.Title}**.");
+            }
+
+            
+            await server.UpdateAsync();
+        }
 
         // this starts a new base game server
         public async Task CreateServerAsync(IUser user, IMessageChannel channel)
@@ -43,7 +154,13 @@ namespace Arcadia
             if (ReservedUsers.ContainsKey(user.Id) || ReservedChannels.ContainsKey(channel.Id))
                 throw new Exception("Cannot initialize a new server as either the user or a channel is reserved to an existing server");
 
-            Player host = new Player { Host = true, User = user, JoinedAt = DateTime.UtcNow, Playing = false };
+            Player host = new Player
+            {
+                Host = true,
+                User = user,
+                JoinedAt = DateTime.UtcNow,
+                Playing = false
+            };
 
             var server = new GameServer();
             server.Config = new GameServerConfig
@@ -59,20 +176,40 @@ namespace Arcadia
             ReservedUsers.Add(user.Id, server.Id);
             ReservedChannels.Add(channel.Id, server.Id); // server.Config.Title, server.Id, server.Config.GameId, server.Players.Count\
 
-            server.GetDisplayChannel(0).Content.GetComponent("header").Draw(server.Config.Title, server.Id, server.Config.GameId, server.Players.Count, "infinite players");
-            (server.GetDisplayChannel(0).Content.GetComponent("message_box") as ComponentGroup).Append($"[Console] {user.Username} has joined");
-            server.GetDisplayChannel(0).Content.GetComponent("message_box").Draw();
+            DisplayChannel display = server.GetDisplayChannel(GameState.Waiting);
 
-            var internalMessage = await channel.SendMessageAsync(server.GetDisplayChannel(0).ToString());
+            string playerLimitCounter = "infinite players";
+
+            /*
+            if (server.Config.ValidateGame())
+            {
+                if (server.Config?.GetGame()?.Details?.PlayerLimit != null)
+                {
+                    playerLimitCounter = $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.GetNounForm("player", server.Config.GetGame().Details.PlayerLimit)}";
+                }
+            }*/
+
+            display
+                .Content
+                .GetComponent("header")
+                .Draw(server.Config.Title, server.Id, server.Config.GameId, server.Players.Count, playerLimitCounter);
+
+            (display.Content.GetComponent("message_box") as ComponentGroup)
+                .Append($"[Console] {user.Username} has joined.");
+
+            display.Content.GetComponent("message_box").Draw();
+
+            var internalMessage = await channel.SendMessageAsync(display.ToString());
 
             ServerConnection connection = new ServerConnection
             {
                 InternalChannel = channel,
                 ChannelId = channel.Id,
                 Frequency = 0,
-                Playing = false,
+                State = GameState.Waiting,
                 InternalMessage = internalMessage,
-                MessageId = internalMessage.Id
+                MessageId = internalMessage.Id,
+                LastRefreshed = DateTime.UtcNow
             };
 
             server.Connections.Add(connection);
@@ -99,6 +236,9 @@ namespace Arcadia
             foreach (ulong channelId in server.Connections.Select(x => x.ChannelId))
                 if (ReservedChannels.ContainsKey(channelId))
                     ReservedChannels.Remove(channelId);
+
+            //foreach (ulong userId in ReservedUsers.Where(x => x.Value == server.Id))
+            //    ReservedUsers.Remove(userId);
 
             foreach (ulong userId in server.Players.Select(x => x.User.Id))
                 if (ReservedUsers.ContainsKey(userId))
@@ -177,87 +317,16 @@ namespace Arcadia
         }
 
         public async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
-        {
-            // ignore all bots
-            if (reaction.User.GetValueOrDefault()?.IsBot ?? false)
-                return;
-
-            // check to see where this reaction was applied
-            if (ReservedChannels.ContainsKey(channel.Id))
-            {
-                // if the user is currently in a server, check to see if they are in the same server
-                // otherwise, ignore them because they are meant for another game
-                if (ReservedUsers.ContainsKey(reaction.UserId))
-                    if (ReservedChannels[channel.Id] != ReservedUsers[reaction.UserId])
-                        return;
-
-                GameServer server = Servers[ReservedChannels[channel.Id]];
-
-                Player player = server.GetPlayer(reaction.UserId);
-
-                ServerConnection connection = server.Connections
-                    .First(x => x.ChannelId == channel.Id);
-
-                // check if the reaction was appended to the right message
-                if (connection.MessageId != reaction.MessageId)
-                    return;
-
-                DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
-
-                foreach (IInput input in display.Inputs)
-                {
-                    InputResult result = input.TryParse(new Input { Reaction = reaction.Emote, Flag = ReactionFlag.Add });
-
-                    if (result.IsSuccess)
-                    {
-                        IUser user = reaction.User.GetValueOrDefault();
-
-                        if (user == null)
-                            return;
-
-                        if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
-                        {
-                            result.Input.OnExecute?.Invoke(user, connection, server);
-
-                            // if there wasn't a player before and they were added, add them to the reserves
-                            if (player == null)
-                            {
-                                if (server.GetPlayer(reaction.UserId) != null)
-                                {
-                                    ReservedUsers[reaction.UserId] = server.Id;
-                                }
-                            }
-                            else // likewise, if there was a player and they were removed, remove them from the reserves
-                            {
-                                if (server.GetPlayer(reaction.UserId) == null)
-                                {
-                                    if (ReservedUsers.ContainsKey(reaction.UserId))
-                                        ReservedUsers.Remove(reaction.UserId);
-
-                                    // if the player that was removed was the last player, destroy the server
-                                    if (server.Players.Count == 0)
-                                        await DestroyServerAsync(server);
-
-                                    // if the player that was removed was the host, set a new host
-                                    if (server.Host == null)
-                                    {
-                                        server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
-                                    }
-                                }
-                            }
-
-                            if (result.Input.UpdateOnExecute)
-                                await server.UpdateAsync();
-                        }
-
-                        // end the cycling of inputs when once is successful
-                        return;
-                    }
-                }
-            }
-        }
+            => await OnReaction(message, channel, reaction, ReactionFlag.Add);
 
         public async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+            => await OnReaction(message, channel, reaction, ReactionFlag.Remove);
+
+        private async Task OnReaction(
+            Cacheable<IUserMessage, ulong> message,
+            ISocketMessageChannel channel,
+            SocketReaction reaction,
+            ReactionFlag flag)
         {
             // ignore all bots
             if (reaction.User.GetValueOrDefault()?.IsBot ?? false)
@@ -274,7 +343,6 @@ namespace Arcadia
 
                 GameServer server = Servers[ReservedChannels[channel.Id]];
 
-                // the player shouldn't be forced because there might be a command relating them to join or something
                 Player player = server.GetPlayer(reaction.UserId);
 
                 ServerConnection connection = server.Connections
@@ -288,7 +356,7 @@ namespace Arcadia
 
                 foreach (IInput input in display.Inputs)
                 {
-                    InputResult result = input.TryParse(new Input { Reaction = reaction.Emote, Flag = ReactionFlag.Remove });
+                    InputResult result = input.TryParse(new Input { Reaction = reaction.Emote, Flag = flag });
 
                     if (result.IsSuccess)
                     {
@@ -341,8 +409,10 @@ namespace Arcadia
 
         public async Task OnMessageReceived(SocketMessage message)
         {
+            IUser user = message.Author;
+
             // ignore all bots
-            if (message.Author.IsBot)
+            if (user.IsBot)
                 return;
 
             // if this message was sent in a channel that contains a server and the user is in a server
@@ -350,65 +420,391 @@ namespace Arcadia
             {
                 // if the user is currently in a server, check to see if they are in the same server
                 // otherwise, ignore them because they are meant for another game
-                if (ReservedUsers.ContainsKey(message.Author.Id))
-                    if (ReservedChannels[message.Channel.Id] != ReservedUsers[message.Author.Id])
+                if (ReservedUsers.ContainsKey(user.Id))
+                    if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
                         return;
 
                 GameServer server = Servers[ReservedChannels[message.Channel.Id]];
 
-                Player player = server.GetPlayer(message.Author.Id);
+                Player player = server.GetPlayer(user.Id);
 
                 ServerConnection connection = server.Connections
                     .First(x => x.ChannelId == message.Channel.Id);
 
-                DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
-
-                foreach (IInput input in display.Inputs)
+                // This is where input handling starts to diverge:
+                string ctx = message.Content;
+                
+                /*
+                // if this connection is able to delete messages, automatically remove it
+                // only if the message sent was a valid command
+                if (connection.CanDeleteMessages)
                 {
-                    InputResult result = input.TryParse(message.Content);
-                    if (result.IsSuccess)
-                    {
-                        IUser user = message.Author;
+                    await message.DeleteAsync();
+                }*/
 
-                        if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
+                switch (connection.State)
+                {
+                    // IF GAMESTATE IS WAITING
+                    // They are in the lobby.
+                    case GameState.Waiting:
+                        
+                        // get the correlated channel for the specific game state.
+                        DisplayContent content = server.GetDisplayChannel(GameState.Waiting).Content;
+
+                        // [HOST, PLAYER] start
+                        if (ctx == "start")
                         {
-                            result.Input.OnExecute?.Invoke(user, connection, server);
-
-                            // if there wasn't a player before and they were added, add them to the reserves
+                            // if they are not in the server
                             if (player == null)
-                            {
-                                if (server.GetPlayer(message.Author.Id) != null)
-                                {
-                                    ReservedUsers[message.Author.Id] = server.Id;
-                                }
-                            }
-                            else // likewise, if there was a player and they were removed, remove them from the reserves
-                            {
-                                if (server.GetPlayer(message.Author.Id) == null)
-                                {
-                                    if (ReservedUsers.ContainsKey(message.Author.Id))
-                                        ReservedUsers.Remove(message.Author.Id);
+                                return;
 
-                                    // if the player that was removed was the last player, destroy the server
-                                    if (server.Players.Count == 0)
-                                        await DestroyServerAsync(server);
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[To {user.Username}] Only the host may start the game.");
 
-                                    // if the player that was removed was the host, set a new host
-                                    if (server.Host == null)
-                                    {
-                                        server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
-                                    }
-                                }
+                                content.GetComponent("message_box").Draw();
+
+                                break;
                             }
 
-                            if (result.Input.UpdateOnExecute)
-                                await server.UpdateAsync();
+                            // if the game already started
+                            if (server.Session != null)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] A game is already in progress.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            // if the game specified is invalid
+                            if (!server.Config.ValidateGame())
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] Unable to validate the specified game.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            // if the requirements to start have not been met
+                            if (!server.Config.GetGame().Details.CanStart(server.Players.Count))
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] Unable to start {server.Config.GetGame().Details.Name}.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+                            // otherwise, initialize a new game session.
+                            else
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] The session builder is currently in development. Unable to start.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
                         }
 
-                        // end the cycling of inputs when one is successful
+                        // join
+                        if (ctx == "join")
+                        {
+                            // if they are already in the server
+                            if (player != null)
+                                return;
+
+                            // otherwise, add them to the players and update accordingly
+                            var newPlayer = new Player
+                            {
+                                User = user,
+                                JoinedAt = DateTime.UtcNow,
+                                Host = false,
+                                Playing = false
+                            };
+
+
+                            server.Players.Add(newPlayer);
+                            ReservedUsers.Add(user.Id, server.Id);
+
+                            content.GetComponent("header")
+                                .Draw(server.Config.Title,
+                                    server.Id,
+                                    server.Config.GameId,
+                                    server.Players.Count,
+                                    "infinite players");
+
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] {user.Username} has joined.");
+
+                            content.GetComponent("message_box").Draw();
+
+                            break;
+                        }
+
+                        // [PLAYER] leave
+                        if (ctx == "leave")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // otherwise, remove them from the players and update accordingly
+                            server.Players.Remove(player);
+                            ReservedUsers.Remove(user.Id);
+
+                            // if the player that left was the final player in the server
+                            if (server.Players.Count == 0)
+                            {
+                                await DestroyServerAsync(server);
+                                return;
+                            }
+
+                            content.GetComponent("header")
+                                .Draw(server.Config.Title,
+                                    server.Id,
+                                    server.Config.GameId,
+                                    server.Players.Count,
+                                    "infinite players");
+
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] {user.Username} has left.");
+
+                            // if the player that left was the host
+                            if (player.Host)
+                            {
+                                var newHost = server.Players.OrderBy(x => x.JoinedAt).First();
+                                newHost.Host = true;
+
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] {newHost.User.Username} is now the host.");
+                            }
+
+                            content.GetComponent("message_box").Draw();
+
+                            break;
+                        }
+
+                        // [PLAYER] players
+                        if (ctx == "players")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // otherwise, send a message to the console that lists all players.
+                            string playerBuffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(x => $"{x.User.Username} {(x.Host ? "[Host] " : "")}{(x.Playing ? " - Playing" : "")}"))}";
+
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append(playerBuffer);
+
+                            content.GetComponent("message_box").Draw();
+
+                            break;
+                        }
+
+                        // [HOST, PLAYER] connections
+                        if (ctx == "connections")
+                        {
+                            if (player == null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[To {user.Username}] Only the host may list server connections.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            string connectionBuffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => x.ChannelId))}";
+
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append(connectionBuffer);
+
+                            content.GetComponent("message_box").Draw();
+
+                            break;
+                        }
+
+                        // [HOST, PLAYER] config
+                        if (ctx == "config")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[To {user.Username}] Only the host can edit the server config.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] The configuration channel is currently in development. Unable to initialize.");
+
+                            content.GetComponent("message_box").Draw();
+
+                            // otherwise, set this specific server connection to editing mode.
+                            break;
+                        }
+
+                        // [PLAYER] watch
+                        if (ctx == "watch")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // if the game hasn't started yet
+                            if (server.Session == null)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] Unable to call vote for spectating as there is no current session.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            // if they are the host, automatically start it.
+                            if (player.Host)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] The spectator controls are currently in development. Unable to initialize.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }
+
+                            // otherwise, begin calling the vote to switch over to spectator mode.
+                            (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[Console] The spectator controls are currently in development. Unable to initialize.");
+
+                            content.GetComponent("message_box").Draw();
+
+                            break;
+                        }
+
                         return;
-                    }
+
+                    // IF GAMESTATE IS EDITING
+                    case GameState.Editing:
+                        // [HOST, PLAYER] title <value>
+                        // [HOST, PLAYER] game <value>
+                        // [HOST, PLAYER] privacy <value>
+                        // [HOST, PLAYER] kick <value>
+
+                        // if no other commands are valid, attempt to parse a custom configuration
+                        // otherwise, just return.
+                        // [HOST, PLAYER] CUSTOM <value>
+                        break;
+
+                    // IF GAMESTATE IS WATCHING
+                    case GameState.Watching:
+                        // [HOST, PLAYER] end
+                        if (ctx == "end")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // if they are the host, force end the current session
+
+                            // otherwise, send a note stating that they cannot force end a session unless
+                            // they are a host
+
+                            return;
+                            //break;
+                        }
+
+                        // [PLAYER] back
+                        if (ctx == "back")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // if they are the host, automatically call
+
+                            // otherwise, begin calling the vote to switch over to spectator mode.
+
+                            return;
+                            //break;
+                        }
+
+                        return;
+
+                    // IF GAMESTATE IS PLAYING
+                    case GameState.Playing:
+                        // otherwise, if they are currently in an active game, simply attempt to parse the inputs
+                        // specified by the game session themselves
+                        // and refer to frequency instead
+                        DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
+
+                        foreach (IInput input in display.Inputs)
+                        {
+                            InputResult result = input.TryParse(ctx);
+                            if (result.IsSuccess)
+                            {
+                                if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
+                                {
+                                    result.Input.OnExecute?.Invoke(user, connection, server);
+
+                                    // if there wasn't a player before and they were added, add them to the reserves
+                                    if (player == null)
+                                    {
+                                        if (server.GetPlayer(user.Id) != null)
+                                        {
+                                            ReservedUsers[user.Id] = server.Id;
+                                        }
+                                    }
+                                    else // likewise, if there was a player and they were removed, remove them from the reserves
+                                    {
+                                        if (server.GetPlayer(user.Id) == null)
+                                        {
+                                            if (ReservedUsers.ContainsKey(user.Id))
+                                                ReservedUsers.Remove(user.Id);
+
+                                            // if the player that was removed was the last player, destroy the server
+                                            if (server.Players.Count == 0)
+                                                await DestroyServerAsync(server);
+
+                                            // if the player that was removed was the host, set a new host
+                                            if (server.Host == null)
+                                            {
+                                                server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (result.Input.UpdateOnExecute)
+                                        await server.UpdateAsync();
+                                }
+
+                                // end the cycling of inputs when one is successful
+                                return;
+                            }
+                        }
+                        break;
                 }
+
+                await server.UpdateAsync();
             }
         }
 

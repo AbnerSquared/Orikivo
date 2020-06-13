@@ -78,7 +78,7 @@ namespace Arcadia.Games
                 OnExecute = delegate (GameServer server, GameSession session)
                 {
                     // set all currently playing connection to frequency 12
-                    foreach(ServerConnection connection in server.Connections.Where(x => x.Playing))
+                    foreach(ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
                     {
                         connection.Frequency = 12;
                     }

@@ -13,5 +13,9 @@
 
         // what is the limit of players that can join?
         public int PlayerLimit { get; set; }
+
+        // is the specified player count valid to start the game?
+        public bool CanStart(int playerCount)
+            => playerCount >= RequiredPlayers && playerCount <= PlayerLimit;
     }
 }

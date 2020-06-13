@@ -57,11 +57,13 @@ namespace Arcadia
         [Summary("Join an existing game server.")]
         public async Task JoinServerAsync(string id)
         {
-            if (_games.Servers.ContainsKey(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
-                // so, i would need to make two custom actions that are executed once a person joins
-                //_games.
+                await Context.Channel.SendMessageAsync("You have to specify an ID.");
+                return;
             }
+
+            await _games.JoinServerAsync(Context.User, Context.Channel, id);
         }
 
         /*

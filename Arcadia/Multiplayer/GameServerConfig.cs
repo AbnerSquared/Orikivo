@@ -10,5 +10,22 @@
 
         // what is the privacy of this game server?
         public Privacy Privacy { get; set; }
+
+        // for now, we can just simply refer to a basic array.
+        public bool ValidateGame()
+        {
+            if (string.IsNullOrWhiteSpace(GameId))
+                return false;
+
+            return GameManager.Games.ContainsKey(GameId);
+        }
+
+        public GameBuilder GetGame()
+        {
+            if (!ValidateGame())
+                throw new System.Exception("The specified ID does not point to a valid game mode.");
+
+            return GameManager.GetGame(GameId);
+        }
     }
 }

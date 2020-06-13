@@ -50,6 +50,16 @@ namespace Arcadia
             return null;
         }
 
+        public DisplayChannel GetDisplayChannel(GameState state)
+        {
+            foreach (DisplayChannel channel in DisplayChannels)
+                if (channel.State.HasValue)
+                    if (channel.State.Value == state)
+                        return channel;
+
+            return null;
+        }
+
         public Player GetPlayer(ulong id)
         {
             foreach (Player player in Players)
@@ -98,7 +108,9 @@ namespace Arcadia
             foreach (ServerConnection connection in Connections)
             {
                 // this way, you don't have to get the same channel again
-                channel = channel?.Frequency == connection.Frequency ? channel : GetDisplayChannel(connection.Frequency);
+                channel = connection.State == GameState.Playing ?
+                    channel?.Frequency == connection.Frequency ? channel : GetDisplayChannel(connection.Frequency)
+                    : GetDisplayChannel(connection.State);
 
                 if (channel == null)
                 {
@@ -106,7 +118,19 @@ namespace Arcadia
                 }
                 else
                 {
-                    await connection.InternalMessage.ModifyAsync(channel.Content.ToString());
+                    string content = channel.Content.ToString();
+
+                    if (connection.InternalMessage == null)
+                    {
+                        connection.InternalMessage = await connection.InternalChannel.SendMessageAsync(content);
+                        connection.MessageId = connection.InternalMessage.Id;
+                        continue;
+                    }
+
+                    if (connection.InternalMessage.Content == content)
+                        continue;
+
+                    await connection.InternalMessage.ModifyAsync(content);
                 }
             }
         }
