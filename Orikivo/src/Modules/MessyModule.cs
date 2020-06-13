@@ -502,7 +502,7 @@ namespace Orikivo
             StringBuilder links = new StringBuilder();
 
             links.AppendLine($"**Source**: {Link.Source.Id}");
-            links.AppendLine($"> There are {Link.Subscribers.Count} {OriFormat.GetNounForm("subscriber", Link.Subscribers.Count)}.");
+            links.AppendLine($"> There are {Link.Subscribers.Count} {OriFormat.TryPluralize("subscriber", Link.Subscribers.Count)}.");
 
             Link.Subscribers.ForEach((x, i) => links.AppendLine($"{i}. `{x.Id}`"));
 
@@ -582,7 +582,7 @@ namespace Orikivo
                 }, options);
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"The **MessageFilter** found **{c.Count}** successful {OriFormat.GetNounForm("match", c.Count)}. ({OriFormat.GetShortTime(collector.ElapsedTime?.TotalSeconds ?? 0)})");
+            sb.Append($"The **MessageFilter** found **{c.Count}** successful {OriFormat.TryPluralize("match", c.Count)}. ({OriFormat.GetShortTime(collector.ElapsedTime?.TotalSeconds ?? 0)})");
             if (c.Count > 0)
                 sb.Append(Format.Code($"{string.Join("\n", c.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
 

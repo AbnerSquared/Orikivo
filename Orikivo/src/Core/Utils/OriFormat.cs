@@ -104,6 +104,8 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
+        // god this is a mess
+        // i should really fix this
         public static string SummarizeValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
         {
             string text = value.ToString();
@@ -182,10 +184,11 @@ namespace Orikivo
         public static string Code(string value, CodeType? type = null)
             => $"```{type?.ToString().ToLower()}\n{value}```";
 
-        public static string CropGameId(string value)
-            => value.Length > 8 ? value.Substring(0, 8) + "..." : value;
+        // this crops a string with ... if the length of the string is past the specified limit
+        public static string Crop(string value, int limit)
+            => value.Length > limit ? value.Substring(0, limit) + "..." : value;
 
-        public static string Position(int i)
+        public static string GetPosition(int i)
         {
             string value = PlaceValue(i, false);
             return i switch
@@ -206,7 +209,7 @@ namespace Orikivo
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             // if embedded, the reaction is placed on the title.
             if (!isEmbedded)
                 if (Check.NotNull(reaction))
@@ -265,11 +268,144 @@ namespace Orikivo
         }
 
         // TODO: Implement all noun forms based on the end of the word
-        public static string GetNounForm(string word, int count)
-            => $"{word}{(count > 1 || count == 0 || count < 0 ? $"{(word.EndsWith("h") ? "e" : "")}s" : "")}";
+        public static string TryPluralize(string word, int count)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+                return word;
 
-        public static string ReadType<T>()
-            => $"**{typeof(T).Name}**";
+            string result = word;
+
+            if (count > 1 || count <= 0)
+            {
+                result = Pluralize(word);
+            }
+
+            return result;
+        }
+
+        private static bool IsConsonant(char letter, bool includeY = false)
+        {
+            if (!char.IsLetter(letter))
+                return false;
+
+            if (includeY)
+                if (char.ToLower(letter) == 'y')
+                    return true;
+
+            return char.ToLower(letter)
+                .EqualsAny('b', 'c', 'd', 'f',
+                'g', 'h', 'j', 'k', 'l', 'm',
+                'n', 'p', 'q', 'r', 's', 't',
+                'v', 'w', 'x', 'z');
+        }
+
+        private static bool IsVowel(char letter, bool includeY = false)
+        {
+            if (!char.IsLetter(letter))
+                return false;
+
+            if (includeY)
+                if (char.ToLower(letter) == 'y')
+                    return true;
+
+            return char.ToLower(letter)
+                .EqualsAny('a', 'e', 'i', 'o', 'u');
+        }
+
+        private static Dictionary<string, string> uniquePlurals => new Dictionary<string, string>
+        {
+            ["foot"] = "feet",
+            ["tooth"] = "teeth",
+            ["goose"] = "geese",
+            ["man"] = "men",
+            ["woman"] = "women"
+        };
+
+        // this also has to handle possible capital letters.
+        private static string Pluralize(string word, bool isFormal = false)
+        {
+            // no point in trying if the word doesn't exist.
+            if (string.IsNullOrWhiteSpace(word))
+                return word;
+
+            // this is where special exception case words are handled
+            // all words here are ignored if specified
+            if (word.EqualsAny("sheep", "fish", "moose", "swine", "buffalo", "shrimp", "trout"))
+                return word;
+
+            // likewise, this one is a bit harder to specify
+            // for now, we can just use a dictionary look-up
+            // try to make a method for pluralization in relation to -oot -ooth -an, etc.
+            if (uniquePlurals.ContainsKey(word))
+                return uniquePlurals[word];
+
+            // if the specified word is shorter than 3 letters, just return it with an s.
+            if (word.Length < 3)
+                return word + "s";
+
+
+            // regular nouns => word + s
+            // if singular noun ends in -s, -ss, -sh, -ch, -x, -z => word + es
+            if (word.EndsWithAny("s", "ss", "sh", "ch", "x", "z"))
+            {
+                // index => indices (IF FORMAL)
+                if (word.EndsWithAny("ex", "ix"))
+                    if (isFormal)
+                        return word[0..^2] + "ices";
+
+                // in some cases, singular nouns ending in -s or -z require doubling the -s/-z before adding -es
+                if (word.EndsWithAny("s", "z"))
+                    return word + word.Last() + "es";
+
+                return word + "es";
+            }
+
+            if (word.EndsWithAny(out string suffix, "f", "fe"))
+            {
+                return word[0..(word.Length - suffix.Length)] + "ves";
+            }
+
+            if (word.EndsWith("y"))
+            {
+                // ^2 == word.Length - 2
+                if (IsConsonant(word[^2]))
+                    return word[0..^1] + "ies";
+            }
+
+            if (word.EndsWith("o"))
+            {
+                // this is where implementing exceptions for specific words come into play.
+                return word + "es";
+            }
+
+            // radius => radii
+            if (word.EndsWith("us"))
+                // word[0..^2] == word.Substring(0, word.Length - 2)
+                // this is selecting the range of characters FROM 0 TO word.Length - 2
+                return word[0..^2] + "i";
+
+            // criterion => criteria
+            if (word.EndsWith("on"))
+                return word[0..^2] + "a";
+
+            // axis => axes
+            if (word.EndsWith("is"))
+                return word[0..^2] + "es";
+
+            // datum => data
+            if (word.EndsWith("um"))
+                return word[0..^2] + "a";
+            
+
+            // this might not be right, but it's worth a shot
+            if (word.EndsWith("ies"))
+                return word;
+
+            return word + "s";
+        }
+
+        public static string HumanizeType<T>()
+            => HumanizeType(typeof(T));
 
         public static string Username(IUser user)
             => $"**{user.Username}**#{user.Discriminator}";

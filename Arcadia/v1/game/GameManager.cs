@@ -133,7 +133,7 @@ namespace Arcadia.Old
             {
                 if (Games.ContainsKey(id))
                     return Games[id];
-                throw new Exception($"There weren't any existing games matching #{OriFormat.CropGameId(id)}");
+                throw new Exception($"There weren't any existing games matching #{OriFormat.Crop(id, 8)}");
             }
         }
     }

@@ -108,7 +108,7 @@ namespace Orikivo
 
             footer.Append(WriteValue(Context.Account.Balance));
             int capacity = Husk.Backpack.Capacity;
-            footer.Append($" ({capacity - Husk.Backpack.ItemIds.Count}/{capacity} {OriFormat.GetNounForm("Slot", capacity)} Available)");
+            footer.Append($" ({capacity - Husk.Backpack.ItemIds.Count}/{capacity} {OriFormat.TryPluralize("Slot", capacity)} Available)");
 
             return footer.ToString();
         }
@@ -260,7 +260,7 @@ namespace Orikivo
         private string GetTransaction()
         {
             string money = WriteValue(Last.Value);
-            string item = $"**{OriFormat.PlaceValue(Last.Count)}** {OriFormat.GetNounForm("item", Last.Count)}";
+            string item = $"**{OriFormat.PlaceValue(Last.Count)}** {OriFormat.TryPluralize("item", Last.Count)}";
 
             return State switch
             {

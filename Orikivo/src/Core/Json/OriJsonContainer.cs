@@ -21,10 +21,10 @@ namespace Orikivo
             Console.WriteLine("-- Now initializing JSON container services. --");
 
             Users = JsonHandler.RestoreContainer<User>();
-            Console.WriteLine($"-- Restored {Users.Count} {OriFormat.GetNounForm("user", Users.Count)}. --");
+            Console.WriteLine($"-- Restored {Users.Count} {OriFormat.TryPluralize("user", Users.Count)}. --");
 
             Guilds = JsonHandler.RestoreContainer<OriGuild>();
-            Console.WriteLine($"-- Restored {Guilds.Count} {OriFormat.GetNounForm("guild", Guilds.Count)}. --");
+            Console.WriteLine($"-- Restored {Guilds.Count} {OriFormat.TryPluralize("guild", Guilds.Count)}. --");
 
             Global = JsonHandler.Load<OriGlobal>("global.json") ?? new OriGlobal();
         }

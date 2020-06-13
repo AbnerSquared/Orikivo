@@ -2,7 +2,6 @@
 {
     public static class StringExtensions
     {
-        // attempt to write down the strings content; otherwise string.empty.
         public static string ValueOrDefault(this string s)
             => Check.NotNull(s) ? s : "";
 
@@ -40,11 +39,85 @@
             return false;
         }
 
+        public static bool StartsWithAny(this string s, out string match, params string[] values)
+        {
+            match = null;
+
+            foreach (string value in values)
+                if (s.StartsWith(value))
+                {
+                    match = value;
+                    return true;
+                }
+
+            return false;
+        }
+
+        public static bool StartsWithAny(this string s, params char[] values)
+        {
+            foreach (char value in values)
+                if (s.StartsWith(value))
+                    return true;
+
+            return false;
+        }
+
+        public static bool StartsWithAny(this string s, out char match, params char[] values)
+        {
+            match = char.MinValue;
+
+            foreach (char value in values)
+                if (s.StartsWith(value))
+                {
+                    match = value;
+                    return true;
+                }
+
+            return false;
+        }
+
         public static bool EndsWithAny(this string s, params string[] values)
         {
             foreach (string value in values)
                 if (s.EndsWith(value))
                     return true;
+
+            return false;
+        }
+
+        public static bool EndsWithAny(this string s, out string match, params string[] values)
+        {
+            match = null;
+
+            foreach (string value in values)
+                if (s.EndsWith(value))
+                {
+                    match = value;
+                    return true;
+                }
+
+            return false;
+        }
+
+        public static bool EndsWithAny(this string s, params char[] values)
+        {
+            foreach (char value in values)
+                if (s.EndsWith(value))
+                    return true;
+
+            return false;
+        }
+
+        public static bool EndsWithAny(this string s, out char match, params char[] values)
+        {
+            match = char.MinValue;
+
+            foreach (char value in values)
+                if (s.EndsWith(value))
+                {
+                    match = value;
+                    return true;
+                }
 
             return false;
         }

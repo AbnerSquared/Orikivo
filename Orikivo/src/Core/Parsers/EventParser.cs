@@ -47,7 +47,7 @@ namespace Orikivo.Desync
                 {
                     "pos"
                 },
-                Writer = ctx => OriFormat.Position(ctx.Guild.Users.OrderBy(x => x.JoinedAt.Value).ToList().IndexOf(ctx.User) + 1)
+                Writer = ctx => OriFormat.GetPosition(ctx.Guild.Users.OrderBy(x => x.JoinedAt.Value).ToList().IndexOf(ctx.User) + 1)
             },
             ["guild"] = new EventMarker
             {

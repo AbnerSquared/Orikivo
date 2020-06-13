@@ -33,7 +33,7 @@ namespace Arcadia
             var servers = new StringBuilder();
             foreach ((string key, GameServer server) in _games.Servers)
             {
-                servers.AppendLine($"{server.Id} | {server.Config.Title} ({server.Players.Count} {OriFormat.GetNounForm("player", server.Players.Count)})");
+                servers.AppendLine($"{server.Id} | {server.Config.Title} ({server.Players.Count} {OriFormat.TryPluralize("player", server.Players.Count)})");
             }
 
             await Context.Channel.SendMessageAsync(servers.ToString());
