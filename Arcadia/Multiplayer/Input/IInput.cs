@@ -1,5 +1,6 @@
 ﻿using Discord;
 using System;
+using System.Collections.Generic;
 
 namespace Arcadia
 {
@@ -16,5 +17,7 @@ namespace Arcadia
         public bool UpdateOnExecute { get; set; }
 
         public bool RequirePlayer { get; set; }
+
+        public IEnumerable<GameProperty> Args { get; }
     }
 }

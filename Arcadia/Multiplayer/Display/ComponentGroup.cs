@@ -204,6 +204,8 @@ namespace Arcadia
                 // now prepend the valueBuffer that was initialized
                 argBuffers = argBuffers.Prepend(valueBuffer);
 
+                Console.WriteLine(string.Join("\n", argBuffers));
+
                 // finally, you can now properly format the string with the specified arguments
                 // this render is sent to the buffer, where it can be easily referenced with each channel update
                 Buffer = string.Format(Formatter.BaseFormatter, argBuffers.ToArray());

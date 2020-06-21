@@ -23,7 +23,7 @@
         public GameBuilder GetGame()
         {
             if (!ValidateGame())
-                throw new System.Exception("The specified ID does not point to a valid game mode.");
+                return null;
 
             return GameManager.GetGame(GameId);
         }

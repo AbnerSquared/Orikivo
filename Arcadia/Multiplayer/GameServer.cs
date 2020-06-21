@@ -40,7 +40,6 @@ namespace Arcadia
         // what is currently being played in this server, if a session is active? if this is null, there is no active game.
         public GameSession Session { get; set; }
 
-
         public DisplayChannel GetDisplayChannel(int frequency)
         {
             foreach (DisplayChannel channel in DisplayChannels)
@@ -107,6 +106,7 @@ namespace Arcadia
             DisplayChannel channel = null;
             foreach (ServerConnection connection in Connections)
             {
+                Console.WriteLine($"{connection.ChannelId} - {connection.State.ToString()}");
                 // this way, you don't have to get the same channel again
                 channel = connection.State == GameState.Playing ?
                     channel?.Frequency == connection.Frequency ? channel : GetDisplayChannel(connection.Frequency)

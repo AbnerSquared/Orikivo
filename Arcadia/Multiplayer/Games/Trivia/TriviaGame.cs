@@ -6,8 +6,30 @@ using System.Text;
 
 namespace Arcadia.Games
 {
+
     public class TriviaGame : GameBuilder
     {
+
+        public TriviaGame() : base()
+        {
+            Id = "Trivia";
+            Details = new GameDetails
+            {
+                Name = "Trivia",
+                Summary = "Answer questions against the clock!",
+                PlayerLimit = 16,
+                RequiredPlayers = 1
+            };
+
+            Config = new List<ConfigProperty>
+            {
+                ConfigProperty.Create<TriviaTopic>("topics", "Topics", TriviaTopic.Math),
+                ConfigProperty.Create<TriviaDifficulty>("difficulty", "Difficulty", TriviaDifficulty.Any),
+                ConfigProperty.Create<int>("questioncount", "Question Count", 5),
+                ConfigProperty.Create<double>("questionduration", "Question Duration", 30)
+            };
+        }
+
         // Now for this:
         // Two more things need to be made:
         // Timers: This will allow an action to remain active for the time specified. When the timer runs out, a GameAction can be specified
@@ -15,14 +37,14 @@ namespace Arcadia.Games
         
         
 
-        public override List<GameAction> OnLoadActions()
+        public override List<GameAction> OnBuildActions(List<PlayerSessionData> players)
         {
             var actions = new List<GameAction>();
 
             var getQuestionResult = new GameAction
             {
                 Id = "get_question_result",
-                OnExecute = delegate (GameServer server, GameSession session)
+                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
                 {
 
                 }
@@ -38,7 +60,7 @@ namespace Arcadia.Games
             var tryGetNextQuestion = new GameAction
             {
                 Id = "try_get_next_question",
-                OnExecute = delegate (GameServer server, GameSession session)
+                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
                 {
 
                 }
@@ -51,7 +73,7 @@ namespace Arcadia.Games
             var getNextQuestion = new GameAction
             {
                 Id = "get_next_question",
-                OnExecute = delegate (GameServer server, GameSession session)
+                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
                 {
 
                 }
@@ -75,7 +97,7 @@ namespace Arcadia.Games
             var getResults = new GameAction
             {
                 Id = "get_results",
-                OnExecute = delegate (GameServer server, GameSession session)
+                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
                 {
                     // set all currently playing connection to frequency 12
                     foreach(ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
@@ -105,7 +127,7 @@ namespace Arcadia.Games
             var restart = new GameAction
             {
                 Id = "restart",
-                OnExecute = delegate (GameServer server, GameSession session)
+                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
                 {
                     // reset all player attributes
                     foreach (PlayerSessionData data in session.Players)
@@ -133,7 +155,7 @@ namespace Arcadia.Games
         }
         
         
-        public override List<GameRule> OnLoadRules()
+        public override List<GameRule> OnBuildRules(List<PlayerSessionData> players)
         {
             var rules = new List<GameRule>();
 
@@ -166,7 +188,7 @@ namespace Arcadia.Games
             return rules;
         }
 
-        public override List<GameProperty> OnLoadAttributes()
+        public override List<GameProperty> OnBuildAttributes()
         {
             var attributes = new List<GameProperty>();
 
@@ -196,7 +218,7 @@ namespace Arcadia.Games
 
         // create display channels here
         // inputs are specified here
-        public override List<DisplayChannel> OnLoadDisplays()
+        public override List<DisplayChannel> OnBuildDisplays(List<PlayerSessionData> players)
         {
             var displays = new List<DisplayChannel>();
             // frequency 10 (question)
@@ -329,30 +351,37 @@ namespace Arcadia.Games
             return displays;
         }
 
-        public override List<PlayerSessionData> OnLoadPlayers(List<Player> players)
+        public override List<PlayerSessionData> OnBuildPlayers(List<Player> players)
         {
             // this is the list of all attributes the players need
-            var attributes = new List<GameProperty>();
+            var attributes = new List<GameProperty>
+            {
+                GameProperty.Create<int>("score", 0),
+                // if the answer they selected was correct, set to true; otherwise false
+                GameProperty.Create<bool>("vote", false)
+            };
 
-            var score = GameProperty.Create<int>("score", 0);
-
-            // if the answer they selected was correct, set to true; otherwise false
-            var vote = GameProperty.Create<bool>("answer", false);
-           
-            attributes.Add(score);
-            attributes.Add(vote);
-
-            var sessionData = players.Select(x => new PlayerSessionData { Player = x, Attributes = attributes });
+            var sessionData = players.Select(x =>
+                new PlayerSessionData
+                {
+                    Player = x,
+                    Attributes = attributes
+                });
 
             return sessionData.ToList();
         }
 
-        public override void OnSessionStart(GameSession session)
+        public override void OnSessionStart(GameServer server)
         {
             throw new NotImplementedException();
         }
 
-        
+        public override SessionResult OnSessionFinish(GameSession session)
+        {
+            throw new NotImplementedException();
+        }
+
+
 
 
         /*

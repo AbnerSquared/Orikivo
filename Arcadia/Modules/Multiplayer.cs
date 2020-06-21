@@ -50,7 +50,6 @@ namespace Arcadia
             }
 
             await _games.CreateServerAsync(Context.User, Context.Channel);
-            await Context.Channel.SendMessageAsync("You have created your server.");
         }
 
         [Command("joinserver")]
@@ -66,6 +65,29 @@ namespace Arcadia
             await _games.JoinServerAsync(Context.User, Context.Channel, id);
         }
 
+        /*
+        [Command("leaveserver")]
+        [Summary("Leave the current server you are in.")]
+        public async Task LeaveServerAsync()
+        {
+
+        }*/
+
+        [Access(AccessLevel.Dev)]
+        [Command("destroyserver")]
+        [Summary("Destroys the specified server.")]
+        public async Task DestroyServerAsync(string id)
+        {
+            if (_games.Servers.ContainsKey(id))
+            {
+                await _games.DestroyServerAsync(_games.Servers[id]);
+                await Context.Channel.SendMessageAsync("The specified server has been destroyed.");
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("Could not find the specified server.");
+            }
+        }
         /*
         [RequireUser]
         [Command("games")]

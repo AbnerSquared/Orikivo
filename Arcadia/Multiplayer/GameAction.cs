@@ -9,6 +9,7 @@ namespace Arcadia
         public string Id { get; internal set; }
 
         // what to do when this is called
-        public Action<GameServer, GameSession> OnExecute { get; set; }
+        // PlayerSessionData is null and can be optional
+        public Action<PlayerSessionData, GameSession, GameServer> OnExecute { get; set; }
     }
 }

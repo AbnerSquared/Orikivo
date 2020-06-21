@@ -2,6 +2,27 @@
 
 namespace Arcadia
 {
+    public class ConfigProperty : GameProperty
+    {
+        public static ConfigProperty Create<T>(string id, string name, T defaultValue, string summary = "")
+        {
+            return new ConfigProperty
+            {
+                Id = id,
+                Name = name,
+                Summary = summary,
+                Value = defaultValue,
+                DefaultValue = defaultValue,
+                ValueType = typeof(T)
+            };
+        }
+
+        public string Name { get; set; }
+        public string Summary { get; set; }
+
+        public Func<object, bool> Validation { get; set; }
+    }
+
     public class GameProperty
     {
         // this method is what enforces 
@@ -27,7 +48,7 @@ namespace Arcadia
             };
         }
 
-        public string Id { get; private set; }
+        public string Id { get; internal set; }
 
         private object _value;
         public object Value {
@@ -47,10 +68,10 @@ namespace Arcadia
         }
 
         // if this is set, it requires the value being set to consistently match this type
-        public Type ValueType { get; private set; }
+        public Type ValueType { get; protected set; }
 
         // when this property is first being given to others, what is the default value to be set?
-        public object DefaultValue { get; private set; }
+        public object DefaultValue { get; protected set; }
 
         public void Set(object value)
         {
