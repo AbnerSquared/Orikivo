@@ -183,7 +183,9 @@ namespace Arcadia
 
             DisplayChannel display = server.GetDisplayChannel(GameState.Waiting);
             DisplayChannel editing = server.GetDisplayChannel(GameState.Editing);
-            string playerLimitCounter = "infinite players";
+            string playerLimitCounter = server.Config.ValidateGame() ?
+                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                : "infinite players";
 
             /*
             if (server.Config.ValidateGame())
@@ -255,12 +257,7 @@ namespace Arcadia
         }
 
         // forcibly destroy the current session a server might have
-        internal async Task DestroySessionAsync(GameServer server)
-        {
-            // if there is no session to destroy, just cancel the method.
-            if (server.Session == null)
-                return;
-        }
+
 
         // this releases a player from the reserves, and removes them from the server they are in
         internal async Task RemovePlayerAsync(Player player)
@@ -463,6 +460,23 @@ namespace Arcadia
                 // if true, update all editing components as well
                 bool isEditing = true;
 
+                // check the session state
+                // if SessionState.Finish OR SessionState.Destroy
+                // get rid of the session.
+                if (server.Session != null)
+                {
+                    if (server.Session.State == SessionState.Destroy)
+                    {
+                        server.DestroyCurrentSession();
+                    }
+                    else if (server.Session.State == SessionState.Finish)
+                    {
+                        // for now, we don't worry about this.
+                        SessionResult result = server.Session._game.OnSessionFinish(server.Session);
+                        server.DestroyCurrentSession();
+                    }
+                }
+
                 // to make things easier
                 // i need an internal formatting handler that makes appending to multiple components easier
                 // likewise, i should extract the more recent values from the lobby, and set them to be new values for the sub info
@@ -508,7 +522,9 @@ namespace Arcadia
                                         }
                                         else
                                         {
-                                            notice = $"[Console] The session builder is currently in development. Unable to start.";
+                                            game.Build(server);
+                                            return;
+                                            //notice = $"[Console] The session builder is currently in development. Unable to start.";
                                         }
                                     }
                                 }
@@ -560,12 +576,16 @@ namespace Arcadia
                                 editing.GetComponent("message_box").Draw(server.Config.Title);
                             }
 
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
                             waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
+                                    playerLimitCounter);
 
                             break;
                         }
@@ -588,12 +608,16 @@ namespace Arcadia
                                 return;
                             }
 
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
                             waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
+                                    playerLimitCounter);
 
                             string leaveNotice = $"[Console] {user.Username} has left.";
 
@@ -857,12 +881,16 @@ namespace Arcadia
                                 editing.GetComponent("message_box").Draw(server.Config.Title);
                             }
 
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
                             waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
+                                    playerLimitCounter);
 
                             break;
                         }
@@ -885,12 +913,16 @@ namespace Arcadia
                                 return;
                             }
 
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
                             waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
+                                    playerLimitCounter);
 
                             string leaveNotice = $"[Console] {user.Username} has left.";
 
@@ -1151,6 +1183,8 @@ namespace Arcadia
 
                     // IF GAMESTATE IS PLAYING
                     case GameState.Playing:
+                        
+
                         // otherwise, if they are currently in an active game, simply attempt to parse the inputs
                         // specified by the game session themselves
                         // and refer to frequency instead

@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Orikivo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,14 @@ namespace Arcadia.Games
 
     public class TriviaGame : GameBuilder
     {
+        public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
+        {
+            new TriviaQuestion("2+2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this"),
+            new TriviaQuestion("4*2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2"),
+            new TriviaQuestion("sqrt(4)=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]"),
+            new TriviaQuestion("log(32)=", 25, TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4"),
+            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to receive the achievement **Impress Your Friends**?", 10, TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210")
+        };
 
         public TriviaGame() : base()
         {
@@ -23,10 +32,10 @@ namespace Arcadia.Games
 
             Config = new List<ConfigProperty>
             {
-                ConfigProperty.Create<TriviaTopic>("topics", "Topics", TriviaTopic.Math),
+                ConfigProperty.Create<TriviaTopic>("topics", "Topics", TriviaTopic.Any),
                 ConfigProperty.Create<TriviaDifficulty>("difficulty", "Difficulty", TriviaDifficulty.Any),
                 ConfigProperty.Create<int>("questioncount", "Question Count", 5),
-                ConfigProperty.Create<double>("questionduration", "Question Duration", 30)
+                ConfigProperty.Create<double>("questionduration", "Question Duration", 15)
             };
         }
 
@@ -37,16 +46,61 @@ namespace Arcadia.Games
         
         
 
-        public override List<GameAction> OnBuildActions(List<PlayerSessionData> players)
+        public override List<GameAction> OnBuildActions(List<PlayerData> players)
         {
             var actions = new List<GameAction>();
 
             var getQuestionResult = new GameAction
             {
                 Id = "get_question_result",
-                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
+                    // set all currently playing displays to freq. 10
+                    foreach (ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
+                    {
+                        connection.Frequency = 11;
+                        session.CancelQueuedAction();
 
+                        int currentQuestion = session.GetPropertyValue<int>("current_question");
+                        session.SetPropertyValue("players_answered", 0);
+
+                        DisplayContent content = server.GetDisplayChannel(11).Content;
+
+                        content.GetComponent("question_header").Draw(currentQuestion, CurrentQuestion.Question);
+
+                        content.GetComponent("answer_box").Draw(CurrentAnswers.Select((x, i) => x.Correct ? $"[{GetLetter(i)}] {x.Response} (Correct Answer)" : $"~~[{GetLetter(i)}] {x.Response}~~"));
+
+                        foreach (PlayerData playerData in session.Players)
+                        {
+                            bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
+
+                            if (!hasAnswered)
+                            {
+                                playerData.ResetProperty("streak");
+                            }
+                            else
+                            {
+                                bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
+
+
+                                if (isCorrect)
+                                {
+                                    int points = GetPoints(CurrentQuestion.Value,
+                                        playerData.GetPropertyValue<int>("streak"),
+                                        playerData.GetPropertyValue<int>("answer_position"),
+                                        CurrentQuestion.Difficulty);
+
+                                    playerData.AddToProperty("score", points);
+                                }
+                            }
+
+                            playerData.ResetProperty("has_answered");
+                            playerData.ResetProperty("is_correct");
+
+                        }
+
+                        session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
+                    }
                 }
             };
             // 'get_question_result'
@@ -57,14 +111,32 @@ namespace Arcadia.Games
             // A timer is set for 3 seconds
             // When the timer runs out, the action 'try_get_next_question' is executed
 
+            var tryGetQuestionResult = new GameAction
+            {
+                Id = "try_get_question_result",
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                {
+                    if (session.MeetsCriterion("has_all_players_answered"))
+                    {
+                        session.CancelQueuedAction();
+                        session.InvokeAction("get_question_result", true);
+                        
+                    }
+                }
+            };
+
             var tryGetNextQuestion = new GameAction
             {
                 Id = "try_get_next_question",
-                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
-
+                    if (session.MeetsCriterion("has_answered_all_questions"))
+                        session.InvokeAction("get_results", true);
+                    else
+                        session.InvokeAction("get_next_question", true);
                 }
             };
+
             // 'try_get_next_question'
             // This action is executed right after 'get_question_result'
             // If the rule 'has_answered_all_questions' is true, the action 'get_results' is executed
@@ -73,11 +145,30 @@ namespace Arcadia.Games
             var getNextQuestion = new GameAction
             {
                 Id = "get_next_question",
-                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
+                    // set all currently playing displays to freq. 10
+                    foreach (ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
+                    {
+                        connection.Frequency = 10;
+                    }
+
+                    int currentQuestion = session.GetPropertyValue<int>("current_question");
+                    CurrentQuestion = QuestionPool[currentQuestion];
+                    session.AddToProperty("current_question", 1);
+
+                    DisplayContent content = server.GetDisplayChannel(10).Content;
+
+                    content.GetComponent("question_header").Draw(session.GetPropertyValue<int>("current_question"), CurrentQuestion.Question);
+
+                    CurrentAnswers = Randomizer.Shuffle(CurrentQuestion.Answers);
+                    content.GetComponent("answer_box").Draw(CurrentAnswers.Select((x, i) => $"[{GetLetter(i)}] {x.Response}"));
+
+                    session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
 
                 }
             };
+
             // 'get_next_question'
             // This action sets the display to frequency 10
 
@@ -97,7 +188,7 @@ namespace Arcadia.Games
             var getResults = new GameAction
             {
                 Id = "get_results",
-                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     // set all currently playing connection to frequency 12
                     foreach(ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
@@ -105,9 +196,19 @@ namespace Arcadia.Games
                         connection.Frequency = 12;
                     }
 
-                    session.GetDisplay(12).Content.GetComponent("leaderboard").Draw(session.Players
-                        .OrderByDescending(x => x.GetAttribute("score"))
-                        .Select(x => $"{x.Player.User.Username}: {x.GetAttribute("score")}"));
+                    foreach(PlayerData data in session.Players)
+                    {
+                        Console.WriteLine($"{data.Player.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
+                    }
+
+                    session._server
+                    .GetDisplayChannel(12).Content
+                    .GetComponent("leaderboard")
+                     .Draw(session.Players
+                        .OrderByDescending(x => x.GetPropertyValue<int>("score"))
+                        .Select(x => $"{x.Player.User.Username}: {x.GetPropertyValue<int>("score")}"));
+
+                    session.QueueAction(TimeSpan.FromSeconds(15), "end");
                 }
             };
 
@@ -126,69 +227,109 @@ namespace Arcadia.Games
 
             var restart = new GameAction
             {
-                Id = "restart",
-                OnExecute = delegate (PlayerSessionData player, GameSession session, GameServer server)
+                Id = "try_restart",
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
-                    // reset all player attributes
-                    foreach (PlayerSessionData data in session.Players)
+                    if (session.MeetsCriterion("most_players_want_rematch"))
                     {
-                        foreach (GameProperty attribute in data.Attributes)
+                        session.CancelQueuedAction();
+                        // reset all player attributes
+                        foreach (PlayerData data in session.Players)
+                        {
+                            foreach (GameProperty attribute in data.Properties)
+                            {
+                                attribute.Reset();
+                            }
+                        }
+
+                        // reset all game attributes
+                        foreach (GameProperty attribute in session.Properties)
                         {
                             attribute.Reset();
                         }
-                    }
 
-                    // reset all game attributes
-                    foreach (GameProperty attribute in session.Attributes)
-                    {
-                        attribute.Reset();
-                    }
+                        // regenerate question pool.
+                        QuestionPool = GenerateQuestions(
+                            GetConfigValue<int>("questioncount"),
+                            GetConfigValue<TriviaDifficulty>("difficulty"),
+                            GetConfigValue<TriviaTopic>("topics")).ToList();
 
-                    session.ExecuteAction("try_get_next_question");
+                        session.InvokeAction("try_get_next_question", true);
+                    }
                 }
             };
             // 'restart'
             // This action resets all game and player attributes, and restarts the game as it was new
             // After everything is reset, the action 'try_get_next_question' is executed 
 
-            throw new NotImplementedException();
+            actions.Add(getQuestionResult);
+            actions.Add(tryGetQuestionResult);
+            actions.Add(tryGetNextQuestion);
+            actions.Add(getNextQuestion);
+            actions.Add(getResults);
+            actions.Add(restart);
+
+
+            return actions;
+        }
+
+        private string GetLetter(int index)
+        {
+            return index switch
+            {
+                0 => "a",
+                1 => "b",
+                2 => "c",
+                3 => "d",
+                _ => $"{index}"
+            };
         }
         
         
-        public override List<GameRule> OnBuildRules(List<PlayerSessionData> players)
+        public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
         {
-            var rules = new List<GameRule>();
+            var rules = new List<GameCriterion>();
 
             // 'has_all_players_answered'
             // This rule simply checks to see if: 'players_voted' == Players.Count
-            var hasAllPlayersAnswered = new GameRule
+            var hasAllPlayersAnswered = new GameCriterion
             {
                 Id = "has_all_players_answered",
                 Criterion = delegate(GameSession session)
                 {
-                    return ((int)(session.GetAttribute("players_answered").Value)) == session.Players.Count;
+                    return session.GetPropertyValue<int>("players_answered") == session.Players.Count;
                 }
             };
 
 
             // 'most_players_want_rematch'
             // This rule checks to see if: 'rematch_requests' is >= (Players.Count / 2)
-            var mostPlayersWantRematch = new GameRule
+            var mostPlayersWantRematch = new GameCriterion
             {
                 Id = "most_players_want_rematch",
                 Criterion = delegate(GameSession session)
                 {
-                    return ((int)(session.GetAttribute("rematch_requests").Value)) >= (int)(session.Players.Count / 2);
+                    return session.GetPropertyValue<int>("rematch_requests") >= (session.Players.Count / 2);
+                }
+            };
+
+            var hasAnsweredAllQuestions = new GameCriterion
+            {
+                Id = "has_answered_all_questions",
+                Criterion = delegate (GameSession session)
+                {
+                    return session.GetPropertyValue<int>("current_question") == GetConfigValue<int>("questioncount");
                 }
             };
 
             rules.Add(hasAllPlayersAnswered);
             rules.Add(mostPlayersWantRematch);
+            rules.Add(hasAnsweredAllQuestions);
 
             return rules;
         }
 
-        public override List<GameProperty> OnBuildAttributes()
+        public override List<GameProperty> OnBuildProperties()
         {
             var attributes = new List<GameProperty>();
 
@@ -218,7 +359,7 @@ namespace Arcadia.Games
 
         // create display channels here
         // inputs are specified here
-        public override List<DisplayChannel> OnBuildDisplays(List<PlayerSessionData> players)
+        public override List<DisplayChannel> OnBuildDisplays(List<PlayerData> players)
         {
             var displays = new List<DisplayChannel>();
             // frequency 10 (question)
@@ -242,7 +383,7 @@ namespace Arcadia.Games
                             Formatter = new ComponentFormatter
                             {
                                 BaseFormatter = "**Question {0}**\n{1}",
-                                OverrideBaseIndex = true
+                                OverrideBaseValue = true
                             }
                         },
                         new ComponentGroup
@@ -250,14 +391,149 @@ namespace Arcadia.Games
                             Active = true,
                             Id = "answer_box",
                             Position = 1,
-                            Capacity = 4,
                             Formatter = new ComponentFormatter
                             {
                                 BaseFormatter = "{0}",
                                 ElementFormatter = "- {0}",
                                 Separator = "\n",
-                                OverrideBaseIndex = true
+                                OverrideBaseValue = true
                             }
+                        }
+                    }
+                },
+                Inputs = new List<IInput>
+                {
+                    new TextInput
+                    {
+                        Name = "a",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            var session = server.Session;
+
+                            var data = session.GetPlayerData(user.Id);
+
+                            if (data.GetPropertyValue<bool>("has_answered"))
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(0);
+
+                            data.SetPropertyValue("has_answered", true);
+                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+
+                            if (answerSelected.Correct)
+                            {
+                                data.AddToProperty("streak", 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
+                            session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new TextInput
+                    {
+                        Name = "b",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            var data = server.Session.GetPlayerData(user.Id);
+
+                            if (data.GetPropertyValue<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 2)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(1);
+
+                            data.SetPropertyValue("has_answered", true);
+                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+
+                            if (answerSelected.Correct)
+                            {
+                                data.AddToProperty("streak", 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            server.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
+                            server.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new TextInput
+                    {
+                        Name = "c",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            var data = server.Session.GetPlayerData(user.Id);
+
+                            if (data.GetPropertyValue<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 3)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(2);
+
+                            data.SetPropertyValue("has_answered", true);
+                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+
+                            if (answerSelected.Correct)
+                            {
+                                data.AddToProperty("streak", 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            server.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
+                            server.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new TextInput
+                    {
+                        Name = "d",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            var data = server.Session.GetPlayerData(user.Id);
+
+                            if (data.GetPropertyValue<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 4)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(3);
+
+                            data.SetPropertyValue("has_answered", true);
+                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+                            
+                            if (answerSelected.Correct)
+                            {
+                                data.AddToProperty("streak", 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            server.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
+                            server.Session.InvokeAction("try_get_question_result");
                         }
                     }
                 }
@@ -281,7 +557,7 @@ namespace Arcadia.Games
                             Formatter = new ComponentFormatter
                             {
                                 BaseFormatter = "**Question {0}**\n{1}",
-                                OverrideBaseIndex = true
+                                OverrideBaseValue = true
                             }
                         },
                         new ComponentGroup
@@ -293,10 +569,22 @@ namespace Arcadia.Games
                             Formatter = new ComponentFormatter
                             {
                                 BaseFormatter = "{0}",
-                                ElementFormatter = "~~- {0}~~",
+                                ElementFormatter = "- {0}",
                                 Separator = "\n",
-                                OverrideBaseIndex = true
+                                OverrideBaseValue = true
                             }
+                        }
+                    }
+                },
+                Inputs = new List<IInput>
+                {
+                    new TextInput
+                    {
+                        Name = "next",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            server.Session.CancelQueuedAction();
+                            server.Session.InvokeAction("try_get_next_question", true);
                         }
                     }
                 }
@@ -317,7 +605,7 @@ namespace Arcadia.Games
                                Separator = "\n",
                                BaseFormatter = "**Results**\n{0}",
                                ElementFormatter = "{0}",
-                               OverrideBaseIndex = true
+                               OverrideBaseValue = true
                            },
                            Id = "leaderboard",
                            Position = 0
@@ -331,7 +619,17 @@ namespace Arcadia.Games
                         Name = "rematch",
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
-                            server.Session.AddToAttribute("rematch_requests", 1);
+                            server.Session.AddToProperty("rematch_requests", 1);
+                            server.Session.InvokeAction("try_rematch", true);
+                        }
+                    },
+                    new TextInput
+                    {
+                        Name = "end",
+                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        {
+                            server.Session.CancelQueuedAction();
+                            server.Session.InvokeAction("end", true);
                         }
                     }
                 }
@@ -351,39 +649,91 @@ namespace Arcadia.Games
             return displays;
         }
 
-        public override List<PlayerSessionData> OnBuildPlayers(List<Player> players)
+        public override List<PlayerData> OnBuildPlayers(List<Player> players)
         {
-            // this is the list of all attributes the players need
-            var attributes = new List<GameProperty>
-            {
-                GameProperty.Create<int>("score", 0),
-                // if the answer they selected was correct, set to true; otherwise false
-                GameProperty.Create<bool>("vote", false)
-            };
-
             var sessionData = players.Select(x =>
-                new PlayerSessionData
+                new PlayerData
                 {
                     Player = x,
-                    Attributes = attributes
+                    Properties = new List<GameProperty>
+                    {
+                        GameProperty.Create<int>("score", 0),
+                        GameProperty.Create<int>("streak", 0),
+                        // if the answer they selected was correct, set to true; otherwise false
+                        GameProperty.Create<bool>("is_correct", false),
+                        GameProperty.Create<bool>("has_answered", false),
+                        GameProperty.Create<int>("answer_position", 0) // this determines how many points they get if they were right
+                        // bonuses are given to the fastest people
+                    }
                 });
 
             return sessionData.ToList();
         }
 
-        public override void OnSessionStart(GameServer server)
+        // value being the value of the question specified
+        internal int GetPoints(int value, int streak, int answerPosition, TriviaDifficulty difficulty) // the further away your position is, the less points you receive
         {
-            throw new NotImplementedException();
+            // streaks can be set up by 5, 10, 15, 20, 25, 30, 35, etc.
+            int streakValue = streak <= 0 ? 0 : (streak - 1) * 5; // a one question delay is added to prevent streak bonuses on the first question.
+            float multiplier = GetDifficultyMultiplier(difficulty);
+            
+            // this means they never answered
+            if (answerPosition == 0)
+                return 0;
+
+            return (int)Math.Floor(((value * (1.0 - ((answerPosition - 1) / 10))) * multiplier) + streakValue);
+        }
+
+        private float GetDifficultyMultiplier(TriviaDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                TriviaDifficulty.Easy => 1.0F,
+                TriviaDifficulty.Medium => 1.5F,
+                TriviaDifficulty.Hard => 2.0F,
+                _ => throw new Exception("Cannot determine point multiplier for the specified difficulty")
+            };
+        }
+
+        public override void OnSessionStart(GameServer server, GameSession session)
+        {
+            Config = server.Config.GameConfig;
+
+            // generate the question pool
+            QuestionPool = GenerateQuestions(
+                GetConfigValue<int>("questioncount"),
+                GetConfigValue<TriviaDifficulty>("difficulty"),
+                GetConfigValue<TriviaTopic>("topics")
+                ).ToList();
+
+            // once all of that is ready, invoke action try_get_next_questions
+            session.InvokeAction("try_get_next_question", true);
         }
 
         public override SessionResult OnSessionFinish(GameSession session)
         {
-            throw new NotImplementedException();
+            // give money based on scores.
+            return null;
         }
 
+        internal IEnumerable<TriviaQuestion> GenerateQuestions(int questionCount, TriviaDifficulty difficultyRange, TriviaTopic topic)
+        {
+            var questions = new List<TriviaQuestion>();
+            var availableQuestions = FilterQuestions(difficultyRange, topic);
 
+            return Randomizer.ChooseMany(availableQuestions, questionCount);
+        }
 
+        private IEnumerable<TriviaQuestion> FilterQuestions(TriviaDifficulty difficulty, TriviaTopic topic)
+        {
+            return Questions.Where(x => difficulty.HasFlag(x.Difficulty) && topic.HasFlag(x.Topic));
+        }
 
+        public TriviaQuestion CurrentQuestion { get; set; }
+
+        public List<TriviaQuestion> QuestionPool { get; set; }
+
+        public IEnumerable<TriviaAnswer> CurrentAnswers { get; set; }
         /*
          **Question 1**
          Solve the following problem: 2 + 2

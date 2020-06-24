@@ -35,7 +35,7 @@ namespace Arcadia
                 if (string.IsNullOrWhiteSpace(Formatter.BaseFormatter))
                     Formatter.BaseFormatter = "{0}";
 
-                if (Formatter.OverrideBaseIndex)
+                if (Formatter.OverrideBaseValue)
                     throw new System.Exception("The base index reference was marked as an override but is missing an object");
 
                 Buffer = string.Format(Formatter.BaseFormatter, Value);
@@ -66,7 +66,7 @@ namespace Arcadia
                     Formatter.BaseFormatter = "{0}";
 
 
-                if (Formatter.OverrideBaseIndex)
+                if (Formatter.OverrideBaseValue)
                 {
                     if (args == null || args?.Length == 0)
                         throw new System.Exception("The base index reference was marked as an override but is missing an object");
@@ -74,7 +74,7 @@ namespace Arcadia
 
                 var argBuffers = args.Select(x => x.ToString());
 
-                if (!Formatter.OverrideBaseIndex)
+                if (!Formatter.OverrideBaseValue)
                     argBuffers = argBuffers.Prepend(Value);
 
                 Console.WriteLine(argBuffers.Count());

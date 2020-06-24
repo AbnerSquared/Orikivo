@@ -24,7 +24,7 @@ namespace Arcadia
         // if this is set to true for a ComponentGroup, drawing the component requires a list to reference from
         // by default however, this will be set to false
         // If this is set to true, the first argument specified will be the list that will be formatted
-        public bool OverrideBaseIndex { get; set; } = false;
+        public bool OverrideBaseValue { get; set; } = false;
 
         // this returns the number of required arguments needed to properly use this formatter
         // if OverrideBaseIndex is set to true, this also increases its number by 1
@@ -101,7 +101,7 @@ namespace Arcadia
                             // if argCount is 0,
                             // and if OverrideBaseIndex is true
                             // allow the argument count to include this
-                            if (index == 0 && uniqueArgCount == 0 && OverrideBaseIndex)
+                            if (index == 0 && uniqueArgCount == 0 && OverrideBaseValue)
                             {
                                 uniqueArgCount++;
 
@@ -188,7 +188,7 @@ namespace Arcadia
             int argCount = highestIndex + 1;
 
             // if OverrideBaseIndex is set to false however, subtract 1 from the argCount as 0 is not included
-            if (!OverrideBaseIndex)
+            if (!OverrideBaseValue)
                 argCount--;
 
             return argCount;

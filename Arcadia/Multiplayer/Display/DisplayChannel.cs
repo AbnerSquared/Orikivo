@@ -22,9 +22,11 @@ namespace Arcadia
             Frequency = frequency;
             RefreshRate = refreshRate ?? TimeSpan.FromSeconds(1);
             Content = content;
-
+            Reserved = false;
             Inputs = new List<IInput>();
         }
+
+        internal bool Reserved { get; private set; }
 
         public static List<DisplayChannel> GetReservedChannels()
         {
@@ -40,7 +42,7 @@ namespace Arcadia
                         Formatter = new ComponentFormatter
                         {
                             BaseFormatter = "**{0}** #{1}\n*{2}* ({3}/{4})",
-                            OverrideBaseIndex = true
+                            OverrideBaseValue = true
                         }
                     },
 
@@ -73,7 +75,7 @@ namespace Arcadia
                             Separator = "\n",
                             ElementFormatter = "• {0}",
                             BaseFormatter = "**Editing {1}**\n```\n{0}\n```",
-                            OverrideBaseIndex = false
+                            OverrideBaseValue = false
                         },
                         Capacity = 4,
                         Values = new string[4] { "", "", "", "" },
@@ -87,7 +89,7 @@ namespace Arcadia
                         Formatter = new ComponentFormatter
                         {
                             BaseFormatter = "**Config**\n> **Title**: `{0}`\n> **Privacy**: `{1}`\n> **Game**: `{2}`",
-                            OverrideBaseIndex = true
+                            OverrideBaseValue = true
                         },
                         Active = true,
                         Position = 1
@@ -101,7 +103,7 @@ namespace Arcadia
                         {
                             BaseFormatter = "**{1} Config**\n{0}",
                             ElementFormatter = "> {0}",
-                            OverrideBaseIndex = true,
+                            OverrideBaseValue = true,
                             Separator = "\n"
                         },
                         Active = false,
@@ -119,7 +121,8 @@ namespace Arcadia
                 State = GameState.Waiting,
                 Content = waiting,
                 Inputs = new List<IInput>(),
-                RefreshRate = TimeSpan.FromSeconds(1)
+                RefreshRate = TimeSpan.FromSeconds(1),
+                Reserved = true
             });
 
             // reserved editing channel
@@ -129,7 +132,8 @@ namespace Arcadia
                 State = GameState.Editing,
                 Content = editing,
                 Inputs = new List<IInput>(),
-                RefreshRate = TimeSpan.FromSeconds(1)
+                RefreshRate = TimeSpan.FromSeconds(1),
+                Reserved = true
             });
 
             // reserved watching channel

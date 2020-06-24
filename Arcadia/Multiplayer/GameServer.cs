@@ -92,12 +92,28 @@ namespace Arcadia
         }
 
         // this ends the current session a server has active
-        public async Task EndSessionAsync()
+        public void DestroyCurrentSession()
         {
-            // this resets all channel frequencies to the lobby
-            // this sets all players that are playing back to normal
-            // this would make the game session null
-            // this would close off all possible player channel connections
+            foreach (ServerConnection connection in Connections)
+            {
+                if ((GameState.Watching | GameState.Playing).HasFlag(connection.State))
+                {
+                    connection.Frequency = 0;
+                    connection.State = GameState.Waiting;
+                }
+            }
+
+            Session.CancelAllTimers();
+            Session = null;
+
+            DisplayContent waiting = GetDisplayChannel(GameState.Waiting).Content;
+            DisplayContent editing = GetDisplayChannel(GameState.Editing).Content;
+
+            (waiting.GetComponent("message_box") as ComponentGroup).Append("[Console] The current session has ended.");
+            (editing.GetComponent("message_box") as ComponentGroup).Append("[Console] The current session has ended.");
+
+            waiting.GetComponent("message_box").Draw();
+            editing.GetComponent("message_box").Draw(Config.Title);
         }
 
         // this tells the game manager to update all ServerConnection channels bound to this frequency

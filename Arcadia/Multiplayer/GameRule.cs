@@ -3,7 +3,7 @@
 namespace Arcadia
 {
     // this is a ruleset that can be used to quickly determine if certain criteria was met
-    public class GameRule
+    public class GameCriterion
     {
         public string Id { get; internal set; }
 

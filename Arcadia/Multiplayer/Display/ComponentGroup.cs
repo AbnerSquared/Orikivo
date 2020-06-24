@@ -104,7 +104,7 @@ namespace Arcadia
             }
             else
             {
-                if (Formatter.OverrideBaseIndex)
+                if (Formatter.OverrideBaseValue)
                     throw new Exception("The base index reference was marked as an override but is missing an enumerable");
 
                 // If this formatter doesn't have any base formatters set,
@@ -170,7 +170,7 @@ namespace Arcadia
 
                 // if override base index is true
                 // ensure that the first specified argument is written
-                if (Formatter.OverrideBaseIndex)
+                if (Formatter.OverrideBaseValue)
                 {
                     // if the array is null or there are no elements, throw an error
                     // this requires at least 1 argument to be specified since it was marked as an override
@@ -198,7 +198,7 @@ namespace Arcadia
 
                 // if the base index was overridden
                 // skip over the first element to remove the base value collection to use
-                if (Formatter.OverrideBaseIndex)
+                if (Formatter.OverrideBaseValue)
                     argBuffers = argBuffers.Skip(1);
 
                 // now prepend the valueBuffer that was initialized
