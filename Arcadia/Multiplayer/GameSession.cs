@@ -6,82 +6,176 @@ namespace Arcadia
 {
     public class GameSession
     {
-        internal GameSession()
-        {
+        internal readonly GameServer _server;
+        internal readonly GameBuilder _game;
 
-        }
+        internal GameSession() { }
 
         // create a game session with the information provided
         public GameSession(GameServer server, GameBuilder info)
         {
+            _server = server;
+            _game = info;
+            Players = info.OnBuildPlayers(server.Players);
+            Criteria = info.OnBuildRules(Players);
+            Actions = info.OnBuildActions(Players);
 
+            // base game actions required
+            Actions.Add(new GameAction
+            {
+                Id = "end",
+                UpdateOnExecute = true,
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                {
+                    session.State = SessionState.Finish;
+                    _server.DestroyCurrentSession();
+                }
+            });
+
+            Actions.Add(new GameAction
+            {
+                Id = "destroy",
+                UpdateOnExecute = true,
+                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                {
+                    _server.DestroyCurrentSession();
+                }
+            });
+
+            Properties = info.OnBuildProperties();
+
+            _server.DisplayChannels.AddRange(info.OnBuildDisplays(Players));
+
+            ActivityDisplay = "playing a game";
         }
 
-        // this is a timer that can be constantly set up
-        // the elapsed event is connected to a game action
-        public AsyncTimer Timer { get; internal set; }
+        // this is used to display where the game is currently at
+        public string ActivityDisplay { get; set; }
 
-        // This is the action ID executed once the timer is elapsed
-        public string OnTimer { get; internal set; }
-
-        // These are all of the rulesets read each time an input is executed
-        // if one of them are true, the action specified is executed
-        // The action specified is <bool, GameSession>; the boolean value is true if the rule was true, and gamesession allows you to edit its properties
-        public List<RuleAction> Rulesets { get; internal set; }
-
-        // a list of all display channels
-        public List<DisplayChannel> Displays { get; internal set; }
+        // this is used to handle the current state of a session
+        public SessionState State { get; set; } = SessionState.Continue;
 
         // these are all of the currently active players
-        public List<PlayerSessionData> Players { get; internal set; }
+        public List<PlayerData> Players { get; internal set; }
 
         // these are all of the attributes that are set
-        public List<GameProperty> Attributes { get; internal set; }
+        public List<GameProperty> Properties { get; internal set; }
 
         // These are all of the possible actions
         public List<GameAction> Actions { get; set; }
 
         // these are all of the possible rules
-        public List<GameRule> Rules { get; set; }
+        public List<GameCriterion> Criteria { get; set; }
 
-        internal void ExecuteAction(string actionId)
+        private List<ActionQueue> _actionQueue = new List<ActionQueue>();
+        private string _currentQueuedAction;
+
+        internal void QueueAction(TimeSpan delay, string actionId)
         {
+            ActionQueue timer = new ActionQueue(delay, actionId, this);
+            _actionQueue.Add(timer);
+            _currentQueuedAction = timer.Id;
+        }
+
+        internal void CancelQueuedAction()
+        {
+            if (_actionQueue.Count == 0)
+                return;
+
+            if (GetCurrentQueuedAction() == null)
+                return;
+
+            // marks this timer as cancelled.
+            GetCurrentQueuedAction().Cancel();
+
+            _actionQueue.Remove(GetCurrentQueuedAction());
+        }
+
+        internal void CancelAllTimers()
+        {
+            foreach (ActionQueue timer in _actionQueue)
+            {
+                timer.Cancel();
+            }
+        }
+
+        private ActionQueue GetQueuedAction(string id)
+        {
+            return _actionQueue.FirstOrDefault(x => x.Id == id);
+        }
+
+        private ActionQueue GetCurrentQueuedAction()
+            => GetQueuedAction(_currentQueuedAction);
+
+        internal void InvokeAction(string actionId, bool overrideTimer = false)
+        {
+            if (!overrideTimer)
+                if (GetCurrentQueuedAction()?.IsElapsed ?? false)
+                    return;
+
             if (!Actions.Any(x => x.Id == actionId))
-                throw new Exception($"Cannot find the action '{actionId}' specified");
+                throw new Exception($"Could not find the specified action '{actionId}'");
 
-            // Actions.First(x => x.Id == actionId).OnExecute(this);
+            GameAction action = Actions.First(x => x.Id == actionId);
+                
+            action.OnExecute(null, this, _server);
+
+            // this causes a pause, so limit it to the actions that need to update
+            if (action.UpdateOnExecute)
+                _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        internal void ExecuteRule(string ruleId)
+        internal bool MeetsCriterion(string ruleId)
         {
-            if (!Rules.Any(x => x.Id == ruleId))
-                throw new Exception($"Cannot find the rule '{ruleId}' specified");
+            if (!Criteria.Any(x => x.Id == ruleId))
+                throw new Exception($"Could not find the specified rule '{ruleId}'");
 
-            Rules.First(x => x.Id == ruleId).Criterion.Invoke(this);
+            return Criteria.First(x => x.Id == ruleId).Criterion.Invoke(this);
         }
 
-        public GameProperty GetAttribute(string id)
+        public GameProperty GetProperty(string id)
         {
-            if (!Attributes.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+            if (!Properties.Any(x => x.Id == id))
+                throw new Exception($"Could not find the specified property '{id}'");
 
-            return Attributes.First(x => x.Id == id);
+            return Properties.First(x => x.Id == id);
         }
 
-        public void SetAttribute(string id, object value)
-        {
-            if (!Attributes.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+        public void ResetProperty(string id)
+            => GetProperty(id)?.Reset();
 
-            Attributes.First(x => x.Id == id).Set(value);
+        public object GetPropertyValue(string id)
+            => GetProperty(id)?.Value;
+
+        public T GetPropertyValue<T>(string id)
+        {
+            var property = GetProperty(id);
+
+            if (property.ValueType != null)
+            {
+                if (property.ValueType.IsEquivalentTo(typeof(T)))
+                {
+                    return (T)property.Value;
+                }
+            }
+
+            throw new Exception("The specified type within the property does not match the implicit type reference");
         }
 
-        public void AddToAttribute(string id, int value)
+        public void SetPropertyValue(string id, object value)
         {
-            if (!Attributes.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+            if (!Properties.Any(x => x.Id == id))
+                throw new Exception($"Could not find the specified property '{id}'");
 
-            var attribute = Attributes.First(x => x.Id == id);
+            Properties.First(x => x.Id == id).Set(value);
+        }
+
+        public void AddToProperty(string id, int value)
+        {
+            if (!Properties.Any(x => x.Id == id))
+                throw new Exception($"Could not find the specified property '{id}'");
+
+            var attribute = Properties.First(x => x.Id == id);
 
             if (attribute.ValueType != typeof(int))
                 throw new Exception($"Cannot add to attribute '{id}' as it is not a type of Int32");
@@ -89,24 +183,12 @@ namespace Arcadia
             attribute.Value = ((int)attribute.Value) + value;
         }
 
-        public DisplayChannel GetDisplay(int frequency)
+        public PlayerData GetPlayerData(ulong userId)
         {
-            if (!Displays.Any(x => x.Frequency == frequency))
-                throw new Exception($"Cannot find a display at frequency {frequency}");
+            if (!Players.Any(x => x.Player.User.Id == userId))
+                throw new Exception("Cannot find session data for the specified user");
 
-            return Displays.First(x => x.Frequency == frequency);
+            return Players.First(x => x.Player.User.Id == userId);
         }
-
-        public PlayerSessionData GetPlayerData(Player player)
-        {
-            if (!Players.Any(x => x.Player == player))
-                throw new Exception("Cannot find a matching session data for the specified player");
-
-            return Players.First(x => x.Player == player);
-        }
-
-        // a list of custom players
-        // a list of custom attributes
-        // a method handler for everything that happens in-game
     }
 }

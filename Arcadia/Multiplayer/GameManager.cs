@@ -91,10 +91,11 @@ namespace Arcadia
             }
             
             DisplayContent content = server.GetDisplayChannel(GameState.Waiting).Content;
+            DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
 
             Player player = new Player
             {
-                Host = true,
+                Host = false,
                 User = user,
                 JoinedAt = DateTime.UtcNow,
                 Playing = false
@@ -113,7 +114,11 @@ namespace Arcadia
             (content.GetComponent("message_box") as ComponentGroup)
                     .Append($"[Console] {user.Username} has joined.");
 
+            (editing.GetComponent("message_box") as ComponentGroup)
+                .Append($"[Console] {user.Username} has joined.");
+
             content.GetComponent("message_box").Draw();
+            editing.GetComponent("message_box").Draw(server.Config.Title);
 
             // if there's a connection already in place, simply update this message.
             ServerConnection connection = server.Connections.FirstOrDefault(x => x.ChannelId == channel.Id);
@@ -132,13 +137,13 @@ namespace Arcadia
                     Frequency = 0,
                     State = GameState.Waiting,
                     LastRefreshed = DateTime.UtcNow
-                };
+                }; // TODO: implement CanDeleteMessages
 
                 server.Connections.Add(connection);
 
                 
                 ReservedChannels.Add(channel.Id, server.Id);
-                await channel.SendMessageAsync($"You have joined **{server.Config.Title}**.");
+                //await channel.SendMessageAsync($"You have joined **{server.Config.Title}**.");
             }
 
             
@@ -177,8 +182,10 @@ namespace Arcadia
             ReservedChannels.Add(channel.Id, server.Id); // server.Config.Title, server.Id, server.Config.GameId, server.Players.Count\
 
             DisplayChannel display = server.GetDisplayChannel(GameState.Waiting);
-
-            string playerLimitCounter = "infinite players";
+            DisplayChannel editing = server.GetDisplayChannel(GameState.Editing);
+            string playerLimitCounter = server.Config.ValidateGame() ?
+                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                : "infinite players";
 
             /*
             if (server.Config.ValidateGame())
@@ -197,7 +204,11 @@ namespace Arcadia
             (display.Content.GetComponent("message_box") as ComponentGroup)
                 .Append($"[Console] {user.Username} has joined.");
 
+            (editing.Content.GetComponent("message_box") as ComponentGroup)
+                .Append($"[Console] {user.Username} has joined.");
+
             display.Content.GetComponent("message_box").Draw();
+            editing.Content.GetComponent("message_box").Draw(server.Config.Title);
 
             var internalMessage = await channel.SendMessageAsync(display.ToString());
 
@@ -223,12 +234,12 @@ namespace Arcadia
         // destroys the game server accordingly
         internal async Task DestroyServerAsync(GameServer server)
         {
-            server.GetDisplayChannel(0).Content.Override = "This server has been destroyed. Sorry about the inconvenience.";
+            server.GetDisplayChannel(GameState.Waiting).Content.ValueOverride = "This server has been destroyed. Sorry about the inconvenience.";
 
             // update the display to notify that the server was destroyed
             foreach (ServerConnection connection in server.Connections)
             {
-                connection.Frequency = 0;
+                connection.State = GameState.Waiting;
             }
 
             await server.UpdateAsync();
@@ -237,9 +248,6 @@ namespace Arcadia
                 if (ReservedChannels.ContainsKey(channelId))
                     ReservedChannels.Remove(channelId);
 
-            //foreach (ulong userId in ReservedUsers.Where(x => x.Value == server.Id))
-            //    ReservedUsers.Remove(userId);
-
             foreach (ulong userId in server.Players.Select(x => x.User.Id))
                 if (ReservedUsers.ContainsKey(userId))
                     ReservedUsers.Remove(userId);
@@ -247,6 +255,9 @@ namespace Arcadia
             Servers.Remove(server.Id);
             // release all channels that were reserved to this server
         }
+
+        // forcibly destroy the current session a server might have
+
 
         // this releases a player from the reserves, and removes them from the server they are in
         internal async Task RemovePlayerAsync(Player player)
@@ -433,7 +444,7 @@ namespace Arcadia
 
                 // This is where input handling starts to diverge:
                 string ctx = message.Content;
-                
+
                 /*
                 // if this connection is able to delete messages, automatically remove it
                 // only if the message sent was a valid command
@@ -442,75 +453,97 @@ namespace Arcadia
                     await message.DeleteAsync();
                 }*/
 
+                // get the correlated channel for the specific game state.
+                DisplayContent waiting = server.GetDisplayChannel(GameState.Waiting).Content;
+                DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
+
+                // if true, update all editing components as well
+                bool isEditing = true;
+
+                // check the session state
+                // if SessionState.Finish OR SessionState.Destroy
+                // get rid of the session.
+                if (server.Session != null)
+                {
+                    if (server.Session.State == SessionState.Destroy)
+                    {
+                        server.DestroyCurrentSession();
+                    }
+                    else if (server.Session.State == SessionState.Finish)
+                    {
+                        // for now, we don't worry about this.
+                        SessionResult result = server.Session._game.OnSessionFinish(server.Session);
+                        server.DestroyCurrentSession();
+                    }
+                }
+
+                // to make things easier
+                // i need an internal formatting handler that makes appending to multiple components easier
+                // likewise, i should extract the more recent values from the lobby, and set them to be new values for the sub info
                 switch (connection.State)
                 {
                     // IF GAMESTATE IS WAITING
                     // They are in the lobby.
                     case GameState.Waiting:
-                        
-                        // get the correlated channel for the specific game state.
-                        DisplayContent content = server.GetDisplayChannel(GameState.Waiting).Content;
 
                         // [HOST, PLAYER] start
                         if (ctx == "start")
                         {
+                            string notice = "";
+
                             // if they are not in the server
                             if (player == null)
                                 return;
 
                             // if they are not the host
-                            if (!player.Host)
-                            {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[To {user.Username}] Only the host may start the game.");
-
-                                content.GetComponent("message_box").Draw();
-
-                                break;
-                            }
+                            else if (!player.Host)
+                                notice = $"[To {user.Username}] Only the host may start the game.";
 
                             // if the game already started
-                            if (server.Session != null)
-                            {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] A game is already in progress.");
-
-                                content.GetComponent("message_box").Draw();
-
-                                break;
-                            }
+                            else if (server.Session != null)
+                                notice = $"[Console] A game is already in progress.";
 
                             // if the game specified is invalid
-                            if (!server.Config.ValidateGame())
+                            else if (!server.Config.ValidateGame())
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] Unable to validate the specified game.");
-
-                                content.GetComponent("message_box").Draw();
-
-                                break;
+                                notice = $"[Console] Unable to validate the specified game.";
                             }
-
-                            // if the requirements to start have not been met
-                            if (!server.Config.GetGame().Details.CanStart(server.Players.Count))
-                            {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] Unable to start {server.Config.GetGame().Details.Name}.");
-
-                                content.GetComponent("message_box").Draw();
-
-                                break;
-                            }
-                            // otherwise, initialize a new game session.
                             else
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] The session builder is currently in development. Unable to start.");
+                                GameBuilder game = server.Config.GetGame();
 
-                                content.GetComponent("message_box").Draw();
-
-                                break;
+                                if (game != null)
+                                {
+                                    if (game.Details != null)
+                                    {
+                                        if (!game.Details.CanStart(server.Players.Count))
+                                        {
+                                            notice = $"[Console] Unable to start {game.Details.Name ?? "UNKNOWN_NAME"}.";
+                                        }
+                                        else
+                                        {
+                                            game.Build(server);
+                                            return;
+                                            //notice = $"[Console] The session builder is currently in development. Unable to start.";
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    notice = $"[Console] An error has occurred attempting to start '{server.Config.GameId}'.";
+                                }
                             }
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                             waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
+
+                            break;
                         }
 
                         // join
@@ -529,21 +562,30 @@ namespace Arcadia
                                 Playing = false
                             };
 
-
                             server.Players.Add(newPlayer);
                             ReservedUsers.Add(user.Id, server.Id);
 
-                            content.GetComponent("header")
+                            string notice = $"[Console] {user.Username} has joined.";
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
+
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
+                            waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
-
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] {user.Username} has joined.");
-
-                            content.GetComponent("message_box").Draw();
+                                    playerLimitCounter);
 
                             break;
                         }
@@ -566,15 +608,23 @@ namespace Arcadia
                                 return;
                             }
 
-                            content.GetComponent("header")
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
+                            waiting.GetComponent("header")
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
                                     server.Players.Count,
-                                    "infinite players");
+                                    playerLimitCounter);
 
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] {user.Username} has left.");
+                            string leaveNotice = $"[Console] {user.Username} has left.";
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(leaveNotice);
+
+                            if (isEditing)
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(leaveNotice);
 
                             // if the player that left was the host
                             if (player.Host)
@@ -582,13 +632,58 @@ namespace Arcadia
                                 var newHost = server.Players.OrderBy(x => x.JoinedAt).First();
                                 newHost.Host = true;
 
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] {newHost.User.Username} is now the host.");
+                                string hostNotice = $"[Console] {newHost.User.Username} is now the host.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(hostNotice);
+
+                                if (isEditing)
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(hostNotice);
+
+                                if (server.Connections.Any(x => x.State == GameState.Editing))
+                                {
+                                    // if the host was re-assigned, return the channel in editing state to it's default
+                                    server.Connections.First(x => x.State == GameState.Editing).State = GameState.Waiting;
+                                }
                             }
 
-                            content.GetComponent("message_box").Draw();
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
 
                             break;
+                        }
+
+
+                        // [PLAYER] refresh
+                        // brings the lobby up to the most recent message
+
+                        if (ctx == "refresh")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            /*
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                (content.GetComponent("message_box") as ComponentGroup)
+                                    .Append($"[To {user.Username}] Only the host may refresh the display window.");
+
+                                content.GetComponent("message_box").Draw();
+
+                                break;
+                            }*/
+
+                            await connection.InternalMessage.DeleteAsync();
+
+                            connection.InternalMessage = await connection.InternalChannel.SendMessageAsync(waiting.ToString());
+                            connection.MessageId = connection.InternalMessage.Id;
+
+                            return;
+                            // otherwise, bring the display window up to the front again
+
                         }
 
                         // [PLAYER] players
@@ -599,39 +694,45 @@ namespace Arcadia
                                 return;
 
                             // otherwise, send a message to the console that lists all players.
-                            string playerBuffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(x => $"{x.User.Username} {(x.Host ? "[Host] " : "")}{(x.Playing ? " - Playing" : "")}"))}";
+                            string buffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(x => $"{x.User.Username} {(x.Host ? "[Host]" : "")}{(x.Playing ? " - Playing" : "")}"))}";
 
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append(playerBuffer);
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                             waiting.GetComponent("message_box").Draw();
 
-                            content.GetComponent("message_box").Draw();
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                 editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
 
                             break;
                         }
 
-                        // [HOST, PLAYER] connections
                         if (ctx == "connections")
                         {
                             if (player == null)
                                 return;
 
+                            string buffer = "";
+
                             // if they are not the host
                             if (!player.Host)
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[To {user.Username}] Only the host may list server connections.");
-
-                                content.GetComponent("message_box").Draw();
-
-                                break;
+                                buffer = $"[To {user.Username}] Only the host may list server connections.";
+                            }
+                            else
+                            {
+                                buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => $"{x.ChannelId} - {x.State.ToString()}"))}";
                             }
 
-                            string connectionBuffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => x.ChannelId))}";
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                            waiting.GetComponent("message_box").Draw();
 
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append(connectionBuffer);
-
-                            content.GetComponent("message_box").Draw();
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
 
                             break;
                         }
@@ -643,23 +744,46 @@ namespace Arcadia
                             if (player == null)
                                 return;
 
+                            string notice = "";
+
                             // if they are not the host
                             if (!player.Host)
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[To {user.Username}] Only the host can edit the server config.");
+                                notice = $"[To {user.Username}] Only the host can edit the server config.";
+                            }
 
-                                content.GetComponent("message_box").Draw();
+                            // if there is an existing connection already in the editing state
+                            else if (server.Connections.Any(x => x.State == GameState.Editing))
+                            {
+                                notice = $"[Console] There is already a connection that is editing the configuration.";
+                            }
+                            else
+                            {
+                                // otherwise, set this specific server connection to editing mode.
+                                connection.State = GameState.Editing;
+                                connection.Frequency = 1;
+
+                                if (server.Config.ValidateGame())
+                                {
+                                    editing.GetComponent("game_config").Active = true;
+                                    editing.GetComponent("game_config").Draw(server.Config.GetGame().Config.Select(x => $"**{x.Name}**: `{x.Value.ToString()}`"), server.Config.GetGame().Details.Name);
+                                }
+
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                                editing.GetComponent("config").Draw(server.Config.Title, server.Config.Privacy, server.Config.GameId);
 
                                 break;
                             }
 
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] The configuration channel is currently in development. Unable to initialize.");
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                             waiting.GetComponent("message_box").Draw();
 
-                            content.GetComponent("message_box").Draw();
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                 editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
 
-                            // otherwise, set this specific server connection to editing mode.
                             break;
                         }
 
@@ -670,13 +794,22 @@ namespace Arcadia
                             if (player == null)
                                 return;
 
+                            string buffer = "";
+
                             // if the game hasn't started yet
                             if (server.Session == null)
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] Unable to call vote for spectating as there is no current session.");
 
-                                content.GetComponent("message_box").Draw();
+                                buffer = $"[Console] Unable to call vote for spectating as there is no current session.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                 waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                     editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
 
                                 break;
                             }
@@ -684,19 +817,30 @@ namespace Arcadia
                             // if they are the host, automatically start it.
                             if (player.Host)
                             {
-                                (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] The spectator controls are currently in development. Unable to initialize.");
+                                buffer = $"[Console] The spectator controls are currently in development. Unable to initialize.";
 
-                                content.GetComponent("message_box").Draw();
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                    editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
 
                                 break;
                             }
 
-                            // otherwise, begin calling the vote to switch over to spectator mode.
-                            (content.GetComponent("message_box") as ComponentGroup)
-                                    .Append($"[Console] The spectator controls are currently in development. Unable to initialize.");
+                            buffer = $"[Console] The spectator controls are currently in development. Unable to initialize.";
 
-                            content.GetComponent("message_box").Draw();
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
 
                             break;
                         }
@@ -705,15 +849,302 @@ namespace Arcadia
 
                     // IF GAMESTATE IS EDITING
                     case GameState.Editing:
+                        // base commands
+
+                        // join
+                        if (ctx == "join")
+                        {
+                            // if they are already in the server
+                            if (player != null)
+                                return;
+
+                            // otherwise, add them to the players and update accordingly
+                            var newPlayer = new Player
+                            {
+                                User = user,
+                                JoinedAt = DateTime.UtcNow,
+                                Host = false,
+                                Playing = false
+                            };
+
+                            server.Players.Add(newPlayer);
+                            ReservedUsers.Add(user.Id, server.Id);
+
+                            string notice = $"[Console] {user.Username} has joined.";
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
+
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
+                            waiting.GetComponent("header")
+                                .Draw(server.Config.Title,
+                                    server.Id,
+                                    server.Config.GameId,
+                                    server.Players.Count,
+                                    playerLimitCounter);
+
+                            break;
+                        }
+
+                        // [PLAYER] leave
+                        if (ctx == "leave")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                return;
+
+                            // otherwise, remove them from the players and update accordingly
+                            server.Players.Remove(player);
+                            ReservedUsers.Remove(user.Id);
+
+                            // if the player that left was the final player in the server
+                            if (server.Players.Count == 0)
+                            {
+                                await DestroyServerAsync(server);
+                                return;
+                            }
+
+                            string playerLimitCounter = server.Config.ValidateGame() ?
+                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                : "infinite players";
+
+                            waiting.GetComponent("header")
+                                .Draw(server.Config.Title,
+                                    server.Id,
+                                    server.Config.GameId,
+                                    server.Players.Count,
+                                    playerLimitCounter);
+
+                            string leaveNotice = $"[Console] {user.Username} has left.";
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(leaveNotice);
+
+                            if (isEditing)
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(leaveNotice);
+
+                            // if the player that left was the host
+                            if (player.Host)
+                            {
+                                var newHost = server.Players.OrderBy(x => x.JoinedAt).First();
+                                newHost.Host = true;
+
+                                string hostNotice = $"[Console] {newHost.User.Username} is now the host.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(hostNotice);
+
+                                if (isEditing)
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(hostNotice);
+
+                                if (server.Connections.Any(x => x.State == GameState.Editing))
+                                {
+                                    // if the host was re-assigned, return the channel in editing state to it's default
+                                    server.Connections.First(x => x.State == GameState.Editing).State = GameState.Waiting;
+                                }
+                                
+                            }
+
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+
+                            break;
+                        }
+
+                        // [HOST, PLAYER] connections
+                        if (ctx == "connections")
+                        {
+                            if (player == null)
+                                return;
+
+                            string buffer = "";
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                buffer = $"[To {user.Username}] Only the host may list server connections.";
+                            }
+                            else
+                            {
+                                buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => $"{x.ChannelId} - {x.State.ToString()}"))}";
+                            }
+
+                            (waiting.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                            waiting.GetComponent("message_box").Draw();
+
+                            if (isEditing)
+                            {
+                                (editing.GetComponent("message_box") as ComponentGroup).Append(buffer);
+                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                            }
+
+                            break;
+                        }
                         // [HOST, PLAYER] title <value>
                         // [HOST, PLAYER] game <value>
                         // [HOST, PLAYER] privacy <value>
                         // [HOST, PLAYER] kick <value>
 
+                        // This returns the host back into the normal lobby view
+                        // [HOST, PLAYER] back
+                        if (ctx == "back")
+                        {
+                            // if they are already in the server
+                            if (player == null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                string notice = $"[To {user.Username}] Only the host may exit server configuration.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                 waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                     editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
+
+                                break;
+                            }
+
+                            connection.State = GameState.Waiting;
+                            connection.Frequency = 0;
+
+                            //waiting.GetComponent("message_box").Draw();
+                            //editing.GetComponent("message_box").Draw(server.Config.Title);
+
+                            break;
+                        }
+
+                        
+                        if (ctx.StartsWith("title"))
+                        {
+                            // if they are already in the server
+                            if (player != null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                string notice = $"[To {user.Username}] Only the host may edit the server's title.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                 waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                     editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
+
+                                break;
+                            }
+
+                            break;
+                        }
+
+                        if (ctx.StartsWith("game"))
+                        {
+                            // if they are already in the server
+                            if (player != null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                string notice = $"[To {user.Username}] Only the host may edit the server's game mode.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                 waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                     editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
+
+                                break;
+                            }
+
+                            break;
+                        }
+
+                        if (ctx.StartsWith("privacy"))
+                        {
+                            // if they are already in the server
+                            if (player != null)
+                                return;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                string notice = $"[To {user.Username}] Only the host may edit the server's privacy.";
+
+                                (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                 waiting.GetComponent("message_box").Draw();
+
+                                if (isEditing)
+                                {
+                                    (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                     editing.GetComponent("message_box").Draw(server.Config.Title);
+                                }
+
+                                break;
+                            }
+
+                            break;
+                        }
+
                         // if no other commands are valid, attempt to parse a custom configuration
                         // otherwise, just return.
                         // [HOST, PLAYER] CUSTOM <value>
-                        break;
+                        if (server.Config.ValidateGame())
+                        {
+                            var game = server.Config.GetGame();
+
+                            foreach(ConfigProperty option in game.Config)
+                            {
+                                if (ctx.StartsWith(option.Id))
+                                {
+                                    if (player == null)
+                                        return;
+
+                                    if (!player.Host)
+                                    {
+                                        string notice = $"[To {user.Username}] Only the host may edit this value.";
+
+                                        (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                        waiting.GetComponent("message_box").Draw();
+
+                                        if (isEditing)
+                                        {
+                                            (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
+                                            editing.GetComponent("message_box").Draw(server.Config.Title);
+                                        }
+
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            return;
+                        }
+
+                        return;
 
                     // IF GAMESTATE IS WATCHING
                     case GameState.Watching:
@@ -752,6 +1183,8 @@ namespace Arcadia
 
                     // IF GAMESTATE IS PLAYING
                     case GameState.Playing:
+                        
+
                         // otherwise, if they are currently in an active game, simply attempt to parse the inputs
                         // specified by the game session themselves
                         // and refer to frequency instead
@@ -759,9 +1192,20 @@ namespace Arcadia
 
                         foreach (IInput input in display.Inputs)
                         {
-                            InputResult result = input.TryParse(ctx);
+                            var rawCtx = ctx;
+                            if (input.Type == KeyType.Text)
+                            {
+                                if (!(input as TextInput).CaseSensitive)
+                                {
+                                    rawCtx = rawCtx.ToLower();
+                                }
+                            }
+
+                            InputResult result = input.TryParse(rawCtx);
                             if (result.IsSuccess)
                             {
+                                
+
                                 if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
                                 {
                                     result.Input.OnExecute?.Invoke(user, connection, server);
@@ -829,3 +1273,67 @@ namespace Arcadia
         }
     }
 }
+
+/*
+ 
+    Servers
+    JoinServerAsync(IUser user, IMessageChannel channel, GameServer server)
+        - Attempts to add a player into a server
+    
+    LeaveServerAsync(IUser user, IMessageChannel channel)
+        - Attempts to remove a player from an existing server
+        - If they were the host, set a new host
+        - If they were the last person in the server, destroy the server
+        - If they were the last person to a connection, remove the connection
+
+
+    CreateServerAsync(IUser user, IMessageChannel channel)
+        - Creates a new server with the user as the host
+        - If a user is already in another server, cancel the attempt
+        - If the channel is already reserved, cancel the attempt
+        - If the server connection was initialized in a guild, attach a GuildId to the connection
+        - That way, if another connection to the same server is initialized in the same guild, it can be prevented.
+
+
+    DestroyServerAsync(GameServer server)
+        - Destroys an existing server
+        - Forcibly moves everyone to the default state
+        - Releases all reserved users and channels
+    
+    AddPlayerAsync(Player player)
+        - Attempts to add a player into an existing server
+        - If the server is full, they are unable to join
+
+
+
+    RemovePlayerAsync(Player player, string reason = null)
+        - If the reason is null, the player will be assumed as willingly left.
+        - Otherwise, the player will have been marked as kicked
+        - This attempts to remove the player from the existing server they are in
+        - If they are not in a server, cancel the attempt
+    
+    AddConnectionAsync(IMessageChannel channel, GameServer server)
+        - This establishes a new connection to a server by a specified channel
+        - All new connections must default to GameState.Waiting
+        
+
+    RemoveConnectionAsync(ServerConnection connection)
+        - This forcibly removes a connection from a server with a specified channel
+        - If this was the last connection to the server, destroy the server
+        - If the connection removed was the only channel the host had access to, set a new host
+        - Cancel a session if this method is executed on a channel with the state GameState.Playing
+
+    Handles
+    OnChannelDestroyed
+    
+    OnReactionAdded
+    
+    OnReactionRemoved
+    
+    OnMessageReceived
+
+    OnMessageDeleted
+     
+     
+     
+ */

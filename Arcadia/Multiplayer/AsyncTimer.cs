@@ -69,6 +69,7 @@ namespace Arcadia
             ElapseReader.SetResult(true);
         }
 
+        // so in this case, you would need to re-set the interval to be the remainder of the initial interval with the time started.
         public void Start()
         {
             if (!_started)

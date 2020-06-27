@@ -1,5 +1,6 @@
 ﻿using Discord;
 using System;
+using System.Collections.Generic;
 
 namespace Arcadia
 
@@ -19,6 +20,12 @@ namespace Arcadia
         public bool UpdateOnExecute { get; set; }
 
         public bool RequirePlayer { get; set; }
+
+        public bool CaseSensitive { get; set; }
+
+        public List<GameProperty> Args { get; set; }
+
+        IEnumerable<GameProperty> IInput.Args => Args;
 
         public InputResult TryParse(Input input)
         {
