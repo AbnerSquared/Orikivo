@@ -10,7 +10,7 @@ namespace Arcadia
     {
         // this is an array of reserved frequencies
         // these channels are always paired into a game server
-        public static int[] ReservedFrequencies => new int[2] { -1, 0 };
+        public static int[] ReservedFrequencies => new int[2] { 1, 0 };
 
         internal DisplayChannel() { }
 

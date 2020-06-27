@@ -16,12 +16,12 @@ namespace Arcadia
         // when this value is specified,
         // all components are ignored,
         // only drawing this
-        public string Override { get; set; }
+        public string ValueOverride { get; set; }
 
         public override string ToString()
         {
-            if (!string.IsNullOrWhiteSpace(Override))
-                return Override;
+            if (!string.IsNullOrWhiteSpace(ValueOverride))
+                return ValueOverride;
 
             var writer = new StringBuilder();
 

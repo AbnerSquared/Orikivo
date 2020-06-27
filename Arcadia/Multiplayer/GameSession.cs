@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Arcadia
 {
@@ -9,10 +8,8 @@ namespace Arcadia
     {
         internal readonly GameServer _server;
         internal readonly GameBuilder _game;
-        internal GameSession()
-        {
 
-        }
+        internal GameSession() { }
 
         // create a game session with the information provided
         public GameSession(GameServer server, GameBuilder info)
@@ -27,6 +24,7 @@ namespace Arcadia
             Actions.Add(new GameAction
             {
                 Id = "end",
+                UpdateOnExecute = true,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     session.State = SessionState.Finish;
@@ -37,6 +35,7 @@ namespace Arcadia
             Actions.Add(new GameAction
             {
                 Id = "destroy",
+                UpdateOnExecute = true,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     _server.DestroyCurrentSession();
@@ -115,16 +114,21 @@ namespace Arcadia
                     return;
 
             if (!Actions.Any(x => x.Id == actionId))
-                throw new Exception($"Cannot find the action '{actionId}' specified");
+                throw new Exception($"Could not find the specified action '{actionId}'");
 
-            Actions.First(x => x.Id == actionId).OnExecute(null, this, _server);
-            _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            GameAction action = Actions.First(x => x.Id == actionId);
+                
+            action.OnExecute(null, this, _server);
+
+            // this causes a pause, so limit it to the actions that need to update
+            if (action.UpdateOnExecute)
+                _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         internal bool MeetsCriterion(string ruleId)
         {
             if (!Criteria.Any(x => x.Id == ruleId))
-                throw new Exception($"Cannot find the rule '{ruleId}' specified");
+                throw new Exception($"Could not find the specified rule '{ruleId}'");
 
             return Criteria.First(x => x.Id == ruleId).Criterion.Invoke(this);
         }
@@ -132,7 +136,7 @@ namespace Arcadia
         public GameProperty GetProperty(string id)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+                throw new Exception($"Could not find the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);
         }
@@ -161,7 +165,7 @@ namespace Arcadia
         public void SetPropertyValue(string id, object value)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+                throw new Exception($"Could not find the specified property '{id}'");
 
             Properties.First(x => x.Id == id).Set(value);
         }
@@ -169,7 +173,7 @@ namespace Arcadia
         public void AddToProperty(string id, int value)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+                throw new Exception($"Could not find the specified property '{id}'");
 
             var attribute = Properties.First(x => x.Id == id);
 

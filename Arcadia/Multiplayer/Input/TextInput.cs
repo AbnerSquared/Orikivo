@@ -21,6 +21,8 @@ namespace Arcadia
 
         public bool RequirePlayer { get; set; }
 
+        public bool CaseSensitive { get; set; }
+
         public List<GameProperty> Args { get; set; }
 
         IEnumerable<GameProperty> IInput.Args => Args;

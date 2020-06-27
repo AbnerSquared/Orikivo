@@ -59,6 +59,9 @@ namespace Arcadia
             return null;
         }
 
+        public IEnumerable<ServerConnection> GetConnectionsInState(GameState state)
+            => Connections.Where(x => state.HasFlag(x.State));
+
         public Player GetPlayer(ulong id)
         {
             foreach (Player player in Players)

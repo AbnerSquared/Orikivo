@@ -137,7 +137,7 @@ namespace Arcadia
                     Frequency = 0,
                     State = GameState.Waiting,
                     LastRefreshed = DateTime.UtcNow
-                };
+                }; // TODO: implement CanDeleteMessages
 
                 server.Connections.Add(connection);
 
@@ -234,7 +234,7 @@ namespace Arcadia
         // destroys the game server accordingly
         internal async Task DestroyServerAsync(GameServer server)
         {
-            server.GetDisplayChannel(GameState.Waiting).Content.Override = "This server has been destroyed. Sorry about the inconvenience.";
+            server.GetDisplayChannel(GameState.Waiting).Content.ValueOverride = "This server has been destroyed. Sorry about the inconvenience.";
 
             // update the display to notify that the server was destroyed
             foreach (ServerConnection connection in server.Connections)
@@ -1192,9 +1192,20 @@ namespace Arcadia
 
                         foreach (IInput input in display.Inputs)
                         {
-                            InputResult result = input.TryParse(ctx);
+                            var rawCtx = ctx;
+                            if (input.Type == KeyType.Text)
+                            {
+                                if (!(input as TextInput).CaseSensitive)
+                                {
+                                    rawCtx = rawCtx.ToLower();
+                                }
+                            }
+
+                            InputResult result = input.TryParse(rawCtx);
                             if (result.IsSuccess)
                             {
+                                
+
                                 if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
                                 {
                                     result.Input.OnExecute?.Invoke(user, connection, server);

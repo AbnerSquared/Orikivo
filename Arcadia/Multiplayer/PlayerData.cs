@@ -13,7 +13,7 @@ namespace Arcadia
         public void SetPropertyValue(string id, object value)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Unable to find the specified attribute '{id}'");
+                throw new Exception($"Could not the specified property '{id}'");
 
             Properties.First(x => x.Id == id).Set(value);
         }
@@ -21,14 +21,14 @@ namespace Arcadia
         public void AddToProperty(string id, int value)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Cannot find the attribute '{id}' specified");
+                throw new Exception($"Could not the specified property '{id}'");
 
-            var attribute = Properties.First(x => x.Id == id);
+            var property = Properties.First(x => x.Id == id);
 
-            if (attribute.ValueType != typeof(int))
-                throw new Exception($"Cannot add to attribute '{id}' as it is not a type of Int32");
+            if (property.ValueType != typeof(int))
+                throw new Exception($"Cannot add to the specified property '{id}' as it is not a type of Int32");
 
-            attribute.Value = ((int)attribute.Value) + value;
+            property.Value = ((int)property.Value) + value;
         }
 
         public void ResetProperty(string id)
@@ -37,7 +37,7 @@ namespace Arcadia
         public GameProperty GetProperty(string id)
         {
             if (!Properties.Any(x => x.Id == id))
-                throw new Exception($"Unable to find the specified attribute '{id}'");
+                throw new Exception($"Could not the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);
         }
@@ -49,15 +49,10 @@ namespace Arcadia
         {
             var property = GetProperty(id);
 
-            if (property.ValueType != null)
-            {
-                if (property.ValueType.IsEquivalentTo(typeof(T)))
-                {
-                    return (T)property.Value;
-                }
-            }
+            if (property.ValueType?.IsEquivalentTo(typeof(T)) ?? false)
+                return (T) property.Value;
 
-            throw new Exception("The specified type within the property does not match the implicit type reference");
+            throw new Exception($"The specified property '{id}' does not match the implicit type reference of {typeof(T).Name}");
         }
     }
 

@@ -1,19 +1,10 @@
 ﻿using Orikivo;
-using Orikivo.Text;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Arcadia
 {
-    public class ContentGroup<TContent>
-        where TContent : ContentNode
-    {
-
-    }
-
-    // a list of strings
     public class ComponentGroup : IComponent
     {
         public string Id { get; internal set; }

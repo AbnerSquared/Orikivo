@@ -11,5 +11,7 @@ namespace Arcadia
         // what to do when this is called
         // PlayerSessionData is null and can be optional
         public Action<PlayerData, GameSession, GameServer> OnExecute { get; set; }
+
+        public bool UpdateOnExecute { get; set; } = true;
     }
 }

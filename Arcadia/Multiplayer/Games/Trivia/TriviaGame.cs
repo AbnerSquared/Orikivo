@@ -12,11 +12,11 @@ namespace Arcadia.Games
     {
         public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
         {
-            new TriviaQuestion("2+2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this"),
-            new TriviaQuestion("4*2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2"),
-            new TriviaQuestion("sqrt(4)=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]"),
-            new TriviaQuestion("log(32)=", 25, TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4"),
-            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to receive the achievement **Impress Your Friends**?", 10, TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210")
+            new TriviaQuestion("2+2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this", "answer"),
+            new TriviaQuestion("4*2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2", "2.000001", "Int32.MinValue"),
+            new TriviaQuestion("sqrt(4)=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]", "4^2"),
+            new TriviaQuestion("log(32)=", 25, TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4", "128 planks"),
+            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?", 10, TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210", "174", "177", "176", "205")
         };
 
         public TriviaGame() : base()
@@ -39,13 +39,6 @@ namespace Arcadia.Games
             };
         }
 
-        // Now for this:
-        // Two more things need to be made:
-        // Timers: This will allow an action to remain active for the time specified. When the timer runs out, a GameAction can be specified
-        // Rulesets: This will allow a current action or state to change if any criteria is met (x player scores 5, or time runs out)
-        
-        
-
         public override List<GameAction> OnBuildActions(List<PlayerData> players)
         {
             var actions = new List<GameAction>();
@@ -53,54 +46,59 @@ namespace Arcadia.Games
             var getQuestionResult = new GameAction
             {
                 Id = "get_question_result",
+                UpdateOnExecute = true,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
+                    foreach (ServerConnection connection in server.GetConnectionsInState(GameState.Playing))
                     {
                         connection.Frequency = 11;
-                        session.CancelQueuedAction();
+                    }
 
-                        int currentQuestion = session.GetPropertyValue<int>("current_question");
-                        session.SetPropertyValue("players_answered", 0);
+                    //session.CancelQueuedAction();
 
-                        DisplayContent content = server.GetDisplayChannel(11).Content;
+                    int currentQuestion = session.GetPropertyValue<int>("current_question");
+                    session.SetPropertyValue("players_answered", 0);
 
-                        content.GetComponent("question_header").Draw(currentQuestion, CurrentQuestion.Question);
+                    DisplayContent content = server.GetDisplayChannel(11).Content;
 
-                        content.GetComponent("answer_box").Draw(CurrentAnswers.Select((x, i) => x.Correct ? $"[{GetLetter(i)}] {x.Response} (Correct Answer)" : $"~~[{GetLetter(i)}] {x.Response}~~"));
+                    content
+                        .GetComponent("result")
+                        .Draw(session.GetPropertyValue<int>("current_question"),
+                              GetConfigValue<int>("questioncount"),
+                              CurrentQuestion.Question,
+                              CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
+                                .First(x => !string.IsNullOrWhiteSpace(x)));
 
-                        foreach (PlayerData playerData in session.Players)
+                    foreach (PlayerData playerData in session.Players)
+                    {
+                        bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
+
+                        if (!hasAnswered)
                         {
-                            bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
+                            playerData.ResetProperty("streak");
+                        }
+                        else
+                        {
+                            bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
 
-                            if (!hasAnswered)
+
+                            if (isCorrect)
                             {
-                                playerData.ResetProperty("streak");
+                                int points = GetPoints(CurrentQuestion.Value,
+                                    playerData.GetPropertyValue<int>("streak"),
+                                    playerData.GetPropertyValue<int>("answer_position"),
+                                    CurrentQuestion.Difficulty);
+
+                                playerData.AddToProperty("score", points);
                             }
-                            else
-                            {
-                                bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
-
-
-                                if (isCorrect)
-                                {
-                                    int points = GetPoints(CurrentQuestion.Value,
-                                        playerData.GetPropertyValue<int>("streak"),
-                                        playerData.GetPropertyValue<int>("answer_position"),
-                                        CurrentQuestion.Difficulty);
-
-                                    playerData.AddToProperty("score", points);
-                                }
-                            }
-
-                            playerData.ResetProperty("has_answered");
-                            playerData.ResetProperty("is_correct");
-
                         }
 
-                        session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
+                        playerData.ResetProperty("has_answered");
+                        playerData.ResetProperty("is_correct");
                     }
+
+                    session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
                 }
             };
             // 'get_question_result'
@@ -114,6 +112,7 @@ namespace Arcadia.Games
             var tryGetQuestionResult = new GameAction
             {
                 Id = "try_get_question_result",
+                UpdateOnExecute = false,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     if (session.MeetsCriterion("has_all_players_answered"))
@@ -128,6 +127,7 @@ namespace Arcadia.Games
             var tryGetNextQuestion = new GameAction
             {
                 Id = "try_get_next_question",
+                UpdateOnExecute = false,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     if (session.MeetsCriterion("has_answered_all_questions"))
@@ -145,10 +145,11 @@ namespace Arcadia.Games
             var getNextQuestion = new GameAction
             {
                 Id = "get_next_question",
+                UpdateOnExecute = true,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
+                    foreach (ServerConnection connection in server.GetConnectionsInState(GameState.Playing))
                     {
                         connection.Frequency = 10;
                     }
@@ -159,13 +160,29 @@ namespace Arcadia.Games
 
                     DisplayContent content = server.GetDisplayChannel(10).Content;
 
-                    content.GetComponent("question_header").Draw(session.GetPropertyValue<int>("current_question"), CurrentQuestion.Question);
+                    content.GetComponent("question_header")
+                        .Draw(
+                            OriFormat.GetShortTime(GetConfigValue<double>("questionduration")),
+                            session.GetPropertyValue<int>("current_question"),
+                            GetConfigValue<int>("questioncount"),
+                            CurrentQuestion.Question);
 
-                    CurrentAnswers = Randomizer.Shuffle(CurrentQuestion.Answers);
-                    content.GetComponent("answer_box").Draw(CurrentAnswers.Select((x, i) => $"[{GetLetter(i)}] {x.Response}"));
+                    // select only 3 random answers and shuffle with the correct answer in there
+                    CurrentAnswers = Randomizer.Shuffle(Randomizer
+                            .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), 3)
+                            .Append(CurrentQuestion.Answers.First(x => x.IsCorrect)));
+
+                    content
+                        .GetComponent("answers")
+                        .Draw(CurrentAnswers.Select((x, i) => $"[**{GetLetter(i).ToUpper()}**] {x.Response}"));
+
+                    content
+                        .GetComponent("footer")
+                        .Draw(CurrentQuestion.Difficulty.ToString(),
+                              CurrentQuestion.Topic.ToString(),
+                              $"{CurrentQuestion.Value} {OriFormat.TryPluralize("Point", CurrentQuestion.Value)}");
 
                     session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
-
                 }
             };
 
@@ -188,6 +205,7 @@ namespace Arcadia.Games
             var getResults = new GameAction
             {
                 Id = "get_results",
+                UpdateOnExecute = true,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     // set all currently playing connection to frequency 12
@@ -206,7 +224,7 @@ namespace Arcadia.Games
                     .GetComponent("leaderboard")
                      .Draw(session.Players
                         .OrderByDescending(x => x.GetPropertyValue<int>("score"))
-                        .Select(x => $"{x.Player.User.Username}: {x.GetPropertyValue<int>("score")}"));
+                        .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.GetPropertyValue<int>("score")}**p"));
 
                     session.QueueAction(TimeSpan.FromSeconds(15), "end");
                 }
@@ -225,9 +243,10 @@ namespace Arcadia.Games
             // The rule 'most_players_want_rematch' is set for this action
             // If 'most_players_want_rematch' is true, the action 'restart' is executed
 
-            var restart = new GameAction
+            var tryRestart = new GameAction
             {
                 Id = "try_restart",
+                UpdateOnExecute = false,
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     if (session.MeetsCriterion("most_players_want_rematch"))
@@ -267,10 +286,21 @@ namespace Arcadia.Games
             actions.Add(tryGetNextQuestion);
             actions.Add(getNextQuestion);
             actions.Add(getResults);
-            actions.Add(restart);
+            actions.Add(tryRestart);
 
 
             return actions;
+        }
+
+        private string GetPositionSuffix(int position)
+        {
+            return position switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th"
+            };
         }
 
         private string GetLetter(int index)
@@ -382,20 +412,31 @@ namespace Arcadia.Games
                             Position = 0,
                             Formatter = new ComponentFormatter
                             {
-                                BaseFormatter = "**Question {0}**\n{1}",
+                                BaseFormatter = "⏲️ {0}\n**Question {1}** (of {2})\n> {3}",
                                 OverrideBaseValue = true
                             }
                         },
                         new ComponentGroup
                         {
                             Active = true,
-                            Id = "answer_box",
+                            Id = "answers",
                             Position = 1,
                             Formatter = new ComponentFormatter
                             {
-                                BaseFormatter = "{0}",
-                                ElementFormatter = "- {0}",
+                                BaseFormatter = "{0}\n",
+                                ElementFormatter = "> {0}",
                                 Separator = "\n",
+                                OverrideBaseValue = true
+                            }
+                        },
+                        new Component
+                        {
+                            Active = true,
+                            Id = "footer",
+                            Position = 2,
+                            Formatter = new ComponentFormatter
+                            {
+                                BaseFormatter = "**Difficulty**: `{0}`\n**Topic**: `{1}`\n**Value**: `{2}`",
                                 OverrideBaseValue = true
                             }
                         }
@@ -406,6 +447,7 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "a",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             var session = server.Session;
@@ -418,9 +460,9 @@ namespace Arcadia.Games
                             var answerSelected = CurrentAnswers.ElementAt(0);
 
                             data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
 
-                            if (answerSelected.Correct)
+                            if (answerSelected.IsCorrect)
                             {
                                 data.AddToProperty("streak", 1);
                             }
@@ -437,6 +479,7 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "b",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             var data = server.Session.GetPlayerData(user.Id);
@@ -452,9 +495,9 @@ namespace Arcadia.Games
                             var answerSelected = CurrentAnswers.ElementAt(1);
 
                             data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
 
-                            if (answerSelected.Correct)
+                            if (answerSelected.IsCorrect)
                             {
                                 data.AddToProperty("streak", 1);
                             }
@@ -471,6 +514,7 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "c",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             var data = server.Session.GetPlayerData(user.Id);
@@ -486,9 +530,9 @@ namespace Arcadia.Games
                             var answerSelected = CurrentAnswers.ElementAt(2);
 
                             data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
 
-                            if (answerSelected.Correct)
+                            if (answerSelected.IsCorrect)
                             {
                                 data.AddToProperty("streak", 1);
                             }
@@ -505,6 +549,7 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "d",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             var data = server.Session.GetPlayerData(user.Id);
@@ -520,9 +565,9 @@ namespace Arcadia.Games
                             var answerSelected = CurrentAnswers.ElementAt(3);
 
                             data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.Correct);
+                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
                             
-                            if (answerSelected.Correct)
+                            if (answerSelected.IsCorrect)
                             {
                                 data.AddToProperty("streak", 1);
                             }
@@ -552,25 +597,15 @@ namespace Arcadia.Games
                         new Component
                         {
                             Active = true,
-                            Id = "question_header",
+                            Id = "result",
                             Position = 0,
                             Formatter = new ComponentFormatter
                             {
-                                BaseFormatter = "**Question {0}**\n{1}",
-                                OverrideBaseValue = true
-                            }
-                        },
-                        new ComponentGroup
-                        {
-                            Active = true,
-                            Id = "answer_box",
-                            Position = 1,
-                            Capacity = 4,
-                            Formatter = new ComponentFormatter
-                            {
-                                BaseFormatter = "{0}",
-                                ElementFormatter = "- {0}",
-                                Separator = "\n",
+                                // 0: currentQuestion
+                                // 1: questionCount
+                                // 2: questionValue
+                                // 3: correctResponse
+                                BaseFormatter = "**Question {0}** (of {1})\n> {2}\n\n> **Correct Response**:\n> {3}",
                                 OverrideBaseValue = true
                             }
                         }
@@ -581,6 +616,7 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "next",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             server.Session.CancelQueuedAction();
@@ -617,15 +653,17 @@ namespace Arcadia.Games
                     new TextInput
                     {
                         Name = "rematch",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             server.Session.AddToProperty("rematch_requests", 1);
-                            server.Session.InvokeAction("try_rematch", true);
+                            server.Session.InvokeAction("try_restart", true);
                         }
                     },
                     new TextInput
                     {
                         Name = "end",
+                        UpdateOnExecute = false,
                         OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
                         {
                             server.Session.CancelQueuedAction();

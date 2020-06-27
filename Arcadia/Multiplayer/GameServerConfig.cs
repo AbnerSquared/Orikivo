@@ -7,16 +7,22 @@ namespace Arcadia
 
         private GameBuilder Game;
 
-        // what is the name used for this lobby?
+        /// <summary>
+        /// Gets or sets the value that represents the title for a <see cref="GameServer"/>.
+        /// </summary>
         public string Title { get; set; }
 
-        // what is the ID of the game that is being played?
+        /// <summary>
+        /// Gets or sets the game that the <see cref="GameServer"/> will play.
+        /// </summary>
         public string GameId { get; set; }
 
-        // what is the privacy of this game server?
+        /// <summary>
+        /// Gets or sets the visibility of the <see cref="GameServer"/>.
+        /// </summary>
         public Privacy Privacy { get; set; }
 
-        public List<ConfigProperty> GameConfig { get; set; }
+        public List<ConfigProperty> GameConfig { get; internal set; }
 
         // for now, we can just simply refer to a basic array.
         public bool ValidateGame()
