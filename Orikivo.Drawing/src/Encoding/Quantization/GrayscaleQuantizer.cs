@@ -4,6 +4,8 @@ using System.Drawing;
 
 namespace Orikivo.Drawing
 {
+    // NOTE: Referenced from the following GitHub projects:
+    // https://github.com/mrousavy/AnimatedGif
     // Doesn't currently work.
     public class GrayscaleQuantizer : PaletteQuantizer
     {

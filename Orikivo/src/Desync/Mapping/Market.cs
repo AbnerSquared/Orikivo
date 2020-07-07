@@ -23,16 +23,16 @@ namespace Orikivo.Desync
         
         public List<Vendor> Vendors { get; set; }
 
-        private List<Npc> _npcs;
+        private List<Character> _npcs;
 
 
-        public override List<Npc> Npcs
+        public override List<Character> Npcs
         {
             get
             {
                 if (IsActive())
                 {
-                    List<Npc> npcs = ((Npc)GetActive()).AsList();
+                    List<Character> npcs = ((Character)GetActive()).AsList();
                     npcs.AddRange(_npcs);
                     return npcs;
                 }

@@ -20,7 +20,7 @@ namespace Orikivo.Desync
     }
 
     /// <summary>
-    /// Represents a conversation pool, usually for an <see cref="Npc"/> or <see cref="Vendor"/>.
+    /// Represents a conversation pool, usually for an <see cref="Character"/> or <see cref="Vendor"/>.
     /// </summary>
     public class DialoguePool // A 
     {

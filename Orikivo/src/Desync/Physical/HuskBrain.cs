@@ -78,6 +78,10 @@ namespace Orikivo.Desync
         [JsonProperty("maps")]
         public Dictionary<string, byte[]> Maps { get; set; }
 
+        // represents a list of character data for the specified brain
+        [JsonProperty("characters")]
+        public Dictionary<string, CharacterData> Characters { get; set; }
+
         /// <summary>
         /// Represents the <see cref="Husk"/>'s completion of a <see cref="World"/>'s storyline.
         /// </summary>
@@ -136,11 +140,11 @@ namespace Orikivo.Desync
 
         public void AddOrUpdateAffinity(AffinityData affinity)
         {
-            if (!Relations.TryAdd(affinity.NpcId, affinity.Value))
-                Relations[affinity.NpcId] = affinity.Value;
+            if (!Relations.TryAdd(affinity.CharacterId, affinity.Value))
+                Relations[affinity.CharacterId] = affinity.Value;
         }
 
-        public AffinityData GetOrAddAffinity(Npc npc)
+        public AffinityData GetOrAddAffinity(Character npc)
         {
             if (!Relations.ContainsKey(npc.Id))
                 Relations.Add(npc.Id, 0.0f);

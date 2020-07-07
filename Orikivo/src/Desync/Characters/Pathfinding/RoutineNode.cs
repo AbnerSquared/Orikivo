@@ -2,30 +2,33 @@
 
 namespace Orikivo.Desync
 {
+
     // A RoutineNode will implement PathNode instead, as a Node is for one specific day.
     /// <summary>
     /// Represents a specific location at which a <see cref="Routine"/> stops at.
     /// </summary>
-    public class RoutineNode
+    public class RoutineNode : PathNode
     {
-        /// <summary>
-        /// The destination of the <see cref="RoutineNode"/>. If nothing is specified, the <see cref="Npc"/> will be hidden for the specified duration.
-        /// </summary>
-        public Locator Destination { get; set; }
+        // does the character instantly go to the specified location?
+        public bool Instant { get; set; } = false;
 
-        /// <summary>
-        /// The duration at which the <see cref="Npc"/> remains at the specified destination.
-        /// </summary>
+        // a character is stopped if someone wants to talk to them
+
+        // if <= 0, this character cannot talk.
+        // if unspecified, this character can always talk
+        public TimeSpan MaxHoldTime { get; set; }
+
+        // represents the duration at which this character will remain at this location
+        // travel time is subtracted from this.
         public TimeSpan Duration { get; set; }
 
         /// <summary>
-        /// If specified, the duration at which the <see cref="Npc"/> remains is randomized by the specified offset, which represents the upper bound.
+        /// If specified, the duration at which the <see cref="Character"/> remains is randomized by the specified offset, which represents the upper bound.
         /// </summary>
         public double LengthRandomOffset { get; set; }
 
-        /// <summary>
-        /// A <see cref="bool"/> that defines if travel time is applied to the <see cref="Npc"/> using this <see cref="RoutineNode"/>. If set to true, the <see cref="Npc"/> will teleport to their destination.
-        /// </summary>
-        public bool Instant { get; set; }
+        // when the character arrives at the specified location
+        // what are they doing?
+        public CharacterAction Action { get; set; }
     }
 }

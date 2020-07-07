@@ -22,7 +22,7 @@ namespace Orikivo
     /// </summary>
     public class GraphicsService : IDisposable
     {
-        private readonly GraphicsWriter _graphics;
+        private readonly DrawableFactory _graphics;
 
         public void Dispose()
         {
@@ -33,7 +33,7 @@ namespace Orikivo
         {
             GraphicsConfig config = new GraphicsConfig { CharMap = GetDefaultCharMap() };
 
-            _graphics = new GraphicsWriter(config);
+            _graphics = new DrawableFactory(config);
 
             _graphics.SetFont(GetFont(FontType.Orikos));
             _graphics.SetPalette(GammaPalette.Default);
@@ -130,7 +130,7 @@ namespace Orikivo
 
             BitmapLayer avatar = new BitmapLayer
             {
-                Source = GraphicsUtils.SetPalette(BitmapHandler.GetHttpImage(details.AvatarUrl), palette),
+                Source = GraphicsUtils.SetPalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
                 Offset = new Point(4, 4),
                 Padding = new Padding(right: 2)
             };

@@ -33,7 +33,7 @@ namespace Orikivo
             Bitmap image = GraphicsUtils.CreateRgbBitmap(pixels.Values);
 
             if (imageScale > 1)
-                image = GraphicsUtils.Scale(image, imageScale, imageScale);
+                image = ImageHelper.Scale(image, imageScale, imageScale);
 
             using (image)
                 await Context.Channel.SendImageAsync(image, $"../tmp/{fileName}.png");
@@ -50,7 +50,7 @@ namespace Orikivo
             char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
             GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
-            using (GraphicsWriter poxel = new GraphicsWriter(config))
+            using (DrawableFactory poxel = new DrawableFactory(config))
             {
                 poxel.DefaultOptions = new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) };
                 for (int i = 0; i < texts.Length; i++)
@@ -70,7 +70,7 @@ namespace Orikivo
         [Command("animatetimeline")]
         public async Task AnimateTimelineAsync(double delay)
         {
-            using (GraphicsWriter artist = new GraphicsWriter())
+            using (DrawableFactory artist = new DrawableFactory())
             {
                 using (TimelineAnimator animator = new TimelineAnimator())
                 {
@@ -177,9 +177,9 @@ namespace Orikivo
             // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
             char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
             GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
-            using (GraphicsWriter poxel = new GraphicsWriter(config))
+            using (DrawableFactory poxel = new DrawableFactory(config))
             using (Bitmap bmp = poxel.DrawString(text, font, GammaColor.GammaGreen, new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) }))
-                BitmapHandler.Save(bmp, path, ImageFormat.Png);
+                ImageHelper.Save(bmp, path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
         }
@@ -194,9 +194,9 @@ namespace Orikivo
             char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
             GraphicsConfig config = new GraphicsConfig { CharMap = charMap };
-            using (GraphicsWriter poxel = new GraphicsWriter(config))
+            using (DrawableFactory poxel = new DrawableFactory(config))
             using (Bitmap bmp = poxel.DrawString(text, font, GammaColor.GammaGreen, new CanvasOptions { UseNonEmptyWidth = false, Padding = new Padding(2), BackgroundColor = new GammaColor(0x0C525F) }))
-                BitmapHandler.Save(bmp, path, ImageFormat.Png);
+                ImageHelper.Save(bmp, path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);
         }
@@ -480,7 +480,7 @@ namespace Orikivo
             List<Stream> frames = new List<Stream>();
             CanvasOptions options = new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), Width = 47 };
             float t = 0.00f;
-            using (GraphicsWriter poxel = new GraphicsWriter(config))
+            using (DrawableFactory poxel = new DrawableFactory(config))
             {
                 poxel.SetFont(font);
 
@@ -533,10 +533,10 @@ namespace Orikivo
                 char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
                 GammaPalette colors = TimeCycle.FromHour(hour);
                 GraphicsConfig config = new GraphicsConfig { CharMap = charMap, Palette = colors };
-                using (GraphicsWriter poxel = new GraphicsWriter(config))
+                using (DrawableFactory poxel = new DrawableFactory(config))
                 using (Bitmap bmp = poxel.DrawString(hour.ToString("00.00H").ToUpper(), font,
                     new CanvasOptions { UseNonEmptyWidth = true, Padding = new Padding(2), BackgroundColor = colors[Gamma.Min] }))
-                    BitmapHandler.Save(bmp, path, ImageFormat.Png);
+                    ImageHelper.Save(bmp, path, ImageFormat.Png);
 
                 await Context.Channel.SendFileAsync(path);
             }
@@ -571,7 +571,7 @@ namespace Orikivo
         public async Task DrawBorderAsync()
         {
             using (Bitmap tmp = new Bitmap(32, 32))
-            using (GraphicsWriter g = new GraphicsWriter())
+            using (DrawableFactory g = new DrawableFactory())
             using (Bitmap border = g.DrawBorder(tmp, GammaColor.GammaGreen, 2))
                 await Context.Channel.SendImageAsync(border, "../tmp/border.png");
         }
@@ -586,7 +586,7 @@ namespace Orikivo
 
                 using (Bitmap card = g.DrawCard(d, GammaPalette.GammaGreen))
                 {
-                    using (GraphicsWriter p = new GraphicsWriter())
+                    using (DrawableFactory p = new DrawableFactory())
                     {
                         Grid<float> mask = p.GetOpacityMask(card);
 
@@ -608,13 +608,13 @@ namespace Orikivo
 
                 using (Bitmap card = g.DrawCard(d, GammaPalette.GammaGreen))
                 {
-                    using (GraphicsWriter p = new GraphicsWriter())
+                    using (DrawableFactory p = new DrawableFactory())
                     {
                         Grid<float> mask = p.GetOpacityMask(card);
 
                         Grid<SysColor> pixels = new Grid<SysColor>(card.Size, new GammaColor(0, 0, 0, 255));
 
-                        pixels.SetEachValue((int x, int y) =>
+                        pixels.SetEachValue((int x, int y, SysColor z) =>
                             GammaColor.Merge(new GammaColor(0, 0, 0, 255),
                                 new GammaColor(255, 255, 255, 255),
                                 mask.GetValue(x, y)));
@@ -655,7 +655,7 @@ namespace Orikivo
             }
         }
 
-        private Stream DrawFrame(GraphicsWriter graphics, string content, GammaColor color, CanvasOptions options)
+        private Stream DrawFrame(DrawableFactory graphics, string content, GammaColor color, CanvasOptions options)
         {
             MemoryStream stream = new MemoryStream();
             using (Bitmap frame = graphics.DrawString(content, color, options))

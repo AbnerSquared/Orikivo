@@ -33,7 +33,6 @@ namespace Orikivo.Drawing
         }
 
         public GammaPalette(params int[] rgbValues)
-        //    => new GammaColorMap(rgbValues.Select(x => new GammaColor((uint)x)).ToArray());
         {
             if (rgbValues.Length != RequiredLength)
                 throw new ArgumentException("A GammaColorMap requires eight unique color values.");
@@ -42,7 +41,6 @@ namespace Orikivo.Drawing
         }
 
         public GammaPalette(params long[] argbValues)
-        //    => new GammaColorMap(rgbaValues.Select(x => new GammaColor(x)).ToArray());
         {
             if (argbValues.Length != RequiredLength)
                 throw new ArgumentException("A GammaColorMap requires eight unique color values.");
@@ -68,5 +66,8 @@ namespace Orikivo.Drawing
 
         public GammaColor this[Gamma g]
             => GetValue(g);
+
+        public GammaColor this[int i]
+            => Values[i];
     }
 }

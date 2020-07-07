@@ -164,6 +164,13 @@ namespace Orikivo.Drawing.Graphics3D
             Z += offset.Z;
         }
 
+        public void Offset(float x = 0, float y = 0, float z = 0)
+        {
+            X += x;
+            Y += y;
+            Z += z;
+        }
+
         public override string ToString()
             => $"({X}, {Y}, {Z})";
     }

@@ -4,7 +4,7 @@ using System;
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Represents a relationship for a specific <see cref="Npc"/>.
+    /// Represents a relationship for a specific <see cref="Desync.Character"/>.
     /// </summary>
     public class AffinityData
     {
@@ -13,12 +13,13 @@ namespace Orikivo.Desync
             return (AffinityLevel)((int)MathF.Floor(RangeF.Convert(-1.0f, 1.0f, -3, 3, RangeF.Clamp(-1.0f, 1.0f, value))));
         }
 
-        public AffinityData(string npcId, float value)
+        public AffinityData(string characterId, float value)
         {
-            NpcId = npcId;
+            CharacterId = characterId;
             Value = value;
         }
-        public string NpcId { get; set; }
+
+        public string CharacterId { get; set; }
 
         public float Value { get; set; }
     }

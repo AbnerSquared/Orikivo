@@ -21,11 +21,11 @@ namespace Orikivo
         Give // when you are giving to an npc
     }
     /// <summary>
-    /// Represents a custom dialogue session for an <see cref="Desync.Npc"/>.
+    /// Represents a custom dialogue session for an <see cref="Desync.Character"/>.
     /// </summary>
     public class ChatHandler : MatchAction
     {
-        public ChatHandler(OriCommandContext context, Npc npc, DialoguePool pool, PaletteType palette = PaletteType.Glass)
+        public ChatHandler(OriCommandContext context, Character npc, DialoguePool pool, PaletteType palette = PaletteType.Glass)
         {
             Context = context;
             Npc = npc;
@@ -47,7 +47,7 @@ namespace Orikivo
         // TODO: Implement chat logging to handle future dialogue.
         public ChatLog Log { get; private set; }
 
-        public Npc Npc { get; }
+        public Character Npc { get; }
 
         // these are the next set of replies the user can use?
         public List<string> ResponseIds { get; private set; }

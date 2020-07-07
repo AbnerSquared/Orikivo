@@ -15,7 +15,7 @@ namespace Orikivo.Drawing.Animating
 
         public TimeSpan? Length { get; set; }
 
-        public ImageConfig Config { get; set; }
+        public ImageProperties Config { get; set; }
 
         public bool Disposed { get; protected set; } = false;
 

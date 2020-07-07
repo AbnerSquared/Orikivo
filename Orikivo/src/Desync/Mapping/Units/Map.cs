@@ -10,9 +10,14 @@ namespace Orikivo.Desync
     {
         public Map(Sprite source, byte[] progression)
         {
-            // THE MORE YOU KNOW
             Source = source ?? throw new System.NullReferenceException("The source image referenced is null.");
             Progression = Engine.DecompressMap(source.Width, source.Height, progression);
+        }
+
+        public Map(Sprite source, Grid<bool> progression)
+        {
+            Source = source ?? throw new System.NullReferenceException("The source image referenced is null.");
+            Progression = progression;
         }
 
         /// <summary>

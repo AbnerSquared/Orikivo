@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Represents the brain of a character that determines how they communicate.
+    /// Represents the brain of a <see cref="Character"/> that determines how they communicate.
     /// </summary>
     public class Personality
     {
@@ -18,6 +19,10 @@ namespace Orikivo.Desync
         public NatureType Nature { get; set; }
         public TacticType Tactics { get; set; }
         public IdentityType Identity { get; set; }
+
+        // a list of modifiers that this personality alters;
+        // can be left null
+        public List<ToneModifier> Modifiers { get; set; }
 
         public int GetBitwiseFlag()
         {

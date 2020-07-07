@@ -1,13 +1,14 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Orikivo.Drawing
 {
     // allows you to set the custom width, height, and offset for a group of characters
-    public class CustomCharInfo
+    public class CharOverride
     {
         [JsonConstructor]
-        public CustomCharInfo(char[] chars, int? width = null, int? height = null, int? offsetX = null, int? offsetY = null)
+        public CharOverride(IEnumerable<char> chars, int? width = null, int? height = null, int? offsetX = null, int? offsetY = null)
         {
             Chars = chars;
             Width = width;
@@ -17,7 +18,7 @@ namespace Orikivo.Drawing
         }
 
         [JsonProperty("chars")]
-        public char[] Chars { get; }
+        public IEnumerable<char> Chars { get; }
 
         [JsonProperty("width")]
         public int? Width { get; }
@@ -31,9 +32,8 @@ namespace Orikivo.Drawing
         [JsonProperty("offset_y")]
         public int? OffsetY { get; }
 
-        // TODO: Instead of making the point null, simply set a default.
-        [JsonIgnore]
-        public Point? Offset => (OffsetX.HasValue || OffsetY.HasValue) ?
+        public Point? GetOffset()
+            => (OffsetX.HasValue || OffsetY.HasValue) ?
             (Point?) new Point(OffsetX.GetValueOrDefault(0), OffsetY.GetValueOrDefault(0))
             : null;
     }

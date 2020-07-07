@@ -146,7 +146,7 @@ namespace Orikivo.Drawing.Graphics2D
         {
             Grid<ConwayCell> next = new Grid<ConwayCell>(Width, Height);
 
-            next.SetEachValue((int x, int y) => GetNextCell(x, y));
+            next.SetEachValue((int x, int y, ConwayCell z) => GetNextCell(x, y));
 
             return next;
         }
@@ -174,7 +174,7 @@ namespace Orikivo.Drawing.Graphics2D
         {
             Grid<Color> grid = new Grid<Color>(Width, Height);
 
-            grid.SetEachValue(delegate (int x, int y)
+            grid.SetEachValue(delegate (int x, int y, Color z)
             {
                 ConwayCell cell = CurrentGeneration[x, y];
 

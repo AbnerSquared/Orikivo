@@ -8,7 +8,7 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents a worker for a specific <see cref="Market"/>.
     /// </summary>
-    public class Vendor : Npc
+    public class Vendor : Character
     {
         public List<ItemType> LikedTags { get; set; }
         public List<ItemType> DislikedTags { get; set; }

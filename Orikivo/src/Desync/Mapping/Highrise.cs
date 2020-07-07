@@ -24,7 +24,7 @@ namespace Orikivo.Desync
         }
 
         // TODO: Get rid of NPCs.
-        public override List<Npc> Npcs => Floors.Select(x => x.Npcs).Flatten().ToList();
+        public override List<Character> Npcs => Floors.Select(x => x.Npcs).Flatten().ToList();
 
         public override ChildType GetAllowedChildren()
             => ChildType.Floor;

@@ -96,7 +96,7 @@ namespace Orikivo.Drawing
         {
             // TODO: Change how this method is handled, as it currently doesn't work as intended.
             Grid<TResult> result = new Grid<TResult>(Width, Height);
-            result.SetEachValue((int x, int y) => GetValue(x, y).CastObject<TResult>());
+            result.SetEachValue((int x, int y, TResult z) => GetValue(x, y).CastObject<TResult>());
 
             return result;
         }
@@ -284,11 +284,11 @@ namespace Orikivo.Drawing
                     Values[y, x] = value;
         }
 
-        public void SetEachValue(Func<int, int, T> action)
+        public void SetEachValue(Func<int, int, T, T> action)
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    Values[y, x] = action.Invoke(x, y);
+                    Values[y, x] = action.Invoke(x, y, Values[y, x]);
         }
 
         public void ForEachColumn(Action<T[]> action)
@@ -307,7 +307,7 @@ namespace Orikivo.Drawing
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    action.Invoke(x, y, GetValue(x, y));
+                    action.Invoke(x, y, Values[y, x]);
         }
 
         private (int x, int y) GetPosition(int i)

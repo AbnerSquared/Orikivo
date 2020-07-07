@@ -52,7 +52,7 @@ namespace Orikivo.Drawing
         /// </summary>
         public Point Position => new Point(Offset.X + Padding.Left, Offset.Y + Padding.Top);
 
-        public DrawableConfig Config { get; set; }
+        public DrawableProperties Config { get; set; }
 
         /// <summary>
         /// Returns the <see cref="Bitmap"/> initialized from the <see cref="DrawableLayer"/>.

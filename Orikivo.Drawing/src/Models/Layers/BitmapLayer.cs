@@ -4,6 +4,13 @@ namespace Orikivo.Drawing
 {
     public class BitmapLayer : DrawableLayer
     {
+        public BitmapLayer() { }
+
+        public BitmapLayer(Bitmap source)
+        {
+            Source = source;
+        }
+
         public Bitmap Source { get; set; }
 
         protected override Bitmap GetBaseImage()

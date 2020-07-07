@@ -15,9 +15,9 @@ namespace Orikivo.Desync
         public CreatureArchetype Archetype { get; set; }
 
         // make sure it relates to a creature tho
-        public CatalogGenerator Table { get; set; }
+        public CatalogGenerator LootTable { get; set; }
 
-        public CreatureAction GetNextAction(ActionLog interaction)
+        public ActionType GetNextAction(ActionLog interaction)
         {
             // TODO: Implement a simple system in which the creature makes a choice based on a personality
             

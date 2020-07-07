@@ -18,4 +18,33 @@
     public class CommandParser
     {
     }
+
+
+
+    // can peek to 
+    public class StringReader
+    {
+        // the value
+        private string _string;
+        
+        // the offset
+        private int _cursor;
+
+
+        // return the char at the current cursor
+        public char Peek()
+        {
+            return _string[_cursor];
+        }
+
+        public char Peek(int offset)
+        {
+            return _string[_cursor + offset];
+        }
+
+        public char Read()
+        {
+            return _string[_cursor++];
+        }
+    }
 }

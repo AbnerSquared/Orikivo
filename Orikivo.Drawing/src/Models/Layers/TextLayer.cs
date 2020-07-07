@@ -19,10 +19,10 @@ namespace Orikivo.Drawing
             GraphicsConfig config = GraphicsConfig.Default;
             config.CharMap = CharMap;
             config.Fonts.Add(Font);
-            using (FontWriter writer = new FontWriter())
+            using (TextFactory writer = new TextFactory())
             {
                 writer.SetFont(Font);
-                return writer.DrawString(Text, Color);
+                return writer.DrawText(Text, Color);
             }
         }
     }

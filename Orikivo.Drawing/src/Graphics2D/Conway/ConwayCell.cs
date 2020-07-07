@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Drawing.Graphics2D
 {
+    // This needs to be an add-on to Orikivo.Drawing.
     /// <summary>
     /// Represents a living cell that lives within a <see cref="ConwayRenderer"/>.
     /// </summary>

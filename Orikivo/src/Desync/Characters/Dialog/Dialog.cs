@@ -37,14 +37,13 @@ namespace Orikivo.Desync
         // to determine which dialog we choose, we compare criterion and priority
         // if there are multiple successful criterions with the same priority
         // one is chosen at random.
-        public DialogCriterion ToUse { get; set; }
+        public DialogCriterion Criterion { get; set; }
 
         // this is executed at the end of this dialog.
         public DialogResult Result { get; set; }
 
-
         // gets the best DialogEntry based on an NPC.
-        public DialogEntry GetBestEntry(Npc npc)
+        public DialogEntry GetBestEntry(Character npc)
         {
             DialogEntry result = null;
 
@@ -77,6 +76,16 @@ namespace Orikivo.Desync
             }
 
             return result;
+        }
+
+        public bool CanUse(Character npc, Husk husk, HuskBrain brain)
+        {
+            if (Criterion != null)
+            {
+                return Criterion.Judge.Invoke(npc, husk, brain);
+            }
+
+            return true;
         }
     }
 }

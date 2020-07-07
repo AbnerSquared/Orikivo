@@ -285,7 +285,7 @@ namespace Orikivo
             int height = RandomProvider.Instance.Next(1, 6);
             Grid<bool> from = new Grid<bool>(width, height, false);
 
-            from.SetEachValue((x, y) => Randomizer.NextBool());
+            from.SetEachValue((x, y, z) => Randomizer.NextBool());
 
             byte[] bytes = Engine.CompressMap(from);
             Grid<bool> to = Engine.DecompressMap(width, height, bytes);
@@ -412,7 +412,7 @@ namespace Orikivo
             {
                 MessageCollector collector = new MessageCollector(Context.Client);
                 SpriteBank bank = SpriteBank.FromDirectory("../assets/npcs/noname/");
-                Npc test = new Npc
+                Character test = new Character
                 {
                     Id = "npc0",
                     Name = "No-Name",
@@ -424,24 +424,22 @@ namespace Orikivo
                         Tactics = TacticType.Judging,
                         Identity = IdentityType.Assertive
                     },
-                    Relations = new List<AffinityData>
+                    Affinity = new List<AffinityData>
                     {
                         new AffinityData("npc1", 0.2f)
                     },
-                    Model = new NpcModel
+                    Model = new CharacterModel
                     {
-                        Body = bank.GetSprite("noname_body"),
-                        BodyOffset = new Point(20, 16),
-                        Head = bank.GetSprite("noname_head"),
-                        HeadOffset = new Point(28, 5),
-                        FaceOffset = new Point(28, 5),
-                        Reactions = new Dictionary<DialogTone, Sprite>
+                        Body = new AppearanceNode(bank.GetSprite("noname_body"), 20, 16),
+                        Head = new AppearanceNode(bank.GetSprite("noname_head"), 28, 5),
+                        DefaultFaceOffset = new Point(28, 5),
+                        Expressions = new Dictionary<DialogTone, AppearanceNode>
                         {
-                            [DialogTone.Neutral] = bank.GetSprite("noname_neutral"),
-                            [DialogTone.Happy] = bank.GetSprite("noname_happy"),
-                            [DialogTone.Sad] = bank.GetSprite("noname_sad"),
-                            [DialogTone.Confused] = bank.GetSprite("noname_confused"),
-                            [DialogTone.Shocked] = bank.GetSprite("noname_shocked")
+                            [DialogTone.Neutral] = new AppearanceNode(bank.GetSprite("noname_neutral")),
+                            [DialogTone.Happy] = new AppearanceNode(bank.GetSprite("noname_happy")),
+                            [DialogTone.Sad] = new AppearanceNode(bank.GetSprite("noname_sad")),
+                            [DialogTone.Confused] = new AppearanceNode(bank.GetSprite("noname_confused")),
+                            [DialogTone.Shocked] = new AppearanceNode(bank.GetSprite("noname_shocked"))
                         }
                     }
                 };
@@ -599,7 +597,7 @@ namespace Orikivo
         {
             string path = $"../tmp/{Context.User.Id}_bits.png";
             Grid<SysColor> colors = new Grid<SysColor>(8, 8);
-            colors.SetEachValue(delegate (int x, int y)
+            colors.SetEachValue(delegate (int x, int y, SysColor z)
             {
                 return GammaPalette.Default[(Gamma)x];
             });

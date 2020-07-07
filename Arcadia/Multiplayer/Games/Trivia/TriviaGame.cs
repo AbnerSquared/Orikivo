@@ -12,11 +12,11 @@ namespace Arcadia.Games
     {
         public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
         {
-            new TriviaQuestion("2+2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this", "answer"),
-            new TriviaQuestion("4*2=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2", "2.000001", "Int32.MinValue"),
-            new TriviaQuestion("sqrt(4)=", 10, TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]", "4^2"),
-            new TriviaQuestion("log(32)=", 25, TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4", "128 planks"),
-            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?", 10, TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210", "174", "177", "176", "205")
+            new TriviaQuestion("2+2=", TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this", "answer"),
+            new TriviaQuestion("4*2=", TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2", "2.000001", "Int32.MinValue"),
+            new TriviaQuestion("sqrt(4)=", TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]", "4^2"),
+            new TriviaQuestion("log(32)=", TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4", "128 planks"),
+            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?", TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210", "174", "177", "176", "205")
         };
 
         public TriviaGame() : base()

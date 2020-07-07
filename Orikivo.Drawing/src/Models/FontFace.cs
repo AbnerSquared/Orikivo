@@ -7,7 +7,7 @@ using System.Linq;
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents a font to be used alongside <see cref="GraphicsWriter"/> when drawing bodies of text.
+    /// Represents a font to be used alongside <see cref="DrawableFactory"/> when drawing bodies of text.
     /// </summary>
     public class FontFace
     {
@@ -55,17 +55,17 @@ namespace Orikivo.Drawing
         {
             CharWidth = builder.Width;
             CharHeight = builder.Height;
-            Padding = builder.Padding; // TODO: Set Default to Padding.Char at builder.
+            Padding = builder.Padding;
             Tag = GetTagValue(builder.IsMonospace, builder.IsUnicodeSupported);
             SheetUrls = builder.SheetUrls;
             Whitespace = builder.Whitespace;
-            Customs = builder.Customs;
+            Overrides = builder.Customs;
             HideBadUnicode = builder.HideBadUnicode;
         }
 
         [JsonConstructor]
         internal FontFace(int width, int height, FontTag tag, Dictionary<int, string> sheetUrls,
-            Padding? padding = null, List<WhiteSpaceInfo> empties = null, List<CustomCharInfo> customs = null,
+            Padding? padding = null, List<WhiteSpaceInfo> empties = null, List<CharOverride> customs = null,
             bool hideBadUnicode = false)
         {
             CharWidth = width;
@@ -74,7 +74,7 @@ namespace Orikivo.Drawing
             Tag = tag;
             SheetUrls = sheetUrls;
             Whitespace = empties;
-            Customs = customs;
+            Overrides = customs;
             HideBadUnicode = hideBadUnicode;
         }
 
@@ -83,9 +83,6 @@ namespace Orikivo.Drawing
 
         [JsonProperty("height")]
         public int CharHeight { get; }
-
-        [JsonIgnore]
-        public Size Ppu => new Size(CharWidth, CharHeight);
 
         /// <summary>
         /// The <see cref="Padding"/> that will be used with each <see cref="char"/> sprite value.
@@ -102,8 +99,8 @@ namespace Orikivo.Drawing
         [JsonProperty("empties")]
         public /*IReadOnly*/List<WhiteSpaceInfo> Whitespace { get; }
 
-        [JsonProperty("customs")]
-        public /*IReadOnly*/List<CustomCharInfo> Customs { get; }
+        [JsonProperty("customs")] // TODO: rename all assets to use overrides instead
+        public /*IReadOnly*/List<CharOverride> Overrides { get; }
 
         [JsonProperty("hide_bad_unicode")]
         public bool HideBadUnicode { get; }
@@ -115,15 +112,14 @@ namespace Orikivo.Drawing
         public bool IsMonospace => Tag.HasFlag(FontTag.Monospace);
 
         public Point GetCharOffset(char c)
-            => Customs?.FirstOrDefault(x => x.Chars.Contains(c))?.Offset ?? Point.Empty;
+            => Overrides?.FirstOrDefault(x => x.Chars.Contains(c))?.GetOffset() ?? Point.Empty;
 
         public int GetCharWidth(char c)
-            => Customs?.FirstOrDefault(x => x.Chars.Contains(c))?.Width ?? CharWidth;
+            => WhiteSpaceInfo.IsWhiteSpace(c) ?
+               GetWhiteSpace(c)?.Width ?? CharWidth
+               : Overrides?.FirstOrDefault(x => x.Chars.Contains(c))?.Width ?? CharWidth;
 
         public WhiteSpaceInfo GetWhiteSpace(char c)
             => Whitespace.FirstOrDefault(x => x.Chars.Contains(c));
-
-        public int GetWhiteSpaceWidth(char c)
-            => GetWhiteSpace(c)?.Width ?? CharWidth;
     }
 }

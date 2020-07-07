@@ -91,7 +91,7 @@ namespace Orikivo
             GraphicsFormat format = GraphicsFormat.Png, RequestOptions options = null, bool isSpoiler = false)
         {
             using (image)
-                BitmapHandler.Save(image, path, GetImageFormat(format));
+                ImageHelper.Save(image, path, GetImageFormat(format));
 
             return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler);
         }

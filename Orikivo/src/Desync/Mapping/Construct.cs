@@ -12,13 +12,13 @@ namespace Orikivo.Desync
         public override LocationType Type => LocationType.Construct;
 
         /// <summary>
-        /// Represents the background that is used for an <see cref="Npc"/> when talking.
+        /// Represents the background that is used for an <see cref="Character"/> when talking.
         /// </summary>
         public Sprite Interior { get; set; }
 
         public ConstructType Tag { get; set; } = ConstructType.Default;
 
-        public virtual List<Npc> Npcs { get; set; } = new List<Npc>();
+        public virtual List<Character> Npcs { get; set; } = new List<Character>();
 
         /// <summary>
         /// Represents the availability of this <see cref="Construct"/>. If none is specified, the <see cref="Construct"/> will always be available. (unimplemented)

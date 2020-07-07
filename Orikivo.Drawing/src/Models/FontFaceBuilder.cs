@@ -9,10 +9,10 @@ namespace Orikivo.Drawing
     {
         public int Width { get; set; }
         public int Height { get; set; }
-        public Padding Padding { get; set; }
+        public Padding Padding { get; set; } = Padding.Char;
         public Dictionary<int, string> SheetUrls { get; set; }
         public List<WhiteSpaceInfo> Whitespace { get; set; }
-        public List<CustomCharInfo> Customs { get; set; }
+        public List<CharOverride> Customs { get; set; }
         public bool IsUnicodeSupported { get; set; }
         public bool IsMonospace { get; set; }
         public bool HideBadUnicode { get; set; }

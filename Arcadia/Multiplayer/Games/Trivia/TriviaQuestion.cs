@@ -5,7 +5,27 @@ namespace Arcadia.Games
 {
     public class TriviaQuestion
     {
+        private static int GetQuestionValue(TriviaDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                TriviaDifficulty.Easy => 10,
+                TriviaDifficulty.Medium => 15,
+                TriviaDifficulty.Hard => 25,
+                _ => 10
+            };
+        }
+
         public TriviaQuestion() { }
+
+        public TriviaQuestion(string question, TriviaTopic topic, TriviaDifficulty difficulty, string correctAnswer, params string[] rest)
+        {
+            Question = question;
+            Value = GetQuestionValue(difficulty);
+            Topic = topic;
+            Difficulty = difficulty;
+            Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
+        }
 
         public TriviaQuestion(string question, int value, TriviaTopic topic, TriviaDifficulty difficulty, string correctAnswer, params string[] rest)
         {
@@ -15,6 +35,7 @@ namespace Arcadia.Games
             Difficulty = difficulty;
             Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
         }
+
         // the topic of this question
         public TriviaTopic Topic { get; set; }
 

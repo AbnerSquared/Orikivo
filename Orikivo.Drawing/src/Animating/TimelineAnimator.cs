@@ -61,7 +61,7 @@ namespace Orikivo.Drawing.Animating
 
                 Keyframe keyframe = Layers[i].KeyframeAt(tick);
 
-                using Bitmap layer = GraphicsUtils.Transform(
+                using Bitmap layer = ImageHelper.Transform(
                     Viewport,
                     Layers[i].Source,
                     keyframe.Transform,

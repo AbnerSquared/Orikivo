@@ -63,7 +63,7 @@ namespace Orikivo.Desync
 
         // TODO: Remove references to NPCs.
         // a list of npcs at a specified location.
-        public List<(Vector2 Position, Npc Npc)> Npcs { get; set; }
+        public List<(Vector2 Position, Character Npc)> Npcs { get; set; }
 
         public Area GetArea(string id)
             => Areas?.FirstOrDefault(x => x.Id == id);

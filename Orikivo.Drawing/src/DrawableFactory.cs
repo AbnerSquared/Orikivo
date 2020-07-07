@@ -8,15 +8,13 @@ namespace Orikivo.Drawing
 {
 
     /// <summary>
-    /// A custom <see cref="Graphics"/> class that handles the creation of images.
+    /// A custom image factory that handles the creation of <see cref="Drawable"/> instances.
     /// </summary>
-    public class GraphicsWriter : IDisposable // LAYER MASKING, OUTLINES
+    public class DrawableFactory : IDisposable
     {
-        
-
         private Image _image;
 
-        public GraphicsWriter(int width, int height,
+        public DrawableFactory(int width, int height,
             PixelFormat pixelFormat = PixelFormat.Format32bppArgb,
             GraphicsConfig config = null)
         {
@@ -25,7 +23,7 @@ namespace Orikivo.Drawing
             Palette = config.Palette;
             CharMap = config.CharMap;
         }
-        public GraphicsWriter(Image image, GraphicsConfig config = null)
+        public DrawableFactory(Image image, GraphicsConfig config = null)
         {
             _image = image;
             config ??= GraphicsConfig.Default;
@@ -36,10 +34,9 @@ namespace Orikivo.Drawing
             CharMap = config.CharMap;
         }
 
-        public GraphicsWriter(GraphicsConfig config = null)
+        public DrawableFactory(GraphicsConfig config = null)
         {
             config ??= GraphicsConfig.Default;
-            config.
             Palette = config.Palette;
             CharMap = config.CharMap;
         }
@@ -135,7 +132,7 @@ namespace Orikivo.Drawing
 
             Grid<Color> pixels = GraphicsUtils.GetPixels(image);
 
-            mask.SetEachValue((int x, int y) => RangeF.Convert(0, 255, 0.0f, 1.0f, pixels.GetValue(x, y).A));
+            mask.SetEachValue((int x, int y, float z) => RangeF.Convert(0, 255, 0.0f, 1.0f, pixels.GetValue(x, y).A));
 
             return mask;
         }
@@ -147,9 +144,9 @@ namespace Orikivo.Drawing
 
             Grid<Color> pixels = GraphicsUtils.GetPixels(image);
 
-            pixels.SetEachValue((int x, int y) =>
+            pixels.SetEachValue((int x, int y, Color z) =>
                 Color.FromArgb((int) MathF.Floor(RangeF.Convert(0.0f, 1.0f, 0.0f, 255.0f, mask.GetValue(x, y))),
-                    pixels.GetValue(x, y)));
+                    z));
 
             return GraphicsUtils.CreateArgbBitmap(pixels.Values);
         }
@@ -242,13 +239,13 @@ namespace Orikivo.Drawing
                         g.FillRectangle(brush, new Rectangle(0, 0, image.Width, image.Height));
                     else
                     {
-                        Size v = new Size(innerWidth, image.Height);
-                        Size h = new Size(image.Width - (innerWidth * 2), innerWidth); // make inner corners possible
+                        var v = new Size(innerWidth, image.Height);
+                        var h = new Size(image.Width - (innerWidth * 2), innerWidth); // make inner corners possible
 
-                        Point l = new Point(0, 0);
-                        Point t = new Point(innerWidth, 0);
-                        Point r = new Point(image.Width - innerWidth, 0);
-                        Point b = new Point(innerWidth, image.Height - innerWidth);
+                        var l = new Point(0, 0);
+                        var t = new Point(innerWidth, 0);
+                        var r = new Point(image.Width - innerWidth, 0);
+                        var b = new Point(innerWidth, image.Height - innerWidth);
 
                         Rectangle left = new Rectangle(l, v);
                         Rectangle right = new Rectangle(r, v);
@@ -284,6 +281,8 @@ namespace Orikivo.Drawing
                 BorderEdge.Inside => 0,
                 _ => width
             };
+
+        // all of this needs to be handled by the TextFactory
 
         private readonly bool _cacheable = true;
         private static readonly string _defaultFontDirectory = "../assets/fonts/";
@@ -337,7 +336,7 @@ namespace Orikivo.Drawing
                 return bmp;
 
             if (!font.IsMonospace)
-                return BitmapHandler.Crop(bmp, 0, 0, BitmapHandler.GetNonEmptyWidth(bmp), font.CharHeight);
+                return ImageHelper.Crop(bmp, 0, 0, ImageHelper.GetNonEmptyWidth(bmp), font.CharHeight);
 
             if (_cacheable)
                 CharCache[value] = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
@@ -368,7 +367,7 @@ namespace Orikivo.Drawing
                 int y = font.CharHeight * i.Row;
 
                 Rectangle crop = new Rectangle(x, y, font.CharWidth, font.CharHeight);
-                Bitmap tmp = BitmapHandler.Crop(bmp, crop);
+                Bitmap tmp = ImageHelper.Crop(bmp, crop);
 
                 return tmp;
             }
@@ -387,12 +386,10 @@ namespace Orikivo.Drawing
             if (bmp == null)
                 return bmp;
 
-            if (!font.IsMonospace && useNonEmptyWidth) // NOTE: I don't even think this is needed.
+            if (!font.IsMonospace && useNonEmptyWidth)
             {
-                // might be too taxing
-                return BitmapHandler.Crop(bmp, new Rectangle(0, 0, BitmapHandler.GetNonEmptyWidth(bmp), font.CharHeight));
+                return ImageHelper.Crop(bmp, new Rectangle(0, 0, ImageHelper.GetNonEmptyWidth(bmp), font.CharHeight));
             }
-
 
             if (_cacheable)
                 CharCache[c] = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
@@ -429,16 +426,6 @@ namespace Orikivo.Drawing
                 if (charMap.ContainsKey(chars[i]))
                     continue;
 
-
-                /* Safe Dispose if null
-                 using (Bitmap tmp = GetChar(chars[i], font, useNonEmptyWidth))
-                {
-                    if (tmp != null)
-                        charMap[chars[i]] = tmp.Clone(new Rectangle(Point.Empty, tmp.Size), tmp.PixelFormat);
-                }
-                 
-                 
-                 */
                 charMap[chars[i]] = GetChar(chars[i], font, useNonEmptyWidth);
             }
 
@@ -452,19 +439,19 @@ namespace Orikivo.Drawing
         // if .MaxWidth is specified instead, the canvas can expand up to that width.
         // TODO: Merge GetChars() and CreateText() together.
         // TODO: Scrap AutoWidth, and simply use IsMonospace
-        private TextBox CreateText(Dictionary<char, Bitmap> spriteMap, string content, FontFace font, Padding? textPadding = null, int? maxWidth = null, int? maxHeight = null, bool useNonEmptyWidth = true, bool extendOnOffset = false)
+        private TextData CreateText(Dictionary<char, Bitmap> spriteMap, string content, FontFace font, Padding? textPadding = null, int? maxWidth = null, int? maxHeight = null, bool useNonEmptyWidth = true, bool extendOnOffset = false)
         {
             bool autoWidth = useNonEmptyWidth && !font.IsMonospace;
             Padding padding = textPadding ?? Padding.Empty;
 
 
             if (!extendOnOffset)
-                extendOnOffset = font.Customs?.Any(x => x.Offset != null) ?? extendOnOffset;
+                extendOnOffset = font.Overrides?.Any(x => x.GetOffset() != null) ?? extendOnOffset;
 
             Pointer cursor = new Pointer(maxWidth: maxWidth, maxHeight: maxHeight);
 
             List<char> chars = content.ToList();
-            List<CharObject> charObjects = new List<CharObject>();
+            List<CharData> charObjects = new List<CharData>();
 
             int cursorHeight = font.Padding.Height + font.CharHeight;
             int yMaxOffset = 0;
@@ -472,25 +459,25 @@ namespace Orikivo.Drawing
 
             foreach (char c in chars)
             {
+                // Calculate the character's width and padding
                 Padding charPadding = font.Padding;
 
-                int? spriteWidth = spriteMap.ContainsKey(c) ? spriteMap[c]?.Width : null;
+                int? spriteWidth = spriteMap.GetValueOrDefault(c)?.Width;
 
                 int drawWidth = font.GetCharWidth(c);
 
-                if (autoWidth && spriteMap.ContainsKey(c))
-                    drawWidth = spriteMap[c]?.Width ?? drawWidth;
+                if (autoWidth && spriteWidth.HasValue)
+                    drawWidth = spriteWidth.Value;
 
                 int cursorWidth = font.Padding.Width + drawWidth;
 
                 // LINE BREAKS
                 if (c == '\n')
                 {
-                    charObjects.Add(new CharObject(
-                        null,
-                        c,
-                        new Point(padding.Left + cursor.X, padding.Top + cursor.Y),
-                        new Size(0, font.CharHeight)));
+                    int pX = padding.Left + cursor.X;
+                    int pY = padding.Top + cursor.Y;
+
+                    charObjects.Add(new CharData(null, c, pX, pY, 0, font.CharHeight));
 
                     cursor.ResetX();
                     cursor.MoveY(cursorHeight + 1);
@@ -501,13 +488,13 @@ namespace Orikivo.Drawing
                 // EMPTY CHARS
                 if (WhiteSpaceInfo.IsWhiteSpace(c))
                 {
-                    int emptyWidth = autoWidth ? font.GetWhiteSpaceWidth(c) : font.CharWidth + font.Padding.Width;
+                    int emptyWidth = autoWidth ? drawWidth
+                        : font.CharWidth + font.Padding.Width;
 
-                    charObjects.Add(new CharObject(
-                        null,
-                        c,
-                        new Point(padding.Left + cursor.X, padding.Top + cursor.Y),
-                        new Size(emptyWidth, font.CharHeight)));
+                    int pX = padding.Left + cursor.X;
+                    int pY = padding.Top + cursor.Y;
+
+                    charObjects.Add(new CharData(null, c, pX, pY, emptyWidth, font.CharHeight));
 
                     cursor.MoveX(emptyWidth);
                     charIndex++;
@@ -521,7 +508,7 @@ namespace Orikivo.Drawing
 
                 if (autoWidth)
                 {
-                    if (charIndex == 0)
+                    if (charIndex == 0) // if it's the 1st character, no padding on the left
                     {
                         cursorWidth -= font.Padding.Left;
                         charPadding.Left = 0;
@@ -532,7 +519,7 @@ namespace Orikivo.Drawing
                         charPadding.Left = 0;
                     }
 
-                    if (charIndex == chars.Count - 1)
+                    if (charIndex == chars.Count - 1) // if it's the last character, no padding on the right
                     {
                         cursorWidth -= font.Padding.Right;
                         charPadding.Right = 0;
@@ -550,7 +537,7 @@ namespace Orikivo.Drawing
                 if (spriteMap[c] != null)
                 {
                     charObjects.Add(
-                        new CharObject(
+                        new CharData(
                             spriteMap[c],
                             c,
                             new Point(padding.Left + cursor.X, padding.Top + cursor.Y),
@@ -560,6 +547,7 @@ namespace Orikivo.Drawing
 
                     cursor.MoveX(cursorWidth);
                 }
+
                 charIndex++;
             }
 
@@ -568,7 +556,7 @@ namespace Orikivo.Drawing
             if (extendOnOffset)
                 height += yMaxOffset;  // if extending on offsets, add it to the total height.
 
-            return new TextBox(content, padding, cursor.Width, height, charObjects);
+            return new TextData(content, padding, cursor.Width, height, charObjects);
         }
 
         public Bitmap DrawString(string content, CanvasOptions options = null)
@@ -583,19 +571,19 @@ namespace Orikivo.Drawing
         public Bitmap DrawString(string content, FontFace font, Color color, CanvasOptions options = null)
         {
             options ??= new CanvasOptions();
-            TextBox text = CreateText(GetChars(content, font, options?.UseNonEmptyWidth ?? true),
+            TextData textData = CreateText(GetChars(content, font, options?.UseNonEmptyWidth ?? true),
                 content,
                 font,
                 options?.Padding,
                 useNonEmptyWidth: options?.UseNonEmptyWidth ?? true,
                 extendOnOffset: options?.ExtendOnOffset ?? false);
 
-            Bitmap bmp = new Bitmap(text.BitmapWidth, text.BitmapHeight);
+            Bitmap bmp = new Bitmap(textData.ImageWidth, textData.ImageHeight);
 
             if (options?.BackgroundColor.HasValue ?? false)
-                bmp = BitmapHandler.Fill(bmp, options.BackgroundColor.Value);
+                bmp = ImageHelper.Fill(bmp, options.BackgroundColor.Value);
 
-            Point pointer = new Point(text.Padding.Left, text.Padding.Top);
+            var cursor = new Cursor(textData.Padding.Left, textData.Padding.Top);
 
             int yOffset = 0; // the largest y offset in place.
 
@@ -604,13 +592,13 @@ namespace Orikivo.Drawing
             using (Graphics graphics = Graphics.FromImage(bmp))
             {
                 // TO_DO: create an auto line break if the next char to be placed goes outside of the maximum width.
-                foreach (CharObject c in text.Chars)
+                foreach (CharData c in textData.Chars)
                 {
                     if (c.IsNewline)
                     {
                         if (options?.ExtendOnOffset ?? false && hasOffset)
                         {
-                            pointer.Y += yOffset;
+                            cursor.Y += yOffset;
 
                             hasOffset = false;
 
@@ -618,17 +606,19 @@ namespace Orikivo.Drawing
                         }
 
                         // the height already calculates for font height and padding.
-                        pointer.Y += c.Size.Height; // + 1: Pads the bottom with a graceful pixel.
+                        // + 1: Pads the bottom with a graceful pixel.
+
+                        cursor.Y += c.Size.Height;
+
+                        cursor.X = textData.Padding.Left;
 
                         // this is where any y offsets would also be set if the row is stretched on offsets.
-                        pointer.X = text.Padding.Left;
 
                         continue;
                     }
 
-                    pointer.X = c.Pos.X; // sets the pointer to the position specified by the character.
-
-                    pointer.Y = c.Pos.Y;
+                    // sets the pointer to the position specified by the character.
+                    cursor.Set(c.Position.X, c.Position.Y);
 
                     /* handle offsets here: you want to put the cursor in the right spot before placing the image. */
                     // this also handles if offsets stretch out the next line.
@@ -636,28 +626,33 @@ namespace Orikivo.Drawing
                     {
                         hasOffset = true;
 
-                        pointer.Y += c.Offset.Y;
+                        cursor.Y += c.Offset.Y;
 
                         if (c.Offset.Y > yOffset)
                             yOffset = c.Offset.Y; // sets the new largest offset.
                     }
 
-                    if (c.Sprite != null)
+                    if (c.HasSprite())
                     {
-                        using (Bitmap sprite = c.Sprite) // if the sprite exists, use it to place and dispose.
-                            GraphicsUtils.ClipAndDrawImage(graphics, sprite, new Rectangle(pointer, c.Size));
+                        using (Bitmap sprite = c.GetSprite()) // if the sprite exists, use it to place and dispose.
+                            GraphicsUtils.ClipAndDrawImage(graphics, sprite, new Rectangle(cursor, c.Size));
                     }
 
-                    pointer.X += c.Size.Width + c.Padding.Right; // this already accounts for width/padding.
+                    cursor.X += c.Size.Width + c.Padding.Right; // this already accounts for width/padding.
 
                     if (c.Offset.Y > 0) // this catches negative offsets..?
-                        pointer.Y -= c.Offset.Y; // just in case there was an offset.
+                        cursor.Y -= c.Offset.Y; // just in case there was an offset.
                 }
             }
 
             // recolor bitmap here, and handle outlines here.
 
-            bmp = BitmapHandler.ReplacePalette(bmp, BitmapHandler.CreateColorMaps((Color.White, color)));
+            bmp = ImageHelper.SetColorMap(bmp, ImageHelper.CreateColorTable((Color.White, color)));
+
+            // dispose of TextData
+
+            textData.Dispose();
+
             return bmp;
         }
 

@@ -6,15 +6,6 @@ using System.Linq;
 
 namespace Orikivo.Drawing
 {
-    /*
-       public static implicit operator DiscordColor(OriColor c)
-            => new DiscordColor((uint)c.Value << 8 >> 8);
-        public static explicit operator OriColor(DiscordColor c)
-            => new OriColor(c.RawValue);
-        public override string ToString()
-            => A < 255 ? string.Format("#{0:X8}", Value) : string.Format("#{0:X6}", MakeRgb(R, G, B));
-    */
-
     /// <summary>
     /// Represents an immutable color object that supports multi-tone grouping and conversion formulas.
     /// </summary>
@@ -206,7 +197,7 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Returns the average <see cref="GammaColor"/> for an array of <see cref="GammaColor"/> values.
+        /// Returns the average <see cref="GammaColor"/> from an array of <see cref="GammaColor"/> values.
         /// </summary>
         public static GammaColor Average(GammaColor[] colors)
         {
@@ -230,13 +221,12 @@ namespace Orikivo.Drawing
 
         // TODO: Create GetAverage method for all integer types.
         private static byte GetAverage(params int[] values)
-            => GetAverage((IEnumerable<int>)values);
+            => GetAverage((IEnumerable<int>) values);
 
         /// <summary>
         /// Returns a <see cref="GammaColor"/> from the difference between two <see cref="GammaColor"/> values.
         /// </summary>
         public static GammaColor Difference(GammaColor a, GammaColor b)
-
         {
             byte red = (byte) Math.Abs(a.R - b.R);
             byte green = (byte) Math.Abs(a.G - b.G);
@@ -247,18 +237,18 @@ namespace Orikivo.Drawing
 
         public static GammaColor Addition(GammaColor a, GammaColor b)
         {
-            byte red = (byte)Math.Min(255, a.R + b.R);
-            byte green = (byte)Math.Min(255, a.G + b.G);
-            byte blue = (byte)Math.Min(255, a.B + b.B);
+            byte red = (byte) Math.Min(255, a.R + b.R);
+            byte green = (byte) Math.Min(255, a.G + b.G);
+            byte blue = (byte) Math.Min(255, a.B + b.B);
 
             return new GammaColor(red, green, blue);
         }
 
         public static GammaColor Subtract(GammaColor a, GammaColor b)
         {
-            byte red = (byte)Math.Min(0, a.R - b.R);
-            byte green = (byte)Math.Min(0, a.G - b.G);
-            byte blue = (byte)Math.Min(0, a.B - b.B);
+            byte red = (byte) Math.Min(0, a.R - b.R);;
+            byte green = (byte) Math.Min(0, a.G - b.G);
+            byte blue = (byte) Math.Min(0, a.B - b.B);
 
             return new GammaColor(red, green, blue);
         }

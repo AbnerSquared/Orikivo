@@ -92,7 +92,7 @@ namespace Orikivo.Drawing
             if (RowCount == 1 && ColumnCount == 1)
                 return GetImage();
 
-            return BitmapHandler.Crop(Path, (CropWidth * (column - 1)) + crop.Offset.X, (CropHeight * (row - 1)) + crop.Offset.Y,
+            return ImageHelper.Crop(Path, (CropWidth * (column - 1)) + crop.OffsetX, (CropHeight * (row - 1)) + crop.OffsetY,
                 crop.Width ?? CropWidth, crop.Height ?? CropHeight);
         }
 

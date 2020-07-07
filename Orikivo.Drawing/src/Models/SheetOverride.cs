@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System.Drawing;
 
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents a custom <see cref="Size"/> and <see cref="Point"/> for a <see cref="Sprite"/> within a <see cref="Sheet"/>.
+    /// Represents a custom size and origin for a <see cref="Sprite"/> within a <see cref="Sheet"/>.
     /// </summary>
     public class SheetOverride
     {
@@ -37,8 +36,6 @@ namespace Orikivo.Drawing
 
         [JsonProperty("offset_y")]
         public int OffsetY { get; }
-
-        public Point Offset => new Point(OffsetX, OffsetY);
 
         [JsonProperty("width")]
         public int? Width { get; }

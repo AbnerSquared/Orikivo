@@ -173,7 +173,7 @@ namespace Orikivo
                 return;
             }
 
-            if (Engine.CanChatWithNpc(Context.Account.Husk, id, out Npc npc))
+            if (Engine.CanChatWithNpc(Context.Account.Husk, id, out Character npc))
             {
                 // TODO: Handle how dialogue pools are chosen.
                 ChatHandler chat = new ChatHandler(Context, npc, Engine.NextPool());

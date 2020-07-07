@@ -51,7 +51,7 @@ namespace Orikivo.Drawing
         /// </summary>
         public GammaPalette Palette { get; set; } = GammaPalette.Default;
 
-        public DrawableConfig Config { get; set; }
+        public DrawableProperties Properties { get; set; }
 
         public Border Border { get; set; }
 
@@ -154,7 +154,7 @@ namespace Orikivo.Drawing
                             {
                                 Rectangle cropRect = GraphicsUtils.ClampRectangle(Origin, Viewport, layer.Offset, bmp.Size);
 
-                                using (Bitmap crop = BitmapHandler.Crop(bmp, cropRect))
+                                using (Bitmap crop = ImageHelper.Crop(bmp, cropRect))
                                     GraphicsUtils.ClipAndDrawImage(graphics, crop, layer.Position);
 
                                 continue;
@@ -166,12 +166,10 @@ namespace Orikivo.Drawing
                 }
             }
 
-            result = BitmapHandler.ReplacePalette(result, GammaPalette.Default, Palette);
+            result = ImageHelper.SetColorMap(result, GammaPalette.Default, Palette);
 
             if (Scale > ImageScale.Small)
-                result = GraphicsUtils.Scale(result, (int)Scale, (int)Scale);
-
-
+                result = ImageHelper.Scale(result, (int)Scale, (int)Scale);
 
             return result;
         }

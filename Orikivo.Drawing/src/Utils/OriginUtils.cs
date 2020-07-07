@@ -3,12 +3,10 @@ using System.Drawing;
 
 namespace Orikivo.Drawing
 {
-    public static class OriginUtils
+    internal static class OriginUtils
     {
         public static int GetMidpoint(int length)
-        {
-            return (int)Math.Floor((double)(length / 2));
-        }
+            => (int)Math.Floor((double)(length / 2));
 
         public static Point GetOrigin(Size size, OriginAnchor anchor)
         {
