@@ -245,39 +245,6 @@ namespace Orikivo
             await Context.Channel.SendMessageAsync($"> I could not find any reports matching #{id}.");
         }
 
-        
-
-        [Command("singleset")]
-        [Summary("Tests the SingleSet class.")]
-        public async Task SingleSetTestAsync(int iterations = 10)
-        {
-            SingleSet f = new SingleSet(x => RandomProvider.Instance.Next(0, 100));
-            SingleSet g = new SingleSet(x => RandomProvider.Instance.Next(0, 100));
-
-            StringBuilder data = new StringBuilder();
-
-            data.AppendLine("```Iterations:");
-
-            for (int i = 0; i < iterations; i++)
-            {
-                data.AppendLine($"\nx = {i}");
-                data.AppendLine($"f(x) = {f[i]}");
-                data.AppendLine($"g(x) = {g[i]}");
-                data.AppendLine($"(f+g)(x) = {(f + g)[i]}");
-                data.AppendLine($"(f-g)(x) = {(f - g)[i]}");
-                data.AppendLine($"(f/g)(x) = {(f / g)[i]}");
-                data.AppendLine($"(f*g)(x) = {(f * g)[i]}");
-                data.AppendLine($"(f%g)(x) = {(f % g)[i]}");
-                data.AppendLine($"((f+g)-(f*g))(x) = {((f + g) - (f * g))[i]}");
-            }
-            data.Append("```");
-            await Context.Channel.SendMessageAsync(data.ToString());
-        }
-
-        
-
-        
-
         [Command("mapbits")]
         public async Task MapBitsAsync()
         {

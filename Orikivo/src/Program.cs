@@ -34,8 +34,7 @@ namespace Orikivo
                     .AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>())
                     .AddTypeReader<EventType>(new EnumTypeReader<EventType>())
                     .AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>())
-                    .AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>())
-                    .AddTypeReader<Operator>(new EnumTypeReader<Operator>());
+                    .AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>());
 
                 builder
                     .AddModule<CoreModule>()
