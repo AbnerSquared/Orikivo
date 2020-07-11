@@ -5,7 +5,7 @@
     /// </summary>
     public enum IdentityType
     {
-        Assertive = 0,
-        Turbulent = 1
+        Assertive = 0b00000,
+        Turbulent = 0b00001
     }
 }

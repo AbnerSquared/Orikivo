@@ -2,7 +2,7 @@
 
 namespace Orikivo.Drawing
 {
-    public class CanvasOptions
+    public class CanvasOptions // TODO: use ImageProperties instead.
     {
         public CanvasOptions() { }
 

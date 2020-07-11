@@ -14,21 +14,26 @@ namespace Orikivo.Desync
 
         // a character is stopped if someone wants to talk to them
 
+        // DURING TRAVEL
         // if <= 0, this character cannot talk.
         // if unspecified, this character can always talk
         public TimeSpan MaxHoldTime { get; set; }
 
+        // AT DESTINATION
         // represents the duration at which this character will remain at this location
         // travel time is subtracted from this.
         public TimeSpan Duration { get; set; }
 
+        // worry about this later
+        /*
         /// <summary>
         /// If specified, the duration at which the <see cref="Character"/> remains is randomized by the specified offset, which represents the upper bound.
         /// </summary>
         public double LengthRandomOffset { get; set; }
+        */
 
         // when the character arrives at the specified location
         // what are they doing?
-        public CharacterAction Action { get; set; }
+        public CharacterState State { get; set; }
     }
 }

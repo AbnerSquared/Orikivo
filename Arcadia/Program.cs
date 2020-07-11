@@ -30,7 +30,8 @@ namespace Arcadia
                 var builder = new ClientBuilder();
 
                 builder.Services
-                .AddSingleton<GameManager>();
+                .AddSingleton<GameManager>()
+                .AddSingleton<InfoService>();
 
                 builder.SetDefaultServices();
 

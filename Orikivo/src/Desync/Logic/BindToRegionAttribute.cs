@@ -209,7 +209,7 @@ namespace Orikivo.Desync
                     var results = location.Filter(Structure.Value);
 
                     if (results.Any(x => (Interaction == InteractionType.View ? husk.Hitbox.Sight : husk.Hitbox.Reach)
-                    .Intersects(x.Perimeter)))
+                    .Intersects(x.Shape)))
                         return true;
                 }
 

@@ -24,7 +24,7 @@ namespace Orikivo
 
         private readonly CommandService _commands;
         private readonly ReportContainer _reports;
-        private readonly IEnumerable<GuildCommand> _guildCommands;
+        private IEnumerable<GuildCommand> _guildCommands;
 
         private static readonly Func<ModuleInfo, string, bool> MODULE_MATCHER = (ModuleInfo m, string n) => m.Name.ToLower() == n.ToLower();
         private static readonly Func<ModuleInfo, string, bool> GROUP_MATCHER = (ModuleInfo m, string n) => m.Group?.ToLower() == n.ToLower();
@@ -70,6 +70,12 @@ namespace Orikivo
             }
         };
 
+        public InfoService(CommandService commands)
+        {
+            _commands = commands;
+            Guides = DefaultGuides;
+        }
+
         public InfoService(CommandService commands, OriGlobal global)
         {
             _commands = commands;
@@ -81,6 +87,17 @@ namespace Orikivo
         public InfoService(CommandService commands, OriGlobal global, OriGuild guild) : this(commands, global)
         {
             _guildCommands = guild.Options.Commands;
+        }
+
+        internal void SetGuild(OriGuild guild)
+        {
+            _guildCommands = guild.Options.Commands;
+        }
+
+        internal void ClearGuildInfo()
+        {
+            _guildCommands = null;
+
         }
 
         // BASE
@@ -103,7 +120,14 @@ namespace Orikivo
                 panel.AppendLine();
                 panel.AppendLine("**Actions**");
                 panel.Append("• ");
-                panel.AppendLine(user.Husk.Location.Summarize());
+
+                Locator location = user.Husk.Location;
+                // you need to implement movement info.
+
+                if (user.Husk.Destination != null)
+                    location = user.Husk.Destination;
+
+                panel.AppendLine(Engine.WriteLocationInfo(location.Id, user.Husk.Destination != null));
 
                 ModuleInfo main = _commands.Modules.First(x => x.Name == "Actions");
                 List<CommandNode> actions = new List<CommandNode>();
@@ -156,7 +180,7 @@ namespace Orikivo
             return panel.ToString();
         }
 
-        private string GetMainPanel(User user = null)
+        private string GetMainPanel(User user = null, bool drawActions = true)
         {
 
             bool showReportStatus = user?.Config?.Debug ?? false;
@@ -232,16 +256,17 @@ namespace Orikivo
                 }
             }
 
-            if (user != null)
-                panel.Append(GetActions(user));
+            if (user != null && drawActions)
+                if (user.Husk != null)
+                    panel.Append(GetActions(user));
 
             return panel.ToString();
         }
 
-        public string GetPanel(string content = null, User user = null)
+        public string GetPanel(string content = null, User user = null, bool drawActions = true)
         {
             if (!Check.NotNull(content))
-                return GetMainPanel(user);
+                return GetMainPanel(user, drawActions);
 
             // TODO: Clean up chapter parsing (Regex).
             bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));

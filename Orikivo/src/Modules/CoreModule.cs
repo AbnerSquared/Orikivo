@@ -13,12 +13,11 @@ namespace Orikivo
     public class CoreModule : OriModuleBase<OriCommandContext>
     {
         private readonly DiscordSocketClient _client;
-        private InfoService _help;
-        private readonly CommandService _commandService;
-        public CoreModule(DiscordSocketClient client, CommandService commandService)
+        private readonly InfoService _info;
+        public CoreModule(DiscordSocketClient client, InfoService info)
         {
             _client = client;
-            _commandService = commandService;
+            _info = info;
         }
 
         [Command("ping")]
@@ -31,8 +30,9 @@ namespace Orikivo
         {
             try
             {
-                _help ??= new InfoService(_commandService, Context.Global, Context.Server);
-                await Context.Channel.SendMessageAsync(_help.GetPanel(context, Context.Account));
+                _info.SetGuild(Context.Server);
+                await Context.Channel.SendMessageAsync(_info.GetPanel(context, Context.Account));
+                _info.ClearGuildInfo();
             }
             catch (Exception ex)
             {

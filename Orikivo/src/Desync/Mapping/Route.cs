@@ -1,4 +1,5 @@
-﻿using Orikivo.Drawing;
+﻿using Newtonsoft.Json;
+using Orikivo.Drawing;
 using Orikivo.Drawing.Graphics2D;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents an enforced <see cref="Path"/>.
     /// </summary>
-    public class Route
+    public class Route // make this a path sort of ordeal; routes are path presets that exist in the world.
     {
         /// <summary>
         /// Where the <see cref="Route"/> was initiated.
@@ -35,7 +36,10 @@ namespace Orikivo.Desync
         // otherwise, the player will travel to the nearest point before going the rest of that route.
         public bool Enforce { get; set; }
 
+        [JsonIgnore]
         public float Length => GetTotalDistance();
+        
+        [JsonIgnore]
         public TimeSpan Time => GetTime();
 
         // TODO: Implement travel speed calculation.
@@ -207,7 +211,7 @@ namespace Orikivo.Desync
 
         private float GetSpeed(bool isPath)
         {
-            float scale = Engine.GetBaseSpeedAt(LocationType.Sector);
+            float scale = Engine.GetBaseSpeedIn(LocationType.Sector);
             float boost = isPath ? 1.10f : 1.00f;
             float speed = 10.0f;
 

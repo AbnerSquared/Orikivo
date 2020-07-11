@@ -5,7 +5,7 @@
     /// </summary>
     public enum EnergyType
     {
-        Observant = 0,
-        Intuitive = 1
+        Observant = 0b00000,
+        Intuitive = 0b01000
     }
 }

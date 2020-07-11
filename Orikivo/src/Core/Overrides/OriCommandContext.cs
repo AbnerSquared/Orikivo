@@ -29,6 +29,11 @@ namespace Orikivo
             get => Account?.Husk;
         }
 
+        public HuskBrain Brain
+        {
+            get => Account?.Brain;
+        }
+
         //public OriGuild Server { get; internal set; }
         public OriGuild Server
         {

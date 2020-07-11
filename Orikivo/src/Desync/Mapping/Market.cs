@@ -14,6 +14,13 @@ namespace Orikivo.Desync
         public Market()
         {
             Tag = ConstructType.Market;
+            CanUseDecor = false;
+        }
+
+        public Market(string id, string name) : this()
+        {
+            Id = id;
+            Name = name;
         }
 
         /// <summary>

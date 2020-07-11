@@ -25,7 +25,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Represents the size and relative coordinates of this <see cref="Region"/>.
         /// </summary>
-        public RegionF Perimeter { get; set; }
+        public RegionF Shape { get; set; }
 
         /// <summary>
         /// Gets a floating-point integer that represents the global x-coordinate of this <see cref="Region"/>.

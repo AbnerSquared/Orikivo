@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
 using Orikivo.Framework;
 using System;
@@ -29,6 +30,9 @@ namespace Orikivo
 
                 var builder = new ClientBuilder();
                 builder.SetDefaultServices();
+
+                builder.Services
+                    .AddSingleton<InfoService>();
 
                 builder
                     .AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>())

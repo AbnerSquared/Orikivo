@@ -31,7 +31,13 @@ namespace Orikivo.Desync
         public Sector(Vector2 position, SectorScale scale)
         {
             Scale = scale;
-            Perimeter = GetPerimeter(position, scale);
+            Shape = GetPerimeter(position, scale);
+        }
+
+        public Sector(string id, string name, Vector2 position, SectorScale scale) : this(position, scale)
+        {
+            Id = id;
+            Name = name;
         }
 
         public override LocationType Type => LocationType.Sector;

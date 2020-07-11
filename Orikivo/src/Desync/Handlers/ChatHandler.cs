@@ -1,9 +1,7 @@
 ﻿using Discord.WebSocket;
 using Orikivo.Desync;
 using System.Threading.Tasks;
-
 using System.Collections.Generic;
-using Discord.Rest;
 using System.Text;
 using System.Linq;
 using Orikivo.Drawing;
@@ -11,25 +9,17 @@ using Discord;
 
 namespace Orikivo
 {
-    public enum ChatState
-    {
-        Entry, // when you first start talking to an npc
-        Speak, // when you are currently speaking to an npc
-        Trade, // when you are willing to trade with an npc
-        Gift, // when you are gifting to an npc
-        Request, // when you are getting a request from an npc
-        Give // when you are giving to an npc
-    }
+
     /// <summary>
     /// Represents a custom dialogue session for an <see cref="Desync.Character"/>.
     /// </summary>
     public class ChatHandler : MatchAction
     {
-        public ChatHandler(OriCommandContext context, Character npc, DialoguePool pool, PaletteType palette = PaletteType.Glass)
+        public ChatHandler(OriCommandContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
         {
             Context = context;
             Npc = npc;
-            Pool = pool;
+            Tree = pool;
             Palette = GraphicsService.GetPalette(palette);
         }
 
@@ -42,10 +32,13 @@ namespace Orikivo
 
         public IUserMessage MessageReference { get; private set; }
 
-        public DialoguePool Pool { get; }
+        public DialogTree Tree { get; }
 
         // TODO: Implement chat logging to handle future dialogue.
-        public ChatLog Log { get; private set; }
+        public ChatLog Log { get; private set; } = new ChatLog();
+
+        // TODO: Implement chat states
+        public ChatState State { get; private set; }
 
         public Character Npc { get; }
 
@@ -56,82 +49,107 @@ namespace Orikivo
         
         public AffinityData Affinity { get; set; }
 
-        public override async Task OnStartAsync()
-        {
+        private DialogTone LastTone { get; set; }
 
-            ResponseIds = Pool.GetEntryTopics().Select(x => x.Id).ToList();
-            Affinity = Context.Account.Brain.GetOrAddAffinity(Npc);
+        private static readonly string _replyFrame = "> `{0}` • *\"{1}\"";
 
-            // only if a sheet is supplied, should it be drawn.
-            if (Npc.Model != null)
-                MessageReference = await Context.Channel.SendImageAsync(Npc.Model.Render(DialogTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox(Pool.Entry));
-            else
-                MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox(Pool.Entry));
-        }
+        private IEnumerable<string> WriteAvailableReplies()
+            => ResponseIds.Select(x => string.Format(_replyFrame, x, Tree.Branches.First().GetDialog(x).Entry.ToString()));
 
         private string GetReplyBox(string response, bool showReplies = true)
         {
-            StringBuilder reply = new StringBuilder();
+            var reply = new StringBuilder();
 
             reply.AppendLine($"**{Npc.Name}**: {response}");
 
             if (showReplies)
-                reply.AppendJoin("\n", ResponseIds.Select(x => $"> `{x}` • *\"{Pool.GetDialogue(x).Entry}\"*"));
+                reply.AppendJoin("\n", WriteAvailableReplies());
 
             return reply.ToString();
+        }
+
+        // TODO: Separate branches into their own categories
+        // For now, only use the first branch
+        private List<string> GetEntryIds()
+            => Tree.Branches.First().GetEntryDialogs(Npc, Husk, Brain, Log).Select(x => x.Id).ToList();
+
+        public override async Task OnStartAsync()
+        {
+            ResponseIds = GetEntryIds();
+            Affinity = Context.Account.Brain.GetOrAddAffinity(Npc);
+
+            if (Npc.Model != null)
+                MessageReference = await Context.Channel.SendImageAsync(Npc.Model.Render(DialogTone.Neutral, Palette), "../tmp/npc.png", GetReplyBox("Hello."));
+            else // TODO: Implement random greetings.
+                MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox("Hello."));
         }
 
         public override async Task<ActionResult> InvokeAsync(SocketMessage message)
         {
             if (ResponseIds.Contains(message.Content))
             {
-                StringBuilder chat = new StringBuilder();
+                var chat = new StringBuilder();
 
-                Dialogue response = Pool.GetDialogue(message.Content);
-                Dialogue loop = Pool.GetDialogue(response.GetBestReplyId(Npc.Personality));
+                Dialog response = Tree.Branches.First().GetDialog(message.Content);
+                Dialog loop = Tree.Branches.First().GetBestReply(Npc, Husk, Brain, Log, response);
 
-                if (loop.Type == DialogType.End)
+                switch (loop.Type)
                 {
-                    await MessageReference.ModifyAsync(x => x.Content = GetReplyBox(loop.NextEntry(), false));
-                    return ActionResult.Success;
+                    case DialogType.End:
+                        // TODO: Implement content separations, which are continued when the user types 'next' (loop.GetBestEntry(Npc))
+                        await UpdateMessageAsync(loop.Tone, GetReplyBox(loop.GetAnyEntry().ToString(), false));
+                        return ActionResult.Success;
+
+                    case DialogType.Answer:
+                        ResponseIds = GetEntryIds();
+                        break;
+
+                    default:
+                        if (loop.ReplyIds.Count == 0)
+                        {
+                            chat.AppendLine($"> **No responses available. Closing...**");
+                            await UpdateMessageAsync(loop.Tone, chat.ToString());
+                            return ActionResult.Fail;
+                        }
+
+                        ResponseIds = loop.ReplyIds;
+                        break;
                 }
 
-                if (loop.Type == DialogType.Answer)
-                {
-                    ResponseIds = Pool.GetEntryTopics().Select(x => x.Id).ToList();
-                }
-                else if (loop.ReplyIds.Count > 0)
-                {
-                    ResponseIds = loop.ReplyIds;
-                }
-                else
-                {
-                    chat.AppendLine($"> **No responses available. Closing...**");
-                    await MessageReference.ModifyAsync(x => x.Content = chat.ToString());
-                    return ActionResult.Fail;
-                }
+                chat.AppendLine(GetReplyBox(loop.GetAnyEntry().ToString()));
 
-                chat.AppendLine(GetReplyBox(loop.NextEntry()));
+                await UpdateMessageAsync(loop.Tone, chat.ToString());
 
-                //await message.DeleteAsync();
-
-                //await Context.Channel.SendImageAsync(Npc.Sheet.GetDisplayImage(loop.Tone, Palette), "../tmp/npc.png");
-                await MessageReference.ModifyAsync(x => x.Content = chat.ToString());
-                
                 return ActionResult.Continue;
             }
             else
             {
                 string old = MessageReference.Content;
 
-                await MessageReference.ModifyAsync(x => x.Content = $"> **Please input a correct response ID.**\n" + old);
+                await MessageReference.ModifyAsync($"> **Please input a correct response ID.**\n" + old);
                 return ActionResult.Continue;
+            }
+        }
+
+        private async Task UpdateMessageAsync(DialogTone tone, string chatBox)
+        {
+            // TODO: Implement deleting messages if a bot has permission to
+
+            if (Npc.Model != null && LastTone != tone)
+            {
+                await MessageReference.ReplaceAsync(Npc.Model.Render(tone, Palette), "../tmp/npc.png", chatBox);
+                LastTone = tone;
+            }
+            else
+            {
+                await MessageReference.ModifyAsync(chatBox);
             }
         }
 
         public override async Task OnTimeoutAsync(SocketMessage message)
         {
-            await MessageReference.ModifyAsync(x => x.Content = GetReplyBox(Pool.Timeout, false));
+            // TODO: Implement random OnTimeout strings
+            await MessageReference.ModifyAsync(GetReplyBox(Tree.OnTimeout, false));
         }
     }
 }

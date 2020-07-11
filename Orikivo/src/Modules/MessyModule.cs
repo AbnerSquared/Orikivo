@@ -411,7 +411,7 @@ namespace Orikivo
                     }
                 };
 
-                ChatHandler action = new ChatHandler(Context, test, Engine.GetPool("test"), PaletteType.Glass);
+                ChatHandler action = new ChatHandler(Context, test, Engine.GetTree("test"), PaletteType.Glass);
 
                 MatchOptions options = new MatchOptions
                 {

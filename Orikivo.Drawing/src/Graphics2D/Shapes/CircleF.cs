@@ -28,6 +28,11 @@ namespace Orikivo.Drawing.Graphics2D
             Radius = MathF.Abs(radius);
         }
 
+        // these should be stored directly in the shape
+        // with Origin being initialized ??
+        public float X => Origin.X;
+        public float Y => Origin.Y;
+
         /// <summary>
         /// Represents the center point of the <see cref="CircleF"/>.
         /// </summary>

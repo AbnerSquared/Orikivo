@@ -5,7 +5,7 @@
     /// </summary>
     public enum TacticType
     {
-        Judging = 0,
-        Prospecting = 1
+        Judging = 0b00000,
+        Prospecting = 0b00010
     }
 }

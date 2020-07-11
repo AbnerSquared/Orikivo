@@ -6,6 +6,14 @@ namespace Orikivo.Desync
     // prevent communication with the NPC.
     public class DialogTree
     {
+        public DialogTree() { }
+
+        public DialogTree(string id, bool isGeneric = true)
+        {
+            Id = id;
+            IsGeneric = isGeneric;
+        }
+
         public string Id { get; set; }
 
         // this represents all of the possible dialog routes that can be taken

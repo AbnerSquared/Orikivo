@@ -1,4 +1,6 @@
-﻿namespace Orikivo.Drawing
+﻿using System;
+
+namespace Orikivo.Drawing
 {
     /// <summary>
     /// Represents a rectangular floating-point region.
@@ -10,6 +12,12 @@
             && v <= y
             && u < x + width
             && v < y + height;
+
+        public static RegionF Floor(RegionF region)
+            => Floor(region.X, region.Y, region.Width, region.Height);
+
+        public static RegionF Floor(float x, float y, float width, float height)
+            => new RegionF(MathF.Floor(x), MathF.Floor(y), MathF.Floor(width), MathF.Floor(height));
 
         public RegionF(float x, float y, float width, float height)
         {

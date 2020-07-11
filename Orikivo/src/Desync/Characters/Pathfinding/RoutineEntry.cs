@@ -4,8 +4,20 @@ namespace Orikivo.Desync
 {
     public class RoutineEntry
     {
+        public string Id { get; set; }
         public List<RoutineNode> Nodes { get; set; }
 
-        // once a routine ends, a new one (or the same one) is selected.
+        public RoutineNode GetNext(int index)
+        {
+            if (++index >= Nodes.Count - 1)
+            {
+                return null;
+            }
+
+            return Nodes[index];
+        }
+
+        public RoutineNode GetInitial()
+            => Nodes[0];
     }
 }

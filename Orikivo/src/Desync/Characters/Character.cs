@@ -2,7 +2,7 @@
 
 namespace Orikivo.Desync
 {
-
+    // All characters will have a default sight and reach of 10/2
     /// <summary>
     /// Represents a non-playable entity that lives in a <see cref="World"/>.
     /// </summary>
@@ -33,7 +33,7 @@ namespace Orikivo.Desync
 
         // Likewise, if the routine isn't a daily basis, it starts once the user awakens
         /// <summary>
-        /// Represents a <see cref="Character"/>'s set of tasks. If unspecified, the character will remain home.
+        /// Represents a <see cref="Character"/>'s set of tasks. If unspecified, the character will remain at their default location.
         /// </summary>
         public Routine Routine { get; set; }
 

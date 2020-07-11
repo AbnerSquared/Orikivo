@@ -30,7 +30,7 @@ namespace Orikivo.Desync
         /// <summary>
         /// Represents the collection of interactive characters in this <see cref="Area"/>.
         /// </summary>
-        public List<Character> Npcs { get; set; }
+        public List<Character> Characters { get; set; }
 
         public Construct GetConstruct(string id)
             => Constructs?.FirstOrDefault(x => x.Id == id);

@@ -82,7 +82,7 @@ namespace Orikivo
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Engine.ShowLocations(Context.Account.Husk, Context.Account.Brain));
+            await Context.Channel.SendMessageAsync(Engine.WriteVisibleLocations(Context.Account.Husk, Context.Account.Brain));
         }
 
         // Exploring is only while your within a sector at a minimum.
@@ -109,7 +109,7 @@ namespace Orikivo
                 return;
             }
 
-            if (Engine.TryLeave(Context.Account.Husk))
+            if (Engine.TryLeaveLocation(Context.Account.Husk))
             {
                 await Context.Channel.SendMessageAsync($"You are now in **{Context.Account.Husk.Location.GetInnerName()}**.");
             }
@@ -152,7 +152,7 @@ namespace Orikivo
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Context.Account, Engine.ShowNpcs(Context.Account.Husk));
+            await Context.Channel.SendMessageAsync(Context.Account, Engine.WriteVisibleCharacters(Context.Account.Husk));
         }
 
         // TODO: Create Chat command for Sectors, so that if an NPC was seen inside a view radius, 
@@ -173,10 +173,10 @@ namespace Orikivo
                 return;
             }
 
-            if (Engine.CanChatWithNpc(Context.Account.Husk, id, out Character npc))
+            if (Engine.CanChatWith(Context.Account.Husk, id, out Character npc))
             {
                 // TODO: Handle how dialogue pools are chosen.
-                ChatHandler chat = new ChatHandler(Context, npc, Engine.NextPool());
+                ChatHandler chat = new ChatHandler(Context, npc, Engine.GetGenericTree());
                 await HandleChatAsync(chat);
             }
             else
@@ -236,7 +236,7 @@ namespace Orikivo
                 return;
             }
 
-            if (Engine.CanShopAtCurrentLocation(Context.Account.Husk, out Market market))
+            if (Engine.CanShopAt(Context.Account.Husk, out Market market))
             {
                 ShopHandler shop = new ShopHandler(Context, market, PaletteType.Glass);
                 await HandleShopAsync(shop);
@@ -300,15 +300,15 @@ namespace Orikivo
                 return;
             }
 
-            if (!Engine.CanMove(Context.Account, Context.Account.Husk))
+            if (!Engine.CanMove(Context.Account, Context.Husk))
             {
                 await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
                 return;
             }
 
-            foreach (Memorial memorial in Context.Account.Brain.Memorials)
+            foreach (Memorial memorial in Context.Brain.Memorials)
             {
-                if (Engine.IsNearPoint(Context.Account.Husk, memorial.Location.X, memorial.Location.Y))
+                if (Engine.CanSeePoint(Context.Husk, memorial.Location.X, memorial.Location.Y))
                 {
                     Engine.Recover(Context.Account, memorial);
                     await Context.Channel.SendMessageAsync("You have recovered your belongings.");
@@ -330,14 +330,14 @@ namespace Orikivo
                 return;
             }
 
-            if (Context.Account.Husk?.Backpack?.ItemIds?.Count() == 0)
+            if (Context.Husk?.Backpack?.ItemIds?.Count() == 0)
             {
                 await Context.Channel.SendMessageAsync("You do not have any items in your backpack.");
                 return;
             }
 
             var items = new StringBuilder();
-            foreach(var item in Context.Account.Husk.Backpack.GetItems())
+            foreach(var item in Context.Husk.Backpack.GetItems())
             {
                 items.AppendLine($"> **{item.Name}** (x{Context.Account.Husk.Backpack.ItemIds[item.Id]})");
             }
@@ -351,22 +351,22 @@ namespace Orikivo
         [Summary("Travel to the specified coordinates.")]
         public async Task GoToAsync(int x, int y)
         {
-            if (!Engine.CanMove(Context.Account, Context.Account.Husk))
+            if (!Engine.CanMove(Context.Account, Context.Husk))
             {
                 await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
                 return;
             }
 
-            TravelResult result = Engine.TryGoTo(Context.Account.Husk, x, y, out Destination attempted);
+            TravelResult result = Engine.TryGoTo(Context.Husk, x, y, out Destination attempted);
 
             switch (result)
             {
                 case TravelResult.Start:
                     StringBuilder travel = new StringBuilder();
                     travel.AppendLine($"Now travelling to (**{attempted.X}**, **{attempted.Y}**) in **{attempted.GetInnerName()}**.");
-                    Destination info = Context.Account.Husk.Destination;
+                    Destination info = Context.Husk.Destination;
 
-                    travel.Append($"Expected Arrival: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
+                    travel.Append($"Arrival In: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
                     await Context.Channel.SendMessageAsync(travel.ToString());
                     break;
                 case TravelResult.Instant:
@@ -389,31 +389,32 @@ namespace Orikivo
         [RequireUser]
         [BindToRegion(LocationType.Area | LocationType.Sector)]
         [Command("goto"), Priority(1)] // This is used to travel to any viable location based on its current location.
-        [Summary("Travel to a specified **Construct**.")]
+        [Summary("Travel to a specified **Region**.")]
         public async Task GoToAsync(string id)
         {
-            if (!Engine.CanMove(Context.Account, Context.Account.Husk))
+            if (!Engine.CanMove(Context.Account, Context.Husk))
             {
                 await Context.Channel.SendMessageAsync("You are currently in transit and cannot perform any actions.");
                 return;
             }
 
-            if (Context.Account.Husk.Location.GetInnerType() == LocationType.Sector)
+            if (Context.Husk.Location.GetInnerType() == LocationType.Sector)
             {
-                TravelResult result = Engine.TryGoToInSector(Context.Account.Husk, Context.Account.Brain, id, out Region attempted);
+                TravelResult result = Engine.TryGoToInSector(Context.Husk, Context.Brain, id, out Region attempted);
 
                 switch (result)
                 {
                     case TravelResult.Start:
-                        StringBuilder travel = new StringBuilder();
+                        var travel = new StringBuilder();
                         travel.AppendLine($"Now travelling to **{attempted.Name}**.");
-                        Destination info = Context.Account.Husk.Destination;
+                        Destination info = Context.Husk.Destination;
 
-                        travel.Append($"Expected Arrival: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
+                        travel.Append($"Arrival In: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
                         await Context.Channel.SendMessageAsync(travel.ToString());
                         break;
+
                     case TravelResult.Instant:
-                        //if (attempted.Exterior != null)
+                        // if (attempted.Exterior != null)
                         //    await Context.Channel.SendFileAsync(attempted.Exterior.Path, $"Welcome to **{attempted.Name}**.");
                         //else
                             await Context.Channel.SendMessageAsync($"Welcome to **{attempted.Name}**.");
@@ -427,21 +428,23 @@ namespace Orikivo
             }
             else
             {
-                TravelResult result = Engine.TryGoToInArea(Context.Account.Husk, id, out Construct attempted);
+                TravelResult result = Engine.TryGoTo(Context.Husk, Context.Brain, id, out Region attempted);
+                Construct construct = attempted as Construct;
 
                 switch (result)
                 {
                     case TravelResult.Instant:
-                        if (attempted.Exterior != null)
-                            await Context.Channel.SendFileAsync(attempted.Exterior.Path, $"Welcome to **{attempted.Name}**.");
+                        if (construct.Exterior != null)
+                            await Context.Channel.SendFileAsync(construct.Exterior.Path, $"Welcome to **{construct.Name}**.");
                         else
-                            await Context.Channel.SendMessageAsync($"Welcome to **{attempted.Name}**.");
+                            await Context.Channel.SendMessageAsync($"Welcome to **{construct.Name}**.");
                         break;
+
                     case TravelResult.Closed:
-                        if (attempted.Tag.HasFlag(ConstructType.Market))
-                            await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed. Come back in **{(((Market)attempted).GetNextBlock(DateTime.UtcNow).From - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}**.");
+                        if (construct.Tag.HasFlag(ConstructType.Market))
+                            await Context.Channel.SendMessageAsync($"**{construct.Name}** is currently closed. Come back in **{(((Market)construct).GetNextBlock(DateTime.UtcNow).From - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}**.");
                         else
-                            await Context.Channel.SendMessageAsync($"**{attempted.Name}** is currently closed.");
+                            await Context.Channel.SendMessageAsync($"**{construct.Name}** is currently closed.");
                         break;
 
                     case TravelResult.Invalid:
@@ -497,7 +500,7 @@ namespace Orikivo
 
                 await collector.MatchAsync(filter, options);
 
-                Context.Account.Brain.AddOrUpdateAffinity(handler.Affinity);
+                Context.Brain.AddOrUpdateAffinity(handler.Affinity);
             }
             catch (Exception e)
             {

@@ -5,7 +5,7 @@
     /// </summary>
     public enum NatureType
     {
-        Thinking = 0,
-        Feeling = 1
+        Thinking = 0b00000,
+        Feeling = 0b00100
     }
 }

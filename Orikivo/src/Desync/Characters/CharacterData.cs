@@ -1,32 +1,75 @@
-﻿using System.Collections.Generic;
+﻿using Orikivo.Drawing;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Desync
 {
     public class CharacterData
     {
-        // the ID of the character this data is for.
-        public string Id { get; set; }
+        public CharacterData(Character character)
+        {
+            Id = character.Id;
+        }
 
-        // represents a bitwise set of flags
-        // the this husk brain knows about the character
-        public KnownFlag Flags { get; set; }
+        public string Id { get; }
 
-        // represents everything that the character is holding onto right now.
-        public Backpack Backpack { get; set; }
+        public Locator Location { get; internal set; }
 
-        // list of raw relationships for other characters
-        // based on the choices that a player has made.
+        public Destination Destination { get; internal set; }
+
+        public KnownFlag Known { get; internal set; }
+
         public Dictionary<string, float> Affinity { get; set; }
 
-        // represents the current location of a character.
-        public Locator Location { get; set; }
+        public ItemHistory ItemHistory { get; internal set; }
 
-        // represents the current destination of a character
-        // if the character is interrupted, generate a new destination to the same location
-        // from their current position.
-        public Destination Destination { get; set; }
+        public DateTime? ExitTime { get; internal set; }
 
-        // if true, this character never appears anywhere else.
+        public string RoutineId { get; internal set; }
+
+        public int RoutineIndex { get; internal set; }
+
         public bool IsDead { get; set; }
+
+        public void UpdateRoutine()
+        {
+            if (!ExitTime.HasValue || string.IsNullOrWhiteSpace(RoutineId))
+                return;
+
+            if ((DateTime.UtcNow - ExitTime.Value).TotalSeconds > 0)
+            {
+                Routine routine = Engine.GetCharacter(Id).Routine;
+                RoutineEntry entry = routine.GetEntry(RoutineId);
+                RoutineNode next = entry.GetNext(RoutineIndex);
+                RoutineIndex++;
+
+                if (next == null)
+                {
+                    entry = routine.GetNextEntry(RoutineId);
+                    RoutineId = entry.Id;
+                    next = entry.GetInitial();
+                    RoutineIndex = 0;
+                }
+            }
+        }
+
+        public void UpdateDestination()
+        {
+
+        }
+
+        public Vector2 GetPosition()
+        {
+            Character character = Engine.GetCharacter(Id);
+
+            if (Location == null && Destination == null)
+                return character.DefaultLocation.Vector;
+
+            if (Destination == null)
+                return Location.Vector;
+
+            return Destination.Path.GetCurrentPosition(DateTime.UtcNow);
+        }
     }
 }

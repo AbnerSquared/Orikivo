@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orikivo.Drawing;
 
 namespace Orikivo.Desync
 {
@@ -31,16 +32,19 @@ namespace Orikivo.Desync
         public string Id { get; set; }
 
         /// <summary>
-        /// Represents a <see cref="Husk"/>'s relative x-coordinate in a <see cref="Location"/>.
+        /// Represents a relative x-coordinate in a <see cref="Location"/>.
         /// </summary>
         [JsonProperty("x")]
         public float X { get; set; }
 
         /// <summary>
-        /// Represents a <see cref="Husk"/>'s relative y-coordinate in a <see cref="Location"/>.
+        /// Represents a relative y-coordinate in a <see cref="Location"/>.
         /// </summary>
         [JsonProperty("y")]
         public float Y { get; set; }
+
+        [JsonIgnore]
+        public Vector2 Vector => new Vector2(X, Y);
 
         [JsonIgnore]
         public float Longitude { get; }
@@ -52,16 +56,16 @@ namespace Orikivo.Desync
         /// Returns the <see cref="LocationType"/> at which the <see cref="Husk"/> is currently at.
         /// </summary>
         public LocationType GetInnerType()
-            => GetLocation()?.Type ?? throw new ResultNotFoundException("Could not find a location with the specified ID.");
+            => GetLocation().Type;
 
         /// <summary>
         /// Returns the name of the <see cref="Location"/> at which the <see cref="Husk"/> is currently at.
         /// </summary>
         public string GetInnerName()
-            => GetLocation()?.Name ?? throw new ResultNotFoundException("Could not find a location with the specified ID.");
+            => GetLocation().Name;
 
         public Location GetLocation()
-            => Engine.World.Find(Id);
+            => Engine.World.Find(Id) ?? throw new ResultNotFoundException("Could not find a location with the specified ID.");
 
         /// <summary>
         /// Returns a string that summarizes this location.
@@ -69,7 +73,7 @@ namespace Orikivo.Desync
         /// <returns></returns>
         public string Summarize()
         {
-            return Engine.GetLocationSummary(Id);
+            return Engine.WriteLocationInfo(Id);
         }
     }
 }

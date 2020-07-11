@@ -1,10 +1,6 @@
 ﻿using Orikivo.Drawing;
-using Orikivo.Drawing.Graphics2D;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 
 namespace Orikivo.Desync
 {
@@ -16,7 +12,7 @@ namespace Orikivo.Desync
     {
         // TODO: Transfer to .JSON file.
         public static World World => new World()
-        {
+        {   // Okonos
             Id = "world0",
             Name = "Okonos",
             Perimeter = new Vector2(512, 512),
@@ -24,10 +20,8 @@ namespace Orikivo.Desync
             // sectors are 1/4 of the distance ratio
             Sectors = new List<Sector>
             {
-                new Sector(new Vector2(16, 356), SectorScale.Small)
+                new Sector("sector0", "Sector 0", new Vector2(16, 356), SectorScale.Small)
                 {
-                    Id = "sector0",
-                    Name = "Sector 0",
                     Exterior = new Sprite(@"..\assets\exterior\exterior_test.png"),
                     Entrance = new Vector2(0, 16),
                     Structures = new List<Structure>
@@ -36,14 +30,14 @@ namespace Orikivo.Desync
                         {
                             Id = "str_decor",
                             Name = "The Devoid Fountain",
-                            Perimeter = new RegionF(35, 23, 1, 1),
+                            Shape = new RegionF(35, 23, 1, 1),
                             Type = StructureType.Decoration
                         },
                         new Structure
                         {
                             Id = "str_tent",
                             Name = "Tent",
-                            Perimeter = new RegionF(63, 63, 1, 1),
+                            Shape = new RegionF(63, 63, 1, 1),
                             Type = StructureType.Tent
                         }
                     },
@@ -53,17 +47,15 @@ namespace Orikivo.Desync
                         {
                             Id = "area0",
                             Name = "Area A",
-                            Perimeter = new RegionF(0, 0, 32, 32),
+                            Shape = new RegionF(0, 0, 32, 32),
                             Entrances = new List<Vector2>
                             {
                                 new Vector2(32, 15)
                             },
                             Constructs = new List<Construct>
                             {
-                                new Market
+                                new Market("mk0", "Market A1")
                                 {
-                                    Id = "mk0",
-                                    Name = "Market A1",
                                     CanBuyFrom = true,
                                     CanSellFrom = true,
                                     SellRate = 0.7f,
@@ -80,14 +72,9 @@ namespace Orikivo.Desync
                                         {
                                             Id = "vendor0",
                                             Name = "Vendor",
-                                            Personality = new Personality
-                                            {
-                                                Mind = MindType.Extravert,
-                                                Energy = EnergyType.Intuitive,
-                                                Nature = NatureType.Thinking,
-                                                Tactics = TacticType.Judging,
-                                                Identity = IdentityType.Assertive
-                                            },
+                                            // 0b MIND ENERGY NATURE TACTICS IDENTITY
+                                            // 0b    1      1      0       0        0
+                                            Personality = new Personality(0b11000),
                                             Schedule = new Schedule
                                             {
                                                 Shifts = new List<Shift>
@@ -99,101 +86,14 @@ namespace Orikivo.Desync
                                                 }
                                             }
                                         }
-                                    },
-                                    Npcs = new List<Character>
-                                    {
-                                        new Character
-                                        {
-                                            Id = "theta",
-                                            Name = "Theta",
-                                            Personality = new Personality
-                                            {
-                                                Mind = MindType.Extravert,
-                                                Energy = EnergyType.Intuitive,
-                                                Nature = NatureType.Thinking,
-                                                Tactics = TacticType.Judging,
-                                                Identity = IdentityType.Assertive
-                                            }
-                                        },
                                     }
                                 },
-                                new Construct
+                                new Construct("ctr0", "Construct A1"),
+                                new Highrise("construct0", "Construct G1")
                                 {
-                                    Id = "ctr0",
-                                    Name = "Construct A1",
-                                    Npcs = new List<Character>
-                                    {
-                                        new Character
-                                        {
-                                            Id = "alpha",
-                                            Name = "Alpha",
-                                            Personality = new Personality
-                                            {
-                                                Mind = MindType.Extravert,
-                                                Energy = EnergyType.Intuitive,
-                                                Nature = NatureType.Thinking,
-                                                Tactics = TacticType.Judging,
-                                                Identity = IdentityType.Assertive
-                                            }
-                                        },
-                                        new Character
-                                        {
-                                            Id = "beta",
-                                            Name = "Beta",
-                                            Personality = new Personality
-                                            {
-                                                Mind = MindType.Extravert,
-                                                Energy = EnergyType.Intuitive,
-                                                Nature = NatureType.Thinking,
-                                                Tactics = TacticType.Judging,
-                                                Identity = IdentityType.Assertive
-                                            }
-                                        }
-                                    }
-                                },
-                                new Highrise
-                                {
-                                    Id = "construct0",
-                                    Name = "Construct G1",
                                     Floors = new List<Floor>
                                     {
-                                        new Floor
-                                        {
-                                            Id = "floor0",
-                                            Index = 0,
-                                            Npcs = new List<Character>
-                                            {
-                                                new Character
-                                                {
-                                                    Id = "npc0",
-                                                    Name = "NPC A1.1",
-                                                    Personality = new Personality
-                                                    {
-                                                        Mind = MindType.Extravert,
-                                                        Energy = EnergyType.Intuitive,
-                                                        Nature = NatureType.Thinking,
-                                                        Tactics = TacticType.Judging,
-                                                        Identity = IdentityType.Assertive
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            Npcs = new List<Character>
-                            {
-                                new Character
-                                {
-                                    Id = "guide",
-                                    Name = "Area Guide",
-                                    Personality = new Personality
-                                    {
-                                        Mind = MindType.Extravert,
-                                        Energy = EnergyType.Intuitive,
-                                        Nature = NatureType.Thinking,
-                                        Tactics = TacticType.Judging,
-                                        Identity = IdentityType.Assertive
+                                        new Floor(0, "floor0")
                                     }
                                 }
                             }
@@ -202,45 +102,20 @@ namespace Orikivo.Desync
                         {
                             Id = "area1",
                             Name = "Area B",
-                            Perimeter = new RegionF(47, 47, 16, 16),
+                            Shape = new RegionF(47, 47, 16, 16),
                             Entrances = new List<Vector2>
                             {
                                 new Vector2(47, 55)
                             },
                             Constructs = new List<Construct>
                             {
-                                new Highrise
+                                new Highrise("construct1", "Construct B1")
                                 {
-                                    Id = "construct1",
-                                    Name = "Construct B1",
                                     Floors = new List<Floor>
                                     {
-                                        new Floor
-                                        {
-                                            Index = 0,
-                                            Npcs = new List<Character>
-                                            {
-                                                new Character
-                                                {
-                                                    Id = "npc1",
-                                                    Name = "NPC B1.1",
-                                                    Personality = new Personality
-                                                    {
-                                                        Mind = MindType.Extravert,
-                                                        Energy = EnergyType.Intuitive,
-                                                        Nature = NatureType.Thinking,
-                                                        Tactics = TacticType.Judging,
-                                                        Identity = IdentityType.Assertive
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        new Floor(0)
                                     }
                                 }
-                            },
-                            Npcs = new List<Character>
-                            {
-
                             }
                         }
                     }
@@ -347,489 +222,185 @@ namespace Orikivo.Desync
 
         public static Dictionary<string, Booster> Boosters => new Dictionary<string, Booster>();
 
-        // TODO: Compress Dialogue to be stored within a .json file or something easier to make
-        // loading them easier.
-        public static Dictionary<string, DialoguePool> Dialogue => new Dictionary<string, DialoguePool>
+        public static Dictionary<string, DialogTree> Dialogs => new Dictionary<string, DialogTree>
         {
-            ["test"] = new DialoguePool
+            ["test"] = new DialogTree("test", true)
             {
-                Generic = true,
-                Entry = "Hello.",
-                Exit = "Sorry, but I have to go.",
-                Timeout = "Sorry, but I have to go.",
-                Dialogue = new List<Dialogue>
+                OnTimeout = "Sorry, but I have to go.",
+                OnUnavailable = "Look, something came up. I'll talk later.",
+                Branches = new List<DialogBranch>
                 {
-                    new Dialogue
+                    new DialogBranch("branch0", DialogUsage.Always)
                     {
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Id = "1",
-                        Entries = new List<string>
+                        Values = new List<Dialog>
                         {
-                            "How are you?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "2"
-                        }
-                    },
+                            new Dialog("1", DialogType.Initial, DialogTone.Neutral, "How are you?")
+                            { ReplyIds = new List<string>{ "2" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Neutral,
-                        Id = "2",
-                        Entries = new List<string>
-                        {
-                            "I'm okay. Thank you for asking."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("2", DialogType.Answer, DialogTone.Neutral, "I'm okay. Thank you for asking."),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Id = "3",
-                        Entries = new List<string>
-                        {
-                            "how much wood can a woodchuck chuck if a woodchuck could chuck wood"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "4"
-                        }
-                    },
+                            new Dialog("3", DialogType.Initial, DialogTone.Neutral, "How much wood can a woodchuck chuck if a woodchuck could chuck wood?")
+                            { ReplyIds = new List<string>{ "4" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Confused,
-                        Id = "4",
-                        Entries = new List<string>
-                        {
-                            "what does that even mean"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "5"
-                        }
-                    },
+                            new Dialog("4", DialogType.Reply, DialogTone.Confused, "What does that even mean?")
+                            { ReplyIds = new List<string>{ "5" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "5",
-                        Entries = new List<string>
-                        {
-                            "/shrug"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "6"
-                        }
-                    },
+                            new Dialog("5", DialogType.Reply, DialogTone.Neutral, "/shrug")
+                            { ReplyIds = new List<string> { "6" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Neutral,
-                        Id = "6",
-                        Entries = new List<string>
-                        {
-                            "ok boomer"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("6", DialogType.Answer, DialogTone.Neutral, "Yeah. Okay, boomer."),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Id = "7",
-                        Entries = new List<string>
-                        {
-                            "Do you like water?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "8",
-                            "9"
-                        }
-                    },
+                            new Dialog("7", DialogType.Initial, DialogTone.Neutral, "Do you like water?")
+                            { ReplyIds = new List<string> { "8", "9" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Confused,
-                        Id = "8",
-                        Entries = new List<string>
-                        {
-                            "Considering we need it to live, yeah. Anything else?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("8", DialogType.Answer, DialogTone.Confused, "Considering that we need it to live, yeah. Anything else?"),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Question,
-                        Tone = DialogTone.Happy,
-                        Id = "9",
-                        Entries = new List<string>
-                        {
-                            "Water is pretty epic. What about you?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "10",
-                            "11"
-                        }
-                    },
+                            new Dialog("9", DialogType.Question, DialogTone.Happy, "Water is pretty epic. What about you?")
+                            { ReplyIds = new List<string> { "10", "11" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "10",
-                        Entries = new List<string>
-                        {
-                            "it be vibin"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "12"
-                        }
-                    },
+                            new Dialog("10", DialogType.Reply, DialogTone.Neutral, "It really do be vibin'.")
+                            { ReplyIds = new List<string> { "12" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "11",
-                        Entries = new List<string>
-                        {
-                            "I do not like it. Too water-y."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "6"
-                        }
-                    },
+                            new Dialog("11", DialogType.Reply, DialogTone.Neutral, "I don't think I do. It's too water-y.")
+                            { ReplyIds = new List<string> { "6" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Confused,
-                        Id = "12",
-                        Entries = new List<string>
-                        {
-                            "..."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("12", DialogType.Answer, DialogTone.Confused, "..."),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Id = "13",
-                        Entries = new List<string>
-                        {
-                            "Anything new?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "14",
-                            "19"
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "14",
-                        Entries = new List<string>
-                        {
-                            "I met up with someone called a 'Pocket Lawyer'. They were the size of my palm, but got me out of debt."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "15"
-                        }
-                    },
+                            new Dialog("13", DialogType.Initial, DialogTone.Neutral, "Anything new?")
+                            { ReplyIds = new List<string> { "14", "19" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "15",
-                        Entries = new List<string>
-                        {
-                            "woah wait what?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "16"
-                        }
-                    },
+                            new Dialog("14", DialogType.Reply, DialogTone.Neutral,
+                                new DialogEntry("I met up with someone that calls themselves a 'pocket lawyer'.",
+                                    "They were the size of my palm, but the debt that they got me out of was insane."))
+                            { ReplyIds = new List<string> { "15" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Happy,
-                        Id = "16",
-                        Entries = new List<string>
-                        {
-                            "Yeah, it was bizarre. ORS got nothin' on me now."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "17"
-                        }
-                    },
+                            new Dialog("15", DialogType.Reply, DialogTone.Neutral, "Woah... Wait, what?")
+                            { ReplyIds = new List<string> { "16" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "17",
-                        Entries = new List<string>
-                        {
-                            "ORS?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "18"
-                        }
-                    },
+                            new Dialog("16", DialogType.Reply, DialogTone.Happy, "Yeah, it was bizzare. ORS has no trace of me as of now!")
+                            { ReplyIds = new List<string> { "17" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Neutral,
-                        Id = "18",
-                        Entries = new List<string>
-                        {
-                            "I'd prefer if we don't delve into the topic. Anything else on your mind?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("17", DialogType.Reply, DialogTone.Neutral, "What's ORS?")
+                            { ReplyIds = new List<string> { "18" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Shocked,
-                        Id = "19",
-                        Entries = new List<string>
-                        {
-                            "Did you know there's so much more to this world than the sector we live in? I hope I can go out there one day."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "20"
-                        }
-                    },
+                            new Dialog("18", DialogType.Answer, DialogTone.Neutral, "Uh... I'd prefer if we don't talk about them. Anything else on your mind?"),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Reply,
-                        Tone = DialogTone.Neutral,
-                        Id = "20",
-                        Entries = new List<string>
-                        {
-                            "I wish you luck."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "21"
-                        }
-                    },
+                            new Dialog("19", DialogType.Reply, DialogTone.Shocked,
+                                new DialogEntry("There's so much more to this world than the sector we live in.",
+                                    "I hope I can go out there one day."))
+                            { ReplyIds = new List<string> { "20" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Happy,
-                        Id = "21",
-                        Entries = new List<string>
-                        {
-                            "Thanks. Anything else you wanted to talk about?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
+                            new Dialog("20", DialogType.Reply, DialogTone.Neutral, "I wish you luck.")
+                            { ReplyIds = new List<string> { "21" } },
 
-                    new Dialogue
-                    {
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Id = "22",
-                        Entries = new List<string>
-                        {
-                            "I gotta go."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "23"
-                        }
-                    },
+                            new Dialog("21", DialogType.Answer, DialogTone.Happy, "Thanks. Anything else?"),
 
-                    new Dialogue
-                    {
-                        Type = DialogType.End,
-                        Tone = DialogTone.Neutral,
-                        Id = "23",
-                        Entries = new List<string>
-                        {
-                            "See ya."
-                        },
-                        ReplyIds = new List<string>
-                        {
+                            new Dialog("22", DialogType.Initial, DialogTone.Neutral, "I gotta go.")
+                            { ReplyIds = new List<string> { "23" } },
+
+                            new Dialog("23", DialogType.End, DialogTone.Neutral, "See ya.")
                         }
                     }
-
                 }
             },
-            ["rand0"] = new DialoguePool
+            ["rand0"] = new DialogTree("rand0", true)
             {
-                Generic = true,
-                Entry = "Yo.",
-                Timeout = "Gotta bounce.",
-                Dialogue = new List<Dialogue>
+                OnTimeout = "Gotta bounce.",
+                OnUnavailable = "Gotta bounce.",
+                Branches = new List<DialogBranch>
                 {
-                    new Dialogue
+                    new DialogBranch("r0b0", DialogUsage.Always)
                     {
-                        Id = "0",
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
+                        Values = new List<Dialog>
                         {
-                            "What the heck is this?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "3"
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "3",
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
-                        {
-                            "Nobody knows. Why'd you even walk up to me in the first place?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "1",
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
-                        {
-                            "I'm outta here."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "2"
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "2",
-                        Type = DialogType.End,
-                        Tone = DialogTone.Happy,
-                        Entries = new List<string>
-                        {
-                            "See you around!"
-                        },
-                        ReplyIds = new List<string>
-                        {
+                            new Dialog("0", DialogType.Initial, DialogTone.Neutral, "What the heck is this?")
+                            { ReplyIds = new List<string> { "3" } },
 
+                            new Dialog("1", DialogType.Initial, DialogTone.Neutral, "I'm outta here.")
+                            { ReplyIds = new List<string> { "2" } },
+
+                            new Dialog("2", DialogType.End, DialogTone.Neutral, "See ya."),
+
+                            new Dialog("3", DialogType.Answer, DialogTone.Shocked, "Nobody knows. Why'd you even walk up to me in the first place?")
                         }
                     }
-                },
-                Exit = "Peace."
+                }
             },
-            ["rand1"] = new DialoguePool
+            ["rand1"] = new DialogTree("rand1", true)
             {
-                Generic = true,
-                Entry = "Yo.",
-                Timeout = "Gotta bounce.",
-                Dialogue = new List<Dialogue>
+                OnTimeout = "Peace.",
+                OnUnavailable = "Peace.",
+                Branches = new List<DialogBranch>
                 {
-                    new Dialogue
+                    new DialogBranch("r0b0", DialogUsage.Always)
                     {
-                        Id = "0",
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
+                        Values = new List<Dialog>
                         {
-                            "Who are you?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "3"
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "3",
-                        Type = DialogType.Answer,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
-                        {
-                            "Does it matter?"
-                        },
-                        ReplyIds = new List<string>
-                        {
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "1",
-                        Type = DialogType.Initial,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
-                        {
-                            "I need to go."
-                        },
-                        ReplyIds = new List<string>
-                        {
-                            "2"
-                        }
-                    },
-                    new Dialogue
-                    {
-                        Id = "2",
-                        Type = DialogType.End,
-                        Tone = DialogTone.Neutral,
-                        Entries = new List<string>
-                        {
-                            "Goodbye."
-                        },
-                        ReplyIds = new List<string>
-                        {
+                            new Dialog("0", DialogType.Initial, DialogTone.Neutral, "Who are you?")
+                            { ReplyIds = new List<string> { "3" } },
 
+                            new Dialog("1", DialogType.Initial, DialogTone.Neutral, "I need to go.")
+                            { ReplyIds = new List<string> { "2" } },
+
+                            new Dialog("2", DialogType.End, DialogTone.Neutral, "Goodbye."),
+
+                            new Dialog("3", DialogType.Answer, DialogTone.Neutral, "Does it matter?")
                         }
                     }
-                },
-                Exit = "Peace."
+                }
+            }
+        };
+
+        public static Dictionary<string, Character> Characters => new Dictionary<string, Character>
+        {
+            ["foxtrot"] = new Character
+            {
+                Id = "foxtrot",
+                Name = "Foxtrot",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "sector0", 32, 32)
+            },
+            ["theta"] = new Character
+            {
+                Id = "theta",
+                Name = "Theta",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "mk0", 0, 0)
+            },
+            ["alpha"] = new Character
+            {
+                Id = "alpha",
+                Name = "Alpha",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "area1", 0, 0)
+            },
+            ["beta"] = new Character
+            {
+                Id = "beta",
+                Name = "Beta",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "ctr0", 0, 0)
+            },
+            ["npc0"] = new Character
+            {
+                Id = "npc0",
+                Name = "NPC A1.1",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "construct1", 0, 0)
+            },
+            ["guide"] = new Character
+            {
+                Id = "guide",
+                Name = "Area Guide",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "area0", 0, 0)
+            },
+            ["npc1"] = new Character
+            {
+                Id = "npc1",
+                Name = "NPC B1.1",
+                Personality = new Personality(0b11000),
+                DefaultLocation = new Locator("", "construct0", 0, 0)
             }
         };
 

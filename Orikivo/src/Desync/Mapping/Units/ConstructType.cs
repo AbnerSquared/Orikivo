@@ -19,12 +19,6 @@
         /// </summary>
         Market = 4,
 
-        /// <summary>
-        /// Defines the <see cref="Construct"/> as a <see cref="Desync.Casino"/>.
-        /// </summary>
-        Casino = 8,
-
-        Floor = 16
+        Floor = 8
     }
-
 }

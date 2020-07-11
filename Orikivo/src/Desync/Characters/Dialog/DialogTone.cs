@@ -2,7 +2,7 @@
 {
     // Maybe change the name of this to Expression OR Mood.
     /// <summary>
-    /// Represents the mood that a <see cref="Dialogue"/> outputs.
+    /// Represents the mood that a <see cref="Dialog"/> outputs.
     /// </summary>
     public enum DialogTone
     {
@@ -11,14 +11,6 @@
         Sad = 3,
         Confused = 4,
         Shocked = 5
-    }
-
-    public class ToneModifier
-    {
-        public DialogTone Tone { get; set; }
-
-        // the strength of a specified tone.
-        public float Impact { get; set; }
     }
 
 }

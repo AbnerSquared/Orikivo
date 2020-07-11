@@ -9,12 +9,27 @@ namespace Orikivo.Desync
     /// </summary>
     public class Construct : Location
     {
+        public Construct()
+        {
+            CanUseDecor = true;
+        }
+
+        public Construct(string id, string name) : this()
+        {
+            Id = id;
+            Name = name;
+        }
+
         public override LocationType Type => LocationType.Construct;
+
+        protected bool CanUseDecor { get; set; }
 
         /// <summary>
         /// Represents the background that is used for an <see cref="Character"/> when talking.
         /// </summary>
         public Sprite Interior { get; set; }
+
+        public List<Decor> Decors { get; set; } = new List<Decor>();
 
         public ConstructType Tag { get; set; } = ConstructType.Default;
 

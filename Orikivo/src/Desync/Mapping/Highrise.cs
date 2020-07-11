@@ -12,8 +12,35 @@ namespace Orikivo.Desync
         public Highrise()
         {
             Tag = ConstructType.Highrise;
+            CanUseDecor = false;
         }
-        public List<Floor> Floors { get; set; }
+
+        public Highrise(string id, string name) : this()
+        {
+            Id = id;
+            Name = name;
+        }
+
+
+        private List<Floor> _floors = new List<Floor>();
+
+        public List<Floor> Floors
+        {
+            get => _floors;
+            set
+            {
+                if (value?.Count == 0)
+                {
+                    _floors.Clear();
+                    return;
+                }
+
+                foreach (Floor floor in value)
+                {
+                    floor.ParentId = Id;
+                }
+            }
+        }
 
         public Floor GetFloor(int level)
         {

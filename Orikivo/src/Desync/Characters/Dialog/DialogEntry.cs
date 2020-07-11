@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Orikivo.Desync
 {
@@ -21,5 +22,11 @@ namespace Orikivo.Desync
         public ReplyCriterion Criterion { get; set; }
 
         // TODO: add weight onto entries to give others a larger chance of occurring.
+    
+        public static implicit operator DialogEntry(string s)
+            => new DialogEntry(s);
+
+        public override string ToString()
+            => Content?.Count() > 0 ? string.Join(" ", Content) : "NULL_ENTRY";
     }
 }

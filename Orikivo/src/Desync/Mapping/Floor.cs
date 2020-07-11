@@ -8,6 +8,13 @@
         public Floor()
         {
             Tag = ConstructType.Floor;
+            CanUseDecor = true;
+        }
+
+        public Floor(int index, string id = null) : this()
+        {
+            Index = index;
+            Id = id;
         }
 
         internal string ParentId;

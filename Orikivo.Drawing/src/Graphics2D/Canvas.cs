@@ -34,8 +34,13 @@ namespace Orikivo.Drawing.Graphics2D
             Pixels.Clear(color);
         }
 
-        public void Stamp(Image image)
-        { }
+        public void Stamp(Grid<Color> pixels, int x, int y)
+        {
+            Pixels.SetRegion(pixels, x, y);
+        }
+
+        //public void Stamp(Image image)
+        //{ }
 
         // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         // https://www.geeksforgeeks.org/mid-point-circle-drawing-algorithm/
@@ -188,6 +193,11 @@ namespace Orikivo.Drawing.Graphics2D
             }
 
             return pixels;
+        }
+
+        public Bitmap Build()
+        {
+            return GraphicsUtils.CreateArgbBitmap(Pixels.Values);
         }
     }
 }
