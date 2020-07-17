@@ -8,7 +8,21 @@ namespace Orikivo.Drawing.Animating
 {
     public class TimelineAnimator : IAnimator
     {
-        private List<TimelineLayer> _layers = new List<TimelineLayer>();
+        public TimelineAnimator() { }
+
+        public TimelineAnimator(TimeSpan frameLength, int width, int height, int? repeatCount = null)
+        {
+            RepeatCount = repeatCount;
+            FrameLength = frameLength;
+            Viewport = new Size(width, height);
+        }
+
+        public TimelineAnimator(TimeSpan frameLength, Size viewport, int? repeatCount = null)
+        {
+            RepeatCount = repeatCount;
+            FrameLength = frameLength;
+            Viewport = viewport;
+        }
 
         public int? RepeatCount { get; set; }
 
@@ -18,21 +32,21 @@ namespace Orikivo.Drawing.Animating
 
         public long Ticks { get; set; }
 
-        public IReadOnlyList<TimelineLayer> Layers => _layers;
+        public List<TimelineLayer> Layers { get; } = new List<TimelineLayer>();
 
         public bool Disposed { get; protected set; } = false;
 
         public void AddLayer(TimelineLayer layer)
-            => _layers.Add(layer);
+            => Layers.Add(layer);
 
         public MemoryStream Compile(TimeSpan frameLength, Quality quality = Quality.Bpp8)
         {
             if (Disposed)
                 throw new ObjectDisposedException("Layers");
 
-            MemoryStream animation = new MemoryStream();
+            var animation = new MemoryStream();
 
-            using (GifEncoder encoder = new GifEncoder(animation, Viewport.Width, Viewport.Height))
+            using (var encoder = new GifEncoder(animation, Viewport.Width, Viewport.Height))
             {
                 encoder.FrameLength = frameLength;
                 encoder.Quality = quality;
@@ -50,7 +64,7 @@ namespace Orikivo.Drawing.Animating
 
         public Frame CompileFrameAt(long tick)
         {
-            Bitmap frame = new Bitmap(Viewport.Width, Viewport.Height);
+            var frame = new Bitmap(Viewport.Width, Viewport.Height);
             
             using Graphics g = Graphics.FromImage(frame);
 

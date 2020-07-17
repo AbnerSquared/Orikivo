@@ -8,7 +8,22 @@ namespace Orikivo.Drawing.Animating
 {
     public class Animator : IAnimator
     {
-        private List<Frame> _frames = new List<Frame>();
+        public Animator() { }
+
+        public Animator(TimeSpan frameLength, int width, int height, int? repeatCount = null)
+        {
+            RepeatCount = repeatCount;
+            FrameLength = frameLength;
+            Viewport = new Size(width, height);
+        }
+
+        public Animator(TimeSpan frameLength, Size viewport, int? repeatCount = null)
+        {
+            RepeatCount = repeatCount;
+            FrameLength = frameLength;
+            Viewport = viewport;
+        
+        }
 
         public int? RepeatCount { get; set; }
 
@@ -16,24 +31,24 @@ namespace Orikivo.Drawing.Animating
 
         public Size Viewport { get; set; }
 
-        public IReadOnlyList<Frame> Frames => _frames;
+        public List<Frame> Frames { get; } = new List<Frame>();
 
         public bool Disposed { get; protected set; } = false;
 
         public void AddFrame(Frame frame)
-            => _frames.Add(frame);
+            => Frames.Add(frame);
 
         public void AddFrames(IEnumerable<Frame> frames)
-            => _frames.AddRange(frames);
+            => Frames.AddRange(frames);
 
         public void AddFrames(params Frame[] frames)
-            => _frames.AddRange(frames);
+            => Frames.AddRange(frames);
 
         public void UpdateFrameAt(int index, Frame frame)
-            => _frames[index] = frame;
+            => Frames[index] = frame;
 
         public void RemoveFrameAt(int index)
-            => _frames.RemoveAt(index);
+            => Frames.RemoveAt(index);
 
         public MemoryStream Compile(TimeSpan frameLength, Quality quality = Quality.Bpp8)
         {
@@ -56,7 +71,7 @@ namespace Orikivo.Drawing.Animating
             if (Disposed)
                 return;
 
-            foreach (Frame frame in _frames)
+            foreach (Frame frame in Frames)
                 frame.Dispose();
 
             Disposed = true;

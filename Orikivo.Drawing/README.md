@@ -1,14 +1,10 @@
 # Orikivo.Drawing
-An extensive library that utilizes System.Drawing to create pixel-perfect images.
+This is a C# library that offers mathematics and image processing to help simplify common methods that might be missing in `System.Drawing`.
 
-## Usage
-This library is meant for pixel art imagery, providing easy methods to design and create image templates with ease.
+## Contents
+- `Sprite`: An image reference.
+- `Sheet`: An image reference that supports image grid cropping.
+- `Drawable`: A class that supports image layering, padding, and more.
+- `Orikivo.Drawing.Graphics2D`: TBF
+- `Orikivo.Drawing.Graphics3D`: TBF
 
-- Fillable shapes
-- Outlining
-- Resize and scaling methods
-- Layering
-- Animation
-- Template support
-- Barebones 3D framework
-- Pixel-by-pixel manipulation
