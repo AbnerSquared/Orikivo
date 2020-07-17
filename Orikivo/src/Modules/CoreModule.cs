@@ -10,7 +10,7 @@ namespace Orikivo
 {
     [Name("Core")]
     [Summary("Defines all core commands.")]
-    public class CoreModule : OriModuleBase<OriCommandContext>
+    public class CoreModule : OriModuleBase<DesyncContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly InfoService _info;
@@ -20,13 +20,13 @@ namespace Orikivo
             _info = info;
         }
 
-        [Command("ping")]
+        [Command("latency"), Alias("ping")]
         public async Task PingAsync()
             => await CoreProvider.PingAsync(Context.Channel, Context.Client);
 
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]
-        public async Task GetHelpInfoAsync([Remainder][Summary("The **InfoContext** that defines your search.")]string context = null)
+        public async Task HelpAsync([Remainder][Summary("The **InfoContext** that defines your search.")]string context = null)
         {
             try
             {

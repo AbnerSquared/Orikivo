@@ -47,27 +47,22 @@ namespace Orikivo.Drawing
         }
 
         public int Height { get; private set; }
+
         public int X { get; set; } = 0;
+
         public int Y { get; set; } = 0;
+
         public void MoveX(int len)
         {
             LastPos = (X, LastPos.Y);
-            /* handle resetting; think of a typewriter
-            if (_maxWidth < X + len)
-            {
-                ResetX();
-                X += len;
-            }
-            */
 
             X += len;
-            //Console.WriteLine($"Pointer.ShiftX: {len}");
         }
+
         public void MoveY(int len)
         {
             LastPos = (LastPos.X, Y);
             Y += len;
-            //Console.WriteLine($"Pointer.ShiftY: {len}");
             if (Y > Height)
                 Height = Y;
         }
@@ -75,7 +70,6 @@ namespace Orikivo.Drawing
         public void ResetX()
         {
             Rows.Add(X);
-            //Console.WriteLine($"Pointer.Rows.Add: {X}");
             X = _leftPadding;
         }
 

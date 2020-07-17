@@ -22,7 +22,7 @@ namespace Orikivo.Drawing.Graphics3D
 
         public GammaPalette Palette { get; set; }
 
-        public GammaColor BackgroundColor { get; set; }
+        public ImmutableColor BackgroundColor { get; set; }
 
         public Vector3 Position { get; set; }
         public Vector3 Rotation { get; set; }

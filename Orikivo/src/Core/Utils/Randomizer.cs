@@ -210,16 +210,16 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Returns a random <see cref="GammaColor"/> by a raw Unicode value.
+        /// Returns a random <see cref="ImmutableColor"/> by a raw Unicode value.
         /// </summary>
-        public static GammaColor NextColor()
-            => new GammaColor((uint)RandomProvider.Instance.Next(0x000000, 0xFFFFFF));
+        public static ImmutableColor NextColor()
+            => new ImmutableColor((uint)RandomProvider.Instance.Next(0x000000, 0xFFFFFF));
 
         /// <summary>
-        /// Returns a random <see cref="GammaColor"/> by hue.
+        /// Returns a random <see cref="ImmutableColor"/> by hue.
         /// </summary>
-        public static GammaColor NextColorHue()
-            => GammaColor.FromHsl(Next(RangeF.Degree), 0.0f, 1.0f);
+        public static ImmutableColor NextColorHue()
+            => ImmutableColor.FromHsl(Next(RangeF.Degree), 0.0f, 1.0f);
 
         /// <summary>
         /// Returns a <see cref="bool"/> at random.

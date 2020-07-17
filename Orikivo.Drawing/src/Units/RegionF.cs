@@ -2,6 +2,7 @@
 
 namespace Orikivo.Drawing
 {
+    // NOTE: RectangleF
     /// <summary>
     /// Represents a rectangular floating-point region.
     /// </summary>
@@ -39,7 +40,7 @@ namespace Orikivo.Drawing
 
         public Vector2 Position => new Vector2(X, Y);
 
-        public Vector2 Origin => new Vector2(X + (Width / 2), Y + (Height / 2));
+        public Vector2 Midpoint => new Vector2(X + (Width / 2), Y + (Height / 2));
 
         public float Left => X;
 

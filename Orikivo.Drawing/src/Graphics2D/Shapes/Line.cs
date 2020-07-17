@@ -50,6 +50,7 @@ namespace Orikivo.Drawing.Graphics2D
         }
 
         public float DeltaX => B.X - A.X;
+
         public float DeltaY => B.Y - A.X;
 
         public float Slope => DeltaY / DeltaX;

@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Orikivo.Drawing
 {
+    // TODO: Implement Grid<T>.ConvertAll<TResult>()
     /// <summary>
     /// Represents a grid that allows for complex matrix manipulation.
     /// </summary>
@@ -40,7 +40,6 @@ namespace Orikivo.Drawing
             Values = values;
         }
 
-        // TODO: Implement a default value set-up for a jagged array, in case certain rows/columns are empty.
         /// <summary>
         /// Initializes a new <see cref="Grid{T}"/> from a jagged <see cref="Array"/>.
         /// </summary>
@@ -52,10 +51,21 @@ namespace Orikivo.Drawing
             Values = new T[height, width];
 
             for (int y = 0; y < height; y++)
+            {
                 for (int x = 0; x < width; x++)
+                {
                     if (y >= 0 && y <= values.GetUpperBound(0))
+                    {
                         if (x >= 0 && x <= values[y].GetUpperBound(0))
+                        {
                             Values[y, x] = values[y][x];
+                            continue;
+                        }
+                    }
+
+                    Values[y, x] = defaultValue;
+                }
+            }
         }
 
         /// <summary>
@@ -78,13 +88,13 @@ namespace Orikivo.Drawing
         /// </summary>
         public int Count => Values.Length;
 
-        public System.Drawing.Size Size => new System.Drawing.Size(Values.GetLength(1), Values.GetLength(0));
+        public Unit Size => new Unit(Values.GetLength(1), Values.GetLength(0));
 
         public IEnumerator<T> GetEnumerator()
-            => new Enumerator<T>(this);
+            => new Enumerator(this);
 
         IEnumerator IEnumerable.GetEnumerator()
-            => new Enumerator<T>(this);
+            => new Enumerator(this);
 
         /// <summary>
         /// Initializes a new <see cref="Grid{T}"/> with this <see cref="Grid{T}"/>'s current values.
@@ -92,13 +102,17 @@ namespace Orikivo.Drawing
         public Grid<T> Clone()
             => new Grid<T>(Values);
 
-        public Grid<TResult> ConvertAll<TResult>()
-        {
-            // TODO: Change how this method is handled, as it currently doesn't work as intended.
-            Grid<TResult> result = new Grid<TResult>(Width, Height);
-            result.SetEachValue((int x, int y, TResult z) => GetValue(x, y).CastObject<TResult>());
+        public bool Contains(int x, int y)
+            => (x >= 0 && x < Width && y >= 0 && y < Height);
 
-            return result;
+        /// <summary>
+        /// Clears the existing <see cref="Grid{T}"/> using a specified value.
+        /// </summary>
+        public void Clear(T value)
+        {
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    Values[y, x] = value;
         }
 
         /// <summary>
@@ -107,8 +121,8 @@ namespace Orikivo.Drawing
         /// <param name="selector">A transform function to apply to each element.</param>
         public Grid<TValue> Select<TValue>(Func<T, TValue> selector)
         {
-            Grid<TValue> result = new Grid<TValue>(Size);
-            ForEachValue((int x, int y, T t) => result.SetValue(selector.Invoke(t), x, y));
+            var result = new Grid<TValue>(Size);
+            ForEachValue((value, x, y) => result.SetValue(selector.Invoke(value), x, y));
 
             return result;
         }
@@ -121,7 +135,7 @@ namespace Orikivo.Drawing
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    if (!predicate.Invoke(GetValue(x, y)))
+                    if (!predicate.Invoke(Values[y, x]))
                         return false;
 
             return true;
@@ -133,69 +147,6 @@ namespace Orikivo.Drawing
         public void SetValue(T value, int x, int y)
         {
             Values[y, x] = value;
-        }
-
-        /// <summary>
-        /// Returns the row of the existing <see cref="Grid{T}"/> by a specified row index.
-        /// </summary>
-        public T[] GetRow(int y) // IEnumerable<T>
-        {
-            T[] row = new T[Width];
-
-            for (int x = 0; x < Width; x++)
-                row[x] = Values[y, x]; // yield return Values[y, x];
-            
-            // TODO: Compare if T[] or IEnumerable<T> is better.
-
-            return row;
-        }
-
-        /// <summary>
-        /// Sets all of the elements of a row to a specified value.
-        /// </summary>
-        /// <param name="y">The index of the row to set.</param>
-        /// <param name="value">The value that will be set for each element in the row.</param>
-        public void SetRow(int y, T value)
-        {
-            for (int x = 0; x < Width; x++)
-                Values[y, x] = value;
-        }
-
-        public void SetRow(int y, IEnumerable<T> values)
-        {
-            if (values.Count() > Width)
-                throw new ArgumentException("The row specified must be less than or equal to the width of the grid.");
-
-            for (int x = 0; x < Width; x++)
-                Values[y, x] = values.ElementAtOrDefault(x);
-        }
-
-        public void SetColumn(int x, IEnumerable<T> values)
-        {
-            if (values.Count() > Height)
-                throw new ArgumentException("The column specified must be less than or equal to the height of the grid.");
-
-            for (int y = 0; y < Height; y++)
-                Values[y, x] = values.ElementAtOrDefault(y);
-        }
-
-        /// <summary>
-        /// Returns the column of the existing <see cref="Grid{T}"/> by a specified column index.
-        /// </summary>
-        public T[] GetColumn(int x)
-        {
-            T[] column = new T[Height];
-
-            for (int y = 0; y < Height; y++)
-                column[y] = Values[y, x];
-
-            return column;
-        }
-
-        public void SetColumn(int x, T value)
-        {
-            for (int y = 0; y < Height; y++)
-                Values[y, x] = value;
         }
 
         public T GetValue(int x, int y)
@@ -220,15 +171,72 @@ namespace Orikivo.Drawing
             return Values[y, x];
         }
 
-        public bool Contains(int x, int y)
-            => (x >= 0 && x < Width && y >= 0 && y < Height);
+        /// <summary>
+        /// Sets all of the elements of a row to a specified value.
+        /// </summary>
+        /// <param name="y">The index of the row to set.</param>
+        /// <param name="value">The value that will be set for each element in the row.</param>
+        public void SetRow(int y, T value)
+        {
+            for (int x = 0; x < Width; x++)
+                Values[y, x] = value;
+        }
+
+        public void SetRow(int y, IEnumerable<T> values)
+        {
+            if (values.Count() > Width)
+                throw new ArgumentException("The row specified must be less than or equal to the width of the grid.");
+
+            for (int x = 0; x < Width; x++)
+                Values[y, x] = values.ElementAtOrDefault(x);
+        }
+
+        /// <summary>
+        /// Returns the row of the existing <see cref="Grid{T}"/> by a specified row index.
+        /// </summary>
+        public T[] GetRow(int y)
+        {
+            T[] row = new T[Width];
+
+            for (int x = 0; x < Width; x++)
+                row[x] = Values[y, x];
+            return row;
+        }
+
+        public void SetColumn(int x, T value)
+        {
+            for (int y = 0; y < Height; y++)
+                Values[y, x] = value;
+        }
+
+        public void SetColumn(int x, IEnumerable<T> values)
+        {
+            if (values.Count() > Height)
+                throw new ArgumentException("The column specified must be less than or equal to the height of the grid.");
+
+            for (int y = 0; y < Height; y++)
+                Values[y, x] = values.ElementAtOrDefault(y);
+        }
+
+        /// <summary>
+        /// Returns the column of the existing <see cref="Grid{T}"/> by a specified column index.
+        /// </summary>
+        public T[] GetColumn(int x)
+        {
+            T[] column = new T[Height];
+
+            for (int y = 0; y < Height; y++)
+                column[y] = Values[y, x];
+
+            return column;
+        }
 
         public Grid<T> GetRegion(int x, int y, int width, int height)
         {
             if (!Contains(x + width, y + height))
                 throw new ArgumentException("The region specified is out of bounds.");
 
-            Grid<T> region = new Grid<T>(width, height);
+            var region = new Grid<T>(width, height);
 
             for (int py = 0; py < height; py++)
                 for (int px = 0; px < width; px++)
@@ -237,14 +245,17 @@ namespace Orikivo.Drawing
             return region;
         }
 
+        // NOTE:
+        // Attempts to get the values of a partial region
+        // Anything out of the current bounds of the grid is left alone
         public Grid<T> GetPartialRegion(int x, int y, int width, int height)
         {
-            Grid<T> region = new Grid<T>(width, height);
+            var region = new Grid<T>(width, height);
 
             for (int py = 0; py < height; py++)
                 for (int px = 0; px < width; px++)
                     if (Contains(px + x, py + y))
-                        region.SetValue(GetValue(x + px, y + py), px, py);
+                        region.SetValue(Values[y + py, x + px], px, py);
 
             return region;
         }
@@ -263,6 +274,7 @@ namespace Orikivo.Drawing
         {
             int width = region.GetLength(1);
             int height = region.GetLength(0);
+
             if (!Contains(x + width, y + height))
                 throw new ArgumentException("The region specified is out of bounds.");
 
@@ -274,27 +286,53 @@ namespace Orikivo.Drawing
         public void SetRegion(Grid<T> region, int x, int y)
             => SetRegion(region.Values, x, y);
 
-        /// <summary>
-        /// Clears the existing <see cref="Grid{T}"/> using a specified value.
-        /// </summary>
-        public void Clear(T value)
+        public void SetEachValue(Func<T> action)
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    Values[y, x] = value;
+                    Values[y, x] = action.Invoke();
         }
 
-        public void SetEachValue(Func<int, int, T, T> action)
+        public void SetEachValue(Func<int, int, T> action)
         {
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    Values[y, x] = action.Invoke(x, y, Values[y, x]);
+                    Values[y, x] = action.Invoke(x, y);
         }
 
-        public void ForEachColumn(Action<T[]> action)
+        public void SetEachValue(Func<T, T> action)
         {
-            for (int x = 0; x < Width; x++)
-                action.Invoke(GetColumn(x));
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    Values[y, x] = action.Invoke(Values[y, x]);
+        }
+
+        public void SetEachValue(Func<T, int, int, T> action)
+        {
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    Values[y, x] = action.Invoke(Values[y, x], x, y);
+        }
+
+        public void ForEachValue(Action<int, int> action)
+        {
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    action.Invoke(x, y);
+        }
+
+        public void ForEachValue(Action<T> action)
+        {
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    action.Invoke(Values[y, x]);
+        }
+
+        public void ForEachValue(Action<T, int, int> action)
+        {
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    action.Invoke(Values[y, x], x, y);
         }
 
         public void ForEachRow(Action<T[]> action)
@@ -303,11 +341,22 @@ namespace Orikivo.Drawing
                 action.Invoke(GetRow(y));
         }
 
-        public void ForEachValue(Action<int, int, T> action)
+        public void ForEachRow(Action<T[], int> action)
         {
             for (int y = 0; y < Height; y++)
-                for (int x = 0; x < Width; x++)
-                    action.Invoke(x, y, Values[y, x]);
+                action.Invoke(GetRow(y), y);
+        }
+
+        public void ForEachColumn(Action<T[]> action)
+        {
+            for (int x = 0; x < Width; x++)
+                action.Invoke(GetColumn(x));
+        }
+
+        public void ForEachColumn(Action<T[], int> action)
+        {
+            for (int x = 0; x < Width; x++)
+                action.Invoke(GetColumn(x), x);
         }
 
         private (int x, int y) GetPosition(int i)
@@ -340,27 +389,20 @@ namespace Orikivo.Drawing
             }
         }
 
-        // TODO: Since a Grid can be any size, it might be wise to handle extremely large grids.
         /// <summary>
         /// Returns a <see cref="string"/> that represents all elements in the <see cref="Grid{T}"/>.
         /// </summary>
         public override string ToString()
         {
-            StringBuilder grid = new StringBuilder();
-
-            ForEachRow(delegate (T[] row)
-            {
-                grid.Append("[ ");
-                grid.AppendJoin(" ", row.Select(x => x.ToString()));
-                grid.AppendLine(" ]");
-            });
-
-            return grid.ToString();
+            return $"Grid<{typeof(T).Name}> => [{Width}, {Height}]";
         }
 
-        public class Enumerator<T> : IEnumerator<T>
+        /// <summary>
+        /// Enumerates the elements of a <see cref="Grid{T}"/>.
+        /// </summary>
+        public class Enumerator : IEnumerator<T>, IEnumerator, IDisposable
         {
-            private T[,] _values;
+            private readonly T[,] _values;
             private int _position = -1;
             private T _current;
 
@@ -370,21 +412,14 @@ namespace Orikivo.Drawing
                 _current = default;
             }
 
-            private T GetCurrent()
+            object IEnumerator.Current
             {
-                int x = _position;
-                int width = _values.GetLength(1);
-                int height = _values.GetLength(0);
-                int y = 0;
+                get => Current;
+            }
 
-                while (x >= width)
-                {
-                    x -= width;
-                    y++;
-                }
-
-                return _values[y, x];
-
+            public T Current
+            {
+                get => _current;
             }
 
             public bool MoveNext()
@@ -406,17 +441,22 @@ namespace Orikivo.Drawing
                 _position = -1;
             }
 
+            private T GetCurrent()
+            {
+                int x = _position;
+                int width = _values.GetLength(1);
+                int y = 0;
+
+                while (x >= width)
+                {
+                    x -= width;
+                    y++;
+                }
+
+                return _values[y, x];
+            }
+
             void IDisposable.Dispose() { }
-
-            public T Current
-            {
-                get => _current;
-            }
-
-            object IEnumerator.Current
-            {
-                get => Current;
-            }
         }
     }
 }

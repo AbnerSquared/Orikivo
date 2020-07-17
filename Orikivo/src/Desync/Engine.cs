@@ -354,7 +354,7 @@ namespace Orikivo.Desync
                     Route route = CreateRoute(husk.Location.X, husk.Location.Y, structure.Shape);
                     var now = DateTime.UtcNow;
 
-                    Destination info = new Destination(husk.Location.WorldId, husk.Location.Id, structure.Shape.Origin.X, structure.Shape.Origin.Y, now, now.Add(route.Time));
+                    Destination info = new Destination(husk.Location.WorldId, husk.Location.Id, structure.Shape.Midpoint.X, structure.Shape.Midpoint.Y, now, now.Add(route.Time));
 
                     // if the travel time is short enough, just instantly go to the location.
                     if (route.GetTime().TotalSeconds <= 1f)
@@ -630,7 +630,7 @@ namespace Orikivo.Desync
             {
                 Enforce = true,
                 From = new Vector2(x, y),
-                To = region.Origin
+                To = region.Midpoint
             };
 
         private static Route CreateRoute(float x, float y, float u, float v)

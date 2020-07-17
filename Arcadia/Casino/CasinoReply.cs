@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 
-namespace Orikivo.Casino
+namespace Arcadia
 {
-    // Arcadia class
     public class CasinoReply
     {
         public string Content { get; }

@@ -118,12 +118,12 @@ namespace Orikivo.Desync
         {
             return match switch
             {
-                LogicMatch.GREATER => actual > expected,
-                LogicMatch.GREATER_EQUALS => actual >= expected,
-                LogicMatch.EQUALS => actual == expected,
-                LogicMatch.LESSER_EQUALS => actual <= expected,
-                LogicMatch.LESSER => actual < expected,
-                LogicMatch.NOT_EQUALS => actual != expected,
+                LogicMatch.GTR => actual > expected,
+                LogicMatch.GEQ => actual >= expected,
+                LogicMatch.EQU => actual == expected,
+                LogicMatch.LEQ => actual <= expected,
+                LogicMatch.LSS => actual < expected,
+                LogicMatch.NEQ => actual != expected,
                 _ => true
             };
         }

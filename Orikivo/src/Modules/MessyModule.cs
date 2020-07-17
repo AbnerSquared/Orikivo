@@ -2,15 +2,10 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo.Drawing;
-using Orikivo.Drawing.Encoding;
-using Orikivo.Drawing.Graphics2D;
-using Orikivo.Drawing.Graphics3D;
-using Orikivo.Gaming;
 using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -23,7 +18,7 @@ using Discord.Rest;
 namespace Orikivo
 {
 
-    public class Moderation : OriModuleBase<OriCommandContext>
+    public class Moderation : OriModuleBase<DesyncContext>
     {
 
     }
@@ -31,7 +26,7 @@ namespace Orikivo
     // Since Messy is a testing module, this doesn't need services.
     [Name("Messy")]
     [Summary("Commands that are under the works. Functionality is not to be expected.")]
-    public class MessyModule : OriModuleBase<OriCommandContext>
+    public class MessyModule : OriModuleBase<DesyncContext>
     {
         private readonly DiscordSocketClient _client;
         //private readonly GameManager _gameManager;
@@ -54,7 +49,7 @@ namespace Orikivo
 
         // make generic events
         [Group("greetings")]
-        public class GreetingsGroup : OriModuleBase<OriCommandContext>
+        public class GreetingsGroup : OriModuleBase<DesyncContext>
         {
             [Command("")]
             [Summary("Shows the list of all greetings used for this guild."), RequireContext(ContextType.Guild)]
@@ -564,12 +559,12 @@ namespace Orikivo
         {
             string path = $"../tmp/{Context.User.Id}_bits.png";
             Grid<SysColor> colors = new Grid<SysColor>(8, 8);
-            colors.SetEachValue(delegate (int x, int y, SysColor z)
+            colors.SetEachValue(delegate (int x, int y)
             {
                 return GammaPalette.Default[(Gamma)x];
             });
 
-            using (Bitmap bmp = GraphicsUtils.CreateRgbBitmap(colors.Values))
+            using (Bitmap bmp = ImageEditor.CreateRgbBitmap(colors.Values))
                 bmp.Save(path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);

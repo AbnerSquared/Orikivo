@@ -11,7 +11,7 @@ namespace Orikivo
     [Ignore]
     [Name("Actions")]
     [Summary("A collection of actions that can be executed as a Husk.")]
-    public class Actions : OriModuleBase<OriCommandContext>
+    public class Actions : OriModuleBase<DesyncContext>
     {
         private readonly CommandService _commands;
 

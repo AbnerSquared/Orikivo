@@ -4,17 +4,16 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
-    // TODO: Implement StringResource
     /// <summary>
     /// Represents a customizable message container.
     /// </summary>
     public class Embedder
     {
         public static Embedder Default
-            => new Embedder { Color = GammaColor.GammaGreen };
+            => new Embedder { Color = ImmutableColor.GammaGreen };
 
         public TextLocale Locale { get; set; } = TextLocale.English;
-        public GammaColor? Color { get; set; } // GammaColor
+        public ImmutableColor? Color { get; set; } // GammaColor
         public string Footer { get; set; }
         public string Author { get; set; }
         public string Header { get; set; }

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace Orikivo
+﻿using Orikivo;
+namespace Arcadia
 {
-    // for Arcadia
     public interface ICasinoResult
     {
-        //List<StatUpdatePacket> StatsToChange { get; set; }
+        Message ApplyAndDisplay(ArcadeUser user);
     }
 }

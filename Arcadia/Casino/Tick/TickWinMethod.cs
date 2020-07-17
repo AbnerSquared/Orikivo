@@ -1,4 +1,4 @@
-﻿namespace Orikivo.Casino
+﻿namespace Arcadia
 {
     // Arcadia class
     public enum TickWinMethod

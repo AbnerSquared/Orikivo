@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 
-namespace Orikivo.Casino
+namespace Arcadia
 {
     // Arcadia class
     // this is the casino game that was doubling the money and whatknot.

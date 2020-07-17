@@ -13,7 +13,7 @@ namespace Orikivo
 
         public string StackTrace { get; set; } // at C:/ok.cs: line 1
 
-        public GammaColor Color { get; set; } // can be left empty.
+        public ImmutableColor Color { get; set; } // can be left empty.
         public Message Build()
             => new Message(this);
 

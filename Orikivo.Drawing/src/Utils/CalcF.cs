@@ -63,7 +63,7 @@ namespace Orikivo.Drawing
         /// <summary>
         /// Returns the absolute sum of all numbers in a set.
         /// </summary>
-        public static float SumAbs(IEnumerable<float> set)
+        public static float AbsSum(IEnumerable<float> set)
         {
             float sumAbs = 0;
 
@@ -87,7 +87,8 @@ namespace Orikivo.Drawing
             int length = set.Count();
             int i = (int)Math.Floor((double)(length / 2));
 
-            return Calc.Parity(length) == 0
+            // NOTE: x % 2 => Parity, ODD if 1
+            return (length % 2) == 0
                 ? (set.ElementAt(i - 1) + set.ElementAt(i)) / 2
                 : set.ElementAt(i);
         }

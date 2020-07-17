@@ -7,6 +7,15 @@ using System.Text;
 
 namespace Orikivo
 {
+    public class OptionNode
+    {
+        public string Name { get; protected set; }
+
+        public List<string> Aliases { get; protected set; }
+
+        public Type ValueType { get; protected set; }
+    }
+
     public class OverloadNode : ContextNode
     {
         public OverloadNode(CommandInfo command) : base(command, true)
@@ -30,6 +39,8 @@ namespace Orikivo
         public TimeSpan? Cooldown { get; protected set; }
         public AccessLevel? Access { get; protected set; }
         public GuildPermission? Permissions { get; protected set; }
+
+        public List<OptionNode> Options { get; protected set; }
 
         // bool? RequireUser RequireGuild RequireHusk
 

@@ -7,7 +7,7 @@ namespace Orikivo.Drawing
     /// </summary>
     public class SheetOverride
     {
-        public static SheetOverride Empty = new SheetOverride(0, 0);
+        public static readonly SheetOverride Empty = new SheetOverride(0, 0);
 
         [JsonConstructor]
         public SheetOverride(int row,

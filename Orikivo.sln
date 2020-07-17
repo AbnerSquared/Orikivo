@@ -9,13 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "Orikivo.Tex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Drawing", "Orikivo.Drawing\Orikivo.Drawing.csproj", "{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Gaming", "Orikivo.Gaming\Orikivo.Gaming.csproj", "{A4F80A79-58F4-4605-8525-4D1378FD780C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Framework", "Orikivo.Framework\Orikivo.Framework.csproj", "{51299661-4488-4C63-B777-F0DBE8C1FAA3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Net", "Orikivo.Net\Orikivo.Net.csproj", "{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcadia", "Arcadia\Arcadia.csproj", "{A8787620-57EB-4D24-9B10-B33F782CCE1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcadia", "Arcadia\Arcadia.csproj", "{A8787620-57EB-4D24-9B10-B33F782CCE1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A4F80A79-58F4-4605-8525-4D1378FD780C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{51299661-4488-4C63-B777-F0DBE8C1FAA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51299661-4488-4C63-B777-F0DBE8C1FAA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51299661-4488-4C63-B777-F0DBE8C1FAA3}.Release|Any CPU.ActiveCfg = Release|Any CPU

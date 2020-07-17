@@ -19,7 +19,7 @@ namespace Orikivo
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            OriCommandContext Context = context as OriCommandContext;
+            DesyncContext Context = context as DesyncContext;
             Context.Server ??= Context.Container.GetOrAddGuild(Context.Guild);
 
             return PreconditionResult.FromSuccess();

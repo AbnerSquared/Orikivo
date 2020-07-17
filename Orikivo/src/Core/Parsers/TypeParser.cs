@@ -17,7 +17,7 @@ namespace Orikivo
         public static Dictionary<Type, CustomTypeParser> Parsers
             => new Dictionary<Type, CustomTypeParser>
             {
-
+                //[typeof(GammaColor)] = new GammaColorTypeParser()
             };
 
         public static bool TryParseSByte(string input, out sbyte result)

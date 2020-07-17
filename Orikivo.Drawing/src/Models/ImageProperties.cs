@@ -18,6 +18,6 @@ namespace Orikivo.Drawing
         // if true, text rows will expand to include offsets
         public bool ExpandRowOnOffset { get; set; }
 
-        public bool TrimEmptyPixels { get; set; }
+        public bool TrimEmptyPixels { get; set; } = true;
     }
 }

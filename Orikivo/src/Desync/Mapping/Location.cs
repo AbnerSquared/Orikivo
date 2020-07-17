@@ -94,7 +94,7 @@ namespace Orikivo.Desync
         /// </summary>
         public Locator GetLocator()
         {
-            var origin = Shape.Origin;
+            var origin = Shape.Midpoint;
 
             return new Locator()
             {

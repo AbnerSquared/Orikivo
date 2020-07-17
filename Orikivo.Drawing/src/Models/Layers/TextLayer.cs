@@ -2,7 +2,7 @@
 
 namespace Orikivo.Drawing
 {
-    // TODO: Rework and organize.
+    // TODO: Rework and organize
     public class TextLayer : DrawableLayer
     {
         public FontFace Font { get; set; }
@@ -11,15 +11,15 @@ namespace Orikivo.Drawing
 
         public char[][][][] CharMap { get; set; }
 
-        public GammaColor Color { get; set; }
+        public ImmutableColor Color { get; set; }
 
-        // TODO: Fix FontWriter.
         protected override Bitmap GetBaseImage()
         {
-            GraphicsConfig config = GraphicsConfig.Default;
+            TextFactoryConfig config = TextFactoryConfig.Default;
             config.CharMap = CharMap;
             config.Fonts.Add(Font);
-            using (TextFactory writer = new TextFactory())
+
+            using (TextFactory writer = new TextFactory(config))
             {
                 writer.SetFont(Font);
                 return writer.DrawText(Text, Color);

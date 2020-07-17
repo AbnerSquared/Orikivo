@@ -2,11 +2,11 @@
 {
     public enum LogicMatch
     {
-        GREATER = 1,
-        GREATER_EQUALS = 2,
-        EQUALS = 4,
-        LESSER_EQUALS = 8,
-        LESSER = 16,
-        NOT_EQUALS = 32
+        GTR = 1,
+        GEQ = 2,
+        EQU = 4,
+        LEQ = 8,
+        LSS = 16,
+        NEQ = 32
     }
 }

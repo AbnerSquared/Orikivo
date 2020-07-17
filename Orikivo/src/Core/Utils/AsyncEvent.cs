@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 
 namespace Orikivo
 {
-    // THIS CLASS WAS WRITTEN SINCE DISCORD'S HANDLER CLASS WAS INTERNAL.
     // https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Core/Utils/AsyncEvent.cs
 
     /// <summary>

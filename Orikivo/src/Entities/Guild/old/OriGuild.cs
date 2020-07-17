@@ -91,7 +91,7 @@ namespace Orikivo
         }
 
         public bool HasMuted(ulong userId)
-            => Actions.Where(x => x.Value.Any(x => x.Key == GuildAction.Mute && !DateTimeUtils.IsExpired(x.Value))).Any(x => x.Key == userId);
+            => Actions.Where(x => x.Value.Any(x => x.Key == GuildAction.Mute && !x.Value.IsExpired())).Any(x => x.Key == userId);
 
         // TODO: Possibly create EventContext, which would contain OriGuild, SocketGuild, and SocketUser.
         public string Greet(SocketGuild guild, SocketGuildUser user)
@@ -135,7 +135,7 @@ namespace Orikivo
             Options.Commands.Remove(Options.Commands.First(x => x.Name.ToLower() == command.ToLower()));
         }
 
-        public bool TryGetDiscordEntity(BaseSocketClient client, out SocketGuild guild)
+        public bool GetEntity(BaseSocketClient client, out SocketGuild guild)
         {
             guild = client.GetGuild(Id);
             return guild != null;

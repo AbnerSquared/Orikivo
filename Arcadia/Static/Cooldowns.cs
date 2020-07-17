@@ -8,6 +8,6 @@
         internal static readonly string Global = "cooldown:global";
         internal static readonly string Notify = "cooldown:notify";
         internal static readonly string Vote = "cooldown:vote";
-        internal static readonly string Daily = "cooldown:checked_in";
+        internal static readonly string Daily = "cooldown:daily";
     }
 }

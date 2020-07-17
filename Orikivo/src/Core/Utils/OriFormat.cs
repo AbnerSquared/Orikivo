@@ -7,16 +7,6 @@ using System.Text;
 
 namespace Orikivo
 {
-    public enum PlaceValue
-    {
-        Null = -1, // 0
-        H = 0,     // 100
-        K = 1,     // 1,000
-        M = 2,     // 1,000,000
-        B = 3,     // 1,000,000,000
-        T = 4      // 1,000,000,000,000
-    }
-
     /// <summary>
     /// A utility class that handles string formatting.
     /// </summary>
@@ -77,6 +67,9 @@ namespace Orikivo
         public static string Time(DateTime time)
             => time.ToString("M/d/yyyy @ HH:mm tt");
 
+        public static string ShowTime(DateTime time)
+            => time.ToString(@"hh\:mm\:ss");
+
         public static string HumanizeType(Type t)
             =>
 
@@ -104,19 +97,24 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        // god this is a mess
-        // i should really fix this
-        public static string SummarizeValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
+        public static string ShortenValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
         {
             string text = value.ToString();
-            int valueLength = text.Length; // (12)(11)(10),(9)(8)(7),(6)(5)(4),(3)(2)(1)
-            int placeValue = (int)MathF.Floor(valueLength / 3);
+            int length = text.Length;
+            int placeValue = (int)MathF.Floor(length / 3);
 
-            // displaySize is 3 => 0.00 || 00.0 || 000
-            int leftSize = (valueLength % 3 == 0) ? 3 : valueLength % 3; // 0 = length of 3, 1 = length of 1, 2 = length of 2
-            // use the 0.00 value format, and return the letter indicating its placement value (k = thousands, m = millions, b = billions)
+            if (placeValue > 0)
+                placeValue--;
 
-            if (leftSize < (int)Orikivo.PlaceValue.H || leftSize > (int)Orikivo.PlaceValue.T)
+            int preDecimalSize = length % 3;
+
+            if (preDecimalSize == 0)
+                preDecimalSize = 3;
+
+            int postDecimalSize = 3 - preDecimalSize;
+
+            if (placeValue < (int)Orikivo.PlaceValue.H
+                || placeValue > (int)Orikivo.PlaceValue.T)
             {
                 place = Orikivo.PlaceValue.Null;
             }
@@ -125,54 +123,51 @@ namespace Orikivo
                 place = (PlaceValue)placeValue;
             }
 
-            if (valueLength <= 3)
+            if (length <= 3)
             {
                 return text;
             }
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append(text.Substring(0, leftSize));
+            var result = new StringBuilder();
+            result.Append(text[0..preDecimalSize]);
 
-            if (leftSize < 3)
+            if (preDecimalSize == 3)
+                return result.ToString();
+
+            if (preDecimalSize < 3)
             {
-                int rem = text.Length - (placeValue * 3);
-
-                if (rem == 0)
-                    return sb.ToString();
-
-                int pos = valueLength % 3;
-                Console.WriteLine(rem);
-                // TODO: Optimize
+                int pos = length % 3;
+                int rem = length - (placeValue * 3);
                 if (ignoreZeros)
                 {
                     if (rem > 0)
                     {
-                        if (text.Substring(pos, 1) == "0")
+                        if (text[preDecimalSize] == '0')
                         {
                             if (rem > 1)
                             {
-                                if (text.Substring(pos + 1, 1) == "0")
-                                    return sb.ToString();
+                                if (text[preDecimalSize + 1] == '0')
+                                    return result.ToString();
                             }
                             else
-                                return sb.ToString();
+                                return result.ToString();
                         }
                     }
                 }
 
-                sb.Append('.');
+                result.Append('.');
 
-                while (leftSize < 3)
+                int i = preDecimalSize;
+
+                while (i < 3)
                 {
-                    string v = text.Substring(pos, 1);
-                    sb.Append(v);
+                    result.Append(text[pos]);
                     pos++;
-                    leftSize++;
+                    i++;
                 }
-
             }
 
-            return sb.ToString();
+            return result.ToString();
         }
 
         public static string HyperlinkEmote(Emote emote)
@@ -201,6 +196,7 @@ namespace Orikivo
         }
 
         private const string POS_NOTATION = "##,0.###";
+
         public static string PlaceValue(int i, bool includeDecimals = false)
             => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
 
@@ -237,6 +233,7 @@ namespace Orikivo
 
         public static string GetVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
+
         public static string SetUnicodeMap(string value, UnicodeMap type)
         {
             Dictionary<char, char> map = type switch
@@ -256,7 +253,7 @@ namespace Orikivo
         /// <summary>
         /// Returns a string in which each repeated character is removed.
         /// </summary>
-        private static string GetUniqueChars(string value)
+        public static string GetUniqueChars(string value)
         {
             string unique = "";
 
@@ -410,6 +407,33 @@ namespace Orikivo
         public static string Username(IUser user)
             => $"**{user.Username}**#{user.Discriminator}";
 
+        public static string GetRawTime(double milliseconds)
+        {
+            string t = "ms";
+            double n = 0;
+
+            if (milliseconds > (60 * 60 * 60))
+            {
+                n = milliseconds / (60 * 60 * 60);
+                t = "h";
+            }
+            if (milliseconds > (60 * 60))
+            {
+                n = milliseconds / (60 * 60);
+                t = "m";
+            }
+            if (milliseconds > 60)
+            {
+                n = milliseconds / 60;
+                t = "s";
+            }
+            
+            if (n > 0)
+                return $"{n.ToString("#.##")}{t}";
+
+            return $"{milliseconds.ToString()}{t}";
+        }
+
         public static string GetShortTime(double seconds)
         {
             char t = 's';
@@ -434,7 +458,7 @@ namespace Orikivo
         /// </summary>
         public static string Jsonify(string value)
         {
-            StringBuilder sb = new StringBuilder();
+            var result = new StringBuilder();
             char? lastChar = null;
             foreach(char c in value)
             {
@@ -442,16 +466,16 @@ namespace Orikivo
                     if (lastChar.HasValue)
                         if (char.IsLower(lastChar.Value))
                         {
-                            sb.Append($"_{char.ToLower(c)}");
+                            result.Append($"_{char.ToLower(c)}");
                             lastChar = c;
                             continue;
                         }
 
-                sb.Append(char.ToLower(c));
+                result.Append(char.ToLower(c));
                 lastChar = c;
             }
 
-            return sb.ToString();
+            return result.ToString();
         }
 
         // TODO: Figure out a better way to filter the symbols utilized.
@@ -463,14 +487,14 @@ namespace Orikivo
                 value = value.Substring(0, MAX_LENGTH);
 
             // regex (([A-Za-z0-9-_ ])*)
-            List<char> limitedChars = new List<char>
+            var limitedChars = new List<char>
             { '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '=',
              '{', '[', '}', ']', '|', '\\', ':', ';', '\'', '"', '<', ',', '>', '.',
              '/', '?', ' ' }; // allow characters: A-Z a-z 0-9 - _ (Valid Unicode)
-            List<char> separatorChars = new List<char>
+            var separatorChars = new List<char>
             { ' ', '.', ',' };
 
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
             foreach (char c in value)
             {
                 if (limitedChars.Contains(c))

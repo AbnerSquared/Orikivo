@@ -33,7 +33,7 @@ namespace Orikivo
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            OriCommandContext Context = context as OriCommandContext;
+            DesyncContext Context = context as DesyncContext;
             switch(Level)
             {
                 case AccessLevel.Dev:
@@ -61,10 +61,10 @@ namespace Orikivo
         private bool CheckDev(ulong userId)
             => OriGlobal.DevId == userId;
 
-        private bool CheckOwner(ulong userId, OriCommandContext ctx)
+        private bool CheckOwner(ulong userId, DesyncContext ctx)
             => DevOverride ? CheckDev(userId) : ctx.Server.OwnerId == userId;
 
-        private bool CheckInherit(ulong userId, OriCommandContext ctx)
+        private bool CheckInherit(ulong userId, DesyncContext ctx)
             => DevOverride ? CheckDev(userId) : ctx.Server.Options.TrustRoleId.HasValue ?
                ctx.Guild.Users.Any(x => x.Id == userId && x.Roles.Any(y => y.Id == ctx.Server.Options.TrustRoleId.Value)) :
                ctx.Server.OwnerId == userId;

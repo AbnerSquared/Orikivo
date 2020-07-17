@@ -11,6 +11,7 @@ namespace Orikivo.Drawing
         }
 
         public int X { get; set; }
+
         public int Y { get; set; }
 
         public void Set(int x, int y)
@@ -27,5 +28,8 @@ namespace Orikivo.Drawing
 
         public static implicit operator Point(Cursor cursor)
             => new Point(cursor.X, cursor.Y);
+
+        public static implicit operator Coordinate(Cursor cursor)
+            => new Coordinate(cursor.X, cursor.Y);
     }
 }

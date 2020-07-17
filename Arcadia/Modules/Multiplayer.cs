@@ -1,13 +1,16 @@
 ﻿using Discord.Commands;
+using Discord.WebSocket;
 using Orikivo;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Arcadia
 {
+
     [Name("Multiplayer")]
     [Summary("Come play with others.")]
-    public class Multiplayer : OriModuleBase<OriCommandContext>
+    public class Multiplayer : OriModuleBase<ArcadeContext>
     {
         private readonly GameManager _games;
 

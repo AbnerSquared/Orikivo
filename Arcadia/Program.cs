@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo;
+using Orikivo.Drawing;
 using Orikivo.Framework;
 using System;
 using System.Threading;
@@ -31,19 +32,44 @@ namespace Arcadia
 
                 builder.Services
                 .AddSingleton<GameManager>()
-                .AddSingleton<InfoService>();
+                .AddSingleton<InfoService>()
+                .AddSingleton<ArcadeContainer>()
+                .AddSingleton<LogService>()
+                .AddSingleton<Orikivo.EventHandler>()
+                .AddSingleton<CommandHandler>();
 
-                builder.SetDefaultServices();
+                builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
+                builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
 
                 builder
-                    .AddModule<CoreModule>()
+                    .AddEnumTypeReader<CardDeny>()
+                    .AddEnumTypeReader<Casing>()
+                    .AddEnumTypeReader<FontType>()
+                    .AddEnumTypeReader<PaletteType>()
+                    .AddEnumTypeReader<BorderAllow>()
+                    .AddEnumTypeReader<ImageScale>()
+                    .AddEnumTypeReader<CardComponent>()
+                    .AddEnumTypeReader<Gamma>()
+                    .AddEnumTypeReader<BorderEdge>()
+                    .AddEnumTypeReader<LeaderboardFlag>()
+                    .AddEnumTypeReader<LeaderboardSort>();
+
+                builder
+                    .AddModule<Core>()
                     .AddModule<Casino>()
-                    .AddModule<Multiplayer>();
+                    .AddModule<Multiplayer>()
+                    .AddModule<Common>();
 
                 Client client = builder.Build();
                 client.Status = UserStatus.Online;
-                client.Activity = new ActivityConfig { Name = "your requests", Type = ActivityType.Listening };
-                client.EnsureDefaultServices();
+                client.Activity = new ActivityConfig
+                {
+                    Name = "your requests",
+                    Type = ActivityType.Listening
+                };
+
+                client.Provider.GetRequiredService<Orikivo.EventHandler>();
+                client.Provider.GetRequiredService<CommandHandler>();
 
                 await client.StartAsync(_cancelSource.Token);
             }).GetAwaiter().GetResult();

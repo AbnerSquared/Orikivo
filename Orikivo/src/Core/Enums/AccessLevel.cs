@@ -6,7 +6,7 @@
     public enum AccessLevel
     {
         /// <summary>
-        /// Inherit's the access level from a <see cref="Desync.Guild"/>'s config.
+        /// Inherit's the access level from a <see cref="Desync.BaseGuild"/>'s config.
         /// </summary>
         Inherit = 1,
 

@@ -20,14 +20,14 @@ namespace Orikivo.Drawing
             return bmp;
         }
 
-        internal static Bitmap FillAlpha(Bitmap bmp, Color color, Color? alphaColor)
+        internal static Bitmap ReplaceColor(Bitmap bmp, Color color, Color? alphaColor)
         {
             Color alpha = alphaColor ?? Color.Empty;
 
-            Grid<Color> pixels = GraphicsUtils.GetPixels(bmp);
-            pixels.SetEachValue((x, y, z) => z.Equals(alpha) ? color : z);
+            Grid<Color> pixels = ImageEditor.GetPixelData(bmp);
+            pixels.SetEachValue((pixel, x, y) => pixel.Equals(alpha) ? color : pixel);
 
-            return GraphicsUtils.CreateArgbBitmap(pixels.Values);
+            return ImageEditor.CreateArgbBitmap(pixels.Values);
         }
 
         public static ColorMap[] CreateColorTable(Color[] fromColors, Color[] toColors)
@@ -57,7 +57,7 @@ namespace Orikivo.Drawing
 
         public static Bitmap SetColorMap(Bitmap bmp, ColorMap[] table)
         {
-            Bitmap result = new Bitmap(bmp.Width, bmp.Height);
+            var result = new Bitmap(bmp.Width, bmp.Height);
 
             using (Graphics graphics = Graphics.FromImage(result))
             {
@@ -79,7 +79,7 @@ namespace Orikivo.Drawing
             if (bmp == null)
                 return true;
 
-            return GraphicsUtils.GetPixels(bmp).All(x => x.A == 0);
+            return ImageEditor.GetPixelData(bmp).All(x => x.A == 0);
         }
 
         internal static int GetNonEmptyWidth(Bitmap bmp)
@@ -87,7 +87,7 @@ namespace Orikivo.Drawing
             if (bmp == null)
                 return 0;
 
-            Grid<Color> pixels = GraphicsUtils.GetPixels(bmp);
+            Grid<Color> pixels = ImageEditor.GetPixelData(bmp);
             int nonEmptyLen = 0;
 
             for (int y = 0; y < pixels.Height; y++)
@@ -114,7 +114,7 @@ namespace Orikivo.Drawing
             if (bmp == null)
                 return 0;
 
-            Grid<Color> pixels = GraphicsUtils.GetPixels(bmp);
+            Grid<Color> pixels = ImageEditor.GetPixelData(bmp);
             int nonEmptyLen = 0;
 
             for (int x = 0; x < pixels.Width; x++)
@@ -141,8 +141,8 @@ namespace Orikivo.Drawing
         
         public static Bitmap DrawOutline(Bitmap bmp, int width, Color color, Color? alphaColor = null, bool drawOnNew = false)
         {
-            Grid<Color> pixels = GraphicsUtils.GetPixels(bmp);
-            List<(int px, int py)> validPoints = new List<(int px, int py)>();
+            Grid<Color> pixels = ImageEditor.GetPixelData(bmp);
+            var validPoints = new List<(int px, int py)>();
             Color alpha = alphaColor ?? Color.Empty;
 
             for (int y = 0; y < bmp.Height; y++)
@@ -185,11 +185,25 @@ namespace Orikivo.Drawing
             {
                 var result = new Grid<Color>(bmp.Width, bmp.Height, alpha);
                 validPoints.ForEach(x => result.SetValue(color, x.px, x.py));
-                return GraphicsUtils.CreateArgbBitmap(result.Values);
+                return ImageEditor.CreateArgbBitmap(result.Values);
             }
 
             validPoints.ForEach(x => pixels.SetValue(color, x.px, x.py));
             return bmp;
+        }
+
+        public static Bitmap Pad(Bitmap image, Padding padding, bool dispose = false)
+        {
+            var result = new Bitmap(image.Width + padding.Width, image.Height + padding.Height);
+
+            using (Graphics g = Graphics.FromImage(result))
+                ImageEditor.ClipAndDrawImage(g, image, padding.Left, padding.Top);
+
+
+            if (dispose)
+                image.Dispose();
+
+            return result;
         }
 
         public static Bitmap Crop(string localPath, int x, int y, int width, int height)
@@ -234,7 +248,7 @@ namespace Orikivo.Drawing
         public static Bitmap Rotate(Bitmap bmp, AngleF angle, OriginAnchor axis)
         {
             Size bounds = GetRotationBounds(bmp.Width, bmp.Height, angle);
-            return Rotate(bmp, angle, OriginUtils.GetOrigin(bounds, axis));
+            return Rotate(bmp, angle, ImageEditor.GetOrigin(bounds, axis));
         }
 
         private static Size GetRotationBounds(int oldWidth, int oldHeight, AngleF angle)
@@ -283,7 +297,7 @@ namespace Orikivo.Drawing
         }
 
         public static Bitmap Scale(Bitmap bmp, float widthScale, float heightScale)
-            => SetSize(bmp, (int)Round(bmp.Width * widthScale), (int)Round(bmp.Height * heightScale));
+            => SetSize(bmp, (int)Floor(bmp.Width * widthScale), (int)Floor(bmp.Height * heightScale));
 
         public static Bitmap SetOpacity(Bitmap bmp, float opacity)
         {
@@ -326,18 +340,16 @@ namespace Orikivo.Drawing
                         if (position.X < 0 || position.X + (edited.Width) > viewport.Width ||
                             position.Y < 0 || position.Y + (edited.Height) > viewport.Height)
                         {
-                            Rectangle cropRect = GraphicsUtils.ClampRectangle(Point.Empty, viewport, position, edited.Size);
+                            Rectangle cropRect = ImageEditor.ClampRectangle(Point.Empty, viewport, position, edited.Size);
 
-                            using (Bitmap crop = ImageHelper.Crop(edited, cropRect))
-                                GraphicsUtils.ClipAndDrawImage(g, crop, position);
+                            using (Bitmap crop = Crop(edited, cropRect))
+                                ImageEditor.ClipAndDrawImage(g, crop, position);
                         }
                         else
-                            GraphicsUtils.ClipAndDrawImage(g, edited, position);
-
-                        // TODO: Create the generic color conversion into a GammaColorMap.
+                            ImageEditor.ClipAndDrawImage(g, edited, position);
                     }
                     else
-                        GraphicsUtils.ClipAndDrawImage(g, edited, position);
+                        ImageEditor.ClipAndDrawImage(g, edited, position);
                 }
             }
 

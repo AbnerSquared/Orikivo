@@ -23,13 +23,21 @@ namespace Orikivo
         public const string CRITICAL_EMOJI = "\uD83D\uDD3A"; // :small_red_triangle:
 
         private readonly CommandService _commands;
+        private readonly InfoFormatter _formatter;
         private readonly ReportContainer _reports;
         private IEnumerable<GuildCommand> _guildCommands;
 
-        private static readonly Func<ModuleInfo, string, bool> MODULE_MATCHER = (ModuleInfo m, string n) => m.Name.ToLower() == n.ToLower();
-        private static readonly Func<ModuleInfo, string, bool> GROUP_MATCHER = (ModuleInfo m, string n) => m.Group?.ToLower() == n.ToLower();
-        private static readonly Func<CommandInfo, string, bool> COMMAND_MATCHER = (CommandInfo c, string n) => c.Aliases.Contains(n.ToLower());
-        private static readonly Func<ParameterInfo, string, bool> PARAM_MATCHER = (ParameterInfo p, string n) => p.Name.ToLower() == n.ToLower();
+        private static bool FilterModule(ModuleInfo m, string n)
+            => m.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
+
+        private static bool FilterGroup(ModuleInfo g, string n)
+            => g.Group.Equals(n, StringComparison.OrdinalIgnoreCase);
+
+        private static bool FilterCommand(CommandInfo c, string n)
+            => c.Aliases.Contains(n.ToLower());
+
+        private static bool FilterParameter(ParameterInfo p, string n)
+            => p.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
 
         // TODO: Fix the guide storage location
         public static List<GuideNode> DefaultGuides = new List<GuideNode>
@@ -74,19 +82,32 @@ namespace Orikivo
         {
             _commands = commands;
             Guides = DefaultGuides;
+            _formatter = null;
         }
 
-        public InfoService(CommandService commands, OriGlobal global)
+        public InfoService(CommandService commands, InfoFormatter formatter = null) // , InfoFormatter formatter = null
+        {
+            _commands = commands;
+            Guides = DefaultGuides;
+            _formatter = formatter; // ?? InfoFormatter.Default;
+        }
+
+        public InfoService(CommandService commands, OriGlobal global, InfoFormatter formatter = null)
         {
             _commands = commands;
             _reports = global.Reports;
-
+            _formatter = formatter; // ?? InfoFormatter.Default;
             Guides = DefaultGuides;
         }
 
-        public InfoService(CommandService commands, OriGlobal global, OriGuild guild) : this(commands, global)
+        public InfoService(CommandService commands, OriGlobal global, OriGuild guild, InfoFormatter formatter = null) : this(commands, global, formatter)
         {
             _guildCommands = guild.Options.Commands;
+        }
+
+        internal void SetFormatter(InfoFormatter formatter)
+        {
+
         }
 
         internal void SetGuild(OriGuild guild)
@@ -129,10 +150,10 @@ namespace Orikivo
 
                 panel.AppendLine(Engine.WriteLocationInfo(location.Id, user.Husk.Destination != null));
 
-                ModuleInfo main = _commands.Modules.First(x => x.Name == "Actions");
+                ModuleInfo main = _commands.Modules.FirstOrDefault(x => x.Name == "Actions");
                 List<CommandNode> actions = new List<CommandNode>();
                 
-                foreach (CommandInfo action in main.Commands)
+                foreach (CommandInfo action in main?.Commands)
                 {
                     if (actions.Any(x => x.Name == action.Name))
                         continue;
@@ -182,7 +203,6 @@ namespace Orikivo
 
         private string GetMainPanel(User user = null, bool drawActions = true)
         {
-
             bool showReportStatus = user?.Config?.Debug ?? false;
             bool showTooltips = user?.Config?.Tooltips ?? true;
 
@@ -483,20 +503,20 @@ namespace Orikivo
             => Modules.Where(x => x.Parent == null);
 
         public IEnumerable<ModuleInfo> GetBaseModules(string name)
-            => GetBaseModules().Where(m => MODULE_MATCHER.Invoke(m, name));
+            => GetBaseModules().Where(m => FilterModule(m, name));
 
         // remove all visuals on modules with the IgnoreAttribute.
         public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(x => x is IgnoreAttribute));
 
         public IEnumerable<ModuleInfo> GetModules(string name)
-            => Modules.Where(m => MODULE_MATCHER.Invoke(m, name));
+            => Modules.Where(m => FilterModule(m, name));
 
         public IEnumerable<ModuleInfo> GetModules(ModuleInfo parent, string name, bool includeChildren = false)
         {
             if (parent == null)
                 return GetModules(name);
 
-            IEnumerable<ModuleInfo> modules = parent.Submodules.Where(m => MODULE_MATCHER.Invoke(m, name));
+            IEnumerable<ModuleInfo> modules = parent.Submodules.Where(m => FilterModule(m, name));
 
             if (includeChildren)
                 parent.Submodules
@@ -539,14 +559,14 @@ namespace Orikivo
         }
 
         public IEnumerable<ModuleInfo> GetGroups(string name)
-            => Modules.Where(g => GROUP_MATCHER.Invoke(g, name));
+            => Modules.Where(g => FilterGroup(g, name));
 
         public IEnumerable<ModuleInfo> GetGroups(ModuleInfo parent, string name, bool includeChildren = false)
         {
             if (parent == null)
                 return GetGroups(name);
 
-            IEnumerable<ModuleInfo> groups = parent.Submodules.Where(g => GROUP_MATCHER.Invoke(g, name));
+            IEnumerable<ModuleInfo> groups = parent.Submodules.Where(g => FilterGroup(g, name));
 
             if (includeChildren)
                 parent.Submodules
@@ -559,8 +579,21 @@ namespace Orikivo
         // COMMANDS
         public IEnumerable<CommandInfo> Commands => _commands.Commands;
 
+        public CommandInfo GetCommand(string name)
+        {
+            IEnumerable<CommandInfo> commands = GetCommands(name);
+
+            if (!Check.NotNullOrEmpty(commands))
+                throw new ResultNotFoundException($"No matches were found when searching for matching command of the name '{name}'.");
+
+            if (commands.Count() > 1)
+                throw new MultiMatchException($"Multiple results were given when searching for a command of the name '{name}'.");
+
+            return commands.First();
+        }
+
         public IEnumerable<CommandInfo> GetCommands(string name)
-            => Commands.Where(c => COMMAND_MATCHER.Invoke(c, name));
+            => Commands.Where(c => FilterCommand(c, name));
 
         public IEnumerable<CommandInfo> GetCommands(string name, ModuleInfo parent, bool includeChildren = false)
         {
@@ -580,7 +613,7 @@ namespace Orikivo
 
         public IEnumerable<ParameterInfo> GetParameters(string name)
         {
-            IEnumerable<CommandInfo> commands = Commands.Where(x => x.Parameters.Any(p => PARAM_MATCHER.Invoke(p, name)));
+            IEnumerable<CommandInfo> commands = Commands.Where(x => x.Parameters.Any(p => FilterParameter(p, name)));
             IEnumerable<ParameterInfo> parameters = new List<ParameterInfo>();
 
             commands.ForEach(x => parameters = parameters.Concat(x.Parameters));
@@ -588,6 +621,6 @@ namespace Orikivo
         }
 
         public IEnumerable<ParameterInfo> GetParameters(CommandInfo command, string name)
-            => command.Parameters.Where(p => PARAM_MATCHER.Invoke(p, name));
+            => command.Parameters.Where(p => FilterParameter(p, name));
     }
 }

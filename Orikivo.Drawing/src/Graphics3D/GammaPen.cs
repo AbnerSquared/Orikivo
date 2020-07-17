@@ -2,7 +2,7 @@
 {
     public class GammaPen
     {
-        public GammaPen(GammaColor color)
+        public GammaPen(ImmutableColor color)
         {
             Color = color;
             IsDown = false;
@@ -12,6 +12,6 @@
 
         public bool IsDown { get; set; }
 
-        public GammaColor Color { get; set; }
+        public ImmutableColor Color { get; set; }
     }
 }

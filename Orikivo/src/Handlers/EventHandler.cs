@@ -10,18 +10,18 @@ namespace Orikivo
     public class EventHandler
     {
         private readonly DiscordSocketClient _client;
-        private readonly OriJsonContainer _container;
+        //private readonly DesyncContainer _container;
 
-        public EventHandler(DiscordSocketClient client, OriJsonContainer container)
+        public EventHandler(DiscordSocketClient client /*, DesyncContainer container*/)
         {
             Console.WriteLine("-- Initializing event handler. --");
             _client = client;
-            _container = container;
+            //_container = container;
             _client.Ready += OnReadyAsync;
-            _client.UserJoined += OnUserJoinAsync;
-            //_client.ChannelDestroyed += OnChannelDeletedAsync;
+            // _client.UserJoined += OnUserJoinAsync;
+            // _client.ChannelDestroyed += OnChannelDeletedAsync;
         }
-
+        /*
         private async Task OnUserJoinAsync(SocketGuildUser user)
         {
             OriGuild server = _container.GetOrAddGuild(user.Guild);
@@ -40,6 +40,7 @@ namespace Orikivo
                     await defaultChannel.SendMessageAsync(server.Greet(user.Guild, user));
             }
         }
+        */
 
         /*
         private async Task OnChannelDeletedAsync(SocketChannel channel)

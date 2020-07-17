@@ -1,43 +1,65 @@
-﻿using System;
+﻿using Orikivo.Framework;
+using System;
 using System.Collections.Concurrent;
 
 namespace Orikivo
 {
-    /// <summary>
-    /// Represents the default <see cref="IJsonContainer{TKey, TObject}"/>.
-    /// </summary>
-    public class JsonContainer<TKey, TObject> : IJsonContainer<TKey, TObject>
+    public class JsonContainer<TEntity>
+        where TEntity : IJsonEntity
     {
-        public void Restore(string directory)
+        private readonly string _directory;
+
+        public ConcurrentDictionary<ulong, TEntity> Values { get; }
+
+        public JsonContainer(string directory)
         {
-            throw new NotImplementedException();
+            _directory = directory;
+            Values = JsonHandler.RestoreContainer<TEntity>(_directory);
+            Logger.Debug($"-- Restored {Values.Count} {OriFormat.TryPluralize("entity", Values.Count)}. --");
         }
 
-        public ConcurrentDictionary<TKey, TObject> Directory { get; set; }
-
-        public TObject GetOrAdd(TObject @object)
+        public TEntity GetOrAdd(TEntity value)
         {
-            throw new NotImplementedException();
+            TEntity result = default(TEntity);
+
+            if (value == null)
+                return result;
+
+            if (!Values.ContainsKey(value.Id))
+                Values.AddOrUpdate(value.Id, value, (key, value) => value);
+
+            Values.TryGetValue(value.Id, out result);
+
+            return result;
         }
 
-        public bool TryGet(TKey key, out TObject @object)
+        public void AddOrUpdate(ulong id, TEntity value)
         {
-            throw new NotImplementedException();
+            if (id != value.Id)
+                throw new ArgumentException("The specified ID does not match to the specified value");
+
+            Values.AddOrUpdate(id, value, (key, value) => value);
         }
 
-        public void AddOrUpdate(TObject @object)
+        public bool TryGetValue(ulong id, out TEntity entity)
+            => Values.TryGetValue(id, out entity);
+
+        public void Save(TEntity value)
         {
-            throw new NotImplementedException();
+            if (value != null)
+                JsonHandler.SaveEntity(value, _directory);
         }
 
-        public void Save(TObject @object)
+        public void TrySave(TEntity value)
         {
-            throw new NotImplementedException();
+            if (value != null)
+                Save(value);
         }
 
         public void SaveAll()
         {
-            throw new NotImplementedException();
+            foreach (TEntity value in Values.Values)
+                Save(value);
         }
     }
 }

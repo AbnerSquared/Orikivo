@@ -63,7 +63,7 @@ namespace Orikivo
             if (!user.IsOnCooldown(Cooldowns.Notify))
             {
                 //RestUserMessage msg = 
-                await channel.SendMessageAsync($"You are sending requests too quickly!\nTime left: **{DateTimeUtils.TimeSince(globalExpires).ToString(@"hh\:mm\:ss")}**", options: options);
+                await channel.SendMessageAsync($"You are sending requests too quickly!\nTime left: **{(DateTime.UtcNow - globalExpires).ToString(@"hh\:mm\:ss")}**", options: options);
                 user.SetCooldown(CooldownType.Global, Cooldowns.Notify, TimeSpan.FromSeconds(3.0));
                 //await Task.Delay(TimeSpan.FromSeconds(3));
                 //await msg.DeleteAsync();

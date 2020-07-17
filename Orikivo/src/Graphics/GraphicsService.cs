@@ -7,36 +7,18 @@ using Orikivo.Desync;
 
 namespace Orikivo
 {
-    // This service will most likely be moved to Arcadia, as Orikivo only focuses on the RPG graphics handler.
-    public class CardFormatter
-    {
-        public bool AutoSize { get; set; } = false;
-        public bool UpperCaseName { get; set; } = false;
-
-        public FontType Font { get; set; } = FontType.Foxtrot;
-        public PaletteType Palette { get; set; } = PaletteType.Default;
-    }
-
     /// <summary>
     /// Handles all of the rendering processes for Orikivo.
     /// </summary>
     public class GraphicsService : IDisposable
     {
-        private readonly DrawableFactory _graphics;
-
-        public void Dispose()
-        {
-            _graphics.Dispose();
-        }
+        private readonly TextFactory _text;
 
         public GraphicsService()
         {
-            GraphicsConfig config = new GraphicsConfig { CharMap = GetDefaultCharMap() };
-
-            _graphics = new DrawableFactory(config);
-
-            _graphics.SetFont(GetFont(FontType.Orikos));
-            _graphics.SetPalette(GammaPalette.Default);
+            _text = new TextFactory(GetDefaultCharMap());
+            _text.SetFont(GetFont(FontType.Orikos));
+            Palette = GetPalette(PaletteType.Default);
         }
 
         public static char[][][][] GetDefaultCharMap()
@@ -63,315 +45,167 @@ namespace Orikivo
                 _ => GammaPalette.Default
             };
 
+        public static Bitmap GetBitmap(Grid<Color> pixels, int scale = 1)
+        {
+            Bitmap image = ImageEditor.CreateRgbBitmap(pixels.Values);
+
+            if (scale > 1)
+            {
+                // A cap is placed to prevent abuse.
+                scale = scale > 5 ? 5 : scale;
+
+                image = ImageHelper.Scale(image, scale, scale);
+            }
+
+            return image;
+        }
+
+        public GammaPalette Palette { get; set; }
+
         public void SetPalette(PaletteType palette)
-            => _graphics.SetPalette(GetPalette(palette));
+            => Palette = GetPalette(palette);
 
         public void SetPalette(GammaPalette palette)
-            => _graphics.SetPalette(palette);
+            => Palette = palette;
 
-        public Bitmap DrawString(string content, CanvasOptions options = null)
-            => _graphics.DrawString(content, options);
+        public Bitmap DrawText(string content, ImageProperties properties = null)
+            => _text.DrawText(content, properties);
 
-        public Bitmap DrawString(string content, FontFace font, CanvasOptions options = null)
-            => _graphics.DrawString(content, font, options);
+        public Bitmap DrawText(string content, FontFace font, ImageProperties properties = null)
+            => _text.DrawText(content, font, properties);
 
-        public Bitmap DrawString(string content, Color color, CanvasOptions options = null)
-            => _graphics.DrawString(content, color, options);
+        public Bitmap DrawText(string content, Color color, ImageProperties properties = null)
+            => _text.DrawText(content, color, properties);
 
-        public Bitmap DrawString(string content, Gamma gamma, CanvasOptions options = null)
-            => _graphics.DrawString(content, _graphics.Palette[gamma], options);
+        public Bitmap DrawText(string content, Gamma gamma, ImageProperties properties = null)
+            => _text.DrawText(content, Palette[gamma], properties);
 
-        public Bitmap DrawString(string content, Gamma gamma, GammaPalette palette, CanvasOptions options = null)
-            => _graphics.DrawString(content, palette[gamma], options);
+        public Bitmap DrawText(string content, Gamma gamma, GammaPalette palette, ImageProperties properties = null)
+            => _text.DrawText(content, palette[gamma], properties);
 
-        public Bitmap DrawString(string content, Gamma gamma, PaletteType palette, CanvasOptions options = null)
-            => _graphics.DrawString(content, GetPalette(palette)[gamma], options);
+        public Bitmap DrawText(string content, Gamma gamma, PaletteType palette, ImageProperties properties = null)
+            => _text.DrawText(content, GetPalette(palette)[gamma], properties);
 
-        public Bitmap DrawString(string content, FontFace font, Color color, CanvasOptions options = null)
-            => _graphics.DrawString(content, font, color, options);
+        public Bitmap DrawText(string content, FontFace font, Color color, ImageProperties properties = null)
+            => _text.DrawText(content, font, color, properties);
 
-        public Bitmap DrawString(string content, FontFace font, Gamma gamma, CanvasOptions options = null)
-            => _graphics.DrawString(content, font, _graphics.Palette[gamma], options);
+        public Bitmap DrawText(string content, FontFace font, Gamma gamma, ImageProperties properties = null)
+            => _text.DrawText(content, font, Palette[gamma], properties);
 
-        public Bitmap DrawString(string content, FontFace font, Gamma gamma, GammaPalette palette, CanvasOptions options = null)
-            => _graphics.DrawString(content, font, palette[gamma], options);
+        public Bitmap DrawText(string content, FontFace font, Gamma gamma, GammaPalette palette, ImageProperties properties = null)
+            => _text.DrawText(content, font, palette[gamma], properties);
 
-        public Bitmap DrawString(string content, FontFace font, Gamma gamma, PaletteType palette, CanvasOptions options = null)
-            => _graphics.DrawString(content, font, GetPalette(palette)[gamma], options);
+        public Bitmap DrawText(string content, FontFace font, Gamma gamma, PaletteType palette, ImageProperties properties = null)
+            => _text.DrawText(content, font, GetPalette(palette)[gamma], properties);
 
         public Bitmap DrawCard(CardDetails details, PaletteType palette)
-            => DrawCard(details, GetPalette(palette));
-
-        public Bitmap DrawCard(CardDetails details, GammaPalette palette, bool autoResize = false, bool allCaps = false)
         {
-            //int level = ExpConvert.AsLevel(details.Exp);
-            //ulong nextExp = ExpConvert.AsExp(level + 1);
-            //ulong currentExp = ExpConvert.AsExp(level);
+            var properties = CardProperties.Default;
+            properties.Palette = palette;
 
-            CanvasOptions textConfig = new CanvasOptions { BackgroundColor = null, Padding = Padding.Empty };
+            return DrawCard(details, properties);
+        }
+
+        private static string GetString(Casing casing, string value)
+            => casing switch
+            {
+                Casing.Upper => value.ToUpper(),
+                Casing.Lower => value.ToLower(),
+                _ => value
+            };
+
+        public Bitmap DrawCard(CardDetails details, CardProperties properties = null)
+        {
+            properties ??= CardProperties.Default;
+
+
+            var palette = GetPalette(properties.Palette);
+            var defaultProperties = new ImageProperties { Matte = null, Padding = Padding.Empty };
             FontFace delton = GetFont(FontType.Delton);
             FontFace minic = GetFont(FontType.Minic);
             FontFace foxtrot = GetFont(FontType.Foxtrot);
 
-            string iconSheetPath = @"../assets/icons/levels.png";
-            Sheet iconSheet = new Sheet(iconSheetPath, 6, 6);
-            string coinSheetPath = @"../assets/icons/coins.png";
-            Sheet coinSheet = new Sheet(coinSheetPath, 8, 8);
+            var iconSheet = new Sheet(@"../assets/icons/levels.png", 6, 6);
+            var coinSheet = new Sheet(@"../assets/icons/coins.png", 8, 8);
 
-            Console.WriteLine("Creating card base...");
-            Drawable card = new Drawable(196, 40); // 150, 200 with 2px padding
-            card.Scale = ImageScale.Medium;
-            card.Padding = new Padding(2);
-            card.Palette = palette;
-
-            Console.WriteLine($"Drawing avatar...");
-            #region Avatar
-            // AVATAR
-
-            BitmapLayer avatar = new BitmapLayer
+            // 150, 200 with 2px padding
+            var card = new Drawable(192, 32)
             {
-                Source = GraphicsUtils.SetPalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
-                Offset = new Point(4, 4),
-                Padding = new Padding(right: 2)
-            };
-            #endregion
-
-            Console.WriteLine($"Drawing name...");
-            #region Name
-            // USERNAME
-            BitmapLayer username = new BitmapLayer
-            {
-                Source = DrawString(allCaps ? details.Name.ToUpper() : details.Name, foxtrot, textConfig),
-                Offset = new Point(
-                    avatar.Offset.X + avatar.Source.Width + avatar.Padding.Width,
-                    avatar.Offset.Y),
-                Padding = new Padding(bottom: 2)
-            };
-
-            Console.WriteLine($"{12 * 9} || {username.Source.Width} + {username.Offset.X} + {username.Padding.Width}");
-            #endregion
-
-            Console.WriteLine($"Drawing state...");
-            #region State
-            // STATE
-            BitmapLayer activity = new BitmapLayer
-            {
-                Source = DrawString(details.Program ?? details.Status.ToString(), minic, textConfig),
-                Offset = new Point(
-                    username.Offset.X,
-                    username.Offset.Y + username.Source.Height + username.Padding.Height),
-                Padding = new Padding(bottom: 2)
-            };
-            #endregion
-
-            /*
-            Console.WriteLine($"Drawing level icon...");
-            #region Level Icon
-            // LEVEL ICON
-            BitmapLayer levelIcon = new BitmapLayer
-            {
-                Source = BitmapHandler.AutoCrop(iconSheet.GetSprite(1, 1), true),
-                Offset = new Point(
-                    username.Offset.X,
-                    activity.Offset.Y + activity.Source.Height + activity.Padding.Height),
-                Padding = new Padding(right: 1)
-            };
-            #endregion
-
-            Console.WriteLine($"Drawing level counter...");
-            #region Level Display
-            // LEVEL COUNTER
-            BitmapLayer levelCounter = new BitmapLayer
-            {
-                Source = DrawString(level.ToString(), delton, textConfig),
-                Offset = new Point(
-                    levelIcon.Offset.X + levelIcon.Source.Width + levelIcon.Padding.Width,
-                    levelIcon.Offset.Y),
-                Padding = new Padding(right: 5, bottom: 1)
-            };
-            #endregion
-            */
-
-            /*
-            Console.WriteLine($"Drawing experience bar...");
-            #region EXP
-            // EXP
-            BitmapLayer expBar = new BitmapLayer
-            {
-                Source = _graphics.DrawFillable(GammaPalette.Default[Gamma.Standard],
-                GammaPalette.Default[Gamma.Max], levelCounter.Source.Width, 2,
-                RangeF.Convert(currentExp, nextExp, 0.0f, 1.0f, details.Exp), AngleF.Right),
-
-                Offset = new Point(
-                    levelCounter.Offset.X,
-                    levelCounter.Offset.Y + levelCounter.Source.Height + levelCounter.Padding.Height)
-            };
-            #endregion
-            */
-
-            /*
-            Console.WriteLine($"Drawing coin icon...");
-            #region Coin Icon
-            // COIN ICON
-            BitmapLayer coinIcon = new BitmapLayer
-            {
-                Source = BitmapHandler.AutoCrop(coinSheet.GetSprite(1, 1), true),
-
-                Offset = new Point(
-                    levelCounter.Offset.X + levelCounter.Source.Width + levelCounter.Padding.Width,
-                    activity.Offset.Y + activity.Source.Height + activity.Padding.Height),
-
-                Padding = new Padding(right: 2)
-            };
-            #endregion
-
-            Console.WriteLine($"Drawing money counter...");
-            #region Balance Display
-
-            Calc.MinusRem(details.Balance, details.Debt);
-            bool inDebt = details.Debt > details.Balance;
-            ulong balance = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
-            string bal = OriFormat.SummarizeValue(balance, out PlaceValue value);
-            // BALANCE COUNTER
-            BitmapLayer moneyCounter = new BitmapLayer
-            {
-                Source = DrawString($"{(inDebt ? "-" : "")}{bal}", delton, inDebt ? Gamma.Bright : Gamma.Max, GammaPalette.Default, textConfig),
-
-                Offset = new Point(
-                    coinIcon.Offset.X + coinIcon.Source.Width + coinIcon.Padding.Width,
-                    coinIcon.Offset.Y),
-
-                Padding = new Padding(right: 1)
-            };
-            #endregion
-            */
-
-            // TODO: Split the card drawing process into one method for each layer,
-            // from which it can then utilize custom loadouts and such.
-
-            card.AddLayer(avatar);
-            card.AddLayer(username);
-            card.AddLayer(activity);
-
-            //card.AddLayer(levelIcon);
-            //card.AddLayer(levelCounter);
-            //card.AddLayer(expBar);
-
-            //card.AddLayer(coinIcon);
-            //card.AddLayer(moneyCounter);
-
-            Console.WriteLine($"Drawing border...");
-            #region Border
-            SolidLayer borderLeft = new SolidLayer
-            {
-                Color = GammaPalette.Default[Gamma.Max],
-                Offset = new Point(0, 0),
-                Width = 2,
-                Height = 40
-            };
-
-            SolidLayer borderRight = new SolidLayer
-            {
-                Color = GammaPalette.Default[Gamma.Max],
-                Offset = new Point(194, 0),
-                Width = 2,
-                Height = 40
-            };
-
-            SolidLayer borderTop = new SolidLayer
-            {
-                Color = GammaPalette.Default[Gamma.Max],
-                Offset = new Point(2, 0),
-                Width = 192,
-                Height = 2
-            };
-
-            SolidLayer borderBottom = new SolidLayer
-            {
-                Color = GammaPalette.Default[Gamma.Max],
-                Offset = new Point(2, 38),
-                Width = 192,
-                Height = 2
-            };
-
-            if (autoResize)
-            {
-                LayerSizeData widest = card.Layers
-                    .Where(x => x is BitmapLayer)
-                    .Select(x => new LayerSizeData { OffsetX = x.Offset.X, OffsetY = x.Offset.Y, Padding = x.Padding, SourceWidth = (x as BitmapLayer).Source.Width, SourceHeight = (x as BitmapLayer).Source.Height })
-                    .OrderByDescending(x => x.Width).FirstOrDefault();
-
-                LayerSizeData tallest = card.Layers
-                    .Where(x => x is BitmapLayer)
-                    .Select(x => new LayerSizeData { OffsetX = x.Offset.X, OffsetY = x.Offset.Y, Padding = x.Padding, SourceWidth = (x as BitmapLayer).Source.Width, SourceHeight = (x as BitmapLayer).Source.Height })
-                    .OrderByDescending(x => x.Height).FirstOrDefault();
-
-                Console.WriteLine($"Widest => {widest.OffsetX} + {widest.SourceWidth} + {widest.Padding.Width}\nTallest => {tallest.OffsetY} + {tallest.SourceHeight} + {tallest.Padding.Height}");
-
-                // l border => new Point(0, 0)
-                // r border => new Point(4 + widest.Width + 2, 0)
-                // t border => new Point(2, 0)
-                // b border => new Point(2, tallest.Height + 2)
-
-                int lrHeight = tallest.Height + 4;
-                int tbWidth = widest.Width;
-
-                borderLeft.Height = lrHeight;
-
-                borderRight.Offset = new Point(tbWidth + 2, 0);
-                borderRight.Height = lrHeight;
-
-                borderTop.Width = tbWidth;
-
-                borderBottom.Offset = new Point(2, tallest.Height + 2);
-                borderBottom.Width = tbWidth;
-
-                card.Viewport = new Size(4 + widest.Width, lrHeight);
-            }
-
-            // BORDER
-            
-            #endregion
-
-
-            Console.WriteLine($"Finalizing...");
-            #region Finalization
-            card.AddLayer(borderLeft);
-            card.AddLayer(borderRight);
-            card.AddLayer(borderTop);
-            card.AddLayer(borderBottom);
-
-            
-
-            /*
-            // SUFFIX OPTIONAL
-            if (value > PlaceValue.H)
-            {
-                string suffixSheetPath = @"../assets/icons/suffixes.png";
-                Sheet suffixSheet = new Sheet(suffixSheetPath, 6, 6);
-
-                // BALANCE VALUE SUFFIX
-                BitmapLayer valueSuffix = new BitmapLayer
+                Properties = new DrawableProperties
                 {
-                    Source = BitmapHandler.AutoCrop(suffixSheet.GetSprite(1, (int)value), true),
-                    Offset = new Point(
-                        moneyCounter.Offset.X + moneyCounter.Source.Width + moneyCounter.Padding.Width,
-                        moneyCounter.Offset.Y)
+                    Palette = palette,
+                    Padding = properties.Padding,
+                    Margin = properties.Padding
+                }.WithScale(properties.Scale)
+            };
+
+            var cursor = new Cursor();
+
+            // AVATAR
+            if (!properties.Deny.HasFlag(CardDeny.Avatar))
+            {
+                var avatar = new BitmapLayer
+                {
+                    Source = ImageEditor.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
+                    Offset = new Point(cursor.X, cursor.Y)
+                };
+                avatar.Properties.Padding = new Padding(right: 2);
+
+                cursor.X += avatar.Source.Width + avatar.Properties.Padding.Width;
+                card.AddLayer(avatar);
+            }
+           
+            // USERNAME
+            if (!properties.Deny.HasFlag(CardDeny.Username))
+            {
+                var usernameGamma = properties.Gamma[CardComponentType.Username] ?? Gamma.Max;
+                var username = new BitmapLayer
+                {
+                    Source = DrawText(GetString(properties.Casing, details.Name), GetFont(properties.Font), usernameGamma, defaultProperties),
+                    Offset = new Point(cursor.X, cursor.Y)
                 };
 
-                card.AddLayer(valueSuffix);
+                username.Properties.Padding = new Padding(bottom: 2);
+
+                cursor.Y += username.Source.Height + username.Properties.Padding.Height;
+                card.AddLayer(username);
             }
-            */
-            #endregion
+
+            // ACTIVITY
+            if (!properties.Deny.HasFlag(CardDeny.Activity))
+            {
+                var activityGamma = properties.Gamma[CardComponentType.Activity] ?? Gamma.Max;
+                var activity = new BitmapLayer
+                {
+                    Source = DrawText(details.Program ?? details.Status.ToString(), minic, activityGamma, defaultProperties),
+                    Offset = new Point(cursor.X, cursor.Y)
+                };
+
+                card.AddLayer(activity);
+            }
+
+            if (!(properties.Border == 0))
+            {
+                var borderGamma = properties.Gamma[CardComponentType.Border] ?? Gamma.Max;
+                card.Border = new Border
+                {
+                    Allow = properties.Border,
+                    Color = palette[borderGamma],
+                    Edge = BorderEdge.Outside,
+                    Thickness = 2
+                };
+            }
+
+            if (properties.Trim)
+                card.Trim();
+
 
             return card.BuildAndDispose();
         }
 
-        //private DrawableLayer DrawAvatar();
-        // private DrawableLayer DrawBorder();
-        // private DrawableLayer DrawLevel();
-        // private DrawableLayer DrawMoney();
-        // private DrawableLayer DrawName();
-        // private DrawableLayer DrawMerits();
+        public void Dispose()
+        {
+            _text.Dispose();
+        }
     }
 }

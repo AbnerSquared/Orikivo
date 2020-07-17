@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Framework;
+using System;
 
 namespace Orikivo
 {
@@ -21,7 +22,7 @@ namespace Orikivo
         {
             builder.Services
                 .AddSingleton<LogService>() // Handles all logging for Orikivo.
-                .AddSingleton<OriJsonContainer>() // A data container that is passed along all inheriting classes.
+                .AddSingleton<DesyncContainer>() // A data container that is passed along all inheriting classes.
                 .AddSingleton<EventHandler>() // Manages all events that occur from the Discord API.
                 .AddSingleton<CommandHandler>();
 
@@ -29,6 +30,14 @@ namespace Orikivo
             builder.CommandConfig = DiscordConfig.DefaultCommandConfig;
 
             return builder;
+        }
+
+        public static ClientBuilder AddEnumTypeReader<T>(this ClientBuilder builder) where T : struct
+        {
+            if (!typeof(T).IsEnum)
+                throw new ArgumentException("The specified type is not a type of Enum");
+
+            return builder.AddTypeReader<T>(new EnumTypeReader<T>());
         }
     }
 }

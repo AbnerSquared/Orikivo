@@ -4,7 +4,10 @@ using Orikivo.Drawing.Graphics3D;
 
 namespace Orikivo.Drawing
 {
-    // TODO: Replace MatrixF with Grid.
+    // NOTE: MatrixF will live next to Grid<T>, as Grid<T> is extensive
+    /// <summary>
+    /// Represents a rectangular array of floating point numbers.
+    /// </summary>
     public struct MatrixF
     {
         public static readonly MatrixF M4x4 = new MatrixF(4, 4);
@@ -50,7 +53,6 @@ namespace Orikivo.Drawing
             m[3, 3] = 1.0f;
 
             return m;
-
         }
 
         public static MatrixF CreateRotationZ(AngleF angle)
@@ -136,13 +138,16 @@ namespace Orikivo.Drawing
             set => SetValue(value, row, column);
         }
 
+        public Grid<float> ToGrid()
+            => new Grid<float>(Values);
+
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var matrix = new StringBuilder();
             for (int r = 0; r < Height; r++)
-                sb.AppendLine(string.Join(" ", GetRow(r)));
+                matrix.AppendLine(string.Join(" ", GetRow(r)));
 
-            return sb.ToString();
+            return matrix.ToString();
         }
     }
 }

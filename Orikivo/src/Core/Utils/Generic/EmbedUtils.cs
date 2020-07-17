@@ -15,17 +15,17 @@ namespace Orikivo
         /// </summary>
         public static System.Drawing.Color GetColorByStatus(UserStatus status)
         {
-            return status.EqualsAny(UserStatus.Offline, UserStatus.Invisible) ? new GammaColor(0x747F8D)
-                : status == UserStatus.DoNotDisturb ? new GammaColor(0xF04747)
-                : status.EqualsAny(UserStatus.AFK, UserStatus.Idle) ? new GammaColor(0xFAA61A)
-                : status == UserStatus.Online ? new GammaColor(0x43B581)
+            return status.EqualsAny(UserStatus.Offline, UserStatus.Invisible) ? new ImmutableColor(0x747F8D)
+                : status == UserStatus.DoNotDisturb ? new ImmutableColor(0xF04747)
+                : status.EqualsAny(UserStatus.AFK, UserStatus.Idle) ? new ImmutableColor(0xFAA61A)
+                : status == UserStatus.Online ? new ImmutableColor(0x43B581)
                 : throw new Exception("The UserStatus given is unspecified.");
         }
 
-        public static GammaColor GetColorByReport(int reportCount)
+        public static ImmutableColor GetColorByReport(int reportCount)
             => reportCount >= InfoService.CRITICAL_THRESHOLD ?
-            new GammaColor(0xE75A70) : reportCount >= InfoService.YIELD_THRESHOLD ?
-            new GammaColor(0xFFAC33) : new GammaColor(0x55ACEE);
+            new ImmutableColor(0xE75A70) : reportCount >= InfoService.YIELD_THRESHOLD ?
+            new ImmutableColor(0xFFAC33) : new ImmutableColor(0x55ACEE);
 
         // TODO: actually give this a reason to exist.
         public static string CreatePageIndex(int currentPage, int maxPage, string text = null)

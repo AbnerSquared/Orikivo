@@ -6,7 +6,7 @@
     public enum Gamma
     {
         /// <summary>
-        /// The darkest <see cref="GammaColor"/> within a <see cref="GammaPalette"/>.
+        /// The darkest <see cref="ImmutableColor"/> within a <see cref="GammaPalette"/>.
         /// </summary>
         Min = 0,
 
@@ -23,7 +23,7 @@
         Brighter = 6,
 
         /// <summary>
-        /// The brightest <see cref="GammaColor"/> within a <see cref="GammaPalette"/>.
+        /// The brightest <see cref="ImmutableColor"/> within a <see cref="GammaPalette"/>.
         /// </summary>
         Max = 7
     }

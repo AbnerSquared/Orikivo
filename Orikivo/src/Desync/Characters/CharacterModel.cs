@@ -20,8 +20,6 @@ namespace Orikivo.Desync
 
         public AppearanceNode Body { get; set; }
 
-        public AppearanceNode Face { get; set; }
-
         public Point DefaultFaceOffset { get; set; }
 
         public List<CharacterOutfit> Outfits { get; set; }
@@ -43,16 +41,16 @@ namespace Orikivo.Desync
             {
                 // replace this with the interior images provided from a Location.
                 using (Bitmap bg = new Bitmap("../assets/npcs/npc_frame.png"))
-                    GraphicsUtils.ClipAndDrawImage(g, bg, new Point(0, 0));
+                    ImageEditor.ClipAndDrawImage(g, bg, new Point(0, 0));
 
                 using (Bitmap body = Body.Value.GetImage())
-                    GraphicsUtils.ClipAndDrawImage(g, body, Body.GetOffset());
+                    ImageEditor.ClipAndDrawImage(g, body, Body.GetOffset());
 
                 using (Bitmap head = Head.Value.GetImage())
-                    GraphicsUtils.ClipAndDrawImage(g, head, Head.GetOffset());
+                    ImageEditor.ClipAndDrawImage(g, head, Head.GetOffset());
 
                 using (Bitmap face = GetReactionOrDefault(tone).Value.GetImage())
-                    GraphicsUtils.ClipAndDrawImage(g, face, Face.GetOffset());
+                    ImageEditor.ClipAndDrawImage(g, face, DefaultFaceOffset);
             }
 
             result = ImageHelper.SetColorMap(result, GammaPalette.Default, palette);

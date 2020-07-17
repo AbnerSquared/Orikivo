@@ -4,9 +4,9 @@ namespace Orikivo.Drawing
 {
     public struct RangeF
     {
-        public static RangeF Percent => new RangeF(0.00f, 1.00f);
-        public static RangeF Normal => new RangeF(-1.00f, 1.00f);
-        public static RangeF Degree => new RangeF(0.00f, 360.00f, true, false);
+        public static readonly RangeF Percent = new RangeF(0.00f, 1.00f);
+        public static readonly RangeF Normal = new RangeF(-1.00f, 1.00f);
+        public static readonly RangeF Degree = new RangeF(0.00f, 360.00f, true, false);
 
         public static float Convert(RangeF from, RangeF to, float value)
             => Convert(from.Min, from.Max, to.Min, to.Max, value);
@@ -23,7 +23,7 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Flattens the <see cref="RangeF"/> as whole numbers.
+        /// Flattens the <see cref="RangeF"/> to whole numbers.
         /// </summary>
         public static RangeF Truncate(RangeF range)
             => new RangeF(MathF.Truncate(range.Min),

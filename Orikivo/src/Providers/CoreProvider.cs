@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using System.Diagnostics;
 using System.Text;
@@ -11,14 +10,15 @@ namespace Orikivo
     {
         private static readonly string _before = "🌌 **Pinging...**";
         private static readonly string _after = "🏓 **Pong!**";
-        // pings to the specified channel.
+
+        // NOTE: Pings to the specified channel.
         public static async Task<IUserMessage> PingAsync(IMessageChannel channel, BaseSocketClient client)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             IUserMessage message = await channel.SendMessageAsync(_before);
             stopwatch.Stop();
 
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
             result.AppendLine(_after);
             result.AppendLine($"> **Internal** {GetCounter(stopwatch.ElapsedMilliseconds)}");
             result.AppendLine($"> **Gateway** {GetCounter(client.Latency)}");

@@ -1,43 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// A custom <see cref="Bitmap"/> that supports layering and detailed configurables.
+    /// Represents an image builder that supports layering.
     /// </summary>
     public class Drawable : IDisposable
     {
+        private DrawableProperties _properties;
+
         public Drawable(int width, int height)
         {
             Viewport = new Size(width, height);
         }
 
-        public Drawable(Size viewport)
+        public Drawable(Unit viewport)
         {
             Viewport = viewport;
         }
 
         /// <summary>
-        /// The initial <see cref="Point"/> that is referenced for each <see cref="DrawableLayer"/>.
+        /// Gets or sets the dimensions of the visible area of this <see cref="Drawable"/>.
         /// </summary>
-        public Point Origin { get; set; } = Point.Empty;
-
-        /// <summary>
-        /// The maximum width and height for the <see cref="Bitmap"/> to render.
-        /// </summary>
-        public Size Viewport { get; set; }
-
-        /// <summary>
-        /// The <see cref="Bitmap"/> resolution scale that will be set when using <see cref="Build"/>.
-        /// </summary>
-        public ImageScale Scale { get; set; } = ImageScale.Small;
-
-        /// <summary>
-        /// The extraneous whitespace that will surround the <see cref="Drawable"/>.
-        /// </summary>
-        public Padding Padding { get; set; } = Padding.Empty;
+        public Unit Viewport { get; set; }
 
         /// <summary>
         /// Represents all of the existing <see cref="DrawableLayer"/> values within the <see cref="Drawable"/>.
@@ -51,41 +39,25 @@ namespace Orikivo.Drawing
         /// </summary>
         public GammaPalette Palette { get; set; } = GammaPalette.Default;
 
-        public DrawableProperties Properties { get; set; }
+        public DrawableProperties Properties
+        {
+            get
+            {
+                if (_properties == null)
+                    _properties = DrawableProperties.Default;
+
+                return _properties;
+            }
+            set
+            {
+                _properties = value;
+            }
+        }
 
         public Border Border { get; set; }
 
-        public Size Size => new Size(Viewport.Width + Padding.Width,
-            Viewport.Height + Padding.Height);
-
-        public void SetBorder(GammaColor color, int width, BorderEdge edge = BorderEdge.Outside)
-        {
-            Border = new Border { Color = color, Thickness = width, Edge = edge };
-        } // LeftBorder, TopBorder, RightBorder, BottomBorder
-
-        public void ClearBorder()
-        {
-            Border = null;
-        }
-
-        /// <summary>
-        /// Sets the origin of the <see cref="Drawable"/> to the specified <see cref="OriginAnchor"/>.
-        /// </summary>
-        /// <param name="anchor"></param>
-        public void SetOrigin(OriginAnchor anchor)
-        {
-            Origin = OriginUtils.GetOrigin(Viewport, anchor);
-        }
-
-        public void SetOrigin(int x, int y)
-        {
-            Origin = new Point(x, y);
-        }
-
-        public void SetOrigin(Point origin)
-        {
-            Origin = origin;
-        }
+        public Unit Size => new Unit(Viewport.Width + Properties.Padding.Width,
+            Viewport.Height + Properties.Padding.Height);
 
         /// <summary>
         /// Adds a new <see cref="DrawableLayer"/> to the set of existing layers.
@@ -99,24 +71,14 @@ namespace Orikivo.Drawing
         /// <summary>
         /// Updates the existing <see cref="DrawableLayer"/> at the specified index to the new one specified.
         /// </summary>
-        public void UpdateLayer(int index, DrawableLayer layer, bool keepConfig = true)
+        public void UpdateLayer(int index, DrawableLayer layer, bool keepProperties = true)
         {
-            if (keepConfig)
-                layer.Config = InternalLayers[index].Config;
+            if (keepProperties)
+                layer.Properties = InternalLayers[index].Properties;
 
             InternalLayers[index] = layer;
         }
 
-        /// <summary>
-        /// Moves a <see cref="DrawableLayer"/> from its initial index to the specified index, affecting the indexes of each existing <see cref="DrawableLayer"/>.
-        /// </summary>
-        public void MoveLayer(int index, int newIndex)
-        {
-            // TODO: Figure out list shifting.
-            throw new NotImplementedException();
-        }
-
-        // swap layers by index
         /// <summary>
         /// Swaps two different <see cref="DrawableLayer"/> values by index.
         /// </summary>
@@ -135,41 +97,84 @@ namespace Orikivo.Drawing
             InternalLayers.RemoveAt(index);
         }
 
+        // NOTE: This auto-resizes the Drawable to perfectly fill all layers
+        public void Trim()
+        {
+            int maxWidth = 0;
+            int maxHeight = 0;
+
+            foreach (DrawableLayer layer in InternalLayers)
+            {
+                var farthest = layer.GetFarthestPoint();
+
+                if (farthest.X > maxWidth)
+                    maxWidth = farthest.X;
+
+                if (farthest.Y > maxHeight)
+                    maxHeight = farthest.Y;
+            }
+
+
+            Viewport = new Unit(maxWidth, maxHeight);
+        }
+
         /// <summary>
         /// Compiles all of the <see cref="DrawableLayer"/> values together to return a fully rendered <see cref="Bitmap"/>.
         /// </summary>
         public Bitmap Build()
         {
-            Bitmap result = new Bitmap(Size.Width, Size.Height);
+            var result = new Bitmap(Size.Width, Size.Height);
+
             using (Graphics graphics = Graphics.FromImage(result))
             {
+                //Parallel.ForEach(InternalLayers, delegate (DrawableLayer layer) {
                 foreach (DrawableLayer layer in InternalLayers)
                 {
-                    using (Bitmap bmp = layer.Build())
+                    if (layer.Disposed)
+                        continue; // return;
+
+                    using (Bitmap inner = layer.Build())
                     {
-                        if (layer.Offset.X > Viewport.Width && layer.Offset.Y > Viewport.Height)
+                        if (inner == null)
+                            continue; // return;
+
+                        if (layer.Offset.X > Viewport.Width
+                            && layer.Offset.Y > Viewport.Height)
                         {
-                            if (layer.Offset.X < 0 || layer.Offset.X + bmp.Width > Viewport.Width ||
-                                layer.Offset.Y < 0 || layer.Offset.Y + bmp.Height > Viewport.Height)
+                            // NOTE: This is if the inner image is out of bounds
+                            if (layer.Offset.X < 0
+                                || layer.Offset.X + inner.Width > Viewport.Width
+                                || layer.Offset.Y < 0
+                                || layer.Offset.Y + inner.Height > Viewport.Height)
                             {
-                                Rectangle cropRect = GraphicsUtils.ClampRectangle(Origin, Viewport, layer.Offset, bmp.Size);
+                                Rectangle clip = ImageEditor.ClampRectangle(Point.Empty, Viewport, layer.Offset, inner.Size);
 
-                                using (Bitmap crop = ImageHelper.Crop(bmp, cropRect))
-                                    GraphicsUtils.ClipAndDrawImage(graphics, crop, layer.Position);
+                                using (Bitmap visible = ImageHelper.Crop(inner, clip))
+                                    ImageEditor.ClipAndDrawImage(graphics, visible, layer.Position);
 
-                                continue;
+                                continue; // return;
                             }
                         }
 
-                        GraphicsUtils.ClipAndDrawImage(graphics, bmp, new Point(Padding.Left + layer.Offset.X, Padding.Top + layer.Offset.Y));
+                        int x = Properties.Padding.Left + layer.Offset.X;
+                        int y = Properties.Padding.Top + layer.Offset.Y;
+                        ImageEditor.ClipAndDrawImage(graphics, inner, x, y);
                     }
                 }
+                //});
             }
 
+            if (Border != null)
+                result = ImageEditor.SetBorder(result, Border.Color, Border.Thickness, Border.Edge, Border.Allow);
+
+            if (!Properties.Margin.IsEmpty)
+                result = ImageHelper.Pad(result, Properties.Margin);
+
+            // NOTE: This sets the forced color map
             result = ImageHelper.SetColorMap(result, GammaPalette.Default, Palette);
 
-            if (Scale > ImageScale.Small)
-                result = ImageHelper.Scale(result, (int)Scale, (int)Scale);
+            if (Properties.Scale.X > 1 && Properties.Scale.Y > 1)
+                result = ImageHelper.Scale(result, (int)Properties.Scale.X, (int)Properties.Scale.Y);
 
             return result;
         }

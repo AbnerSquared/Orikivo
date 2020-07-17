@@ -4,9 +4,8 @@ namespace Orikivo.Drawing
 {
     public struct Padding
     {
-        public static Padding Char => new Padding(right: 1);
-
-        public static Padding Empty => new Padding(0);
+        public static readonly Padding Char = new Padding(right: 1);
+        public static readonly Padding Empty = new Padding(0);
 
         public Padding(int lrtb)
         {
@@ -39,5 +38,12 @@ namespace Orikivo.Drawing
 
         [JsonIgnore]
         public int Height => Top + Bottom;
+
+        [JsonIgnore]
+        public bool IsEmpty =>
+            Left == 0
+            && Right == 0
+            && Bottom == 0 
+            && Right == 0;
     }
 }

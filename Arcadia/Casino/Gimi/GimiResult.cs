@@ -1,11 +1,9 @@
-﻿using Orikivo.Casino;
-using Orikivo.Drawing;
+﻿using Orikivo.Drawing;
 using Orikivo.Desync;
-using System.Collections.Generic;
+using Orikivo;
 
-namespace Orikivo
+namespace Arcadia
 {
-    // Arcadia class
     public class GimiResult : ICasinoResult
     {
         public GimiResult(long reward, GimiResultFlag flag)
@@ -23,17 +21,17 @@ namespace Orikivo
         public long EarnExpander { get; } // the earn expander level
 
         // Apply the GimiResult to the user that executed it.
-        public Message ApplyAndDisplay(User user)
+        public Message ApplyAndDisplay(ArcadeUser user)
         {
             // MESSAGE FRAMEWORK
-            MessageBuilder builder = new MessageBuilder();
-            Embedder embedder = new Embedder();
+            var builder = new MessageBuilder();
+            var embedder = new Embedder();
 
             string icon = "💸";
             string type = "+";
             string quote = CasinoReplies.NextReply(Flag);
             long value = Reward;
-            GammaColor color = GammaColor.GammaGreen;
+            ImmutableColor color = ImmutableColor.GammaGreen;
 
             user.UpdateStat(GimiStats.TimesPlayed, 1);
 
@@ -42,7 +40,7 @@ namespace Orikivo
                 // SETTING UP MESSAGE
                 icon = "💸";
                 type = "+";
-                color = GammaColor.GammaGreen;
+                color = ImmutableColor.GammaGreen;
 
                 // UPDATING STATS
                 user.SetStat(GimiStats.CurrentCurseStreak, 0);
@@ -95,7 +93,7 @@ namespace Orikivo
             {
                 icon = "💸";
                 type = "-";
-                color = GammaColor.NeonRed;
+                color = ImmutableColor.NeonRed;
 
                 // UPDATING STATS
                 user.SetStat(GimiStats.CurrentGoldStreak, 0);

@@ -15,7 +15,7 @@ namespace Orikivo
     /// </summary>
     public class ChatHandler : MatchAction
     {
-        public ChatHandler(OriCommandContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
+        public ChatHandler(DesyncContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
         {
             Context = context;
             Npc = npc;
@@ -23,7 +23,7 @@ namespace Orikivo
             Palette = GraphicsService.GetPalette(palette);
         }
 
-        public OriCommandContext Context { get; }
+        public DesyncContext Context { get; }
 
 
         private Husk Husk => Context.Account.Husk;
@@ -49,9 +49,9 @@ namespace Orikivo
         
         public AffinityData Affinity { get; set; }
 
-        private DialogTone LastTone { get; set; }
+        private DialogTone LastTone { get; set; } = DialogTone.Neutral;
 
-        private static readonly string _replyFrame = "> `{0}` • *\"{1}\"";
+        private static readonly string _replyFrame = "> `{0}` • *\"{1}\"*";
 
         private IEnumerable<string> WriteAvailableReplies()
             => ResponseIds.Select(x => string.Format(_replyFrame, x, Tree.Branches.First().GetDialog(x).Entry.ToString()));
@@ -137,7 +137,7 @@ namespace Orikivo
 
             if (Npc.Model != null && LastTone != tone)
             {
-                await MessageReference.ReplaceAsync(Npc.Model.Render(tone, Palette), "../tmp/npc.png", chatBox);
+                MessageReference = await MessageReference.ReplaceAsync(Npc.Model.Render(tone, Palette), "../tmp/npc.png", chatBox, deleteLastMessage: true);
                 LastTone = tone;
             }
             else

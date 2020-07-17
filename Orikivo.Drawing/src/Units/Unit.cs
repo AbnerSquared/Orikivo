@@ -2,7 +2,6 @@
 
 namespace Orikivo.Drawing
 {
-
     /// <summary>
     /// Represents a JSON-friendly variant of <see cref="System.Drawing.Size"/>.
     /// </summary>

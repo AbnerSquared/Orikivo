@@ -67,7 +67,7 @@ namespace Orikivo.Drawing.Animating
                     keyframe.Transform,
                     keyframe.Opacity);
 
-                GraphicsUtils.ClipAndDrawImage(g, layer, Point.Empty);
+                ImageEditor.ClipAndDrawImage(g, layer, Point.Empty);
             }
 
             return new Frame(frame);

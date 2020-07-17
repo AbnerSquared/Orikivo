@@ -14,7 +14,7 @@ namespace Orikivo.Drawing
         public Bitmap Source { get; set; }
 
         protected override Bitmap GetBaseImage()
-            => Source;
+            => Source.Clone(new Rectangle(0, 0, Source.Width, Source.Height), Source.PixelFormat);
 
         public override void Dispose()
         {

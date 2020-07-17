@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Orikivo.Desync;
+using Orikivo.Framework;
+using Orikivo.Framework.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Orikivo
     {
         internal static string GetDirectoryIndex<T>()
         {
-            if (typeof(T) == typeof(User))
+            if (typeof(T) == typeof(Desync.User))
                 return Directory.CreateDirectory(@"..\data\users\").FullName;
 
             if (typeof(T) == typeof(OriGuild))
@@ -46,6 +47,15 @@ namespace Orikivo
             where T : IJsonEntity
             => Save(obj, string.Format(JsonFrame, obj.Id), serializer);
 
+        public static void SaveEntity<T>(T obj, string directory, JsonSerializer serializer = null)
+            where T : IJsonEntity
+            => Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
+
+        private static string GetDirectory(string directory)
+        {
+            return Directory.CreateDirectory(directory).FullName;
+        }
+
         /// <summary>
         /// Saves an object to a specified local path.
         /// </summary>
@@ -56,10 +66,24 @@ namespace Orikivo
         public static void Save<T>(T obj, string path, JsonSerializer serializer = null)
         {
             Console.WriteLine($"[Debug] -- Saving object of type '{typeof(T).Name}'. --");
-            path = GetDirectoryIndex<T>() + path;
+            path = JsonUtils.GetDirectoryIndex<T>() + path;
             using (StreamWriter stream = File.CreateText(path))
             {
-                using (JsonWriter writer = new JsonTextWriter(stream))
+                using (var writer = new JsonTextWriter(stream))
+                {
+                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+                    serializer.Serialize(stream, obj);
+                }
+            }
+        }
+
+        public static void Save<T>(T obj, string folder, string name, JsonSerializer serializer = null)
+        {
+            string path = GetDirectory(folder) + name;
+
+            using (StreamWriter stream = File.CreateText(path))
+            {
+                using (var writer = new JsonTextWriter(stream))
                 {
                     serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
                     serializer.Serialize(stream, obj);
@@ -68,7 +92,7 @@ namespace Orikivo
         }
 
         public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
-            => Load<T>(GetDirectoryIndex<T>() + string.Format(JsonFrame, id), serializer);
+            => Load<T>(JsonUtils.GetDirectoryIndex<T>() + string.Format(JsonFrame, id), serializer);
 
         /// <summary>
         /// Loads an object by the specified local path.
@@ -79,9 +103,9 @@ namespace Orikivo
         /// <param name="throwOnEmpty">Defines whether or not an empty object should throw an Exception.</param>
         public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmpty = false)
         {
-            Console.WriteLine($"[Debug] -- Loading object of type '{typeof(T).Name}'. --");
+            //Console.WriteLine($"[Debug] -- Loading object of type '{typeof(T).Name}'. --");
             if (typeof(T) == typeof(OriGlobal))
-                path = GetDirectoryIndex<OriGlobal>() + path;
+                path = JsonUtils.GetDirectoryIndex<OriGlobal>() + path;
 
             if (!File.Exists(path))
             {
@@ -91,7 +115,7 @@ namespace Orikivo
 
             using (StreamReader stream = File.OpenText(path))
             {
-                using (JsonReader reader = new JsonTextReader(stream))
+                using (var reader = new JsonTextReader(stream))
                 {
                     serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
                     T tmp = serializer.Deserialize<T>(reader);
@@ -128,45 +152,39 @@ namespace Orikivo
             throw new NotImplementedException();
         }
 
-        public static ConcurrentDictionary<ulong, T> RestoreContainer<T>()
+        public static ConcurrentDictionary<ulong, T> RestoreContainer<T>(string directory)
         {
-            Console.WriteLine($"[Debug] -- Restoring JSON container for type '{typeof(T).Name}'. --");
-            ConcurrentDictionary<ulong, T> tmp = new ConcurrentDictionary<ulong, T>();
-            List<string> directory = ReadJsonDirectory(GetDirectoryIndex<T>());
-            foreach (string path in directory)
+            Logger.Debug($"-- Restoring JSON container for type '{typeof(T).Name}'. --");
+            var tmp = new ConcurrentDictionary<ulong, T>();
+            List<string> files = ReadJsonDirectory(GetDirectory(directory));
+
+            foreach (string path in files)
             {
                 T value = Load<T>(path);
-                tmp.AddOrUpdate(ulong.Parse(System.IO.Path.GetFileNameWithoutExtension(path)), value, (k, v) => value);
+                tmp.AddOrUpdate(ulong.Parse(Path.GetFileNameWithoutExtension(path)), value, (k, v) => value);
             }
+
             return tmp;
         }
 
-        public static string GetJsonPath<T>(ulong id) where T : IJsonEntity
-            => GetDirectoryIndex<T>() + string.Format(JsonFrame, id);
+        public static ConcurrentDictionary<ulong, T> RestoreContainer<T>()
+            => RestoreContainer<T>(JsonUtils.GetDirectoryIndex<T>());
+
+        public static string GetJsonPath<T>(ulong id)
+            where T : IJsonEntity
+            => JsonUtils.GetDirectoryIndex<T>() + string.Format(JsonFrame, id);
 
         public static bool JsonExists<T>(ulong id) where T : IJsonEntity
             => File.Exists(GetJsonPath<T>(id));
 
-        private static string GetDirectoryIndex<T>()
-        {
-            if (typeof(T) == typeof(User))
-                return Directory.CreateDirectory(@"..\data\users\").FullName;
-
-            if (typeof(T) == typeof(OriGuild))
-                return Directory.CreateDirectory(@"..\data\guilds\").FullName;
-
-            if (typeof(T) == typeof(OriGlobal))
-                return Directory.CreateDirectory(@"..\data\global\").FullName;
-
-            return Directory.CreateDirectory(@"..\data\").FullName;
-        }
 
         private static List<string> ReadJsonDirectory(string directoryPath)
             => Directory.Exists(directoryPath) ? Directory.GetFiles(directoryPath, "*.json").ToList() : new List<string>();
 
         private static Dictionary<string, T> LoadJsonDirectory<T>(List<string> directory)
         {
-            Dictionary<string, T> tmp = new Dictionary<string, T>();
+            var tmp = new Dictionary<string, T>();
+
             foreach(string path in directory)
                 tmp[path] = Load<T>(path);
 

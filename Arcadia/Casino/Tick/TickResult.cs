@@ -1,8 +1,7 @@
-﻿using Orikivo.Desync;
+﻿using Orikivo;
 
-namespace Orikivo.Casino
+namespace Arcadia
 {
-    // Arcadia class
     public class TickResult : ICasinoResult
     {
         // The higher the risk
@@ -15,10 +14,10 @@ namespace Orikivo.Casino
         public float Multiplier { get; }
         public long Reward { get; }
         public bool IsSuccess { get; }
-        public Message ApplyAndDisplay(User user)
+        public Message ApplyAndDisplay(ArcadeUser user)
         {
-            MessageBuilder builder = new MessageBuilder();
-            Embedder embedder = new Embedder();
+            var builder = new MessageBuilder();
+            var embedder = new Embedder();
 
             return builder.Build();
         }

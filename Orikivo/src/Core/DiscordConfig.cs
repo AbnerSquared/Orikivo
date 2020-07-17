@@ -6,20 +6,18 @@ namespace Orikivo
 {
     public static class DiscordConfig
     {
-        // make discord config separate into their own variables, and create configs when done
         public static DiscordSocketConfig DefaultSocketConfig
         {
             get
             {
-                DiscordSocketConfig socketConfig = new DiscordSocketConfig
+                return new DiscordSocketConfig
                 {
                     AlwaysDownloadUsers = true,
-                    LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
+                    LogLevel = LogSeverity.Info,
                     MessageCacheSize = 100,
                     LargeThreshold = 250,
                     RateLimitPrecision = RateLimitPrecision.Millisecond
                 };
-                return socketConfig;
             }
         }
 
@@ -27,15 +25,13 @@ namespace Orikivo
         {
             get
             {
-                CommandServiceConfig serviceConfig = new CommandServiceConfig
+                return new CommandServiceConfig
                 {
                     CaseSensitiveCommands = false,
                     DefaultRunMode = RunMode.Async,
-                    LogLevel = LogSeverity.Info, //LogSeverity.Verbose;
+                    LogLevel = LogSeverity.Info,
                     ThrowOnError = true
-                    //QuotationMarkAliasMap = null
                 };
-                return serviceConfig;
             }
         }
     }

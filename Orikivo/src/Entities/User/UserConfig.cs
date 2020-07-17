@@ -15,7 +15,7 @@ namespace Orikivo.Desync
         /// </summary>
         public Type GetOptionType(string name)
         {
-            return ClassEditor.GetPropertyType(this, name);
+            return ClassHelper.GetPropertyType(this, name);
         }
 
 
@@ -24,7 +24,7 @@ namespace Orikivo.Desync
         /// </summary>
         public object GetOption(string name)
         {
-            return ClassEditor.GetPropertyValue(this, name);
+            return ClassHelper.GetPropertyValue(this, name);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Orikivo.Desync
         /// </summary>
         public void SetOption(string name, object value)
         {
-            ClassEditor.SetPropertyValue(this, name, value);
+            ClassHelper.SetPropertyValue(this, name, value);
         }
 
         // TODO: Move this method into a separate class that handles formatting.

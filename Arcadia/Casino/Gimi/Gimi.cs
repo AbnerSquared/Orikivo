@@ -1,18 +1,15 @@
-﻿using Orikivo.Desync;
+﻿using Orikivo;
 using Orikivo.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Orikivo
+namespace Arcadia
 {
-
-    // Arcadia class
-    // TODO: Create CasinoService mechanics.
     public class Gimi
     {
-        public Gimi(User user)
+        public Gimi()
         {
             Risk = 50;
             Earn = 20;
@@ -21,19 +18,8 @@ namespace Orikivo
             WinDir = true;
             RiskOverload = 0;
             EarnExpander = 0;
-            //Risk = user.GetAttribute(GimiAttribute.Risk);
-            //Earn = user.GetAttribute(GimiAttribute.Earn);
-            //RiskOverload = user.GetUpgrade(GimiUpgrade.RiskOverload);
-            //EarnExpander = user.GetUpgrade(GimiUpgrade.MaxExpander);
             MaxEarn = GetMaxEarn();
             MaxRisk = GetMaxRisk();
-            //GoldSlot = user.GetAttribute(GimiAttribute.GoldSlot); // the number that is its winnable value.
-            //CurseSlot = user.GetAttribute(GimiAttribute.CurseSlot); // the number that is its winnable value.
-            //WinDir = user.GetAttribute(GimiAttribute.WinDirection) == 1;
-            //if (GoldSlot == 0)
-            //    GoldSlot = GetSlot();
-            //if (CurseSlot == 0)
-            //    CurseSlot = GetSlot();
         }
 
         public int Risk { get; }
@@ -48,7 +34,6 @@ namespace Orikivo
 
         private const int _baseMaxRisk = 100;
         private const int _riskOverloadSize = 25;
-        private const int _minEarn = 2;
         private const int _baseMaxEarn = 20;
         private const int _baseMaxGold = 20;
         private const int _baseGoldChanceDenominator = 500;

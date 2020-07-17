@@ -8,9 +8,9 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents a guild account for <see cref="Orikivo"/>.
     /// </summary>
-    public class Guild
+    public class BaseGuild : IDiscordEntity<SocketGuild>, IJsonEntity
     {
-        public Guild(SocketGuild guild)
+        public BaseGuild(SocketGuild guild)
         {
             Id = guild.Id;
             Name = guild.Name;
@@ -20,7 +20,7 @@ namespace Orikivo.Desync
         }
 
         [JsonConstructor]
-        internal Guild(ulong id, string name, DateTime createdAt, ulong ownerId,
+        internal BaseGuild(ulong id, string name, DateTime createdAt, ulong ownerId,
             GuildConfig config)
         {
             Id = id;
@@ -63,7 +63,7 @@ namespace Orikivo.Desync
         public GuildConfig Config { get; private set; }
 
         // used to update information for a guild that can't be edited from orikivo.
-        public void Update(SocketGuild guild)
+        public void Synchronize(SocketGuild guild)
         {
             if (OwnerId != guild.OwnerId)
                 OwnerId = guild.OwnerId;
@@ -71,5 +71,22 @@ namespace Orikivo.Desync
             if (Name != guild.Name)
                 Name = guild.Name;
         }
+
+        public bool GetEntity(BaseSocketClient client, out SocketGuild guild)
+        {
+            guild = client.GetGuild(Id);
+            return guild != null;
+        }
+
+        public override bool Equals(object obj)
+            => obj is null || obj == null || GetType() != obj.GetType() ?
+            false : ReferenceEquals(this, obj) ?
+            true : Equals(obj as IJsonEntity);
+
+        public override int GetHashCode()
+            => unchecked((int)Id);
+
+        public bool Equals(IJsonEntity obj)
+            => Id == obj.Id;
     }
 }

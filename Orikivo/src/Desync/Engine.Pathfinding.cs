@@ -14,7 +14,7 @@ namespace Orikivo.Desync
 
         internal static Line GetLineToRegion(float x, float y, RegionF region)
         {
-            Line line = new Line(x, y, region.Origin.X, region.Origin.Y);
+            Line line = new Line(x, y, region.Midpoint.X, region.Midpoint.Y);
             Vector2? intersection = line.GetClosestIntersection(region);
 
             if (intersection.HasValue)

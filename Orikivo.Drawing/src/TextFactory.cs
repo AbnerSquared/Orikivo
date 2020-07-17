@@ -7,12 +7,28 @@ namespace Orikivo.Drawing
 {
     public class TextFactory : IDisposable
     {
+        public TextFactory(TextFactoryConfig config = null)
+        {
+            config ??= TextFactoryConfig.Default;
+            
+            _cacheable = config.CanCacheChars;
+            CharMap = config.CharMap;
+            Fonts = config.Fonts ?? new List<FontFace>();
+        }
+
+        public TextFactory(char[][][][] charMap, bool canCacheChars = true)
+        {
+            _cacheable = canCacheChars;
+            CharMap = charMap;
+            Fonts = new List<FontFace>();
+        }
+
         private readonly bool _cacheable = true;
         private static readonly string _defaultFontDirectory = "../assets/fonts/";
 
         private char[][][][] CharMap { get; }
 
-        private Dictionary<char, Bitmap> Cache { get; set; } = new Dictionary<char, Bitmap>();
+        private Dictionary<char, CachedChar> Cache { get; set; } = new Dictionary<char, CachedChar>();
 
         public List<FontFace> Fonts { get; private set; } = new List<FontFace>();
 
@@ -42,6 +58,10 @@ namespace Orikivo.Drawing
 
         public void SetFont(FontFace font)
         {
+            if (Fonts.Count > 0)
+                if (CurrentFont == font)
+                    return;
+
             ImportFont(font);
             CurrentFontIndex = Fonts.IndexOf(font);
         }
@@ -53,7 +73,7 @@ namespace Orikivo.Drawing
             if (WhiteSpaceInfo.IsWhiteSpace(c) || c == '\n')
                 return null;
 
-            CharMapIndex i = GraphicsUtils.GetCharIndex(c, CharMap);
+            CharIndex i = ImageEditor.GetCharIndex(c, CharMap);
 
             if (!i.IsSuccess || !font.SheetUrls.Keys.Contains(i.Page))
             {
@@ -75,14 +95,19 @@ namespace Orikivo.Drawing
             }
         }
 
-
         public Bitmap GetChar(char value, FontFace font = null, bool trimEmptyPixels = true)
         {
             font ??= CurrentFont;
+            SetFont(font);
 
             if (_cacheable)
+            {
                 if (Cache.ContainsKey(value))
-                    return Cache[value];
+                {
+                    if (Fonts.IndexOf(font) == Cache[value].FontIndex)
+                        return Cache[value].Value;
+                }
+            }
 
             Bitmap bmp = GetRawChar(value, font);
 
@@ -90,7 +115,7 @@ namespace Orikivo.Drawing
                 return bmp;
 
             if (_cacheable)
-                Cache[value] = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat);
+                Cache[value] = new CachedChar(Fonts.IndexOf(font), bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat));
 
             if (!font.IsMonospace && trimEmptyPixels)
                 return ImageHelper.Crop(bmp, 0, 0, ImageHelper.GetNonEmptyWidth(bmp), font.CharHeight);
@@ -121,11 +146,6 @@ namespace Orikivo.Drawing
             return charMap;
         }
 
-        // make two versions, one with rendered sprites, and one without.
-        // store the sprites and length at the same time to reduce redraw time.
-        // make .MaxHeight .MaxWidth .Width .Height
-        // if Width is specified, the canvas will be that width regardless
-        // if .MaxWidth is specified instead, the canvas can expand up to that width.
         // TODO: Merge GetChars() and CreateText() together.
         // TODO: Scrap AutoWidth, and simply use IsMonospace
         private TextData CreateText(Dictionary<char, Bitmap> spriteMap, string content, FontFace font, Padding? imagePadding = null, int? maxWidth = null, int? maxHeight = null, bool trimEmptyPixels = true, bool extendOnOffset = false)
@@ -317,7 +337,7 @@ namespace Orikivo.Drawing
                     if (c.HasSprite())
                     {
                         using (Bitmap sprite = c.GetSprite()) // if the sprite exists, use it to place and dispose.
-                            GraphicsUtils.ClipAndDrawImage(graphics, sprite, new Rectangle(cursor, c.Size));
+                            ImageEditor.ClipAndDrawImage(graphics, sprite, new Rectangle(cursor, c.Size));
                     }
 
                     cursor.X += c.Size.Width + c.Padding.Right; // this already accounts for width/padding.
@@ -340,8 +360,8 @@ namespace Orikivo.Drawing
             if (Disposed)
                 return;
 
-            foreach (Bitmap bmp in Cache.Values)
-                bmp.Dispose();
+            foreach (CachedChar cached in Cache.Values)
+                cached.Dispose();
 
             Disposed = true;
         }

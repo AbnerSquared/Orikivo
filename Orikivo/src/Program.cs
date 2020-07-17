@@ -35,10 +35,17 @@ namespace Orikivo
                     .AddSingleton<InfoService>();
 
                 builder
-                    .AddTypeReader<ReportTag>(new EnumTypeReader<ReportTag>())
-                    .AddTypeReader<EventType>(new EnumTypeReader<EventType>())
-                    .AddTypeReader<RasterizerType>(new EnumTypeReader<RasterizerType>())
-                    .AddTypeReader<MeritGroup>(new EnumTypeReader<MeritGroup>());
+                    .AddEnumTypeReader<ReportTag>()
+                    .AddEnumTypeReader<EventType>()
+                    .AddEnumTypeReader<RasterizerType>()
+                    .AddEnumTypeReader<MeritGroup>()
+                    .AddEnumTypeReader<Gamma>()
+                    .AddEnumTypeReader<FontType>()
+                    .AddEnumTypeReader<PaletteType>()
+                    .AddEnumTypeReader<BorderAllow>()
+                    .AddEnumTypeReader<Casing>()
+                    .AddEnumTypeReader<ImageScale>()
+                    .AddEnumTypeReader<CardDeny>();
 
                 builder
                     .AddModule<CoreModule>()

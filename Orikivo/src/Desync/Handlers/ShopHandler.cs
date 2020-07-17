@@ -14,7 +14,7 @@ namespace Orikivo
 {
     public class ShopHandler : MatchAction
     {
-        public ShopHandler(OriCommandContext context, Market market, PaletteType palette)
+        public ShopHandler(DesyncContext context, Market market, PaletteType palette)
         {
             Context = context;
             Market = market;
@@ -23,7 +23,7 @@ namespace Orikivo
         }
 
         // essentially required.
-        public OriCommandContext Context { get; }
+        public DesyncContext Context { get; }
 
         private Husk Husk => Context.Account.Husk;
 

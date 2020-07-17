@@ -1,6 +1,5 @@
-﻿namespace Orikivo
+﻿namespace Arcadia
 {
-    // Arcadia class
     public enum GimiResultFlag
     {
         /// <summary>

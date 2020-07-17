@@ -37,16 +37,16 @@ namespace Orikivo.Drawing
         }
 
         public static void Offset(this Grid<Vector2> grid, Vector2 v)
-            => grid.ForEachValue((x, y, z) => z.Offset(v));
+            => grid.ForEachValue(p => p.Offset(v));
 
         public static void Offset(this Grid<Vector2> grid, float u, float v)
-            => grid.ForEachValue((x, y, z) => z.Offset(u, v));
+            => grid.ForEachValue(p => p.Offset(u, v));
 
         public static void Offset(this Grid<Vector3> grid, Vector3 v)
-            => grid.ForEachValue((x, y, u) => u.Offset(v));
+            => grid.ForEachValue(p => p.Offset(v));
 
-        public static void Offset(this Grid<Vector3> grid, float x, float y, float z)
-            => grid.ForEachValue((u, v, w) => w.Offset(x, y, z));
+        public static void Offset(this Grid<Vector3> grid, float u, float v, float w)
+            => grid.ForEachValue(p => p.Offset(u, v, w));
 
         public static Grid<float> Add(this Grid<float> grid, float f)
             => grid.Select(z => z + f);
@@ -142,7 +142,7 @@ namespace Orikivo.Drawing
             return t;
         }
 
-        // Include these once their methods are complete, but as of now, they are unneeded
+        // TODO: Implement methods written below
         /*
         public static Grid<float> Multiply(this Grid<float> grid, Grid<float> matrix)
         {

@@ -21,12 +21,12 @@ namespace Orikivo.Desync
 
             return Match switch
             {
-                LogicMatch.GREATER => actual > Value,
-                LogicMatch.GREATER_EQUALS => actual >= Value,
-                LogicMatch.EQUALS => actual == Value,
-                LogicMatch.LESSER_EQUALS => actual <= Value,
-                LogicMatch.LESSER => actual < Value,
-                LogicMatch.NOT_EQUALS => actual != Value,
+                LogicMatch.GTR => actual > Value,
+                LogicMatch.GEQ => actual >= Value,
+                LogicMatch.EQU => actual == Value,
+                LogicMatch.LEQ => actual <= Value,
+                LogicMatch.LSS => actual < Value,
+                LogicMatch.NEQ => actual != Value,
                 _ => false
             };
         }

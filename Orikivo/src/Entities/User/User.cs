@@ -78,41 +78,33 @@ namespace Orikivo.Desync
             Config = new UserConfig();
         }
 
-        // Barebones property
         [JsonProperty("id"), BsonId]
         public ulong Id { get; }
 
-        // Barebones property
         [JsonProperty("username"), BsonElement("username")]
         public string Username { get; private set; }
 
-        // Barebones property
         [JsonProperty("discriminator"), BsonElement("discriminator")]
         public string Discriminator { get; private set; }
 
-        // Barebones property
         [JsonProperty("created_at"), BsonElement("created_at")]
         public DateTime CreatedAt { get; }
 
-        // Arcadia, Orikivo
         [JsonProperty("notifier"), BsonElement("notifier")]
         public Notifier Notifier { get; internal set; }
 
-        // Arcadia, Orikivo
         /// <summary>
         /// The <see cref="User"/>'s global balance, in use for both the world and client.
         /// </summary>
         [JsonProperty("balance"), BsonElement("balance")]
         public ulong Balance { get; internal set; } = 0;
 
-        // Arcadia, Orikivo
         /// <summary>
         /// The <see cref="User"/>'s balance, primarily from voting.
         /// </summary>
         [JsonProperty("tokens"), BsonElement("tokens")]
         public ulong TokenBalance { get; private set; } = 0;
 
-        // Arcadia, Orikivo
         /// <summary>
         /// Represents the <see cref="User"/>'s negative funds.
         /// </summary>
@@ -126,65 +118,35 @@ namespace Orikivo.Desync
         [JsonProperty("items"), BsonElement("items")]
         public Dictionary<string, ItemData> Items { get; } = new Dictionary<string, ItemData>();
 
-        // Arcadia-only property
-        // public Dictionary<ulong, GuildData> Connections { get; } = new Dictionary<ulong, GuildData>();
-
-        // Arcadia-only property
-        // public ObjectiveMainData Objectives { get; } = new ObjectiveMainData();
-
-        // Arcadia, Orikivo
         /// <summary>
         /// Represents collection of cooldowns, typically utilized by an <see cref="Item"/>.
         /// </summary>
         [JsonProperty("cooldowns"), BsonElement("cooldowns")]
         public Dictionary<string, DateTime> Cooldowns { get; } = new Dictionary<string, DateTime>();
 
-        // Barebones property
         /// <summary>
         /// A collection of internal cooldowns for the current process.
         /// </summary>
         [JsonIgnore, BsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
-        // Arcadia-only property
-        // public Dictionary<ExpType, ulong> ExpData { get; } = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };
-        // public ulong Exp { get; internal set; } = 0;
-
-        // Arcadia-only property
-        // public int Level => ExpConvert.AsLevel(Exp);
-
-        // Arcadia-only property
-        // Represents the total number of level resets.
-        // public int Ascent { get; set; } = 0;
-
-        // Orikivo, Arcadia
         [JsonProperty("stats"), BsonElement("stats")]
         public Dictionary<string, long> Stats { get; } = new Dictionary<string, long>();
         
-        // Orikivo, Arcadia
         [JsonProperty("merits"), BsonElement("merits")]
         public Dictionary<string, MeritData> Merits { get; } = new Dictionary<string, MeritData>();
 
-        // Boosters will be used by Orikivo Arcade, not Orikivo
-        // public List<BoosterData> Boosters { get; } = new List<BoosterData>();
-
-        // Orikivo-only property
         /// <summary>
         /// Represents the brain of their <see cref="Desync.Husk"/>, which keeps track of everything they have accomplished.
         /// </summary>
         [JsonProperty("brain"), BsonElement("brain")]
         public HuskBrain Brain { get; } = new HuskBrain();
         
-        // Orikivo-only property
         [JsonProperty("husk"), BsonElement("husk")]
         public Husk Husk { get; internal set; } = null;
 
-        // Barebones property
         [JsonProperty("config"), BsonElement("config")]
         public UserConfig Config { get; }
-
-        // Arcadia-only property
-        // public CardConfig Card { get; set; }
 
         // TODO: make the type of integer consistent with balances
         public void Give(long value)
@@ -241,7 +203,7 @@ namespace Orikivo.Desync
         /// </summary>
         public void SetCooldown(CooldownType type, string name, TimeSpan duration)
         {
-            DateTime expiresOn = DateTimeUtils.GetTimeIn(duration);
+            DateTime expiresOn = DateTime.UtcNow.Add(duration);
             string id = $"{type.ToString().ToLower()}:{name}";
 
             if (type.EqualsAny(CooldownType.Command, CooldownType.Global, CooldownType.Notify))
@@ -337,7 +299,7 @@ namespace Orikivo.Desync
         public bool HasMerit(string id)
             => Merits.ContainsKey(id);
 
-        public bool TryGetDiscordEntity(BaseSocketClient client, out SocketUser user)
+        public bool GetEntity(BaseSocketClient client, out SocketUser user)
         {
             user = client.GetUser(Id);
             return user != null;

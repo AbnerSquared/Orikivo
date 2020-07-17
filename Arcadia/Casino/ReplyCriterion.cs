@@ -1,4 +1,4 @@
-﻿namespace Orikivo.Casino
+﻿namespace Arcadia
 {
     // barebones class; repurpose to generic Criterion
     public class ReplyCriterion
