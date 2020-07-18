@@ -18,6 +18,7 @@
         internal static readonly string GiftsGiven = "generic:gifts_given";
 
         internal static readonly string DailyStreak = "generic:daily_streak";
+        internal static readonly string Capacity = "generic:capacity";
     }
 
     /*

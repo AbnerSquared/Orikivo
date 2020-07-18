@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace Arcadia
 {
-
     public class ArcadeUser : BaseUser
     {
         public ArcadeUser(SocketUser user)
@@ -20,12 +19,13 @@ namespace Arcadia
             Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
+            Items = new Dictionary<string, ItemData>();
         }
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong balance, ulong tokenBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits)
+            Dictionary<string, MeritData> merits, Dictionary<string, ItemData> items)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
@@ -35,6 +35,7 @@ namespace Arcadia
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
+            Items = items ?? new Dictionary<string, ItemData>();
         }
 
         [JsonProperty("balance")]
@@ -60,6 +61,9 @@ namespace Arcadia
 
         [JsonProperty("merits")]
         public Dictionary<string, MeritData> Merits { get; }
+
+        [JsonProperty("items")]
+        public Dictionary<string, ItemData> Items { get; }
 
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
@@ -104,21 +108,10 @@ namespace Arcadia
 }
 
 // Arcadia-only property
-// public Dictionary<ulong, GuildData> Connections { get; } = new Dictionary<ulong, GuildData>();
-
-// Arcadia-only property
 // public ObjectiveMainData Objectives { get; } = new ObjectiveMainData();
 
 // Arcadia-only property
 // public Dictionary<ExpType, ulong> ExpData { get; } = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };
-// public ulong Exp { get; internal set; } = 0;
-
-// Arcadia-only property
-// public int Level => ExpConvert.AsLevel(Exp);
-
-// Arcadia-only property
-// Represents the total number of level resets.
-// public int Ascent { get; set; } = 0;
 
 // Boosters will be used by Orikivo Arcade, not Orikivo
 // public List<BoosterData> Boosters { get; } = new List<BoosterData>();

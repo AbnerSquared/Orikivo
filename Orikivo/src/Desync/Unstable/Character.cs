@@ -11,26 +11,9 @@ namespace Orikivo.Desync.Unstable
     // However, they should allow the customer to finish
     // their current transaction before closing.
 
-    public enum CharacterGender
-    {
-        Male,
-        Female
-    }
-
     // represents a specific character in this world
     public class Character
     {
-        public string Id;
-
-        // what is the name of this character
-        public string Name;
-
-        // what is the gender of this character
-        // this determines if a HE/SHE system is used.
-        public CharacterGender Gender;
-
-        // defines how this character looks
-        public CharacterAppearance Appearance;
 
         // how does this character think
         // and enjoy the world?
@@ -69,34 +52,6 @@ namespace Orikivo.Desync.Unstable
         Stranger = 0,
         Acquaintance = 1
     }
-
-    // defines how a character looks
-    public class CharacterAppearance
-    {
-        // the character's head
-        public AppearanceNode Head;
-
-        // the character's default face.
-        public AppearanceNode Face;
-
-        // a collection of facial reactions
-        public CharacterExpression[] Expressions;
-
-        // what is this character's body
-        public AppearanceNode Torso;
-
-        // the initial outfit used
-        public CharacterOutfit DefaultOutfit;
-    }
-
-    public class AppearanceNode
-    {
-        // the image reference
-        public Sprite Value;
-        public int X;
-        public int Y;
-    }
-
     public class CharacterExpression
     {
         // the tone that this is meant for

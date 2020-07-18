@@ -61,6 +61,7 @@ namespace Arcadia
                     type = "+";
                     color = GammaPalette.Glass[Gamma.Max];
 
+                    ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
                     user.UpdateStat(GimiStats.TimesGold, 1);
                     user.UpdateStat(GimiStats.CurrentGoldStreak, 1);
 

@@ -237,6 +237,174 @@ namespace Arcadia
         }
     }
 
+    public class Inventory
+    {
+        private static string GetHeader(long capacity)
+        {
+            return $"> **Inventory**\n> `{GetCapacity(capacity)}` **{GetSuffix(capacity)}** available.";
+        }
+
+        private static string GetCapacity(long capacity)
+        {
+            var suffix = GetSuffix(capacity);
+
+            return suffix switch
+            {
+                "B" => $"{capacity}",
+                "KB" => $"{(double)(capacity / 1000)}",
+                "MB" => $"{(double)(capacity / 1000000)}",
+                "GB" => $"{(double)(capacity / 1000000000)}",
+                "TB" => $"{(double)(capacity / 1000000000000)}",
+                _ => "∞"
+            };
+        }
+
+        private static string GetSuffix(long capacity)
+        {
+            int len = capacity.ToString().Length;
+
+            if (len < 4)
+                return "B";
+
+            if (len < 7)
+                return "KB";
+
+            if (len < 10)
+                return "MB";
+
+            if (len < 13) 
+                return "GB";
+
+            if (len < 16)
+                return "TB";
+
+            return "PB";
+        }
+
+        private static string WriteItem(int index, string id, ItemData data)
+        {
+            var item = ItemHelper.GetItem(id);
+            var summary = new StringBuilder();
+
+            summary.AppendLine($"**#**{index}");
+            summary.Append($"> `{id}` **{item.Name}**");
+            
+            if (data.Count > 1)
+            {
+                summary.Append($" (x**{data.Count}**)");
+            }
+
+            summary.AppendLine();
+            summary.Append($"> `{GetCapacity(item.Size)}` **{GetSuffix(item.Size)}**");
+
+
+            return summary.ToString();
+        }
+
+        public static string Write(ArcadeUser user)
+        {
+            var inventory = new StringBuilder();
+
+            inventory.AppendLine(GetHeader(user.GetStat(Stats.Capacity)));
+
+            int i = 0;
+            foreach ((string id, ItemData data) in user.Items)
+            {
+                if (i > 0)
+                {
+                    inventory.AppendLine("\n");
+                }
+
+                inventory.AppendLine(WriteItem(i, id, data));
+                i++;
+            }
+
+            if (i == 0)
+                inventory.AppendLine("\n> *\"I could not locate any files.\"*");
+
+            return inventory.ToString();
+        }
+    }
+
+    public class Catalog
+    {
+        private static string _line = "> **{0}**: {1}";
+        private static string GetId(Item item)
+            => string.Format(_line, "ID", $"`{item.Id}`");
+
+        private static string GetName(Item item)
+            => string.Format(_line, "Name", $"**`{item.Name}`**");
+
+        private static string GetSummary(Item item)
+            => string.Format(_line, "Summary", $"`{item.Summary}`");
+        
+        private static string GetQuotes(Item item)
+            => string.Format(_line, OriFormat.TryPluralize("Quote", item.Quotes.Count), string.Join(", ", item.Quotes.Select(x => $"*`\"{x}\"`*")));
+
+        private static string GetRarity(Item item)
+            => string.Format(_line, "Rarity", $"`{item.Rarity.ToString()}`");
+
+        private static string GetTags(Item item)
+            => string.Format(_line, OriFormat.TryPluralize("Tag", item.Tag.GetActiveFlags().Count()), string.Join(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`")));
+
+        private static string GetValue(Item item)
+            => string.Format(_line, "Value", $"**`{item.Value.ToString("##,0")}`**");
+
+        private static string GetBuyState(Item item)
+            => string.Format(_line, "Can Buy?", item.CanBuy ? "`Yes`": "`No`");
+
+        private static string GetSellState(Item item)
+            => string.Format(_line, "Can Sell?", item.CanSell ? "`Yes`" : "`No`");
+
+        private static string GetTradeState(Item item)
+            => string.Format(_line, "Can Trade?", item.TradeLimit.HasValue ? item.TradeLimit.Value == 0 ? "`No`" : $"`Yes (x{item.TradeLimit.Value.ToString("##,0")})`" : "`Yes`");
+
+        private static string GetGiftState(Item item)
+            => string.Format(_line, "Can Gift?", item.GiftLimit.HasValue ? item.GiftLimit.Value == 0 ? "`No`" : $"`Yes (x{item.GiftLimit.Value.ToString("##,0")})`" : "`Yes`");
+
+        private static string GetUseState(Item item)
+            => string.Format(_line, "Can Use?", item.OnUse != null ? "`Yes`": "`No`");
+
+        private static string GetBypassState(Item item)
+            => string.Format(_line, "Bypass Requirements On Gift?", item.BypassCriteriaOnGift ? "`Yes`" : "`No`");
+
+        private static string GetOwnLimit(Item item)
+            => string.Format(_line, "Own Limit", item.OwnLimit.HasValue ? $"`{item.OwnLimit.Value.ToString("##,0")}`" : "`None`");
+
+        // this is only the definer
+        public static string WriteItem(Item item)
+        {
+            var details = new StringBuilder();
+
+            details.AppendLine(GetId(item));
+            details.AppendLine(GetName(item));
+
+            if (!string.IsNullOrWhiteSpace(item.Summary))
+                details.AppendLine(GetSummary(item));
+
+            if (item.Quotes.Count > 0)
+                details.AppendLine(GetQuotes(item));
+
+            details.AppendLine(GetRarity(item));
+            details.AppendLine(GetTags(item));
+
+            if (item.Value > 0)
+            {
+                details.AppendLine(GetValue(item));
+                details.AppendLine(GetBuyState(item));
+                details.AppendLine(GetSellState(item));
+                details.AppendLine(GetTradeState(item));
+                details.AppendLine(GetGiftState(item));
+                details.AppendLine(GetBypassState(item));
+                details.AppendLine(GetUseState(item));
+                
+            }
+
+            details.AppendLine(GetOwnLimit(item));
+
+            return details.ToString();
+        }
+    }
     // TODO: Implement dailies, shopping, merits, stats, double or nothing
     // - Missions
     // - Daily
@@ -251,12 +419,58 @@ namespace Arcadia
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        //[Command("catalog")]
+        [Summary("Displays your personal item catalog.")]
+        public async Task GetCatalogAsync()
+        {
+
+        }
+
+        [Command("inspect")]
+        [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
+        public async Task InspectAsync(string id)
+        {
+            var result = ItemHelper.GetItem(id);
+            if (result == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
+                return;
+            }
+
+            //Console.WriteLine(ItemHelper.GetUniqueId());
+
+            await Context.Channel.SendMessageAsync(Catalog.WriteItem(result));
+        }
+
+        // This gets a person's backpack.
+        [Command("inventory"), Alias("backpack", "items", "bp")]
+        [RequireUser(AccountHandling.ReadOnly)]
+        public async Task GetBackpackAsync(int page = 0, SocketUser user = null)
+        {
+            user ??= Context.User;
+            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+
+            if (account == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Inventory.Write(account));
+        }
+
         [Command("stats")]
         [RequireUser(AccountHandling.ReadOnly)]
         public async Task GetStatsAsync(SocketUser user = null)
         {
             user ??= Context.User;
             Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+
+            if (account == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
 
             string stats = string.Join("\n", account.Stats.Where(x => !x.Key.StartsWith("cooldown") && x.Value != 0).Select(s => $"`{s.Key}`: {s.Value}"));
 
@@ -288,13 +502,28 @@ namespace Arcadia
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("balance"), Alias("money", "bal")]
-        public async Task GetMoneyAsync()
+        [Summary("Returns a current wallet state.")]
+        public async Task GetMoneyAsync(SocketUser user = null)
         {
-            var values = new StringBuilder();
+            user ??= Context.User;
+            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
 
-            values.AppendLine($"**Balance**: 💸 **{Context.Account.Balance.ToString("##,0.###")}**");
-            values.AppendLine($"**Tokens**: 🏷️ **{Context.Account.TokenBalance.ToString("##,0.###")}**");
-            values.AppendLine($"**Debt**: 📃 **{Context.Account.Debt.ToString("##,0.###")}**");
+            if (account == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
+
+            var values = new StringBuilder();
+            if (user != null)
+            {
+                if (user != Context.User)
+                    values.AppendLine($"**Wallet - {account.Username}**");
+            }
+
+            values.AppendLine($"**Balance**: 💸 **{account.Balance.ToString("##,0.###")}**");
+            values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance.ToString("##,0.###")}**");
+            values.AppendLine($"**Debt**: 📃 **{account.Debt.ToString("##,0.###")}**");
 
             await Context.Channel.SendMessageAsync(values.ToString());
         }
@@ -373,9 +602,11 @@ namespace Arcadia
         public async Task GetCardAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            if (!Context.TryGetUser(user.Id, out ArcadeUser account))
+            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+
+            if (account == null)
             {
-                await Context.Channel.ThrowAsync("The specified user does not have an existing account.");
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
                 return;
             }
 
