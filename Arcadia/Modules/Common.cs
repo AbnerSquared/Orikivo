@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
 using Orikivo.Drawing;
@@ -10,6 +11,370 @@ using System.Threading.Tasks;
 
 namespace Arcadia
 {
+    public enum TradeState
+    {
+        Invite, // This is the initial state for trading, at which a user is waiting for the other user to accept
+        Timeout, // This is the state at which a trade or invite was timed out.
+        Menu, // The menu showing the items that will be traded between two users.
+        Inventory, // The inventory display screen, waiting for a user to select their item.
+        Item, // The item select screen, waiting for a user to select an item with amount
+        Accept, // The accept screen, waiting for both users to accept
+        Success, // The trade has gone through
+        Cancel // The trade has been cancelled
+    }
+    // This will use Discord.Addons.Collectors
+    public class TradeHandler : MatchAction
+    {
+        public TradeHandler(ArcadeContext context, ArcadeUser participant) : base()
+        {
+            Context = context;
+            LastState = null;
+            State = TradeState.Invite;
+            SpeakerId = null;
+            Host = Context.Account;
+            Participant = participant;
+            HostAccepted = ParticipantAccepted = false;
+            HostItems = new Dictionary<string, int>();
+            ParticipantItems = new Dictionary<string, int>();
+        }
+
+        public ArcadeContext Context; // This is the context received from the initial trade.
+        public TradeState? LastState; // The last state on the trade
+        public TradeState State; // The current state of the trade
+
+        public IUserMessage MessageReference; // The reference of the message initialized, used to update
+
+        public ArcadeUser Host; // This is the user that initialized the trade
+        public ArcadeUser Participant; // The is the user that was invited to trade
+
+        public ulong? SpeakerId; // If an inventory was opened, mark the speakerId to that user.
+
+        public bool HostAccepted; // True if the host has accepted.
+        public bool ParticipantAccepted; // True if the participant has accepted.
+
+        public Dictionary<string, int> HostItems; // All of the items marked in the host's inventory.
+        public Dictionary<string, int> ParticipantItems; // All of the items marked in the participant's inventory.
+
+        public override async Task OnStartAsync()
+        {
+            // This is where the message is built.
+
+            // TODO: detect if a user can participate in a trade.
+
+            MessageReference = await Context.Channel.SendMessageAsync($"> Invited **{Participant.Id}** to trade!\n> *Waiting for a response...*");
+        }
+
+        private void MarkAsAccepted(ulong userId, bool value = true)
+        {
+            if (userId == Host.Id)
+                HostAccepted = value;
+            else if (userId == Participant.Id)
+                ParticipantAccepted = value;
+            
+            throw new ArgumentException("The specified ID did not match either the host or participant.");
+        }
+
+        private bool IsParticipant(ulong userId)
+            => userId == Participant.Id;
+
+        private string GetTradeMenu()
+        {
+            var menu = new StringBuilder();
+
+            // Write the host's items first
+            menu.AppendLine(WriteTradeSlot(Host, HostItems));
+
+            if (HostAccepted)
+                menu.AppendLine(WriteReady(Host));
+
+            // A line break in the menu.
+            menu.AppendLine();
+
+            // Afterwards, write the participant's items
+            menu.AppendLine(WriteTradeSlot(Participant, ParticipantItems));
+
+            if (ParticipantAccepted)
+                menu.AppendLine(WriteReady(Participant));
+
+            return menu.ToString();
+        }
+
+        private string WriteReady(ArcadeUser user)
+            => $"{user.Username} is ready to trade!";
+
+        private string WriteInventory(ArcadeUser user)
+            => Inventory.Write(user);
+
+        private string WriteTradeSlot(ArcadeUser user, Dictionary<string, int> items)
+        {
+            var slot = new StringBuilder();
+
+            slot.AppendLine($"> **{user.Username}** offers:\n");
+
+            int i = 0;
+            foreach ((string itemId, int amount) in items)
+            {
+                if (i == 0)
+                    slot.AppendLine("\n");
+
+                slot.Append("> ");
+                slot.Append(ItemHelper.NameOf(itemId));
+
+                if (amount > 1)
+                {
+                    slot.Append($" (x**{amount.ToString("##,0")}**)");
+                }
+            }
+
+            return slot.ToString();
+        }
+
+        private ArcadeUser GetUser(ulong userId)
+            => userId == Host.Id ? Host
+            : userId == Participant.Id
+            ? Participant
+            : throw new ArgumentException("The specified ID did not match either the host or participant.");
+
+        // This is only invoked if the ID is either the Host or the Participant.
+        public override async Task<ActionResult> InvokeAsync(SocketMessage message)
+        {
+            // gets the account that executed this.
+            var account = GetUser(message.Author.Id);
+
+            string input = message.Content;
+            // Up next, we want to determine who is allowed to start.
+
+
+            // Next, we want to handle invitation accept or deny
+            if (State == TradeState.Invite) // TradeState.Pending
+            {
+                if (input == "accept" && IsParticipant(account.Id))
+                {
+                    // If the user accepted the trade invitation, go to the base trade menu.
+                    await SetStateAsync(TradeState.Menu);
+                    return ActionResult.Continue;
+                }
+
+                if (input == "deny" && IsParticipant(account.Id))
+                {
+                    await SetStateAsync(TradeState.Cancel); // Update and handle the message input here.
+                    await UpdateMessageAsync($"**Sorry!**\n> **{Participant}** has denied the invitation to trade.");
+                    return ActionResult.Success;
+                }
+
+
+            }
+
+            // However, if the input specified is 'cancel', cancel the trade.
+            if (input == "cancel")
+            {
+                await SetStateAsync(TradeState.Cancel);
+                await UpdateMessageAsync($"**Oops!**\n**{account.Username}** has cancelled the trade.");
+                return ActionResult.Success;
+            }
+
+
+            if (SpeakerId.HasValue)
+            {
+                // If the current invoker is not the current speaker, ignore their inputs
+                
+
+                
+
+                if (SpeakerId.Value != account.Id)
+                    return ActionResult.Continue;
+            }
+
+            // Here are all of the current commands in a Trade:
+
+            // CANCEL: This cancels the current trade, regardless of who executed it.
+            // ACCEPT & IF STATE == Menu: This marks the user who executed it that they accepted their end of the trade.
+            //     If both users accept, then the trade goes through. Take all specified items from both, swap, and give both the other's items.
+            if (input == "accept")
+            {
+                if (State != TradeState.Menu) // If they aren't currently in the menu, ignore input.
+                {
+                    return ActionResult.Continue;
+                }
+
+                MarkAsAccepted(account.Id);
+                
+                if (HostAccepted && ParticipantAccepted)
+                {
+                    Trade();
+                    // Use the SetState method to update messages as well.
+                    await SetStateAsync(TradeState.Success);
+                    return ActionResult.Success;
+                }
+            }
+
+            // BACKPACK: Opens the backpack for the user that executed it.
+            if (input == "inventory")
+            {
+                // If a speaker is already in their personal backpack, ignore input.
+                if (SpeakerId.HasValue)
+                {
+                    return ActionResult.Continue;
+                }
+
+                // If the backpack is now opened, mark the speaker, and let them inspect their backpack.
+                SpeakerId = account.Id;
+                
+                // This gets the speaker's inventory
+                await SetStateAsync(TradeState.Inventory); // Mark the state as in an inventory.
+            
+            }
+
+            if (State == TradeState.Inventory)
+            {
+                // If the user wishes to return to the main trade menu
+                if (input == "back")
+                {
+                    SpeakerId = null;
+                    await SetStateAsync(TradeState.Menu);
+                    return ActionResult.Continue;
+                }
+
+                // First, you want to check if the specified item exists in this user's inventory
+                if (!account.Items.ContainsKey(input))
+                {
+                    // Prepend a notice saying that an invalid item was specified.
+                    await UpdateMessageAsync($"> An invalid item ID was specified.\n" + MessageReference.Content);
+                    return ActionResult.Continue;
+                }
+
+                var selectedItem = account.Items[input];
+
+                if (!ItemHelper.CanTrade(input, selectedItem.Data))
+                {
+                    await UpdateMessageAsync($"> This item cannot be traded.\n" + MessageReference.Content);
+                    return ActionResult.Continue;
+                }
+
+                AddItem(account.Id, input);
+
+                // <ITEM_ID> & STATE == INVENTORY: This adds the specified item into the trade.
+                // If the item cannot be traded, notify them and don't do anything.
+            }
+
+            throw new NotImplementedException("Incomplete input method handling.");
+        }
+
+        private async Task SetStateAsync(TradeState state)
+        {
+            LastState = State;
+            State = state;
+
+            if (state == TradeState.Inventory)
+            {
+                if (!SpeakerId.HasValue)
+                    throw new Exception("Cannot read the inventory of an empty primary ID");
+
+                await UpdateMessageAsync(WriteInventory(GetUser(SpeakerId.Value)));
+            }
+
+            // Default Menu
+            if (state == TradeState.Menu)
+                await UpdateMessageAsync(GetTradeMenu());
+        }
+
+        private void AddItem(ulong speakerId, string itemId, int amount = 1)
+        {
+            if (speakerId == Host.Id)
+            {
+                if (HostItems.ContainsKey(itemId))
+                {
+                    HostItems[itemId] += amount;
+                }
+                else
+                {
+                    HostItems[itemId] = amount;
+                }
+            }
+        }
+
+        private void RemoveItem(ulong speakerId, string itemId, int amount = 1)
+        {
+            if (speakerId == Host.Id)
+            {
+                if (HostItems.ContainsKey(itemId))
+                {
+                    if (HostItems[itemId] - amount <= 0)
+                        HostItems.Remove(itemId);
+                    else
+                    {
+                        HostItems[itemId] -= amount;
+                    }
+                }
+            }
+
+            else if (speakerId == Participant.Id)
+            {
+                if (ParticipantItems.ContainsKey(itemId))
+                {
+                    if (ParticipantItems[itemId] - amount <= 0)
+                        ParticipantItems.Remove(itemId);
+                    else
+                    {
+                        ParticipantItems[itemId] -= amount;
+                    }
+                }
+            }
+        }
+
+        // Invokes the trade, and lets everything go through
+        private void Trade()
+        {
+            if (HostAccepted && ParticipantAccepted)
+            {
+                // This needs to handle unique item data.
+                foreach ((string itemId, int amount) in HostItems)
+                {
+                    ItemHelper.TakeItem(Host, itemId, amount);
+                    ItemHelper.GiveItem(Participant, itemId, amount);
+                }
+
+                foreach ((string itemId, int amount) in ParticipantItems)
+                {
+                    ItemHelper.TakeItem(Participant, itemId, amount);
+                    ItemHelper.GiveItem(Host, itemId, amount);
+                }
+            }
+        }
+
+        public override async Task OnCancelAsync()
+        {
+            if (LastState == TradeState.Invite)
+            {
+                await UpdateMessageAsync($"**Sorry!**\n> **{Participant}** has denied the invitation to trade.");
+                return;
+            }
+            // If the trade was cancelled, simply notify it here.
+            // In this case, this is executed the moment someone cancels
+
+            await UpdateMessageAsync("");
+        }
+
+        public override async Task OnTimeoutAsync(SocketMessage message)
+        {
+            if (State == TradeState.Invite)
+            {
+                await UpdateMessageAsync($"**Oops!**\n> **{Participant.Username}** did not respond to the invitation in time.");
+                return;
+            }
+
+            // If the action has timed out, and the current state was Invite
+            // Say that the user failed to reply to the trade.
+
+            // Otherwise, say that the trade has timed out.
+            await UpdateMessageAsync($"**Oops!**\n> The trade has timed out.");
+        }
+
+        public async Task UpdateMessageAsync(string content)
+        {
+            await MessageReference?.ModifyAsync(content);
+        }
+    }
     // TODO: Instead of being an enum value, simply make the flag NULL
     public enum LeaderboardFlag
     {
@@ -420,8 +785,74 @@ namespace Arcadia
     public class Common : OriModuleBase<ArcadeContext>
     {
         //[Command("catalog")]
-        [Summary("Displays your personal item catalog.")]
+        [Command("catalog")]
+        [Summary("View your current **Item** catalog.")]
         public async Task GetCatalogAsync()
+        {
+
+        }
+
+        [Command("trade")]
+        [Summary("Attempts to start a trade with the specified user.")]
+        public async Task TradeAsync(SocketUser user)
+        {
+            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser participant);
+
+            if (participant == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
+
+            var handler = new TradeHandler(Context, participant);
+
+            await HandleTradeAsync(handler);
+
+        }
+
+        private async Task HandleTradeAsync(TradeHandler handler)
+        {
+            try
+            {
+                var collector = new MessageCollector(Context.Client);
+                var options = new MatchOptions
+                {
+                    ResetTimeoutOnAttempt = true,
+                    Timeout = TimeSpan.FromSeconds(20),
+                    Action = handler
+                };
+
+                Func<SocketMessage, int, bool> filter = delegate (SocketMessage message, int index)
+                {
+                    return (handler.Host.Id == message.Author.Id || handler.Participant.Id == message.Author.Id)
+                        && (message.Channel.Id == Context.Channel.Id);
+                };
+
+                await collector.MatchAsync(filter, options);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
+        }
+
+        [Command("gift")]
+        [Summary("Attempts to gift an **Item** to the specified user.")]
+        public async Task GiftAsync(SocketUser user, string itemId)
+        {
+            
+        }
+
+        [Command("use")]
+        [Summary("Uses the specified **Item** by its internal ID.")]
+        public async Task UseItemAsync(string id)
+        {
+
+        }
+
+        [Command("destroy"), Alias("delete", "del")]
+        [Summary("Attempts to destroy the specified **Item** by its internal ID.")]
+        public async Task DestroyItemAsync(string id)
         {
 
         }

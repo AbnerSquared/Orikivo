@@ -34,6 +34,7 @@ namespace Arcadia
                     Value = 2500,
                     CanBuy = false,
                     CanSell = true,
+                    CanDestroy = true,
                     TradeLimit = 0,
                     GiftLimit = 1,
                     BypassCriteriaOnGift = true,
@@ -127,6 +128,31 @@ namespace Arcadia
 
             return items.FirstOrDefault();
         }
+
+        public static string NameOf(string itemId)
+            => GetItem(itemId)?.Name ?? itemId;
+
+        public static void TakeItem(ArcadeUser user, string itemId, int amount = 1)
+            => TakeItem(user, GetItem(itemId), amount);
+
+        public static void TakeItem(ArcadeUser user, Item item, int amount = 1)
+        {
+            if (user.Items.ContainsKey(item.Id))
+            {
+                // TODO: Handle unique item data removal
+                if (user.Items[item.Id].Count - amount <= 0)
+                {
+                    user.Items.Remove(item.Id);
+                }
+                else
+                {
+                    user.Items[item.Id].StackCount -= amount;
+                }
+            }
+        }
+
+        public static void GiveItem(ArcadeUser user, string itemId, int amount = 1)
+            => GiveItem(user, GetItem(itemId), amount);
 
         public static void GiveItem(ArcadeUser user, Item item, int amount = 1)
         {

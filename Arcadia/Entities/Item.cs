@@ -27,6 +27,8 @@ namespace Arcadia
 
         public bool CanBuy { get; set; }
 
+        public bool CanDestroy { get; set; }
+
         // this represents the criteria needed to be able to
         // buy, sell, trade, or gift the item
         // it returns a multiplier float that will be applied to the
