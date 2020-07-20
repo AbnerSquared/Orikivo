@@ -19,13 +19,13 @@ namespace Arcadia
             Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
-            Items = new Dictionary<string, ItemData>();
+            Items = new List<ItemData>();
         }
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong balance, ulong tokenBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, Dictionary<string, ItemData> items)
+            Dictionary<string, MeritData> merits, List<ItemData> items)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
@@ -35,7 +35,7 @@ namespace Arcadia
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
-            Items = items ?? new Dictionary<string, ItemData>();
+            Items = items ?? new List<ItemData>();
         }
 
         [JsonProperty("balance")]
@@ -63,7 +63,7 @@ namespace Arcadia
         public Dictionary<string, MeritData> Merits { get; }
 
         [JsonProperty("items")]
-        public Dictionary<string, ItemData> Items { get; }
+        public List<ItemData> Items { get; }
 
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;

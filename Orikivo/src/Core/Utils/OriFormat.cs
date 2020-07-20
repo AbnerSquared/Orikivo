@@ -436,6 +436,9 @@ namespace Orikivo
 
         public static string GetShortTime(double seconds)
         {
+            if (seconds < 0)
+                seconds *= -1;
+
             char t = 's';
             double n = seconds;
             if (seconds > (60 * 60)) // if seconds is larger than 1 hour (in seconds)
@@ -443,7 +446,7 @@ namespace Orikivo
                 n = seconds / (60 * 60);
                 t = 'h';
             }
-            if (seconds > 60) // if seconds is larger than 1 minute (in seconds)
+            else if (seconds > 60) // if seconds is larger than 1 minute (in seconds)
             {
                 n = seconds / 60;
                 t = 'm';

@@ -165,7 +165,7 @@ namespace Orikivo
 
                     if (precondition != null)
                     {
-                        if (!precondition.Judge(user, user.Brain))
+                        if (!precondition.Judge(user))
                             continue;
                     }
 
@@ -201,7 +201,7 @@ namespace Orikivo
             return panel.ToString();
         }
 
-        private string GetMainPanel(User user = null, bool drawActions = true)
+        private string GetMenu(User user = null, bool drawActions = true)
         {
             bool showReportStatus = user?.Config?.Debug ?? false;
             bool showTooltips = user?.Config?.Tooltips ?? true;
@@ -286,7 +286,7 @@ namespace Orikivo
         public string GetPanel(string content = null, User user = null, bool drawActions = true)
         {
             if (!Check.NotNull(content))
-                return GetMainPanel(user, drawActions);
+                return GetMenu(user, drawActions);
 
             // TODO: Clean up chapter parsing (Regex).
             bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));
@@ -507,6 +507,8 @@ namespace Orikivo
 
         // remove all visuals on modules with the IgnoreAttribute.
         public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(x => x is IgnoreAttribute));
+
+        internal IEnumerable<ModuleInfo> InternalModules => _commands.Modules;
 
         public IEnumerable<ModuleInfo> GetModules(string name)
             => Modules.Where(m => FilterModule(m, name));

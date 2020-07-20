@@ -32,6 +32,7 @@ namespace Orikivo
         public string Group { get; protected set; }
         public string Subtitle { get; protected set; }
         public int CommandCount => Submodules.Sum(x => x.CommandCount) + Commands.Count;
+        public int InnerCount => CommandCount + Submodules.Where(x => x.IsGroup).Count();
         public bool IsGroup => Check.NotNull(Group);
         public List<ModuleNode> Submodules { get; protected set; }
         public List<CommandNode> Commands { get; protected set; }

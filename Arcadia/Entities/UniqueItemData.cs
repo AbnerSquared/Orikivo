@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orikivo;
 using System;
 using System.Collections.Generic;
 
@@ -6,11 +7,15 @@ namespace Arcadia
 {
     public class UniqueItemData
     {
-        internal UniqueItemData() { }
+        internal UniqueItemData()
+        {
+            Id = KeyBuilder.Generate(5);
+        }
 
         [JsonConstructor]
-        internal UniqueItemData(int? durability, DateTime? expiresOn, DateTime? lastUsed, int? tradeCount, int? giftCount, Dictionary<string, int> capsule, Dictionary<string, long> attributes, Dictionary<string, long> toUnlock)
+        internal UniqueItemData(string id, int? durability, DateTime? expiresOn, DateTime? lastUsed, int? tradeCount, int? giftCount, Dictionary<string, int> capsule, Dictionary<string, long> attributes, Dictionary<string, long> toUnlock)
         {
+            Id = id;
             Durability = durability;
             ExpiresOn = expiresOn;
             LastUsed = lastUsed;
@@ -20,6 +25,9 @@ namespace Arcadia
             Attributes = attributes;
             ToUnlock = toUnlock;
         }
+
+        [JsonProperty("id")]
+        public string Id { get; }
 
         [JsonProperty("durability")]
         public int? Durability { get; internal set; }

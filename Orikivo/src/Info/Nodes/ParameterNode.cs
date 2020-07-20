@@ -143,6 +143,22 @@ namespace Orikivo
                     format.Append("typeof ");
                     format.Append(Format.Bold(OriFormat.HumanizeType(ValueType)));
                     format.AppendLine();
+
+                    // If unwanted, simply just revert
+                    if (ValueType.IsEnum)
+                    {
+                        format.AppendLine("```cs");
+
+                        var names = ValueType.GetEnumNames();
+                        var values = ValueType.GetEnumValues();
+
+                        for(int i = 0; i < names.Length; i++)
+                        {
+                            format.AppendLine($"{names[i]} = {values.GetValue(i).ToString()}");
+                        }
+
+                        format.AppendLine("```");
+                    }
                 }
 
                 // parsing examples

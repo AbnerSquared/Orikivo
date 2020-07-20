@@ -45,12 +45,12 @@ namespace Orikivo.Desync
 
         private IEnumerable<string> Flags { get; }
 
-        public bool Judge(User user, HuskBrain brain)
+        public bool Judge(User user)
         {
             switch(Type)
             {
                 case JudgeType.Flag:
-                    return JudgeFlags(brain.Flags.ToArray(), Gate, Flags);
+                    return JudgeFlags(user.Brain.Flags.ToArray(), Gate, Flags);
 
                 case JudgeType.Stat:
 

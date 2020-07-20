@@ -13,7 +13,7 @@ namespace Arcadia
         public TimeSpan? Cooldown { get; set; }
 
         // What happens when this is used?
-        public Action<ArcadeUser> OnUse { get; set; }
+        public Action<ArcadeUser> Action { get; set; }
 
         // What happens when this item is broken?
         // This can be used to apply debuffs.
