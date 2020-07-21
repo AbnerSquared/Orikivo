@@ -22,7 +22,7 @@ namespace Arcadia
             MaxRisk = GetMaxRisk();
         }
 
-        public int Risk { get; }
+        public int Risk { get; } // 0 to 100
         public int Earn { get; }
         public int RiskOverload { get; }
         public int EarnExpander { get; }
@@ -46,7 +46,7 @@ namespace Arcadia
         private int GetSlot()
         {
             int slot = 0;
-            List<int> _rnds = new List<int>();
+            var _rnds = new List<int>();
             for (int i = 0; i < 3; i++)
                 _rnds.Add(RandomProvider.Instance.Next(_minSeed, GetMaxSeed() + 1));
             _rnds.ForEach(x => slot += (MaxRisk * _rndLength) - x);
@@ -80,10 +80,14 @@ namespace Arcadia
             => GetMaxGold() / _baseMaxCurseDenominator;
 
         public int GetEarnUpperBound()
-            => Risk <= (MaxRisk / 2) ? ((((Earn / 2) - 1) * Risk) / (MaxRisk / 2)) + 1 : Earn;
+            => Risk <= (MaxRisk / 2) ?
+                ((((Earn / 2) - 1) * Risk) / (MaxRisk / 2)) + 1
+                : Earn;
 
         public int GetEarnLowerBound()
-            => Risk <= (MaxRisk / 2) ? 1 : ((((Earn / 2) - 1) * Risk) / (MaxRisk - (MaxRisk / 2))) + 1;
+            => Risk <= (MaxRisk / 2) ?
+                1
+                : ((((Earn / 2) - 1) * Risk) / (MaxRisk - (MaxRisk / 2))) + 1;
 
         public GimiResult Next()
         {
@@ -166,7 +170,7 @@ namespace Arcadia
 
             Logger.Debug(debug.ToString());
 
-            return new GimiResult(returnValue, flag);
+            return new GimiResult(returnValue, flag, Risk);
         }
     }
 }

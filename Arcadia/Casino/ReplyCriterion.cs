@@ -1,9 +1,14 @@
 ﻿namespace Arcadia
 {
-    // barebones class; repurpose to generic Criterion
-    public class ReplyCriterion
+    public class StatCriterion
     {
-        public string Id;
-        public int ExpectedValue;
+        public StatCriterion(string id, long expectedValue)
+        {
+            Id = id;
+            ExpectedValue = expectedValue;
+        }
+
+        public string Id { get; }
+        public long ExpectedValue { get; }
     }
 }

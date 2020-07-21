@@ -9,8 +9,8 @@ namespace Orikivo
         internal static string ViewStatus(User user, Husk husk)
         {
             bool showTooltips = user.Config?.Tooltips ?? false;
+            var status = new StringBuilder();
 
-            StringBuilder status = new StringBuilder();
             status.AppendLine($"> **HP**: **{husk.Status.Health}**/{husk.Attributes.MaxHealth}");
             
             if (showTooltips)
@@ -22,9 +22,15 @@ namespace Orikivo
                 status.AppendLine("> Represents your current travel speed. This determines how much time it takes for you to travel in open areas, such as a **Sector** or **Field**.\n");
 
             status.AppendLine($"> **Sight**: **{husk.Status.Sight}**mpp");
-            
+
             if (showTooltips)
                 status.AppendLine("> Represents your current view distance. This determines how many locations are visible from your current position (in meters per pixel).\n");
+
+            status.AppendLine($"> **Reach**: **{husk.Status.Reach}**mpp");
+
+            if (showTooltips)
+                status.AppendLine("> Represents the maximum distance at which you can interact with objects or locations.");
+
 
             status.AppendLine($"> **Exposure Resistance**: {OriFormat.GetShortTime(TimeSpan.FromMinutes(husk.Status.Exposure).TotalSeconds)}");
 

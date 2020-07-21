@@ -4,6 +4,6 @@
     public enum TickWinMethod
     {
         Exact = 1,
-        ExactOrUnder = 2
+        Below = 2
     }
 }

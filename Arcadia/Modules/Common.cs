@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Arcadia
 {
@@ -18,7 +19,8 @@ namespace Arcadia
         Money = 1,
         Debt = 2,
         Level = 3,
-        Custom = 4 // This allows for leaderboards by stats
+        Chips = 4,
+        Custom = 5 // This allows for leaderboards by stats
     }
 
     public enum LeaderboardSort
@@ -64,6 +66,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => "> **Leaderboard - Wealth**",
                 LeaderboardFlag.Debt => "> **Leaderboard - Debt**",
                 LeaderboardFlag.Level => "> **Leaderboard - Experience**",
+                LeaderboardFlag.Chips => "> **Leaderboard - Casino**",
                 _ => "> **Leaderboard**"
             };
         }
@@ -76,6 +79,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => "> *These are the users that managed to beat all odds.*",
                 LeaderboardFlag.Debt => "> *These are the users with enough debt to make a pool.*",
                 LeaderboardFlag.Level => "> *These are the users dedicated to Orikivo.*",
+                LeaderboardFlag.Chips => "> *These are the users that rule over the **Casino**.*",
                 _ => ""
             };
         }
@@ -87,6 +91,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => "The Wealthy",
                 LeaderboardFlag.Debt => "The Cursed",
                 LeaderboardFlag.Level => "The Experienced",
+                LeaderboardFlag.Chips => "The Gambler",
                 _ => "INVALID_FLAG"
             };
         }
@@ -98,13 +103,14 @@ namespace Arcadia
                 LeaderboardFlag.Money => "with 💸",
                 LeaderboardFlag.Debt => "with 📃",
                 LeaderboardFlag.Level => "at level",
+                LeaderboardFlag.Chips => "with 🧩",
                 _ => "INVALID_FLAG"
             };
         }
 
         private static readonly string _leaderFormat = "> **{0}**: **{1}** {2} **{3}**";
         private static readonly string _userFormat = "**{0}** ... {1} **{2}**";
-        private static readonly string _customFormat = "**{0}** ... {1}";
+        private static readonly string _customFormat = "**{0}** ... **{1}**";
 
         // This is only on LeaderboardFlag.Default
         private static string WriteLeader(LeaderboardFlag flag, ArcadeUser user, bool allowEmptyValues = false)
@@ -126,6 +132,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => string.Format(_leaderFormat, title, user.Username, segment, user.Balance.ToString("##,0")),
                 LeaderboardFlag.Debt => string.Format(_leaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
                 LeaderboardFlag.Level => string.Format(_leaderFormat, title, user.Username, segment, WriteLevel(user)),
+                LeaderboardFlag.Chips => string.Format(_leaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
                 _ => "INVALID_FLAG"
             };
         }
@@ -140,6 +147,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => string.Format(_userFormat, user.Username, "💸", user.Balance.ToString("##,0")),
                 LeaderboardFlag.Debt => string.Format(_userFormat, user.Username, "📃", user.Debt.ToString("##,0")),
                 LeaderboardFlag.Level => string.Format(_userFormat, user.Username, "Level", WriteLevel(user)),
+                LeaderboardFlag.Chips => string.Format(_userFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
                 LeaderboardFlag.Custom => string.Format(_customFormat, user.Username, user.GetStat(statId)),
                 _ => "INVALID_FLAG"
             };
@@ -163,8 +171,22 @@ namespace Arcadia
 
             if (Flag != LeaderboardFlag.Custom)
             {
-                leaderboard.AppendLine(GetHeaderQuote(Flag));
+                leaderboard.Append(GetHeaderQuote(Flag));
             }
+            else
+            {
+                leaderboard.Append($"> *Here are the users filtered for `{StatId}`*");
+
+                if (Sort != LeaderboardSort.Least)
+                    leaderboard.Append(".");
+            }
+
+            if (Sort == LeaderboardSort.Least && Flag != LeaderboardFlag.Default)
+            {
+                leaderboard.Append(" (ascending).");
+            }
+
+            leaderboard.AppendLine();
 
             if (Flag == LeaderboardFlag.Default)
             {
@@ -172,7 +194,8 @@ namespace Arcadia
                 leaderboard.AppendLine("**Leaders**");
                 leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Money, GetLeader(users, LeaderboardFlag.Money, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Debt, GetLeader(users, LeaderboardFlag.Debt, Sort)));
-                leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
+                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Chips, GetLeader(users, LeaderboardFlag.Chips, Sort)));
+                //leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
             }
             else
             {
@@ -184,11 +207,14 @@ namespace Arcadia
         }
 
         private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort)
-        {
+            => SortUsers(users, flag, sort).First();
+
+        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort, string statId = null)
+        { 
             return sort switch
             {
-                LeaderboardSort.Least => users.OrderBy(x => GetValue(x, flag)).First(),
-                _ => users.OrderByDescending(x => GetValue(x, flag)).First()
+                LeaderboardSort.Least => users.OrderBy(x => GetValue(x, flag, statId)),
+                _ => users.OrderByDescending(x => GetValue(x, flag, statId))
             };
         }
 
@@ -202,6 +228,7 @@ namespace Arcadia
                 LeaderboardFlag.Money => (long)user.Balance,
                 LeaderboardFlag.Debt => (long)user.Debt,
                 LeaderboardFlag.Level => (user.Ascent * 100) + user.Level,
+                LeaderboardFlag.Chips => (long)user.ChipBalance,
                 LeaderboardFlag.Custom => user.GetStat(statId),
                 _ => 0
             };
@@ -218,7 +245,7 @@ namespace Arcadia
 
             // The indexing is done this way, so that it doesn't have to be at that exact amount.
             int i = 0;
-            foreach (ArcadeUser user in users)
+            foreach (ArcadeUser user in SortUsers(users, flag, sort, statId))
             {
                 var value = GetValue(user, flag, statId);
 
@@ -304,6 +331,14 @@ namespace Arcadia
             {
                 summary.AppendLine();
                 summary.Append($"> `{GetCapacity(item.Size)}` **{GetSuffix(item.Size)}**");
+            }
+            else
+            {
+                if (!ItemHelper.CanTrade(item.Id, data?.Data))
+                {
+                    summary.AppendLine();
+                    summary.Append("> ⚠️ This item is untradable.");
+                }
             }
 
             return summary.ToString();
@@ -428,6 +463,91 @@ namespace Arcadia
         }
     }
 
+    public class Daily
+    {
+        public static readonly long Reward = 15;
+        public static readonly long Bonus = 50;
+        public static readonly long BonusInterval = 5;
+        public static readonly TimeSpan Cooldown = TimeSpan.FromHours(24);
+        public static readonly TimeSpan Reset = TimeSpan.FromHours(48);
+
+
+        public static DailyResultFlag Next(ArcadeUser user)
+        {
+            long lastTicks = user.GetStat(Cooldowns.Daily);
+            long streak = user.GetStat(Stats.DailyStreak);
+
+            TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
+
+            if (lastTicks > 0)
+            {
+                if (sinceLast < Cooldown)
+                    return DailyResultFlag.Cooldown;
+            }
+
+            if (sinceLast > Reset)
+            {
+                if (streak > 1)
+                    return DailyResultFlag.Reset;
+            }
+
+            if ((streak + 1) % BonusInterval == 0)
+                return DailyResultFlag.Bonus;
+
+            return DailyResultFlag.Success;
+        }
+
+        public static Message ApplyAndDisplay(ArcadeUser user, DailyResultFlag flag)
+        {
+            long reward = Reward;
+            string header = $"{Reward.ToString("##,0")}";
+            ImmutableColor color = ImmutableColor.GammaGreen;
+            string icon = "+ 💸";
+
+            switch (flag)
+            {
+                case DailyResultFlag.Cooldown:
+                    TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - user.GetStat(Cooldowns.Daily));
+                    TimeSpan rem = TimeSpan.FromHours(24) - sinceLast;
+                    DateTime time = DateTime.UtcNow.Add(rem);
+
+                    
+                    color = ImmutableColor.NeonRed;
+                    header = OriFormat.Countdown(rem);
+                    icon = CasinoReplies.GetHourEmote(time.Hour);
+                    break;
+
+                case DailyResultFlag.Reset:
+                    color = GammaPalette.Default[Gamma.Max];
+                    user.SetStat(Stats.DailyStreak, 0);
+                    break;
+
+                case DailyResultFlag.Bonus:
+                    color = GammaPalette.Glass[Gamma.Max];
+                    header += $" + {Bonus.ToString("##,0")}";
+                    reward += Bonus;
+                    break;
+            }
+
+            if (flag != DailyResultFlag.Cooldown)
+            {
+                user.SetStat(Cooldowns.Daily, DateTime.UtcNow.Ticks);
+                user.UpdateStat(Stats.DailyStreak);
+                user.Give(reward);
+            }
+
+            var message = new MessageBuilder();
+            var embedder = Embedder.Default;
+
+            embedder.Color = color;
+            embedder.Header = $"**{icon} {header}**";
+            message.Content = $"*\"{CasinoReplies.GetReply(flag)}\"*";
+            message.Embedder = embedder;
+
+            return message.Build();
+        }
+    }
+
     // TODO: Implement dailies, shopping, merits, stats, double or nothing
     // - Missions
     // - Shopping
@@ -441,6 +561,14 @@ namespace Arcadia
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [RequireUser]
+        [Command("daily")]
+        public async Task GetDailyAsync()
+        {
+            DailyResultFlag result = Daily.Next(Context.Account);
+            await Context.Channel.SendMessageAsync(Daily.ApplyAndDisplay(Context.Account, result));
+        }
+
         //[Command("testgiveitem")]
         [RequireUser]
         public async Task GiveItemAsync(SocketUser user = null)
@@ -657,14 +785,25 @@ namespace Arcadia
             }
 
             if (Context.User.Id != user.Id)
-                stats = $"> **Stats**: **{user.Username}**\n\n" + stats;
+                stats = $"> **Stats - {user.Username}**\n\n" + stats;
 
             await Context.Channel.SendMessageAsync(stats);
         }
 
+        [Command("leaderboard"), Alias("top"), Priority(0)]
+        [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
+        public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
+        {
+            var board = new Leaderboard(statId, sort);
+
+            var result = board.Write(Context.Data.Users.Values.Values, page);
+
+            await Context.Channel.SendMessageAsync(result);
+        }
+
         // TODO: Implement enum value listings
-        [Command("leaderboard"), Alias("top")]
-        [Summary("View the current pioneers of a specific category (`money`, `debt`, or `level`).")]
+        [Command("leaderboard"), Alias("top"), Priority(1)]
+        [Summary("View the current pioneers of a specific category.")]
         public async Task GetLeaderboardAsync(LeaderboardFlag flag = LeaderboardFlag.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
         {
             if (flag == LeaderboardFlag.Custom)
@@ -699,79 +838,11 @@ namespace Arcadia
             }
 
             values.AppendLine($"**Balance**: 💸 **{account.Balance.ToString("##,0.###")}**");
+            values.AppendLine($"**Chips**: 🧩 **{account.ChipBalance.ToString("##,0.###")}**");
             values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance.ToString("##,0.###")}**");
             values.AppendLine($"**Debt**: 📃 **{account.Debt.ToString("##,0.###")}**");
 
             await Context.Channel.SendMessageAsync(values.ToString());
-        }
-
-        // TODO: Place in a CommonProvider, which can take care of these common methods
-        // https://github.com/AbnerSquared/Orikivo.Classic/blob/master/legacy/Modules/AlphaModule.cs#L1088
-        [RequireUser]
-        [Command("daily")]
-        public async Task GetDailyAsync()
-        {
-            long lastTicks = Context.Account.GetStat(Cooldowns.Daily);
-            long streak = Context.Account.GetStat(Stats.DailyStreak);
-            var message = new MessageBuilder();
-            var embedder = Embedder.Default;
-
-            ulong reward = 15;
-
-            TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
-
-            if (lastTicks > 0)
-            {
-                if (sinceLast.TotalHours < 24)
-                {
-                    TimeSpan rem = TimeSpan.FromHours(24) - sinceLast;
-                    var time = DateTime.UtcNow.Add(rem);
-                    embedder.Color = ImmutableColor.NeonRed;
-                    embedder.Header = $"** {CasinoReplies.GetHourEmote(time.Hour)} {OriFormat.ShowTime(time)}**";
-                    message.Content = $"*\"{CasinoReplies.GetCooldownText()}\"*";
-                    message.Embedder = embedder;
-                    await Context.Channel.SendMessageAsync(message.Build());
-                    return;
-                }
-            }
-
-            if (sinceLast.TotalHours > 48)
-            {
-                if (streak > 1)
-                {
-                    embedder.Color = ImmutableColor.GammaGreen;
-                    embedder.Header = $"**+ 💸 {reward.ToString("##,0")}**";
-                    message.Content = $"*\"{CasinoReplies.GetResetText()}\"*";
-                    Context.Account.SetStat(Stats.DailyStreak, 0);
-                    message.Embedder = embedder;
-                    await Context.Channel.SendMessageAsync(message.Build());
-                    return;
-                }
-            }
-
-            Context.Account.UpdateStat(Stats.DailyStreak, 1);
-
-            if (streak >= 5)
-            {
-                ulong bonus = 50;
-                embedder.Color = GammaPalette.Glass[Gamma.Max];
-                embedder.Header = $"**+ 💸 {reward.ToString("##,0")} + {bonus.ToString("##,0")}**";
-                message.Content = $"*\"{CasinoReplies.GetBonusText()}\"*";
-                reward += bonus;
-                Context.Account.SetStat(Stats.DailyStreak, 0);
-            }
-            else
-            {
-                embedder.Color = ImmutableColor.GammaGreen;
-                embedder.Header = $"**+ 💸 {reward.ToString("##,0")}**";
-                message.Content = $"*\"{CasinoReplies.GetDailyText()}\"*";
-            }
-
-            Context.Account.SetStat(Cooldowns.Daily, DateTime.UtcNow.Ticks);
-            Context.Account.Give((long)reward);
-
-            message.Embedder = embedder;
-            await Context.Channel.SendMessageAsync(message.Build());
         }
 
         [RequireUser]

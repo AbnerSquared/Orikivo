@@ -154,7 +154,10 @@ namespace Orikivo
 
                         for(int i = 0; i < names.Length; i++)
                         {
-                            format.AppendLine($"{names[i]} = {values.GetValue(i).ToString()}");
+                            object enumValue = values.GetValue(i);
+
+
+                            format.AppendLine($"{names[i]} = {Convert.ToInt16(enumValue)}");
                         }
 
                         format.AppendLine("```");

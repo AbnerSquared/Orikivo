@@ -70,6 +70,9 @@ namespace Orikivo
         public static string ShowTime(DateTime time)
             => time.ToString(@"hh\:mm\:ss");
 
+        public static string Countdown(TimeSpan remaining)
+            => remaining.ToString(@"hh\:mm\:ss");
+
         public static string HumanizeType(Type t)
             =>
 

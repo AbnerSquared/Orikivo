@@ -14,6 +14,7 @@ namespace Arcadia
         {
             Balance = 0;
             TokenBalance = 0;
+            ChipBalance = 0;
             Debt = 0;
             Exp = 0;
             Ascent = 0;
@@ -24,12 +25,13 @@ namespace Arcadia
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
-            ulong balance, ulong tokenBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
+            ulong balance, ulong tokenBalance, ulong chipBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
             Dictionary<string, MeritData> merits, List<ItemData> items)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
             TokenBalance = tokenBalance;
+            ChipBalance = chipBalance;
             Debt = debt;
             Exp = exp;
             Ascent = ascent;
@@ -43,6 +45,9 @@ namespace Arcadia
 
         [JsonProperty("tokens")]
         public ulong TokenBalance { get; internal set; }
+
+        [JsonProperty("chips")]
+        public ulong ChipBalance { get; internal set; }
 
         [JsonProperty("debt")]
         public ulong Debt { get; internal set; }
@@ -70,6 +75,14 @@ namespace Arcadia
 
         public void SetStat(string id, long value)
         {
+            if (value == 0)
+            {
+                if (Stats.ContainsKey(id))
+                    Stats.Remove(id);
+
+                return;
+            }
+
             if (!Stats.TryAdd(id, value))
                 Stats[id] = value;
         }

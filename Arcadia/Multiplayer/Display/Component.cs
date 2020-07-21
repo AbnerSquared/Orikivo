@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Arcadia
@@ -36,7 +35,7 @@ namespace Arcadia
                     Formatter.BaseFormatter = "{0}";
 
                 if (Formatter.OverrideBaseValue)
-                    throw new System.Exception("The base index reference was marked as an override but is missing an object");
+                    throw new Exception("The base index reference was marked as an override but is missing an object");
 
                 Buffer = string.Format(Formatter.BaseFormatter, Value);
             }
@@ -80,7 +79,7 @@ namespace Arcadia
                 Console.WriteLine(argBuffers.Count());
                 Console.WriteLine(Formatter.GetArgCount());
                 Console.WriteLine(Formatter.BaseFormatter);
-                Console.WriteLine(string.Join("\n", argBuffers.Select(x => x.ToString())));
+                Console.WriteLine(string.Join("\n", argBuffers.Select(x => x?.ToString())));
 
                 var argArrays = argBuffers.ToArray();                
                 Buffer = string.Format(Formatter.BaseFormatter, argArrays.ToArray());

@@ -41,6 +41,9 @@ namespace Orikivo
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
         }
 
+        public static T ChooseAny<T>(params T[] args)
+            => Choose(args);
+
         /// <summary>
         /// Selects and removes an element at random from a collection.
         /// </summary>

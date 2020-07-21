@@ -249,8 +249,8 @@ namespace Arcadia
                         return ActionResult.Continue;
                     }
 
-                    // DENY
-                    if (input == "deny" && account.Id == Participant.Id)
+                    // DECLINE
+                    if (input == "decline" && account.Id == Participant.Id)
                     {
                         await SetStateAsync(TradeState.Cancel);
                         await UpdateMessageAsync(WriteOnCancel(account));
@@ -261,7 +261,7 @@ namespace Arcadia
                 case TradeState.Menu:
                     // ACCEPT: This marks the user who executed it that they accepted their end of the trade.
                     // If both users accept, then the trade goes through. Take all specified items from both, swap, and give both the other's items.
-                    if (input == "accept")
+                    if (input == "ready")
                     {
                         if (CanStartTrade())
                         {
@@ -283,6 +283,7 @@ namespace Arcadia
 
                         CurrentId = account.Id;
                         await SetStateAsync(TradeState.Inventory);
+                        
                         return ActionResult.Continue;
                     }
                     break;
@@ -301,7 +302,7 @@ namespace Arcadia
                     // Check if the specified item exists in the invoker's inventory
                     if (!ItemHelper.HasItem(account, input))
                     {
-                        await SetStateAsync(TradeState.Inventory, $"> An invalid item ID was specified.");
+                        await SetStateAsync(TradeState.Inventory, "> An invalid item ID was specified.");
                         return ActionResult.Continue;
                     }
 
@@ -309,7 +310,9 @@ namespace Arcadia
                     if (GetCurrentItems().ContainsKey(input))
                     {
                         RemoveItemFromCurrent(input);
-                        await SetStateAsync(TradeState.Inventory, $"Removed the specified item from the trade.");
+                        await SetStateAsync(TradeState.Inventory, "Removed the specified item from the trade.");
+                        HostReady = false;
+                        ParticipantReady = false;
                         return ActionResult.Continue;
                     }
 
@@ -317,12 +320,14 @@ namespace Arcadia
 
                     if (!ItemHelper.CanTrade(input, selectedItem.Data))
                     {
-                        await SetStateAsync(TradeState.Inventory, $"> This item is unavailable for trading.");
+                        await SetStateAsync(TradeState.Inventory, "> This item is unavailable for trading.");
                         return ActionResult.Continue;
                     }
 
                     AddItemToCurrent(input);
-                    await SetStateAsync(TradeState.Inventory, $"Added the specified item into the trade.");
+                    await SetStateAsync(TradeState.Inventory, "Added the specified item into the trade.");
+                    HostReady = false;
+                    ParticipantReady = false;
                     return ActionResult.Continue;
             }
 
