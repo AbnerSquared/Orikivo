@@ -55,6 +55,110 @@ namespace Arcadia
                     ToOwn = null,
                     ToUnlock = null,
                     ToExpire = null
+                },
+                new Item
+                {
+                    Id = "p_gg",
+                    Name = "Card Palette: Gamma Green",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "It glows with a shade of green similar to uranium."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 1000,
+                    Size = 50,
+                    CanBuy = true,
+                    CanSell = true,
+                    BypassCriteriaOnGift = true,
+                    Rarity =  ItemRarity.Common,
+                    OnUse = new ItemAction
+                    {
+                        Action = user => user.Card.Palette = PaletteType.GammaGreen
+                    },
+                    MarketCriteria = null,
+                    ToOwn = null,
+                    ToUnlock = null,
+                    ToExpire = null,
+                    OwnLimit = 10
+                },
+                new Item
+                {
+                    Id = "p_cr",
+                    Name = "Card Palette: Crimson",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "It thrives in a neon glow of a reddish-purple hue."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 1000,
+                    Size = 50,
+                    CanBuy = true,
+                    CanSell = true,
+                    BypassCriteriaOnGift = true,
+                    Rarity =  ItemRarity.Common,
+                    OnUse = new ItemAction
+                    {
+                        Action = user => user.Card.Palette = PaletteType.Crimson
+                    },
+                    MarketCriteria = null,
+                    ToOwn = null,
+                    ToUnlock = null,
+                    ToExpire = null,
+                    OwnLimit = 10
+                },
+                new Item
+                {
+                    Id = "p_wu",
+                    Name = "Card Palette: Wumpite",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "Crafted with the shades of a bluish-purple pig-like entity."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 1500,
+                    Size = 75,
+                    CanBuy = true,
+                    CanSell = true,
+                    BypassCriteriaOnGift = true,
+                    Rarity =  ItemRarity.Uncommon,
+                    OnUse = new ItemAction
+                    {
+                        Action = user => user.Card.Palette = PaletteType.Wumpite
+                    },
+                    MarketCriteria = null,
+                    ToOwn = null,
+                    ToUnlock = null,
+                    ToExpire = null,
+                    OwnLimit = 10
+                },
+                new Item
+                {
+                    Id = "p_gl",
+                    Name = "Card Palette: Glass",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "It refracts a mixture of light blue to white light."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 1500,
+                    Size = 75,
+                    CanBuy = true,
+                    CanSell = true,
+                    BypassCriteriaOnGift = true,
+                    Rarity =  ItemRarity.Uncommon,
+                    OnUse = new ItemAction
+                    {
+                        Action = user => user.Card.Palette = PaletteType.Glass
+                    },
+                    MarketCriteria = null,
+                    ToOwn = null,
+                    ToUnlock = null,
+                    ToExpire = null,
+                    OwnLimit = 10
                 }
             };
 

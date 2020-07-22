@@ -12,7 +12,7 @@ namespace Orikivo.Drawing
         public static readonly GammaPalette Default =    new GammaPalette(0x000000, 0x242424, 0x494949, 0x6D6D6D, 0x929292, 0xB6B6B6, 0xDBDBDB, 0xFFFFFF);
         public static readonly GammaPalette NeonRed =    new GammaPalette(0x5C1F49, 0x722451, 0x882959, 0x9F2E61, 0xB53367, 0xCB396D, 0xE13D75, 0xF8427D);
         public static readonly GammaPalette GammaGreen = new GammaPalette(0x0C525F, 0x1A6A6E, 0x28827D, 0x369A8C, 0x44B29B, 0x52CAAA, 0x60E2B9, 0x6EFAC8);
-
+        public static readonly GammaPalette Wumpite =    new GammaPalette(0x34489F, 0x4356AB, 0x4F63B7, 0x5B70C3, 0x677DCF, 0x738ADB, 0x7F97E7, 0x8BA4F3);
         // NOTE: These are already gradient color maps. They should not be allowed to fuse.
         // REF: https://lospec.com/palette-list/nyx8
         public static readonly GammaPalette Alconia =    new GammaPalette(0x08141E, 0x0F2A3F, 0x20394F, 0x4E495F, 0x816271, 0x997577, 0xC3A38A, 0xF6D6BD);

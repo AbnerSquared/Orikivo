@@ -584,17 +584,17 @@ namespace Arcadia
                     return;
                 }
 
-                int owned = ItemHelper.GetOwnedAmount(participant, Items.PocketLawyer);
+                int owned = ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass);
 
-                ItemHelper.GiveItem(participant, Items.PocketLawyer);
+                ItemHelper.GiveItem(participant, Items.PaletteGlass);
 
-                if (ItemHelper.GetOwnedAmount(participant, Items.PocketLawyer) > owned)
+                if (ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass) > owned)
                 {
-                    await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** a **{ItemHelper.NameOf(Items.PocketLawyer)}**.");
+                    await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** a **{ItemHelper.NameOf(Items.PaletteGlass)}**.");
                 }
-                else if (ItemHelper.GetOwnedAmount(participant, Items.PocketLawyer) == owned)
+                else if (ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass) == owned)
                 {
-                    await Context.Channel.SendMessageAsync($"> Could not give **{participant.Username}** a **{ItemHelper.NameOf(Items.PocketLawyer)}**. They already own the most possible.");
+                    await Context.Channel.SendMessageAsync($"> Could not give **{participant.Username}** a **{ItemHelper.NameOf(Items.PaletteGlass)}**. They already own the most possible.");
                 }
                 else
                 {
@@ -846,6 +846,14 @@ namespace Arcadia
         }
 
         [RequireUser]
+        [Command("cardconfig"), Alias("ccfg")]
+        [Summary("View your current configurations for your **Card**.")]
+        public async Task GetCardConfigAsync()
+        {
+            await Context.Channel.SendMessageAsync(Context.Account.Card.Display());
+        }
+
+        [RequireUser]
         [Command("card")]
         public async Task GetCardAsync(SocketUser user = null)
         {
@@ -865,7 +873,7 @@ namespace Arcadia
                     CardDetails d = new CardDetails(account, user);
 
                     CardProperties p = CardProperties.Default;
-                    p.Palette = PaletteType.Glass;
+                    p.Palette = account.Card.Palette;
                     p.Trim = false;
                     p.Casing = Casing.Upper;
 

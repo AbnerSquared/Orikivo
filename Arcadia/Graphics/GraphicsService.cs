@@ -48,9 +48,10 @@ namespace Arcadia
             => type switch
             {
                 PaletteType.GammaGreen => GammaPalette.GammaGreen,
-                PaletteType.NeonRed => GammaPalette.NeonRed,
+                PaletteType.Crimson => GammaPalette.NeonRed,
                 PaletteType.Glass => GammaPalette.Glass,
                 PaletteType.Default => GammaPalette.Default,
+                PaletteType.Wumpite => GammaPalette.Wumpite,
                 _ => GammaPalette.Default
             };
 

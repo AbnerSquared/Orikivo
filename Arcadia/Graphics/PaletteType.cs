@@ -2,9 +2,10 @@
 {
     public enum PaletteType
     {
-        GammaGreen = 1,
-        NeonRed = 2,
-        Glass = 4,
-        Default = 8
+        Default = 1,
+        GammaGreen = 2,
+        Crimson = 4,
+        Wumpite = 8,
+        Glass = 16
     }
 }
