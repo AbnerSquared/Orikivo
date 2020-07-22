@@ -30,6 +30,12 @@ namespace Arcadia
                 return;
             }
 
+            if (wager == 0)
+            {
+                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                return;
+            }
+
             if (wager > (long)Context.Account.ChipBalance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
