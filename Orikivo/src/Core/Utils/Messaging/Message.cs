@@ -22,20 +22,24 @@ namespace Orikivo
                 if (Check.NotNull(builder.Embedder.Header))
                     embed.WithTitle(builder.Embedder.Header);
 
-                if (builder.HasUrl && builder.CanEmbedUrl)
+                if (builder.Url != null)
                 {
-                    if (builder.Url.IsHidden)
-                        embed.Description += '\n' + Format.Hyperlink(builder.Url);
-                    else
+                    if (builder.HasUrl && builder.CanEmbedUrl)
                     {
-                        embed.WithImageUrl(builder.Url.IsLocal
-                            ? EmbedUtils.CreateLocalImageUrl(builder.Url)
-                            : builder.Url.Value);
+                        if (builder.Url.IsHidden)
+                            embed.Description += '\n' + Format.Hyperlink(builder.Url);
+                        else
+                        {
+                            embed.WithImageUrl(builder.Url.IsLocal
+                                ? EmbedUtils.CreateLocalImageUrl(builder.Url)
+                                : builder.Url.Value);
 
-                        if (builder.Url.IsLocal)
-                            AttachmentUrl = builder.Url;
+                            if (builder.Url.IsLocal)
+                                AttachmentUrl = builder.Url;
+                        }
                     }
                 }
+
                 Embed = embed.Build();
             }
             else
@@ -47,12 +51,15 @@ namespace Orikivo
 
                 if (builder.HasUrl)
                 {
-                    if (builder.Url.IsHidden)
-                        text.AppendLine(Format.EscapeUrl(builder.Url));
-                    else if (builder.Url.IsLocal)
-                        AttachmentUrl = builder.Url;
-                    else
-                        text.AppendLine(builder.Url);
+                    if (builder.Url != null)
+                    {
+                        if (builder.Url.IsHidden)
+                            text.AppendLine(Format.EscapeUrl(builder.Url));
+                        else if (builder.Url.IsLocal)
+                            AttachmentUrl = builder.Url;
+                        else
+                            text.AppendLine(builder.Url);
+                    }
                 }
 
                 Text = text.ToString();
