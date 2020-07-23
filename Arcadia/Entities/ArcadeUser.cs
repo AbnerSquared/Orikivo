@@ -75,6 +75,12 @@ namespace Arcadia
         [JsonProperty("card")]
         public CardConfig Card { get; }
 
+        /// <summary>
+        /// Represents a collection of internal cooldowns for the current process.
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
+
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
 
@@ -103,24 +109,41 @@ namespace Arcadia
         // TODO: make the type of integer consistent with balances
         public void Give(long value)
         {
-            if (((long)Debt - value) < 0)
+            if ((long) Debt >= value)
             {
+                Debt -= (ulong) value;
+            }
+            else if ((long) Debt > 0)
+            {
+                value -= (long)Debt;
                 Debt = 0;
-                Balance += (ulong)(value - (long)Debt);
+                Balance += (ulong) value;
             }
             else
-                Debt -= (ulong)value;
+            {
+                Balance += (ulong) value;
+            }
+
+            
         }
 
         public void Take(long value)
         {
-            if (((long)Balance - value) < 0)
+            if ((long) Balance >= value)
             {
+                Balance -= (ulong) value;
+            }
+            else if ((long) Balance > 0)
+            {
+                value -= (long)Balance;
                 Balance = 0;
-                Debt += (ulong)(value - (long)Balance);
+                Debt += (ulong) value;
             }
             else
-                Balance -= (ulong)value;
+            {
+                Debt += (ulong) value;
+            }
+            
         }
     }
 }
@@ -133,6 +156,3 @@ namespace Arcadia
 
 // Boosters will be used by Orikivo Arcade, not Orikivo
 // public List<BoosterData> Boosters { get; } = new List<BoosterData>();
-
-// Arcadia-only property
-// public CardConfig Card { get; set; }

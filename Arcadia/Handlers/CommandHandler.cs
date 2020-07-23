@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace Arcadia
 {
-
     public class CommandHandler
     {
         private readonly CommandService _service;
@@ -63,11 +62,9 @@ namespace Arcadia
             }
 
             // Delete the message after executing the command
+            i = 2;
 
-            if (!prefixFound)
-                i = 2;
-
-            if (source.HasStringPrefix(GetPrefix(ctx) + "d]", ref i) && !prefixFound)
+            if (source.HasStringPrefix(GetPrefix(ctx) + "d]", ref i))
             {
                 prefix = GetPrefix(ctx) + "d]";
                 prefixFound = true;
@@ -77,12 +74,14 @@ namespace Arcadia
 
             // Execute the command
             if (!prefixFound)
+            {
                 i = 0;
 
-            if (source.HasStringPrefix(GetPrefix(ctx), ref i) && !prefixFound)
-            {
-                prefix = GetPrefix(ctx);
-                prefixFound = true;
+                if (source.HasStringPrefix(GetPrefix(ctx), ref i))
+                {
+                    prefix = GetPrefix(ctx);
+                    prefixFound = true;
+                }
             }
 
             if (prefixFound)
@@ -107,11 +106,12 @@ namespace Arcadia
 
             // TODO: It might be required to create a custom parser and execution service separate from CommandService in order to properly
             // allow specific parsing methods
-            await _service.ExecuteAsync(ctx, argPos, _provider, MultiMatchHandling.Exception);
+            await _service.ExecuteAsync(ctx, argPos, _provider);
         }
 
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
+            // TODO: Make the specific context exchangeable.
             ArcadeContext ctx = context as ArcadeContext;
 
             // Attempt to set a global cooldown on the account that executed this command
@@ -119,13 +119,13 @@ namespace Arcadia
             // If the command failed
             if (!result.IsSuccess)
             {
-                if (result is ExecuteResult)
+                if (result is ExecuteResult execute)
                 {
                     if (!result.IsSuccess)
-                        await ctx.Channel.CatchAsync(((ExecuteResult)result).Exception);
+                        await context.Channel.CatchAsync((execute).Exception);
                 }
                 else
-                    await ctx.Channel.ThrowAsync(result.ErrorReason);
+                    await context.Channel.ThrowAsync(result.ErrorReason);
 
                 return;
             }
@@ -153,7 +153,7 @@ namespace Arcadia
             */
 
             // Check if the user was updated or doesn't exist to save
-            RequireUserAttribute requireUser = command.Preconditions.FirstAttribute<RequireUserAttribute>();
+            RequireUserAttribute requireUser = command.Preconditions.FirstOrDefault<RequireUserAttribute>();
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
@@ -172,7 +172,7 @@ namespace Arcadia
             }
 
             // Check if the guild was updated or doesn't exist to save
-            RequireGuildAttribute requireGuild = command.Preconditions.FirstAttribute<RequireGuildAttribute>();
+            RequireGuildAttribute requireGuild = command.Preconditions.FirstOrDefault<RequireGuildAttribute>();
 
             if (requireGuild?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {

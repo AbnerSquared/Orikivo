@@ -41,6 +41,8 @@ namespace Arcadia
 
         public PaletteType Palette { get; set; } = PaletteType.Default;
 
+        public GammaPalette PaletteOverride { get; set; } = null;
+
         public Dictionary<CardComponent, Gamma?> Gamma { get; set; }
 
         public Padding Padding { get; set; }

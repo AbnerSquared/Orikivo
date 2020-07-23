@@ -34,7 +34,7 @@ namespace Orikivo.Drawing.Encoding
         Bpp8 = 8,
 
         /// <summary>
-        /// Sets the <see cref="ColorPalette"/> for an <see cref="Image"/> to 8 bits per pixel in grayscale, providing up to 256 different color entries from #000000 to #FFFFFF.
+        /// Sets the <see cref="ColorPalette"/> for an <see cref="Image"/> to 8 bits per pixel, providing up to 256 different color entries from #000000 to #FFFFFF.
         /// </summary>
         Grayscale = 9
     }

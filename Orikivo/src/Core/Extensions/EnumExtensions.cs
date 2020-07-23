@@ -6,7 +6,7 @@ namespace Orikivo
 {
     public static class EnumExtensions
     {
-        public static List<TEnum> GetValues<TEnum>(this TEnum @enum)
+        public static IEnumerable<TEnum> GetValues<TEnum>(this TEnum @enum)
             where TEnum : Enum
             => typeof(TEnum).GetEnumValues().Cast<TEnum>().ToList();
 

@@ -108,7 +108,7 @@ namespace Orikivo
 
             footer.Append(WriteValue(Context.Account.Balance));
             int capacity = Husk.Backpack.Capacity;
-            footer.Append($" ({capacity - Husk.Backpack.ItemIds.Count}/{capacity} {OriFormat.TryPluralize("Slot", capacity)} Available)");
+            footer.Append($" ({capacity - Husk.Backpack.ItemIds.Count}/{capacity} {Format.TryPluralize("Slot", capacity)} Available)");
 
             return footer.ToString();
         }
@@ -152,12 +152,12 @@ namespace Orikivo
             }
             
             if (amount > 1 && isSellable)
-                summary.Append($"(x{OriFormat.PlaceValue(amount)}) ");
+                summary.Append($"(x{Format.Separate(amount)}) ");
 
             summary.Append($"• {WriteValue(GetItemValue(item, isSellable))}");
 
             if (!isSellable)
-                summary.Append($" (**{OriFormat.PlaceValue(amount)} in stock**)");
+                summary.Append($" (**{Format.Separate(amount)} in stock**)");
 
             return summary.ToString();
         }
@@ -260,7 +260,7 @@ namespace Orikivo
         private string GetTransaction()
         {
             string money = WriteValue(Last.Value);
-            string item = $"**{OriFormat.PlaceValue(Last.Count)}** {OriFormat.TryPluralize("item", Last.Count)}";
+            string item = $"**{Format.Separate(Last.Count)}** {Format.TryPluralize("item", Last.Count)}";
 
             return State switch
             {
@@ -272,7 +272,7 @@ namespace Orikivo
         }
 
         private string WriteValue(ulong value)
-            => $"**💸{OriFormat.PlaceValue(value)}**";
+            => $"**💸{Format.Separate(value)}**";
         private string GetItemDetails(Item item)
         {
             StringBuilder details = new StringBuilder();

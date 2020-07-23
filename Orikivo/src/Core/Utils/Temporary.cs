@@ -53,7 +53,7 @@ namespace Orikivo
 
             using (FileStream writer = new FileStream(_tmpPath, FileMode.Open, FileAccess.Write))
             {
-                StreamBufferReader<TStream> buffer = new StreamBufferReader<TStream>(_stream, 1024);
+                BufferReader<TStream> buffer = new BufferReader<TStream>(_stream, 1024);
 
                 while (buffer.RemainingBytes > 0)
                 {

@@ -6,6 +6,9 @@ using Orikivo.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Arcadia.Casino;
+using Arcadia.Modules;
+using Arcadia.Services;
 
 namespace Arcadia
 {
@@ -57,7 +60,7 @@ namespace Arcadia
 
                 builder
                     .AddModule<Core>()
-                    .AddModule<Casino>()
+                    .AddModule<Modules.Casino>()
                     .AddModule<Multiplayer>()
                     .AddModule<Common>();
 

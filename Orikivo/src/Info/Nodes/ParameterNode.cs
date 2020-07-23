@@ -31,7 +31,7 @@ namespace Orikivo
             DefaultValue = parameter.DefaultValue;
             ValueType = parameter.Type;
             Tag = GetTagValue(parameter);
-            ParseExamples = parameter.Attributes.FirstAttribute<ExampleAttribute>()?.Examples;
+            ParseExamples = parameter.Attributes.FirstOrDefault<ExampleAttribute>()?.Examples;
         }
 
         private static ParameterTag GetTagValue(ParameterInfo parameter)
@@ -96,7 +96,7 @@ namespace Orikivo
         {
             get
             {
-                StringBuilder format = new StringBuilder();
+                var format = new StringBuilder();
 
                 format.Append(Format.Bold(Name));
 
@@ -105,7 +105,7 @@ namespace Orikivo
                 format.Append(Command);
 
                 if (OverloadCount > 1)
-                    format.Append(OriFormat.Subscript($" +{OverloadIndex}"));
+                    format.Append(Format.Subscript($" +{OverloadIndex}"));
 
                 format.Append(']');
 
@@ -141,7 +141,7 @@ namespace Orikivo
                 {
                     format.Append("> ");
                     format.Append("typeof ");
-                    format.Append(Format.Bold(OriFormat.HumanizeType(ValueType)));
+                    format.Append(Format.Bold(Format.HumanizeType(ValueType)));
                     format.AppendLine();
 
                     // If unwanted, simply just revert

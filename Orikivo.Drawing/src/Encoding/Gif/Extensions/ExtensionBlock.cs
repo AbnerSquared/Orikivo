@@ -2,8 +2,8 @@
 {
     public abstract class ExtensionBlock
     {
-        protected const byte INTRODUCER = 0x21; // !
-        protected const byte TERMINATOR = 0x00; // NULL
+        protected const byte Introduction = 0x21; // !
+        protected const byte Terminator = 0x00; // NULL
 
         protected abstract byte Label { get; }
         protected abstract byte? BlockSize { get; }

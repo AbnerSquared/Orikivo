@@ -4,7 +4,7 @@
     // TODO: Create DialogueMatchAction, which handles the entire communication branching.
 
     /// <summary>
-    /// Represents the way a <see cref="Dialogue"/> entry is handled.
+    /// Represents the way a <see cref="Dialog"/> entry is handled.
     /// </summary>
     public enum DialogType
     {

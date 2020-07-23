@@ -32,17 +32,4 @@ namespace Orikivo.Desync
         /// </summary>
         public Dictionary<int, Reward> RewardTiers { get; set; } = new Dictionary<int, Reward>();
     }
-
-    public enum ClaimFlag
-    {
-        /// <summary>
-        /// Marks the <see cref="Claimable"/> to loop its rewards.
-        /// </summary>
-        Modulo = 1,
-
-        /// <summary>
-        /// Marks the <see cref="Claimable"/> to allow rewards only once.
-        /// </summary>
-        Once = 2
-    }
 }

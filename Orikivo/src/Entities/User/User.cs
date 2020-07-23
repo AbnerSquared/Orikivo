@@ -185,7 +185,7 @@ namespace Orikivo.Desync
                     if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.Preservation) // if the streak will reset.
                         SetStat(claimable.StreakId, 1);
                     else
-                        UpdateStat(claimable.StreakId, 1);
+                        UpdateStat(claimable.StreakId);
 
                     Cooldowns[id] = DateTime.UtcNow.Add(claimable.Cooldown); // set new expiration.
                 }

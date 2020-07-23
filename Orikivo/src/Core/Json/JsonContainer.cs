@@ -15,7 +15,7 @@ namespace Orikivo
         {
             _directory = directory;
             Values = JsonHandler.RestoreContainer<TEntity>(_directory);
-            Logger.Debug($"-- Restored {Values.Count} {OriFormat.TryPluralize("entity", Values.Count)}. --");
+            Logger.Debug($"-- Restored {Values.Count} {Format.TryPluralize("entity", Values.Count)}. --");
         }
 
         public TEntity GetOrAdd(TEntity value)

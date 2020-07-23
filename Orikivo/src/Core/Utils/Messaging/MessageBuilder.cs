@@ -7,16 +7,6 @@ namespace Orikivo
     /// </summary>
     public class MessageBuilder
     {
-
-        [JsonConstructor]
-        internal MessageBuilder(string content, string url, Embedder embedder, bool isTTS)
-        {
-            Content = content;
-            Url = url;
-            Embedder = embedder;
-            IsTTS = isTTS;
-        }
-
         public MessageBuilder() { }
 
         public MessageBuilder(string content, string url)
@@ -26,35 +16,47 @@ namespace Orikivo
             IsTTS = false;
         }
 
+        [JsonConstructor]
+        public MessageBuilder(string content, string url, Embedder embedder, bool isTts)
+        {
+            Content = content;
+            Url = url;
+            Embedder = embedder;
+            IsTTS = isTts;
+        }
+
         [JsonProperty("content")]
         public string Content { get; set; }
 
         [JsonProperty("url")]
-        public string Url { get; set; }
+        public MessageUrl Url { get; set; }
 
         [JsonProperty("embedder")]
         public Embedder Embedder { get; set; }
 
         [JsonProperty("is_tts")]
-        public bool IsTTS { get; set; } = false;
+        public bool IsTTS { get; set; }
 
         [JsonProperty("is_spoiler")]
-        public bool IsSpoiler { get; set; } = false;
+        public bool IsSpoiler { get; set; }
 
         [JsonIgnore]
         public bool HasUrl => !string.IsNullOrWhiteSpace(Url);
 
         [JsonIgnore]
-        public bool HideUrl { get; set; } = false;
+        public bool CanEmbedUrl => Check.NotNull(Embedder) && Url?.Extension == ExtensionType.Image;
 
-        [JsonIgnore]
-        public bool IsLocalUrl { get; set; } = false;
+        public MessageBuilder WithEmbedder(Embedder embedder)
+        {
+            Embedder = embedder;
+            return this;
+        }
 
-        [JsonIgnore]
-        public bool CanEmbedUrl => Check.NotNull(Embedder) && EnumUtils.GetUrlExtension(Url).Value == ExtensionType.Image;
-
-        [JsonIgnore]
-        public ExtensionType? UrlExtension => HasUrl ? EnumUtils.GetUrlExtension(Url) : null;
+        public MessageBuilder WithContent(string content)
+        {
+            Content = content;
+            return this;
+        }
 
         public Message Build()
             => new Message(this);

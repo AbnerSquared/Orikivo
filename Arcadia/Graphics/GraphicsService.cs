@@ -1,26 +1,17 @@
 ﻿using System;
 using System.Drawing;
-using System.Linq;
 using Orikivo.Drawing;
-using Orikivo.Drawing.Graphics2D;
-using Orikivo.Desync;
 using Orikivo;
 using System.Diagnostics;
 
 namespace Arcadia
 {
-    public class ComponentColor
-    {
-        public Gamma? Primary { get; set; }
-        public Gamma? Secondary { get; set; }
-        public float Opacity { get; set; } // 0-1
-    }
-
     /// <summary>
     /// Handles all of the rendering processes for Orikivo.
     /// </summary>
     public class GraphicsService : IDisposable
     {
+        // TODO: Use the Minic FontFace to utilize a way to draw sub/superscript on larger fonts.
         private readonly TextFactory _text;
 
         public GraphicsService()
@@ -63,7 +54,6 @@ namespace Arcadia
             {
                 // A cap is placed to prevent abuse.
                 scale = scale > 5 ? 5 : scale;
-
                 image = ImageHelper.Scale(image, scale, scale);
             }
 
@@ -130,17 +120,13 @@ namespace Arcadia
 
             properties ??= CardProperties.Default;
 
-            var palette = GetPalette(properties.Palette);
+            var palette = properties.PaletteOverride ?? GetPalette(properties.Palette);
             Palette = palette;
             var defaultProperties = new ImageProperties
             {
                 Matte = null,
                 Padding = Padding.Empty
             };
-
-            FontFace delton = GetFont(FontType.Delton);
-            FontFace minic = GetFont(FontType.Minic);
-            FontFace foxtrot = GetFont(FontType.Foxtrot);
 
             // 150, 200 with 2px padding
             var card = new Drawable(192, 32)
@@ -259,11 +245,8 @@ namespace Arcadia
                 var coinSheet = new Sheet(@"../assets/icons/coins.png", 8, 8);
                 cursor.Y -= 1;
                 // ICON
-                var icon = new BitmapLayer
-                {
-                    Source = ImageHelper.Trim(ImageHelper.SetColorMap(coinSheet.GetSprite(1, 1), GammaPalette.Default, Palette), true),
-                    Offset = cursor
-                };
+                var icon = new BitmapLayer(ImageHelper.Trim(ImageHelper.SetColorMap(coinSheet.GetSprite(1, 1), GammaPalette.Default, Palette), true));
+                icon.Offset = cursor;
                 icon.Properties.Padding = new Padding(right: 2);
 
                 cursor.X += icon.Source.Width + icon.Properties.Padding.Width;
@@ -273,7 +256,7 @@ namespace Arcadia
                 bool inDebt = details.Debt > details.Balance;
 
                 ulong money = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
-                string balance = OriFormat.ShortenValue(money, out PlaceValue suffix);
+                string balance = Format.Condense(money, out NumberGroup suffix);
 
                 string text = $"{(inDebt ? "-" : "")}{balance}";
                 
@@ -282,18 +265,16 @@ namespace Arcadia
                 var moneyGamma = properties.Gamma[CardComponent.Money] ?? Gamma.Max;
 
                 // TODO: Dim color for debt
-                var counter = new BitmapLayer
-                {
-                    Source = DrawText(text, GetFont(FontType.Delton), moneyGamma, defaultProperties),
-                    Offset = cursor
-                };
+                var counter = new BitmapLayer(DrawText(text, GetFont(FontType.Delton), moneyGamma, defaultProperties));
+                counter.Offset = cursor;
+
                 counter.Properties.Padding = new Padding(right: 1);
 
                 cursor.X += counter.Source.Width + counter.Properties.Padding.Width;
                 card.AddLayer(counter);
 
                 // SUFFIX (OPTIONAL)
-                if (suffix > PlaceValue.H)
+                if (suffix > NumberGroup.H)
                 {
                     var suffixSheet = new Sheet(@"../assets/icons/suffixes.png", 6, 6);
 
@@ -307,7 +288,7 @@ namespace Arcadia
                 }
             }
 
-            if (!(properties.Border == 0))
+            if (properties.Border != 0)
             {
                 var borderGamma = properties.Gamma[CardComponent.Border] ?? Gamma.Max;
                 card.Border = new Border
@@ -326,7 +307,7 @@ namespace Arcadia
 
             stopwatch.Stop();
 
-            Console.WriteLine($"Card generated in {OriFormat.GetRawTime(stopwatch.ElapsedMilliseconds)}.");
+            Console.WriteLine($"Card generated in {Format.RawCounter(stopwatch.ElapsedMilliseconds)}.");
 
             return result;
         }

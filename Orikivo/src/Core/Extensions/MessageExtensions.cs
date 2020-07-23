@@ -41,8 +41,7 @@ namespace Orikivo
         /// </summary>
         public static EmbedBuilder GetRichEmbed(this IMessage message)
             => message.Embeds
-            .FirstOrDefault(x => x.Type == EmbedType.Rich)?
-            .ToEmbedBuilder()
-            ?? null;
+                .FirstOrDefault(x => x.Type == EmbedType.Rich)?
+                .ToEmbedBuilder();
     }
 }

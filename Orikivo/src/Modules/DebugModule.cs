@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
     [Name("Debug")]
     [Summary("A collection of commands used to debug internal features.")]

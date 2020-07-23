@@ -50,7 +50,7 @@ namespace Orikivo.Desync
             int i = 0;
             foreach (Notification n in Notifications.OrderByDescending(x => x.SentAt))
             {
-                notifier.AppendLine($"> {n.Content} ({OriFormat.Time(n.SentAt)})");
+                notifier.AppendLine($"> {n.Content} ({Format.FullTime(n.SentAt)})");
 
                 if (!n.Read)
                     n.Read = true;
@@ -97,7 +97,7 @@ namespace Orikivo.Desync
                     int remainder = Notifications.Where(x => !x.Read).Count();
 
                     if (remainder > 0)
-                        notifier.AppendLine($" > and **+{OriFormat.PlaceValue(remainder)}** more!");
+                        notifier.AppendLine($" > and **+{Format.Separate(remainder)}** more!");
 
                     break;
                 }

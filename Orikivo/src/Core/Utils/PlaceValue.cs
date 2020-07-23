@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum PlaceValue
+    public enum NumberGroup
     {
         Null = -1, // 0
         H = 0,     // 100

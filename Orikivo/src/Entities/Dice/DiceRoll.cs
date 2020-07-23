@@ -9,14 +9,14 @@ namespace Orikivo
     public class DiceRoll
     {
         /// <summary>
-        /// Constructs a new <see cref="DiceRoll"/> with a specified <see cref="Orikivo.Dice"/> and result.
+        /// Initializes a new <see cref="DiceRoll"/> with a specified <see cref="Orikivo.Dice"/> and result.
         /// </summary>
         public DiceRoll(Dice dice, int result) : this(dice, result.AsList()) { }
 
         /// <summary>
-        /// Constructs a new <see cref="DiceRoll"/> with a specified <see cref="Orikivo.Dice"/> and results.
+        /// Initializes a new <see cref="DiceRoll"/> with a specified <see cref="Orikivo.Dice"/> and results.
         /// </summary>
-        public DiceRoll(Dice dice, List<int> results)
+        public DiceRoll(Dice dice, IEnumerable<int> results)
         {
             Dice = dice;
             Results = results;
@@ -30,7 +30,7 @@ namespace Orikivo
         /// <summary>
         /// Represents a collection that contains the results of each roll.
         /// </summary>
-        public List<int> Results { get; }
+        public IEnumerable<int> Results { get; }
 
         /// <summary>
         /// Gets a 32-bit integer that represents the total number of rolls that were executed.

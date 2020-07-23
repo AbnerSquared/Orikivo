@@ -84,7 +84,7 @@ namespace Arcadia
         }
 
         private string WriteOnReady(ArcadeUser invoker)
-            => $"{invoker.Username} is ready!";
+            => $"> **{invoker.Username}** is ready!";
 
         private string WriteOnCancel(ArcadeUser invoker)
         {
@@ -115,16 +115,15 @@ namespace Arcadia
                 slot.Append($"> **{user.Username}** has not offered anything.");
             else
             {
-                slot.AppendLine($"> **{user.Username}** offers:\n");
+                slot.AppendLine($"> **{user.Username}** offers:");
 
                 int i = 0;
                 foreach ((string itemId, int amount) in items)
                 {
                     if (i == 0)
-                        slot.AppendLine("\n");
+                        slot.AppendLine();
 
-                    slot.Append("> ");
-                    slot.Append(ItemHelper.NameOf(itemId));
+                    slot.Append($"> **{ItemHelper.NameOf(itemId)}**");
 
                     if (amount > 1)
                     {
@@ -263,10 +262,17 @@ namespace Arcadia
                     // If both users accept, then the trade goes through. Take all specified items from both, swap, and give both the other's items.
                     if (input == "ready")
                     {
+                        if (IsOfferEmpty())
+                        {
+                            await SetStateAsync(TradeState.Menu, "> There aren't any items specified!");
+                        }
+
+
                         if (CanStartTrade())
                         {
                             Trade();
                             await SetStateAsync(TradeState.Success);
+                            Trade();
                             return ActionResult.Success;
                         }
 
@@ -310,7 +316,7 @@ namespace Arcadia
                     if (GetCurrentItems().ContainsKey(input))
                     {
                         RemoveItemFromCurrent(input);
-                        await SetStateAsync(TradeState.Inventory, "Removed the specified item from the trade.");
+                        await SetStateAsync(TradeState.Inventory, "> Removed the specified item from the trade.");
                         HostReady = false;
                         ParticipantReady = false;
                         return ActionResult.Continue;
@@ -325,13 +331,18 @@ namespace Arcadia
                     }
 
                     AddItemToCurrent(input);
-                    await SetStateAsync(TradeState.Inventory, "Added the specified item into the trade.");
+                    await SetStateAsync(TradeState.Inventory, "> Added the specified item into the trade.");
                     HostReady = false;
                     ParticipantReady = false;
                     return ActionResult.Continue;
             }
 
             return ActionResult.Continue;
+        }
+
+        private bool IsOfferEmpty()
+        {
+            return ParticipantOffer.Count == 0 && HostOffer.Count == 0;
         }
 
         private async Task SetStateAsync(TradeState state, string prepend = "")
@@ -359,9 +370,53 @@ namespace Arcadia
 
                     content.Append(WriteInventory(GetAccount(CurrentId.Value)));
                     break;
+
+                case TradeState.Success:
+                    content.AppendLine("> **Success!**\n> The trade has successfully gone through.");
+                    content.Append(WriteTradeResult());
+                    break;
             }
 
             await UpdateMessageAsync(content.ToString());
+        }
+
+        private string WriteTradeResult()
+        {
+            var result = new StringBuilder();
+
+            if (ParticipantOffer.Count > 0)
+            {
+                result.AppendLine($"**{Host.Username}** has received:");
+                foreach ((string itemId, int amount) in ParticipantOffer)
+                {
+                    result.Append($"**{ItemHelper.NameOf(itemId)}**");
+
+                    if (amount > 1)
+                    {
+                        result.Append($" (x**{amount.ToString("##,0")}**)");
+                    }
+
+                    result.AppendLine();
+                }
+            }
+
+            if (HostOffer.Count > 0)
+            {
+                result.AppendLine($"**{Participant.Username}** has received:");
+                foreach ((string itemId, int amount) in HostOffer)
+                {
+                    result.Append($"**{ItemHelper.NameOf(itemId)}**");
+
+                    if (amount > 1)
+                    {
+                        result.Append($" (x**{amount.ToString("##,0")}**)");
+                    }
+
+                    result.AppendLine();
+                }
+            }
+
+            return result.ToString();
         }
 
         public override async Task OnTimeoutAsync(SocketMessage message)

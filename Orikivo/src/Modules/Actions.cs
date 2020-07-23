@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
     [Ignore]
     [Name("Actions")]
@@ -220,7 +220,7 @@ namespace Orikivo
             var now = DateTime.UtcNow;
             Context.Account.Brain.ResyncAt = now.AddSeconds(10);
 
-            string timer = OriFormat.GetShortTime((Context.Account.Brain.ResyncAt.Value - now).TotalSeconds);
+            string timer = Format.Counter((Context.Account.Brain.ResyncAt.Value - now).TotalSeconds);
             await Context.Channel.SendMessageAsync($"You have been desychronized. You will be resynchronized in {timer}.");
         }
 
@@ -366,7 +366,7 @@ namespace Orikivo
                     travel.AppendLine($"Now travelling to (**{attempted.X}**, **{attempted.Y}**) in **{attempted.GetInnerName()}**.");
                     Destination info = Context.Husk.Destination;
 
-                    travel.Append($"Arrival In: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
+                    travel.Append($"Arrival In: {Format.Counter((info.Arrival - info.StartedAt).TotalSeconds)}");
                     await Context.Channel.SendMessageAsync(travel.ToString());
                     break;
                 case TravelResult.Instant:
@@ -409,7 +409,7 @@ namespace Orikivo
                         travel.AppendLine($"Now travelling to **{attempted.Name}**.");
                         Destination info = Context.Husk.Destination;
 
-                        travel.Append($"Arrival In: {OriFormat.GetShortTime((info.Arrival - info.StartedAt).TotalSeconds)}");
+                        travel.Append($"Arrival In: {Format.Counter((info.Arrival - info.StartedAt).TotalSeconds)}");
                         await Context.Channel.SendMessageAsync(travel.ToString());
                         break;
 

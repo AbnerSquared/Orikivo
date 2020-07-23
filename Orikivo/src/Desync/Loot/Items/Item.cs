@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Orikivo.Desync
 {
     // remove certain properties
-    // make a barebones version of this class
+    // make a bare-bones version of this class
     // that can be inherited for Orikivo and Arcadia
     /// <summary>
     /// Represents an interactive object for a <see cref="World"/> or <see cref="User"/>.
@@ -100,31 +100,5 @@ namespace Orikivo.Desync
         /// Gets or sets the criteria required for the <see cref="Item"/> to expire.
         /// </summary>
         public Func<bool> ToExpire { get; set; } = null;
-
-        /*
-         private bool IsUnique()
-            => (DecayInfo?.ExpiresOn.HasValue ?? false) &&
-            (ActionInfo?.MaxUses.HasValue ?? false) &&
-            (TradeInfo?.MaxTrades.HasValue ?? false) &&
-            (GiftInfo?.MaxGifts.HasValue ?? false);
-
-        public ItemData CreateDataPacket()
-        {
-            if (IsUnique())
-            {
-                UniqueItemData unique = new UniqueItemData
-                {
-                    ExpiresOn = DecayInfo?.ExpiresOn,
-                    UsesLeft = ActionInfo?.MaxUses,
-                    TradesLeft = TradeInfo?.MaxTrades,
-                    GiftsLeft = GiftInfo?.MaxGifts
-                };
-
-                return new ItemData(Id, unique);
-            }
-            return new ItemData(Id, 1);
-        }
-         
-         */
     }
 }

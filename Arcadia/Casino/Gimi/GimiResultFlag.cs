@@ -1,4 +1,4 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Casino
 {
     public enum GimiResultFlag
     {
@@ -21,18 +21,5 @@
         /// Represents a major loss.
         /// </summary>
         Curse = 4
-    }
-
-    public enum TickResultFlag
-    {
-        /// <summary>
-        /// Represents a basic win.
-        /// </summary>
-        Win = 1,
-
-        /// <summary>
-        /// Represents a basic loss.
-        /// </summary>
-        Lose = 2
     }
 }

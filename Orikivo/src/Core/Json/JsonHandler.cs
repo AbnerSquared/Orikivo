@@ -34,6 +34,7 @@ namespace Orikivo
         internal static readonly string JsonFrame = "{0}.json";
         internal static readonly string GlobalFileName = "global";
         internal static string BaseDirectory = @"..\data\";
+        private static readonly object _lock = new object();
 
         public static JsonSerializerSettings DefaultSerializerSettings
             => new JsonSerializerSettings
@@ -49,7 +50,10 @@ namespace Orikivo
 
         public static void SaveEntity<T>(T obj, string directory, JsonSerializer serializer = null)
             where T : IJsonEntity
-            => Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
+        {
+            lock (_lock)
+                Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
+        }
 
         private static string GetDirectory(string directory)
         {

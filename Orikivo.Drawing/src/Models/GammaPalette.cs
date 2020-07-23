@@ -31,6 +31,28 @@ namespace Orikivo.Drawing
             return new GammaPalette(colors.ToArray());
         }
 
+        /// <summary>
+        /// Smears two <see cref="GammaPalette"/> values together, slowly transitioning the primary palette to the secondary palette.
+        /// </summary>
+        public static GammaPalette Smear(GammaPalette a, GammaPalette b)
+        {
+            var colors = new List<ImmutableColor>();
+
+            float mergeStrength = 1.0f / (RequiredLength - 1);
+
+            for (int g = 0; g < RequiredLength; g++)
+            {
+                var strength = mergeStrength * g;
+
+                //if (g == 0)
+                //    strength = 0.1f;
+
+                colors.Add(ImmutableColor.Merge(a[g], b[g], strength));
+            }
+
+            return new GammaPalette(colors.ToArray());
+        }
+
         public GammaPalette(params int[] rgbValues)
         {
             if (rgbValues.Length != RequiredLength)

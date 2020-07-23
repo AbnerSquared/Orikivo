@@ -20,6 +20,10 @@ namespace Arcadia
         [Description("Defines the **Palette** currently equipped to your **Card**.")]
         public PaletteType Palette { get; internal set; }
 
+        [JsonProperty("merge")]
+        [Description("If you merged two **Palette** values, this will determine the direction at which they transition.")]
+        public PaletteDirection? Direction { get; internal set; }
+
         public string Display()
         {
             var panel = new StringBuilder();

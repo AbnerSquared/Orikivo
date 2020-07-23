@@ -3,9 +3,9 @@
 namespace Orikivo
 {
     // represents a group of blocks for a specified buffer size
-    public class StreamBufferReader<TStream> where TStream : Stream
+    public class BufferReader<TStream> where TStream : Stream
     {
-        public StreamBufferReader(TStream stream, int bufferSize)
+        public BufferReader(TStream stream, int bufferSize)
         {
             Stream = stream;
             Value = new byte[bufferSize];

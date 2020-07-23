@@ -10,12 +10,79 @@ namespace Orikivo
     /// <summary>
     /// A utility class that handles string formatting.
     /// </summary>
-    public static class OriFormat
+    public static class Format
     {
+        private const string GROUP_FORMATTING = "##,0.###";
+        private static readonly string[] SensitiveCharacters = { "\\", "*", "_", "~", "`", "|", ">" };
         public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
 
-        // TODO: You could use the Minic FontFace to utilize a way to draw sub/superscript on larger fonts.
-        private static readonly Dictionary<char, char> _superscriptMap = new Dictionary<char, char>
+        // TODO: Use Discord.Net's version of Quote(text)
+        public static string Quote(string text)
+        {
+            if (!Check.NotNull(text))
+                return text;
+
+            return $"> {text}";
+        }
+
+        public static string BlockQuote(string text)
+        {
+            if (!Check.NotNull(text))
+                return text;
+
+            return $">>> {text}";
+        }
+
+        public static string Bold(string text)
+            => $"**{text}**";
+
+        public static string Italics(string text)
+            => $"*{text}*";
+
+        public static string Underline(string text)
+            => $"__{text}__";
+
+        public static string StrikeThrough(string text)
+            => $"~~{text}~~";
+
+        public static string Spoiler(string text)
+            => $"||{text}||";
+
+        public static string Url(string text, string url)
+            => $"[{text}]({url})";
+
+        public static string EscapeUrl(string url)
+            => $"<{url}>";
+
+        public static string LineCode(string text)
+            => $"`{text}`";
+
+        public static string BlockCode(string text)
+            => $"```\n{text}\n```";
+
+        public static string Code(string text, string language = null)
+        {
+            if (language != null || text.Contains("\n"))
+                return $"```{language ?? ""}\n{text}\n```";
+
+            return $"`{text}`";
+        }
+
+        public static string Hyperlink(string url)
+            => Url(Path.GetFileName(url), url);
+
+        public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
+            => $"{Url(parsedEmote, emoteUrl)} {emoteName}";
+
+        public static string Code(string text, CodeType? language = null)
+            => Code(text, language?.ToString().ToLower());
+
+        public static string Trim(string value, int limit)
+            => value.Length > limit ? $"{value[..limit]}..." : value;
+
+
+        
+        private static readonly Dictionary<char, char> SuperscriptMap = new Dictionary<char, char>
         {
             {'a', 'ᵃ'},
             {'b', 'ᵇ'},
@@ -45,7 +112,7 @@ namespace Orikivo
             {'z', 'ᶻ'},
         };
 
-        private static readonly Dictionary<char, char> _subscriptMap = new Dictionary<char, char>
+        private static readonly Dictionary<char, char> SubscriptMap = new Dictionary<char, char>
         {
             {'0', '₀'},
             {'1', '₁'},
@@ -64,35 +131,47 @@ namespace Orikivo
             {')', '₎'}
         };
 
-        public static string Time(DateTime time)
-            => time.ToString("M/d/yyyy @ HH:mm tt");
+        private static readonly Dictionary<string, string> UniquePlurals = new Dictionary<string, string>
+        {
+            ["foot"] = "feet",
+            ["tooth"] = "teeth",
+            ["goose"] = "geese",
+            ["man"] = "men",
+            ["woman"] = "women"
+        };
 
-        public static string ShowTime(DateTime time)
+        public static string HumanizeType(Type t)
+            =>
+                t == typeof(sbyte) ? "sbyte" :
+                t == typeof(byte) ? "byte" :
+                t == typeof(short) ? "short" :
+                t == typeof(ushort) ? "ushort" :
+                t == typeof(int) ? "int" :
+                t == typeof(uint) ? "uint" :
+                t == typeof(long) ? "long" :
+                t == typeof(ulong) ? "ulong" :
+                t == typeof(double) ? "double" :
+                t == typeof(float) ? "float" :
+                t == typeof(decimal) ? "decimal" :
+                t == typeof(string) ? "string" :
+                t.Name;
+
+        public static string HumanizeType<T>()
+            => HumanizeType(typeof(T));
+
+        public static string Time(DateTime time)
             => time.ToString(@"hh\:mm\:ss");
+
+        public static string Date(DateTime date)
+            => date.ToString("M/d/yyyy");
+
+        public static string FullTime(DateTime time)
+            => time.ToString("M/d/yyyy @ HH:mm tt");
 
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");
 
-        public static string HumanizeType(Type t)
-            =>
-
-               t == typeof(sbyte) ? "sbyte" :
-               t == typeof(byte) ? "byte" :
-
-               t == typeof(short) ? "short" :
-               t == typeof(ushort) ? "ushort" :
-
-               t == typeof(int) ? "int" :
-               t == typeof(uint) ? "uint" :
-
-               t == typeof(long) ? "long" :
-               t == typeof(ulong) ? "ulong" :
-
-               t == typeof(double) ? "double" :
-               t == typeof(float) ? "float" :
-
-               t == typeof(string) ? "string" :
-               t.Name;
+        
 
         /// <summary>
         /// Attempts to map all known characters to its subscript variant.
@@ -100,139 +179,169 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        public static string ShortenValue(ulong value, out PlaceValue place, bool ignoreZeros = true)
+        
+
+        // 70 => 1.06m
+        public static string Counter(double seconds)
         {
+            if (seconds < 0)
+                seconds *= -1;
+
+            double upper = seconds;
+            int i = 1;
+
+            while (upper > GetNextDenominator(i))
+            {
+                upper /= GetNextDenominator(i);
+
+                if (i < 7)
+                    i++;
+                else
+                    break;
+            }
+
+            return $"**{upper.ToString("##,0.##")}**{GetCounterPrefix(i)}";
+        }
+
+        public static string RawCounter(double milliseconds)
+        {
+            if (milliseconds < 0)
+                milliseconds *= -1;
+
+            double upper = milliseconds;
+            int i = 0;
+
+            while (upper > GetNextDenominator(i))
+            {
+                upper /= GetNextDenominator(i);
+
+                if (i < 7)
+                    i++;
+                else
+                    break;
+            }
+
+            return $"{upper.ToString("##,0.##")}{GetCounterPrefix(i)}";
+        }
+
+        // 92399 => 92.3k
+        public static string Condense(ulong value, out NumberGroup group, bool ignoreZeros = true)
+        {
+            
             string text = value.ToString();
             int length = text.Length;
-            int placeValue = (int)MathF.Floor(length / 3);
+            int pre = length % 3;
 
-            if (placeValue > 0)
-                placeValue--;
+            group = (NumberGroup)MathF.Floor(length / 3);
 
-            int preDecimalSize = length % 3;
+            if (group > 0)
+                group--;
 
-            if (preDecimalSize == 0)
-                preDecimalSize = 3;
-
-            int postDecimalSize = 3 - preDecimalSize;
-
-            if (placeValue < (int)Orikivo.PlaceValue.H
-                || placeValue > (int)Orikivo.PlaceValue.T)
-            {
-                place = Orikivo.PlaceValue.Null;
-            }
-            else
-            {
-                place = (PlaceValue)placeValue;
-            }
+            if (group < NumberGroup.H || group > NumberGroup.T)
+                group = NumberGroup.Null;
 
             if (length <= 3)
-            {
                 return text;
-            }
+
+            if (pre == 0)
+                pre = 3;
 
             var result = new StringBuilder();
-            result.Append(text[0..preDecimalSize]);
+            result.Append(text[..pre]);
 
-            if (preDecimalSize == 3)
+            if (pre >= 3)
                 return result.ToString();
 
-            if (preDecimalSize < 3)
+            int rem = length - (int) group * 3;
+
+            if (ignoreZeros)
             {
-                int pos = length % 3;
-                int rem = length - (placeValue * 3);
-                if (ignoreZeros)
+                if (rem > 0)
                 {
-                    if (rem > 0)
+                    if (text[pre] == '0')
                     {
-                        if (text[preDecimalSize] == '0')
-                        {
-                            if (rem > 1)
-                            {
-                                if (text[preDecimalSize + 1] == '0')
-                                    return result.ToString();
-                            }
-                            else
-                                return result.ToString();
-                        }
+                        if (rem <= 1)
+                            return result.ToString();
+                        
+                        if (text[pre + 1] == '0')
+                            return result.ToString();
                     }
-                }
-
-                result.Append('.');
-
-                int i = preDecimalSize;
-
-                while (i < 3)
-                {
-                    result.Append(text[pos]);
-                    pos++;
-                    i++;
                 }
             }
 
+            result.Append('.');
+
+            while (pre < 3)
+            {
+                result.Append(text[pre]);
+                pre++;
+            }
+            
             return result.ToString();
         }
 
-        public static string HyperlinkEmote(Emote emote)
-            => HyperlinkEmote(emote.ToString(), emote.Url, emote.Name);
-
-        public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
-            => $"{Format.Url(parsedEmote, emoteUrl)} {emoteName}";
-
-        public static string Code(string value, CodeType? type = null)
-            => $"```{type?.ToString().ToLower()}\n{value}```";
-
-        // this crops a string with ... if the length of the string is past the specified limit
-        public static string Crop(string value, int limit)
-            => value.Length > limit ? value.Substring(0, limit) + "..." : value;
-
-        public static string GetPosition(int i)
+        public static string Ordinal(int i)
         {
-            string value = PlaceValue(i, false);
-            return i switch
+            return GetLastDigit(i) switch
             {
-                1 => $"{value}st",
-                2 => $"{value}nd",
-                3 => $"{value}rd",
-                _ => $"{value}th",
+                '1' => $"{Separate(i)}st",
+                '2' => $"{Separate(i)}nd",
+                '3' => $"{Separate(i)}rd",
+                _ => $"{Separate(i)}th",
             };
         }
 
-        private const string POS_NOTATION = "##,0.###";
+        private static char GetLastDigit(int number)
+            => number.ToString()[^1];
 
-        public static string PlaceValue(int i, bool includeDecimals = false)
-            => i.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
+        public static string Separate(float f, bool includeDecimals = false)
+            => f.ToString(includeDecimals ? GROUP_FORMATTING : GROUP_FORMATTING[..4]);
 
-        public static string PlaceValue(ulong u, bool includeDecimals = false)
-            => u.ToString(includeDecimals ? POS_NOTATION : POS_NOTATION.Substring(0, 5));
+        public static string Separate(double d, bool includeDecimals = false)
+            => d.ToString(includeDecimals ? GROUP_FORMATTING : GROUP_FORMATTING[..4]);
+
+        public static string Separate(decimal d, bool includeDecimals = false)
+            => d.ToString(includeDecimals ? GROUP_FORMATTING : GROUP_FORMATTING[..4]);
+
+        public static string Separate(long l)
+            => l.ToString(GROUP_FORMATTING);
+        
+        public static string Separate(int i)
+            => i.ToString(GROUP_FORMATTING);
+
+        public static string Separate(ulong u)
+            => u.ToString(GROUP_FORMATTING);
+
+        public static string Warning(string warning)
+            => $"> ⚠️ {warning}";
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
         {
-            var sb = new StringBuilder();
-            // if embedded, the reaction is placed on the title.
+            var result = new StringBuilder();
+
+            // NOTE: If the error is embedded, the reaction is placed on the title.
             if (!isEmbedded)
-                if (Check.NotNull(reaction))
-                    sb.AppendLine(Format.Bold(reaction));
-
-            if (Check.NotNull(title))
-                sb.Append(title);
-
-            if (Check.NotNull(reason))
-                sb.Append($"```{reason}```");
-
-            if (Check.NotNull(stackTrace))
             {
-                if (Check.NotNull(reason))
-                    sb.AppendLine();
-
-                sb.Append($"```bf\n{stackTrace}```");
+                if (Check.NotNull(reaction))
+                    result.AppendLine(Bold(reaction));
             }
 
-            return sb.ToString();
-        }
+            if (Check.NotNull(title))
+                result.Append(title);
 
-        public static string Hyperlink(string url)
-            => Format.Url(Path.GetFileName(url), url);
+            if (Check.NotNull(reason))
+                result.Append($"```{reason}```");
+
+            if (!Check.NotNull(stackTrace))
+                return result.ToString();
+
+            if (Check.NotNull(reason))
+                result.AppendLine();
+
+            result.Append(Code(stackTrace, "bf"));
+
+            return result.ToString();
+        }
 
         public static string GetVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
             => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
@@ -241,8 +350,8 @@ namespace Orikivo
         {
             Dictionary<char, char> map = type switch
             {
-                UnicodeMap.Subscript => _subscriptMap,
-                UnicodeMap.Superscript => _superscriptMap,
+                UnicodeMap.Subscript => SubscriptMap,
+                UnicodeMap.Superscript => SuperscriptMap,
                 _ => throw new ArgumentException("The specified UnicodeMap does not exist.")
             };
 
@@ -261,8 +370,10 @@ namespace Orikivo
             string unique = "";
 
             foreach (char c in value)
+            {
                 if (!unique.Contains(c))
                     unique += c;
+            }
 
             return unique;
         }
@@ -273,57 +384,16 @@ namespace Orikivo
             if (string.IsNullOrWhiteSpace(word))
                 return word;
 
-            string result = word;
+            if (count == 0 || count == 1)
+                return word;
 
-            if (count > 1 || count <= 0)
-            {
-                result = Pluralize(word);
-            }
-
-            return result;
+            return Pluralize(word);
         }
 
-        private static bool IsConsonant(char letter, bool includeY = false)
-        {
-            if (!char.IsLetter(letter))
-                return false;
-
-            if (includeY)
-                if (char.ToLower(letter) == 'y')
-                    return true;
-
-            return char.ToLower(letter)
-                .EqualsAny('b', 'c', 'd', 'f',
-                'g', 'h', 'j', 'k', 'l', 'm',
-                'n', 'p', 'q', 'r', 's', 't',
-                'v', 'w', 'x', 'z');
-        }
-
-        private static bool IsVowel(char letter, bool includeY = false)
-        {
-            if (!char.IsLetter(letter))
-                return false;
-
-            if (includeY)
-                if (char.ToLower(letter) == 'y')
-                    return true;
-
-            return char.ToLower(letter)
-                .EqualsAny('a', 'e', 'i', 'o', 'u');
-        }
-
-        private static Dictionary<string, string> uniquePlurals => new Dictionary<string, string>
-        {
-            ["foot"] = "feet",
-            ["tooth"] = "teeth",
-            ["goose"] = "geese",
-            ["man"] = "men",
-            ["woman"] = "women"
-        };
-
-        // this also has to handle possible capital letters.
+        // TODO: Handle upper case words
         private static string Pluralize(string word, bool isFormal = false)
         {
+
             // no point in trying if the word doesn't exist.
             if (string.IsNullOrWhiteSpace(word))
                 return word;
@@ -336,13 +406,12 @@ namespace Orikivo
             // likewise, this one is a bit harder to specify
             // for now, we can just use a dictionary look-up
             // try to make a method for pluralization in relation to -oot -ooth -an, etc.
-            if (uniquePlurals.ContainsKey(word))
-                return uniquePlurals[word];
+            if (UniquePlurals.ContainsKey(word))
+                return UniquePlurals[word];
 
             // if the specified word is shorter than 3 letters, just return it with an s.
             if (word.Length < 3)
                 return word + "s";
-
 
             // regular nouns => word + s
             // if singular noun ends in -s, -ss, -sh, -ch, -x, -z => word + es
@@ -362,14 +431,14 @@ namespace Orikivo
 
             if (word.EndsWithAny(out string suffix, "f", "fe"))
             {
-                return word[0..(word.Length - suffix.Length)] + "ves";
+                return word[..^suffix.Length] + "ves";
             }
 
             if (word.EndsWith("y"))
             {
                 // ^2 == word.Length - 2
                 if (IsConsonant(word[^2]))
-                    return word[0..^1] + "ies";
+                    return word[..^1] + "ies";
             }
 
             if (word.EndsWith("o"))
@@ -382,19 +451,19 @@ namespace Orikivo
             if (word.EndsWith("us"))
                 // word[0..^2] == word.Substring(0, word.Length - 2)
                 // this is selecting the range of characters FROM 0 TO word.Length - 2
-                return word[0..^2] + "i";
+                return word[..^2] + "i";
 
             // criterion => criteria
             if (word.EndsWith("on"))
-                return word[0..^2] + "a";
+                return word[..^2] + "a";
 
             // axis => axes
             if (word.EndsWith("is"))
-                return word[0..^2] + "es";
+                return word[..^2] + "es";
 
             // datum => data
             if (word.EndsWith("um"))
-                return word[0..^2] + "a";
+                return word[..^2] + "a";
             
 
             // this might not be right, but it's worth a shot
@@ -404,115 +473,59 @@ namespace Orikivo
             return word + "s";
         }
 
-        public static string HumanizeType<T>()
-            => HumanizeType(typeof(T));
-
-        public static string Username(IUser user)
-            => $"**{user.Username}**#{user.Discriminator}";
-
-        public static string GetRawTime(double milliseconds)
+        private static bool IsConsonant(char letter, bool includeY = false)
         {
-            string t = "ms";
-            double n = 0;
+            if (!char.IsLetter(letter))
+                return false;
 
-            if (milliseconds > (60 * 60 * 60))
-            {
-                n = milliseconds / (60 * 60 * 60);
-                t = "h";
-            }
-            if (milliseconds > (60 * 60))
-            {
-                n = milliseconds / (60 * 60);
-                t = "m";
-            }
-            if (milliseconds > 60)
-            {
-                n = milliseconds / 60;
-                t = "s";
-            }
-            
-            if (n > 0)
-                return $"{n.ToString("#.##")}{t}";
+            if (char.ToLower(letter) == 'y')
+                return includeY;
 
-            return $"{milliseconds.ToString()}{t}";
+            return char.ToLower(letter)
+                .EqualsAny('b', 'c', 'd', 'f',
+                    'g', 'h', 'j', 'k', 'l', 'm',
+                    'n', 'p', 'q', 'r', 's', 't',
+                    'v', 'w', 'x', 'z');
         }
 
-        public static string GetShortTime(double seconds)
+        private static bool IsVowel(char letter, bool includeY = false)
         {
-            if (seconds < 0)
-                seconds *= -1;
+            if (!char.IsLetter(letter))
+                return false;
 
-            char t = 's';
-            double n = seconds;
-            if (seconds > (60 * 60)) // if seconds is larger than 1 hour (in seconds)
-            {
-                n = seconds / (60 * 60);
-                t = 'h';
-            }
-            else if (seconds > 60) // if seconds is larger than 1 minute (in seconds)
-            {
-                n = seconds / 60;
-                t = 'm';
-            }
-            
-            return $"**{n.ToString("#.##")}**{t}";
+            if (char.ToLower(letter) == 'y')
+                return includeY;
+
+            return char.ToLower(letter)
+                .EqualsAny('a', 'e', 'i', 'o', 'u');
         }
 
-        // Might be scrapped.
-        /// <summary>
-        /// Returns the specified value into a JSON-friendly string.
-        /// </summary>
-        public static string Jsonify(string value)
+        private static string GetCounterPrefix(int upperIndex)
         {
-            var result = new StringBuilder();
-            char? lastChar = null;
-            foreach(char c in value)
+            return upperIndex switch
             {
-                if (char.IsUpper(c))
-                    if (lastChar.HasValue)
-                        if (char.IsLower(lastChar.Value))
-                        {
-                            result.Append($"_{char.ToLower(c)}");
-                            lastChar = c;
-                            continue;
-                        }
-
-                result.Append(char.ToLower(c));
-                lastChar = c;
-            }
-
-            return result.ToString();
+                7 => "y",
+                6 => "mo",
+                5 => "w",
+                4 => "d",
+                3 => "h",
+                2 => "m",
+                1 => "s",
+                _ => "ms"
+            };
         }
 
-        // TODO: Figure out a better way to filter the symbols utilized.
-        public static string TextChannelName(string value)
+        private static double GetNextDenominator(int upperIndex)
         {
-            const int MAX_LENGTH = 100;
-
-            if (value.Length > MAX_LENGTH)
-                value = value.Substring(0, MAX_LENGTH);
-
-            // regex (([A-Za-z0-9-_ ])*)
-            var limitedChars = new List<char>
-            { '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '=',
-             '{', '[', '}', ']', '|', '\\', ':', ';', '\'', '"', '<', ',', '>', '.',
-             '/', '?', ' ' }; // allow characters: A-Z a-z 0-9 - _ (Valid Unicode)
-            var separatorChars = new List<char>
-            { ' ', '.', ',' };
-
-            var result = new StringBuilder();
-            foreach (char c in value)
+            return upperIndex switch
             {
-                if (limitedChars.Contains(c))
-                {
-                    if (separatorChars.Contains(c))
-                        result.Append(c == ' ' ? '-' : '_');
-                }
-                else
-                    result.Append(c);
-            }
-
-            return result.ToString();
+                7 => 12,
+                6 => 30.44, // average month
+                5 => 7,
+                4 => 24,
+                0 => 1000,
+                _ => 60
+            };
         }
     }
 }

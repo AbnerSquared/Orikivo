@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Represents an attachable mechanic or skillset.
+    /// Represents an attachable mechanic or skill-set.
     /// </summary>
     public class Upgrade
     {
@@ -17,6 +17,7 @@ namespace Orikivo.Desync
             Tiers = tiers;
         }
 
+        // The ID of an upgrade, pointing to a STAT
         [JsonProperty("id")]
         public string Id { get; internal set; }
         

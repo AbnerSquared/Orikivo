@@ -162,7 +162,7 @@ namespace Arcadia.Games
 
                     content.GetComponent("question_header")
                         .Draw(
-                            OriFormat.GetShortTime(GetConfigValue<double>("questionduration")),
+                            Orikivo.Format.Counter(GetConfigValue<double>("questionduration")),
                             session.GetPropertyValue<int>("current_question"),
                             GetConfigValue<int>("questioncount"),
                             CurrentQuestion.Question);
@@ -180,7 +180,7 @@ namespace Arcadia.Games
                         .GetComponent("footer")
                         .Draw(CurrentQuestion.Difficulty.ToString(),
                               CurrentQuestion.Topic.ToString(),
-                              $"{CurrentQuestion.Value} {OriFormat.TryPluralize("Point", CurrentQuestion.Value)}");
+                              $"{CurrentQuestion.Value} {Orikivo.Format.TryPluralize("Point", CurrentQuestion.Value)}");
 
                     session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
                 }

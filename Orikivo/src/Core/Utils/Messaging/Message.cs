@@ -9,8 +9,8 @@ namespace Orikivo
         {
             if (Check.NotNull(builder.Embedder))
             {
-                Text = string.Empty;
-                EmbedBuilder embed = new EmbedBuilder();
+                Text = "";
+                var embed = new EmbedBuilder();
                 embed.Description = builder.Content;
 
                 if (builder.Embedder.Color.HasValue)
@@ -24,29 +24,38 @@ namespace Orikivo
 
                 if (builder.HasUrl && builder.CanEmbedUrl)
                 {
-                    if (builder.HideUrl)
-                        embed.Description += '\n' + OriFormat.Hyperlink(builder.Url);
+                    if (builder.Url.IsHidden)
+                        embed.Description += '\n' + Format.Hyperlink(builder.Url);
                     else
-                        embed.WithImageUrl(builder.IsLocalUrl ? EmbedUtils.CreateLocalImageUrl(builder.Url) : builder.Url);
+                    {
+                        embed.WithImageUrl(builder.Url.IsLocal
+                            ? EmbedUtils.CreateLocalImageUrl(builder.Url)
+                            : builder.Url.Value);
+
+                        if (builder.Url.IsLocal)
+                            AttachmentUrl = builder.Url;
+                    }
                 }
                 Embed = embed.Build();
             }
             else
             {
-                StringBuilder sb = new StringBuilder();
+                var text = new StringBuilder();
+
                 if (Check.NotNull(builder.Content))
-                    sb.AppendLine(builder.Content);
+                    text.AppendLine(builder.Content);
+
                 if (builder.HasUrl)
                 {
-                    if (builder.HideUrl)
-                        sb.AppendLine(Format.EscapeUrl(builder.Url));
-                    else if (builder.IsLocalUrl)
+                    if (builder.Url.IsHidden)
+                        text.AppendLine(Format.EscapeUrl(builder.Url));
+                    else if (builder.Url.IsLocal)
                         AttachmentUrl = builder.Url;
                     else
-                        sb.AppendLine(builder.Url);
+                        text.AppendLine(builder.Url);
                 }
 
-                Text = sb.ToString();
+                Text = text.ToString();
                 IsTTS = builder.IsTTS;
                 IsSpoiler = builder.IsSpoiler;
 
@@ -63,15 +72,15 @@ namespace Orikivo
                 embed.WithColor(builder.Color);
 
                 if (Check.NotNull(builder.Reaction))
-                    embed.WithTitle(Format.Bold(builder.Reaction));
+                    embed.WithTitle(Discord.Format.Bold(builder.Reaction));
 
-                embed.WithDescription(OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Check.NotNull(builder.Color)));
+                embed.WithDescription(Format.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Check.NotNull(builder.Color)));
 
                 Embed = embed.Build();
             }
             else
             {
-                Text = OriFormat.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace);
+                Text = Format.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace);
             }
         }
 

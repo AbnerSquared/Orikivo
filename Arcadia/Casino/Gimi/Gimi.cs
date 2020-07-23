@@ -5,139 +5,135 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Arcadia
+namespace Arcadia.Casino
 {
     public class Gimi
     {
+        private const int BaseMaxRisk = 100;
+        private const int RiskOverloadSize = 25;
+        private const int BaseMaxEarn = 20;
+        private const int BaseMaxGold = 20;
+        private const int BaseGoldChanceDenominator = 500;
+        private const int BaseMaxCurseDenominator = 2;
+        private const int BaseCurseChanceDenominator = 2;
+        private const int RndLength = 20;
+        private const int MinSeed = 0;
+
         public Gimi()
         {
             Risk = 50;
             Earn = 20;
             GoldSlot = 999;
             CurseSlot = 0;
-            WinDir = true;
+            Direction = true;
             RiskOverload = 0;
             EarnExpander = 0;
             MaxEarn = GetMaxEarn();
             MaxRisk = GetMaxRisk();
         }
 
-        public int Risk { get; } // 0 to 100
+        public int Risk { get; }
+
         public int Earn { get; }
+
         public int RiskOverload { get; }
+
         public int EarnExpander { get; }
+
         public int MaxRisk { get; }
+
         public int MaxEarn { get; }
-        private int GoldSlot { get; } // 999
-        private int CurseSlot { get; } // 0
-        private bool WinDir { get; }
 
-        private const int _baseMaxRisk = 100;
-        private const int _riskOverloadSize = 25;
-        private const int _baseMaxEarn = 20;
-        private const int _baseMaxGold = 20;
-        private const int _baseGoldChanceDenominator = 500;
-        private const int _baseMaxCurseDenominator = 2;
-        private const int _baseCurseChanceDenominator = 2;
-        private const int _rndLength = 20;
-        private const int _minSeed = 0;
+        private int GoldSlot { get; }
 
-        // randomly gets a number within the seed bounds
-        private int GetSlot()
-        {
-            int slot = 0;
-            var _rnds = new List<int>();
-            for (int i = 0; i < 3; i++)
-                _rnds.Add(RandomProvider.Instance.Next(_minSeed, GetMaxSeed() + 1));
-            _rnds.ForEach(x => slot += (MaxRisk * _rndLength) - x);
-            return (int)Math.Truncate((decimal)(slot / 3));
-        }
-        
+        private int CurseSlot { get; }
+
+        private bool Direction { get; }
+
         private int GetMaxSeed()
-            => MaxRisk * _rndLength;
+            => MaxRisk * RndLength;
 
-        private double GetPercent(double value)
+        private static double GetPercent(double value)
             => value / 100;
-        private double GetPercentOf(double value, double main)
+
+        private static double PercentOf(double value, double main)
             => GetPercent(value) * main;
 
         public int GetMaxRisk()
-            => _baseMaxRisk + (RiskOverload * _riskOverloadSize);
+            => BaseMaxRisk + RiskOverload * RiskOverloadSize;
 
         public int GetMaxEarn()
-            => _baseMaxEarn * (EarnExpander + 1);
+            => BaseMaxEarn * (EarnExpander + 1);
 
-        public int GetMaxGold()
-            => _baseMaxGold * Earn;
+        public int GetGoldReward()
+            => BaseMaxGold * Earn;
 
         public double GetGoldChance()
-            => (double)Risk / _baseGoldChanceDenominator;
+            => (double) Risk / BaseGoldChanceDenominator;
 
         public double GetCurseChance()
-            => _baseCurseChanceDenominator * GetGoldChance();
+            => BaseCurseChanceDenominator * GetGoldChance();
 
-        public int GetMaxCurse()
-            => GetMaxGold() / _baseMaxCurseDenominator;
+        public int GetCurseReward()
+            => GetGoldReward() / BaseMaxCurseDenominator;
 
         public int GetEarnUpperBound()
-            => Risk <= (MaxRisk / 2) ?
-                ((((Earn / 2) - 1) * Risk) / (MaxRisk / 2)) + 1
-                : Earn;
+        {
+            if (Risk > MaxRisk / 2)
+                return Earn;
+
+            return (Earn / 2 - 1) * Risk / (MaxRisk / 2) + 1;
+        }
 
         public int GetEarnLowerBound()
-            => Risk <= (MaxRisk / 2) ?
-                1
-                : ((((Earn / 2) - 1) * Risk) / (MaxRisk - (MaxRisk / 2))) + 1;
+        {
+            if (Risk <= MaxRisk / 2)
+                return 1;
+
+            return (Earn / 2 - 1) * Risk / (MaxRisk - MaxRisk / 2) + 1;
+        }
 
         public GimiResult Next()
         {
-            int maxGold = GetMaxGold();
             double goldChance = GetGoldChance();
-
-            int maxCurse = GetMaxCurse();
             double curseChance = GetCurseChance();
-
             int earnUpperBound = GetEarnUpperBound();
             int earnLowerBound = GetEarnLowerBound();
 
-            // the amount that would be given on a normal success roll
-            int baseReturnValue = (int)Math
-                .Truncate((double)(RandomProvider.Instance.Next(earnLowerBound * _rndLength, (earnUpperBound + 1) * _rndLength) / _rndLength));
-            int returnValue = 0;
-            int minSeed = _minSeed;
+            int rawReturn = RandomProvider.Instance.Next(earnLowerBound * RndLength, (earnUpperBound + 1) * RndLength);
+            var baseReturnValue = (int) Math.Truncate(rawReturn / (double) RndLength);
+            
             int maxSeed = GetMaxSeed();
 
-            int seed = RandomProvider.Instance.Next(minSeed, maxSeed + 1);
+            int seed = RandomProvider.Instance.Next(MinSeed, maxSeed + 1);
+            var goldSize = (int) Math.Ceiling(PercentOf(goldChance, maxSeed));
+            var curseSize = (int) Math.Ceiling(PercentOf(curseChance, maxSeed));
 
-            double _goldSlotCount = GetPercentOf(goldChance, maxSeed);
-            double _curseSlotCount = GetPercentOf(curseChance, maxSeed);
-            int goldSlotCount = (int)Math.Round(_goldSlotCount);
-            int curseSlotCount = (int)Math.Round(_curseSlotCount);
-            List<int> goldSlots = new List<int>();
-            List<int> curseSlots = new List<int>();
-            int slotDif = (GoldSlot - CurseSlot);
-            bool _goldDir = (slotDif * Math.Sign(GoldSlot - CurseSlot)) >= goldSlotCount || (slotDif * Math.Sign(GoldSlot - CurseSlot)) >= curseSlotCount;
-            int goldDir = _goldDir ? 1 : -1;
-            int curseDir = goldDir * -1;
-            GimiResultFlag flag = GimiResultFlag.Win;
+            int slotDiff = Math.Abs(GoldSlot - CurseSlot);
+            bool goldDirection =  slotDiff >= goldSize || slotDiff >= curseSize;
+            int goldDir = goldDirection ? 1 : -1;
+            
+            var debug = new StringBuilder();
 
-            StringBuilder debug = new StringBuilder();
+            debug.AppendLine($"Reward: {baseReturnValue} [Min: {earnLowerBound}] [Max: {earnUpperBound}]")
+                .AppendLine($"[Slots: {goldSize}] Gold: {GetGoldReward()} ({goldChance}%) [Root: {GoldSlot}]")
+                .AppendLine($"Difference: {slotDiff} [GoldDir: {goldDir}] [CurseDir: {-goldDir}]")
+                .AppendLine($"Seed: {seed} [Min: {MinSeed}] [Max: {maxSeed}] [WinDir: {(Direction ? 1 : -1)}]");
 
-            debug.AppendLine($"Reward: {baseReturnValue} [Min: {earnLowerBound}] [Max: {earnUpperBound}]");
-            debug.AppendLine($"[Slots: {goldSlotCount}] Gold: {maxGold} ({goldChance}%) [Root: {GoldSlot}]");
-            debug.AppendLine($"Difference: {slotDif} [GoldDir: {goldDir}] [CurseDir: {curseDir}]");
-            debug.AppendLine($"Seed: {seed} [Min: {minSeed}] [Max: {maxSeed}] [WinDir: {(WinDir ? 1 : -1)}]");
-            for (int i = 0; i < goldSlotCount; i++)
+            var goldSlots = new List<int>();
+            for (var i = 0; i < goldSize; i++)
             {
-                int goldSlot = (GoldSlot + (i * goldDir)) % maxSeed;
+                int goldSlot = (GoldSlot + i * goldDir) % maxSeed;
                 goldSlots.Add(goldSlot);
 
                 debug.AppendLine($"Gold Slot {i}: {goldSlot} [Max: {maxSeed}]");
             }
 
-            for (int i = 0; i < curseSlotCount; i++)
+            var curseSlots = new List<int>();
+            for (var i = 0; i < curseSize; i++)
             {
-                int curseSlot = ((CurseSlot + (i * curseDir)) % maxSeed);
+                int curseSlot = (CurseSlot + i * -goldDir) % maxSeed;
+
                 if (goldSlots.Contains(curseSlot))
                     curseSlot = goldSlots.OrderBy(x => (x - curseSlot) * Math.Sign(x - CurseSlot)).First() - curseSlot; // get the largest difference
 
@@ -145,32 +141,35 @@ namespace Arcadia
                 curseSlots.Add(curseSlot);
             }
 
+            int reward;
+            GimiResultFlag flag;
+
             if (goldSlots.Contains(seed))
             {
                 flag = GimiResultFlag.Gold;
-                returnValue = maxGold;
-                debug.AppendLine($"Gold");
+                reward = GetGoldReward();
+                debug.AppendLine($"IsGold");
             }
             else if (curseSlots.Contains(seed))
             {
                 flag = GimiResultFlag.Curse;
-                returnValue = maxCurse;
-                debug.AppendLine($"Cursed");
+                reward = GetCurseReward();
+                debug.AppendLine($"IsCursed");
             }
             else
             {
-                int isSameDir = seed > ((int)Math.Truncate((double)(maxSeed / 2))) == WinDir ? 1 : -1;
-                flag = isSameDir == 1 ? GimiResultFlag.Win : GimiResultFlag.Lose;
-                returnValue = baseReturnValue;
+                bool isSameDir = seed > (int) Math.Truncate(maxSeed / (double) 2) == Direction;
+                flag = isSameDir ? GimiResultFlag.Win : GimiResultFlag.Lose;
+                reward = baseReturnValue;
 
                 debug.AppendLine($"IsWin: {isSameDir}");
             }
 
-            debug.AppendLine($"Returns: {returnValue}");
+            debug.AppendLine($"Returns: {reward}");
 
             Logger.Debug(debug.ToString());
 
-            return new GimiResult(returnValue, flag, Risk);
+            return new GimiResult(reward, flag, Risk);
         }
     }
 }

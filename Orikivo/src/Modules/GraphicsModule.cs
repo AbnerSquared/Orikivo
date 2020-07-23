@@ -22,7 +22,7 @@ using Orikivo.Drawing.Graphics3D;
 using Discord.WebSocket;
 using Orikivo.Framework;
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
     [Name("Graphics")]
     [Summary("Provides methods that utilize the graphics engine.")]
@@ -79,45 +79,38 @@ namespace Orikivo
             return frames;
         }
 
+        [Command("smearpalette")]
+        public async Task SmearAsync(PaletteType a, PaletteType b)
+        {
+            GammaPalette result = GammaPalette.Smear(GraphicsService.GetPalette(a), GraphicsService.GetPalette(b));
+
+            await Context.Channel.SendImageAsync(ImageEditor.CreateGradient(result, 128, 64, AngleF.Right),
+                "../tmp/smear.png");
+        }
+
         [Command("animatetimeline")]
         public async Task AnimateTimelineAsync(double delay)
         {
-            using (TimelineAnimator animator = new TimelineAnimator())
-            {
-                animator.Ticks = 500;
-                animator.Viewport = new Size(128, 128);
+            using var animator = new TimelineAnimator();
 
-                var initial = new Keyframe(0, 1.0f, Vector2.Zero, 0.0f, Vector2.One);
-                var mid = new Keyframe(250, 1.0f, new Vector2(32, 32), 359.9f, new Vector2(1, 1));
-                var quarter = new Keyframe(375, 1.0f, new Vector2(16, 16), 180.0f, new Vector2(2, 2));
-                var final = new Keyframe(500, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
+            animator.Ticks = 500;
+            animator.Viewport = new Size(128, 128);
 
-                var keyframes = new List<Keyframe>
-                {
-                    mid,
-                    quarter,
-                    final
-                };
+            var initial = new Keyframe(0, 1.0f, Vector2.Zero, 0.0f, Vector2.One);
+            var mid = new Keyframe(250, 1.0f, new Vector2(32, 32), 359.9f, new Vector2(1, 1));
+            var quarter = new Keyframe(375, 1.0f, new Vector2(16, 16), 180.0f, new Vector2(2, 2));
+            var final = new Keyframe(500, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
 
+            var square = new TimelineLayer(ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32), 0, 500, mid, quarter, final);
 
-                TimelineLayer square = new TimelineLayer(
-                    ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32),
-                    keyframes,
-                    0, 500);
+            var background = new TimelineLayer(ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128), 0, 500, initial);
 
-                TimelineLayer background = new TimelineLayer(
-                    ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128),
-                    new List<Keyframe> { initial },
-                    0, 500);
+            animator.AddLayer(background);
+            animator.AddLayer(square);
 
+            MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(delay));
 
-                animator.AddLayer(background);
-                animator.AddLayer(square);
-
-                MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(delay));
-
-                await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", quality: Quality.Bpp8);
-            }
+            await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", quality: Quality.Bpp8);
         }
 
         [Command("drawgradient")]

@@ -171,8 +171,9 @@ namespace Arcadia
 
             if (item.GiftLimit.HasValue)
             {
-                if (data.GiftCount.GetValueOrDefault(0) >= item.GiftLimit.Value)
-                    return false;
+                if (data != null)
+                    if (data.GiftCount.GetValueOrDefault(0) >= item.GiftLimit.Value)
+                        return false;
             }
 
             return true;
@@ -338,6 +339,45 @@ namespace Arcadia
                     user.Items.First(x => x.Id == item.Id).StackCount -= amount;
                 }
             }
+
+            if (!HasItem(user, item.Id) && item.Tag.HasFlag(ItemTag.Palette))
+            {
+                PaletteType type = PaletteOf(item.Id);
+
+                // If the specified palette could not be resolved.
+                if (type == PaletteType.Default)
+                    return;
+
+                if (type == user.Card.Palette)
+                    user.Card.Palette = PaletteType.Default; // If the palette was taken away, set to default palette.
+
+            }
+        }
+
+        private static PaletteType PaletteOf(string paletteId)
+        {
+            var item = GetItem(paletteId);
+
+            if (item == null)
+                throw new ArgumentException("Could not find an item with the specified ID.");
+
+            if (!item.Tag.HasFlag(ItemTag.Palette))
+                throw new ArgumentException("Could not resolve item as type of Palette.");
+
+            if (paletteId == Arcadia.Items.PaletteCrimson)
+                return PaletteType.Crimson;
+
+            if (paletteId == Arcadia.Items.PaletteGammaGreen)
+                return PaletteType.GammaGreen;
+
+            if (paletteId == Arcadia.Items.PaletteGlass)
+                return PaletteType.Glass;
+
+            if (paletteId == Arcadia.Items.PaletteWumpite)
+                return PaletteType.Wumpite;
+
+            // unknown palette
+            return PaletteType.Default;
         }
 
         public static void TakeItem(ArcadeUser user, Item item, string uniqueId)

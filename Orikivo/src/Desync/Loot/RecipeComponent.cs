@@ -15,7 +15,6 @@
 
         public int Amount { get; set; }
 
-
         internal void Deconstruct(out string itemId, out int amount)
         {
             itemId = ItemId;

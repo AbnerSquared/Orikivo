@@ -128,7 +128,7 @@ namespace Orikivo
             YIELD_EMOJI : STABLE_EMOJI;
 
         public static string GetSeverityIcon(ContextNode node)
-            => GetSeverityIcon(node.Reports.Where(x => x.State == ReportState.Open).Count());
+            => GetSeverityIcon(node.Reports.Count(x => x.State == ReportState.Open));
 
         public string GetActions(User user)
         {
@@ -159,9 +159,9 @@ namespace Orikivo
                         continue;
 
                     // Flag checking
-                    OnlyWhenAttribute precondition = action.Preconditions.FirstAttribute<OnlyWhenAttribute>();
+                    OnlyWhenAttribute precondition = action.Preconditions.FirstOrDefault<OnlyWhenAttribute>();
                     // replace with BindToRegion when ready
-                    BindToRegionAttribute check = action.Attributes.FirstAttribute<BindToRegionAttribute>();
+                    BindToRegionAttribute check = action.Attributes.FirstOrDefault<BindToRegionAttribute>();
 
                     if (precondition != null)
                     {

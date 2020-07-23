@@ -2,7 +2,7 @@
 using Orikivo;
 using Orikivo.Drawing;
 
-namespace Arcadia
+namespace Arcadia.Casino
 {
     public class TickResult : ICasinoResult
     {
@@ -36,77 +36,81 @@ namespace Arcadia
 
             if (!isSuccess)
             {
-                // loss
                 return Randomizer.ChooseAny($"The dying tick was **{actualTick}**.",
                     "Ouch. Sorry about that.",
-                    $"You missed a chance at **🧩 {reward.ToString("##,0")}**.",
+                    $"You missed a chance at **🧩 {reward:##,0}**.",
                     "Don't forget that your **Chips** (🧩) are always taken at the start.",
-                    diff == expectedTick ? "There was never a successful tick in this round." : $"You were **{diff}** {OriFormat.TryPluralize("tick", diff)} away from **{expectedTick}**.");
+                    diff == expectedTick
+                        ? "There was never a successful tick in this round."
+                        : $"You were **{diff}** {Format.TryPluralize("tick", diff)} away from **{expectedTick}**.");
             }
 
-            // win
-            return Randomizer.ChooseAny(
-                "Nicely done!",
-                (multiplier > 5 ? $"You beat the odds, landing you a **x{multiplier.ToString("##,0.##")}** return!"
-                    : $"You have received a **x{multiplier.ToString("##,0.##")}** return."),
-                (diff == 0 ? $"The dying tick was exactly **{expectedTick}**. Good guessing!"
-                    : $"In this round, the dying tick was **14**."));
+            return Randomizer.ChooseAny("Nicely done!",
+                multiplier > 5
+                    ? $"You beat the odds, landing you a **x{multiplier:##,0.#}** return!"
+                    : $"You have received a **x{multiplier:##,0.#}** return.",
+                diff == 0
+                    ? $"The dying tick was exactly **{expectedTick}**. Good guessing!"
+                    : "In this round, the dying tick was **14**.");
         }
 
         public Message ApplyAndDisplay(ArcadeUser user)
         {
-            var builder = new MessageBuilder();
-            var embedder = new Embedder();
-
             ImmutableColor color = ImmutableColor.GammaGreen;
-            string icon = "🧩";
             string type = IsSuccess ? "+" : "-";
-            string quote = GetQuote(ExpectedTick, ActualTick, Multiplier, Reward, IsSuccess);
             long value = IsSuccess ? Reward : Wager;
 
             user.UpdateStat(TickStats.TotalBet, Wager);
             user.UpdateStat(TickStats.TimesPlayed);
 
-            user.ChipBalance -= (ulong)Wager;
+            user.ChipBalance -= (ulong) Wager;
 
-            if (Flag == TickResultFlag.Win)
+            switch (Flag)
             {
-                user.SetStat(TickStats.CurrentLossStreak, 0);
+                case TickResultFlag.Win:
+                    user.SetStat(TickStats.CurrentLossStreak, 0);
 
-                user.UpdateStat(TickStats.TimesWon);
-                user.UpdateStat(TickStats.TotalWon, Reward);
+                    user.UpdateStat(TickStats.TimesWon);
+                    user.UpdateStat(TickStats.TotalWon, Reward);
 
-                if (ExpectedTick == ActualTick)
-                    user.UpdateStat(TickStats.TimesWonExact);
+                    if (ExpectedTick == ActualTick)
+                        user.UpdateStat(TickStats.TimesWonExact);
 
-                user.UpdateStat(TickStats.CurrentWinStreak);
-                user.UpdateStat(TickStats.CurrentWinAmount, Reward);
+                    user.UpdateStat(TickStats.CurrentWinStreak);
+                    user.UpdateStat(TickStats.CurrentWinAmount, Reward);
 
-                StatHelper.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
-                StatHelper.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
-                StatHelper.SetIfGreater(user, TickStats.LargestWinSingle, Reward);
-            }
-            else if (Flag == TickResultFlag.Lose)
-            {
-                user.SetStat(TickStats.CurrentWinStreak, 0);
-                user.SetStat(TickStats.CurrentWinAmount, 0);
+                    StatHelper.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
+                    StatHelper.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
+                    StatHelper.SetIfGreater(user, TickStats.LargestWinSingle, Reward);
+                    break;
 
-                user.UpdateStat(TickStats.TimesLost);
-                user.UpdateStat(TickStats.CurrentLossStreak);
+                case TickResultFlag.Lose:
+                    StatHelper.Clear(user, TickStats.CurrentWinStreak, TickStats.CurrentWinAmount);
+                    user.UpdateStat(TickStats.TimesLost);
+                    user.UpdateStat(TickStats.CurrentLossStreak);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(Flag));
             }
 
             if (IsSuccess)
+                user.ChipBalance += (ulong) Reward;
+
+            string header = $"**{type} 🧩 {value:##,0}**";
+            string content = GetQuote(ExpectedTick, ActualTick, Multiplier, Reward, IsSuccess);
+
+            var embedder = new Embedder
             {
-                user.ChipBalance += (ulong)Reward;
-            }
+                Header = header,
+                Color = color
+            };
 
-            string header = $"**{type} {icon} {value.ToString("##,0")}**";
-            string content = quote;
+            var builder = new MessageBuilder();
 
-            embedder.Header = header;
-            embedder.Color = color;
-            builder.Embedder = embedder;
-            builder.Content = content;
+            builder.WithEmbedder(embedder)
+                .WithContent(content);
+
             return builder.Build();
         }
     }

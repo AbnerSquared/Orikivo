@@ -4,7 +4,7 @@ using Orikivo.Desync;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
     [Name("Digital")]
     [Summary("Commands that relate to the digital client.")]
@@ -36,7 +36,7 @@ namespace Orikivo
             user ??= Context.User;
             Context.Container.TryGetUser(user.Id, out User account);
 
-            string stats = string.Join("\n", account.Stats.Select(s => $"{StatHandler.GetNameOrDefault(s.Key)}: {s.Value}"));
+            string stats = string.Join("\n", account.Stats.Select(s => $"`{s.Key}`: {s.Value}"));
 
             if (Context.User.Id != user.Id)
                 stats = $"> **Stats** ({user.Username})\n" + stats;

@@ -1,11 +1,9 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
 using Orikivo;
-using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Modules
 {
 
     [Name("Multiplayer")]
@@ -32,7 +30,7 @@ namespace Arcadia
             var servers = new StringBuilder();
             foreach (GameServer server in _games.Servers.Values)
             {
-                servers.AppendLine($"{server.Id} | {server.Config.Title} ({server.Players.Count} {OriFormat.TryPluralize("player", server.Players.Count)})");
+                servers.AppendLine($"{server.Id} | {server.Config.Title} ({server.Players.Count} {Format.TryPluralize("player", server.Players.Count)})");
             }
 
             await Context.Channel.SendMessageAsync(servers.ToString());
@@ -72,11 +70,17 @@ namespace Arcadia
 
         }*/
 
-        [Access(AccessLevel.Dev)]
+        //[Access(AccessLevel.Dev)]
         [Command("destroyserver")]
         [Summary("Destroys the specified server.")]
         public async Task DestroyServerAsync(string id)
         {
+            if (Context.User.Id != OriGlobal.DevId)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You are not the developer of this bot."));
+                return;
+            }
+
             if (_games.Servers.ContainsKey(id))
             {
                 await _games.DestroyServerAsync(_games.Servers[id]);

@@ -13,7 +13,7 @@ namespace Orikivo
         public ModuleNode(ModuleInfo module) : base(module)
         {
             Group = module.Group;
-            Subtitle = module.Attributes.FirstAttribute<DescriptionAttribute>()?.Content;
+            Subtitle = module.Attributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Content;
 
             Submodules = module.Submodules.Select(s => new ModuleNode(s)).ToList();
 
@@ -84,7 +84,7 @@ namespace Orikivo
                                 if (command.Overloads.Count > 1)
                                 {
                                     format.Append(' ');
-                                    format.Append(OriFormat.Subscript($"+{overload.Index}"));
+                                    format.Append(Format.Subscript($"+{overload.Index}"));
                                 }
 
                                 

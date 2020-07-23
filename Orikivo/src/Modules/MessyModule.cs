@@ -15,7 +15,7 @@ using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using SysColor = System.Drawing.Color;
 using Discord.Rest;
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
 
     public class Moderation : OriModuleBase<DesyncContext>
@@ -138,13 +138,13 @@ namespace Orikivo
             if (Context.Server.HasMuted(user.Id))
             {
                 Context.Server.Mute(user.Id, seconds);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been muted for another {OriFormat.GetShortTime(seconds)}.");
+                await Context.Channel.SendMessageAsync($"> **{user.Username}** has been muted for another {Format.Counter(seconds)}.");
                 return;
             }
 
             await user.AddRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
             Context.Server.Mute(user.Id, seconds);
-            await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been muted for {OriFormat.GetShortTime(seconds)}.");
+            await Context.Channel.SendMessageAsync($"> **{user.Username}** has been muted for {Format.Counter(seconds)}.");
 
         }
 
@@ -157,11 +157,11 @@ namespace Orikivo
             {
                 await user.RemoveRoleAsync(Context.Guild.GetRole(Context.Server.Options.MuteRoleId.Value));
                 Context.Server.Unmute(user.Id);
-                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} has been unmuted.");
+                await Context.Channel.SendMessageAsync($"> **{user.Username}** has been unmuted.");
                 return;
             }
 
-            await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} is already unmuted.");
+            await Context.Channel.SendMessageAsync($"> **{user.Username}** is already unmuted.");
         }
 
         [Command("setrole")]
@@ -171,12 +171,12 @@ namespace Orikivo
         {
             if (user.Roles.Contains(role))
             {
-                await Context.Channel.SendMessageAsync($"> {OriFormat.Username(user)} already has this role.");
+                await Context.Channel.SendMessageAsync($"> **{user.Username}** already has this role.");
                 return;
             }
 
             await user.AddRoleAsync(role);
-            await Context.Channel.SendMessageAsync($"> Gave {OriFormat.Username(user)} **{role.Name}**.");
+            await Context.Channel.SendMessageAsync($"> Gave **{user.Username}** **{role.Name}**.");
         }
 
         // make a seperate field for the help menu with custom commands.
@@ -363,7 +363,7 @@ namespace Orikivo
             timer.Start();
             await Task.WhenAny(timer.CompletionSource.Task);
 
-            await Context.Channel.SendMessageAsync($"The timer has timed out. ({OriFormat.GetShortTime(timer.ElapsedTime.TotalSeconds)})");
+            await Context.Channel.SendMessageAsync($"The timer has timed out. ({Format.Counter(timer.ElapsedTime.TotalSeconds)})");
 
         }
 
@@ -462,7 +462,7 @@ namespace Orikivo
             StringBuilder links = new StringBuilder();
 
             links.AppendLine($"**Source**: {Link.Source.Id}");
-            links.AppendLine($"> There are {Link.Subscribers.Count} {OriFormat.TryPluralize("subscriber", Link.Subscribers.Count)}.");
+            links.AppendLine($"> There are {Link.Subscribers.Count} {Format.TryPluralize("subscriber", Link.Subscribers.Count)}.");
 
             Link.Subscribers.ForEach((x, i) => links.AppendLine($"{i}. `{x.Id}`"));
 
@@ -542,9 +542,9 @@ namespace Orikivo
                 }, options);
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"The **MessageFilter** found **{c.Count}** successful {OriFormat.TryPluralize("match", c.Count)}. ({OriFormat.GetShortTime(collector.ElapsedTime?.TotalSeconds ?? 0)})");
+            sb.Append($"The **MessageFilter** found **{c.Count}** successful {Format.TryPluralize("match", c.Count)}. ({Format.Counter(collector.ElapsedTime?.TotalSeconds ?? 0)})");
             if (c.Count > 0)
-                sb.Append(Format.Code($"{string.Join("\n", c.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
+                sb.Append(Discord.Format.Code($"{string.Join("\n", c.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
 
             await Context.Channel.SendMessageAsync(sb.ToString());
         }
@@ -579,9 +579,9 @@ namespace Orikivo
             else
             {
                 MessageBuilder mb = new MessageBuilder();
-                string url = OriFormat.GetVoiceChannelUrl(Context.Guild.Id, user.VoiceChannel.Id);
+                string url = Format.GetVoiceChannelUrl(Context.Guild.Id, user.VoiceChannel.Id);
                 mb.Embedder = Embedder.Default;
-                mb.Content = $"> **{Format.Url(user.VoiceChannel.Name, url)}** ({user.VoiceChannel.Users.Count}/{user.VoiceChannel.UserLimit?.ToString() ?? "∞"})";
+                mb.Content = $"> **{Discord.Format.Url(user.VoiceChannel.Name, url)}** ({user.VoiceChannel.Users.Count}/{user.VoiceChannel.UserLimit?.ToString() ?? "∞"})";
                 await Context.Channel.SendMessageAsync(mb.Build());
             }
         }
@@ -626,10 +626,13 @@ namespace Orikivo
         [Command("testpreset")]
         public async Task PresetTestAsync(bool useEmbed = false, bool hideUrl = false)
         {
-            MessageBuilder msg = new MessageBuilder();
+            var msg = new MessageBuilder();
             msg.Content = "This is a message with content inside.";
-            msg.Url = "https://steamcdn-a.akamaihd.net/steam/apps/730/header.jpg";
-            msg.HideUrl = hideUrl;
+            msg.Url = new MessageUrl("https://steamcdn-a.akamaihd.net/steam/apps/730/header.jpg")
+            {
+                IsHidden = hideUrl
+            };
+
             if (useEmbed)
                 msg.Embedder = Embedder.Default;
 

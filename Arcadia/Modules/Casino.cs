@@ -1,8 +1,9 @@
 ﻿using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
+using Arcadia.Casino;
 
-namespace Arcadia
+namespace Arcadia.Modules
 {
     [Name("Casino")]
     [Summary("Come and gamble your life away.")]

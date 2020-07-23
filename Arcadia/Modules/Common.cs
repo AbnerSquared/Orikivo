@@ -1,562 +1,21 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
-using Orikivo.Drawing;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
+using Arcadia.Services;
 
-namespace Arcadia
+namespace Arcadia.Modules
 {
     // TODO: Instead of being an enum value, simply make the flag NULL
-    public enum LeaderboardFlag
-    {
-        Default = 0,
-        Money = 1,
-        Debt = 2,
-        Level = 3,
-        Chips = 4,
-        Custom = 5 // This allows for leaderboards by stats
-    }
 
-    public enum LeaderboardSort
-    {
-        Most = 1,
-        Least = 2
-    }
-
-    public class Leaderboard
-    {
-        public Leaderboard(LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
-        {
-            Flag = flag;
-            Sort = sort;
-            AllowEmptyValues = allowEmptyValues;
-            PageSize = pageSize;
-        }
-
-        public Leaderboard(string statId, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
-        {
-            Flag = LeaderboardFlag.Custom;
-            StatId = statId;
-            Sort = sort;
-            AllowEmptyValues = allowEmptyValues;
-            PageSize = pageSize;
-        }
-
-        public LeaderboardFlag Flag { get; } = LeaderboardFlag.Default; // If none is specified, just show the leaders of each flag
-        public LeaderboardSort Sort { get; } = LeaderboardSort.Most;
-
-        // The STAT to compare.
-        public string StatId { get; } = null;
-
-        // Example: User.Balance = 0
-        public bool AllowEmptyValues { get; set; } = false;
-
-        public int PageSize { get; set; } = 10;
-
-        private static string GetHeader(LeaderboardFlag flag)
-        {
-            return flag switch
-            {
-                LeaderboardFlag.Money => "> **Leaderboard - Wealth**",
-                LeaderboardFlag.Debt => "> **Leaderboard - Debt**",
-                LeaderboardFlag.Level => "> **Leaderboard - Experience**",
-                LeaderboardFlag.Chips => "> **Leaderboard - Casino**",
-                _ => "> **Leaderboard**"
-            };
-        }
-
-        private static string GetHeaderQuote(LeaderboardFlag flag)
-        {
-            return flag switch
-            {
-                LeaderboardFlag.Default => "> *View the current pioneers of a specific category.*",
-                LeaderboardFlag.Money => "> *These are the users that managed to beat all odds.*",
-                LeaderboardFlag.Debt => "> *These are the users with enough debt to make a pool.*",
-                LeaderboardFlag.Level => "> *These are the users dedicated to Orikivo.*",
-                LeaderboardFlag.Chips => "> *These are the users that rule over the **Casino**.*",
-                _ => ""
-            };
-        }
-
-        private static string GetUserTitle(LeaderboardFlag flag)
-        {
-            return flag switch
-            {
-                LeaderboardFlag.Money => "The Wealthy",
-                LeaderboardFlag.Debt => "The Cursed",
-                LeaderboardFlag.Level => "The Experienced",
-                LeaderboardFlag.Chips => "The Gambler",
-                _ => "INVALID_FLAG"
-            };
-        }
-
-        private static string GetFlagSegment(LeaderboardFlag flag)
-        {
-            return flag switch
-            {
-                LeaderboardFlag.Money => "with 💸",
-                LeaderboardFlag.Debt => "with 📃",
-                LeaderboardFlag.Level => "at level",
-                LeaderboardFlag.Chips => "with 🧩",
-                _ => "INVALID_FLAG"
-            };
-        }
-
-        private static readonly string _leaderFormat = "> **{0}**: **{1}** {2} **{3}**";
-        private static readonly string _userFormat = "**{0}** ... {1} **{2}**";
-        private static readonly string _customFormat = "**{0}** ... **{1}**";
-
-        // This is only on LeaderboardFlag.Default
-        private static string WriteLeader(LeaderboardFlag flag, ArcadeUser user, bool allowEmptyValues = false)
-        {
-            var title = GetUserTitle(flag);
-            var segment = GetFlagSegment(flag);
-
-
-            if (!allowEmptyValues)
-            {
-                if (GetValue(user, flag) == 0)
-                {
-                    return $"> **{title}**: **Nobody!**";
-                }
-            }
-
-            return flag switch
-            {
-                LeaderboardFlag.Money => string.Format(_leaderFormat, title, user.Username, segment, user.Balance.ToString("##,0")),
-                LeaderboardFlag.Debt => string.Format(_leaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
-                LeaderboardFlag.Level => string.Format(_leaderFormat, title, user.Username, segment, WriteLevel(user)),
-                LeaderboardFlag.Chips => string.Format(_leaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
-                _ => "INVALID_FLAG"
-            };
-        }
-
-        private static string WriteUser(LeaderboardFlag flag, ArcadeUser user, string statId = null)
-        {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardFlag.Custom)
-                throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
-
-            return flag switch
-            {
-                LeaderboardFlag.Money => string.Format(_userFormat, user.Username, "💸", user.Balance.ToString("##,0")),
-                LeaderboardFlag.Debt => string.Format(_userFormat, user.Username, "📃", user.Debt.ToString("##,0")),
-                LeaderboardFlag.Level => string.Format(_userFormat, user.Username, "Level", WriteLevel(user)),
-                LeaderboardFlag.Chips => string.Format(_userFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
-                LeaderboardFlag.Custom => string.Format(_customFormat, user.Username, user.GetStat(statId)),
-                _ => "INVALID_FLAG"
-            };
-        }
-
-        private static string WriteLevel(ArcadeUser user)
-        {
-            var level = $"{user.Level}";
-
-            if (user.Ascent > 0)
-                level = $"{user.Ascent}." + level;
-
-            return level;
-        }
-
-        public string Write(IEnumerable<ArcadeUser> users, int page = 0)
-        {
-            var leaderboard = new StringBuilder();
-
-            leaderboard.AppendLine(GetHeader(Flag));
-
-            if (Flag != LeaderboardFlag.Custom)
-            {
-                leaderboard.Append(GetHeaderQuote(Flag));
-            }
-            else
-            {
-                leaderboard.Append($"> *Here are the users filtered for `{StatId}`*");
-
-                if (Sort != LeaderboardSort.Least)
-                    leaderboard.Append(".");
-            }
-
-            if (Sort == LeaderboardSort.Least && Flag != LeaderboardFlag.Default)
-            {
-                leaderboard.Append(" (ascending).");
-            }
-
-            leaderboard.AppendLine();
-
-            if (Flag == LeaderboardFlag.Default)
-            {
-                leaderboard.AppendLine();
-                leaderboard.AppendLine("**Leaders**");
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Money, GetLeader(users, LeaderboardFlag.Money, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Debt, GetLeader(users, LeaderboardFlag.Debt, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Chips, GetLeader(users, LeaderboardFlag.Chips, Sort)));
-                //leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
-            }
-            else
-            {
-                leaderboard.AppendLine();
-                leaderboard.Append(WriteUsers(users, PageSize * page, PageSize, Flag, Sort, AllowEmptyValues, StatId));
-            }
-
-            return leaderboard.ToString();
-        }
-
-        private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort)
-            => SortUsers(users, flag, sort).First();
-
-        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort, string statId = null)
-        { 
-            return sort switch
-            {
-                LeaderboardSort.Least => users.OrderBy(x => GetValue(x, flag, statId)),
-                _ => users.OrderByDescending(x => GetValue(x, flag, statId))
-            };
-        }
-
-        private static long GetValue(ArcadeUser user, LeaderboardFlag flag, string statId = null)
-        {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardFlag.Custom)
-                throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
-
-            return flag switch
-            {
-                LeaderboardFlag.Money => (long)user.Balance,
-                LeaderboardFlag.Debt => (long)user.Debt,
-                LeaderboardFlag.Level => (user.Ascent * 100) + user.Level,
-                LeaderboardFlag.Chips => (long)user.ChipBalance,
-                LeaderboardFlag.Custom => user.GetStat(statId),
-                _ => 0
-            };
-        }
-
-        private static string WriteUsers(IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
-        {
-            if (users.Count() <= offset)
-                throw new ArgumentException("The specified offset is larger than the amount of users specified.");
-
-            users = users.Skip(offset);
-
-            var result = new StringBuilder();
-
-            // The indexing is done this way, so that it doesn't have to be at that exact amount.
-            int i = 0;
-            foreach (ArcadeUser user in SortUsers(users, flag, sort, statId))
-            {
-                var value = GetValue(user, flag, statId);
-
-                if (!allowEmptyValues && value == 0)
-                    continue;
-
-                result.AppendLine(WriteUser(flag, user, statId));
-                i++;
-            }
-
-            if (i == 0)
-            {
-                return "No users were provided for this leaderboard.";
-            }
-
-            return result.ToString();
-        }
-    }
-
-    public class Inventory
-    {
-        private static string GetHeader(long capacity)
-        {
-            return $"> **Inventory**\n> `{GetCapacity(capacity)}` **{GetSuffix(capacity)}** available.";
-        }
-
-        private static string GetCapacity(long capacity)
-        {
-            var suffix = GetSuffix(capacity);
-
-            return suffix switch
-            {
-                "B" => $"{capacity}",
-                "KB" => $"{(double)(capacity / 1000)}",
-                "MB" => $"{(double)(capacity / 1000000)}",
-                "GB" => $"{(double)(capacity / 1000000000)}",
-                "TB" => $"{(double)(capacity / 1000000000000)}",
-                _ => "∞"
-            };
-        }
-
-        private static string GetSuffix(long capacity)
-        {
-            int len = capacity.ToString().Length;
-
-            if (len < 4)
-                return "B";
-
-            if (len < 7)
-                return "KB";
-
-            if (len < 10)
-                return "MB";
-
-            if (len < 13) 
-                return "GB";
-
-            if (len < 16)
-                return "TB";
-
-            return "PB";
-        }
-
-        private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true)
-        {
-            var item = ItemHelper.GetItem(id);
-            var summary = new StringBuilder();
-
-            summary.Append($"**#**{index}");
-
-            if (!string.IsNullOrWhiteSpace(data.Data?.Id))
-                summary.Append($" `{data.Data.Id}`");
-
-            summary.AppendLine();
-            summary.Append($"> `{id}` **{item.Name}**");
-            
-            if (data.Count > 1)
-            {
-                summary.Append($" (x**{data.Count}**)");
-            }
-
-            if (isPrivate) // Only write storage size if looking at your own inventory.
-            {
-                summary.AppendLine();
-                summary.Append($"> `{GetCapacity(item.Size)}` **{GetSuffix(item.Size)}**");
-            }
-            else
-            {
-                if (!ItemHelper.CanTrade(item.Id, data?.Data))
-                {
-                    summary.AppendLine();
-                    summary.Append("> ⚠️ This item is untradable.");
-                }
-            }
-
-            return summary.ToString();
-        }
-
-        public static string Write(ArcadeUser user, bool isPrivate = true)
-        {
-            var inventory = new StringBuilder();
-
-            if (isPrivate)
-                inventory.AppendLine(GetHeader(user.GetStat(Stats.Capacity)));
-            else
-                inventory.AppendLine($"> **{user.Username}'s Inventory**");
-
-            inventory.AppendLine();
-
-            int i = 0;
-            foreach (ItemData data in user.Items)
-            {
-                if (i > 0)
-                {
-                    inventory.AppendLine("\n");
-                }
-
-                inventory.AppendLine(WriteItem(i, data.Id, data, isPrivate));
-                i++;
-            }
-
-            if (i == 0)
-            {
-                if (isPrivate)
-                    inventory.AppendLine("\n> *\"I could not locate any files.\"*");
-                else
-                    inventory.AppendLine("\n> *\"This account does not have any items available for trade.\"*");
-            }
-
-            return inventory.ToString();
-        }
-    }
-
-    public class Catalog
-    {
-        private static string _line = "> **{0}**: {1}";
-        private static string GetId(Item item)
-            => string.Format(_line, "ID", $"`{item.Id}`");
-
-        private static string GetName(Item item)
-            => string.Format(_line, "Name", $"**`{item.Name}`**");
-
-        private static string GetSummary(Item item)
-            => string.Format(_line, "Summary", $"`{item.Summary}`");
-        
-        private static string GetQuotes(Item item)
-            => string.Format(_line, OriFormat.TryPluralize("Quote", item.Quotes.Count), string.Join(", ", item.Quotes.Select(x => $"*`\"{x}\"`*")));
-
-        private static string GetRarity(Item item)
-            => string.Format(_line, "Rarity", $"`{item.Rarity.ToString()}`");
-
-        private static string GetTags(Item item)
-            => string.Format(_line, OriFormat.TryPluralize("Tag", item.Tag.GetActiveFlags().Count()), string.Join(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`")));
-
-        private static string GetValue(Item item)
-            => string.Format(_line, "Value", $"**`{item.Value.ToString("##,0")}`**");
-
-        private static string GetBuyState(Item item)
-            => string.Format(_line, "Can Buy?", item.CanBuy ? "`Yes`": "`No`");
-
-        private static string GetSellState(Item item)
-            => string.Format(_line, "Can Sell?", item.CanSell ? "`Yes`" : "`No`");
-
-        private static string GetTradeState(Item item)
-            => string.Format(_line, "Can Trade?", item.TradeLimit.HasValue ? item.TradeLimit.Value == 0 ? "`No`" : $"`Yes (x{item.TradeLimit.Value.ToString("##,0")})`" : "`Yes`");
-
-        private static string GetGiftState(Item item)
-            => string.Format(_line, "Can Gift?", item.GiftLimit.HasValue ? item.GiftLimit.Value == 0 ? "`No`" : $"`Yes (x{item.GiftLimit.Value.ToString("##,0")})`" : "`Yes`");
-
-        private static string GetUseState(Item item)
-            => string.Format(_line, "Can Use?", item.OnUse != null ? "`Yes`": "`No`");
-
-        private static string GetUniqueState(Item item)
-            => string.Format(_line, "Is Unique?", ItemHelper.IsUnique(item) ? "`Yes`" : "`No`");
-
-        private static string GetBypassState(Item item)
-            => string.Format(_line, "Bypass Requirements On Gift?", item.BypassCriteriaOnGift ? "`Yes`" : "`No`");
-
-        private static string GetOwnLimit(Item item)
-            => string.Format(_line, "Own Limit", item.OwnLimit.HasValue ? $"`{item.OwnLimit.Value.ToString("##,0")}`" : "`None`");
-
-        // this is only the definer
-        public static string WriteItem(Item item)
-        {
-            var details = new StringBuilder();
-
-            details.AppendLine(GetId(item));
-            details.AppendLine(GetName(item));
-
-            if (!string.IsNullOrWhiteSpace(item.Summary))
-                details.AppendLine(GetSummary(item));
-
-            if (item.Quotes.Count > 0)
-                details.AppendLine(GetQuotes(item));
-
-            details.AppendLine(GetRarity(item));
-            details.AppendLine(GetTags(item));
-
-            if (item.Value > 0)
-            {
-                details.AppendLine(GetValue(item));
-                details.AppendLine(GetBuyState(item));
-                details.AppendLine(GetSellState(item));
-            }
-
-            details.AppendLine(GetTradeState(item));
-            details.AppendLine(GetGiftState(item));
-            details.AppendLine(GetBypassState(item));
-            details.AppendLine(GetUseState(item));
-            details.AppendLine(GetUniqueState(item));
-
-            details.AppendLine(GetOwnLimit(item));
-
-            return details.ToString();
-        }
-    }
-
-    public class Daily
-    {
-        public static readonly long Reward = 15;
-        public static readonly long Bonus = 50;
-        public static readonly long BonusInterval = 5;
-        public static readonly TimeSpan Cooldown = TimeSpan.FromHours(24);
-        public static readonly TimeSpan Reset = TimeSpan.FromHours(48);
-
-
-        public static DailyResultFlag Next(ArcadeUser user)
-        {
-            long lastTicks = user.GetStat(Cooldowns.Daily);
-            long streak = user.GetStat(Stats.DailyStreak);
-
-            TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
-
-            if (lastTicks > 0)
-            {
-                if (sinceLast < Cooldown)
-                    return DailyResultFlag.Cooldown;
-            }
-
-            if (sinceLast > Reset)
-            {
-                if (streak > 1)
-                    return DailyResultFlag.Reset;
-            }
-
-            if ((streak + 1) % BonusInterval == 0)
-                return DailyResultFlag.Bonus;
-
-            return DailyResultFlag.Success;
-        }
-
-        public static Message ApplyAndDisplay(ArcadeUser user, DailyResultFlag flag)
-        {
-            long reward = Reward;
-            string header = $"{Reward.ToString("##,0")}";
-            ImmutableColor color = ImmutableColor.GammaGreen;
-            string icon = "+ 💸";
-
-            switch (flag)
-            {
-                case DailyResultFlag.Cooldown:
-                    TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - user.GetStat(Cooldowns.Daily));
-                    TimeSpan rem = TimeSpan.FromHours(24) - sinceLast;
-                    DateTime time = DateTime.UtcNow.Add(rem);
-
-                    
-                    color = ImmutableColor.NeonRed;
-                    header = OriFormat.Countdown(rem);
-                    icon = CasinoReplies.GetHourEmote(time.Hour);
-                    break;
-
-                case DailyResultFlag.Reset:
-                    color = GammaPalette.Default[Gamma.Max];
-                    user.SetStat(Stats.DailyStreak, 0);
-                    break;
-
-                case DailyResultFlag.Bonus:
-                    color = GammaPalette.Glass[Gamma.Max];
-                    header += $" + {Bonus.ToString("##,0")}";
-                    reward += Bonus;
-                    break;
-            }
-
-            if (flag != DailyResultFlag.Cooldown)
-            {
-                user.SetStat(Cooldowns.Daily, DateTime.UtcNow.Ticks);
-                user.UpdateStat(Stats.DailyStreak);
-                user.Give(reward);
-            }
-
-            var message = new MessageBuilder();
-            var embedder = Embedder.Default;
-
-            embedder.Color = color;
-            embedder.Header = $"**{icon} {header}**";
-            message.Content = $"*\"{CasinoReplies.GetReply(flag)}\"*";
-            message.Embedder = embedder;
-
-            return message.Build();
-        }
-    }
-
-    // TODO: Implement dailies, shopping, merits, stats, double or nothing
+    // TODO: Implement shopping, merits
     // - Missions
     // - Shopping
     // - Card Customization
     // - Merits
-    // - Stats
-    // - Double Or Nothing
-    // - Leaderboard
-    // TODO: Implement an alternate funds that can be traded with others.
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
@@ -659,11 +118,57 @@ namespace Arcadia
             }
         }
 
-        //[Command("gift")]
+        [Command("gift")]
         [Summary("Attempts to gift an **Item** to the specified user.")]
         public async Task GiftAsync(SocketUser user, string itemId)
         {
-            
+            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+
+            if (account == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
+
+            // Check if the item exists, similar to use.
+            if (!ItemHelper.Exists(itemId))
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
+                return;
+            }
+
+            if (!ItemHelper.HasItem(Context.Account, itemId))
+            {
+                await Context.Channel.SendMessageAsync("> You do not own this item.");
+                return;
+            }
+
+
+            // Next, check if the item can be gifted.
+            if (!ItemHelper.CanGift(itemId, ItemHelper.DataOf(Context.Account, itemId)?.Data))
+            {
+                await Context.Channel.SendMessageAsync("> This item cannot be gifted.");
+                return;
+            }
+
+            // Otherwise, Take the item away from the invoker
+            // If the item has a limited gift count, add one to the gift counter and give it to the user.
+
+            ItemHelper.TakeItem(Context.Account, itemId);
+
+            // Give the item to the user.
+            ItemHelper.GiveItem(account, itemId);
+
+            await Context.Channel.SendMessageAsync($"> Gave **{account.Username}** a **{ItemHelper.NameOf(itemId)}**.");
+
+            /*
+            if (ItemHelper.GetItem(itemId).GiftLimit.HasValue)
+            {
+                bool hasGiftCounter = ItemHelper.DataOf(account, itemId)?.Data?.GiftCount.HasValue ?? false;
+                //if (hasGiftCounter)
+                //   ItemHelper.DataOf(account, itemId)?.Data?.GiftCount += 1;
+            }*/
+
         }
 
         [Command("use")]
@@ -700,7 +205,7 @@ namespace Arcadia
                 var rem = ItemHelper.GetCooldownRemainder(Context.Account, id);
                 if (rem.HasValue)
                 {
-                    await Context.Channel.SendMessageAsync($"> You can use **{ItemHelper.NameOf(id)}** in {OriFormat.GetShortTime(rem.Value.TotalSeconds)}.");
+                    await Context.Channel.SendMessageAsync($"> You can use **{ItemHelper.NameOf(id)}** in {Orikivo.Format.Counter(rem.Value.TotalSeconds)}.");
                 }
                 else
                 {
@@ -775,9 +280,9 @@ namespace Arcadia
             }
 
             string stats = string.Join("\n",
-                account.Stats.Where(x => !x.Key.StartsWith("cooldown")
-                && x.Value != 0 // TODO: optimize stat filtering
-                && !ItemHelper.Items.Select(x => ItemHelper.GetCooldownId(x.Id)).Contains(x.Key)).Select(s => $"`{s.Key}`: {s.Value}"));
+                account.Stats.Where((key, value) => !key.StartsWith("cooldown")
+                && value != 0
+                && !ItemHelper.Items.Select(x => ItemHelper.GetCooldownId(x.Id)).Contains(key)).Select(s => $"`{s.Key}`: {s.Value}"));
 
             if (string.IsNullOrWhiteSpace(stats))
             {
@@ -796,7 +301,7 @@ namespace Arcadia
         {
             var board = new Leaderboard(statId, sort);
 
-            var result = board.Write(Context.Data.Users.Values.Values, page);
+            string result = board.Write(Context.Data.Users.Values.Values, page);
 
             await Context.Channel.SendMessageAsync(result);
         }
@@ -810,8 +315,7 @@ namespace Arcadia
                 flag = LeaderboardFlag.Default;
 
             var board = new Leaderboard(flag, sort);
-
-            var result = board.Write(Context.Data.Users.Values.Values, page);
+            string result = board.Write(Context.Data.Users.Values.Values, page);
 
             await Context.Channel.SendMessageAsync(result);
         }
@@ -837,10 +341,10 @@ namespace Arcadia
                     values.AppendLine($"**Wallet - {account.Username}**");
             }
 
-            values.AppendLine($"**Balance**: 💸 **{account.Balance.ToString("##,0.###")}**");
-            values.AppendLine($"**Chips**: 🧩 **{account.ChipBalance.ToString("##,0.###")}**");
-            values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance.ToString("##,0.###")}**");
-            values.AppendLine($"**Debt**: 📃 **{account.Debt.ToString("##,0.###")}**");
+            values.AppendLine($"**Balance**: 💸 **{account.Balance:##,0}**");
+            values.AppendLine($"**Chips**: 🧩 **{account.ChipBalance:##,0}**");
+            values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance:##,0}**");
+            values.AppendLine($"**Debt**: 📃 **{account.Debt:##,0}**");
 
             await Context.Channel.SendMessageAsync(values.ToString());
         }
@@ -868,19 +372,17 @@ namespace Arcadia
 
             try
             {
-                using (var graphics = new GraphicsService())
-                {
-                    CardDetails d = new CardDetails(account, user);
+                using var graphics = new GraphicsService();
+                var d = new CardDetails(account, user);
+                var p = CardProperties.Default;
 
-                    CardProperties p = CardProperties.Default;
-                    p.Palette = account.Card.Palette;
-                    p.Trim = false;
-                    p.Casing = Casing.Upper;
+                p.Palette = account.Card.Palette;
+                p.Trim = false;
+                p.Casing = Casing.Upper;
 
-                    var card = graphics.DrawCard(d, p);
+                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
 
-                    await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
-                }
+                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
             }
             catch (Exception ex)
             {

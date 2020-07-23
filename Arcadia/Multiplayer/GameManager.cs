@@ -184,7 +184,7 @@ namespace Arcadia
             DisplayChannel display = server.GetDisplayChannel(GameState.Waiting);
             DisplayChannel editing = server.GetDisplayChannel(GameState.Editing);
             string playerLimitCounter = server.Config.ValidateGame() ?
-                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                 : "infinite players";
 
             /*
@@ -577,7 +577,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -609,7 +609,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -882,7 +882,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -914,7 +914,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {OriFormat.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 #pragma warning disable CS1998
 
-namespace Orikivo
+namespace Orikivo.Modules
 {
     [Name("Core")]
     [Summary("Defines all core commands.")]

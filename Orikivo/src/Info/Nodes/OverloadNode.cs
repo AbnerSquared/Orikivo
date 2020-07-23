@@ -23,9 +23,9 @@ namespace Orikivo
             Parent = command.Module.Name; // Use Family to get the full name
             Group = command.Module.Group; // Use Family to get the full group
             Index = command.Priority;
-            Count = command.Module.Commands.Where(x => x.Name == command.Name).Count(); // You could probably use command.Module to get all of the other ones
-            Cooldown = command.Attributes.FirstAttribute<CooldownAttribute>()?.Duration;
-            Access = command.Attributes.FirstAttribute<AccessAttribute>()?.Level;
+            Count = command.Module.Commands.Count(x => x.Name == command.Name); // You could probably use command.Module to get all of the other ones
+            Cooldown = command.Attributes.FirstOrDefault<CooldownAttribute>()?.Duration;
+            Access = command.Attributes.FirstOrDefault<AccessAttribute>()?.Level;
             //Permissions = ... // This could probably use RequireBotPermissions and RequireUserPermissions
             Parameters = command.Parameters.Select(p => new ParameterNode(p)).ToList();
         }
@@ -78,7 +78,7 @@ namespace Orikivo
                 {
                     if (!Check.NotNull(Name))
                     {
-                        format.Append(Format.Bold(Group));
+                        format.Append(Discord.Format.Bold(Group));
 
                     }
                     else
@@ -89,7 +89,7 @@ namespace Orikivo
                 }
 
                 if (Check.NotNull(Name))
-                    format.Append(Format.Bold(Name));
+                    format.Append(Discord.Format.Bold(Name));
 
                 // parameters
                 format.Append('(');
@@ -106,7 +106,7 @@ namespace Orikivo
                 if (Count > 1)
                 {
                     format.Append(' ');
-                    format.Append(OriFormat.Subscript($"+{Index}"));
+                    format.Append(Format.Subscript($"+{Index}"));
                 }
 
                 return format.ToString();
@@ -132,7 +132,7 @@ namespace Orikivo
                 {
                     if (!Check.NotNull(Name))
                     {
-                        format.Append(Format.Bold(Group));
+                        format.Append(Discord.Format.Bold(Group));
                         
                     }
                     else
@@ -149,7 +149,7 @@ namespace Orikivo
                     {
                         format.Append('[');
                         // initial name
-                        format.Append(Format.Bold(Name));
+                        format.Append(Discord.Format.Bold(Name));
                         format.Append(", ");
 
 
@@ -173,7 +173,7 @@ namespace Orikivo
                     }
                     else
                     {
-                        format.Append(Format.Bold(Name));
+                        format.Append(Discord.Format.Bold(Name));
                     }
                 }
 
@@ -192,7 +192,7 @@ namespace Orikivo
                 if (Count > 1)
                 {
                     format.Append(' ');
-                    format.Append(OriFormat.Subscript($"+{Index}"));
+                    format.Append(Format.Subscript($"+{Index}"));
                 }
 
                 // end of line 2
@@ -223,7 +223,7 @@ namespace Orikivo
                 {
                     format.Append("> ");
                     format.Append("**Cooldown**: ");
-                    format.Append(OriFormat.GetShortTime(Cooldown.Value.TotalSeconds));
+                    format.Append(Format.Counter(Cooldown.Value.TotalSeconds));
                     format.AppendLine();
                 }
 

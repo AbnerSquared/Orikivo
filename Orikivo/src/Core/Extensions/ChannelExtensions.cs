@@ -209,6 +209,11 @@ namespace Orikivo
             RequestOptions options = null)
             => await MessageUtils.CatchAsync(channel, ex, options);
 
+        public static async Task<IUserMessage> WarnAsync(this IMessageChannel channel,
+            string warning,
+            RequestOptions options = null)
+            => await channel.SendMessageAsync(Format.Warning(warning), options: options);
+
         /// <summary>
         /// Sends a custom message object to the specified channel.
         /// </summary>
@@ -221,6 +226,6 @@ namespace Orikivo
         /// Gets the URL bound to a voice channel to allow users to participate in screen sharing.
         /// </summary>
         public static string GetUrl(this IVoiceChannel channel)
-            => OriFormat.GetVoiceChannelUrl(channel.GuildId, channel.Id);
+            => Format.GetVoiceChannelUrl(channel.GuildId, channel.Id);
     }
 }

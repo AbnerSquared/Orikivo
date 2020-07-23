@@ -1,6 +1,5 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Casino
 {
-    // Arcadia class
     public enum TickWinMethod
     {
         Exact = 1,

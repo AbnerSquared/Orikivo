@@ -64,7 +64,7 @@ namespace Orikivo
 
         private string GetMenuCategories(InfoService service)
         {
-            if (service.Modules.Count() == 0)
+            if (service.Modules.Any())
                 return "";
 
             var segment = new StringBuilder();
@@ -128,7 +128,7 @@ namespace Orikivo
             return segment.ToString();
         }
 
-        private IEnumerable<string> GetModuleInnerNames(ModuleNode module)
+        private static IEnumerable<string> GetModuleInnerNames(ModuleNode module)
         {
             var names = new List<string>();
 
@@ -230,7 +230,7 @@ namespace Orikivo
                 if (actions.Any(x => x.Name == action.Name))
                     continue;
 
-                var precondition = action.Preconditions.FirstAttribute<OnlyWhenAttribute>();
+                var precondition = action.Preconditions.FirstOrDefault<OnlyWhenAttribute>();
 
                 if (precondition != null)
                 {
@@ -238,7 +238,7 @@ namespace Orikivo
                         continue;
                 }
 
-                var bind = action.Attributes.FirstAttribute<BindToRegionAttribute>();
+                var bind = action.Attributes.FirstOrDefault<BindToRegionAttribute>();
 
                 if (bind != null)
                 {

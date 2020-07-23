@@ -32,7 +32,7 @@ namespace Orikivo
                 status.AppendLine("> Represents the maximum distance at which you can interact with objects or locations.");
 
 
-            status.AppendLine($"> **Exposure Resistance**: {OriFormat.GetShortTime(TimeSpan.FromMinutes(husk.Status.Exposure).TotalSeconds)}");
+            status.AppendLine($"> **Exposure Resistance**: {Format.Counter(TimeSpan.FromMinutes(husk.Status.Exposure).TotalSeconds)}");
 
             if (showTooltips)
                 status.AppendLine("> Represents a your current resistance to wild exposure. This determines how long you can remain outside of a **Sector** before you start taking damage.");

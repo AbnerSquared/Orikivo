@@ -220,7 +220,7 @@ namespace Orikivo
         private async Task UpdateAsync(CommandInfo command, DesyncContext ctx)
         {
             // Manage or update cooldowns
-            CooldownAttribute cooldown = command.Attributes.FirstAttribute<CooldownAttribute>();
+            CooldownAttribute cooldown = command.Attributes.FirstOrDefault<CooldownAttribute>();
 
             if (cooldown != null)
             {
@@ -242,7 +242,7 @@ namespace Orikivo
             }
 
             // Check if the user was updated or doesn't exist to save
-            RequireUserAttribute requireUser = command.Preconditions.FirstAttribute<RequireUserAttribute>();
+            RequireUserAttribute requireUser = command.Preconditions.FirstOrDefault<RequireUserAttribute>();
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false
                 || cooldown != null
@@ -265,7 +265,7 @@ namespace Orikivo
             }
 
             // Check if the guild was updated or doesn't exist to save
-            RequireGuildAttribute requireGuild = command.Preconditions.FirstAttribute<RequireGuildAttribute>();
+            RequireGuildAttribute requireGuild = command.Preconditions.FirstOrDefault<RequireGuildAttribute>();
 
             if (requireGuild?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {

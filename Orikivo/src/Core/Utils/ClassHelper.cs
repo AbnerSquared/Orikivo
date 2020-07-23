@@ -19,7 +19,7 @@ namespace Orikivo
                 if (property.GetCustomAttribute<IgnoreAttribute>() != null)
                     continue;
 
-                if (property.Name.ToLower() == propertyName.ToLower())
+                if (string.Equals(property.Name, propertyName, StringComparison.CurrentCultureIgnoreCase))
                     return property.PropertyType;
             }
 
@@ -40,7 +40,7 @@ namespace Orikivo
 
                 AliasesAttribute aliases = property.GetCustomAttribute<AliasesAttribute>();
 
-                if (property.Name.ToLower() == propertyName.ToLower() || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
+                if (string.Equals(property.Name, propertyName, StringComparison.CurrentCultureIgnoreCase)|| (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
                 {
                     return property.GetValue(@class, null);
                 }
@@ -59,7 +59,8 @@ namespace Orikivo
 
                 AliasesAttribute aliases = property.GetCustomAttribute<AliasesAttribute>();
 
-                if (property.Name.ToLower() == propertyName.ToLower() || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
+                if (string.Equals(property.Name, propertyName, StringComparison.CurrentCultureIgnoreCase)
+                    || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false))
                     if (property.PropertyType == value.GetType())
                     {
                         property.SetValue(@class, value);

@@ -42,7 +42,7 @@ namespace Orikivo
                 StringBuilder sb = new StringBuilder();
 
                 sb.AppendLine($"> You have earned {(merits.Count() > 1 ? "new merits!" : "a new merit!")}");
-                sb.AppendJoin("\n", merits.Select(x => "• " + Format.Bold(x.Name)));
+                sb.AppendJoin("\n", merits.Select(x => "• " + Discord.Format.Bold(x.Name)));
 
                 await channel.SendMessageAsync(sb.ToString());
                 user.SetCooldown(CooldownType.Global, Cooldowns.Notify, TimeSpan.FromSeconds(3.0));
@@ -117,7 +117,7 @@ namespace Orikivo
         /// Sends a manual error message to the specified channel.
         /// </summary>
         public static async Task<IUserMessage> ThrowAsync(IMessageChannel channel, string error, RequestOptions options = null)
-            => await channel.SendMessageAsync(OriFormat.Error("Oops!", "An error has occurred.", error), options: options);
+            => await channel.SendMessageAsync(Format.Error("Oops!", "An error has occurred.", error), options: options);
         // $"**Oops!**\nAn error has occurred.```{error}```"
 
         /// <summary>

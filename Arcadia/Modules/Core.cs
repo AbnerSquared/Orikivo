@@ -5,7 +5,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Modules
 {
     [Name("Core")]
     [Summary("Defines all core commands.")]

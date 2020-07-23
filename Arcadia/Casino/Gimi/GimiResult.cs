@@ -1,41 +1,11 @@
-﻿using Discord;
+﻿using Arcadia.Casino;
+using Discord;
 using Orikivo.Drawing;
 using Orikivo.Desync;
 using Orikivo;
 
 namespace Arcadia
 {
-    public static class StatHelper
-    {
-        // set A to B if B is > than A
-        public static void SetIfGreater(ArcadeUser user, string a, string b)
-        {
-            if (user.GetStat(b) > user.GetStat(a))
-                user.SetStat(a, user.GetStat(b));
-        }
-
-        public static void SetIfGreater(ArcadeUser user, string a, long b)
-        {
-            if (b > user.GetStat(a))
-                user.SetStat(a, b);
-        }
-
-        public static void SetIfLesser(ArcadeUser user, string a, string b)
-        {
-            if (user.GetStat(b) < user.GetStat(a))
-                user.SetStat(a, user.GetStat(b));
-        }
-
-        // gets the diff between 2 stats
-        public static long Difference(ArcadeUser user, string a, string b)
-        {
-            return user.GetStat(b) - user.GetStat(a);
-        }
-
-        public static long Sum(ArcadeUser user, string a, string b)
-            => user.GetStat(a) + user.GetStat(b);
-    }
-
     public class GimiResult : ICasinoResult
     {
         public GimiResult(long reward, GimiResultFlag flag, long risk)
@@ -108,6 +78,7 @@ namespace Arcadia
                 StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
+                // 3 > 9
                 if ((long)user.Debt > Reward) // if there's a reward, but the person is still in debt
                 {
                     icon = "📃";
@@ -115,15 +86,17 @@ namespace Arcadia
                     quote = CasinoReplies.Recover.Length > 0 ? (string)Randomizer.Choose(CasinoReplies.Recover) : CasinoReplies.RecoverGeneric;
                 }
 
+                // 3 > 0
                 // if there's still debt, but it was paid off, show the remainder as what they gained.
-                if ((long) user.Debt > 0)
+                else if ((long) user.Debt > 0)
                 {
+                    // 9 - 3
                     value = Reward - (long)user.Debt;
 
                     if (value == 0)
                     {
                         icon = "📧";
-                        type = "\\~";
+                        type = "";
                         quote = CasinoReplies.EvenGeneric;
                     }
                 }

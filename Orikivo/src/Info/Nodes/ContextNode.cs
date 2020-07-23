@@ -82,7 +82,7 @@ namespace Orikivo
 
             // if there is more than one instance of this command in existance, get the specific priority for the command IF it was wanted.
             if (useOverloadIndex)
-                if (command.Module.Commands.Where(x => x.Name == command.Name).Count() > 1)
+                if (command.Module.Commands.Count(x => x.Name == command.Name) > 1)
                     id.Append($"+{command.Priority}");
 
             if (Check.NotNull(command.Module.Group) && !Check.NotNull(command.Name))
