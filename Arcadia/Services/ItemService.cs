@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Arcadia
+namespace Arcadia.Services
 {
     // TODO: This might be better than using static classes, compare later on
     public class ItemService
@@ -16,12 +16,12 @@ namespace Arcadia
 
         public Item GetItem(string id)
         {
-            var items = Items.Where(x => x.Id == id);
+            IEnumerable<Item> items = Items.Where(x => x.Id == id);
 
             if (items.Count() > 1)
                 throw new ArgumentException("There are more than one items with the specified ID.");
 
-            return items.FirstOrDefault();
+            return Items.FirstOrDefault(x => x.Id == id);
         }
     }
 }

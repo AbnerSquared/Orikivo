@@ -1,4 +1,4 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Services
 {
     public enum LeaderboardFlag
     {

@@ -52,6 +52,7 @@ namespace Arcadia
         [JsonProperty("attributes")]
         public Dictionary<string, long> Attributes { get; internal set; }
         
+        // A list of stats that need to be at a certain value in order to unlock
         [JsonProperty("to_unlock")]
         public Dictionary<string, long> ToUnlock { get; internal set; }
     }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arcadia.Graphics;
 
 namespace Arcadia
 {
+    // TODO: Implement item attribute reading and data population
     public static class ItemHelper
     {
         /*
@@ -210,7 +212,7 @@ namespace Arcadia
 
         public static TimeSpan? GetCooldownRemainder(ArcadeUser user, string itemId)
         {
-            var item = GetItem(itemId);
+            Item item = GetItem(itemId);
 
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
@@ -230,7 +232,7 @@ namespace Arcadia
 
         public static bool CanUse(ArcadeUser user, string itemId, UniqueItemData data = null)
         {
-            var item = GetItem(itemId);
+            Item item = GetItem(itemId);
 
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
@@ -245,8 +247,8 @@ namespace Arcadia
                 // if the cooldown has expired, allow use.
                 if ((DateTime.UtcNow - lastUsed.Value.Add(item.OnUse.Cooldown.Value)).TotalSeconds >= 0)
                     return true;
-                else
-                    return false;
+                
+                return false;
             }
 
             if (data != null)
@@ -304,16 +306,14 @@ namespace Arcadia
 
         public static Item GetItem(string id)
         {
-            var items = Items.Where(x => x.Id == id);
-
-            if (items.Count() > 1)
+            if (Items.Count(x => x.Id == id) > 1)
                 throw new ArgumentException("There are more than one items with the specified ID.");
 
-            return items.FirstOrDefault();
+            return Items.FirstOrDefault(x => x.Id == id);
         }
 
         public static bool Exists(string itemId)
-            => Items.Where(x => x.Id == itemId).Count() > 0;
+            => Items.Any(x => x.Id == itemId);
 
         public static string NameOf(string itemId)
             => GetItem(itemId)?.Name ?? itemId;
@@ -323,21 +323,21 @@ namespace Arcadia
 
         public static void TakeItem(ArcadeUser user, Item item, int amount = 1)
         {
-            if (HasItem(user, item.Id))
-            {
-                // This method only works for non-unique items.
-                if (IsUnique(item))
-                    return;
+            if (!HasItem(user, item.Id))
+                return;
 
-                if (GetOwnedAmount(user, item) - amount <= 0)
-                {
-                    var slot = user.Items.First(x => x.Id == item.Id);
-                    user.Items.Remove(slot);
-                }
-                else
-                {
-                    user.Items.First(x => x.Id == item.Id).StackCount -= amount;
-                }
+            // This method only works for non-unique items.
+            if (IsUnique(item))
+                return;
+
+            if (GetOwnedAmount(user, item) - amount <= 0)
+            {
+                ItemData slot = user.Items.First(x => x.Id == item.Id);
+                user.Items.Remove(slot);
+            }
+            else
+            {
+                user.Items.First(x => x.Id == item.Id).StackCount -= amount;
             }
 
             if (!HasItem(user, item.Id) && item.Tag.HasFlag(ItemTag.Palette))
@@ -356,7 +356,7 @@ namespace Arcadia
 
         private static PaletteType PaletteOf(string paletteId)
         {
-            var item = GetItem(paletteId);
+            Item item = GetItem(paletteId);
 
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
@@ -382,22 +382,19 @@ namespace Arcadia
 
         public static void TakeItem(ArcadeUser user, Item item, string uniqueId)
         {
-            if (HasItem(user, item.Id))
-            {
-                // This method only works for unique items.
-                if (!IsUnique(item))
-                    return;
+            if (!HasItem(user, item.Id))
+                return;
 
-                // Slim down to all matching item entries of the same item
-                var matching = user.Items.Where(x => x.Id == item.Id);
+            // This method only works for unique items.
+            if (!IsUnique(item))
+                return;
 
-                var match = matching.FirstOrDefault(x => x.Data.Id == uniqueId);
+            ItemData match = user.Items.FirstOrDefault(x => x.Id == item.Id && x.Data.Id == uniqueId);
 
-                if (match == null)
-                    throw new Exception("Could not find a unique item with the specified ID.");
+            if (match == null)
+                throw new Exception("Could not find a unique item with the specified ID.");
 
-                user.Items.Remove(match);
-            }
+            user.Items.Remove(match);
         }
 
         public static void GiveItem(ArcadeUser user, string itemId, int amount = 1)
@@ -408,19 +405,13 @@ namespace Arcadia
 
         public static int GetOwnedAmount(ArcadeUser user, Item item)
         {
-            if (HasItem(user, item.Id))
-            {
-                if (IsUnique(item))
-                {
-                    return user.Items.Where(x => x.Id == item.Id).Count();
-                }
-                else
-                {
-                    return user.Items.First().Count;
-                }
-            }
+            if (!HasItem(user, item.Id))
+                return 0;
 
-            return 0;
+            if (IsUnique(item))
+                return user.Items.Count(x => x.Id == item.Id);
+
+            return user.Items.First().Count;
         }
 
         public static void GiveItem(ArcadeUser user, Item item, int amount = 1)
@@ -465,7 +456,7 @@ namespace Arcadia
             }
             else
             {
-                var selected = DataOf(user, item.Id);
+                ItemData selected = DataOf(user, item.Id);
 
                 if (selected == null)
                 {
@@ -512,16 +503,15 @@ namespace Arcadia
 
         public static ItemData DataOf(ArcadeUser user, string itemId, string uniqueId = null)
         {
-            if (!string.IsNullOrWhiteSpace(uniqueId))
-                return user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId);
-
-            return user.Items.FirstOrDefault(x => x.Id == itemId);
+            return user.Items.FirstOrDefault(x => !string.IsNullOrWhiteSpace(uniqueId)
+                ? x.Data?.Id == uniqueId
+                : x.Id == itemId);
         }
 
         public static void UseItem(ArcadeUser user, string itemId, string uniqueId = null)
         {
-            var item = GetItem(itemId);
-            bool isBroken = false;
+            Item item = GetItem(itemId);
+            var isBroken = false;
 
             // if there is no available action.
             if (item.OnUse == null)
@@ -589,13 +579,13 @@ namespace Arcadia
             item.OnUse.Action(user);
 
             // If the item broke, invoke that action too.
-            if (isBroken && item.OnUse.OnBreak != null)
-                item.OnUse.OnBreak(user);
+            if (isBroken)
+                item.OnUse.OnBreak?.Invoke(user);
         }
 
         private static string GetBestUniqueId(ArcadeUser user, string itemId)
         {
-            var item = GetItem(itemId);
+            Item item = GetItem(itemId);
 
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
@@ -606,15 +596,12 @@ namespace Arcadia
             // Slim down to all matching item entries of the same item
             var matching = user.Items.Where(x => x.Id == itemId);
 
-            if (matching.Count() == 0)
+            if (matching.Any())
                 return "";
 
-            if (item.OnUse != null)
+            if (item.OnUse?.Durability != null)
             {
-                if (item.OnUse.Durability.HasValue)
-                {
-                    matching = matching.OrderBy(x => x.Data.Durability);
-                }
+                matching = matching.OrderBy(x => x.Data.Durability);
             }
 
             return matching.First().Id;

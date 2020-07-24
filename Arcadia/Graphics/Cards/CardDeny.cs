@@ -1,4 +1,4 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Graphics
 {
     [System.Flags]
     public enum CardDeny

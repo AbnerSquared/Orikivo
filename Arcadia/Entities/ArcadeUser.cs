@@ -21,7 +21,7 @@ namespace Arcadia
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
             Items = new List<ItemData>();
-            Card = new CardConfig(PaletteType.Default);
+            Card = new CardConfig(Graphics.PaletteType.Default);
         }
 
         [JsonConstructor]
@@ -39,7 +39,7 @@ namespace Arcadia
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
             Items = items ?? new List<ItemData>();
-            Card = card ?? new CardConfig(PaletteType.Default);
+            Card = card ?? new CardConfig(Graphics.PaletteType.Default);
         }
 
         [JsonProperty("balance")]

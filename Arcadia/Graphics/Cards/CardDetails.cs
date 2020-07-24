@@ -1,8 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Orikivo.Desync;
 
-namespace Arcadia
+namespace Arcadia.Graphics
 {
 
     /// <summary>

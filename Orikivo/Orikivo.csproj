@@ -53,6 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Addons.Linking" Version="1.0.0" />
     <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191226.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.2" />

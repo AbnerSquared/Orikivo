@@ -29,7 +29,7 @@ namespace Arcadia
         {
             get
             {
-                Data.Users.TryGetValue(User.Id, out ArcadeUser user);
+                Data.Users.TryGet(User.Id, out ArcadeUser user);
                 return user;
             }
         }
@@ -38,7 +38,7 @@ namespace Arcadia
         {
             get
             {
-                Data.Guilds.TryGetValue(Guild.Id, out BaseGuild guild);
+                Data.Guilds.TryGet(Guild.Id, out BaseGuild guild);
                 return guild;
             }
             set => Data.Guilds.AddOrUpdate(Guild.Id, value);
@@ -46,7 +46,7 @@ namespace Arcadia
 
         internal ArcadeUser GetOrAddUser(SocketUser user)
         {
-            if (!Data.Users.TryGetValue(user.Id, out ArcadeUser value))
+            if (!Data.Users.TryGet(user.Id, out ArcadeUser value))
             {
                 value = new ArcadeUser(user);
                 Data.Users.AddOrUpdate(user.Id, value);
@@ -56,7 +56,7 @@ namespace Arcadia
         }
         internal BaseGuild GetOrAddGuild(SocketGuild guild)
         {
-            if (!Data.Guilds.TryGetValue(guild.Id, out BaseGuild value))
+            if (!Data.Guilds.TryGet(guild.Id, out BaseGuild value))
             {
                 value = new BaseGuild(guild);
                 Data.Guilds.AddOrUpdate(guild.Id, value);
@@ -66,9 +66,9 @@ namespace Arcadia
         }
 
         public bool TryGetUser(ulong id, out ArcadeUser account)
-            => Data.Users.TryGetValue(id, out account);
+            => Data.Users.TryGet(id, out account);
 
         public bool TryGetGuild(ulong id, out BaseGuild server)
-            => Data.Guilds.TryGetValue(id, out server);
+            => Data.Guilds.TryGet(id, out server);
     }
 }

@@ -22,7 +22,7 @@ namespace Orikivo.Modules
 
         [Command("latency"), Alias("ping")]
         public async Task PingAsync()
-            => await CoreProvider.PingAsync(Context.Channel, Context.Client);
+            => await CoreService.PingAsync(Context.Channel, Context.Client);
 
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]

@@ -8,7 +8,6 @@ using Orikivo;
 
 namespace Arcadia
 {
-
     public static class MeritHelper
     {
         public static readonly List<Merit> Merits =
@@ -19,12 +18,12 @@ namespace Arcadia
 
         public static Merit GetMerit(string id)
         {
-            var merits = Merits.Where(x => x.Id == id);
+            IEnumerable<Merit> merits = Merits.Where(x => x.Id == id);
 
             if (merits.Count() > 1)
                 throw new ArgumentException("There were more than one Merits of the specified ID.");
 
-            return merits.FirstOrDefault();
+            return Merits.FirstOrDefault(x => x.Id == id);
         }
 
         public static bool HasMerit(ArcadeUser user, string id)
@@ -32,26 +31,21 @@ namespace Arcadia
 
         public static bool Exists(string id)
             => Merits.Any(x => x.Id == id);
+
+        private static string GetProgressCounter(MeritGroup group, int collected, int total)
+            => $" (`{RangeF.Convert(0, total, 0, 100, collected)}%`)";
     }
+
     /// <summary>
     /// Handles all methods relating to a <see cref="Merit"/>.
     /// </summary>
     internal static class MeritHandler
     {
-
-        // notify a user about an unlocked merit
-        // view information about a merit
-        internal static void SendNotifications(User user, IEnumerable<Merit> merits)
-        {
-            foreach (Merit m in merits)
-                user.Notifier.Append($"Merit unlocked: **{m.Name}**");
-        }
-
         internal static string ViewDefault(ArcadeUser user)
         {
             bool showTooltips = user.Config?.Tooltips ?? false;
 
-            StringBuilder panel = new StringBuilder();
+            var panel = new StringBuilder();
             panel.AppendLine("> **Merits**");
 
             if (showTooltips)
@@ -101,7 +95,7 @@ namespace Arcadia
         {
             bool showTooltips = user.Config?.Tooltips ?? false;
 
-            StringBuilder panel = new StringBuilder();
+            var panel = new StringBuilder();
 
             panel.AppendLine("> **Merits**");
             panel.AppendLine($"> {group.ToString()}");
@@ -143,13 +137,17 @@ namespace Arcadia
             summary.AppendLine();
 
             if (unlocked)
-                summary.AppendLine($"> Achieved **{user.Merits[merit.Id].AchievedAt.ToString("M/d/yyyy @ HH:mm tt")}**");
-
-            if (unlocked && merit.Reward != null)
             {
-                summary.Append("> **Reward**: ");
-                summary.AppendJoin(", ", merit.Reward.GetNames());
-                summary.Append($" ({(user.Merits[merit.Id].IsClaimed.Value ? "Claimed" : "Unclaimed")})");
+                summary.AppendLine($"> Achieved **{Format.FullTime(user.Merits[merit.Id].AchievedAt)}**");
+
+                if (merit.Reward != null)
+                {
+                    summary.Append("> **Reward**: ");
+                    summary.AppendJoin(", ", merit.Reward.GetNames());
+
+                    if (user.Merits[merit.Id].IsClaimed.HasValue)
+                        summary.Append($" ({(user.Merits[merit.Id].IsClaimed.Value ? "Claimed" : "Unclaimed")})");
+                }
             }
 
             return summary.ToString();
@@ -204,7 +202,7 @@ namespace Arcadia
 
         // checks if the user has the merit AND the merit exists
         private static bool Exists(ArcadeUser user, string meritId)
-            => Engine.Merits.ContainsKey(meritId) && MeritHelper.HasMerit(user, meritId);
+            => MeritHelper.Exists(meritId) && MeritHelper.HasMerit(user, meritId);
 
         // checks if the merit has a reward AND the user hasn't claimed it.
         private static bool CanReward(ArcadeUser user, Merit merit)

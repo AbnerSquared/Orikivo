@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Orikivo
+namespace Orikivo.Canary
 {
     // TODO: Implement cell wrapping
     /// <summary>
@@ -64,8 +64,8 @@ namespace Orikivo
         // TODO: Find a way to condense or optimize, if possible
         private int GetNeighborCount(int x, int y)
         {
-            RangeF width = new RangeF(0, Width, true, false);
-            RangeF height = new RangeF(0, Height, true, false);
+            var width = new RangeF(0, Width, true, false);
+            var height = new RangeF(0, Height, true, false);
 
             if (!width.Contains(x) || !height.Contains(y))
                 throw new Exception("The specified point to check are out of bounds.");
@@ -144,7 +144,7 @@ namespace Orikivo
         public Grid<ConwayCell> GetNextGeneration()
         {
             var next = new Grid<ConwayCell>(Width, Height);
-            next.SetEachValue((x, y) => GetNextCell(x, y));
+            next.SetEachValue(GetNextCell);
 
             return next;
         }
@@ -178,26 +178,22 @@ namespace Orikivo
                 ConwayCell cell = CurrentGeneration[x, y];
 
                 if (!cell.Initialized)
-                {
                     return DeadColor;
-                }
-                else if (cell.LastActiveTick == CurrentTick)
-                {
+
+                if (cell.LastActiveTick == CurrentTick)
                     return ActiveColor;
-                }
-                else if (DecayTickLength.GetValueOrDefault(0) > 0)
+
+                if (DecayTickLength.GetValueOrDefault(0) > 0)
                 {
                     long lastActive = CurrentTick - cell.LastActiveTick;
 
-                    float remainder = 1.0f - RangeF.Convert(0, DecayTickLength.Value + 1, 0.0f, 1.0f,
-                                   RangeF.Clamp(0, DecayTickLength.Value + 1, lastActive));
+                    float remainder = 1.0f - RangeF.Convert(0, DecayTickLength.GetValueOrDefault(0) + 1, 0.0f, 1.0f,
+                                   RangeF.Clamp(0, DecayTickLength.GetValueOrDefault(0) + 1, lastActive));
 
                     return ImmutableColor.Merge(DeadColor, LiveColor, remainder);
                 }
-                else
-                {
-                    return cell.LastActiveTick == CurrentTick ? LiveColor : DeadColor;
-                }
+
+                return cell.LastActiveTick == CurrentTick ? LiveColor : DeadColor;
             });
 
             return grid;

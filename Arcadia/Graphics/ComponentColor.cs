@@ -1,6 +1,6 @@
 ﻿using Orikivo.Drawing;
 
-namespace Arcadia
+namespace Arcadia.Graphics
 {
     public class ComponentColor
     {

@@ -1,10 +1,5 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Graphics
 {
-    public enum PaletteDirection
-    {
-        First = 1,
-        Last = 2
-    }
     // 9 => GammaGreen :: Glass
     public enum PaletteType // If the palette type contains multiple flags, merge
     {

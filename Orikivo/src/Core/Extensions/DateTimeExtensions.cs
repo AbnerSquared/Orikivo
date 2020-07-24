@@ -10,7 +10,7 @@ namespace Orikivo
         public static bool IsExpired(this DateTime? time)
         {
             if (time.HasValue)
-                return (DateTime.UtcNow - time.Value).TotalSeconds > 0;
+                return (DateTime.UtcNow - time.Value).Ticks > 0;
 
             return false;
         }
@@ -18,7 +18,7 @@ namespace Orikivo
         public static bool IsExpiredIn(this DateTime? time, TimeSpan duration)
         {
             if (time.HasValue)
-                return (DateTime.UtcNow - time.Value.Add(duration)).TotalSeconds > 0;
+                return (DateTime.UtcNow - time.Value.Add(duration)).Ticks > 0;
 
             return false;
         }

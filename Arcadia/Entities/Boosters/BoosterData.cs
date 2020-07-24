@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace Orikivo.Desync
+namespace Arcadia
 {
     // for Arcadia
     public class BoosterData
@@ -15,16 +15,16 @@ namespace Orikivo.Desync
                 ExpiresOn = DateTime.UtcNow.Add(decayLength.Value);
 
             if (useLimit.HasValue)
-                UsesRemaining = useLimit.Value;
+                UsesLeft = useLimit.Value;
         }
 
         [JsonConstructor]
-        internal BoosterData(BoosterType type, float rate, DateTime? expiresOn, int? usesRemaining)
+        internal BoosterData(BoosterType type, float rate, DateTime? expiresOn, int? usesleft)
         {
             Type = type;
             Rate = rate;
             ExpiresOn = expiresOn;
-            UsesRemaining = UsesRemaining;
+            UsesLeft = usesleft;
         }
 
         [JsonProperty("type")]
@@ -40,6 +40,6 @@ namespace Orikivo.Desync
 
         // how many times the booster has been activated
         [JsonProperty("uses_left")]
-        public int? UsesRemaining { get; }
+        public int? UsesLeft { get; }
     }
 }

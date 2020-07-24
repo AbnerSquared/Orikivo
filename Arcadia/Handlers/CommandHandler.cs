@@ -153,7 +153,7 @@ namespace Arcadia
             */
 
             // Check if the user was updated or doesn't exist to save
-            RequireUserAttribute requireUser = command.Preconditions.FirstOrDefault<RequireUserAttribute>();
+            var requireUser = command.Preconditions.FirstOrDefault<RequireUserAttribute>();
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
@@ -172,7 +172,7 @@ namespace Arcadia
             }
 
             // Check if the guild was updated or doesn't exist to save
-            RequireGuildAttribute requireGuild = command.Preconditions.FirstOrDefault<RequireGuildAttribute>();
+            var requireGuild = command.Preconditions.FirstOrDefault<RequireGuildAttribute>();
 
             if (requireGuild?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {

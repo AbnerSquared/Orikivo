@@ -1,18 +1,19 @@
 ﻿using Discord;
 using Microsoft.Extensions.DependencyInjection;
-using Orikivo;
 using Orikivo.Drawing;
 using Orikivo.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Arcadia.Casino;
+using Arcadia.Graphics;
 using Arcadia.Modules;
 using Arcadia.Services;
+using Orikivo;
 
 namespace Arcadia
 {
-    // entrypoint for Orikivo Arcade
+    // Entry-point for Orikivo Arcade
     internal sealed class Program
     {
         private static void Main(string[] args)
@@ -23,7 +24,7 @@ namespace Arcadia
 
                 var layout = new ConsoleLayout
                 {
-                    Title = $"Orikivo Arcade: {OriGlobal.ClientVersion}",
+                    Title = $"Orikivo Arcade: {Orikivo.OriGlobal.ClientVersion}",
                     BackgroundColor = null,
                     ForegroundColor = null,
                     CursorVisible = false
@@ -35,7 +36,7 @@ namespace Arcadia
 
                 builder.Services
                 .AddSingleton<GameManager>()
-                .AddSingleton<InfoService>()
+                .AddSingleton<Orikivo.InfoService>()
                 .AddSingleton<ArcadeContainer>()
                 .AddSingleton<LogService>()
                 .AddSingleton<Orikivo.EventHandler>()
@@ -45,10 +46,10 @@ namespace Arcadia
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
 
                 builder
-                    .AddEnumTypeReader<CardDeny>()
-                    .AddEnumTypeReader<Casing>()
-                    .AddEnumTypeReader<FontType>()
-                    .AddEnumTypeReader<PaletteType>()
+                    .AddEnumTypeReader<Graphics.CardDeny>()
+                    .AddEnumTypeReader<Graphics.Casing>()
+                    .AddEnumTypeReader<Graphics.FontType>()
+                    .AddEnumTypeReader<Graphics.PaletteType>()
                     .AddEnumTypeReader<BorderAllow>()
                     .AddEnumTypeReader<ImageScale>()
                     .AddEnumTypeReader<CardComponent>()

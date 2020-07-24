@@ -105,11 +105,11 @@ namespace Orikivo
         {
             using (Image img = Image.FromStream(gif))
                 img.Save(path, GetImageFormat(GraphicsFormat.Gif));
-                //using (Image quantized = EncodeUtils.Quantize(img, quality))
-                //    BitmapHandler.Save(quantized, path, GetImageFormat(GraphicsFormat.Gif));
-            gif.Dispose();
 
+            //using (Image quantized = EncodeUtils.Quantize(img, quality))
+            //    BitmapHandler.Save(quantized, path, GetImageFormat(GraphicsFormat.Gif));
 
+            await gif.DisposeAsync();
             return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler);
         }
 
@@ -138,8 +138,8 @@ namespace Orikivo
         /// </summary>
         public static async Task<IUserMessage> CatchAsync(IMessageChannel channel, Exception ex, RequestOptions options = null)
         {
-            string[] errorPaths = ex.StackTrace.Split('\n');
-            StringBuilder error = new StringBuilder();
+            
+            var error = new StringBuilder();
 
             error.Append("**Yikes!**");
             error.AppendLine();
@@ -155,6 +155,8 @@ namespace Orikivo
 
             error.Append("```bf");
             error.AppendLine();
+
+            string[] errorPaths = ex.StackTrace.Split('\n');
 
             for (int i = 0; i < errorPaths.Length; i++)
             {

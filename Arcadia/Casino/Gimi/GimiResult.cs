@@ -1,10 +1,7 @@
-﻿using Arcadia.Casino;
-using Discord;
-using Orikivo.Drawing;
-using Orikivo.Desync;
+﻿using Orikivo.Drawing;
 using Orikivo;
 
-namespace Arcadia
+namespace Arcadia.Casino
 {
     public class GimiResult : ICasinoResult
     {
@@ -31,7 +28,7 @@ namespace Arcadia
 
             string icon = "💸";
             string type = "+";
-            string quote = CasinoReplies.GetReply(Flag, user);
+            string quote = Replies.GetReply(Flag, user);
             long value = Reward;
             ImmutableColor color = ImmutableColor.GammaGreen;
 
@@ -83,7 +80,7 @@ namespace Arcadia
                 {
                     icon = "📃";
                     type = "-";
-                    quote = CasinoReplies.Recover.Length > 0 ? (string)Randomizer.Choose(CasinoReplies.Recover) : CasinoReplies.RecoverGeneric;
+                    quote = Replies.Recover.Length > 0 ? (string)Randomizer.Choose(Replies.Recover) : Replies.RecoverGeneric;
                 }
 
                 // 3 > 0
@@ -97,7 +94,7 @@ namespace Arcadia
                     {
                         icon = "📧";
                         type = "";
-                        quote = CasinoReplies.EvenGeneric;
+                        quote = Replies.EvenGeneric;
                     }
                 }
 
@@ -127,7 +124,7 @@ namespace Arcadia
                         icon = "📃";
                         type = "+";
                         value = Reward - (long)user.Balance;
-                        quote = CasinoReplies.Debt.Length > 0 ? (string)Randomizer.Choose(CasinoReplies.Debt) : CasinoReplies.DebtGeneric;
+                        quote = Replies.Debt.Length > 0 ? (string)Randomizer.Choose(Replies.Debt) : Replies.DebtGeneric;
                     }
                 }
 

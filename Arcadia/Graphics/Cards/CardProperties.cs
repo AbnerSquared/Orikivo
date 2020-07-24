@@ -1,7 +1,7 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
 
-namespace Arcadia
+namespace Arcadia.Graphics
 {
     public class CardProperties
     {
@@ -29,7 +29,7 @@ namespace Arcadia
             }
         };
 
-        public bool Trim { get; set; } = false;
+        public bool Trim { get; set; }
 
         public CardDeny Deny { get; set; }
 

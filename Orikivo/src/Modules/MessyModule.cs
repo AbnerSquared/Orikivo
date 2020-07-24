@@ -10,19 +10,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Image = System.Drawing.Image;
+using Discord.Addons.Linking;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using SysColor = System.Drawing.Color;
 using Discord.Rest;
+using Orikivo.Canary;
 
 namespace Orikivo.Modules
 {
-
-    public class Moderation : OriModuleBase<DesyncContext>
-    {
-
-    }
-
     // Since Messy is a testing module, this doesn't need services.
     [Name("Messy")]
     [Summary("Commands that are under the works. Functionality is not to be expected.")]
@@ -486,10 +481,10 @@ namespace Orikivo.Modules
             if (Context.Channel == null)
             {
                 var dmChannel = await Context.Client.CurrentUser.GetOrCreateDMChannelAsync();
-                await Link.CreateAsync(dmChannel);
+                await Link.CloneAsync(dmChannel);
             }
             else
-                await Link.CreateAsync(Context.Channel);
+                await Link.CloneAsync(Context.Channel);
         }
 
         [Access(AccessLevel.Dev)]

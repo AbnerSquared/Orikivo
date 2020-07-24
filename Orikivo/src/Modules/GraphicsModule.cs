@@ -20,6 +20,7 @@ using Color = System.Drawing.Color;
 using Orikivo.Drawing.Animating;
 using Orikivo.Drawing.Graphics3D;
 using Discord.WebSocket;
+using Orikivo.Canary;
 using Orikivo.Framework;
 
 namespace Orikivo.Modules
@@ -359,7 +360,7 @@ namespace Orikivo.Modules
             gifStream.Position = 0;
             Image gifResult = Image.FromStream(gifStream);
             gifResult.Save(path, ImageFormat.Gif);
-            gifStream.Dispose();
+            await gifStream.DisposeAsync();
 
             await Context.Channel.SendFileAsync(path);
         }
@@ -413,9 +414,8 @@ namespace Orikivo.Modules
             try
             {
                 string path = $"../tmp/MESH_{KeyBuilder.Generate(8)}.gif";
-                GammaPalette colors = GammaPalette.GammaGreen;
 
-                MeshRenderer renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
+                var renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
                     GammaPalette.GammaGreen, GetRasterizer(rasterizer));
 
                 List<Grid<Color>> frames = renderer.Animate(ticks, new Model(Mesh.Cube),
@@ -435,8 +435,8 @@ namespace Orikivo.Modules
         {
             try
             {
-                MemoryStream gifStream = new MemoryStream();
-                using (GifEncoder encoder = new GifEncoder(gifStream))
+                var gifStream = new MemoryStream();
+                using (var encoder = new GifEncoder(gifStream))
                 {
                     List<Bitmap> frames = rawFrames.Select(f => ImageEditor.CreateRgbBitmap(f.Values)).ToList();
                     encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
@@ -449,8 +449,8 @@ namespace Orikivo.Modules
                 gifStream.Position = 0;
                 Image gifResult = Image.FromStream(gifStream);
                 gifResult.Save(path, ImageFormat.Gif);
-                gifStream.Dispose();
 
+                await gifStream.DisposeAsync();
                 await Context.Channel.SendFileAsync(path);
             }
             catch (Exception ex)
@@ -470,7 +470,7 @@ namespace Orikivo.Modules
             string path = $"../tmp/{Context.User.Id}_cgol.gif";
             GammaPalette colors = GammaPalette.Alconia;
             Grid<ConwayCell> pattern = ConwayRenderer.GetRandomPattern(width, height);
-            ConwayRenderer simulator = new ConwayRenderer(GammaPalette.GammaGreen[Gamma.Standard], colors[Gamma.Min], decayLength, pattern);
+            var simulator = new ConwayRenderer(GammaPalette.GammaGreen[Gamma.Standard], colors[Gamma.Min], decayLength, pattern);
             simulator.ActiveColor = GammaPalette.GammaGreen[Gamma.Max];
             List<Grid<Color>> rawFrames = simulator.Run(duration);
 
@@ -484,7 +484,7 @@ namespace Orikivo.Modules
             string path = $"../tmp/{Context.User.Id}_time.gif";
             FontFace font = JsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
             char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
-            TextFactoryConfig config = TextFactoryConfig.Default;
+            var config = TextFactoryConfig.Default;
             config.CharMap = charMap;
 
             var frames = new List<Stream>();
@@ -518,14 +518,14 @@ namespace Orikivo.Modules
                 encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                 foreach (Stream frame in frames)
-                    using (frame)
+                    await using (frame)
                         encoder.EncodeFrame(Image.FromStream(frame));
             }
 
             gifStream.Position = 0;
             Image gifResult = Image.FromStream(gifStream);
             gifResult.Save(path, ImageFormat.Gif);
-            gifStream.Dispose();
+            await gifStream.DisposeAsync();
 
             await Context.Channel.SendFileAsync(path);
         }
@@ -543,11 +543,11 @@ namespace Orikivo.Modules
             try
             {
                 string path = $"../tmp/{Context.User.Id}_time.png";
-                FontFace font = JsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
+                var font = JsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json");
                 // new OutlineProperties(1, new OriColor(0x44B29B)): Too taxing on performance as of now
                 char[][][][] charMap = JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
                 GammaPalette colors = TimeCycle.FromHour(hour);
-                TextFactoryConfig config = TextFactoryConfig.Default;
+                var config = TextFactoryConfig.Default;
                 config.CharMap = charMap;
                 var properties = new ImageProperties
                 {
@@ -556,7 +556,7 @@ namespace Orikivo.Modules
                     Matte = colors[Gamma.Min]
                 };
 
-                using (TextFactory factory = new TextFactory(config))
+                using (var factory = new TextFactory(config))
                     using (Bitmap bmp = factory.DrawText(hour.ToString("00.00H").ToUpper(), font, properties))
                         ImageHelper.Save(bmp, path, ImageFormat.Png);
 
@@ -577,11 +577,9 @@ namespace Orikivo.Modules
                 string path = $"../tmp/{Context.User.Id}_time.png";
                 GammaPalette palette = TimeCycle.FromUtcNow();
 
-                using (GraphicsService graphics = new GraphicsService())
-                {
-                    Bitmap bmp = graphics.DrawText(DateTime.UtcNow.ToString("hh:mm tt").ToUpper(), Gamma.Max, palette);
-                    await Context.Channel.SendImageAsync(bmp, path);
-                }
+                using var graphics = new GraphicsService();
+                Bitmap bmp = graphics.DrawText(DateTime.UtcNow.ToString("hh:mm tt").ToUpper(), Gamma.Max, palette);
+                await Context.Channel.SendImageAsync(bmp, path);
             }
             catch (Exception ex)
             {
@@ -616,18 +614,16 @@ namespace Orikivo.Modules
         [Command("drawovercardmask")]
         public async Task DrawCardMaskAsync()
         {
-            using (GraphicsService g = new GraphicsService())
+            using var g = new GraphicsService();
+            var d = new CardDetails(Context.Account, Context.User);
+
+            using (Bitmap card = g.DrawCard(d, PaletteType.GammaGreen))
             {
-                var d = new CardDetails(Context.Account, Context.User);
+                Grid<float> mask = ImageEditor.GetOpacityMask(card);
 
-                using (Bitmap card = g.DrawCard(d, PaletteType.GammaGreen))
-                {
-                    Grid<float> mask = ImageEditor.GetOpacityMask(card);
-
-                    using (Bitmap gradient = ImageEditor.CreateGradient(GammaPalette.GammaGreen, card.Width, card.Height, 0.0f, GradientColorHandling.Snap))
-                        using (Bitmap result = ImageEditor.SetOpacityMask(gradient, mask))
-                            await Context.Channel.SendImageAsync(result, $"../tmp/{Context.User.Id}_gradient_card_mask.png");
-                }
+                using (Bitmap gradient = ImageEditor.CreateGradient(GammaPalette.GammaGreen, card.Width, card.Height, 0.0f))
+                using (Bitmap result = ImageEditor.SetOpacityMask(gradient, mask))
+                    await Context.Channel.SendImageAsync(result, $"../tmp/{Context.User.Id}_gradient_card_mask.png");
             }
         }
 
@@ -635,13 +631,13 @@ namespace Orikivo.Modules
         [Command("drawcardmask")]
         public async Task DrawMaskAsync()
         {
-            using (GraphicsService g = new GraphicsService())
+            using (var g = new GraphicsService())
             {
                 var d = new CardDetails(Context.Account, Context.User);
 
                 using (Bitmap card = g.DrawCard(d, PaletteType.GammaGreen))
                 {
-                    using (TextFactory factory = new TextFactory())
+                    using (var factory = new TextFactory())
                     {
                         Grid<float> mask = ImageEditor.GetOpacityMask(card);
 
@@ -675,19 +671,17 @@ namespace Orikivo.Modules
 
             try
             {
-                using (GraphicsService graphics = new GraphicsService())
-                {
-                    CardDetails d = new CardDetails(account, user);
+                using var graphics = new GraphicsService();
+                var d = new CardDetails(account, user);
+                var p = CardProperties.Default;
 
-                    CardProperties p = CardProperties.Default;
-                    p.Palette = PaletteType.Glass;
-                    p.Trim = false;
-                    p.Casing = Casing.Upper;
+                p.Palette = PaletteType.Glass;
+                p.Trim = false;
+                p.Casing = Casing.Upper;
 
-                    Bitmap card = graphics.DrawCard(d, p);
+                Bitmap card = graphics.DrawCard(d, p);
 
-                    await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
-                }
+                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
             }
             catch (Exception ex)
             {
@@ -711,35 +705,33 @@ namespace Orikivo.Modules
 
             try
             {
-                using (var graphics = new GraphicsService())
+                using var graphics = new GraphicsService();
+                var d = new CardDetails(account, user);
+
+                var p = new CardProperties
                 {
-                    var d = new CardDetails(account, user);
-
-                    var p = new CardProperties
+                    Trim = trim,
+                    Deny = deny,
+                    Border = border,
+                    Casing = casing,
+                    Font = font,
+                    Palette = palette,
+                    Gamma = new Dictionary<CardComponentType, Gamma?>
                     {
-                        Trim = trim,
-                        Deny = deny,
-                        Border = border,
-                        Casing = casing,
-                        Font = font,
-                        Palette = palette,
-                        Gamma = new Dictionary<CardComponentType, Gamma?>
-                        {
-                            [CardComponentType.Username] = usernameGamma,
-                            [CardComponentType.Activity] = activityGamma,
-                            [CardComponentType.Border] = borderGamma,
-                            [CardComponentType.Background] = null,
-                            [CardComponentType.Avatar] = Gamma.Max
-                        },
-                        Padding = new Padding(padding),
-                        Scale = scale
-                    };
+                        [CardComponentType.Username] = usernameGamma,
+                        [CardComponentType.Activity] = activityGamma,
+                        [CardComponentType.Border] = borderGamma,
+                        [CardComponentType.Background] = null,
+                        [CardComponentType.Avatar] = Gamma.Max
+                    },
+                    Padding = new Padding(padding),
+                    Scale = scale
+                };
 
-                    Bitmap card = graphics.DrawCard(d, p);
+                Bitmap card = graphics.DrawCard(d, p);
 
-                    Logger.Debug("Drawing card...");
-                    await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
-                }
+                Logger.Debug("Drawing card...");
+                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
             }
             catch (Exception ex)
             {
@@ -749,12 +741,9 @@ namespace Orikivo.Modules
 
         private Stream DrawFrame(TextFactory graphics, string content, Color color, ImageProperties properties = null)
         {
-            MemoryStream stream = new MemoryStream();
-            using (Bitmap frame = graphics.DrawText(content, color, properties))
-            {
-                frame.Save(stream, ImageFormat.Png);
-            }
-
+            var stream = new MemoryStream();
+            using Bitmap frame = graphics.DrawText(content, color, properties);
+            frame.Save(stream, ImageFormat.Png);
             return stream;
         }
     }

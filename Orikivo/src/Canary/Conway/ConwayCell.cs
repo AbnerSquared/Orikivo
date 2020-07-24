@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Orikivo.Canary
 {
     /// <summary>
     /// Represents a living cell that lives within a <see cref="ConwayRenderer"/>.

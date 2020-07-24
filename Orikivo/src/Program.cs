@@ -18,7 +18,7 @@ namespace Orikivo
         {
             Task.Run(async () =>
             {
-                var _cancelSource = new CancellationTokenSource();
+                var cancelSource = new CancellationTokenSource();
                 var layout = new ConsoleLayout
                 {
                     Title = $"Orikivo: {OriGlobal.ClientVersion}",
@@ -60,7 +60,7 @@ namespace Orikivo
                     .WithActivity("Minecraft", type: ActivityType.Listening);
 
                 client.EnsureDefaultServices();
-                await client.StartAsync(_cancelSource.Token);
+                await client.StartAsync(cancelSource.Token);
             }).GetAwaiter().GetResult();
         }
     }

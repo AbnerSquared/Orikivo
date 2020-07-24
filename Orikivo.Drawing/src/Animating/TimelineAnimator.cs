@@ -34,7 +34,7 @@ namespace Orikivo.Drawing.Animating
 
         public List<TimelineLayer> Layers { get; } = new List<TimelineLayer>();
 
-        public bool Disposed { get; protected set; } = false;
+        public bool Disposed { get; protected set; }
 
         public void AddLayer(TimelineLayer layer)
             => Layers.Add(layer);

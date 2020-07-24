@@ -210,7 +210,7 @@ namespace Arcadia.Services
             };
         }
 
-        private static string WriteUsers(IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
+        private static string WriteUsers(in IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
         {
             if (users.Count() <= offset)
                 throw new ArgumentException("The specified offset is larger than the amount of users specified.");
@@ -232,7 +232,6 @@ namespace Arcadia.Services
 
             if (i == 0)
                 return "No users were provided for this leaderboard.";
-
 
             return result.ToString();
         }

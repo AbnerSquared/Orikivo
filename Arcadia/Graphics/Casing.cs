@@ -1,4 +1,4 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Graphics
 {
     public enum Casing
     {

@@ -43,7 +43,7 @@ namespace Orikivo.Modules
         {
             if (!Engine.CanAct(Context.Account))
             {
-                await Context.Channel.SendMessageAsync("You are currently desynchronized. Unable to establish connection.");
+                await Context.Channel.SendMessageAsync("You are currently de-synchronized. Unable to establish connection.");
                 return;
             }
 
@@ -378,7 +378,6 @@ namespace Orikivo.Modules
                         await Context.Channel.SendMessageAsync($"You have reached (**{attempted.X}**, **{attempted.Y}**).");
                     break;
 
-                case TravelResult.Invalid:
                 default:
                     await Context.Channel.SendMessageAsync("I'm sorry, but I could not pinpoint the coordinates you were referring to. Did you by any chance mistype?");
                     break;
@@ -447,7 +446,6 @@ namespace Orikivo.Modules
                             await Context.Channel.SendMessageAsync($"**{construct.Name}** is currently closed.");
                         break;
 
-                    case TravelResult.Invalid:
                     default:
                         await Context.Channel.SendMessageAsync("I'm sorry, but I could not find the location you were referring to. Did you by any chance misspell?");
                         break;

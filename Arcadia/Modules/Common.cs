@@ -6,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
+using Arcadia.Graphics;
+using GraphicsService = Arcadia.Graphics.GraphicsService;
+using CardDetails = Arcadia.Graphics.CardDetails;
+using CardProperties = Arcadia.Graphics.CardProperties;
+using Casing = Arcadia.Graphics.Casing;
 
 namespace Arcadia.Modules
 {
@@ -35,7 +40,7 @@ namespace Arcadia.Modules
             try
             {
                 user ??= Context.User;
-                Context.Data.Users.TryGetValue(user.Id, out ArcadeUser participant);
+                Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
 
                 if (participant == null)
                 {
@@ -79,7 +84,7 @@ namespace Arcadia.Modules
         [Summary("Attempts to start a trade with the specified user.")]
         public async Task TradeAsync(SocketUser user)
         {
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser participant);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
 
             if (participant == null)
             {
@@ -122,7 +127,7 @@ namespace Arcadia.Modules
         [Summary("Attempts to gift an **Item** to the specified user.")]
         public async Task GiftAsync(SocketUser user, string itemId)
         {
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
             if (account == null)
             {
@@ -255,7 +260,7 @@ namespace Arcadia.Modules
         public async Task GetBackpackAsync(int page = 0, SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
             if (account == null)
             {
@@ -271,7 +276,7 @@ namespace Arcadia.Modules
         public async Task GetStatsAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
             if (account == null)
             {
@@ -326,7 +331,7 @@ namespace Arcadia.Modules
         public async Task GetMoneyAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
             if (account == null)
             {
@@ -362,7 +367,7 @@ namespace Arcadia.Modules
         public async Task GetCardAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGetValue(user.Id, out ArcadeUser account);
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
             if (account == null)
             {

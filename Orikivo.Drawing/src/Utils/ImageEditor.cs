@@ -347,6 +347,38 @@ namespace Orikivo.Drawing
             return CreateArgbBitmap(pixels.Values);
         }
 
+        public static Bitmap SetDirectOpacityMask(Bitmap image, Grid<float> mask)
+        {
+            if (mask.Size != image.Size)
+                throw new ArgumentException("The opacity mask specified must be the same size as the binding image");
+
+            unsafe
+            {
+                var area = new Rectangle(0, 0, image.Width, image.Height);
+                BitmapData source = image.LockBits(area, ImageLockMode.WriteOnly, image.PixelFormat);
+
+                int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
+                int sourceWidth = source.Width * bitsPerPixel;
+                int sourceHeight = source.Height;
+                var ptr = (byte*) source.Scan0;
+
+                Parallel.For(0, sourceHeight, y =>
+                {
+                    byte* row = ptr + y * source.Stride;
+
+                    for (var x = 0; x < sourceWidth; x += bitsPerPixel)
+                    {
+                        var alpha = (byte) Math.Floor(RangeF.Convert(0, 1, 0, 255, mask[x, y]));
+                        row[x + 3] = alpha;
+                    }
+                });
+
+                image.UnlockBits(source);
+            }
+
+            return image;
+        }
+
         public static Bitmap ForcePalette(Bitmap bmp, GammaPalette colors)
         {
             unsafe

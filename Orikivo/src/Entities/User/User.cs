@@ -1,8 +1,7 @@
-﻿using Discord.WebSocket;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Discord;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Orikivo.Desync
@@ -10,7 +9,7 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents a user account for <see cref="Orikivo"/>.
     /// </summary>
-    public class User : IDiscordEntity<SocketUser>, IJsonEntity
+    public class User : IJsonEntity
     {
         [JsonConstructor, BsonConstructor]
         internal User(
@@ -33,46 +32,34 @@ namespace Orikivo.Desync
             Username = username;
             Discriminator = discriminator;
             CreatedAt = createdAt;
-
             Notifier = Check.NotNull(notifier) ? notifier : new Notifier();
-
             Balance = balance;
             TokenBalance = tokenBalance;
             Debt = debt;
-
             Items = items ?? new Dictionary<string, ItemData>();
-
             Cooldowns = cooldowns ?? new Dictionary<string, DateTime>();
-
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
-
             Brain = brain ?? new HuskBrain();
             Husk = husk;
             Config = config ?? new UserConfig();
         }
 
-        public User(SocketUser user)
+        public User(IUser user)
         {
             Id = user.Id;
             Username = user.Username;
             Discriminator = user.Discriminator;
             CreatedAt = DateTime.UtcNow;
-
             Notifier = new Notifier();
-
             Balance = 0;
             TokenBalance = 0;
             Debt = 0;
-
             Items = new Dictionary<string, ItemData>();
-
             Cooldowns = new Dictionary<string, DateTime>();
             InternalCooldowns = new Dictionary<string, DateTime>();
-
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
-
             Brain = new HuskBrain();
             Husk = null;
             Config = new UserConfig();
@@ -97,32 +84,32 @@ namespace Orikivo.Desync
         /// The <see cref="User"/>'s global balance, in use for both the world and client.
         /// </summary>
         [JsonProperty("balance"), BsonElement("balance")]
-        public ulong Balance { get; internal set; } = 0;
+        public ulong Balance { get; internal set; }
 
         /// <summary>
         /// The <see cref="User"/>'s balance, primarily from voting.
         /// </summary>
         [JsonProperty("tokens"), BsonElement("tokens")]
-        public ulong TokenBalance { get; private set; } = 0;
+        public ulong TokenBalance { get; private set; }
 
         /// <summary>
         /// Represents the <see cref="User"/>'s negative funds.
         /// </summary>
         [JsonProperty("debt"), BsonElement("debt")]
-        public ulong Debt { get; internal set; } = 0;
+        public ulong Debt { get; internal set; }
 
         // Arcadia-only property
         /// <summary>
         /// Represents the <see cref="User"/>'s complete collection of digital items.
         /// </summary>
         [JsonProperty("items"), BsonElement("items")]
-        public Dictionary<string, ItemData> Items { get; } = new Dictionary<string, ItemData>();
+        public Dictionary<string, ItemData> Items { get; }
 
         /// <summary>
         /// Represents collection of cooldowns, typically utilized by an <see cref="Item"/>.
         /// </summary>
         [JsonProperty("cooldowns"), BsonElement("cooldowns")]
-        public Dictionary<string, DateTime> Cooldowns { get; } = new Dictionary<string, DateTime>();
+        public Dictionary<string, DateTime> Cooldowns { get; }
 
         /// <summary>
         /// A collection of internal cooldowns for the current process.
@@ -131,19 +118,19 @@ namespace Orikivo.Desync
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
         [JsonProperty("stats"), BsonElement("stats")]
-        public Dictionary<string, long> Stats { get; } = new Dictionary<string, long>();
+        public Dictionary<string, long> Stats { get; }
         
         [JsonProperty("merits"), BsonElement("merits")]
-        public Dictionary<string, MeritData> Merits { get; } = new Dictionary<string, MeritData>();
+        public Dictionary<string, MeritData> Merits { get; }
 
         /// <summary>
         /// Represents the brain of their <see cref="Desync.Husk"/>, which keeps track of everything they have accomplished.
         /// </summary>
         [JsonProperty("brain"), BsonElement("brain")]
-        public HuskBrain Brain { get; } = new HuskBrain();
+        public HuskBrain Brain { get; }
         
         [JsonProperty("husk"), BsonElement("husk")]
-        public Husk Husk { get; internal set; } = null;
+        public Husk Husk { get; internal set; }
 
         [JsonProperty("config"), BsonElement("config")]
         public UserConfig Config { get; }
@@ -171,32 +158,7 @@ namespace Orikivo.Desync
                 Balance -= (ulong)value;
         }
 
-        public void SetCooldown(Claimable claimable, out bool updated)
-        {
-            string id = $"{CooldownType.Claimable.ToString().ToLower()}:{claimable.Id}";
-            if (Cooldowns.ContainsKey(id))
-            {
-                // if you can set a claimable cooldown.
-                updated = (Cooldowns[id] - DateTime.UtcNow) <= TimeSpan.Zero;
-
-                if (updated)
-                {
-                    // Set up/update the streak stats
-                    if ((DateTime.UtcNow - Cooldowns[id]) >= claimable.Preservation) // if the streak will reset.
-                        SetStat(claimable.StreakId, 1);
-                    else
-                        UpdateStat(claimable.StreakId);
-
-                    Cooldowns[id] = DateTime.UtcNow.Add(claimable.Cooldown); // set new expiration.
-                }
-            }
-            else
-            {
-                SetStat(claimable.StreakId, 1);
-                Cooldowns[id] = DateTime.UtcNow.Add(claimable.Cooldown);
-                updated = true;
-            }
-        }
+        
 
         /// <summary>
         /// Sets or updates a cooldown for a user.
@@ -244,22 +206,7 @@ namespace Orikivo.Desync
                     Cooldowns[id] = expiresOn;
         }
 
-        public IEnumerable<CooldownData> GetCooldownsOfType(CooldownType type)
-        {
-            if (type == CooldownType.Internal)
-                return InternalCooldowns.Select(x => new CooldownData(x.Key, x.Value));
-
-            if (type.EqualsAny(CooldownType.Command, CooldownType.Global, CooldownType.Notify))
-                return InternalCooldowns.Where(c => c.Key.StartsWith(type.ToString().ToLower())).Select(x => new CooldownData(x.Key, x.Value));
-
-            if (type == CooldownType.Storeable)
-                return Cooldowns.Select(x => new CooldownData(x.Key, x.Value));
-
-            if (type.EqualsAny(CooldownType.Claimable, CooldownType.Item))
-                return Cooldowns.Where(c => c.Key.StartsWith(type.ToString().ToLower())).Select(x => new CooldownData(x.Key, x.Value));
-
-            throw new InvalidOperationException("what the heck, what kind of cooldown is this even");
-        }
+        
 
         public bool IsOnCooldown(string id)
         {
@@ -289,24 +236,10 @@ namespace Orikivo.Desync
                 Stats[id] += amount;
         }
 
-        public bool HasItem(string id, int amount = 1)
-            => Items.ContainsKey(id) ? Items[id].Count == amount : false;
-
-        // Correlate with Engine.Items.
-        public void AddItem(string id, int amount = 1) { }
-        public void RemoveItem(string id, int amount = 1) { }
-
         public bool HasMerit(string id)
             => Merits.ContainsKey(id);
 
-        public bool GetEntity(BaseSocketClient client, out SocketUser user)
-        {
-            user = client.GetUser(Id);
-            return user != null;
-        }
-
-        // updates the username and discriminator of a user if anything was changed.
-        public void Update(SocketUser user)
+        public void Synchronize(IUser user)
         {
             if (Id != user.Id)
                 throw new Exception("The user specified must have the same matching ID as the account.");
@@ -316,12 +249,10 @@ namespace Orikivo.Desync
         }
 
         public override bool Equals(object obj)
-            => obj is null || obj == null || GetType() != obj.GetType() ?
-            false : ReferenceEquals(this, obj) ?
-            true : Equals(obj as IJsonEntity);
+            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
 
         public bool Equals(IJsonEntity obj)
-            => Id == obj.Id;
+            => Id == obj?.Id;
 
         public override int GetHashCode()
             => unchecked((int)Id);

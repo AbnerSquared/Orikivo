@@ -1,5 +1,5 @@
 ﻿using Orikivo;
-namespace Arcadia
+namespace Arcadia.Casino
 {
     public interface ICasinoResult
     {

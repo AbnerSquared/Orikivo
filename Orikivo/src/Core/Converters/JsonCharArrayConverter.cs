@@ -4,6 +4,7 @@ using System;
 
 namespace Orikivo
 {
+    // TODO: Re-create as JsonOptionalArrayConverter<T>
     /// <summary>
     /// A JSON converter used to handle optional <see cref="char"/>[] values. (i.e 'a', ['a', 'b'] => ['a'], ['a', 'b'] )
     /// </summary>
@@ -22,14 +23,12 @@ namespace Orikivo
         {
             JToken token = JToken.Load(reader);
 
-            if (token.Type == JTokenType.String)
-                return new char[] { token.ToObject<char>() };
-
-            if (token.Type == JTokenType.Array)
-                return token.ToObject<char[]>();
-
-            throw new NotSupportedException("The JToken provided did not match a JTokenType of String or Array.");
-            // return new char[] { token.ToObject<char>() };
+            return token.Type switch
+            {
+                JTokenType.String => new[] {token.ToObject<char>()},
+                JTokenType.Array => token.ToObject<char[]>(),
+                _ => new NotSupportedException("The JToken provided did not match a JTokenType of String or Array.")
+            };
         }
 
         /// <summary>
@@ -37,11 +36,10 @@ namespace Orikivo
         /// </summary>
         public override bool CanWrite => false;
 
-        // TODO: Create a JsonWriter serialization method.
         /// <summary>
         /// [Not Implemented] Writes the JSON representation of the object.
         /// </summary>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            => throw new NotImplementedException("A JSON serialization method does not yet exist.");
+            => throw new NotSupportedException("This JsonConverter does not support writing.");
     }
 }

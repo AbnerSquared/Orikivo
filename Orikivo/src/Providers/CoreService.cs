@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public static class CoreProvider
+    public static class CoreService
     {
-        private static readonly string _before = "🌌 **Pinging...**";
-        private static readonly string _after = "🏓 **Pong!**";
+        private static readonly string OnBefore = "🌌 **Pinging...**";
+        private static readonly string OnAfter = "🏓 **Pong!**";
 
         // NOTE: Pings to the specified channel.
         public static async Task<IUserMessage> PingAsync(IMessageChannel channel, BaseSocketClient client)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            IUserMessage message = await channel.SendMessageAsync(_before);
+            var stopwatch = Stopwatch.StartNew();
+            IUserMessage message = await channel.SendMessageAsync(OnBefore);
             stopwatch.Stop();
 
             var result = new StringBuilder();
-            result.AppendLine(_after);
+            result.AppendLine(OnAfter);
             result.AppendLine($"> **Internal** {GetCounter(stopwatch.ElapsedMilliseconds)}");
             result.AppendLine($"> **Gateway** {GetCounter(client.Latency)}");
 

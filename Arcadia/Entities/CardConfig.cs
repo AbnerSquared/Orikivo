@@ -2,6 +2,7 @@
 using System.Text;
 using Newtonsoft.Json;
 using Orikivo;
+using PaletteType = Arcadia.Graphics.PaletteType;
 
 namespace Arcadia
 {
@@ -20,10 +21,6 @@ namespace Arcadia
         [Description("Defines the **Palette** currently equipped to your **Card**.")]
         public PaletteType Palette { get; internal set; }
 
-        [JsonProperty("merge")]
-        [Description("If you merged two **Palette** values, this will determine the direction at which they transition.")]
-        public PaletteDirection? Direction { get; internal set; }
-
         public string Display()
         {
             var panel = new StringBuilder();
@@ -41,11 +38,9 @@ namespace Arcadia
                 panel.Append(property.Name);
                 panel.Append("** • `");
 
-                string value = property.GetValue(this, null)?.ToString();
-                if (Check.NotNull(value))
-                    panel.Append(value);
-                else
-                    panel.Append("null");
+                var value = property.GetValue(this, null)?.ToString();
+
+                panel.Append(Check.NotNull(value) ? value : "null");
                 panel.AppendLine("`");
 
                 string subtitle = property.GetCustomAttribute<DescriptionAttribute>()?.Content;

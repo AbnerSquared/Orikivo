@@ -86,7 +86,7 @@ namespace Arcadia
             var inventory = new StringBuilder();
 
             if (isPrivate)
-                inventory.AppendLine(GetHeader(user.GetStat(Stats.Capacity)));
+                inventory.AppendLine(GetHeader(user.GetStat(Vars.Capacity)));
             else
                 inventory.AppendLine($"> **{user.Username}'s Inventory**");
 

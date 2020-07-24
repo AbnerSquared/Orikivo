@@ -85,7 +85,7 @@ namespace Orikivo.Drawing
         public static float Median(IEnumerable<float> set)
         {
             int length = set.Count();
-            int i = (int)Math.Floor((double)(length / 2));
+            int i = (int)Math.Floor(length / (double) 2);
 
             // NOTE: x % 2 => Parity, ODD if 1
             return (length % 2) == 0
@@ -97,7 +97,7 @@ namespace Orikivo.Drawing
         /// Interpolates between two values by the specified amount.
         /// </summary>
         public static float Lerp(float a, float b, float amount)
-            => a + (amount * (b - a));
+            => a + amount * (b - a);
 
         /// <summary>
         /// Interpolates between two values using an enforced amount.
@@ -213,7 +213,7 @@ namespace Orikivo.Drawing
         // TODO: Optimize by simply comparing values instead of using a Dictionary.
         public static float Mode(IEnumerable<float> set)
         {
-            Dictionary<float, int> counter = new Dictionary<float, int>();
+            var counter = new Dictionary<float, int>();
 
             foreach (float number in set)
             {

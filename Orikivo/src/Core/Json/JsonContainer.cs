@@ -41,7 +41,7 @@ namespace Orikivo
             Values.AddOrUpdate(id, value, (key, value) => value);
         }
 
-        public bool TryGetValue(ulong id, out TEntity entity)
+        public bool TryGet(ulong id, out TEntity entity)
             => Values.TryGetValue(id, out entity);
 
         public void Save(TEntity value)

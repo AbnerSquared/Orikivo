@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Arcadia
 {
@@ -56,5 +55,7 @@ namespace Arcadia
 
         // If this function is ever true, it will expire
         public Func<bool> ToExpire { get; set; }
+
+        public Dictionary<string, ItemAttribute> Attributes { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Arcadia
 {
     /// <summary>
     /// Contains a collection of cooldown identifiers.

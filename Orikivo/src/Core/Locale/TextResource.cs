@@ -32,7 +32,7 @@ namespace Orikivo
         public Dictionary<TextLocale, string[]> Locale { get; }
 
         /// <summary>
-        /// Returns a <see cref="string"/> from a specified locale.
+        /// Returns a <see cref="string"/> for the specified locale.
         /// </summary>
         public string ToString(TextLocale locale)
             => Locale[locale][RandomProvider.Instance.Next(Locale[locale].Length)] ?? throw new KeyNotFoundException();

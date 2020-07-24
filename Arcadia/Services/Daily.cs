@@ -12,7 +12,6 @@ namespace Arcadia.Services
         public static readonly TimeSpan Cooldown = TimeSpan.FromHours(24);
         public static readonly TimeSpan Reset = TimeSpan.FromHours(48);
 
-
         public static DailyResultFlag Next(ArcadeUser user)
         {
             long lastTicks = user.GetStat(Cooldowns.Daily);
@@ -55,7 +54,7 @@ namespace Arcadia.Services
                     
                     color = ImmutableColor.NeonRed;
                     header = Format.Countdown(rem);
-                    icon = CasinoReplies.GetHourEmote(time.Hour);
+                    icon = Format.GetHourEmote(time.Hour);
                     break;
 
                 case DailyResultFlag.Reset:
@@ -74,6 +73,7 @@ namespace Arcadia.Services
             {
                 user.SetStat(Cooldowns.Daily, DateTime.UtcNow.Ticks);
                 user.UpdateStat(Stats.DailyStreak);
+                StatHelper.SetIfGreater(user, Stats.DailyStreak, Stats.LongestDailyStreak);
                 user.Give(reward);
             }
 
@@ -82,7 +82,7 @@ namespace Arcadia.Services
 
             embedder.Color = color;
             embedder.Header = $"**{icon} {header}**";
-            message.Content = $"*\"{CasinoReplies.GetReply(flag)}\"*";
+            message.Content = $"*\"{Replies.GetReply(flag)}\"*";
             message.Embedder = embedder;
 
             return message.Build();

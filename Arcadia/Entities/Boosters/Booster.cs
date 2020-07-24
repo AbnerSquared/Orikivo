@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orikivo.Desync
+namespace Arcadia
 {
     // for Arcadia
     public class Booster

@@ -9,32 +9,32 @@ namespace Orikivo.Desync
     public enum NotifyDeny
     {
         /// <summary>
-        /// Disables the <see cref="Notification"/> values related to experience.
+        /// Disables all notifications related to experience.
         /// </summary>
         Level = 1,
 
         /// <summary>
-        /// Disables the <see cref="Notification"/> values related to mail.
+        /// Disables all notifications related to mail.
         /// </summary>
         Mail = 2,
 
         /// <summary>
-        /// Disables the <see cref="Notification"/> values related to errors.
+        /// Disables all notifications related to errors.
         /// </summary>
         Error = 4,
 
         /// <summary>
-        /// Disables the <see cref="Notification"/> values related to a <see cref="Desync.Merit"/>.
+        /// Disables all notifications related to a <see cref="Desync.Merit"/>.
         /// </summary>
         Merit = 8,
 
         /// <summary>
-        /// Disables the <see cref="Notification"/> values related to travel.
+        /// Disables all notifications related to travel.
         /// </summary>
         Travel = 16,
 
         /// <summary>
-        /// Disables all <see cref="Notification"/> values.
+        /// Disables all notifications values.
         /// </summary>
         All = Level | Mail | Error | Merit | Travel
     }

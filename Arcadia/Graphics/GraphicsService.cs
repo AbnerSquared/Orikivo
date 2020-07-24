@@ -4,7 +4,7 @@ using Orikivo.Drawing;
 using Orikivo;
 using System.Diagnostics;
 
-namespace Arcadia
+namespace Arcadia.Graphics
 {
     /// <summary>
     /// Handles all of the rendering processes for Orikivo.

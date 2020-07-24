@@ -13,6 +13,8 @@ namespace Arcadia
         public TimeSpan? Cooldown { get; set; }
 
         // What happens when this is used?
+        // string represents the message sent. If unspecified, it will use the default text on using an item.
+        // Action<ArcadeUser, string> Action;
         public Action<ArcadeUser> Action { get; set; }
 
         // What happens when this item is broken?

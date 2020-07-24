@@ -74,9 +74,6 @@ namespace Orikivo
         public static string HyperlinkEmote(string parsedEmote, string emoteUrl, string emoteName)
             => $"{Url(parsedEmote, emoteUrl)} {emoteName}";
 
-        public static string Code(string text, CodeType? language = null)
-            => Code(text, language?.ToString().ToLower());
-
         public static string Trim(string value, int limit)
             => value.Length > limit ? $"{value[..limit]}..." : value;
 
@@ -179,7 +176,72 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        
+        private const string CLOCK_1 = "🕐";
+        private const string CLOCK_2 = "🕑";
+        private const string CLOCK_3 = "🕒";
+        private const string CLOCK_4 = "🕓";
+        private const string CLOCK_5 = "🕔";
+        private const string CLOCK_6 = "🕕";
+        private const string CLOCK_7 = "🕖";
+        private const string CLOCK_8 = "🕗";
+        private const string CLOCK_9 = "🕘";
+        private const string CLOCK_10 = "🕙";
+        private const string CLOCK_11 = "🕚";
+        private const string CLOCK_12 = "🕛";
+
+        public static string GetHourEmote(int hour)
+        {
+            switch (hour)
+            {
+                case 11:
+                case 23:
+                    return CLOCK_11;
+
+                case 10:
+                case 22:
+                    return CLOCK_10;
+
+                case 9:
+                case 21:
+                    return CLOCK_9;
+
+                case 8:
+                case 20:
+                    return CLOCK_8;
+
+                case 7:
+                case 19:
+                    return CLOCK_7;
+
+                case 6:
+                case 18:
+                    return CLOCK_6;
+
+                case 5:
+                case 17:
+                    return CLOCK_5;
+
+                case 4:
+                case 16:
+                    return CLOCK_4;
+
+                case 3:
+                case 15:
+                    return CLOCK_3;
+
+                case 2:
+                case 14:
+                    return CLOCK_2;
+
+                case 1:
+                case 13:
+                    return CLOCK_1;
+
+                default:
+                    return CLOCK_12;
+            }
+        }
+
 
         // 70 => 1.06m
         public static string Counter(double seconds)

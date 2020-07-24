@@ -1,41 +1,34 @@
-﻿namespace Orikivo
+﻿namespace Arcadia
 {
     /// <summary>
     /// Contains a collection of stat identifiers.
     /// </summary>
     internal static class Stats
     {
-        internal static readonly string MostMoney = "generic:most_money";
-        internal static readonly string MoneyEarned = "generic:money_earned";
-        internal static readonly string MoneyLost = "generic:money_lost";
+        internal static readonly string TotalMoney = "generic:total_money";
+        internal static readonly string TotalChips = "generic:total_chips";
+        internal static readonly string TotalTokens = "generic:total_tokens";
+        internal static readonly string TotalDebt = "generic:total_debt";
 
+        internal static readonly string MostMoney = "generic:most_money";
+        internal static readonly string MostChips = "generic:most_chips";
+        internal static readonly string MostTokens = "generic:most_tokens";
         internal static readonly string MostDebt = "generic:most_debt";
-        internal static readonly string DebtEarned = "generic:debt_earned";
-        internal static readonly string DebtLost = "generic:debt_lost";
 
         internal static readonly string TimesTraded = "generic:times_traded";
         internal static readonly string ItemsSold = "generic:items_sold";
-        internal static readonly string GiftsGiven = "generic:gifts_given";
-
-        internal static readonly string DailyStreak = "generic:daily_streak";
-        internal static readonly string Capacity = "generic:capacity";
-    }
-
-    /*
+        internal static readonly string ItemsUsed = "generic:items_used";
+        internal static readonly string ItemsGifted = "generic:items_gifted";
+        internal static readonly string TimesUpgraded = "generic:times_upgraded";
+        internal static readonly string BoostersUsed = "generic:boosters_used";
         
-        // this applies the reward to the user.
-        private static void ApplyReward(User user, Reward reward)
-        {
-            foreach ((string itemId, int amount) in reward.ItemIds)
-                user.AddItem(itemId, amount);
 
-            user.Balance += reward.Money.GetValueOrDefault(0);
+        internal static readonly string DailyStreak = "daily:current_streak";
+        internal static readonly string LongestDailyStreak = "daily:longest_streak";
+        internal static readonly string TimesDaily = "daily:times_used";
 
-            if (reward.Exp != null)
-                user.UpdateExp(reward.Exp.Value, reward.Exp.Type);
-        }
-
-     
-     
-     */
+        internal static readonly string VoteStreak = "vote:current_streak";
+        internal static readonly string LongestVoteStreak = "vote:longest_streak";
+        internal static readonly string TimesVoted = "vote:times_used";
+    }
 }
