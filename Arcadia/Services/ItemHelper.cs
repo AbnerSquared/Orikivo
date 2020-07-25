@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
+using Arcadia.Modules;
 
 namespace Arcadia
 {
@@ -14,6 +15,9 @@ namespace Arcadia
             var offset = new DateTime(2020, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             return (DateTime.UtcNow.Ticks - offset.Ticks);
         }*/
+
+        public static string DetailsOf(Item item)
+            => Catalog.WriteItem(item);
 
         public static string ItemOf(ArcadeUser user, string uniqueId)
         {
@@ -47,6 +51,8 @@ namespace Arcadia
                     Size = 100,
                     OnUse = new ItemAction
                     {
+                        // TODO: Implement incorporation of item criteria.
+                        Criteria = user => user.Debt >= 1000,
                         Durability = 1,
                         Cooldown = TimeSpan.FromHours(48),
                         DeleteOnBreak = true,

@@ -34,21 +34,22 @@ namespace Arcadia
 
         public string Summary { get; set; }
 
-        public MeritGroup Group { get; set; } = MeritGroup.Misc;
+        public string Quote { get; set; }
+
+        public MeritGroup Group { get; set; } = MeritGroup.Generic;
 
         public MeritRank Rank { get; set; }
 
+        public long Value { get; set; }
+
+        public bool Hidden { get; set; }
+
         // TODO: Implement explicit Criteria (UserCriteria)
         public Func<ArcadeUser, bool> Criteria { get; set; }
-
-        public UserCriteria ExplicitCriteria { get; set; }
 
         public Reward Reward { get; set; }
 
         public MeritData GetData()
             => new MeritData(DateTime.UtcNow, Check.NotNull(Reward) ? false : (bool?) null);
-
-        public string ClaimAndDisplay(ArcadeUser user)
-            => MeritHandler.ClaimAndDisplay(user, this);
     }
 }

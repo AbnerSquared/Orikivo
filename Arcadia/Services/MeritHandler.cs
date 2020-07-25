@@ -8,12 +8,133 @@ using Orikivo;
 
 namespace Arcadia
 {
+    public enum MeritFlag
+    {
+        Default = 0,
+        Hidden = 1,
+        Generic = 2,
+        Casino = 4
+    }
+
     public static class MeritHelper
     {
         public static readonly List<Merit> Merits =
             new List<Merit>
             {
-
+                new Merit
+                {
+                    Id = "generic:progress_pioneer",
+                    Name = "Progression Pioneer",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Diamond,
+                    Value = 100,
+                    Quote = "You were there at the start, leading the path to what exists now.",
+                },
+                new Merit
+                {
+                    Id = "casino:liquidation",
+                    Name = "Liquidation",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "Your requests have been met with gold.",
+                    Criteria = user => user.GetStat(GimiStats.TimesGold) > 0
+                },
+                new Merit
+                {
+                    Id = "casino:deprivation",
+                    Name = "Deprivation",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "Your greed has led you to perish under the moonlight.",
+                    Criteria = user => user.GetStat(GimiStats.TimesCursed) > 0
+                },
+                new Merit
+                {
+                    Id = "casino:golden_touch",
+                    Name = "Golden Touch",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Gold,
+                    Value = 50,
+                    Quote = "Midas must've gifted you with his abilities.",
+                    Criteria = user => user.GetStat(GimiStats.LongestGold) >= 2,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:pandoras_box",
+                    Name = "Pandora's Box",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Gold,
+                    Value = 50,
+                    Quote = "Your ruthless requests released the worst of this world.",
+                    Criteria = user => user.GetStat(GimiStats.LongestCurse) >= 2,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:precognitive_chance",
+                    Name = "Precognitive Chance",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Silver,
+                    Value = 25,
+                    Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
+                    Criteria = user => user.GetStat(TickStats.LongestWinExact) >= 3,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "generic:weekly_worker",
+                    Name = "Weekly Worker",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 7,
+                    Quote = "You've stopped by for 7 days, making your name known.",
+                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 7
+                },
+                new Merit
+                {
+                    Id = "generic:monthly_advocate",
+                    Name = "Monthly Advocate",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Gold,
+                    Value = 30,
+                    Quote = "30 days have passed, and you have yet to miss a single one.",
+                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 30
+                },
+                new Merit
+                {
+                    Id = "generic:daily_automaton",
+                    Name = "Daily Automaton",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Platinum,
+                    Value = 100,
+                    Quote = "You're still here. Even after 100 days.",
+                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 100,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "generic:perfect_attendance",
+                    Name = "Perfect Attendance",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Diamond,
+                    Value = 365,
+                    Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
+                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 365,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "generic:escaping_trouble",
+                    Name = "Escaping Trouble",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
+                    Criteria = user => user.GetStat($"{Items.PocketLawyer}:times_used") >= 1
+                } // TODO: Create automatic item stat tracking
             };
 
         public static Merit GetMerit(string id)
@@ -32,8 +153,148 @@ namespace Arcadia
         public static bool Exists(string id)
             => Merits.Any(x => x.Id == id);
 
-        private static string GetProgressCounter(MeritGroup group, int collected, int total)
-            => $" (`{RangeF.Convert(0, total, 0, 100, collected)}%`)";
+        public static string Write(Merit merit)
+        {
+            var info = new StringBuilder();
+
+            if (merit.Criteria == null)
+            {
+                info.AppendLine(Format.Warning("This is an exclusive merit."));
+            }
+
+            info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
+
+            if (Check.NotNull(merit.Quote))
+            {
+                info.Append($"> {(merit.Hidden ? "||": "")}*\"{merit.Quote}\"*{(merit.Hidden ? "||" : "")}");
+            }
+
+            return info.ToString();
+        }
+
+        private static string GetProgress(ArcadeUser user, MeritFlag flag)
+        {
+            var progress = new StringBuilder();
+
+            int total = GetTotalOf(flag);
+
+            progress.Append($"**{GetCountOf(user, flag):##,0}");
+
+            if (flag != MeritFlag.Hidden)
+                progress.Append($"**/**{total:##,0}");
+
+            progress.Append($"{Format.TryPluralize("merit", total)} unlocked**");
+
+            return progress.ToString();
+        }
+
+        private static string GetProgress(ArcadeUser user, MeritGroup group)
+        {
+            var progress = new StringBuilder();
+
+            int total = GetTotalOf(group);
+
+            progress.Append($"**{GetCountOf(user, group):##,0}**/**{total:##,0}");
+
+            progress.Append($" {Format.TryPluralize("merit", total)} unlocked**");
+
+            return progress.ToString();
+        }
+
+        public static string View(ArcadeUser user, MeritFlag flag = MeritFlag.Default, int maxAllowedValues = 8)
+        {
+            var info = new StringBuilder();
+
+            if (flag != MeritFlag.Default)
+            {
+                info.Append(GetNotice(flag));
+            }
+
+            info.Append("> **Merits");
+
+            if (flag != MeritFlag.Default)
+                info.Append($": {flag.ToString()}");
+
+            info.AppendLine("**");
+
+            info.AppendLine($"> {GetSummary(flag)}\n");
+
+            if (flag == MeritFlag.Default)
+            {
+                foreach (MeritGroup g in MeritGroup.Generic.GetValues())
+                {
+                    info.AppendLine($"`{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
+                }
+
+                if (GetCountOf(user, MeritFlag.Hidden) != 0)
+                    info.AppendLine($"`{MeritFlag.Hidden.ToString().ToLower()}` • **{MeritFlag.Hidden.ToString()}**\n> {GetProgress(user, MeritFlag.Hidden)}\n");
+            }
+            else
+            {
+                int i = 0;
+                foreach (Merit merit in Merits.Where(GetInvokerFor(flag)))
+                {
+                    if (!HasMerit(user, merit.Id) && merit.Hidden)
+                        continue;
+
+                    info.AppendLine($"{Write(merit)}\n");
+                    i++;
+                }
+
+                if (i == 0)
+                {
+                    info.AppendLine("> *\"I could not find any achievements for you.\"*");
+                }
+            }
+
+            return info.ToString();
+        }
+
+        private static int GetCountOf(ArcadeUser user, MeritGroup group)
+            => user.Merits.Select(x => GetMerit(x.Key))
+                .Count(x => x.Group == group);
+
+        private static int GetCountOf(ArcadeUser user, MeritFlag flag)
+            => user.Merits.Select(x => GetMerit(x.Key))
+                .Count(GetInvokerFor(flag));
+
+        private static int GetTotalOf(MeritFlag flag)
+            => Merits.Count(GetInvokerFor(flag));
+
+        private static int GetTotalOf(MeritGroup group)
+            => Merits.Count(x => x.Group == group);
+
+        private static Func<Merit, bool> GetInvokerFor(MeritFlag flag)
+        {
+            return flag switch
+            {
+                MeritFlag.Generic => m => m.Group == MeritGroup.Generic && !m.Hidden,
+                MeritFlag.Casino => m => m.Group == MeritGroup.Casino && !m.Hidden,
+                MeritFlag.Hidden => m => m.Hidden,
+                _ => throw new NotSupportedException("Unknown merit flag type")
+            };
+        }
+
+        private static string GetSummary(MeritFlag flag)
+        {
+            return flag switch
+            {
+                MeritFlag.Default => "View the directory of major accomplishments.",
+                MeritFlag.Hidden => "*These are accomplishments that triumph over everything done before.*",
+                MeritFlag.Generic => "*These are common accomplishments for beginners to tackle.*",
+                MeritFlag.Casino => "*These are accomplishments given to the lucky.*",
+                _ => "INVALID_FLAG"
+            };
+        }
+
+        private static string GetNotice(MeritFlag flag)
+        {
+            return flag switch
+            {
+                MeritFlag.Hidden => "> 🔧 These merits do not account for total completion.\n\n",
+                _ => ""
+            };
+        }
     }
 
     /// <summary>
@@ -78,7 +339,6 @@ namespace Arcadia
         private static bool CanShowProgress(MeritGroup group)
             => group switch
             {
-                MeritGroup.Chaos => false,
                 _ => true
             };
 
@@ -86,7 +346,6 @@ namespace Arcadia
         private static string Summarize(MeritGroup group)
             => group switch
             {
-                MeritGroup.Chaos => "Represents the impossible.",
                 _ => null
             };
 

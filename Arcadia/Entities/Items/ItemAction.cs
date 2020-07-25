@@ -17,6 +17,8 @@ namespace Arcadia
         // Action<ArcadeUser, string> Action;
         public Action<ArcadeUser> Action { get; set; }
 
+        public Func<ArcadeUser, bool> Criteria { get; set; }
+
         // What happens when this item is broken?
         // This can be used to apply debuffs.
         public Action<ArcadeUser> OnBreak { get; set; }

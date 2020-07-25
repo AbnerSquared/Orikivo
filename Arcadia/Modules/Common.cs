@@ -26,6 +26,14 @@ namespace Arcadia.Modules
     public class Common : OriModuleBase<ArcadeContext>
     {
         [RequireUser]
+        [Command("merits")]
+        [Summary("View the directory of accomplishments.")]
+        public async Task ViewMeritsAsync(MeritFlag flag = MeritFlag.Default)
+        {
+            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag));
+        }
+
+        [RequireUser]
         [Command("daily")]
         public async Task GetDailyAsync()
         {

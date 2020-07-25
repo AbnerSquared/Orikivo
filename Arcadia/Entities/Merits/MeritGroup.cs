@@ -4,7 +4,7 @@
     // convert these values into a string
     public enum MeritGroup
     {
-        Misc = 0,
-        Chaos = 4
+        Generic = 1,
+        Casino = 2
     }
 }

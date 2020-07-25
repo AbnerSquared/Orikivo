@@ -14,6 +14,7 @@
         internal static readonly string TotalWon = "doubler:total_won";
 
         internal static readonly string LongestWin = "doubler:longest_win";
+        internal static readonly string LongestWinExact = "doubler:longest_win_exact";
         internal static readonly string LargestWin = "doubler:largest_win";
         internal static readonly string LargestWinSingle = "doubler:largest_win_single";
 
