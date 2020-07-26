@@ -87,82 +87,8 @@ namespace Orikivo
                 prefix = GetPrefix(ctx);
                 prefixFound = true;
             }
-            /*
-            // Handle option parsing here... (set argPos to before options
-            // [drawtext -f monori Hello world!
-            // ^        ^Options  ^Args
-            // 
-            var reader = new StringReader(source.Content);
-            reader.Skip(prefix.Length); // skip the length of the prefix
-            string name = reader.ReadUnquotedString(); // this should get the command name
+            
 
-            // Then, you need to trim the whitespace of the command
-            reader.SkipWhiteSpace();
-
-            CommandInfo command = _info.GetCommand(name);
-
-
-            // the raw collection of options.
-            List<string> rawOptions = new List<string>();
-
-            string rawOption = "";
-            bool isStart = false;
-            bool hasValue = false;
-            int spacing = 0;
-
-            while (reader.CanRead())
-            {
-                char c = reader.Peek();
-
-                if (isStart)
-                {
-                    if (reader.Contains(' '))
-                    {
-                        rawOption += reader.ReadUntil(' ');
-                        reader.SkipWhiteSpace();
-                    }
-                    else
-                    {
-                        rawOption += reader.GetRemaining();
-                    }
-
-                    isStart = false;
-                }
-
-                // This marks a new option.
-                if (c == '-')
-                {
-                    isStart = true;
-                    continue;
-                }
-
-                rawOption += reader.Read();
-            }
-
-            // 
-            // with the search given, get all of the options for a command.
-            IEnumerable<OptionAttribute> options = command.Attributes.FindAttributes<OptionAttribute>();
-
-            if (!Check.NotNullOrEmpty(options))
-            {
-                foreach (OptionAttribute option in options)
-                {
-                    bool requireValue = option.Type != null; // if this option requires a value.
-
-                    if (requireValue)
-                    {
-
-                    }
-                }
-            }
-
-
-            // Now, using the command ref given, use InfoService to get its data.
-
-
-            // PREFIXCOMMAND --OPTION VALUE --OPTION VALUE --OPTION VALUE ARG ARG ARG
-            //       ^
-            */
             if (prefixFound)
             {
                 await ExecuteAsync(ctx, i);
@@ -287,7 +213,8 @@ namespace Orikivo
         public void CheckStats(DesyncContext ctx, User user)
         {
             // Check the stats for any possible merits
-            var merits = Engine.Merits.Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
+            var merits = Engine.Merits
+                .Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
 
             if (merits.Count() > 0)
             {

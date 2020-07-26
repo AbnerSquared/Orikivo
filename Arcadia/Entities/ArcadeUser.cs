@@ -81,6 +81,9 @@ namespace Arcadia
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
+        [JsonIgnore]
+        public Notifier Notifier { get; } = new Notifier();
+
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
 

@@ -1,11 +1,12 @@
 ﻿using Discord;
 using System.Text;
+using Orikivo.Desync;
 
 namespace Orikivo
 {
     public class Message
     {
-        public Message(MessageBuilder builder)
+        public Message(MessageBuilder builder, Notifier notifier = null)
         {
             if (Check.NotNull(builder.Embedder))
             {

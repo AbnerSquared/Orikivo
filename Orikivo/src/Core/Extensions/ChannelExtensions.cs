@@ -120,6 +120,7 @@ namespace Orikivo
             return next;
         }
 
+        // TODO: Use the base Notifier class instead to give it the ability to be generic
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
             User user,
             string text = null,

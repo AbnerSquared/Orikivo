@@ -141,6 +141,7 @@ namespace Arcadia
         // update all accounts and users accordingly based on the command
         private async Task UpdateAsync(CommandInfo command, ArcadeContext ctx)
         {
+            
             /*
             // Manage or update cooldowns
             CooldownAttribute cooldown = command.Attributes.FirstAttribute<CooldownAttribute>();
@@ -157,6 +158,7 @@ namespace Arcadia
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
+                MeritHelper.TryGiveMerits(ctx.Account);
 
                 Logger.Debug("User updated. Now saving...");
                 ctx.Data.Users.TrySave(ctx.Account);

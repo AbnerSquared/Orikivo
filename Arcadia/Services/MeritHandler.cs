@@ -264,7 +264,8 @@ namespace Arcadia
         private static int GetTotalOf(MeritGroup group)
             => Merits.Count(x => x.Group == group);
 
-        private static Func<Merit, bool> GetInvokerFor(MeritFlag flag)
+        // TODO: include hidden counters.
+        private static Func<Merit, bool> GetInvokerFor(MeritFlag flag, ArcadeUser user = null)
         {
             return flag switch
             {
@@ -295,6 +296,32 @@ namespace Arcadia
                 _ => ""
             };
         }
+
+        public static void TryGiveMerits(ArcadeUser user)
+        {
+            foreach (Merit merit in Merits.Where(x => IsEligible(user, x)))
+            {
+                user.Merits.Add(merit.Id, merit.GetData());
+                user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
+            }
+        }
+
+        public static bool IsEligible(ArcadeUser user, Merit merit)
+        {
+            if (merit.Criteria == null)
+                return false;
+
+            return merit.Criteria(user) && !HasMerit(user, merit.Id);
+        }
+
+        public static void TryUnlock(ArcadeUser user, Merit merit)
+        {
+            if (!IsEligible(user, merit))
+                return;
+
+            user.Merits.Add(merit.Id, merit.GetData());
+            user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
+        }
     }
 
     /// <summary>
@@ -302,53 +329,6 @@ namespace Arcadia
     /// </summary>
     internal static class MeritHandler
     {
-        internal static string ViewDefault(ArcadeUser user)
-        {
-            bool showTooltips = user.Config?.Tooltips ?? false;
-
-            var panel = new StringBuilder();
-            panel.AppendLine("> **Merits**");
-
-            if (showTooltips)
-                panel.AppendLine("> Use `merits <group>` to view a specific merit category.");
-
-            panel.AppendLine();
-
-
-            foreach (MeritGroup type in EnumUtils.GetValues<MeritGroup>())
-            {
-                IEnumerable<string> merits = MeritHelper.Merits.Where(x => x.Group == type).Select(x => x.Id);
-                int collected = user.Merits.Keys.Count(k => merits.Contains(k));
-
-                panel.Append($"> **{type.ToString()}**");
-                panel.AppendLine(GetProgress(type, collected, merits.Count()));
-
-                string summary = Summarize(type);
-
-                if (Check.NotNull(summary))
-                    panel.AppendLine($"> {summary}");
-            }
-
-            return panel.ToString();
-        }
-
-        private static string GetProgress(MeritGroup group, int collected, int total)
-            => CanShowProgress(group) ? $" (`{RangeF.Convert(0, total, 0, 100, collected)}%`)" : "";
-
-        // determines if the % of completion when viewing categories is displayed.
-        private static bool CanShowProgress(MeritGroup group)
-            => group switch
-            {
-                _ => true
-            };
-
-        // summarizes the merit group
-        private static string Summarize(MeritGroup group)
-            => group switch
-            {
-                _ => null
-            };
-
         // view a specific merit category.
         internal static string ViewCategory(ArcadeUser user, MeritGroup group)
         {

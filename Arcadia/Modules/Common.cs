@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
-using Arcadia.Graphics;
 using GraphicsService = Arcadia.Graphics.GraphicsService;
 using CardDetails = Arcadia.Graphics.CardDetails;
 using CardProperties = Arcadia.Graphics.CardProperties;
@@ -14,6 +13,12 @@ using Casing = Arcadia.Graphics.Casing;
 
 namespace Arcadia.Modules
 {
+    public class ArcadeModule<T> : OriModuleBase<T>
+        where T : ArcadeContext
+    {
+        //public async Task<IUserMessage> ReplyAsync(Message message, RequestOptions options = null)
+        //    => await Context.Channel.SendMessageAsync(message, options);
+    }
     // TODO: Instead of being an enum value, simply make the flag NULL
 
     // TODO: Implement shopping, merits
