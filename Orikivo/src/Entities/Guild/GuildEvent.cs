@@ -10,6 +10,7 @@ namespace Orikivo
     /// </summary>
     public class GuildEvent
     {
+        [JsonConstructor]
         public GuildEvent(EventType type, string message, string imageUrl = null)
         {
             if (Check.NotNull(imageUrl))
@@ -27,13 +28,13 @@ namespace Orikivo
         }
 
         [JsonProperty("event_type")]
-        public EventType Type { get; set; }
+        public EventType Type { get; }
 
         [JsonProperty("message")]
-        public string Message { get; set; }
+        public string Message { get; internal set; }
 
         [JsonProperty("image_url")]
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; internal set; }
 
         [JsonIgnore]
         public bool HasImage => Check.NotNull(ImageUrl);

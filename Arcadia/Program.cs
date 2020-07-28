@@ -55,7 +55,7 @@ namespace Arcadia
                     .AddEnumTypeReader<CardComponent>()
                     .AddEnumTypeReader<Gamma>()
                     .AddEnumTypeReader<BorderEdge>()
-                    .AddEnumTypeReader<LeaderboardFlag>()
+                    .AddEnumTypeReader<LeaderboardQuery>()
                     .AddEnumTypeReader<LeaderboardSort>()
                     .AddEnumTypeReader<TickWinMethod>();
 

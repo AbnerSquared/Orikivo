@@ -122,13 +122,13 @@ namespace Orikivo
 
         // TODO: Use the base Notifier class instead to give it the ability to be generic
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
-            User user,
+            BaseUser user,
             string text = null,
             bool isTTS = false,
             Embed embed = null,
             RequestOptions options = null)
         {
-            StringBuilder content = new StringBuilder();
+            var content = new StringBuilder();
 
             if (user.Notifier.CanNotify)
             {
@@ -137,9 +137,31 @@ namespace Orikivo
             }
             
             if (!string.IsNullOrWhiteSpace(text))
-                content.AppendLine(text);
+                content.Append(text);
 
             return await channel.SendMessageAsync(content.ToString(), isTTS, embed, options);
+        }
+
+        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
+            BaseUser user,
+            Message message,
+            RequestOptions options = null)
+        {
+            var content = new StringBuilder();
+
+            if (user.Notifier.CanNotify)
+            {
+                content.AppendLine(user.Notifier.Notify());
+                user.Notifier.LastNotified = DateTime.UtcNow;
+            }
+
+            if (!string.IsNullOrWhiteSpace(message.Text))
+                content.Append(message.Text);
+
+            if (Check.NotNull(message.AttachmentUrl))
+                return await channel.SendFileAsync(message.AttachmentUrl, content.ToString(), message.IsTTS, message.Embed, options, message.IsSpoiler);
+            else
+                return await channel.SendMessageAsync(content.ToString(), message.IsTTS, message.Embed, options);
         }
 
         /// <summary>

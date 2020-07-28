@@ -6,7 +6,6 @@ namespace Orikivo.Desync
     {
         public int Tier { get; set; }
 
-        public List<Decor> Decors { get; set; }
         public Storage Storage { get; set; }
     }
 }

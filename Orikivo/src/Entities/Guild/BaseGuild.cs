@@ -1,12 +1,11 @@
-﻿using Discord.WebSocket;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using Discord;
 
-namespace Orikivo.Desync
+namespace Orikivo
 {
     /// <summary>
-    /// Represents a guild account for <see cref="Orikivo"/>.
+    /// Represents a generic guild account.
     /// </summary>
     public class BaseGuild : IJsonEntity
     {

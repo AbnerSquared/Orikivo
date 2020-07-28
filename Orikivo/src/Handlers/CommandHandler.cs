@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo
 {
     // TODO: Implement ignoring when a MessageCollector is currently in use for a user.
@@ -33,7 +34,7 @@ namespace Orikivo
 
         public string GetPrefix(DesyncContext ctx)
             => ctx.Account?.Config.Prefix ??
-               ctx.Server?.Options.Prefix ??
+               ctx.Server?.Config.Prefix ??
                ctx.Global.Prefix;
 
         public async Task ReadInputAsync(SocketMessage arg)
@@ -197,7 +198,7 @@ namespace Orikivo
             {
                 ctx.Container.TrySaveGuild(ctx.Server);
             }
-            else if (!JsonHandler.JsonExists<OriGuild>(ctx.Guild.Id))
+            else if (!JsonHandler.JsonExists<BaseGuild>(ctx.Guild.Id))
             {
                 if (ctx.Guild == null)
                     ctx.Container.GetOrAddGuild(ctx.Guild);

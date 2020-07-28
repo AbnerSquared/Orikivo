@@ -15,7 +15,7 @@ namespace Arcadia
         // What happens when this is used?
         // string represents the message sent. If unspecified, it will use the default text on using an item.
         // Action<ArcadeUser, string> Action;
-        public Action<ArcadeUser> Action { get; set; }
+        public Func<ArcadeUser, UsageResult> Action { get; set; }
 
         public Func<ArcadeUser, bool> Criteria { get; set; }
 

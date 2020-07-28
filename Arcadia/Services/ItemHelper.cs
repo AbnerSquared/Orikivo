@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Arcadia.Graphics;
-using Arcadia.Modules;
+using Orikivo;
+using Catalog = Arcadia.Modules.Catalog;
+using PaletteType = Arcadia.Graphics.PaletteType;
 
 namespace Arcadia
 {
@@ -37,7 +38,8 @@ namespace Arcadia
                     Summary = "A summon that completely wipes all debt from a user.",
                     Quotes = new List<string>
                     {
-                        "With my assistance, ORS doesn't stand a chance."
+                        "With my assistance, ORS doesn't stand a chance.",
+                        "You'll get the chance to dispute in court, don't worry."
                     },
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Summon,
@@ -46,17 +48,19 @@ namespace Arcadia
                     CanSell = true,
                     CanDestroy = true,
                     TradeLimit = 0,
-                    GiftLimit = 1,
                     BypassCriteriaOnGift = true,
                     Size = 100,
                     OnUse = new ItemAction
                     {
-                        // TODO: Implement incorporation of item criteria.
                         Criteria = user => user.Debt >= 1000,
                         Durability = 1,
                         Cooldown = TimeSpan.FromHours(48),
                         DeleteOnBreak = true,
-                        Action = user => user.Debt = 0
+                        Action = delegate (ArcadeUser user)
+                        {
+                            user.Debt = 0;
+                            return new UsageResult("> You have been freed from the shackles of debt.");
+                        }
                     },
                     OwnLimit = 2,
                     MarketCriteria = null,
@@ -82,7 +86,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Common,
                     OnUse = new ItemAction
                     {
-                        Action = user => user.Card.Palette = PaletteType.GammaGreen
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.GammaGreen))
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -108,7 +112,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Common,
                     OnUse = new ItemAction
                     {
-                        Action = user => user.Card.Palette = PaletteType.Crimson
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Crimson))//user.Card.Palette = PaletteType.Crimson
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -134,7 +138,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Uncommon,
                     OnUse = new ItemAction
                     {
-                        Action = user => user.Card.Palette = PaletteType.Wumpite
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Wumpite))
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -160,7 +164,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Uncommon,
                     OnUse = new ItemAction
                     {
-                        Action = user => user.Card.Palette = PaletteType.Glass
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))//user.Card.Palette = PaletteType.Glass
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -169,6 +173,23 @@ namespace Arcadia
                     OwnLimit = 10
                 }
             };
+
+        private static string SetOrSwapPalette(ArcadeUser user, PaletteType palette)
+        {
+            if (user.Card.Palette == palette)
+                return Format.Warning($"You already have **{palette.ToString()}** equipped on your **Card Palette**.");
+
+            string result = $"> 📟 Equipped **{palette.ToString()}** to your **Card Palette**.";
+            if (user.Card.Palette != PaletteType.Default)
+            {
+                GiveItem(user, IdFor(user.Card.Palette));
+                result = $"📟 Swapped out **{user.Card.Palette}** for {palette} on your **Card Palette**.";
+            }
+
+            TakeItem(user, IdFor(palette));
+            user.Card.Palette = palette;
+            return result;
+        }
 
         public static bool CanGift(string itemId, UniqueItemData data)
         {
@@ -268,6 +289,9 @@ namespace Arcadia
                         return false;
             }
 
+            if (item.OnUse.Criteria != null)
+                return item.OnUse.Criteria(user);
+
             return true;
         }
 
@@ -358,6 +382,18 @@ namespace Arcadia
                     user.Card.Palette = PaletteType.Default; // If the palette was taken away, set to default palette.
 
             }
+        }
+
+        internal static string IdFor(PaletteType palette)
+        {
+            return palette switch
+            {
+                PaletteType.GammaGreen => Arcadia.Items.PaletteGammaGreen,
+                PaletteType.Crimson => Arcadia.Items.PaletteCrimson,
+                PaletteType.Glass => Arcadia.Items.PaletteGlass,
+                PaletteType.Wumpite => Arcadia.Items.PaletteWumpite,
+                _ => null
+            };
         }
 
         private static PaletteType PaletteOf(string paletteId)
@@ -514,18 +550,20 @@ namespace Arcadia
                 : x.Id == itemId);
         }
 
-        public static void UseItem(ArcadeUser user, string itemId, string uniqueId = null)
+        public static UsageResult UseItem(ArcadeUser user, string itemId, string uniqueId = null)
         {
             Item item = GetItem(itemId);
             var isBroken = false;
 
+            UsageResult result = new UsageResult(false);
+
             // if there is no available action.
             if (item.OnUse == null)
-                return;
+                return result;
 
             // if the user doesn't even have an item.
             if (!HasItem(user, itemId))
-                return;
+                return result;
 
             // otherwise, check if the user can use the item
             if (IsUnique(item))
@@ -535,13 +573,13 @@ namespace Arcadia
 
                 // There isn't an available item to use in this case.
                 if (string.IsNullOrWhiteSpace(uniqueId))
-                    return;
+                    return result;
 
                 var data = Peek(user, uniqueId);
 
                 if (!CanUse(user, itemId, data))
                 {
-                    return;
+                    return result;
                 }
 
                 // first, check if the item will be deleted on use
@@ -564,7 +602,7 @@ namespace Arcadia
             else
             {
                 if (!CanUse(user, itemId))
-                    return;
+                    return result;
 
                 if (item.OnUse.Durability == 1)
                 {
@@ -582,11 +620,13 @@ namespace Arcadia
             }
 
             // As the final step, invoke the action defined on the item.
-            item.OnUse.Action(user);
+            result = item.OnUse.Action(user);
 
             // If the item broke, invoke that action too.
             if (isBroken)
                 item.OnUse.OnBreak?.Invoke(user);
+
+            return result;
         }
 
         private static string GetBestUniqueId(ArcadeUser user, string itemId)

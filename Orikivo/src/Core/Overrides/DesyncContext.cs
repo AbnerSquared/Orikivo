@@ -22,27 +22,21 @@ namespace Orikivo
             set => Container.AddOrUpdateUser(User.Id, value);
         }
 
-        public Husk Husk
-        {
-            get => Account?.Husk;
-        }
+        public Husk Husk => Account?.Husk;
 
-        public HuskBrain Brain
-        {
-            get => Account?.Brain;
-        }
+        public HuskBrain Brain => Account?.Brain;
 
-        public OriGuild Server
+        public BaseGuild Server
         {
             get
             {
-                Container.TryGetGuild(Guild.Id, out OriGuild s);
+                Container.TryGetGuild(Guild.Id, out BaseGuild s);
                 return s;
             }
             set => Container.AddOrUpdateGuild(Guild.Id, value);
         }
 
-        public OriGlobal Global { get; }
+        public OriGlobal Global => Container.Global;
 
         public DesyncContainer Container { get; }
 
@@ -55,12 +49,11 @@ namespace Orikivo
         {
             Logger.Debug("[Debug] -- Constructing command context. --");
             Container = container; // ensured in container.
-            Global = Container.Global;
+
             if (Guild != null)
             {
                 Container.GetOrAddGuild(Guild);
-                Server.TryUpdateName(Guild.Name);
-                Server.TryUpdateOwner(Guild.OwnerId);
+                Server.Synchronize(Guild);
                 Logger.Debug("[Debug] -- Guild account found or built. --");
             }
             Logger.Debug($"[Debug] -- User {(Account == null ? "does not have an" : "has an")} account. --");
@@ -69,13 +62,13 @@ namespace Orikivo
 
         // TODO: Create BaseContext, which others can inherit for AttachmentData and OptionData methods.
         public AttachmentData GetAttachment(string name)
-            => Attachments.Where(x => x.Name == name).FirstOrDefault();
+            => Attachments.FirstOrDefault(x => x.Name == name);
 
         public OptionData GetOption(string name)
-            => Options?.Where(x => x.Name == name).FirstOrDefault();
+            => Options?.FirstOrDefault(x => x.Name == name);
 
         public T GetOptionValue<T>(string name)
-            => (T)Options?.Where(x => x.Name == name && x.Type == typeof(T))?.FirstOrDefault()?.Value;
+            => (T) Options?.FirstOrDefault(x => x.Name == name && x.Type == typeof(T))?.Value;
 
         public T GetOptionOrDefault<T>(string name, T fallback = default(T))
             => GetOptionValue<T>(name) ?? fallback;

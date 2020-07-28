@@ -25,7 +25,6 @@ namespace Orikivo
         private readonly CommandService _commands;
         private readonly InfoFormatter _formatter;
         private readonly ReportContainer _reports;
-        private IEnumerable<GuildCommand> _guildCommands;
 
         private static bool FilterModule(ModuleInfo m, string n)
             => m.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
@@ -100,24 +99,8 @@ namespace Orikivo
             Guides = DefaultGuides;
         }
 
-        public InfoService(CommandService commands, OriGlobal global, OriGuild guild, InfoFormatter formatter = null) : this(commands, global, formatter)
-        {
-            _guildCommands = guild.Options.Commands;
-        }
-
         internal void SetFormatter(InfoFormatter formatter)
         {
-
-        }
-
-        internal void SetGuild(OriGuild guild)
-        {
-            _guildCommands = guild.Options.Commands;
-        }
-
-        internal void ClearGuildInfo()
-        {
-            _guildCommands = null;
 
         }
 

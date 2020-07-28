@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Newtonsoft.Json;
 
 namespace Orikivo
@@ -7,14 +7,14 @@ namespace Orikivo
     public class GuildCommand
     {
         [JsonConstructor]
-        internal GuildCommand(SocketUser user, string name, MessageBuilder message)
+        internal GuildCommand(IUser user, string name, MessageBuilder message)
         {
             Author = new Author(user.Username, user.Id);
             Name = name;
             Message = message;
         }
 
-        public GuildCommand(SocketUser user, string name)
+        public GuildCommand(IUser user, string name)
         {
             Catch.NotNull(name, nameof(name), "The name for a custom command cannot be empty.");
             Author = new Author(user.Username, user.Id);

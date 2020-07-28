@@ -74,7 +74,7 @@ namespace Arcadia.Services
                 user.SetStat(Cooldowns.Daily, DateTime.UtcNow.Ticks);
                 user.UpdateStat(Stats.DailyStreak);
                 user.UpdateStat(Stats.TimesDaily);
-                StatHelper.SetIfGreater(user, Stats.DailyStreak, Stats.LongestDailyStreak);
+                StatHelper.SetIfGreater(user, Stats.LongestDailyStreak, Stats.DailyStreak);
                 user.Give(reward);
             }
 

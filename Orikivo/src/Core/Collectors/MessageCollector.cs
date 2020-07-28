@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo
 {
     /// <summary>
@@ -14,6 +15,7 @@ namespace Orikivo
         // THIS CAN BE USED TO SET UP ROUGH Func<T> VALUES
         public delegate bool FilterDelegate(SocketMessage message, int index);
         public delegate bool CollectionDelegate(SocketMessage message, FilterCollection matches, int index);
+
         public event CollectionDelegate MessageFiltered;
         /// <summary>
         /// Constructs a new <see cref="MessageCollector"/> with the specified <see cref="BaseSocketClient"/>.
@@ -32,12 +34,12 @@ namespace Orikivo
 
         public async Task MatchAsync(MessageFilter filter, MatchOptions options = null)
             => await MatchAsync(filter.Judge, options);
-        public async Task MatchAsync(Func<SocketMessage, int, bool> filter, MatchOptions options = null)
+        public async Task MatchAsync(FilterDelegate filter, MatchOptions options = null)
         {
             options ??= MatchOptions.Default;
             FilterMatch match = null;
-            AsyncTimer timer = new AsyncTimer(options.Timeout);
-            TaskCompletionSource<bool> complete = new TaskCompletionSource<bool>();
+            var timer = new AsyncTimer(options.Timeout);
+            var complete = new TaskCompletionSource<bool>();
 
             await options.Action.OnStartAsync();
 

@@ -30,9 +30,7 @@ namespace Orikivo.Modules
         {
             try
             {
-                _info.SetGuild(Context.Server);
                 await Context.Channel.SendMessageAsync(_info.GetPanel(context, Context.Account));
-                _info.ClearGuildInfo();
             }
             catch (Exception ex)
             {

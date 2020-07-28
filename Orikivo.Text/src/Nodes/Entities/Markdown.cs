@@ -5,12 +5,12 @@ namespace Orikivo.Text.Nodes
     [Flags]
     public enum Markdown
     {
-        Bold,
-        Italics,
-        Strike,
-        Underline,
-        Code,
-        Quote,
-        Spoiler
+        Bold = 1,
+        Italics = 2,
+        Strike = 4,
+        Underline = 8,
+        Code = 16,
+        Quote = 32,
+        Spoiler = 64
     }
 }

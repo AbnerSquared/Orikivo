@@ -11,21 +11,14 @@ using CardDetails = Arcadia.Graphics.CardDetails;
 using CardProperties = Arcadia.Graphics.CardProperties;
 using Casing = Arcadia.Graphics.Casing;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
-    public class ArcadeModule<T> : OriModuleBase<T>
-        where T : ArcadeContext
-    {
-        //public async Task<IUserMessage> ReplyAsync(Message message, RequestOptions options = null)
-        //    => await Context.Channel.SendMessageAsync(message, options);
-    }
-    // TODO: Instead of being an enum value, simply make the flag NULL
-
-    // TODO: Implement shopping, merits
+    // TODO: Implement shopping
     // - Missions
     // - Shopping
     // - Card Customization
-    // - Merits
+
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
@@ -33,7 +26,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("merits")]
         [Summary("View the directory of accomplishments.")]
-        public async Task ViewMeritsAsync(MeritFlag flag = MeritFlag.Default)
+        public async Task ViewMeritsAsync(MeritQuery flag = MeritQuery.Default)
         {
             await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag));
         }
@@ -44,6 +37,32 @@ namespace Arcadia.Modules
         {
             DailyResultFlag result = Daily.Next(Context.Account);
             await Context.Channel.SendMessageAsync(Daily.ApplyAndDisplay(Context.Account, result));
+        }
+
+        [RequireUser]
+        [Command("giveprogresspioneer")]
+        public async Task GivePioneerMerit(SocketUser user = null)
+        {
+            if (Context.User.Id != OriGlobal.DevId)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Only the developer may execute this command."));
+                return;
+            }
+
+            user ??= Context.User;
+            Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
+
+            if (participant == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return;
+            }
+
+            MeritHelper.TryUnlock(participant, Merits.ProgressPioneer);
+            Context.SaveUser(participant);
+
+            if (MeritHelper.HasMerit(participant, Merits.ProgressPioneer))
+                await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** **{MeritHelper.NameOf(Merits.ProgressPioneer)}**.");
         }
 
         //[Command("testgiveitem")]
@@ -122,13 +141,13 @@ namespace Arcadia.Modules
                     Action = handler
                 };
 
-                Func<SocketMessage, int, bool> filter = delegate (SocketMessage message, int index)
+                bool Filter(SocketMessage message, int index)
                 {
                     return (handler.Host.Id == message.Author.Id || handler.Participant.Id == message.Author.Id)
                         && (message.Channel.Id == Context.Channel.Id);
-                };
+                }
 
-                await collector.MatchAsync(filter, options);
+                await collector.MatchAsync(Filter, options);
             }
             catch (Exception e)
             {
@@ -157,7 +176,7 @@ namespace Arcadia.Modules
 
             if (!ItemHelper.HasItem(Context.Account, itemId))
             {
-                await Context.Channel.SendMessageAsync("> You do not own this item.");
+                await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
                 return;
             }
 
@@ -165,7 +184,7 @@ namespace Arcadia.Modules
             // Next, check if the item can be gifted.
             if (!ItemHelper.CanGift(itemId, ItemHelper.DataOf(Context.Account, itemId)?.Data))
             {
-                await Context.Channel.SendMessageAsync("> This item cannot be gifted.");
+                await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
                 return;
             }
 
@@ -179,14 +198,14 @@ namespace Arcadia.Modules
 
             await Context.Channel.SendMessageAsync($"> Gave **{account.Username}** a **{ItemHelper.NameOf(itemId)}**.");
 
-            /*
             if (ItemHelper.GetItem(itemId).GiftLimit.HasValue)
             {
                 bool hasGiftCounter = ItemHelper.DataOf(account, itemId)?.Data?.GiftCount.HasValue ?? false;
-                //if (hasGiftCounter)
-                //   ItemHelper.DataOf(account, itemId)?.Data?.GiftCount += 1;
-            }*/
-
+                if (hasGiftCounter)
+                {
+                    ItemHelper.DataOf(account, itemId).Data.GiftCount++;
+                }
+            }
         }
 
         [Command("use")]
@@ -194,17 +213,6 @@ namespace Arcadia.Modules
         public async Task UseItemAsync(string id)
         {
             // TODO: Handle the using of unique items.
-            /*
-            // if this ID was a valid unique id
-            string itemId = ItemHelper.ItemOf(Context.Account, id);
-
-            if (!string.IsNullOrWhiteSpace(itemId))
-            {
-                ItemHelper.UseItem(Context.Account, itemId, id);
-                await Context.Channel.SendMessageAsync($"> You have used **{ItemHelper.NameOf(itemId)}**.");
-                return;
-            }
-            */
 
             if (!ItemHelper.Exists(id))
             {
@@ -227,14 +235,21 @@ namespace Arcadia.Modules
                 }
                 else
                 {
-                    await Context.Channel.SendMessageAsync($"> You are unable to use **{ItemHelper.NameOf(id)}**.");
+                    await Context.Channel.SendMessageAsync(Format.Warning($"> You are unable to use **{ItemHelper.NameOf(id)}**."));
                 }
 
                 return;
             }
 
-            ItemHelper.UseItem(Context.Account, id);
-            await Context.Channel.SendMessageAsync($"> You have used **{ItemHelper.NameOf(id)}**.");
+            UsageResult result = ItemHelper.UseItem(Context.Account, id);
+
+            if (result.Message != null)
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, result.Message);
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(id)}**."));
         }
 
         //[Command("destroy"), Alias("delete", "del")]
@@ -268,9 +283,10 @@ namespace Arcadia.Modules
         }
 
         // This gets a person's backpack.
-        [Command("inventory"), Alias("backpack", "items", "bp")]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetBackpackAsync(int page = 0, SocketUser user = null)
+        [Command("inventory"), Alias("backpack", "items", "inv", "bp")]
+        [Summary("View your contents currently in storage.")]
+        public async Task GetBackpackAsync(SocketUser user = null) // int page = 0
         {
             user ??= Context.User;
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
@@ -281,7 +297,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Inventory.Write(account));
+            await Context.Channel.SendMessageAsync(Inventory.Write(account, account.Id == Context.Account.Id));
         }
 
         [Command("stats")]
@@ -327,10 +343,10 @@ namespace Arcadia.Modules
         // TODO: Implement enum value listings
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
-        public async Task GetLeaderboardAsync(LeaderboardFlag flag = LeaderboardFlag.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
+        public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
         {
-            if (flag == LeaderboardFlag.Custom)
-                flag = LeaderboardFlag.Default;
+            if (flag == LeaderboardQuery.Custom)
+                flag = LeaderboardQuery.Default;
 
             var board = new Leaderboard(flag, sort);
             string result = board.Write(Context.Data.Users.Values.Values, page);

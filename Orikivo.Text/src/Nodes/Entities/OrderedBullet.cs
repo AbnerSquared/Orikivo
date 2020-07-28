@@ -3,6 +3,6 @@
     public class OrderedBullet
     {
         public OrderedBulletType Type;
-        public char Break; // what is after the bullet?
+        public char Separator; // what is after the bullet?
     }
 }

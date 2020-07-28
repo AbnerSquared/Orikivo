@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Format = Orikivo.Format;
 
 namespace Arcadia
 {
+    // TODO: Implement StringReader to parse input to be much more precise than direct string comparison
     public class TradeHandler : MatchAction
     {
         public TradeHandler(ArcadeContext context, ArcadeUser participant) : base()
@@ -58,7 +60,7 @@ namespace Arcadia
 
         public override async Task OnStartAsync()
         {
-            MessageReference = await Context.Channel.SendMessageAsync($"Invited **{Participant.Username}** to trade!\n> *Waiting for a response...*");
+            MessageReference = await Context.Channel.SendMessageAsync($"> 📨 Invited **{Participant.Username}** to trade!\n> *Waiting for a response...*");
         }
 
         private string WriteTradeMenu()
@@ -83,25 +85,25 @@ namespace Arcadia
             return menu.ToString();
         }
 
-        private string WriteOnReady(ArcadeUser invoker)
-            => $"> **{invoker.Username}** is ready!";
+        private static string WriteOnReady(ArcadeUser invoker)
+            => $"> ☑️ **{invoker.Username}** is ready to trade.";
 
         private string WriteOnCancel(ArcadeUser invoker)
         {
-            if (LastState == TradeState.Invite && invoker == Participant)
-                return $"**Sorry!**\n> **{Participant}** has denied the invitation to trade.";
+            if (LastState == TradeState.Invite && invoker.Equals(Participant))
+                return $"> 💢 **Sorry.**\n> **{Participant.Username}** has denied the invitation to trade.";
 
-            return $"**Oops!**\n**{invoker.Username}** has cancelled the trade.";
+            return $"> 💢 **Oops!**\n> **{invoker.Username}** has cancelled the trade.";
         }
 
         private string WriteOnTimeout()
         {
             // If the action has timed out during the invite, say that the user failed to reply to the trade.
             if (State == TradeState.Invite)
-                return $"**Oops!**\n> **{Participant.Username}** did not respond to the invitation in time.";
+                return $"> ⌛ **Oops!**\n> **{Participant.Username}** did not respond to the invitation in time.";
 
             // Otherwise, say that the trade has timed out.
-            return $"**Oops!**\n> The trade has timed out.";
+            return "> ⌛ **Oops!**\n> The trade has timed out.";
         }
 
         private string WriteInventory(ArcadeUser user)
@@ -115,20 +117,22 @@ namespace Arcadia
                 slot.Append($"> **{user.Username}** has not offered anything.");
             else
             {
-                slot.AppendLine($"> **{user.Username}** offers:");
+                slot.AppendLine($"> **{user.Username}** offers:\n");
 
                 int i = 0;
                 foreach ((string itemId, int amount) in items)
                 {
-                    if (i == 0)
+                    if (i >= 0)
                         slot.AppendLine();
 
                     slot.Append($"> **{ItemHelper.NameOf(itemId)}**");
 
                     if (amount > 1)
                     {
-                        slot.Append($" (x**{amount.ToString("##,0")}**)");
+                        slot.Append($" (x**{amount:##,0}**)");
                     }
+
+                    i++;
                 }
             }
 
@@ -178,6 +182,9 @@ namespace Arcadia
 
             if (!items.TryAdd(itemId, amount))
                 items[itemId] += amount;
+
+            HostReady = false;
+            ParticipantReady = false;
         }
 
         private void RemoveItemFromCurrent(string itemId, int amount = 1)
@@ -190,6 +197,9 @@ namespace Arcadia
                     items.Remove(itemId);
                 else
                     items[itemId] -= amount;
+
+                HostReady = false;
+                ParticipantReady = false;
             }
         }
 
@@ -244,7 +254,7 @@ namespace Arcadia
                     if (input == "accept" && account.Id == Participant.Id)
                     {
                         // If the user accepted the trade invitation, go to the base trade menu.
-                        await SetStateAsync(TradeState.Menu, $"> **{Participant.Username}** has agreed to trade.");
+                        await SetStateAsync(TradeState.Menu, $"> ☑️ **{Participant.Username}** has agreed to trade.");
                         return ActionResult.Continue;
                     }
 
@@ -264,21 +274,20 @@ namespace Arcadia
                     {
                         if (IsOfferEmpty())
                         {
-                            await SetStateAsync(TradeState.Menu, "> There aren't any items specified!");
+                            await SetStateAsync(TradeState.Menu, Format.Warning("There aren't any items specified!"));
+                            return ActionResult.Continue;
                         }
-
 
                         if (CanStartTrade())
                         {
                             Trade();
                             await SetStateAsync(TradeState.Success);
-                            Trade();
                             return ActionResult.Success;
                         }
 
                         MarkAsReady(account.Id);
                         await SetStateAsync(TradeState.Menu);
-                        return ActionResult.Success;
+                        return ActionResult.Continue;
                     }
 
                     if (input == "inventory")
@@ -308,7 +317,7 @@ namespace Arcadia
                     // Check if the specified item exists in the invoker's inventory
                     if (!ItemHelper.HasItem(account, input))
                     {
-                        await SetStateAsync(TradeState.Inventory, "> An invalid item ID was specified.");
+                        await SetStateAsync(TradeState.Inventory, Format.Warning("An invalid item ID was specified."));
                         return ActionResult.Continue;
                     }
 
@@ -316,7 +325,7 @@ namespace Arcadia
                     if (GetCurrentItems().ContainsKey(input))
                     {
                         RemoveItemFromCurrent(input);
-                        await SetStateAsync(TradeState.Inventory, "> Removed the specified item from the trade.");
+                        await SetStateAsync(TradeState.Inventory, "> 📤 Removed the specified item from your offer.");
                         HostReady = false;
                         ParticipantReady = false;
                         return ActionResult.Continue;
@@ -326,12 +335,12 @@ namespace Arcadia
 
                     if (!ItemHelper.CanTrade(input, selectedItem.Data))
                     {
-                        await SetStateAsync(TradeState.Inventory, "> This item is unavailable for trading.");
+                        await SetStateAsync(TradeState.Inventory, Format.Warning("This item is unavailable for trading."));
                         return ActionResult.Continue;
                     }
 
                     AddItemToCurrent(input);
-                    await SetStateAsync(TradeState.Inventory, "> Added the specified item into the trade.");
+                    await SetStateAsync(TradeState.Inventory, "> 📥 Added the specified item to your offer.");
                     HostReady = false;
                     ParticipantReady = false;
                     return ActionResult.Continue;
@@ -372,7 +381,7 @@ namespace Arcadia
                     break;
 
                 case TradeState.Success:
-                    content.AppendLine("> **Success!**\n> The trade has successfully gone through.");
+                    content.AppendLine("> ✅ **Success!**\n> The trade has successfully gone through.");
                     content.Append(WriteTradeResult());
                     break;
             }
@@ -384,32 +393,36 @@ namespace Arcadia
         {
             var result = new StringBuilder();
 
+            result.AppendLine();
+
             if (ParticipantOffer.Count > 0)
             {
-                result.AppendLine($"**{Host.Username}** has received:");
+                result.AppendLine($"> **{Host.Username}** has received:");
                 foreach ((string itemId, int amount) in ParticipantOffer)
                 {
                     result.Append($"**{ItemHelper.NameOf(itemId)}**");
 
                     if (amount > 1)
                     {
-                        result.Append($" (x**{amount.ToString("##,0")}**)");
+                        result.Append($" (x**{amount:##,0}**)");
                     }
 
                     result.AppendLine();
                 }
             }
 
+            result.AppendLine();
+
             if (HostOffer.Count > 0)
             {
-                result.AppendLine($"**{Participant.Username}** has received:");
+                result.AppendLine($"> **{Participant.Username}** has received:");
                 foreach ((string itemId, int amount) in HostOffer)
                 {
                     result.Append($"**{ItemHelper.NameOf(itemId)}**");
 
                     if (amount > 1)
                     {
-                        result.Append($" (x**{amount.ToString("##,0")}**)");
+                        result.Append($" (x**{amount:##,0}**)");
                     }
 
                     result.AppendLine();

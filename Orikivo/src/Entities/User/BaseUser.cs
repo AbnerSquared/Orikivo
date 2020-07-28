@@ -1,15 +1,15 @@
-﻿using Discord.WebSocket;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
+using Discord;
 
 namespace Orikivo.Desync
 {
     /// <summary>
     /// Represents a generic user account.
     /// </summary>
-    public class BaseUser : IDiscordEntity<SocketUser>, IJsonEntity
+    public class BaseUser : IJsonEntity
     {
-        public BaseUser(SocketUser user)
+        public BaseUser(IUser user)
         {
             Id = user.Id;
             Username = user.Username;
@@ -43,13 +43,10 @@ namespace Orikivo.Desync
         [JsonProperty("config")]
         public UserConfig Config { get; }
 
-        public bool GetEntity(BaseSocketClient client, out SocketUser user)
-        {
-            user = client.GetUser(Id);
-            return user != null;
-        }
+        [JsonIgnore]
+        public Notifier Notifier { get; } = new Notifier();
 
-        public void Synchronize(SocketUser user)
+        public void Synchronize(IUser user)
         {
             if (Id != user.Id)
                 throw new Exception("The user specified must have the same matching ID as the account.");
@@ -59,12 +56,12 @@ namespace Orikivo.Desync
         }
 
         public override bool Equals(object obj)
-            => obj is null || obj == null || GetType() != obj.GetType() ?
-            false : ReferenceEquals(this, obj) ?
-            true : Equals(obj as IJsonEntity);
+            => obj != null
+               && GetType() == obj.GetType()
+               && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
 
         public bool Equals(IJsonEntity obj)
-            => Id == obj.Id;
+            => Id == obj?.Id;
 
         public override int GetHashCode()
             => unchecked((int)Id);

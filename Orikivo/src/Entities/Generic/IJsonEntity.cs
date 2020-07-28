@@ -2,7 +2,6 @@
 
 namespace Orikivo
 {
-    // Barebones class
     /// <summary>
     /// Represents a generic JSON-cacheable entity.
     /// </summary>

@@ -3,13 +3,14 @@ using Orikivo;
 using System;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia
 {
     // TODO: Implement easy class overrides of results to allow for different context
     /// <summary>
     /// A <see cref="PreconditionAttribute"/> that requires the executing user to have an account.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Method)]
     public class RequireUserAttribute : PreconditionAttribute
     {
         private readonly bool _autoBuild;

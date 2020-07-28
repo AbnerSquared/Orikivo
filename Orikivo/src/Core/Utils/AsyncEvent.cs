@@ -3,12 +3,13 @@ using System.Collections.Immutable;
 
 namespace Orikivo
 {
-    // https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Core/Utils/AsyncEvent.cs
+    // REF: https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Core/Utils/AsyncEvent.cs
 
     /// <summary>
     /// Represents an asynchronous event handler.
     /// </summary>
-    public class AsyncEvent<T> where T : class
+    public class AsyncEvent<T>
+        where T : class
     {
         private readonly object _subLock = new object();
         public ImmutableArray<T> _subscriptions;
@@ -38,6 +39,7 @@ namespace Orikivo
         public void Add(T subscriber)
         {
             Catch.NotNull(subscriber, nameof(subscriber));
+
             lock (_subLock)
                 _subscriptions = _subscriptions.Add(subscriber);
         }
@@ -49,6 +51,7 @@ namespace Orikivo
         public void Remove(T subscriber)
         {
             Catch.NotNull(subscriber, nameof(subscriber));
+
             lock (_subLock)
                 _subscriptions = _subscriptions.Remove(subscriber);
         }

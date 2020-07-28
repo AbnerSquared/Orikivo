@@ -2,10 +2,10 @@
 
 namespace Orikivo.Text
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class NodeAttribute : Attribute
     {
-        public NodeAttribute(int index) : base()
+        public NodeAttribute(int index)
         {
             Index = index;
         }

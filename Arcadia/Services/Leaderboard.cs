@@ -7,7 +7,7 @@ namespace Arcadia.Services
 {
     public class Leaderboard
     {
-        public Leaderboard(LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
+        public Leaderboard(LeaderboardQuery flag, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
         {
             Flag = flag;
             Sort = sort;
@@ -17,14 +17,14 @@ namespace Arcadia.Services
 
         public Leaderboard(string statId, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
         {
-            Flag = LeaderboardFlag.Custom;
+            Flag = LeaderboardQuery.Custom;
             StatId = statId;
             Sort = sort;
             AllowEmptyValues = allowEmptyValues;
             PageSize = pageSize;
         }
 
-        public LeaderboardFlag Flag { get; } // If none is specified, just show the leaders of each flag
+        public LeaderboardQuery Flag { get; } // If none is specified, just show the leaders of each flag
         public LeaderboardSort Sort { get; }
 
         // The STAT to compare.
@@ -35,51 +35,51 @@ namespace Arcadia.Services
 
         public int PageSize { get; set; }
 
-        private static string GetHeader(LeaderboardFlag flag)
+        private static string GetHeader(LeaderboardQuery flag)
         {
             return flag switch
             {
-                LeaderboardFlag.Money => "> **Leaderboard - Wealth**",
-                LeaderboardFlag.Debt => "> **Leaderboard - Debt**",
-                LeaderboardFlag.Level => "> **Leaderboard - Experience**",
-                LeaderboardFlag.Chips => "> **Leaderboard - Casino**",
-                _ => "> **Leaderboard**"
+                LeaderboardQuery.Money => "> 📈 **Leaderboard: Wealth**",
+                LeaderboardQuery.Debt => "> 📈 **Leaderboard: Debt**",
+                LeaderboardQuery.Level => "> 📈 **Leaderboard: Experience**",
+                LeaderboardQuery.Chips => "> 📈 **Leaderboard: Casino**",
+                _ => "> 📈 **Leaderboard**"
             };
         }
 
-        private static string GetHeaderQuote(LeaderboardFlag flag)
+        private static string GetHeaderQuote(LeaderboardQuery flag)
         {
             return flag switch
             {
-                LeaderboardFlag.Default => "> *View the current pioneers of a specific category.*",
-                LeaderboardFlag.Money => "> *These are the users that managed to beat all odds.*",
-                LeaderboardFlag.Debt => "> *These are the users with enough debt to make a pool.*",
-                LeaderboardFlag.Level => "> *These are the users dedicated to Orikivo.*",
-                LeaderboardFlag.Chips => "> *These are the users that rule over the **Casino**.*",
+                LeaderboardQuery.Default => "> View the current pioneers of a specific category.",
+                LeaderboardQuery.Money => "> *These are the users that managed to beat all odds.*",
+                LeaderboardQuery.Debt => "> *These are the users with enough debt to make a pool.*",
+                LeaderboardQuery.Level => "> *These are the users dedicated to Orikivo.*",
+                LeaderboardQuery.Chips => "> *These are the users that rule over the **Casino**.*",
                 _ => ""
             };
         }
 
-        private static string GetUserTitle(LeaderboardFlag flag)
+        private static string GetUserTitle(LeaderboardQuery flag)
         {
             return flag switch
             {
-                LeaderboardFlag.Money => "The Wealthy",
-                LeaderboardFlag.Debt => "The Cursed",
-                LeaderboardFlag.Level => "The Experienced",
-                LeaderboardFlag.Chips => "The Gambler",
+                LeaderboardQuery.Money => "The Wealthy",
+                LeaderboardQuery.Debt => "The Cursed",
+                LeaderboardQuery.Level => "The Experienced",
+                LeaderboardQuery.Chips => "The Gambler",
                 _ => "INVALID_FLAG"
             };
         }
 
-        private static string GetFlagSegment(LeaderboardFlag flag)
+        private static string GetFlagSegment(LeaderboardQuery flag)
         {
             return flag switch
             {
-                LeaderboardFlag.Money => "with 💸",
-                LeaderboardFlag.Debt => "with 📃",
-                LeaderboardFlag.Level => "at level",
-                LeaderboardFlag.Chips => "with 🧩",
+                LeaderboardQuery.Money => "with 💸",
+                LeaderboardQuery.Debt => "with 📃",
+                LeaderboardQuery.Level => "at level",
+                LeaderboardQuery.Chips => "with 🧩",
                 _ => "INVALID_FLAG"
             };
         }
@@ -89,7 +89,7 @@ namespace Arcadia.Services
         private static readonly string CustomFormat = "**{0}** ... **{1}**";
 
         // This is only on LeaderboardFlag.Default
-        private static string WriteLeader(LeaderboardFlag flag, ArcadeUser user, bool allowEmptyValues = false)
+        private static string WriteLeader(LeaderboardQuery flag, ArcadeUser user, bool allowEmptyValues = false)
         {
             var title = GetUserTitle(flag);
             var segment = GetFlagSegment(flag);
@@ -105,26 +105,26 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardFlag.Money => string.Format(LeaderFormat, title, user.Username, segment, user.Balance.ToString("##,0")),
-                LeaderboardFlag.Debt => string.Format(LeaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
-                LeaderboardFlag.Level => string.Format(LeaderFormat, title, user.Username, segment, WriteLevel(user)),
-                LeaderboardFlag.Chips => string.Format(LeaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
+                LeaderboardQuery.Money => string.Format(LeaderFormat, title, user.Username, segment, user.Balance.ToString("##,0")),
+                LeaderboardQuery.Debt => string.Format(LeaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
+                LeaderboardQuery.Level => string.Format(LeaderFormat, title, user.Username, segment, WriteLevel(user)),
+                LeaderboardQuery.Chips => string.Format(LeaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
                 _ => "INVALID_FLAG"
             };
         }
 
-        private static string WriteUser(LeaderboardFlag flag, ArcadeUser user, string statId = null)
+        private static string WriteUser(LeaderboardQuery flag, ArcadeUser user, string statId = null)
         {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardFlag.Custom)
+            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardQuery.Custom)
                 throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
 
             return flag switch
             {
-                LeaderboardFlag.Money => string.Format(UserFormat, user.Username, "💸", user.Balance.ToString("##,0")),
-                LeaderboardFlag.Debt => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
-                LeaderboardFlag.Level => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
-                LeaderboardFlag.Chips => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
-                LeaderboardFlag.Custom => string.Format(CustomFormat, user.Username, user.GetStat(statId)),
+                LeaderboardQuery.Money => string.Format(UserFormat, user.Username, "💸", user.Balance.ToString("##,0")),
+                LeaderboardQuery.Debt => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
+                LeaderboardQuery.Level => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
+                LeaderboardQuery.Chips => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
+                LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetStat(statId)),
                 _ => "INVALID_FLAG"
             };
         }
@@ -145,7 +145,7 @@ namespace Arcadia.Services
 
             leaderboard.AppendLine(GetHeader(Flag));
 
-            if (Flag != LeaderboardFlag.Custom)
+            if (Flag != LeaderboardQuery.Custom)
             {
                 leaderboard.Append(GetHeaderQuote(Flag));
             }
@@ -157,20 +157,20 @@ namespace Arcadia.Services
                     leaderboard.Append(".");
             }
 
-            if (Sort == LeaderboardSort.Least && Flag != LeaderboardFlag.Default)
+            if (Sort == LeaderboardSort.Least && Flag != LeaderboardQuery.Default)
             {
-                leaderboard.Append(" (ascending).");
+                leaderboard.Append(" (**Ascending**).");
             }
 
             leaderboard.AppendLine();
 
-            if (Flag == LeaderboardFlag.Default)
+            if (Flag == LeaderboardQuery.Default)
             {
                 leaderboard.AppendLine();
                 leaderboard.AppendLine("**Leaders**");
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Money, GetLeader(users, LeaderboardFlag.Money, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Debt, GetLeader(users, LeaderboardFlag.Debt, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardFlag.Chips, GetLeader(users, LeaderboardFlag.Chips, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Money, GetLeader(users, LeaderboardQuery.Money, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Debt, GetLeader(users, LeaderboardQuery.Debt, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Chips, GetLeader(users, LeaderboardQuery.Chips, Sort)));
                 //leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
             }
             else
@@ -182,10 +182,10 @@ namespace Arcadia.Services
             return leaderboard.ToString();
         }
 
-        private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort)
+        private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, LeaderboardQuery flag, LeaderboardSort sort)
             => SortUsers(users, flag, sort).First();
 
-        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, LeaderboardFlag flag, LeaderboardSort sort, string statId = null)
+        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, LeaderboardQuery flag, LeaderboardSort sort, string statId = null)
         { 
             return sort switch
             {
@@ -194,23 +194,23 @@ namespace Arcadia.Services
             };
         }
 
-        private static long GetValue(ArcadeUser user, LeaderboardFlag flag, string statId = null)
+        private static long GetValue(ArcadeUser user, LeaderboardQuery flag, string statId = null)
         {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardFlag.Custom)
+            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardQuery.Custom)
                 throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
 
             return flag switch
             {
-                LeaderboardFlag.Money => (long) user.Balance,
-                LeaderboardFlag.Debt => (long) user.Debt,
-                LeaderboardFlag.Level => user.Ascent * 100 + user.Level,
-                LeaderboardFlag.Chips => (long) user.ChipBalance,
-                LeaderboardFlag.Custom => user.GetStat(statId),
+                LeaderboardQuery.Money => (long) user.Balance,
+                LeaderboardQuery.Debt => (long) user.Debt,
+                LeaderboardQuery.Level => user.Ascent * 100 + user.Level,
+                LeaderboardQuery.Chips => (long) user.ChipBalance,
+                LeaderboardQuery.Custom => user.GetStat(statId),
                 _ => 0
             };
         }
 
-        private static string WriteUsers(in IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardFlag flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
+        private static string WriteUsers(in IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardQuery flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
         {
             if (users.Count() <= offset)
                 throw new ArgumentException("The specified offset is larger than the amount of users specified.");

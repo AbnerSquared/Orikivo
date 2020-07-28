@@ -9,7 +9,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a <see cref="PreconditionAttribute"/> that enforces an <see cref="AccessLevel"/> requirement.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Method)]
     public class AccessAttribute : PreconditionAttribute
     {
         /// <summary>
@@ -33,7 +33,11 @@ namespace Orikivo
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            DesyncContext Context = context as DesyncContext;
+            var Context = context as DesyncContext;
+
+            if (Context == null)
+                throw new Exception("Unknown CommandContext type");
+
             switch(Level)
             {
                 case AccessLevel.Dev:
@@ -58,15 +62,26 @@ namespace Orikivo
             return PreconditionResult.FromSuccess();
         }
 
-        private bool CheckDev(ulong userId)
+        private static bool CheckDev(ulong userId)
             => OriGlobal.DevId == userId;
 
         private bool CheckOwner(ulong userId, DesyncContext ctx)
             => DevOverride ? CheckDev(userId) : ctx.Server.OwnerId == userId;
 
         private bool CheckInherit(ulong userId, DesyncContext ctx)
-            => DevOverride ? CheckDev(userId) : ctx.Server.Options.TrustRoleId.HasValue ?
-               ctx.Guild.Users.Any(x => x.Id == userId && x.Roles.Any(y => y.Id == ctx.Server.Options.TrustRoleId.Value)) :
-               ctx.Server.OwnerId == userId;
+        {
+            if (DevOverride)
+                return CheckDev(userId);
+
+            if (ctx.Server.Config.TrustedRoleId.HasValue)
+            {
+                return ctx.Guild.Users.Any(x =>
+                    x.Id == userId && x.Roles.Any(y => y.Id == ctx.Server.Config.TrustedRoleId.Value));
+            }
+
+            return ctx.Server.OwnerId == userId;
+        }
+
+           
     }
 }

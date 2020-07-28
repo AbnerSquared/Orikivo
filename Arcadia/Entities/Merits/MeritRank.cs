@@ -1,6 +1,5 @@
 ﻿namespace Arcadia
 {
-    // Utilized by multiple bot variants; this can be made a global class
     /// <summary>
     /// Represents the difficulty of a <see cref="Merit"/>.
     /// </summary>

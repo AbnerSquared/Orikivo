@@ -1,90 +1,86 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Orikivo.Desync;
+﻿using Orikivo.Desync;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
+using Discord;
 
 namespace Orikivo
 {
-
     public class DesyncContainer
     {
         public OriGlobal Global { get; }
-        public ConcurrentDictionary<ulong, User> Users { get; }
-        public ConcurrentDictionary<ulong, OriGuild> Guilds { get; }
+        public JsonContainer<User> Users { get; }
+        public JsonContainer<BaseGuild> Guilds { get; }
 
         public DesyncContainer()
         {
             Console.WriteLine("-- Now initializing JSON container services. --");
 
-            Users = JsonHandler.RestoreContainer<User>();
+            Users = new JsonContainer<User>(@"..\data\users\");
+            
             Console.WriteLine($"-- Restored {Users.Count} {Format.TryPluralize("user", Users.Count)}. --");
 
-            Guilds = JsonHandler.RestoreContainer<OriGuild>();
+            Guilds = new JsonContainer<BaseGuild>(@"..\data\guilds\");
             Console.WriteLine($"-- Restored {Guilds.Count} {Format.TryPluralize("guild", Guilds.Count)}. --");
 
             Global = JsonHandler.Load<OriGlobal>("global.json") ?? new OriGlobal();
         }
 
-        public User GetOrAddUser(SocketUser user)
+        public User GetOrAddUser(IUser user)
         {
             User account;
 
-            if (!Users.ContainsKey(user.Id))
+            if (!Users.Values.ContainsKey(user.Id))
             {
                 account = new User(user);
-                Users.AddOrUpdate(user.Id, account, (key, value) => account);
+                Users.Values.AddOrUpdate(user.Id, account, (key, value) => account);
                 return account;
             }
 
-            Users.TryGetValue(user.Id, out account);
+            Users.Values.TryGetValue(user.Id, out account);
             return account;
         }
 
-        public OriGuild GetOrAddGuild(SocketGuild guild)
+        public BaseGuild GetOrAddGuild(IGuild guild)
         {
-            OriGuild account;
+            BaseGuild account;
 
-            if (!Guilds.ContainsKey(guild.Id))
+            if (!Guilds.Values.ContainsKey(guild.Id))
             {
-                account = new OriGuild(guild);
-                Guilds.AddOrUpdate(guild.Id, account, (key, value) => account);
+                account = new BaseGuild(guild);
+                Guilds.Values.AddOrUpdate(guild.Id, account, (key, value) => account);
                 return account;
             }
 
-            Guilds.TryGetValue(guild.Id, out account); 
+            Guilds.Values.TryGetValue(guild.Id, out account); 
             return account;
         }
 
         public bool TryGetUser(ulong id, out User user)
-            => Users.TryGetValue(id, out user);
+            => Users.TryGet(id, out user);
 
-        public bool TryGetGuild(ulong id, out OriGuild guild)
-            => Guilds.TryGetValue(id, out guild);
+        public bool TryGetGuild(ulong id, out BaseGuild guild)
+            => Guilds.TryGet(id, out guild);
 
         public void AddOrUpdateUser(ulong id, User user)
         {
             if (id != user.Id)
                 throw new Exception("The IDs do not match.");
 
-            Users.AddOrUpdate(user.Id, user, (key, value) => user);
+            Users.Values.AddOrUpdate(user.Id, user, (key, value) => user);
         }
 
-        public void AddOrUpdateGuild(ulong id, OriGuild guild)
+        public void AddOrUpdateGuild(ulong id, BaseGuild guild)
         {
             if (id != guild.Id)
                 throw new Exception("The IDs do not match.");
 
-            Guilds.AddOrUpdate(guild.Id, guild, (key, value) => guild);
+            Guilds.Values.AddOrUpdate(guild.Id, guild, (key, value) => guild);
         }
 
         // saves the user to its directory
         public void SaveUser(User user)
         {
-            Users.AddOrUpdate(user.Id, user, (key, value) => user);
+            Users.Values.AddOrUpdate(user.Id, user, (key, value) => user);
             JsonHandler.SaveJsonEntity(user);
         }
 
@@ -94,27 +90,27 @@ namespace Orikivo
                 SaveUser(user);
         }
 
-        public void TrySaveGuild(OriGuild guild)
+        public void TrySaveGuild(BaseGuild guild)
         {
             if (Check.NotNull(guild))
                 SaveGuild(guild);
         }
         // saves the guild to its directory
-        public void SaveGuild(OriGuild guild)
+        public void SaveGuild(BaseGuild guild)
         {
-            Guilds.AddOrUpdate(guild.Id, guild, (key, value) => guild);
+            Guilds.Values.AddOrUpdate(guild.Id, guild, (key, value) => guild);
             JsonHandler.SaveJsonEntity(guild);
         }
 
         public void SaveAllUsers()
         {
-            foreach (KeyValuePair<ulong, User> user in Users)
+            foreach (KeyValuePair<ulong, User> user in Users.Values)
                 SaveUser(user.Value);
         }
 
         public void SaveAllGuilds()
         {
-            foreach (KeyValuePair<ulong, OriGuild> guild in Guilds)
+            foreach (KeyValuePair<ulong, BaseGuild> guild in Guilds.Values)
                 SaveGuild(guild.Value);
         }
     }

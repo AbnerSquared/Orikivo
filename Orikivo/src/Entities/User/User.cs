@@ -9,7 +9,7 @@ namespace Orikivo.Desync
     /// <summary>
     /// Represents a user account for <see cref="Orikivo"/>.
     /// </summary>
-    public class User : IJsonEntity
+    public class User : BaseUser
     {
         [JsonConstructor, BsonConstructor]
         internal User(
@@ -26,13 +26,10 @@ namespace Orikivo.Desync
             Dictionary<string, long> stats,
             Dictionary<string, MeritData> merits,
             HuskBrain brain, Husk husk,
-            UserConfig config)
+            UserConfig config) : base(id, username, discriminator, createdAt, config)
         {
-            Id = id;
             Username = username;
             Discriminator = discriminator;
-            CreatedAt = createdAt;
-            Notifier = Check.NotNull(notifier) ? notifier : new Notifier();
             Balance = balance;
             TokenBalance = tokenBalance;
             Debt = debt;
@@ -42,16 +39,10 @@ namespace Orikivo.Desync
             Merits = merits ?? new Dictionary<string, MeritData>();
             Brain = brain ?? new HuskBrain();
             Husk = husk;
-            Config = config ?? new UserConfig();
         }
 
-        public User(IUser user)
+        public User(IUser user) : base(user)
         {
-            Id = user.Id;
-            Username = user.Username;
-            Discriminator = user.Discriminator;
-            CreatedAt = DateTime.UtcNow;
-            Notifier = new Notifier();
             Balance = 0;
             TokenBalance = 0;
             Debt = 0;
@@ -62,23 +53,7 @@ namespace Orikivo.Desync
             Merits = new Dictionary<string, MeritData>();
             Brain = new HuskBrain();
             Husk = null;
-            Config = new UserConfig();
         }
-
-        [JsonProperty("id"), BsonId]
-        public ulong Id { get; }
-
-        [JsonProperty("username"), BsonElement("username")]
-        public string Username { get; private set; }
-
-        [JsonProperty("discriminator"), BsonElement("discriminator")]
-        public string Discriminator { get; private set; }
-
-        [JsonProperty("created_at"), BsonElement("created_at")]
-        public DateTime CreatedAt { get; }
-
-        [JsonProperty("notifier"), BsonElement("notifier")]
-        public Notifier Notifier { get; internal set; }
 
         /// <summary>
         /// The <see cref="User"/>'s global balance, in use for both the world and client.
@@ -131,9 +106,6 @@ namespace Orikivo.Desync
         
         [JsonProperty("husk"), BsonElement("husk")]
         public Husk Husk { get; internal set; }
-
-        [JsonProperty("config"), BsonElement("config")]
-        public UserConfig Config { get; }
 
         // TODO: make the type of integer consistent with balances
         public void Give(long value)
@@ -239,20 +211,8 @@ namespace Orikivo.Desync
         public bool HasMerit(string id)
             => Merits.ContainsKey(id);
 
-        public void Synchronize(IUser user)
-        {
-            if (Id != user.Id)
-                throw new Exception("The user specified must have the same matching ID as the account.");
-
-            Username = user.Username;
-            Discriminator = user.Discriminator;
-        }
-
         public override bool Equals(object obj)
             => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
-
-        public bool Equals(IJsonEntity obj)
-            => Id == obj?.Id;
 
         public override int GetHashCode()
             => unchecked((int)Id);

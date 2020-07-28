@@ -22,7 +22,7 @@ namespace Orikivo
         public async Task<OriWebResult> GetContentAsync()
         {
             if (!string.IsNullOrWhiteSpace(Url))
-                using (OriWebClient client = new OriWebClient())
+                using (var client = new OriWebClient())
                     return await client.RequestAsync(Url);
 
             return null;

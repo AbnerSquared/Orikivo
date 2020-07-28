@@ -9,7 +9,7 @@ namespace Orikivo
     /// </summary>
     public class EventContext
     {
-        internal EventContext(OriGuild server, SocketGuild guild, SocketGuildUser user)
+        internal EventContext(BaseGuild server, SocketGuild guild, SocketGuildUser user)
         {
             Server = server;
             Guild = guild;
@@ -17,7 +17,7 @@ namespace Orikivo
             ReceivedAt = DateTime.UtcNow;
         }
 
-        public OriGuild Server { get; }
+        public BaseGuild Server { get; }
         public SocketGuild Guild { get; }
         public SocketGuildUser User { get; }
 

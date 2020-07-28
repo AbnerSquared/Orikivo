@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Orikivo;
 
 namespace Arcadia
 {
@@ -58,28 +57,5 @@ namespace Arcadia
         public Func<bool> ToExpire { get; set; }
 
         public Dictionary<string, ItemAttribute> Attributes { get; set; }
-    }
-
-    public class UsageResult
-    {
-        public UsageResult(string content, bool isSuccess)
-        {
-            Message = new MessageBuilder{ Content = content }.Build();
-            IsSuccess = isSuccess;
-        }
-
-        public UsageResult(Message message, bool isSuccess)
-        {
-            Message = message;
-            IsSuccess = isSuccess;
-        }
-
-        public UsageResult(bool isSuccess)
-        {
-            IsSuccess = isSuccess;
-        }
-
-        public Message Message { get; set; }
-        public bool IsSuccess { get; set; }
     }
 }

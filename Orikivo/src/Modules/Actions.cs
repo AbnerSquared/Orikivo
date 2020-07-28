@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo.Modules
 {
     [Ignore]
@@ -252,7 +253,7 @@ namespace Orikivo.Modules
         [Command("actions"), Alias("act")]
         public async Task GetActionsAsync()
         {
-            InfoService info = new InfoService(_commands, Context.Global, Context.Server);
+            InfoService info = new InfoService(_commands, Context.Global);
 
             await Context.Channel.SendMessageAsync(info.GetActions(Context.Account));
         }
@@ -457,21 +458,21 @@ namespace Orikivo.Modules
         {
             try
             {
-                MessageCollector collector = new MessageCollector(Context.Client);
+                var collector = new MessageCollector(Context.Client);
 
-                MatchOptions options = new MatchOptions
+                var options = new MatchOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(30),
                     Action = shop
                 };
 
-                Func<SocketMessage, int, bool> filter = delegate (SocketMessage message, int index)
+                bool Filter(SocketMessage message, int index)
                 {
                     return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
-                };
+                }
 
-                await collector.MatchAsync(filter, options);
+                await collector.MatchAsync(Filter, options);
             }
             catch (Exception e)
             {
@@ -491,12 +492,12 @@ namespace Orikivo.Modules
                     Action = handler
                 };
 
-                Func<SocketMessage, int, bool> filter = delegate (SocketMessage message, int index)
+                bool Filter(SocketMessage message, int index)
                 {
                     return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
-                };
+                }
 
-                await collector.MatchAsync(filter, options);
+                await collector.MatchAsync(Filter, options);
 
                 Context.Brain.AddOrUpdateAffinity(handler.Affinity);
             }

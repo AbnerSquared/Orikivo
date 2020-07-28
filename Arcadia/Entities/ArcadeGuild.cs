@@ -1,12 +1,12 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Newtonsoft.Json;
-using Orikivo.Desync;
+using Orikivo;
 
 namespace Arcadia
 {
     public class ArcadeGuild : BaseGuild
     {
-        public ArcadeGuild(SocketGuild guild)
+        public ArcadeGuild(IGuild guild)
             : base(guild)
         {
             Balance = 0;

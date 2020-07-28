@@ -5,27 +5,32 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
     [Name("Core")]
     [Summary("Defines all core commands.")]
     public class Core : OriModuleBase<ArcadeContext>
     {
-        private readonly DiscordSocketClient _client;
         private readonly InfoService _info;
-        public Core(DiscordSocketClient client, InfoService info)
+
+        public Core(InfoService info)
         {
-            _client = client;
             _info = info;
         }
 
+        [DoNotNotify]
         [Command("latency"), Alias("ping")]
         public async Task GetLatencyAsync()
             => await CoreService.PingAsync(Context.Channel, Context.Client);
 
+        [DoNotNotify]
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]
-        public async Task HelpAsync([Remainder][Summary("The **InfoContext** that defines your search.")]string context = null)
+        public async Task HelpAsync(
+            [Remainder]
+            [Summary("The **InfoContext** that defines your search.")]
+            string context = null)
         {
             try
             {
@@ -39,10 +44,9 @@ namespace Arcadia.Modules
             }
         }
 
-
-
         // TODO: Create a context system to allow for getting specific option values alongside being able to set them.
         [RequireUser(AccountHandling.ReadOnly)]
+        [DoNotNotify]
         [Command("options"), Alias("config", "cfg"), Priority(0)]
         [Summary("Returns all of your customized preferences.")]
         public async Task GetOptionsAsync()
@@ -51,6 +55,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [DoNotNotify]
         [Command("options"), Alias("config", "cfg"), Priority(1)]
         [Summary("Updates the specified option to the specified value.")]
         public async Task SetOptionAsync(string name, [Name("value")]string unparsed)
@@ -88,6 +93,7 @@ namespace Arcadia.Modules
         public async Task GetGuildProfileAsync()
             => throw new NotImplementedException();
 
+        [DoNotNotify]
         [Command("version")]
         public async Task GetVersionAsync()
             => await Context.Channel.SendMessageAsync(OriGlobal.ClientVersion);

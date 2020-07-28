@@ -11,6 +11,8 @@ namespace Orikivo
 
         public ConcurrentDictionary<ulong, TEntity> Values { get; }
 
+        public int Count => Values.Count;
+
         public JsonContainer(string directory)
         {
             _directory = directory;

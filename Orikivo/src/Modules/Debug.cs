@@ -8,16 +8,16 @@ namespace Orikivo.Modules
 {
     [Name("Debug")]
     [Summary("A collection of commands used to debug internal features.")]
-    public class DebugModule : OriModuleBase<DesyncContext>
+    public class Debug : OriModuleBase<DesyncContext>
     {
-        public DebugModule() { }
+        public Debug() { }
 
         [Name("Graphics")]
         [Summary("Debugging commands that utilizes graphical input.")]
-        public class GraphicsModule : OriModuleBase<DesyncContext>
+        public class Graphics : OriModuleBase<DesyncContext>
         {
             private readonly GraphicsService _graphics;
-            public GraphicsModule(GraphicsService graphics)
+            public Graphics(GraphicsService graphics)
             {
                 _graphics = graphics;
             }

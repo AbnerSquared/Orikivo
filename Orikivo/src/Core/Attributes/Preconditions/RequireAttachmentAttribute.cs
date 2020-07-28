@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo
 {
     // marks a command to require an attachment
@@ -22,7 +23,7 @@ namespace Orikivo
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            DesyncContext Context = context as DesyncContext;
+            var Context = context as DesyncContext;
 
             if (Context.Message.Attachments.Count > 0)
                 if (Context.Message.Attachments.Any(x => MatchesExtension(Type, x.Filename)))

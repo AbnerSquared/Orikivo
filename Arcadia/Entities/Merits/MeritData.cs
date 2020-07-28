@@ -3,24 +3,26 @@ using System;
 
 namespace Arcadia
 {
-    // Utilized by multiple bot variants; this can be made a global class
+    /// <summary>
+    /// Represents the data of a <see cref="Merit"/>.
+    /// </summary>
     public class MeritData
     {
         [JsonConstructor]
-        internal MeritData(DateTime achievedAt, bool? claimed = null)
+        internal MeritData(DateTime achievedAt, bool? isClaimed = null)
         {
             AchievedAt = achievedAt;
-            IsClaimed = claimed;
+            IsClaimed = isClaimed;
         }
 
         /// <summary>
-        /// The time that the user achieved this merit.
+        /// Gets the <see cref="DateTime"/> at which the <see cref="Merit"/> was achieved.
         /// </summary>
         [JsonProperty("achieved_at")]
         public DateTime AchievedAt { get; }
 
         /// <summary>
-        /// A check defining if the merit was already claimed. If null, there isn't anything to claim.
+        /// Gets a <see cref="bool"/> that specifies if the <see cref="Merit"/> has been claimed. If unspecified, the <see cref="Merit"/> does not have a reward.
         /// </summary>
         [JsonProperty("claimed")]
         public bool? IsClaimed { get; internal set; }

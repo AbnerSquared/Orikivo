@@ -2,10 +2,10 @@
 
 namespace Orikivo.Text
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class FormattingAttribute : Attribute
     {
-        public FormattingAttribute(string format) : base()
+        public FormattingAttribute(string format)
         {
             Format = format;
         }

@@ -7,6 +7,8 @@ using System.Text;
 
 namespace Orikivo
 {
+    
+
     /// <summary>
     /// A utility class that handles string formatting.
     /// </summary>
@@ -77,8 +79,30 @@ namespace Orikivo
         public static string Trim(string value, int limit)
             => value.Length > limit ? $"{value[..limit]}..." : value;
 
+        public static string Header(string text, string icon = null, string description = null)
+        {
+            var header = new StringBuilder("> ");
 
-        
+
+            if (Check.NotNull(icon))
+                header.Append(icon);
+
+            header.Append(Bold(text));
+
+            if (Check.NotNull(description))
+                header.Append($"\n> {description}");
+
+            return header.ToString();
+        }
+
+        public static string Tooltip(string text)
+            => $"> 🛠️ {text}";
+
+        public static string Warning(string text)
+            => $"> ⚠️ {text}";
+
+
+
         private static readonly Dictionary<char, char> SuperscriptMap = new Dictionary<char, char>
         {
             {'a', 'ᵃ'},
@@ -262,7 +286,7 @@ namespace Orikivo
                     break;
             }
 
-            return $"**{upper.ToString("##,0.##")}**{GetCounterPrefix(i)}";
+            return $"**{upper:##,0.##}**{GetCounterPrefix(i)}";
         }
 
         public static string RawCounter(double milliseconds)
@@ -283,7 +307,7 @@ namespace Orikivo
                     break;
             }
 
-            return $"{upper.ToString("##,0.##")}{GetCounterPrefix(i)}";
+            return $"{upper:##,0.##}{GetCounterPrefix(i)}";
         }
 
         // 92399 => 92.3k
@@ -374,8 +398,7 @@ namespace Orikivo
         public static string Separate(ulong u)
             => u.ToString(GROUP_FORMATTING);
 
-        public static string Warning(string warning)
-            => $"> ⚠️ {warning}";
+        
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
         {

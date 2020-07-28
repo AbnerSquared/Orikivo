@@ -4,7 +4,6 @@
     public enum SystemRole
     {
         Default = 1,
-        Muted = 2,
-        Trusted = 3
+        Trusted = 2
     }
 }

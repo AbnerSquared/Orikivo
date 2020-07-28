@@ -61,10 +61,7 @@ namespace Orikivo.Desync
         // formats a string in which a schedule is formatted.
         public string ShowSchedule()
         {
-            string scheduleFormat = "**Schedule** ({0}):\n{1}";
-            string vendorFormat = "**{0}**\n{1}";
-            string shiftFormat = "> **{0}**: **{1}:{2}**-**{3}:{4}**";
-            StringBuilder schedule = new StringBuilder();
+            var schedule = new StringBuilder();
             schedule.AppendLine($"**Schedule** ({Name}):");
             foreach (Vendor vendor in Vendors)
             {

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orikivo.Desync;
 
 namespace Orikivo
 {
@@ -41,7 +42,7 @@ namespace Orikivo
         public bool IsSpoiler { get; set; }
 
         [JsonIgnore]
-        public bool HasUrl => !string.IsNullOrWhiteSpace(Url);
+        public bool HasUrl => Url != null;
 
         [JsonIgnore]
         public bool CanEmbedUrl => Check.NotNull(Embedder) && Url?.Extension == ExtensionType.Image;

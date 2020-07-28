@@ -65,6 +65,11 @@ namespace Arcadia
             return value;
         }
 
+        internal void SaveUser(ArcadeUser account)
+        {
+            Data.Users.Save(account);
+        }
+
         public bool TryGetUser(ulong id, out ArcadeUser account)
             => Data.Users.TryGet(id, out account);
 

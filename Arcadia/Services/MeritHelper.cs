@@ -1,6 +1,4 @@
-﻿using Orikivo.Drawing;
-using Orikivo.Desync;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +6,6 @@ using Orikivo;
 
 namespace Arcadia
 {
-    public enum MeritFlag
-    {
-        Default = 0,
-        Hidden = 1,
-        Generic = 2,
-        Casino = 4
-    }
-
     public static class MeritHelper
     {
         public static readonly List<Merit> Merits =
@@ -29,6 +19,7 @@ namespace Arcadia
                     Rank = MeritRank.Diamond,
                     Value = 100,
                     Quote = "You were there at the start, leading the path to what exists now.",
+                    Hidden = true
                 },
                 new Merit
                 {
@@ -153,7 +144,7 @@ namespace Arcadia
         public static bool Exists(string id)
             => Merits.Any(x => x.Id == id);
 
-        public static string Write(Merit merit)
+        public static string Write(Merit merit, ArcadeUser user = null)
         {
             var info = new StringBuilder();
 
@@ -162,7 +153,17 @@ namespace Arcadia
                 info.AppendLine(Format.Warning("This is an exclusive merit."));
             }
 
-            info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
+            info.Append("> ");
+
+            if (user != null)
+            {
+                if (HasMerit(user, merit.Id))
+                {
+                    info.Append("🔓 ");
+                }
+            }
+
+            info.AppendLine($"**{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
 
             if (Check.NotNull(merit.Quote))
             {
@@ -172,18 +173,19 @@ namespace Arcadia
             return info.ToString();
         }
 
-        private static string GetProgress(ArcadeUser user, MeritFlag flag)
+        private static string GetProgress(ArcadeUser user, MeritQuery flag)
         {
             var progress = new StringBuilder();
 
-            int total = GetTotalOf(flag);
+            int total = GetTotalOf(user, flag);
+            int count = GetCountOf(user, flag);
 
-            progress.Append($"**{GetCountOf(user, flag):##,0}");
+            progress.Append($"**{count:##,0}");
 
-            if (flag != MeritFlag.Hidden)
+            if (flag != MeritQuery.Hidden)
                 progress.Append($"**/**{total:##,0}");
 
-            progress.Append($"{Format.TryPluralize("merit", total)} unlocked**");
+            progress.Append($" {Format.TryPluralize("merit", flag == MeritQuery.Hidden ? count : total)} unlocked**");
 
             return progress.ToString();
         }
@@ -192,7 +194,7 @@ namespace Arcadia
         {
             var progress = new StringBuilder();
 
-            int total = GetTotalOf(group);
+            int total = GetTotalOf(user, group);
 
             progress.Append($"**{GetCountOf(user, group):##,0}**/**{total:##,0}");
 
@@ -201,49 +203,53 @@ namespace Arcadia
             return progress.ToString();
         }
 
-        public static string View(ArcadeUser user, MeritFlag flag = MeritFlag.Default, int maxAllowedValues = 8)
+        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int maxAllowedValues = 8)
         {
             var info = new StringBuilder();
 
-            if (flag != MeritFlag.Default)
+            if (flag != MeritQuery.Default)
             {
                 info.Append(GetNotice(flag));
             }
 
-            info.Append("> **Merits");
+            info.Append("> 🏆 **Merits");
 
-            if (flag != MeritFlag.Default)
+            if (flag != MeritQuery.Default)
                 info.Append($": {flag.ToString()}");
 
             info.AppendLine("**");
 
             info.AppendLine($"> {GetSummary(flag)}\n");
 
-            if (flag == MeritFlag.Default)
+            if (flag == MeritQuery.Default)
             {
                 foreach (MeritGroup g in MeritGroup.Generic.GetValues())
                 {
                     info.AppendLine($"`{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
                 }
 
-                if (GetCountOf(user, MeritFlag.Hidden) != 0)
-                    info.AppendLine($"`{MeritFlag.Hidden.ToString().ToLower()}` • **{MeritFlag.Hidden.ToString()}**\n> {GetProgress(user, MeritFlag.Hidden)}\n");
+                if (GetCountOf(user, MeritQuery.Hidden) != 0)
+                    info.AppendLine($"`{MeritQuery.Hidden.ToString().ToLower()}` • **{MeritQuery.Hidden.ToString()}**\n> {GetProgress(user, MeritQuery.Hidden)}\n");
             }
             else
             {
                 int i = 0;
-                foreach (Merit merit in Merits.Where(GetInvokerFor(flag)))
+                foreach (Merit merit in Merits.Where(GetInvokerFor(flag, user)))
                 {
+                    if (i >= maxAllowedValues)
+                        break;
+
                     if (!HasMerit(user, merit.Id) && merit.Hidden)
                         continue;
 
-                    info.AppendLine($"{Write(merit)}\n");
+
+                    info.AppendLine($"{Write(merit, user)}\n");
                     i++;
                 }
 
                 if (i == 0)
                 {
-                    info.AppendLine("> *\"I could not find any achievements for you.\"*");
+                    info.AppendLine("> *Could not find any achievements for this query.*");
                 }
             }
 
@@ -254,45 +260,45 @@ namespace Arcadia
             => user.Merits.Select(x => GetMerit(x.Key))
                 .Count(x => x.Group == group);
 
-        private static int GetCountOf(ArcadeUser user, MeritFlag flag)
+        private static int GetCountOf(ArcadeUser user, MeritQuery flag)
             => user.Merits.Select(x => GetMerit(x.Key))
-                .Count(GetInvokerFor(flag));
+                .Count(GetInvokerFor(flag, user));
 
-        private static int GetTotalOf(MeritFlag flag)
-            => Merits.Count(GetInvokerFor(flag));
+        private static int GetTotalOf(ArcadeUser user, MeritQuery flag)
+            => Merits.Count(GetInvokerFor(flag, user));
 
-        private static int GetTotalOf(MeritGroup group)
-            => Merits.Count(x => x.Group == group);
+        private static int GetTotalOf(ArcadeUser user, MeritGroup group)
+            => Merits.Count(x => x.Group == group && (!x.Hidden || HasMerit(user, x.Id)));
 
         // TODO: include hidden counters.
-        private static Func<Merit, bool> GetInvokerFor(MeritFlag flag, ArcadeUser user = null)
+        private static Func<Merit, bool> GetInvokerFor(MeritQuery flag, ArcadeUser user)
         {
             return flag switch
             {
-                MeritFlag.Generic => m => m.Group == MeritGroup.Generic && !m.Hidden,
-                MeritFlag.Casino => m => m.Group == MeritGroup.Casino && !m.Hidden,
-                MeritFlag.Hidden => m => m.Hidden,
+                MeritQuery.Generic => m => m.Group == MeritGroup.Generic && (!m.Hidden || HasMerit(user, m.Id)),
+                MeritQuery.Casino => m => m.Group == MeritGroup.Casino && (!m.Hidden || HasMerit(user, m.Id)),
+                MeritQuery.Hidden => m => m.Hidden,
                 _ => throw new NotSupportedException("Unknown merit flag type")
             };
         }
 
-        private static string GetSummary(MeritFlag flag)
+        private static string GetSummary(MeritQuery flag)
         {
             return flag switch
             {
-                MeritFlag.Default => "View the directory of major accomplishments.",
-                MeritFlag.Hidden => "*These are accomplishments that triumph over everything done before.*",
-                MeritFlag.Generic => "*These are common accomplishments for beginners to tackle.*",
-                MeritFlag.Casino => "*These are accomplishments given to the lucky.*",
+                MeritQuery.Default => "View the directory of major accomplishments.",
+                MeritQuery.Hidden => "*These are accomplishments that triumph over everything done before.*",
+                MeritQuery.Generic => "*These are common accomplishments for beginners to tackle.*",
+                MeritQuery.Casino => "*These are accomplishments given to the lucky.*",
                 _ => "INVALID_FLAG"
             };
         }
 
-        private static string GetNotice(MeritFlag flag)
+        private static string GetNotice(MeritQuery flag)
         {
             return flag switch
             {
-                MeritFlag.Hidden => "> 🔧 These merits do not account for total completion.\n\n",
+                MeritQuery.Hidden => "> 🔧 These merits do not account for total completion.\n\n",
                 _ => ""
             };
         }
@@ -306,13 +312,19 @@ namespace Arcadia
             }
         }
 
+        public static string NameOf(string meritId)
+            => GetMerit(meritId).Name;
+
         public static bool IsEligible(ArcadeUser user, Merit merit)
         {
             if (merit.Criteria == null)
-                return false;
+                return !HasMerit(user, merit.Id);
 
             return merit.Criteria(user) && !HasMerit(user, merit.Id);
         }
+
+        public static void TryUnlock(ArcadeUser user, string meritId)
+            => TryUnlock(user, GetMerit(meritId));
 
         public static void TryUnlock(ArcadeUser user, Merit merit)
         {
@@ -322,131 +334,5 @@ namespace Arcadia
             user.Merits.Add(merit.Id, merit.GetData());
             user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
         }
-    }
-
-    /// <summary>
-    /// Handles all methods relating to a <see cref="Merit"/>.
-    /// </summary>
-    internal static class MeritHandler
-    {
-        // view a specific merit category.
-        internal static string ViewCategory(ArcadeUser user, MeritGroup group)
-        {
-            bool showTooltips = user.Config?.Tooltips ?? false;
-
-            var panel = new StringBuilder();
-
-            panel.AppendLine("> **Merits**");
-            panel.AppendLine($"> {group.ToString()}");
-
-            panel.AppendLine();
-
-            if (MeritHelper.Merits.Count(x => x.Group.HasFlag(group)) == 0)
-                return Format.Warning($"There are no visible **Merits** found under **{group.ToString()}**.");
-
-            if (showTooltips)
-            {
-                if (user.Merits.Any(x => !x.Value.IsClaimed.GetValueOrDefault(true)))
-                    panel.Insert(0, "> Use `claim <id>` to claim the reward from a **Merit**.\n\n");
-            }
-
-            foreach (Merit merit in MeritHelper.Merits.Where(x => x.Group.HasFlag(group)))
-            {
-                panel.AppendLine(GetMeritSummary(user, merit));
-            }
-
-            return panel.ToString();
-        }
-
-        internal static string GetMeritSummary(ArcadeUser user, Merit merit)
-        {
-            var summary = new StringBuilder();
-            bool unlocked = MeritHelper.HasMerit(user, merit.Id);
-
-            // LINE 1
-            summary.Append($"`{merit.Id}`");
-            summary.Append(" • ");
-            summary.Append($"**{merit.Name}**");
-            summary.AppendLine();
-
-            // LINE 2 (?)
-            if (Check.NotNull(merit.Summary))
-                summary.Append($"⇛ {merit.Summary}");
-
-            summary.AppendLine();
-
-            if (unlocked)
-            {
-                summary.AppendLine($"> Achieved **{Format.FullTime(user.Merits[merit.Id].AchievedAt)}**");
-
-                if (merit.Reward != null)
-                {
-                    summary.Append("> **Reward**: ");
-                    summary.AppendJoin(", ", merit.Reward.GetNames());
-
-                    if (user.Merits[merit.Id].IsClaimed.HasValue)
-                        summary.Append($" ({(user.Merits[merit.Id].IsClaimed.Value ? "Claimed" : "Unclaimed")})");
-                }
-            }
-
-            return summary.ToString();
-        }
-
-
-
-        // claim a merit; true if successful.
-        internal static bool Claim(ArcadeUser user, string meritId)
-        {
-            if (Exists(user, meritId))
-            {
-                Merit merit = MeritHelper.GetMerit(meritId);
-
-                //if (CanReward(user, merit))
-                    //ApplyReward(user, merit.Reward);
-
-                user.Merits[meritId].IsClaimed = true;
-                return true;
-            }
-
-            return false;
-        }
-
-        internal static string ClaimAndDisplay(ArcadeUser user, Merit merit)
-            => ClaimAndDisplay(user, merit.Id);
-
-        internal static string ClaimAndDisplay(ArcadeUser user, string meritId)
-        {
-            if (!MeritHelper.Exists(meritId))
-                return Format.Warning("The **Merit** you specified doesn't exist.");
-
-            Merit merit = MeritHelper.GetMerit(meritId);
-
-            if (!user.Merits.ContainsKey(meritId))
-                return Format.Warning("You haven't met the criteria in order to be able to claim this **Merit**.");
-
-            if (merit.Reward == null)
-                return Format.Warning("The **Merit** you specified doesn't have a reward.");
-
-            if (user.Merits[meritId].IsClaimed.GetValueOrDefault(true))
-                return Format.Warning("You already claimed this **Merit**.");
-
-            if (Claim(user, meritId))
-                return GetRewardSummary(merit.Reward);
-
-            return Format.Warning("An unknown error has occurred.");
-        }
-
-        private static string GetRewardSummary(Reward reward)
-            => string.Join("\n", reward.GetNames().Select(x => $"• +{x}"));
-
-        // checks if the user has the merit AND the merit exists
-        private static bool Exists(ArcadeUser user, string meritId)
-            => MeritHelper.Exists(meritId) && MeritHelper.HasMerit(user, meritId);
-
-        // checks if the merit has a reward AND the user hasn't claimed it.
-        private static bool CanReward(ArcadeUser user, Merit merit)
-            => merit.Reward != null && (!user.Merits[merit.Id].IsClaimed ?? false);
-
-        
     }
 }

@@ -1,7 +1,8 @@
 ﻿namespace Arcadia
 {
-    // Instead of explicit groups, since the merit class is utilized by multiple,
-    // convert these values into a string
+    /// <summary>
+    /// Represents the category of a <see cref="Merit"/>.
+    /// </summary>
     public enum MeritGroup
     {
         Generic = 1,

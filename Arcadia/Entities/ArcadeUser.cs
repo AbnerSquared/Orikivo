@@ -1,15 +1,15 @@
-﻿using Discord.WebSocket;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Orikivo;
 using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
+using Discord;
 
 namespace Arcadia
 {
     public class ArcadeUser : BaseUser
     {
-        public ArcadeUser(SocketUser user)
+        public ArcadeUser(IUser user)
             : base(user)
         {
             Balance = 0;
@@ -61,7 +61,7 @@ namespace Arcadia
         public int Level => ExpConvert.AsLevel(Exp);
         
         [JsonProperty("ascent")]
-        public int Ascent { get; internal set; } = 0;
+        public int Ascent { get; internal set; }
 
         [JsonProperty("stats")]
         public Dictionary<string, long> Stats { get; }
@@ -80,9 +80,6 @@ namespace Arcadia
         /// </summary>
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
-
-        [JsonIgnore]
-        public Notifier Notifier { get; } = new Notifier();
 
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;

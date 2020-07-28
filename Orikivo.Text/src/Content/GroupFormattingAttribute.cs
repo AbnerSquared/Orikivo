@@ -2,10 +2,10 @@
 
 namespace Orikivo.Text
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class GroupFormattingAttribute : Attribute // marks a property as IEnumerable
     {
-        public GroupFormattingAttribute(string format, string separator = "", string elementFormat = "") : base()
+        public GroupFormattingAttribute(string format, string separator = "", string elementFormat = "")
         {
             Format = format;
             ElementFormat = elementFormat;

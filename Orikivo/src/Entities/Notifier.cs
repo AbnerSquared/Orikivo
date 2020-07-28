@@ -45,9 +45,8 @@ namespace Orikivo.Desync
         /// </summary>
         public string Display()
         {
-            StringBuilder notifier = new StringBuilder();
+            var notifier = new StringBuilder();
 
-            int i = 0;
             foreach (Notification n in Notifications.OrderByDescending(x => x.SentAt))
             {
                 notifier.AppendLine($"> {n.Content} ({Format.FullTime(n.SentAt)})");
@@ -94,7 +93,7 @@ namespace Orikivo.Desync
                 }
                 else
                 {
-                    int remainder = Notifications.Where(x => !x.Read).Count();
+                    int remainder = Notifications.Count(x => !x.Read);
 
                     if (remainder > 0)
                         notifier.AppendLine($" > and **+{Format.Separate(remainder)}** more!");

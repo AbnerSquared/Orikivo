@@ -76,7 +76,7 @@ namespace Orikivo
             return segment.ToString();
         }
 
-        private static readonly int _innerNameLimit;
+        private static readonly int _innerNameLimit = 3;
 
         private string GetCategory(ModuleNode module)
         {
@@ -100,7 +100,6 @@ namespace Orikivo
                 if (hasSubtitle)
                     segment.Append("> ");
 
-                var innerNames = GetModuleInnerNames(module);
                 int inserted = 0;
 
                 foreach(string innerName in GetModuleInnerNames(module))

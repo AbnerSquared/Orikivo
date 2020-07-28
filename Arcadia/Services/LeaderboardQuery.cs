@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Services
 {
-    public enum LeaderboardFlag
+    public enum LeaderboardQuery
     {
         Default = 0,
         Money = 1,

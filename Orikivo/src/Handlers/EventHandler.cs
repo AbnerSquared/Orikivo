@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Orikivo.Framework;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo
 {
     /// <summary>

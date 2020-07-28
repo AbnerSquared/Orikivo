@@ -17,21 +17,21 @@ namespace Orikivo.Text
             foreach(NodeValue node in nodes)
                 values[node.Index] = node.Value;
 
-            return values.Count() > 0 ? string.Format(Formatting, values) : Formatting;
+            return values.Any() ? string.Format(Formatting, values) : Formatting;
         }
 
         private List<NodeValue> GetNodeValues()
         {
-            List<NodeValue> values = new List<NodeValue>();
+            var values = new List<NodeValue>();
 
             int i = 0;
             PropertyInfo[] properties = GetType().GetProperties();
             
             foreach (PropertyInfo property in properties)
             {
-                NodeAttribute indexer = property.GetAttribute<NodeAttribute>();
-                FormattingAttribute formatting = property.GetAttribute<FormattingAttribute>();
-                GroupFormattingAttribute groupFormatting = property.GetAttribute<GroupFormattingAttribute>();
+                var indexer = property.GetCustomAttribute<NodeAttribute>();
+                var formatting = property.GetCustomAttribute<FormattingAttribute>();
+                var groupFormatting = property.GetCustomAttribute<GroupFormattingAttribute>();
 
                 // if there is nothing that marks it as a node to use, skip it.
                 if (indexer == null && formatting == null && groupFormatting == null)

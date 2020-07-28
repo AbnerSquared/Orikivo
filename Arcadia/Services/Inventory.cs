@@ -5,22 +5,30 @@ namespace Arcadia
 {
     public class Inventory
     {
-        private static string GetHeader(long capacity)
+        private static string GetHeader(long capacity, bool showTooltips = true)
         {
-            return $"> **Inventory**\n> `{GetCapacity(capacity)}` **{GetSuffix(capacity)}** available.";
+            var header = new StringBuilder("> 📂 **Inventory**\n> View your contents currently in storage.");
+
+            if (showTooltips)
+                header.Append($"\n> You have **{GetCapacity(capacity)}**{GetSuffix(capacity)} available.");
+
+            header.Append("\n");
+
+            return header.ToString();
         }
 
+        // TODO: The capacity determination could be cleaned up.
         private static string GetCapacity(long capacity)
         {
-            var suffix = GetSuffix(capacity);
+            string suffix = GetSuffix(capacity);
 
             return suffix switch
             {
                 "B" => $"{capacity}",
-                "KB" => $"{(double)(capacity / 1000)}",
-                "MB" => $"{(double)(capacity / 1000000)}",
-                "GB" => $"{(double)(capacity / 1000000000)}",
-                "TB" => $"{(double)(capacity / 1000000000000)}",
+                "KB" => $"{capacity / (double) 1000}",
+                "MB" => $"{capacity / (double) 1000000}",
+                "GB" => $"{capacity / (double) 1000000000}",
+                "TB" => $"{capacity / (double) 1000000000000}",
                 _ => "∞"
             };
         }
@@ -47,18 +55,19 @@ namespace Arcadia
             return "PB";
         }
 
-        private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true)
+        private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true, bool showTooltips = true)
         {
-            var item = ItemHelper.GetItem(id);
+            Item item = ItemHelper.GetItem(id);
             var summary = new StringBuilder();
 
-            summary.Append($"**#**{index}");
+            summary.Append($"> **Slot {index}:** ");
+
+            summary.Append($"`{id}`");
 
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
-                summary.Append($" `{data.Data.Id}`");
+                summary.Append($"/`{data.Data.Id}`");
 
-            summary.AppendLine();
-            summary.Append($"> `{id}` **{item.Name}**");
+            summary.Append($" • **{item.Name}**");
             
             if (data.Count > 1)
             {
@@ -67,8 +76,10 @@ namespace Arcadia
 
             if (isPrivate) // Only write storage size if looking at your own inventory.
             {
-                summary.AppendLine();
-                summary.Append($"> `{GetCapacity(item.Size)}` **{GetSuffix(item.Size)}**");
+                if (showTooltips)
+                {
+                    summary.Append($" (**{GetCapacity(item.Size)}**{GetSuffix(item.Size)})");
+                }
             }
             else
             {
@@ -83,12 +94,13 @@ namespace Arcadia
 
         public static string Write(ArcadeUser user, bool isPrivate = true)
         {
+            
             var inventory = new StringBuilder();
 
             if (isPrivate)
                 inventory.AppendLine(GetHeader(user.GetStat(Vars.Capacity)));
             else
-                inventory.AppendLine($"> **{user.Username}'s Inventory**");
+                inventory.AppendLine($"> 📂 **{user.Username}'s Inventory**\n");
 
 
             int i = 0;
@@ -106,9 +118,9 @@ namespace Arcadia
             if (i == 0)
             {
                 if (isPrivate)
-                    inventory.AppendLine("> *\"I could not locate any files.\"*");
+                    inventory.AppendLine("> *Your inventory is empty.*");
                 else
-                    inventory.AppendLine("> *\"This account does not have any items available for trade.\"*");
+                    inventory.AppendLine("> *This inventory does not contain any tradable items.*");
             }
 
             return inventory.ToString();
