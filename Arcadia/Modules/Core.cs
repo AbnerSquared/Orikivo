@@ -4,6 +4,7 @@ using Orikivo;
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Driver;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -13,10 +14,36 @@ namespace Arcadia.Modules
     public class Core : OriModuleBase<ArcadeContext>
     {
         private readonly InfoService _info;
+        private readonly MongoClient _mongo;
 
-        public Core(InfoService info)
+        public Core(InfoService info, MongoClient mongo)
         {
             _info = info;
+            _mongo = mongo;
+        }
+
+        [Command("mongotest")]
+        public async Task MongoTestAsync()
+        {
+            if (Context.User.Id != OriGlobal.DevId)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Only the developer may execute this command."));
+                return;
+            }
+
+            try
+            {
+                IMongoDatabase db = _mongo.GetDatabase("arcadia");
+
+                var testObjects = db.GetCollection<TestMongoObject>("test");
+                var value = new TestMongoObject("test_id", "default_text");
+                testObjects.InsertOne(value);
+                Console.WriteLine(testObjects.Find(x => x.Id == "test_id"));
+            }
+            catch(Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
         }
 
         [DoNotNotify]

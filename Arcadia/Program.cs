@@ -9,6 +9,7 @@ using Arcadia.Casino;
 using Arcadia.Graphics;
 using Arcadia.Modules;
 using Arcadia.Services;
+using MongoDB.Driver;
 using Orikivo;
 
 namespace Arcadia
@@ -40,7 +41,8 @@ namespace Arcadia
                 .AddSingleton<ArcadeContainer>()
                 .AddSingleton<LogService>()
                 .AddSingleton<Orikivo.EventHandler>()
-                .AddSingleton<CommandHandler>();
+                .AddSingleton<CommandHandler>()
+                .AddSingleton(new MongoClient());
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;

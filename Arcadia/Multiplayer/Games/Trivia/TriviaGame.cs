@@ -7,6 +7,10 @@ using System.Text;
 
 namespace Arcadia.Games
 {
+    internal static class TriviaVars
+    {
+
+    }
 
     public class TriviaGame : GameBuilder
     {
@@ -448,11 +452,10 @@ namespace Arcadia.Games
                     {
                         Name = "a",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            var session = server.Session;
 
-                            var data = session.GetPlayerData(user.Id);
+                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
 
                             if (data.GetPropertyValue<bool>("has_answered"))
                                 return;
@@ -471,18 +474,18 @@ namespace Arcadia.Games
                                 data.ResetProperty("streak");
                             }
 
-                            session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
-                            session.InvokeAction("try_get_question_result");
+                            ctx.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", ctx.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
                     new TextInput
                     {
                         Name = "b",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            var data = server.Session.GetPlayerData(user.Id);
+                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
 
                             if (data.GetPropertyValue<bool>("has_answered"))
                                 return;
@@ -506,18 +509,18 @@ namespace Arcadia.Games
                                 data.ResetProperty("streak");
                             }
 
-                            server.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
-                            server.Session.InvokeAction("try_get_question_result");
+                            ctx.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", ctx.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
                     new TextInput
                     {
                         Name = "c",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            var data = server.Session.GetPlayerData(user.Id);
+                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
 
                             if (data.GetPropertyValue<bool>("has_answered"))
                                 return;
@@ -541,18 +544,18 @@ namespace Arcadia.Games
                                 data.ResetProperty("streak");
                             }
 
-                            server.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
-                            server.Session.InvokeAction("try_get_question_result");
+                            ctx.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", ctx.Server.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
                     new TextInput
                     {
                         Name = "d",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            var data = server.Session.GetPlayerData(user.Id);
+                            var data = ctx.Server.Session.GetPlayerData(ctx.Invoker.Id);
 
                             if (data.GetPropertyValue<bool>("has_answered"))
                                 return;
@@ -576,9 +579,9 @@ namespace Arcadia.Games
                                 data.ResetProperty("streak");
                             }
 
-                            server.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", server.Session.GetPropertyValue<int>("players_answered"));
-                            server.Session.InvokeAction("try_get_question_result");
+                            ctx.Server.Session.AddToProperty("players_answered", 1);
+                            data.SetPropertyValue("answer_position", ctx.Server.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Server.Session.InvokeAction("try_get_question_result");
                         }
                     }
                 }
@@ -617,10 +620,10 @@ namespace Arcadia.Games
                     {
                         Name = "next",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            server.Session.CancelQueuedAction();
-                            server.Session.InvokeAction("try_get_next_question", true);
+                            ctx.Session.CancelQueuedAction();
+                            ctx.Session.InvokeAction("try_get_next_question", true);
                         }
                     }
                 }
@@ -654,20 +657,20 @@ namespace Arcadia.Games
                     {
                         Name = "rematch",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            server.Session.AddToProperty("rematch_requests", 1);
-                            server.Session.InvokeAction("try_restart", true);
+                            ctx.Session.AddToProperty("rematch_requests", 1);
+                            ctx.Session.InvokeAction("try_restart", true);
                         }
                     },
                     new TextInput
                     {
                         Name = "end",
                         UpdateOnExecute = false,
-                        OnExecute = delegate(IUser user, ServerConnection connection, GameServer server)
+                        OnExecute = delegate(InputContext ctx)
                         {
-                            server.Session.CancelQueuedAction();
-                            server.Session.InvokeAction("end", true);
+                            ctx.Session.CancelQueuedAction();
+                            ctx.Session.InvokeAction("end", true);
                         }
                     }
                 }
@@ -695,12 +698,12 @@ namespace Arcadia.Games
                     Player = x,
                     Properties = new List<GameProperty>
                     {
-                        GameProperty.Create<int>("score", 0),
-                        GameProperty.Create<int>("streak", 0),
+                        GameProperty.Create("score", 0),
+                        GameProperty.Create("streak", 0),
                         // if the answer they selected was correct, set to true; otherwise false
-                        GameProperty.Create<bool>("is_correct", false),
-                        GameProperty.Create<bool>("has_answered", false),
-                        GameProperty.Create<int>("answer_position", 0) // this determines how many points they get if they were right
+                        GameProperty.Create("is_correct", false),
+                        GameProperty.Create("has_answered", false),
+                        GameProperty.Create("answer_position", 0) // this determines how many points they get if they were right
                         // bonuses are given to the fastest people
                     }
                 });
@@ -755,7 +758,6 @@ namespace Arcadia.Games
             // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
             foreach (PlayerData player in session.Players)
             {
-                Console.WriteLine("IS_THIS_BEING_USED");
                 ulong playerId = player.Player.User.Id;
                 var stats = new List<StatUpdatePacket>();
                 

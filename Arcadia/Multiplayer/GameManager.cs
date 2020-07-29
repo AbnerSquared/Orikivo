@@ -10,6 +10,11 @@ using System.Threading.Tasks;
 namespace Arcadia
 
 {
+    internal static class LobbyVars
+    {
+        internal static readonly string Header = "header";
+        internal static readonly string MessageBox = "message_box";
+    }
     public class GameManager
     {
         private readonly DiscordSocketClient _client;
@@ -116,7 +121,7 @@ namespace Arcadia
             (content.GetComponent("message_box") as ComponentGroup)
                     .Append($"[Console] {user.Username} has joined.");
 
-            (editing.GetComponent("message_box") as ComponentGroup)
+            editing.GetGroup("message_box")
                 .Append($"[Console] {user.Username} has joined.");
 
             content.GetComponent("message_box").Draw();
@@ -153,7 +158,7 @@ namespace Arcadia
         }
 
         // this starts a new base game server
-        public async Task CreateServerAsync(IUser user, IMessageChannel channel)
+        public async Task CreateServerAsync(IUser user, IMessageChannel channel, IGuild guild = null)
         {
             if (user.IsBot)
                 return;
@@ -200,17 +205,17 @@ namespace Arcadia
 
             display
                 .Content
-                .GetComponent("header")
+                .GetComponent(LobbyVars.Header)
                 .Draw(server.Config.Title, server.Id, server.Config.GameId, server.Players.Count, playerLimitCounter);
 
-            (display.Content.GetComponent("message_box") as ComponentGroup)
+            display.Content.GetGroup(LobbyVars.MessageBox)
                 .Append($"[Console] {user.Username} has joined.");
 
-            (editing.Content.GetComponent("message_box") as ComponentGroup)
+            editing.Content.GetGroup(LobbyVars.MessageBox)
                 .Append($"[Console] {user.Username} has joined.");
 
-            display.Content.GetComponent("message_box").Draw();
-            editing.Content.GetComponent("message_box").Draw(server.Config.Title);
+            display.Content.GetComponent(LobbyVars.MessageBox).Draw();
+            editing.Content.GetComponent(LobbyVars.MessageBox).Draw(server.Config.Title);
 
             var internalMessage = await channel.SendMessageAsync(display.ToString());
 
@@ -225,6 +230,9 @@ namespace Arcadia
                 LastRefreshed = DateTime.UtcNow
             };
 
+            if (guild != null)
+                connection.GuildId = guild.Id;
+
             server.Connections.Add(connection);
 
             // refreshes all displays, just in case
@@ -237,7 +245,6 @@ namespace Arcadia
         {
             SessionResult result = session._game.OnSessionFinish(session);
             result.Apply(_container);
-            Console.WriteLine("Finished a game session?? idk anymore");
         }
 
         // destroys the game server accordingly
@@ -543,14 +550,14 @@ namespace Arcadia
                                     notice = $"[Console] An error has occurred attempting to start '{server.Config.GameId}'.";
                                 }
                             }
-
-                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
-                             waiting.GetComponent("message_box").Draw();
+                            
+                            waiting.GetGroup(LobbyVars.MessageBox).Append(notice);
+                            waiting.GetComponent(LobbyVars.MessageBox).Draw();
 
                             if (isEditing)
                             {
-                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
-                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                                editing.GetGroup(LobbyVars.MessageBox).Append(notice);
+                                editing.GetComponent(LobbyVars.MessageBox).Draw(server.Config.Title);
                             }
 
                             break;
@@ -577,20 +584,20 @@ namespace Arcadia
 
                             string notice = $"[Console] {user.Username} has joined.";
 
-                            (waiting.GetComponent("message_box") as ComponentGroup).Append(notice);
-                            waiting.GetComponent("message_box").Draw();
+                            waiting.GetGroup(LobbyVars.MessageBox).Append(notice);
+                            waiting.GetComponent(LobbyVars.MessageBox).Draw();
 
                             if (isEditing)
                             {
-                                (editing.GetComponent("message_box") as ComponentGroup).Append(notice);
-                                editing.GetComponent("message_box").Draw(server.Config.Title);
+                                editing.GetGroup(LobbyVars.MessageBox).Append(notice);
+                                editing.GetComponent(LobbyVars.MessageBox).Draw(server.Config.Title);
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
                                 $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
-                            waiting.GetComponent("header")
+                            waiting.GetComponent(LobbyVars.Header)
                                 .Draw(server.Config.Title,
                                     server.Id,
                                     server.Config.GameId,
@@ -1257,6 +1264,28 @@ namespace Arcadia
                         }
                         break;
                 }
+
+                // Check to see if the server is allowed to delete messages.
+                if (connection.CouldDeleteMessages)
+                {
+                    if (connection.GuildId.HasValue)
+                    {
+                        IGuild guild = _client.GetGuild(connection.GuildId.Value);
+                        if (guild != null)
+                        {
+                            IGuildUser bot = await guild.GetCurrentUserAsync();
+
+                            if (bot != null)
+                            {
+                                connection.CanDeleteMessages = bot.GuildPermissions.ManageMessages;
+                                connection.CouldDeleteMessages = false;
+                            }
+                        }
+                    }
+                }
+
+                if (connection.CanDeleteMessages)
+                    await message.DeleteAsync();
 
                 await server.UpdateAsync();
             }

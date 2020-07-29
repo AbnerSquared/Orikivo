@@ -3,14 +3,72 @@ using System;
 
 namespace Arcadia
 {
+    public enum ConnectionType
+    {
+        // If guild-wise, utilize the State property
+        Guild = 1,
+
+        // If user-wise, ignore the State property
+        Direct = 2
+    }
+
+    public class ConnectionProperties
+    {
+        public int Frequency { get; set; } = 0;
+        public GameState State { get; set; } = GameState.Waiting;
+
+        public bool CanDeleteMessages { get; set; } = false;
+
+        // After 4 messages is sent that CANNOT be deleted, this screen is refreshed, which resends the content into
+        // a new message body
+        public int AutoRefreshCounter { get; set; } = 4;
+    }
+
     public class ServerConnection
     {
         // every 4 messages, the InternalMessage will be updated.
-        private static int _afterMessageLimit => 4;
+        private static readonly int AfterMessageLimit = 4;
+        public ServerConnection() {}
+
+        public ServerConnection(ulong guildId, IMessageChannel channel,
+            IUserMessage messageBind,
+            int frequency = 0,
+            GameState state = GameState.Waiting,
+            bool canDeleteMessages = false)
+        {
+            GuildId = guildId;
+            InternalChannel = channel;
+            InternalMessage = messageBind;
+            ChannelId = channel.Id;
+            MessageId = messageBind.Id;
+            Frequency = frequency;
+            State = state;
+            CouldDeleteMessages = canDeleteMessages;
+        }
+
+        public ServerConnection(IMessageChannel channel,
+            IUserMessage messageBind,
+            int frequency = 0,
+            GameState state = GameState.Waiting,
+            bool canDeleteMessages = false)
+        {
+            InternalChannel = channel;
+            InternalMessage = messageBind;
+            ChannelId = channel.Id;
+            MessageId = messageBind.Id;
+            Frequency = frequency;
+            State = state;
+            CouldDeleteMessages = canDeleteMessages;
+        }
+
+        public ulong? GuildId { get; set; }
 
         public ulong ChannelId { get; set; }
 
         public ulong MessageId { get; set; }
+
+        // If this is specified, attempt to re-initialize the channel in this manner
+        public string DirectId { get; set; }
 
         // only 1 channel can be bound to a server at a time
         // check to see if the specified channel is connected to anything else.
@@ -36,7 +94,10 @@ namespace Arcadia
         // a new message is sent in replacement
         internal int AfterMessageCount { get; set; }
 
-        // determines if the bot can delete messages
+        // determines if the bot can attempt to delete messages
+        public bool CouldDeleteMessages { get; set; } = false;
+
+        // determines if the bot can 100% delete messages in this channel
         public bool CanDeleteMessages { get; set; } = false;
 
         // this determines what is currently being executed in the server connection

@@ -70,6 +70,9 @@ namespace Arcadia
         private List<ActionQueue> _actionQueue = new List<ActionQueue>();
         private string _currentQueuedAction;
 
+        // If true, nobody is allowed to invoke a command
+        public bool BlockInput { get; set; }
+
         internal void QueueAction(TimeSpan delay, string actionId)
         {
             ActionQueue timer = new ActionQueue(delay, actionId, this);
@@ -106,6 +109,25 @@ namespace Arcadia
 
         private ActionQueue GetCurrentQueuedAction()
             => GetQueuedAction(_currentQueuedAction);
+
+        internal void InvokeAction(string actionId, InputContext ctx, bool overrideTimer = false)
+        {
+            if (!overrideTimer)
+                if (GetCurrentQueuedAction()?.IsElapsed ?? false)
+                    return;
+
+            if (Actions.All(x => x.Id != actionId))
+                throw new Exception($"Could not find the specified action '{actionId}'");
+
+            GameAction action = Actions.First(x => x.Id == actionId);
+
+            // TODO: Use InputContext instead of GameContext for input invocations
+            action.OnExecute(null, this, _server);
+
+            // this causes a pause, so limit it to the actions that need to update
+            if (action.UpdateOnExecute)
+                _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        }
 
         internal void InvokeAction(string actionId, bool overrideTimer = false)
         {

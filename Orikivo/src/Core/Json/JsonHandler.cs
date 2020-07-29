@@ -36,7 +36,7 @@ namespace Orikivo
         public static void SaveEntity<T>(T obj, string directory, JsonSerializer serializer = null)
             where T : IJsonEntity
         {
-            lock (_lock)
+            //lock (_lock)
                 Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
         }
 
@@ -56,13 +56,13 @@ namespace Orikivo
         {
             Console.WriteLine($"[Debug] -- Saving object of type '{typeof(T).Name}'. --");
             path = JsonUtils.GetDirectoryIndex<T>() + path;
-            using (StreamWriter stream = File.CreateText(path))
+            using (StreamWriter stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write))) //File.CreateText(path))
             {
-                using (var writer = new JsonTextWriter(stream))
-                {
-                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
-                    serializer.Serialize(stream, obj);
-                }
+                //using (var writer = new JsonTextWriter(stream))
+                //{
+                serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+                serializer.Serialize(stream, obj);
+                //}
             }
         }
 
@@ -70,13 +70,13 @@ namespace Orikivo
         {
             string path = GetDirectory(folder) + name;
 
-            using (StreamWriter stream = File.CreateText(path))
+            using (StreamWriter stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write))) //File.CreateText(path))
             {
-                using (var writer = new JsonTextWriter(stream))
-                {
-                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
-                    serializer.Serialize(stream, obj);
-                }
+                //using (var writer = new JsonTextWriter(stream))
+                //{
+                serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+                serializer.Serialize(stream, obj);
+                //}
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using Discord;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Orikivo.Desync
 {
@@ -18,7 +19,7 @@ namespace Orikivo.Desync
             Config = new UserConfig();
         }
 
-        [JsonConstructor]
+        [JsonConstructor, BsonConstructor]
         public BaseUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config)
         {
             Id = id;
@@ -28,19 +29,19 @@ namespace Orikivo.Desync
             Config = config;
         }
 
-        [JsonProperty("id")]
+        [JsonProperty("id"), BsonId]
         public ulong Id { get; }
 
-        [JsonProperty("username")]
+        [JsonProperty("username"), BsonElement("username")]
         public string Username { get; protected set; }
 
-        [JsonProperty("discriminator")]
+        [JsonProperty("discriminator"), BsonElement("discriminator")]
         public string Discriminator { get; protected set; }
 
-        [JsonProperty("created_at")]
+        [JsonProperty("created_at"), BsonElement("created_at")]
         public DateTime CreatedAt { get; }
 
-        [JsonProperty("config")]
+        [JsonProperty("config"), BsonElement("config")]
         public UserConfig Config { get; }
 
         [JsonIgnore]

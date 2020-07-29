@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -58,6 +59,14 @@ namespace Arcadia
             }
 
             return null;
+        }
+
+        public ComponentGroup GetGroup(string id)
+        {
+            if (GetComponent(id) is ComponentGroup group)
+                return group;
+
+            throw new InvalidCastException("Unable to cast IComponent as ComponentGroup");
         }
 
         // this brings the specific component to the top of the list

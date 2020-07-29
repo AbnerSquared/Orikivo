@@ -5,6 +5,14 @@ namespace Arcadia
     // this is a ruleset that can be used to quickly determine if certain criteria was met
     public class GameCriterion
     {
+        public GameCriterion() {}
+
+        public GameCriterion(string id, Func<GameSession, bool> criterion)
+        {
+            Id = id;
+            Criterion = criterion;
+        }
+
         public string Id { get; internal set; }
 
         // what is the criterion?

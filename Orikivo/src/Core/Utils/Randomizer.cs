@@ -52,7 +52,7 @@ namespace Orikivo
             if (!Check.NotNull(args))
                 throw new NullReferenceException("The arguments specified cannot be null.");
             
-            int j = RandomProvider.Instance.Next(args.Count());
+            int j = RandomProvider.Instance.Next(args.Count);
             T obj = args.ElementAt(j);
             args.RemoveAt(j);
             return obj;

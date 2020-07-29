@@ -46,7 +46,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.CreateServerAsync(Context.User, Context.Channel);
+            await _games.CreateServerAsync(Context.User, Context.Channel, Context.Guild);
         }
 
         [Command("joinserver")]
