@@ -1,10 +1,18 @@
-﻿namespace Arcadia
+﻿using System.Collections.Generic;
+using System.Reflection;
+
+namespace Arcadia
 {
     /// <summary>
     /// Contains a collection of stat identifiers.
     /// </summary>
     internal static class Stats
     {
+        internal static readonly string QuestCapacity = "var:quest_capacity";
+        internal static readonly string TotalCompletedQuests = "quest:total_completed";
+        internal static readonly string TotalAssignedQuests = "quest:total_assigned";
+        internal static readonly string LastAssignedQuest = "quest:last_assigned";
+        internal static readonly string LastSkippedQuest = "quest:last_skipped";
         internal static readonly string TotalMoney = "generic:total_money";
         internal static readonly string TotalChips = "generic:total_chips";
         internal static readonly string TotalTokens = "generic:total_tokens";

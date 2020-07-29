@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Desync;
 
 namespace Arcadia
 {
@@ -76,6 +77,24 @@ namespace Arcadia
                 },
                 new Merit
                 {
+                    Id = "casino:gimi_maniac",
+                    Name = "Gimi Maniac",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Diamond,
+                    Value = 250,
+                    Quote = "Where most people gave up, you kept asking 10,000 times over.",
+                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 10000,
+                    Hidden = true,
+                    Reward = new Reward
+                    {
+                        ItemIds = new Dictionary<string, int>
+                        {
+                            [Items.AutomatonGimi] = 1
+                        }
+                    }
+                },
+                new Merit
+                {
                     Id = "generic:weekly_worker",
                     Name = "Weekly Worker",
                     Group = MeritGroup.Generic,
@@ -145,6 +164,72 @@ namespace Arcadia
             => Merits.Any(x => x.Id == id);
 
         public static string Write(Merit merit, ArcadeUser user = null)
+        {
+            var info = new StringBuilder();
+
+            if (merit.Criteria == null)
+            {
+                info.AppendLine(Format.Warning("This is an exclusive merit."));
+            }
+
+            if (user != null)
+            {
+                if (HasMerit(user, merit.Id))
+                {
+                    info.AppendLine($"> 🏆 **Achieved: {Format.FullTime(user.Merits[merit.Id].AchievedAt)}**\n");
+                }
+            }
+
+            info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
+
+            if (Check.NotNull(merit.Quote))
+            {
+                info.Append("> ");
+
+                if (merit.Hidden)
+                    info.Append("||");
+
+                info.Append(merit.Quote);
+
+                if (merit.Hidden)
+                    info.Append("||");
+
+                info.AppendLine();
+            }
+
+            if (merit.Reward != null)
+            {
+                info.AppendLine();
+                info.Append("> **Rewards**");
+
+                if (user != null)
+                {
+                    if (HasMerit(user, merit.Id))
+                    {
+                        if (user?.Merits[merit.Id]?.IsClaimed == true)
+                        {
+                            info.Append(" (Claimed!)");
+                        }
+                    }
+                }
+
+                info.AppendLine();
+
+                if (merit.Reward.Money > 0)
+                {
+                    info.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
+                }
+
+                foreach ((string itemId, int amount) in merit.Reward.ItemIds)
+                {
+                    info.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                }
+            }
+
+            return info.ToString();
+        }
+
+        public static string WriteRow(Merit merit, ArcadeUser user = null)
         {
             var info = new StringBuilder();
 
@@ -243,7 +328,7 @@ namespace Arcadia
                         continue;
 
 
-                    info.AppendLine($"{Write(merit, user)}\n");
+                    info.AppendLine($"{WriteRow(merit, user)}\n");
                     i++;
                 }
 
@@ -326,6 +411,14 @@ namespace Arcadia
         public static void TryUnlock(ArcadeUser user, string meritId)
             => TryUnlock(user, GetMerit(meritId));
 
+        public static bool CanClaim(ArcadeUser user, string meritId)
+        {
+            if (!HasMerit(user, meritId))
+                return false;
+
+            return GetMerit(meritId).Reward != null && user.Merits[meritId].IsClaimed != true;
+        }
+
         public static void TryUnlock(ArcadeUser user, Merit merit)
         {
             if (!IsEligible(user, merit))
@@ -333,6 +426,85 @@ namespace Arcadia
 
             user.Merits.Add(merit.Id, merit.GetData());
             user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
+        }
+
+        public static bool CanClaimAny(ArcadeUser user)
+            => Merits.Any(x => CanClaim(user, x.Id));
+
+        // attempts to claim all available merits
+        public static string ClaimAll(ArcadeUser user)
+        {
+            if (!CanClaimAny(user))
+                return $"> ⚠️ You don't have any merits that can be claimed.";
+
+            long money = 0;
+            var items = new Dictionary<string, int>();
+
+            IEnumerable<Merit> toClaim = Merits.Where(x => CanClaim(user, x.Id));
+            foreach (Merit merit in toClaim)
+            {
+                money += merit.Reward.Money;
+
+                foreach ((string itemId, int amount) in merit.Reward.ItemIds)
+                {
+                    if (!items.TryAdd(itemId, amount))
+                        items[itemId] += amount;
+                }
+
+                user.Merits[merit.Id].IsClaimed = true;
+            }
+
+            var result = new StringBuilder();
+
+            result.AppendLine($"> You have claimed **{toClaim.Count():##,0} {Format.TryPluralize("merit", toClaim.Count())}** and received:");
+
+            if (money > 0)
+            {
+                result.AppendLine($"> 💸 **{money:##,0}**");
+                user.Give(money);
+            }
+
+            foreach ((string itemId, int amount) in items)
+            {
+                result.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                ItemHelper.GiveItem(user, itemId, amount);
+            }
+
+            return result.ToString();
+        }
+
+        // attempts to claim the specified merit.
+        public static string Claim(ArcadeUser user, string meritId)
+        {
+            Merit merit = GetMerit(meritId);
+
+            if (HasMerit(user, meritId) && user.Merits[merit.Id]?.IsClaimed == true)
+                return $"> ⚠️ You have already claimed **{merit.Name}**.";
+
+            if (merit.Reward == null)
+                return $"> ⚠️ There are no rewards assigned to **{merit.Name}**.";
+
+            if (!CanClaim(user, meritId))
+                return $"> ⚠️ You are unable to claim **{merit.Name}**.";
+
+            var result = new StringBuilder();
+
+            result.AppendLine($"> You have claimed **{merit.Name}** and received:");
+
+            if (merit.Reward.Money > 0)
+            {
+                result.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
+                user.Give(merit.Reward.Money);
+            }
+
+            foreach ((string itemId, int amount) in merit.Reward.ItemIds)
+            {
+                result.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                ItemHelper.GiveItem(user, itemId, amount);
+            }
+
+            user.Merits[merit.Id].IsClaimed = true;
+            return result.ToString();
         }
     }
 }

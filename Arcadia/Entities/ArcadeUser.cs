@@ -3,6 +3,7 @@ using Orikivo;
 using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Discord;
 
 namespace Arcadia
@@ -20,6 +21,7 @@ namespace Arcadia
             Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
+            Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig(Graphics.PaletteType.Default);
         }
@@ -27,7 +29,7 @@ namespace Arcadia
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong balance, ulong tokenBalance, ulong chipBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<ItemData> items, CardConfig card)
+            Dictionary<string, MeritData> merits, List<QuestData> quests, List<ItemData> items, CardConfig card)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
@@ -38,6 +40,7 @@ namespace Arcadia
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
+            Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig(Graphics.PaletteType.Default);
         }
@@ -69,6 +72,12 @@ namespace Arcadia
         [JsonProperty("merits")]
         public Dictionary<string, MeritData> Merits { get; }
 
+        // [JsonProperty("boosters")]
+        // public List<BoosterData> Boosters { get; }
+
+        [JsonProperty("quests")]
+        public List<QuestData> Quests { get; }
+
         [JsonProperty("items")]
         public List<ItemData> Items { get; }
 
@@ -81,11 +90,20 @@ namespace Arcadia
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
+        [JsonIgnore] public bool CanAutoGimi { get; set; } = true;
+
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
 
         public void SetStat(string id, long value)
         {
+            // This updates the quest progress without altering main stats
+            if (Quests.Any())
+            {
+                foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
+                    data.Progress[id] = value;
+            }
+
             if (value == 0)
             {
                 if (Stats.ContainsKey(id))
@@ -104,6 +122,13 @@ namespace Arcadia
                 SetStat(id, amount);
             else
                 Stats[id] += amount;
+
+            // This updates the quest progress without altering main stats
+            if (Quests.Any())
+            {
+                foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
+                    data.Progress[id] += amount;
+            }
         }
 
         // TODO: make the type of integer consistent with balances
@@ -148,11 +173,6 @@ namespace Arcadia
     }
 }
 
-// Arcadia-only property
-// public ObjectiveMainData Objectives { get; } = new ObjectiveMainData();
 
 // Arcadia-only property
 // public Dictionary<ExpType, ulong> ExpData { get; } = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };
-
-// Boosters will be used by Orikivo Arcade, not Orikivo
-// public List<BoosterData> Boosters { get; } = new List<BoosterData>();

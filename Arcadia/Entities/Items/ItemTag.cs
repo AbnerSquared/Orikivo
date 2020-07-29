@@ -10,6 +10,7 @@ namespace Arcadia
         Font = 4,
         Capsule = 8,
         Tool = 16,
-        Decorator = 32
+        Decorator = 32,
+        Automaton = 64
     }
 }

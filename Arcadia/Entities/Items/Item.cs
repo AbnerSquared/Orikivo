@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Orikivo;
 
 namespace Arcadia
 {
@@ -9,9 +10,16 @@ namespace Arcadia
 
         public string Name { get; set; }
 
+        public string GetName()
+            => ItemHelper.NameOf(Id);
+
         public string Summary { get; set; }
 
         public List<string> Quotes { get; set; }
+
+        // This is used to set a grouping for a set of items.
+        // When searching with this group, it will filter all of the items to the ones that match this group
+        public string GroupId { get; set; }
 
         public ItemTag Tag { get; set; }
 

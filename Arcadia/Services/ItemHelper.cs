@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arcadia.Services;
 using Orikivo;
-using Catalog = Arcadia.Modules.Catalog;
 using PaletteType = Arcadia.Graphics.PaletteType;
 
 namespace Arcadia
@@ -10,12 +10,110 @@ namespace Arcadia
     // TODO: Implement item attribute reading and data population
     public static class ItemHelper
     {
+        public static readonly List<Recipe> Recipes = new List<Recipe>
+        {
+            new Recipe
+            {
+                Id = "recipe:glossy_green",
+                Components = new List<RecipeComponent>
+                {
+                    new RecipeComponent(Arcadia.Items.PaletteGlass, 1),
+                    new RecipeComponent(Arcadia.Items.PaletteGammaGreen, 1)
+                },
+                Result = new RecipeComponent(Arcadia.Items.PaletteGlossyGreen, 1)
+            }
+        };
+
+        public static IEnumerable<Recipe> RecipesFor(string itemId)
+            => RecipesFor(GetItem(itemId));
+
+        public static IEnumerable<Recipe> RecipesFor(Item item)
+        {
+            return Recipes.Where(x => x.Result.ItemId == item.Id);
+        }
+
+        public static readonly List<ItemGroup> Groups = new List<ItemGroup>
+        {
+            new ItemGroup
+            {
+                Id = "booster",
+                Prefix = "Booster: "
+            },
+
+            new ItemGroup
+            {
+                Id = "palette",
+                Prefix = "Card Palette: ",
+                Summary = "A palette that can be equipped on a card."
+            }, 
+            new ItemGroup
+            {
+                Id = "summon",
+                Prefix = "Summon: "
+            },
+            new ItemGroup
+            {
+                Id = "automaton",
+                Prefix = "Automaton: "
+            }
+        };
+
         /*
         public static long GetUniqueId()
         {
             var offset = new DateTime(2020, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             return (DateTime.UtcNow.Ticks - offset.Ticks);
         }*/
+
+        public static void Craft(ArcadeUser user, Recipe recipe)
+        {
+            if (!CanCraft(user, recipe))
+                throw new ArgumentException("Cannot craft this recipe");
+        }
+
+        public static ItemGroup GetGroup(string id)
+        {
+            if (Groups.Count(x => x.Id == id) > 1)
+                throw new ArgumentException("There are more than one groups with the specified ID.");
+
+            return Groups.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static Recipe GetRecipe(string id)
+        {
+            if (Recipes.Count(x => x.Id == id) > 1)
+                throw new ArgumentException("There are more than one recipes with the specified ID.");
+
+            return Recipes.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static bool TryGetRecipe(string id, out Recipe recipe)
+        {
+            recipe = null;
+
+            if (!RecipeExists(id))
+                return false;
+
+            recipe = GetRecipe(id);
+            return true;
+        }
+
+        public static bool RecipeExists(string id)
+            => Check.NotNull(id) && Recipes.Any(x => x.Id == id);
+
+        public static bool CanCraft(ArcadeUser user, string recipeId)
+            => CanCraft(user, GetRecipe(recipeId));
+
+        public static bool CanCraft(ArcadeUser user, Recipe recipe)
+        {
+            foreach ((string itemId, int amount) in recipe.Components)
+            {
+                if (!HasItem(user, itemId) || GetOwnedAmount(user, itemId) != amount)
+                    return false;
+            }
+
+            return true;
+        }
 
         public static string DetailsOf(Item item)
             => Catalog.WriteItem(item);
@@ -33,17 +131,43 @@ namespace Arcadia
             {
                 new Item
                 {
+                    Id = "au_gimi",
+                    Name = "Gimi",
+                    Summary = "Gives you the ability to execute the Gimi command a specified number of times. Please note that you are required to wait a second on each execution.",
+                    Quotes = new List<string>
+                    {
+                        "It echoes a tick fast enough to break the sound barrier."
+                    },
+                    GroupId = ItemGroups.Automaton,
+                    Rarity = ItemRarity.Myth,
+                    Tag = ItemTag.Tool | ItemTag.Automaton,
+                    Value = 100000,
+                    CanBuy = false,
+                    CanSell = false,
+                    CanDestroy = true,
+                    TradeLimit = 0,
+                    GiftLimit = 0,
+                    Size = 1000,
+                    OwnLimit = 1,
+                    MarketCriteria = null,
+                    ToOwn = null,
+                    ToUnlock = null,
+                    ToExpire = null
+                },
+                new Item
+                {
                     Id = "su_pl",
-                    Name = "Summon: Pocket Lawyer",
+                    Name = "Pocket Lawyer",
                     Summary = "A summon that completely wipes all debt from a user.",
                     Quotes = new List<string>
                     {
                         "With my assistance, ORS doesn't stand a chance.",
                         "You'll get the chance to dispute in court, don't worry."
                     },
+                    GroupId = ItemGroups.Summon,
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Summon,
-                    Value = 2500,
+                    Value = 1000,
                     CanBuy = false,
                     CanSell = true,
                     CanDestroy = true,
@@ -52,9 +176,9 @@ namespace Arcadia
                     Size = 100,
                     OnUse = new ItemAction
                     {
-                        Criteria = user => user.Debt >= 1000,
+                        Criteria = user => user.Debt >= 500,
                         Durability = 1,
-                        Cooldown = TimeSpan.FromHours(48),
+                        Cooldown = TimeSpan.FromHours(72),
                         DeleteOnBreak = true,
                         Action = delegate (ArcadeUser user)
                         {
@@ -62,7 +186,7 @@ namespace Arcadia
                             return new UsageResult("> You have been freed from the shackles of debt.");
                         }
                     },
-                    OwnLimit = 2,
+                    OwnLimit = 3,
                     MarketCriteria = null,
                     ToOwn = null,
                     ToUnlock = null,
@@ -71,12 +195,13 @@ namespace Arcadia
                 new Item
                 {
                     Id = "p_gg",
-                    Name = "Card Palette: Gamma Green",
+                    Name = "Gamma Green",
                     Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It glows with a shade of green similar to uranium."
                     },
+                    GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1000,
                     Size = 50,
@@ -97,12 +222,13 @@ namespace Arcadia
                 new Item
                 {
                     Id = "p_cr",
-                    Name = "Card Palette: Crimson",
+                    Name = "Crimson",
                     Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It thrives in a neon glow of a reddish-purple hue."
                     },
+                    GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1000,
                     Size = 50,
@@ -112,7 +238,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Common,
                     OnUse = new ItemAction
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Crimson))//user.Card.Palette = PaletteType.Crimson
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Crimson))
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -123,12 +249,13 @@ namespace Arcadia
                 new Item
                 {
                     Id = "p_wu",
-                    Name = "Card Palette: Wumpite",
+                    Name = "Wumpite",
                     Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "Crafted with the shades of a bluish-purple pig-like entity."
                     },
+                    GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1500,
                     Size = 75,
@@ -149,12 +276,13 @@ namespace Arcadia
                 new Item
                 {
                     Id = "p_gl",
-                    Name = "Card Palette: Glass",
+                    Name = "Glass",
                     Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It refracts a mixture of light blue to white light."
                     },
+                    GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1500,
                     Size = 75,
@@ -164,7 +292,7 @@ namespace Arcadia
                     Rarity =  ItemRarity.Uncommon,
                     OnUse = new ItemAction
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))//user.Card.Palette = PaletteType.Glass
+                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))
                     },
                     MarketCriteria = null,
                     ToOwn = null,
@@ -176,13 +304,13 @@ namespace Arcadia
 
         private static string SetOrSwapPalette(ArcadeUser user, PaletteType palette)
         {
-            if (user.Card.Palette == palette)
+            if (user.Card.Palette.Primary == palette)
                 return Format.Warning($"You already have **{palette.ToString()}** equipped on your **Card Palette**.");
 
             string result = $"> 📟 Equipped **{palette.ToString()}** to your **Card Palette**.";
-            if (user.Card.Palette != PaletteType.Default)
+            if (user.Card.Palette.Primary != PaletteType.Default)
             {
-                GiveItem(user, IdFor(user.Card.Palette));
+                GiveItem(user, IdFor(user.Card.Palette.Primary));
                 result = $"📟 Swapped out **{user.Card.Palette}** for {palette} on your **Card Palette**.";
             }
 
@@ -226,7 +354,11 @@ namespace Arcadia
 
         public static DateTime? GetLastUsed(ArcadeUser user, string itemId)
         {
+            Item item = GetItem(itemId);
             var ticks = user.GetStat(GetCooldownId(itemId));
+
+            if (item.OnUse?.CooldownType == UsageCooldownType.Group)
+                ticks = user.GetStat(GetCooldownId(item.GroupId));
 
             if (ticks == 0)
                 return null;
@@ -285,13 +417,13 @@ namespace Arcadia
                         return false;
 
                 if (data.Durability.HasValue)
-                    if (data.Durability.Value == 0)
+                    if (data.Durability == 0)
                         return false;
             }
 
             if (item.OnUse.Criteria != null)
                 return item.OnUse.Criteria(user);
-
+                    
             return true;
         }
 
@@ -301,35 +433,28 @@ namespace Arcadia
         public static bool IsUnique(Item item)
         {
             if (item.TradeLimit.HasValue)
-            {
-                // does this item have a specified trade limitation?
-                if (item.TradeLimit > 0)
-                    return true;
-            }
+            // does this item have a specified trade limitation?
+            if (item.TradeLimit > 0)
+                return true;
 
             if (item.GiftLimit.HasValue)
+            // does this item have a specified gift limitation?
+            if (item.GiftLimit > 0)
+                return true; // TODO: Revert to true when ready
+
+            if (item.OnUse?.Durability != null)
             {
-                // does this item have a specified gift limitation?
-                if (item.GiftLimit > 0)
-                    return false; // TODO: Revert to true when ready
-            }
+                // can it be used more than once?
+                if (item.OnUse.Durability > 1)
+                    return true;
 
-            if (item.OnUse != null)
-            {
-                if (item.OnUse.Durability.HasValue)
-                {
-                    // can it be used more than once?
-                    if (item.OnUse.Durability > 1)
-                        return true;
-
-                    // is this item left behind when the durability is broken?
-                    if (!item.OnUse.DeleteOnBreak)
-                        return true;
-                }
-
-                if (item.OnUse.Cooldown.HasValue)
+                // is this item left behind when the durability is broken?
+                if (!item.OnUse.DeleteOnBreak)
                     return true;
             }
+
+            //if (item.OnUse.Cooldown.HasValue)
+            //    return true;
 
             return false;
         }
@@ -345,8 +470,50 @@ namespace Arcadia
         public static bool Exists(string itemId)
             => Items.Any(x => x.Id == itemId);
 
-        public static string NameOf(string itemId)
-            => GetItem(itemId)?.Name ?? itemId;
+
+        public static string GroupOf(string id)
+        {
+            if (!TryGetItem(id, out Item item))
+                return null;
+
+            return item.GroupId;
+        }
+
+        public static string NameOf(string id)
+        {
+            if (!TryGetItem(id, out Item item))
+                return id;
+
+            if (TryGetGroup(item.GroupId, out ItemGroup group))
+                return $"{group.Prefix}{item.Name}";
+
+            return item.Name;
+        }
+
+        public static bool TryGetGroup(string id, out ItemGroup group)
+        {
+            group = null;
+
+            if (!GroupExists(id))
+                return false;
+
+            group = GetGroup(id);
+            return true;
+        }
+
+        public static bool TryGetItem(string id, out Item item)
+        {
+            item = null;
+
+            if (!Exists(id))
+                return false;
+
+            item = GetItem(id);
+            return true;
+        }
+
+        public static bool GroupExists(string id)
+            => Check.NotNull(id) && Groups.Any(x => x.Id == id);
 
         public static void TakeItem(ArcadeUser user, string itemId, int amount = 1)
             => TakeItem(user, GetItem(itemId), amount);
@@ -358,7 +525,10 @@ namespace Arcadia
 
             // This method only works for non-unique items.
             if (IsUnique(item))
+            {
+                TakeItem(user, item, GetBestUniqueId(user, item.Id));
                 return;
+            }
 
             if (GetOwnedAmount(user, item) - amount <= 0)
             {
@@ -378,7 +548,7 @@ namespace Arcadia
                 if (type == PaletteType.Default)
                     return;
 
-                if (type == user.Card.Palette)
+                if (type == user.Card.Palette.Primary)
                     user.Card.Palette = PaletteType.Default; // If the palette was taken away, set to default palette.
 
             }
@@ -524,8 +694,7 @@ namespace Arcadia
                 Durability = item.OnUse?.Durability,
                 TradeCount = null,
                 GiftCount = null,
-                ExpiresOn = null,
-                LastUsed = null
+                ExpiresOn = null
             };
 
             if (item.TradeLimit.HasValue)
@@ -539,6 +708,9 @@ namespace Arcadia
 
         public static bool HasItem(ArcadeUser user, string itemId)
             => user.Items.Any(x => x.Id == itemId);
+
+        public static bool HasItemAt(ArcadeUser user, string itemId, Func<ItemData, bool> criterion)
+            => HasItem(user, itemId) && user.Items.Any(criterion);
 
         public static UniqueItemData Peek(ArcadeUser user, string uniqueId)
             => user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Data;
@@ -615,8 +787,15 @@ namespace Arcadia
 
             if (item.OnUse.Cooldown.HasValue)
             {
-                // finally, if all of the checks pass, use up the item.
-                user.SetStat(GetCooldownId(itemId), DateTime.UtcNow.Ticks);
+                if (item.OnUse.CooldownType == UsageCooldownType.Group)
+                {
+                    user.SetStat($"{item.GroupId}:last_used", DateTime.UtcNow.Ticks);
+                }
+                else
+                {
+                    // finally, if all of the checks pass, use up the item.
+                    user.SetStat(GetCooldownId(itemId), DateTime.UtcNow.Ticks);
+                }
             }
 
             // As the final step, invoke the action defined on the item.

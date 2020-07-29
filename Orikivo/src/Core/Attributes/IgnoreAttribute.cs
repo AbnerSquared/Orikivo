@@ -5,7 +5,7 @@ namespace Orikivo
     /// <summary>
     /// Marks a context to be ignored when read.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Method)]
     public class IgnoreAttribute : Attribute
     {
         public IgnoreAttribute()

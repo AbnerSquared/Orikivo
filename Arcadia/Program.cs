@@ -36,7 +36,7 @@ namespace Arcadia
 
                 builder.Services
                 .AddSingleton<GameManager>()
-                .AddSingleton<Orikivo.InfoService>()
+                .AddSingleton<InfoService>()
                 .AddSingleton<ArcadeContainer>()
                 .AddSingleton<LogService>()
                 .AddSingleton<Orikivo.EventHandler>()

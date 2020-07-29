@@ -1,4 +1,6 @@
-﻿namespace Orikivo
+﻿using System.Collections.Generic;
+
+namespace Orikivo
 {
     public static class StringExtensions
     {
@@ -35,6 +37,29 @@
             foreach (string value in values)
                 if (s.StartsWith(value))
                     return true;
+
+            return false;
+        }
+
+        public static bool StartsWith(this string s, IEnumerable<string> values)
+        {
+            foreach (string value in values)
+                if (s.StartsWith(value))
+                    return true;
+
+            return false;
+        }
+
+        public static bool StartsWith(this string s, IEnumerable<string> values, out string match)
+        {
+            match = null;
+
+            foreach (string value in values)
+                if (s.StartsWith(value))
+                {
+                    match = value;
+                    return true;
+                }
 
             return false;
         }

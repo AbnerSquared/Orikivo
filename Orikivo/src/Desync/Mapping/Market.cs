@@ -72,9 +72,9 @@ namespace Orikivo.Desync
                 foreach(Shift shift in vendor.Schedule.Shifts.OrderBy(x => x.Day))
                 {
                     schedule.Append($"> **{shift.Day}**: ");
-                    schedule.Append($"**{(shift.StartingHour).ToString("00")}:{(shift.StartingMinute).ToString("00")}**-");
+                    schedule.Append($"**{(shift.StartingHour):00}:{(shift.StartingMinute):00}**-");
                     int minutes = shift.StartingMinute + shift.Length.Minutes;
-                    schedule.Append($"**{(shift.StartingHour + shift.Length.Hours + Math.Floor((double)(minutes / 60))).ToString("00")}:{(minutes % 60).ToString("00")}**");
+                    schedule.Append($"**{(shift.StartingHour + shift.Length.Hours + Math.Floor(minutes / (double) 60)):00}:{(minutes % 60):00}**");
                     schedule.AppendLine();
                 }
             }

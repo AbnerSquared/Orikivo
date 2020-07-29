@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using Arcadia.Graphics;
 using Newtonsoft.Json;
 using Orikivo;
 using PaletteType = Arcadia.Graphics.PaletteType;
@@ -11,15 +12,15 @@ namespace Arcadia
         public CardConfig() {}
 
         [JsonConstructor]
-        internal CardConfig(PaletteType palette)
+        internal CardConfig(ComponentPalette palette)
         {
             Palette = palette;
         }
 
-
+        [ReadOnly]
         [JsonProperty("palette")]
         [Description("Defines the **Palette** currently equipped to your **Card**.")]
-        public PaletteType Palette { get; internal set; }
+        public ComponentPalette Palette { get; internal set; }
 
         public string Display()
         {

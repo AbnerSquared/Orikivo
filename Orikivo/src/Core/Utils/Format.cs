@@ -183,11 +183,11 @@ namespace Orikivo
         public static string Time(DateTime time)
             => time.ToString(@"hh\:mm\:ss");
 
-        public static string Date(DateTime date)
-            => date.ToString("M/d/yyyy");
+        public static string Date(DateTime date, char separator = '/')
+            => date.ToString($"M{separator}d{separator}yyyy");
 
-        public static string FullTime(DateTime time)
-            => time.ToString("M/d/yyyy @ HH:mm tt");
+        public static string FullTime(DateTime time, char separator = '/')
+            => time.ToString($"M{separator}d{separator}yyyy @ HH:mm tt");
 
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");

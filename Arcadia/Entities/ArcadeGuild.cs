@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Collections.Generic;
+using Discord;
 using Newtonsoft.Json;
 using Orikivo;
 
@@ -18,6 +19,12 @@ namespace Arcadia
 
         [JsonProperty("exp")]
         public ulong Exp { get; internal set; }
+
+        [JsonProperty("stats")]
+        public Dictionary<string, long> Stats { get; internal set; }
+
+        [JsonProperty("quests")]
+        public List<QuestData> Quests { get; internal set; }
     }
 
     // Arcadia property

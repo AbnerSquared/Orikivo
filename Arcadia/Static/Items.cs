@@ -7,5 +7,7 @@
         internal static readonly string PaletteWumpite = "p_wu";
         internal static readonly string PaletteGammaGreen = "p_gg";
         internal static readonly string PaletteGlass = "p_gl";
+        internal static readonly string PaletteGlossyGreen = "p_glg";
+        internal static readonly string AutomatonGimi = "au_gimi";
     }
 }

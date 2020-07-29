@@ -28,7 +28,7 @@ namespace Arcadia
                 OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
                 {
                     session.State = SessionState.Finish;
-                    _server.DestroyCurrentSession();
+                    _server.EndCurrentSession();
                 }
             });
 
@@ -113,7 +113,7 @@ namespace Arcadia
                 if (GetCurrentQueuedAction()?.IsElapsed ?? false)
                     return;
 
-            if (!Actions.Any(x => x.Id == actionId))
+            if (Actions.All(x => x.Id != actionId))
                 throw new Exception($"Could not find the specified action '{actionId}'");
 
             GameAction action = Actions.First(x => x.Id == actionId);
@@ -127,7 +127,7 @@ namespace Arcadia
 
         internal bool MeetsCriterion(string ruleId)
         {
-            if (!Criteria.Any(x => x.Id == ruleId))
+            if (Criteria.All(x => x.Id != ruleId))
                 throw new Exception($"Could not find the specified rule '{ruleId}'");
 
             return Criteria.First(x => x.Id == ruleId).Criterion.Invoke(this);
@@ -135,7 +135,7 @@ namespace Arcadia
 
         public GameProperty GetProperty(string id)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);
@@ -164,7 +164,7 @@ namespace Arcadia
 
         public void SetPropertyValue(string id, object value)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
             Properties.First(x => x.Id == id).Set(value);
@@ -172,7 +172,7 @@ namespace Arcadia
 
         public void AddToProperty(string id, int value)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
             var attribute = Properties.First(x => x.Id == id);
@@ -185,7 +185,7 @@ namespace Arcadia
 
         public PlayerData GetPlayerData(ulong userId)
         {
-            if (!Players.Any(x => x.Player.User.Id == userId))
+            if (Players.All(x => x.Player.User.Id != userId))
                 throw new Exception("Cannot find session data for the specified user");
 
             return Players.First(x => x.Player.User.Id == userId);

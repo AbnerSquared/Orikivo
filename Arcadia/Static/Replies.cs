@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Arcadia.Casino;
 using Orikivo;
 
@@ -26,18 +27,27 @@ namespace Arcadia
         }
 
         // TODO: implement criterion and priorities for replies
-        public static string GetReply(GimiResultFlag flag, ArcadeUser user = null)
+        public static string GetReply(GimiResultFlag flag, ArcadeUser user = null, GimiResult result = null)
         {
             IEnumerable<CasinoReply> replies = GetReplies(flag);
 
-            /*
-            if (user == null)
+            if (user != null && result != null)
             {
-                replies = replies.Where(x => !x.Criteria.Any());
+                replies = replies.Where(x => MeetsCriteria(x, user, result));
             }
-            */
 
-            return Check.NotNullOrEmpty(replies) ? (string)Randomizer.Choose(replies) : GetGeneric(flag);
+            if (Check.NotNullOrEmpty(replies))
+                return Randomizer.Choose(replies).ToString(user, result);
+
+            return GetGeneric(flag);
+        }
+
+        private static bool MeetsCriteria(CasinoReply reply, ArcadeUser user, GimiResult result)
+        {
+            if (reply.Criteria == null)
+                return true;
+
+            return reply.Criteria(user, result);
         }
 
         private static string GetGeneric(GimiResultFlag flag)
@@ -80,8 +90,6 @@ namespace Arcadia
                 _ => null
             };
 
-
-
         public static readonly CasinoReply[] Debt =
         {
             "I guess you reap what you sow.",
@@ -94,6 +102,13 @@ namespace Arcadia
         public static readonly CasinoReply[] Curse =
         {
             "Experience oblivion.",
+            "The moonlight burns through your funds.",
+            new CasinoReply
+            {
+                // This is given to you if you are cursed while pocket lawyer is on cooldown
+                Content = "Pocket Lawyer can't save you this time.",
+                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Items.PocketLawyer)?.Ticks > 0
+            } 
         };
 
         public static readonly CasinoReply[] Gold =
@@ -111,19 +126,36 @@ namespace Arcadia
             "Hope is a powerful emotion.",
             "Ask and you shall receive.",
             "A new wave of profits splash your way!",
-            "z):^)"
+            "z):^)",
+            new CasinoReply
+            {
+                Content = "Maximum profits achieved!",
+                Criteria = (user, result) => result.Reward == 10
+            } 
         };
 
         public static readonly CasinoReply[] Recover =
         {
-            "Paying off your debt early helps in the long run."
+            "Paying off your debt early helps in the long run.",
+            "Look at you! You're being an adult.",
+            "The debt in this reality is no laughing matter."
         };
 
         public static readonly CasinoReply[] Lose =
         {
             "I guess they can't all be winners.",
             "Yikes!",
-            "Sorry, lad. I can't host myself for free."
+            "Sorry, lad. I can't host myself for free.",
+            new CasinoReply
+            {
+                Content = "The **E** in your name stands for empty. Just like your wallet.",
+                Criteria = (user, result) => user.Username.ToLower().StartsWith('e')
+            },
+            new CasinoReply
+            {
+                Content = "Maximum losses obtained.",
+                Criteria = (user, result) => result.Reward == 10
+            }
         };
 
         public static readonly string[] DailyReset =
@@ -143,7 +175,8 @@ namespace Arcadia
         {
             "Hang tight. I'm not an OTM.",
             "Patience is key.",
-            "Access denied."
+            "Access denied.",
+            "Please go find something better to do."
         };
 
         public static readonly string[] DailyBonus =

@@ -750,8 +750,44 @@ namespace Arcadia.Games
 
         public override SessionResult OnSessionFinish(GameSession session)
         {
-            // give money based on scores.
-            return null;
+            var result = new SessionResult();
+            // because we don't have access to stats directly, we have to use stat update packets
+            // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
+            foreach (PlayerData player in session.Players)
+            {
+                Console.WriteLine("IS_THIS_BEING_USED");
+                ulong playerId = player.Player.User.Id;
+                var stats = new List<StatUpdatePacket>();
+                
+                stats.Add(new StatUpdatePacket(TriviaStats.TimesPlayed, 1));
+                stats.Add(new StatUpdatePacket(TriviaStats.HighestScore, GetScore(session, playerId), StatUpdateType.SetIfGreater));
+
+                if (GetWinningPlayerId(session) == playerId)
+                {
+                    stats.Add(new StatUpdatePacket(TriviaStats.TimesWon, 1));
+                    stats.Add(new StatUpdatePacket(TriviaStats.CurrentWinStreak, 1));
+                    stats.Add(new StatUpdatePacket(TriviaStats.LongestWin, TriviaStats.CurrentWinStreak, StatUpdateType.SetIfGreater));
+                }
+                else
+                {
+                    stats.Add(new StatUpdatePacket(TriviaStats.CurrentWinStreak, 0, StatUpdateType.Set));
+                }
+
+                result.UserIds.Add(playerId);
+                result.Stats.Add(playerId, stats);
+            }
+
+            return result;
+        }
+
+        private ulong GetWinningPlayerId(GameSession session)
+        {
+            return session.Players.OrderByDescending(x => x.GetPropertyValue("score")).First().Player.User.Id;
+        }
+
+        private int GetScore(GameSession session, ulong playerId)
+        {
+            return session.GetPlayerData(playerId).GetPropertyValue<int>("score");
         }
 
         internal IEnumerable<TriviaQuestion> GenerateQuestions(int questionCount, TriviaDifficulty difficultyRange, TriviaTopic topic)

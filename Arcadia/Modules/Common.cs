@@ -24,11 +24,69 @@ namespace Arcadia.Modules
     public class Common : OriModuleBase<ArcadeContext>
     {
         [RequireUser]
+        [Command("merit")]
+        [Summary("View the details of a merit.")]
+        public async Task ViewMeritAsync(string meritId)
+        {
+            if (!MeritHelper.Exists(meritId))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
+                return;
+            }
+
+            if (!MeritHelper.HasMerit(Context.Account, meritId) && MeritHelper.GetMerit(meritId).Hidden)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You aren't authorized to view this merit."));
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(MeritHelper.Write(MeritHelper.GetMerit(meritId), Context.Account));
+        }
+
+        [RequireUser]
+        [Command("claim")]
+        [Summary("Attempt to claim the specified merit.")]
+        public async Task ClaimAsync(string meritId)
+        {
+            if (!MeritHelper.Exists(meritId))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits that ID."));
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
+        }
+
+        [RequireUser]
+        [Command("claimall")]
+        [Summary("Attempt to claim all available merits.")]
+        public async Task ClaimAllAsync()
+        {
+            await Context.Channel.SendMessageAsync(MeritHelper.ClaimAll(Context.Account));
+        }
+
+        [RequireUser]
         [Command("merits")]
         [Summary("View the directory of accomplishments.")]
         public async Task ViewMeritsAsync(MeritQuery flag = MeritQuery.Default)
         {
             await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag));
+        }
+
+        [RequireUser]
+        [Command("objectives"), Alias("missions", "quests", "tasks")]
+        [Summary("View all of your currently assigned quests.")]
+        public async Task ViewQuestsAsync()
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.ViewCurrent(Context.Account));
+        }
+
+        [RequireUser]
+        //[Command("objectives"), Alias("missions", "quests", "tasks")]
+        [Summary("View the currently assigned objective on the specified slot.")]
+        public async Task ViewQuestAsync(int slotIndex)
+        {
+
         }
 
         [RequireUser]
@@ -116,15 +174,12 @@ namespace Arcadia.Modules
         [Summary("Attempts to start a trade with the specified user.")]
         public async Task TradeAsync(SocketUser user)
         {
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
+            Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (participant == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
-            var handler = new TradeHandler(Context, participant);
+            var handler = new TradeHandler(Context, account);
 
             await HandleTradeAsync(handler);
         }
@@ -196,7 +251,7 @@ namespace Arcadia.Modules
             // Give the item to the user.
             ItemHelper.GiveItem(account, itemId);
 
-            await Context.Channel.SendMessageAsync($"> Gave **{account.Username}** a **{ItemHelper.NameOf(itemId)}**.");
+            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{ItemHelper.NameOf(itemId)}**.");
 
             if (ItemHelper.GetItem(itemId).GiftLimit.HasValue)
             {
@@ -235,7 +290,7 @@ namespace Arcadia.Modules
                 }
                 else
                 {
-                    await Context.Channel.SendMessageAsync(Format.Warning($"> You are unable to use **{ItemHelper.NameOf(id)}**."));
+                    await Context.Channel.SendMessageAsync(Format.Warning($"You are unable to use **{ItemHelper.NameOf(id)}**."));
                 }
 
                 return;
@@ -289,44 +344,31 @@ namespace Arcadia.Modules
         public async Task GetBackpackAsync(SocketUser user = null) // int page = 0
         {
             user ??= Context.User;
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
+            Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (account == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
             await Context.Channel.SendMessageAsync(Inventory.Write(account, account.Id == Context.Account.Id));
         }
 
-        [Command("stats")]
+        [Command("stats"), Priority(1)]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetStatsAsync(SocketUser user = null)
+        public async Task GetStatsAsync(SocketUser user, int page = 0)
         {
-            user ??= Context.User;
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
+            Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (account == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
-            string stats = string.Join("\n",
-                account.Stats.Where((key, value) => !key.StartsWith("cooldown")
-                && value != 0
-                && !ItemHelper.Items.Select(x => ItemHelper.GetCooldownId(x.Id)).Contains(key)).Select(s => $"`{s.Key}`: {s.Value}"));
+            await Context.Channel.SendMessageAsync(StatHelper.Write(account, false, page));
+        }
 
-            if (string.IsNullOrWhiteSpace(stats))
-            {
-                stats = "*No stats have been specified!*";
-            }
-
-            if (Context.User.Id != user.Id)
-                stats = $"> **Stats - {user.Username}**\n\n" + stats;
-
-            await Context.Channel.SendMessageAsync(stats);
+        [Command("stats"), Priority(1)]
+        [RequireUser(AccountHandling.ReadOnly)]
+        public async Task GetStatsAsync(int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, page: --page));
         }
 
         [Command("leaderboard"), Alias("top"), Priority(0)]
@@ -360,13 +402,10 @@ namespace Arcadia.Modules
         public async Task GetMoneyAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
+            Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (account == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
             var values = new StringBuilder();
             if (user != null)
@@ -396,13 +435,10 @@ namespace Arcadia.Modules
         public async Task GetCardAsync(SocketUser user = null)
         {
             user ??= Context.User;
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
+            Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (account == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
             try
             {
@@ -410,7 +446,8 @@ namespace Arcadia.Modules
                 var d = new CardDetails(account, user);
                 var p = CardProperties.Default;
 
-                p.Palette = account.Card.Palette;
+                p.Palette = account.Card.Palette.Primary;
+                p.PaletteOverride = account.Card.Palette.Build();
                 p.Trim = false;
                 p.Casing = Casing.Upper;
 
@@ -422,6 +459,17 @@ namespace Arcadia.Modules
             {
                 await Context.Channel.CatchAsync(ex);
             }
+        }
+
+        private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
+        {
+            if (reference == null)
+            {
+                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                return true;
+            }
+
+            return false;
         }
     }
 }

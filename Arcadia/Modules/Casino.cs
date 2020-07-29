@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using System;
+using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
@@ -18,6 +19,51 @@ namespace Arcadia.Modules
             GimiResult result = gimi.Next();
 
             await Context.Channel.SendMessageAsync(result.ApplyAndDisplay(Context.Account));
+        }
+
+        [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
+        public async Task AutoGimiAsync(int times)
+        {
+            if (!ItemHelper.HasItem(Context.Account, Items.AutomatonGimi))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You are missing the **Automaton: Gimi** component in order to execute this method."));
+                return;
+            }
+
+            if (!Context.Account.CanAutoGimi)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You have already started an automated run."));
+                return;
+            }
+
+            Context.Account.CanAutoGimi = false;
+
+            times = times > 100 ? 100 : times <= 0 ? 1 : times;
+
+            long result = 0;
+
+            TimeSpan duration = TimeSpan.FromSeconds(times - 1);
+
+            Discord.IUserMessage reference = await Context.Channel.SendMessageAsync($"> Gathering results in {Orikivo.Format.Counter(duration.TotalSeconds)}...");
+
+            for (int i = 0; i < times; i++)
+            {
+                var gimi = new Gimi();
+                GimiResult innerResult = gimi.Next();
+
+                // this should be easier on the mem
+                innerResult.Apply(Context.Account);
+                result += innerResult.IsSuccess ? innerResult.Reward : -innerResult.Reward;
+
+                if (times > 1)
+                    await Task.Delay(1000);
+            }
+
+            // TODO: Make it look nicer!
+            await reference.ModifyAsync($"> 〽️ **The results are in!**\n> **Net Outcome**: **{result:##,0}**");
+
+
+            Context.Account.CanAutoGimi = true;
         }
 
         [RequireUser]
@@ -94,7 +140,7 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount);
             Context.Account.ChipBalance += chips;
-            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount.ToString("##,0")}** in exchange for **🧩 {chips.ToString("##,0")}**.");
+            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips.ToString("##,0")}**.");
 
         }
     }

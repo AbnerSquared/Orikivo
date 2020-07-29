@@ -13,10 +13,12 @@ namespace Arcadia
     public class GameManager
     {
         private readonly DiscordSocketClient _client;
+        private readonly ArcadeContainer _container;
 
-        public GameManager(DiscordSocketClient client)
+        public GameManager(DiscordSocketClient client, ArcadeContainer container)
         {
             _client = client;
+            _container = container;
             Servers = new Dictionary<string, GameServer>();
             ReservedChannels = new Dictionary<ulong, string>();
             ReservedUsers = new Dictionary<ulong, string>();
@@ -167,7 +169,7 @@ namespace Arcadia
                 Playing = false
             };
 
-            var server = new GameServer();
+            var server = new GameServer(this);
             server.Config = new GameServerConfig
             {
                 Privacy = Privacy.Public,
@@ -229,6 +231,13 @@ namespace Arcadia
             await server.UpdateAsync();
 
             Servers.Add(server.Id, server);
+        }
+
+        internal void EndSession(GameSession session)
+        {
+            SessionResult result = session._game.OnSessionFinish(session);
+            result.Apply(_container);
+            Console.WriteLine("Finished a game session?? idk anymore");
         }
 
         // destroys the game server accordingly
@@ -473,6 +482,7 @@ namespace Arcadia
                     {
                         // for now, we don't worry about this.
                         SessionResult result = server.Session._game.OnSessionFinish(server.Session);
+                        result.Apply(_container);
                         server.DestroyCurrentSession();
                     }
                 }

@@ -128,7 +128,7 @@ namespace Orikivo.Desync
                     {
                         int discountToApply = RandomProvider.Instance.Next(0, entry.MaxPossibleDiscount);
 
-                        float rawDiscount = discountToApply / 100;
+                        float rawDiscount = discountToApply / (float) 100;
 
                         discountEntries.Add(entry.ItemId, rawDiscount);
                         discounts++;

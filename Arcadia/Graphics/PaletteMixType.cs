@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Graphics
 {
-    public enum PaletteMixType
+    public enum PaletteMixMethod
     {
         // mixes the colors as one flat new color
         Merge = 1,

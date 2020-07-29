@@ -9,8 +9,12 @@ namespace Arcadia
 {
     public class GameServer
     {
-        public GameServer()
+        // i'm not a fan of requiring the game manager, find another way to end a session
+        private readonly GameManager _manager;
+
+        public GameServer(GameManager manager)
         {
+            _manager = manager;
             Id = KeyBuilder.Generate(8);
             DisplayChannels = new List<DisplayChannel>();
             DisplayChannels.AddRange(DisplayChannel.GetReservedChannels());
@@ -92,6 +96,12 @@ namespace Arcadia
             }
 
             return playerConnections;
+        }
+
+        public void EndCurrentSession()
+        {
+            _manager.EndSession(Session);
+            DestroyCurrentSession();
         }
 
         // this ends the current session a server has active

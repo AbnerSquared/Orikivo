@@ -13,12 +13,11 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal UniqueItemData(string id, int? durability, DateTime? expiresOn, DateTime? lastUsed, int? tradeCount, int? giftCount, Dictionary<string, int> capsule, Dictionary<string, long> attributes, Dictionary<string, long> toUnlock)
+        internal UniqueItemData(string id, int? durability, DateTime? expiresOn, int? tradeCount, int? giftCount, Dictionary<string, int> capsule, Dictionary<string, long> attributes, Dictionary<string, long> toUnlock)
         {
             Id = id;
             Durability = durability;
             ExpiresOn = expiresOn;
-            LastUsed = lastUsed;
             TradeCount = tradeCount;
             GiftCount = giftCount;
             Capsule = capsule;
@@ -34,9 +33,6 @@ namespace Arcadia
 
         [JsonProperty("expires_on")]
         public DateTime? ExpiresOn { get; internal set; }
-
-        [JsonProperty("last_used")]
-        public DateTime? LastUsed { get; internal set; }
 
         [JsonProperty("trade_count")]
         public int? TradeCount { get; internal set; }

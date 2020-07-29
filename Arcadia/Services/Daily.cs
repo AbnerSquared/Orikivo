@@ -17,6 +17,7 @@ namespace Arcadia.Services
             long lastTicks = user.GetStat(Cooldowns.Daily);
             long streak = user.GetStat(Stats.DailyStreak);
 
+            TimeSpan since = StatHelper.SinceLast(user, Stats.DailyStreak);
             TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
 
             if (lastTicks > 0)
@@ -47,11 +48,10 @@ namespace Arcadia.Services
             switch (flag)
             {
                 case DailyResultFlag.Cooldown:
-                    TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - user.GetStat(Cooldowns.Daily));
-                    TimeSpan rem = TimeSpan.FromHours(24) - sinceLast;
+                    TimeSpan sinceLast = StatHelper.SinceLast(user, Cooldowns.Daily);
+                    TimeSpan rem = Cooldown - sinceLast;
                     DateTime time = DateTime.UtcNow.Add(rem);
 
-                    
                     color = ImmutableColor.NeonRed;
                     header = Format.Countdown(rem);
                     icon = Format.GetHourEmote(time.Hour);

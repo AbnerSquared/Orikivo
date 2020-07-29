@@ -14,9 +14,4 @@
         internal static readonly string Inventory = "📂";
         internal static readonly string Gift = "🎁";
     }
-
-    internal static class Merits
-    {
-        internal static readonly string ProgressPioneer = "generic:progress_pioneer";
-    }
 }

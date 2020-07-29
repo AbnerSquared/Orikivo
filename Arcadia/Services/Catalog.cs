@@ -2,7 +2,7 @@
 using System.Text;
 using Orikivo;
 
-namespace Arcadia.Modules
+namespace Arcadia.Services
 {
     public class Catalog
     {
@@ -11,7 +11,7 @@ namespace Arcadia.Modules
             => string.Format(_line, "ID", $"`{item.Id}`");
 
         private static string GetName(Item item)
-            => string.Format(_line, "Name", $"**`{item.Name}`**");
+            => string.Format(_line, "Name", $"**`{ItemHelper.NameOf(item.Id)}`**");
 
         private static string GetSummary(Item item)
             => string.Format(_line, "Summary", $"`{item.Summary}`");

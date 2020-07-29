@@ -35,8 +35,8 @@ namespace Orikivo
         /// </summary>
         public static T Choose<T>(IEnumerable<T> args)
         {
-            if (!Check.NotNull(args))
-                throw new NullReferenceException("The arguments specified cannot be null.");
+            if (!Check.NotNullOrEmpty(args))
+                throw new NullReferenceException("The arguments specified cannot be null or empty.");
 
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
         }

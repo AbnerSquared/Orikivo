@@ -67,7 +67,7 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
                 summary.Append($"/`{data.Data.Id}`");
 
-            summary.Append($" • **{item.Name}**");
+            summary.Append($" • **{item.GetName()}**");
             
             if (data.Count > 1)
             {
@@ -94,7 +94,8 @@ namespace Arcadia
 
         public static string Write(ArcadeUser user, bool isPrivate = true)
         {
-            
+            // set the default capacity if unspecified
+            StatHelper.SetIfEmpty(user, Vars.Capacity, 4000);
             var inventory = new StringBuilder();
 
             if (isPrivate)
@@ -106,11 +107,6 @@ namespace Arcadia
             int i = 0;
             foreach (ItemData data in user.Items)
             {
-                if (i > 0)
-                {
-                    inventory.AppendLine("\n");
-                }
-
                 inventory.AppendLine(WriteItem(i, data.Id, data, isPrivate));
                 i++;
             }

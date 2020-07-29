@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Arcadia.Casino
 {
@@ -10,18 +11,31 @@ namespace Arcadia.Casino
         {
             Priority = priority;
             Content = content;
-            Criteria = new List<StatCriterion>();
         }
 
         // It determines what replies to choose based on their priority.
-        public int Priority { get; private set; } = 0;
-        public string Content { get; private set; }
-        public List<StatCriterion> Criteria { get; private set; }
+        public int Priority { get; }
+        public string Content { get; internal set; }
+
+        public Func<ArcadeUser, GimiResult, bool> Criteria { get; set; }
+
+        public Func<ArcadeUser, GimiResult, string> Writer { get; set; }
 
         public static implicit operator CasinoReply(string value)
             => new CasinoReply { Content = value };
 
         public static implicit operator string(CasinoReply reply)
             => reply.Content;
+
+        public override string ToString()
+            => Content;
+
+        public string ToString(ArcadeUser user, GimiResult result)
+        {
+            if (Writer == null)
+                return Content;
+
+            return Writer(user, result);
+        }
     }
 }
