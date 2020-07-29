@@ -17,7 +17,7 @@ namespace Arcadia
 
         public Func<IUser, ServerConnection, GameServer, bool> Criterion { get; set; }
 
-        public Action<IUser, ServerConnection, GameServer> OnExecute { get; set; }
+        public Action<InputContext> OnExecute { get; set; }
 
         public bool UpdateOnExecute { get; set; }
 

@@ -10,6 +10,16 @@ namespace Arcadia
     /// </summary>
     public class InputContext
     {
+
+        public InputContext() {}
+
+        public InputContext(IUser invoker, ServerConnection connection, GameServer server)
+        {
+            Invoker = invoker;
+            Connection = connection;
+            Server = server;
+        }
+
         public IUser Invoker { get; set; }
 
         public ServerConnection Connection { get; set; }

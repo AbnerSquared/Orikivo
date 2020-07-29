@@ -394,7 +394,7 @@ namespace Arcadia
 
                         if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
                         {
-                            result.Input.OnExecute?.Invoke(user, connection, server);
+                            result.Input.OnExecute?.Invoke(new InputContext(user, connection, server));
 
                             // if there wasn't a player before and they were added, add them to the reserves
                             if (player == null)
@@ -1225,7 +1225,7 @@ namespace Arcadia
 
                                 if (result.Input.Criterion?.Invoke(user, connection, server) ?? true)
                                 {
-                                    result.Input.OnExecute?.Invoke(user, connection, server);
+                                    result.Input.OnExecute?.Invoke(new InputContext(user, connection, server));
 
                                     // if there wasn't a player before and they were added, add them to the reserves
                                     if (player == null)
