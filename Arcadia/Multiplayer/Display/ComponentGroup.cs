@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Linq;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     public class ComponentGroup : IComponent
     {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     public class GameServer
     {
@@ -86,7 +86,7 @@ namespace Arcadia
 
                 foreach (ServerConnection connection in Connections)
                 {
-                    if (await connection.InternalChannel.GetUserAsync(player.User.Id, CacheMode.AllowDownload) == null)
+                    if (await connection.Channel.GetUserAsync(player.User.Id, CacheMode.AllowDownload) == null)
                         continue;
 
                     channelIds.Add(connection.ChannelId);
@@ -151,7 +151,7 @@ namespace Arcadia
 
                     if (connection.InternalMessage == null)
                     {
-                        connection.InternalMessage = await connection.InternalChannel.SendMessageAsync(content);
+                        connection.InternalMessage = await connection.Channel.SendMessageAsync(content);
                         connection.MessageId = connection.InternalMessage.Id;
                         continue;
                     }

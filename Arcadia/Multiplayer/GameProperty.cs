@@ -1,38 +1,66 @@
 ﻿using System;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
-
+    /// <summary>
+    /// Represents a variable for a <see cref="GameSession"/>.
+    /// </summary>
     public class GameProperty
     {
-        // this method is what enforces 
-        public static GameProperty Create<T>(string name, T defaultValue = default)
+        /// <summary>
+        /// Creates a new <see cref="GameProperty"/> of the specified <see cref="Type"/> and value.
+        /// </summary>
+        /// <typeparam name="T">The enforced <see cref="Type"/> of this <see cref="GameProperty"/>.</typeparam>
+        /// <param name="id">The name of this <see cref="GameProperty"/>.</param>
+        /// <param name="defaultValue">The default value of this <see cref="GameProperty"/>.</param>
+        /// <returns>A new <see cref="GameProperty"/> with an enforced <see cref="Type"/>.</returns>
+        public static GameProperty Create<T>(string id, T defaultValue = default)
         {
             return new GameProperty
             {
-                Id = name,
+                Id = id,
                 Value = defaultValue,
                 DefaultValue = defaultValue,
                 ValueType = typeof(T)
             };
         }
 
-        public static GameProperty Create(string name, object defaultValue = default, bool enforceType = false)
+        /// <summary>
+        /// Creates a new <see cref="GameProperty"/> with the specified value.
+        /// </summary>
+        /// /// <param name="id">The name of this <see cref="GameProperty"/>.</param>
+        /// <param name="defaultValue">The default value of this <see cref="GameProperty"/>.</param>
+        /// <param name="enforceType">If true, enforces the <see cref="Type"/> of the specified default value.</param>
+        public static GameProperty Create(string id, object defaultValue = default, bool enforceType = false)
         {
+            if (defaultValue?.GetType() == null)
+                throw new Exception("Cannot initialize a game property with an empty value");
+
             return new GameProperty
             {
-                Id = name,
+                Id = id,
                 Value = defaultValue,
                 DefaultValue = defaultValue,
-                ValueType = enforceType ? defaultValue.GetType() : null
+                ValueType = enforceType ? defaultValue?.GetType() : null
             };
         }
 
+        protected GameProperty() { }
+
+        /// <summary>
+        /// Gets the name of this <see cref="GameProperty"/>.
+        /// </summary>
         public string Id { get; internal set; }
 
         private object _value;
-        public object Value {
+
+        /// <summary>
+        /// Gets the current value of this <see cref="GameProperty"/>.
+        /// </summary>
+        public object Value
+        {
             get => _value;
+            
             internal set
             {
                 if (ValueType != null)
@@ -40,25 +68,34 @@ namespace Arcadia
                     if (value.GetType().IsEquivalentTo(ValueType))
                         _value = value;
                     else
-                        throw new Exception("Could not set the specified value to this property as their types do not match");
+                        throw new Exception($"Could not set the specified value to the property '{Id}' as their types do not match");
                 }
                 else
                     _value = value;
             }
         }
 
-        // if this is set, it requires the value being set to consistently match this type
+        /// <summary>
+        /// If specified, requires the inbound value to match this <see cref="Type"/>.
+        /// </summary>
         public Type ValueType { get; protected set; }
 
-        // when this property is first being given to others, what is the default value to be set?
+        /// <summary>
+        /// Represents the default value specified on the initialization of this <see cref="GameProperty"/>.
+        /// </summary>
         public object DefaultValue { get; protected set; }
 
+        /// <summary>
+        /// Sets the value of this <see cref="GameProperty"/> to the specified value.
+        /// </summary>
         public void Set(object value)
         {
             Value = value;
         }
 
-        // this resets the value of the property to its default
+        /// <summary>
+        /// Resets the value of this <see cref="GameProperty"/> to its default value.
+        /// </summary>
         public void Reset()
         {
             Value = DefaultValue;

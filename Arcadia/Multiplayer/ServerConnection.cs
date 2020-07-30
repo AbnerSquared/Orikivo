@@ -1,33 +1,30 @@
 ﻿using Discord;
 using System;
+using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
-    public enum ConnectionType
-    {
-        // If guild-wise, utilize the State property
-        Guild = 1,
-
-        // If user-wise, ignore the State property
-        Direct = 2
-    }
-
-    public class ConnectionProperties
-    {
-        public int Frequency { get; set; } = 0;
-        public GameState State { get; set; } = GameState.Waiting;
-
-        public bool CanDeleteMessages { get; set; } = false;
-
-        // After 4 messages is sent that CANNOT be deleted, this screen is refreshed, which resends the content into
-        // a new message body
-        public int AutoRefreshCounter { get; set; } = 4;
-    }
-
     public class ServerConnection
     {
-        // every 4 messages, the InternalMessage will be updated.
-        private static readonly int AfterMessageLimit = 4;
+        public static async Task<ServerConnection> CreateAsync(Player player, DisplayChannel display, ConnectionProperties properties = null)
+        {
+            properties ??= ConnectionProperties.Default;
+            IDMChannel channel = await player.User.GetOrCreateDMChannelAsync();
+            return new ServerConnection
+            {
+                Type = ConnectionType.Direct,
+                RefreshCounter = 4,
+                BlockInput = false,
+                CouldDeleteMessages = properties.CanDeleteMessages,
+                Channel = channel,
+                InternalMessage = await channel.SendMessageAsync(channel.ToString()),
+                ChannelId = channel.Id,
+                Frequency = display.Frequency
+            };
+        }
+
+        
+
         public ServerConnection() {}
 
         public ServerConnection(ulong guildId, IMessageChannel channel,
@@ -37,7 +34,7 @@ namespace Arcadia
             bool canDeleteMessages = false)
         {
             GuildId = guildId;
-            InternalChannel = channel;
+            Channel = channel;
             InternalMessage = messageBind;
             ChannelId = channel.Id;
             MessageId = messageBind.Id;
@@ -52,7 +49,7 @@ namespace Arcadia
             GameState state = GameState.Waiting,
             bool canDeleteMessages = false)
         {
-            InternalChannel = channel;
+            Channel = channel;
             InternalMessage = messageBind;
             ChannelId = channel.Id;
             MessageId = messageBind.Id;
@@ -60,6 +57,8 @@ namespace Arcadia
             State = state;
             CouldDeleteMessages = canDeleteMessages;
         }
+
+        public ConnectionType Type { get; set; }
 
         public ulong? GuildId { get; set; }
 
@@ -74,7 +73,7 @@ namespace Arcadia
         // check to see if the specified channel is connected to anything else.
         // likewise, you can simply create a cache of channels with their ID and server ID
         // where should i listen to input?
-        public IMessageChannel InternalChannel { get; set; }
+        public IMessageChannel Channel { get; set; }
 
         // what message should i update?
         public IUserMessage InternalMessage { get; set; }
@@ -92,13 +91,19 @@ namespace Arcadia
         // if enough messages are sent after the lobby message and
         // can delete messages is false
         // a new message is sent in replacement
-        internal int AfterMessageCount { get; set; }
+        internal int RefreshCounter { get; set; }
+
+        // Keeps track of how many messages appear in front of it.
+        internal int CurrentMessageCounter { get; set; }
 
         // determines if the bot can attempt to delete messages
         public bool CouldDeleteMessages { get; set; } = false;
 
         // determines if the bot can 100% delete messages in this channel
         public bool CanDeleteMessages { get; set; } = false;
+
+        // If true, inputs cannot be read in this connection
+        public bool BlockInput { get; set; }
 
         // this determines what is currently being executed in the server connection
         public GameState State { get; set; }

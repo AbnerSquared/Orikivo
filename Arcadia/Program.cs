@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Arcadia.Casino;
 using Arcadia.Graphics;
 using Arcadia.Modules;
+using Arcadia.Multiplayer;
 using Arcadia.Services;
 using MongoDB.Driver;
 using Orikivo;
@@ -64,7 +65,7 @@ namespace Arcadia
                 builder
                     .AddModule<Core>()
                     .AddModule<Modules.Casino>()
-                    .AddModule<Multiplayer>()
+                    .AddModule<Modules.Multiplayer>()
                     .AddModule<Common>();
 
                 Client client = builder.Build();

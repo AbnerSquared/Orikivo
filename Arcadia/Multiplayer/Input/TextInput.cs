@@ -1,37 +1,11 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using Orikivo;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     // This is the context used to help handle input
-    /// <summary>
-    /// Represents the information provided from an <see cref="IInput"/>.
-    /// </summary>
-    public class InputContext
-    {
-
-        public InputContext() {}
-
-        public InputContext(IUser invoker, ServerConnection connection, GameServer server)
-        {
-            Invoker = invoker;
-            Connection = connection;
-            Server = server;
-        }
-
-        public IUser Invoker { get; set; }
-
-        public ServerConnection Connection { get; set; }
-
-        public GameServer Server { get; set; }
-
-        public GameSession Session => Server.Session;
-
-        public PlayerData Player => Server.Session?.GetPlayerData(Invoker.Id);
-
-        public InputResult Input { get; set; }
-    }
 
     // an action
     public class TextInput : IInput
@@ -48,7 +22,7 @@ namespace Arcadia
         // what does the player need to type to execute this key?
         public string Name { get; set; }
 
-        public KeyType Type => KeyType.Text;
+        public InputType Type => InputType.Text;
 
         public Func<IUser, ServerConnection, GameServer, bool> Criterion { get; set; }
 
@@ -67,11 +41,22 @@ namespace Arcadia
         public InputResult TryParse(Input input)
         {
             InputResult result = new InputResult();
+
             // name parameters
             if (input.Text.StartsWith(Name))
             {
                 result.IsSuccess = true;
                 result.Input = this;
+
+                var reader = new StringReader(input.Text);
+                reader.Skip(Name.Length);
+
+                while (reader.CanRead())
+                {
+                    // TODO: Handle required arguments here.
+                    string arg = reader.ReadString();
+                    result.Args.Add(arg);
+                }
             }
             else
             {

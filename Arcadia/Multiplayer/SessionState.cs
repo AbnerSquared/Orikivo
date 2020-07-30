@@ -1,4 +1,4 @@
-﻿namespace Arcadia
+﻿namespace Arcadia.Multiplayer
 {
     public enum SessionState
     {

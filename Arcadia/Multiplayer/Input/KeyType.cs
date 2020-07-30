@@ -1,7 +1,6 @@
-﻿namespace Arcadia
-
+﻿namespace Arcadia.Multiplayer
 {
-    public enum KeyType
+    public enum InputType
     {
         Text,
         Reaction

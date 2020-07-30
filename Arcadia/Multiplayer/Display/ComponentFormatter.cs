@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     public class ComponentFormatter
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcadia.Games
+namespace Arcadia.Multiplayer.Games
 {
     [Flags]
     public enum TriviaTopic

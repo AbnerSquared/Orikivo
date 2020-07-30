@@ -2,18 +2,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 
 {
+    // Reaction inputs cannot have any args.
     public class ReactionInput : IInput
     {
-        public KeyType Type => KeyType.Reaction;
+        public InputType Type => InputType.Reaction;
 
         // what does the player need to react with to execute this key?
         public IEmote Emote { get; set; }
 
         // what method of reaction used is needed to invoke this input? (by default, it is set to any)
-        public ReactionFlag Flag { get; set; } = ReactionFlag.Any;
+        public ReactionHandling Handling { get; set; } = ReactionHandling.Any;
 
         public Func<IUser, ServerConnection, GameServer, bool> Criterion { get; set; }
 
@@ -29,9 +30,9 @@ namespace Arcadia
 
         public InputResult TryParse(Input input)
         {
-            InputResult result = new InputResult();
+            var result = new InputResult();
 
-            if (input.Reaction == Emote && Flag.HasFlag(input.Flag))
+            if (input.Reaction.Equals(Emote) && Handling.HasFlag(input.Flag))
             {
                 result.IsSuccess = true;
                 result.Input = this;

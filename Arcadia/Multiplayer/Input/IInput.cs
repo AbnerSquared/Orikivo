@@ -2,13 +2,18 @@
 using System;
 using System.Collections.Generic;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
+    /// <summary>
+    /// Represents a generic <see cref="GameServer"/> input.
+    /// </summary>
     public interface IInput
     {
-        public KeyType Type { get; }
+        public InputType Type { get; }
+
         // what does this key do whenever it is executed?
         public Func<IUser, ServerConnection, GameServer, bool> Criterion { get; set; }
+
         public Action<InputContext> OnExecute { get; set; }
 
         public InputResult TryParse(Input input);

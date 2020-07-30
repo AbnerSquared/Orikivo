@@ -1,7 +1,7 @@
 ﻿using Discord;
 using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 
 {
     /// <summary>

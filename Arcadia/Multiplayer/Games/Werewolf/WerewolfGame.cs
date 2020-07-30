@@ -4,31 +4,15 @@ using System.Linq;
 using Discord;
 using Orikivo;
 
-namespace Arcadia.Games
+namespace Arcadia.Multiplayer.Games
 {
-    // [Action("start_day")]
-    // This attribute is used to mark a method as a game action
-    public class ActionAttribute : Attribute
-    {
-        // Name
-        // UpdateOnExecute
-        // 
-    }
+    
 
     // [Criterion("wolf_greater_equals_villager")]
     // This attribute is used to mark a method as a game criterion
-    public class CriterionAttribute : Attribute
-    {
-        // Name
-    }
 
     // [Input("hunt", 0)]
     // This attribute is used to mark a method as an input to a specified frequency
-    public class InputAttribute : Attribute
-    {
-        // Name
-        // Frequency
-    }
 
     // CONFIG PROPERTIES
     // <bool> Reveal roles on death: If true, a player's role is revealed when they die
@@ -40,331 +24,16 @@ namespace Arcadia.Games
     // <WerewolfChatMode> Chat mode: This determines the chat method of this session
     // During the night time, everyone is automatically muted
 
-    public enum WerewolfChatMode
-    {
-        Text = 1, // Default: the game is played in text mode, from which people can chat with each other, and so forth
-        Voice = 2 // All players are required to join voice chat before starting
-    }
-
     // This is used to deny certain roles from being selected
-    public enum WerewolfRoleDeny
-    {
-        None = 0,
-        Werewolf = 1,
-        Seer = 2,
-        Villager = 4,
-        Hunter = 8,
-        Tanner = 16,
-        Tough = 32,
-        Copycat = 64,
-        Lycan = 128
-    }
-
-    public enum WerewolfEntryMode
-    {
-        Default = 1, // The default: A starting test night is initialized
-        Immediate = 2 // The game immediately starts on the day phase, which prevents anyone from knowing who they are
-    }
-
-    public enum WerewolfPeekMode
-    {
-        Hidden = 1, // The default: All of the information a seer is given stays with them
-        Player = 2, // When a seer identifies someone, the person they chose is publicly announced at the start of a day (ONLY THE PLAYER)
-        Role = 3 // When a seer identifies someone, everyone will be told if they selected a werewolf or not
-    }
-
-    public enum InvokerType
-    {
-        // This context was invoked from a user
-        User = 1,
-
-        // This context was invoked in a session
-        Session = 2
-    }
 
     // context to use for gameAction
     // this way, it can be inherited
-    public class GameContext
-    {
-        // By default, the context is assumed to originate from a session
-        public GameContext()
-        {
-            Type = InvokerType.Session;
-        }
-
-        // However, this can be overridden by providing an input context
-        public GameContext(InputContext ctx)
-        {
-            Type = InvokerType.User;
-            Invoker = ctx.Player;
-            Connection = ctx.Connection;
-            Session = ctx.Session;
-            Server = ctx.Server;
-        }
-
-        public InvokerType Type { get; set; }
-
-        public PlayerData Invoker { get; set; }
-
-        // The connection that this was called in, if any
-        public ServerConnection Connection { get; set; }
-
-        public GameSession Session { get; set; }
-
-        public GameServer Server { get; set; }
-    }
-
-    public enum WerewolfPhase
-    {
-        Unknown = 0,
-        Start, // Starting phase
-        Day, // Day phase
-        Trial, // Trial phase
-        Death, // Death phase
-        Night, // Night phase
-        End // Closing phase
-    }
-
-    public enum WerewolfVote
-    {
-        // This vote is currently pending
-        Pending = 0,
-
-        // This votes for the player to live
-        Live = 1,
-
-        // This votes for the player to die
-        Die = 2
-    }
-
-    public enum WerewolfWinState
-    {
-        // The game is still going
-        Pending = 0,
-
-        // The villagers win
-        Villager = 1,
-
-        // The werewolves win
-        Wolf = 2
-    }
-
-    internal static class WolfVars
-    {
-        internal static readonly string Role = "role";
-
-        internal static readonly string IsWinner = "is_winner";
-
-        // if true, the player is dead and CANNOT interact with the game at all
-        internal static readonly string IsDead = "is_dead";
-
-        internal static readonly string DeathFrom = "death_from";
-
-        // if true, the player will die at the end of the night
-        internal static readonly string IsHurt = "is_hurt";
-
-        // if a player was protected at the start of a day phase, set to false and prevent death
-        internal static readonly string IsProtected = "is_protected";
-
-        // If true, this player has already been showcased as dead
-        internal static readonly string HasClosure = "has_closure";
-
-        internal static readonly string Vote = "vote";
-
-        // if they can inherit peek, can_peek is set to TRUE if a seer dies
-        internal static readonly string InheritPeek = "inherit_peek";
-
-        // if they are a peeker, initialize a list of user ids to track
-        internal static readonly string CanPeek = "can_peek";
-
-        // if they can feast, they vote for a player to kill alongside everyone else that can feast
-        internal static readonly string CanFeast = "can_feast";
-
-        // if they can protect, they choose a player to keep safe
-        internal static readonly string CanProtect = "can_protect";
-
-        // if not dead and injured, they will day upon the end of the next day phase.
-        
-        
-        // if a player is marked for death at the start of a day phase AND they are not protected, kill the player
-        internal static readonly string MarkedForDeath = "marked_for_death";
-
-        // if a player has this value set AND is killed, the lover must also die
-        internal static readonly string LoverId = "lover_id";
-
-        // Dictionary<ulong, bool>
-        internal static readonly string PeekedPlayerIds = "peeked_player_ids";
-
-        // this keeps a track of all players killed, stored as WerewolfKill.
-        internal static readonly string Kills = "kills";
-
-        // GLOBAL PROPERTIES
-
-
-        internal static readonly string LastPlayerKilled = "last_player_killed";
-        internal static readonly string CurrentPhase = "current_phase";
-        internal static readonly string NextPhase = "next_phase";
-        internal static readonly string Suspect = "suspect";
-        internal static readonly string RequestedSkips = "requested_skips";
-        internal static readonly string ReadInputs = "read_inputs";
-
-        // if true, this will not invoke the GetDeaths call on each round.
-        internal static readonly string HasCheckedDeaths = "has_checked_deaths";
-
-        // this keeps track of all of the nights:
-        // if NightCount == 0:
-        // 
-        internal static readonly string TotalNights = "total_nights";
-
-        // ACTIONs
-
-        // This starts the game as a whole
-        internal static readonly string Start = "start";
-
-        // This is called once a criteria has been met 
-        internal static readonly string GetResults = "get_results";
-
-        internal static readonly string StartDay = "start_day";
-        internal static readonly string EndDay = "end_day";
-        internal static readonly string StartTrial = "start_trial";
-
-        internal static readonly string StartNight = "start_night";
-
-        // This is invoked for when the night ends
-        internal static readonly string EndNight = "end_night";
-
-        internal static readonly string StartVoteInput = "start_vote_input";
-        internal static readonly string EndVoteInput = "end_vote_input";
-
-        // This is called from handle_deaths OR end_vote_input
-
-        // This reads the LastPlayerKilled property to get that specific player to:
-        //    - Reveal their role
-        //    - What they were killed by
-        internal static readonly string OnDeath = "on_death";
-
-        // This is called at the start of a day
-        internal static readonly string HandleDeaths = "handle_deaths";
-
-
-        // This is called once the night starts AND there is a seer
-        internal static readonly string StartPeekInput = "start_peek_input";
-        internal static readonly string EndPeekInput = "end_peek_input";
-
-        // This is called once the night starts AND there are werewolves
-        internal static readonly string StartFeastInput = "start_feast_input";
-        internal static readonly string EndFeastInput = "end_feast_input";
-
-        internal static readonly string StartProtectInput = "start_protect_input";
-        internal static readonly string EndProtectInput = "end_protect_input";
-
-        internal static readonly string StartHuntInput = "start_hunt_input";
-        internal static readonly string EndHuntInput = "end_hunt_input";
-
-        internal static readonly string TrySkipPhase = "try_skip_phase";
-
-        internal static readonly string WolfGreaterEqualsVillager = "wolf_greater_equals_villager";
-        internal static readonly string AllDeadWolf = "all_dead_wolf";
-    }
-
-    public enum WerewolfKillMethod
-    {
-        Unknown = 0, // We aren't sure how the player died
-        Hang = 1, // The player was hung by vote
-        Wolf = 2,  // The player was killed by werewolves
-        Hunted = 3 // The player was killed by the hunter
-    }
-
-    public class WerewolfKill
-    {
-        public ulong UserId { get; set; }
-        public WerewolfKillMethod Method { get; set; }
-
-        // the time at which they were killed
-        public DateTime DiedAt { get; set; }
-    }
-
-    public enum WerewolfGroup
-    {
-        Unknown = 0,
-
-        Villager = 1,
-        
-        // If their group is tanner, the only win condition is that they are hung
-        Tanner = 2,
-        
-        Werewolf = 3
-    }
-
-    public class WerewolfRole
-    {
-        public static readonly WerewolfRole Villager = new WerewolfRole();
-        public static readonly WerewolfRole Wolf = new WerewolfRole();
-        public static readonly WerewolfRole Seer = new WerewolfRole();
-
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Summary { get; set; }
-
-        // if < 0, is an enemy, if 0, neutral, if > 0, is good
-        public int Moral { get; set; }
-
-        // If true, this role is a wolf-related entry.
-        public bool IsWolfLike { get; set; }
-
-        // If a seer is killed, this role will become a seer
-        public bool InheritSeer { get; set; }
-
-        // This is the group that the role is using
-        public WerewolfGroup Group { get; set; }
-
-        public WerewolfInitial Initial { get; set; }
-        public WerewolfPassive Passive { get; set; } // this is the role's passive ability
-        public WerewolfAbility Ability { get; set; } // this is the role's nightly ability
-
-        // figure out role distribution based on players
-    }
 
     // Starting abilities are only executed when the first night happens
-    public enum WerewolfInitial
-    {
-        None = 0, // this role does not do anything at the start
-        
-        Copy = 1, // This role copies the role of the player they select
-
-        Awake = 2 // This ability allows the player to look at their card AT THE END of the night
-    }
 
     // Passive abilities are abilities that modify your actions or rules as a whole
-    [Flags]
-    public enum WerewolfPassive
-    {
-        None = 0,
-        Tough = 1, // if attacked by wolves, they can live through the day, dying at the end of the night
-        
-        // if a hunter is about to be hanged, they can choose someone to kill
-        // if a hunter was marked for death, they can choose someone to kill before they die
-        Hunt = 2,
-        
-        // This always forces the player to vote to live
-        Pacifist = 4,
-
-        // This always forces the player to vote for death
-        Militarist = 8,
-
-        // they can see everything that is happening, being able to write 1 letter at the start of each day
-        Ghost = 16 
-    }
 
     // normal abilities are only executed at night
-    [Flags]
-    public enum WerewolfAbility
-    {
-        None = 0,
-        Feast = 1, // on each night, every role with this ability chooses a player to kill
-        Peek = 2, // on each night, this role can see if a player is a werewolf
-        Protect = 4 // on each night, this role can choose something to protect
-    }
 
     public class WerewolfGame : GameBuilder
     {
@@ -576,12 +245,12 @@ namespace Arcadia.Games
         private static WerewolfPassive GetPassive(PlayerData player)
             => player.GetPropertyValue<WerewolfRole>(WolfVars.Role).Passive;
 
-        private static void OnDeath(PlayerData player, GameSession session, GameServer server)
+        private static void OnDeath(GameContext ctx)
         {
             // ON ENTRY:
 
             // Get the last player killed
-            var kill = session.GetPropertyValue<WerewolfKill>(WolfVars.LastPlayerKilled);
+            var kill = ctx.Session.GetPropertyValue<WerewolfKill>(WolfVars.LastPlayerKilled);
 
             // If null, throw an exception
             if (kill == null)
@@ -590,12 +259,12 @@ namespace Arcadia.Games
             // Write to the main channel the information about who died
 
             // Marked the player with closure
-            session.GetPlayerData(kill.UserId).SetPropertyValue(WolfVars.HasClosure, true);
+            ctx.Session.GetPlayerData(kill.UserId).SetPropertyValue(WolfVars.HasClosure, true);
 
             // Check winning conditions
-            if (session.MeetsCriterion(WolfVars.WolfGreaterEqualsVillager))
+            if (ctx.Session.MeetsCriterion(WolfVars.WolfGreaterEqualsVillager))
             {
-                session.InvokeAction(WolfVars.GetResults, true);
+                ctx.Session.InvokeAction(WolfVars.GetResults, true);
             }
             // check win conditions here, and if true, end the game
             // Check if werewolfCount == villagerCount
@@ -604,14 +273,14 @@ namespace Arcadia.Games
             // otherwise, continue invoking GetDeaths
         }
 
-        private static void HandleDeaths(PlayerData invoker, GameSession session, GameServer server)
+        private static void HandleDeaths(GameContext ctx)
         {
             // If there aren't any deaths, proceed through with the current phase
-            session.BlockInput = true;
+            ctx.Session.BlockInput = true;
             // BEFORE we handle marked users, HANDLE all recently dead players
-            if (session.Players.Any(HasRecentlyDied))
+            if (ctx.Session.Players.Any(HasRecentlyDied))
             {
-                foreach (PlayerData player in session.Players.Where(HasRecentlyDied))
+                foreach (PlayerData player in ctx.Session.Players.Where(HasRecentlyDied))
                 {
                     // for each recently killed player, invoke the action on death
                     var killed = new WerewolfKill
@@ -622,9 +291,9 @@ namespace Arcadia.Games
                 }
             }
             // don't forget more than one player can die!
-            if (session.Players.Any(IsMarkedForDeath))
+            if (ctx.Session.Players.Any(IsMarkedForDeath))
             {
-                foreach (PlayerData player in session.Players.Where(IsMarkedForDeath))
+                foreach (PlayerData player in ctx.Session.Players.Where(IsMarkedForDeath))
                 {
                     // If the player was protected
                     if (IsProtected(player))
@@ -651,23 +320,23 @@ namespace Arcadia.Games
                     };
 
                     // set the last player killed to the newest killed player
-                    session.SetPropertyValue(WolfVars.LastPlayerKilled, killed);
-                    session.InvokeAction(WolfVars.OnDeath, true);
+                    ctx.Session.SetPropertyValue(WolfVars.LastPlayerKilled, killed);
+                    ctx.Session.InvokeAction(WolfVars.OnDeath, true);
                     // invoke the action OnDeath, overriding timer
                 }
             }
-            session.BlockInput = false;
+            ctx.Session.BlockInput = false;
         }
 
-        private static void StartVoteInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartVoteInput(GameContext ctx)
         {
             // ON ENTRY:
             // Start a timer for 30 seconds that invokes the action EndVoteInput
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndVoteInput);
-            session.BlockInput = true;
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndVoteInput);
+            ctx.Session.BlockInput = true;
 
             // Automatically set the votes of each LIVING
-            foreach (PlayerData data in session.Players)
+            foreach (PlayerData data in ctx.Session.Players)
             {
                 // If the player is dead, continue.
                 if (!IsAlive(data))
@@ -683,27 +352,27 @@ namespace Arcadia.Games
                     data.SetPropertyValue(WolfVars.Vote, WerewolfVote.Die);
             }
 
-            session.BlockInput = false;
+            ctx.Session.BlockInput = false;
         }
 
         private static bool CanVote(PlayerData player)
             => !GetPassive(player).HasFlag(WerewolfPassive.Pacifist | WerewolfPassive.Hunt);
 
-        private static void EndVoteInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndVoteInput(GameContext ctx)
         {
             // Get the vote counts
-            int toLive = GetLiveVotes(session);
-            int toDie = GetDieVotes(session);
-            int pending = GetPendingVotes(session);
+            int toLive = GetLiveVotes(ctx.Session);
+            int toDie = GetDieVotes(ctx.Session);
+            int pending = GetPendingVotes(ctx.Session);
 
             // Reset all of the votes once you've received the vote counts
-            foreach (PlayerData player in session.Players.Where(CanVote))
+            foreach (PlayerData player in ctx.Session.Players.Where(CanVote))
                 player.SetPropertyValue(WolfVars.Vote, WerewolfVote.Pending);
 
             // If the votes to die is more than the votes to live
             if (toDie > toLive + pending)
             {
-                PlayerData suspect = session.GetPlayerData(session.GetPropertyValue<ulong>(WolfVars.Suspect));
+                PlayerData suspect = ctx.Session.GetPlayerData(ctx.Session.GetPropertyValue<ulong>(WolfVars.Suspect));
 
                 if (suspect == null)
                     throw new Exception("Expected suspect but returned null");
@@ -717,27 +386,27 @@ namespace Arcadia.Games
 
                 // Kill the suspect
                 suspect.SetPropertyValue(WolfVars.IsDead, true);
-                session.SetPropertyValue(WolfVars.LastPlayerKilled, death);
+                ctx.Session.SetPropertyValue(WolfVars.LastPlayerKilled, death);
 
                 // Set the next phase to night
-                session.SetPropertyValue(WolfVars.NextPhase, WerewolfPhase.Night);
+                ctx.Session.SetPropertyValue(WolfVars.NextPhase, WerewolfPhase.Night);
 
                 // Handle the suspect's death
-                session.InvokeAction(WolfVars.OnDeath, true);
+                ctx.Session.InvokeAction(WolfVars.OnDeath, true);
             }
             else
             {
                 // Otherwise, go directly to the night phase
-                session.InvokeAction(WolfVars.StartNight, true);
+                ctx.Session.InvokeAction(WolfVars.StartNight, true);
             }
         }
 
-        private static void StartTrial(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartTrial(GameContext ctx)
         {
             // Set the primary channel to the trial frequency
 
             // Start a timer for 30 seconds that invokes the action 'start_vote_input'
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.StartVoteInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.StartVoteInput);
 
             // While this timer runs, it waits for the suspect to write their defense piece
             //     - If RandomNames is enabled, this will be handled in their direct messages
@@ -767,24 +436,24 @@ namespace Arcadia.Games
             ctx.Session.InvokeAction(WolfVars.StartVoteInput);
         }
 
-        private static void StartHuntInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartHuntInput(GameContext ctx)
         {
             // Start a timer for 30 seconds that invokes the action 'end_hunt_input'
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndHuntInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndHuntInput);
 
         }
 
-        private static void EndHuntInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndHuntInput(GameContext ctx)
         {
             // Add the Hunt ability to the list of Read inputs, which determines what is left to check
             // Once everything has finished, block input to that channel, and continue with the night
         }
 
-        private static void StartPeekInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartPeekInput(GameContext ctx)
         {
             // Start a timer for 30 seconds that invokes the action 'end_peek_input'
             // Increase the timer for each seer in the game
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndPeekInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndPeekInput);
             // If nobody is able to peek, return
 
             // Get all of the players that are able to peek
@@ -796,17 +465,17 @@ namespace Arcadia.Games
 
         }
 
-        private static void EndPeekInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndPeekInput(GameContext ctx)
         {
             // Add the Peek ability to the list of Read inputs, which determines what is left to check
             // Once everything has finished, block input to that channel, and continue with the night
         }
 
-        private static void StartFeastInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartFeastInput(GameContext ctx)
         {
             // Start a timer for 30 seconds that invokes the action 'end_feast_input'
             // Increase the timer for each feast in the game
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndFeastInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndFeastInput);
             // If nobody is able to feast, return
 
             // Get all of the players that are able to feast
@@ -818,34 +487,34 @@ namespace Arcadia.Games
 
         }
 
-        private static void EndFeastInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndFeastInput(GameContext ctx)
         {
             // Once they are finished voting, block input to that channel, and continue with the night
         }
 
-        private static void StartProtectInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartProtectInput(GameContext ctx)
         {
             // Start a timer for 30 seconds that invokes the action 'end_protect_input'
             // Increase the timer for each feast in the game
-            session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndProtectInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(30), WolfVars.EndProtectInput);
         }
 
-        private static void EndProtectInput(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndProtectInput(GameContext ctx)
         {
 
         }
 
-        private static void Start(PlayerData invoker, GameSession session, GameServer server)
+        private static void Start(GameContext ctx)
         {
             // If the configuration allows for the test night and day, handle it here
 
             // Otherwise, go directly to the day phase
-            session.InvokeAction(WolfVars.StartDay);
+            ctx.Session.InvokeAction(WolfVars.StartDay);
         }
 
-        private static void GetResults(PlayerData invoker, GameSession session, GameServer server)
+        private static void GetResults(GameContext ctx)
         {
-            foreach (PlayerData player in session.Players.Where(IsDeadTanner))
+            foreach (PlayerData player in ctx.Session.Players.Where(IsDeadTanner))
                 player.SetPropertyValue(WolfVars.IsWinner, true);
         }
 
@@ -862,28 +531,28 @@ namespace Arcadia.Games
             => player.GetPropertyValue<bool>(WolfVars.IsDead) && !player.GetPropertyValue<bool>(WolfVars.HasClosure);
 
         // ACTION start_day
-        private static void StartDay(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartDay(GameContext ctx)
         {
             // Set the primary channel to the frequency used to handle the day phase
 
             // If there was anyone that recently died or is marked for deaths, handle those first
-            if (session.Players.Any(HasRecentlyDied) || session.Players.Any(IsMarkedForDeath))
+            if (ctx.Session.Players.Any(HasRecentlyDied) || ctx.Session.Players.Any(IsMarkedForDeath))
             {
-                session.InvokeAction(WolfVars.HandleDeaths, true);
+                ctx.Session.InvokeAction(WolfVars.HandleDeaths, true);
                 return;
             }
 
             // Set the current phase to day
-            session.SetPropertyValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
+            ctx.Session.SetPropertyValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
 
             // Start a timer for 3 minutes that will invoke the action 'end_day'
-            session.QueueAction(TimeSpan.FromMinutes(3), WolfVars.EndDay);
+            ctx.Session.QueueAction(TimeSpan.FromMinutes(3), WolfVars.EndDay);
         }
 
         // ACTION end_day
-        private static void EndDay(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndDay(GameContext ctx)
         {
-            session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartNight);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartNight);
             // ON ENTRY:
             // Start a timer for 10 seconds that invokes the action StartNight
         }
@@ -891,11 +560,11 @@ namespace Arcadia.Games
         private static bool HasSuspect(GameSession session)
             => session.GetPropertyValue<ulong>(WolfVars.Suspect) != 0;
 
-        private static void StartNight(PlayerData invoker, GameSession session, GameServer server)
+        private static void StartNight(GameContext ctx)
         {
             // ON ENTRY:
             // If there is anyone injured, kill them.
-            foreach (PlayerData player in session.Players.Where(IsHurt))
+            foreach (PlayerData player in ctx.Session.Players.Where(IsHurt))
             {
                 player.SetPropertyValue(WolfVars.IsHurt, false);
                 player.SetPropertyValue(WolfVars.IsDead, true);
@@ -904,19 +573,19 @@ namespace Arcadia.Games
             // If there is anyone with the ability
         }
 
-        private static void EndNight(PlayerData invoker, GameSession session, GameServer server)
+        private static void EndNight(GameContext ctx)
         {
             // Reset read inputs to none
-            session.SetPropertyValue(WolfVars.ReadInputs, WerewolfAbility.None);
+            ctx.Session.SetPropertyValue(WolfVars.ReadInputs, WerewolfAbility.None);
 
             // Handle all text display updates here
 
             // Start a timer for 10 seconds that invokes the action 'start_day'
-            session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartDay);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartDay);
 
         }
 
-        private static void TrySkipPhase(PlayerData invoker, GameSession session, GameServer server)
+        private static void TrySkipPhase(GameContext ctx)
         {
             // If enough requested skips were made, skip the current phase and start the new one
 
@@ -929,8 +598,6 @@ namespace Arcadia.Games
             {
                 new GameCriterion(WolfVars.WolfGreaterEqualsVillager, WolfGreaterEqualsVillager)
             };
-
-            // GAME RULESETS
         }
 
         private static bool WolfGreaterEqualsVillager(GameSession session)

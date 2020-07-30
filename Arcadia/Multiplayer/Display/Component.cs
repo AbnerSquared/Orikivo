@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     // a single string
     public class Component : IComponent

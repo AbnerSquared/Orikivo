@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Arcadia.Games
+namespace Arcadia.Multiplayer.Games
 {
     public class TriviaQuestion
     {

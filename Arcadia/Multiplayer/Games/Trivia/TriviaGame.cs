@@ -1,11 +1,9 @@
-﻿using Discord;
-using Orikivo;
+﻿using Orikivo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace Arcadia.Games
+namespace Arcadia.Multiplayer.Games
 {
     internal static class TriviaVars
     {
@@ -23,7 +21,7 @@ namespace Arcadia.Games
             new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?", TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210", "174", "177", "176", "205")
         };
 
-        public TriviaGame() : base()
+        public TriviaGame()
         {
             Id = "Trivia";
             Details = new GameDetails
@@ -36,10 +34,10 @@ namespace Arcadia.Games
 
             Config = new List<ConfigProperty>
             {
-                ConfigProperty.Create<TriviaTopic>("topics", "Topics", TriviaTopic.Any),
-                ConfigProperty.Create<TriviaDifficulty>("difficulty", "Difficulty", TriviaDifficulty.Any),
-                ConfigProperty.Create<int>("questioncount", "Question Count", 5),
-                ConfigProperty.Create<double>("questionduration", "Question Duration", 15)
+                ConfigProperty.Create("topics", "Topics", TriviaTopic.Any),
+                ConfigProperty.Create("difficulty", "Difficulty", TriviaDifficulty.Any),
+                ConfigProperty.Create("questioncount", "Question Count", 5),
+                ConfigProperty.Create("questionduration", "Question Duration", 15d)
             };
         }
 
@@ -51,30 +49,30 @@ namespace Arcadia.Games
             {
                 Id = "get_question_result",
                 UpdateOnExecute = true,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
                     // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in server.GetConnectionsInState(GameState.Playing))
+                    foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
                     {
                         connection.Frequency = 11;
                     }
 
                     //session.CancelQueuedAction();
 
-                    int currentQuestion = session.GetPropertyValue<int>("current_question");
-                    session.SetPropertyValue("players_answered", 0);
+                    int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
+                    ctx.Session.SetPropertyValue("players_answered", 0);
 
-                    DisplayContent content = server.GetDisplayChannel(11).Content;
+                    DisplayContent content = ctx.Server.GetDisplayChannel(11).Content;
 
                     content
                         .GetComponent("result")
-                        .Draw(session.GetPropertyValue<int>("current_question"),
+                        .Draw(ctx.Session.GetPropertyValue<int>("current_question"),
                               GetConfigValue<int>("questioncount"),
                               CurrentQuestion.Question,
                               CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
                                 .First(x => !string.IsNullOrWhiteSpace(x)));
 
-                    foreach (PlayerData playerData in session.Players)
+                    foreach (PlayerData playerData in ctx.Session.Players)
                     {
                         bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
 
@@ -102,7 +100,7 @@ namespace Arcadia.Games
                         playerData.ResetProperty("is_correct");
                     }
 
-                    session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
+                    ctx.Session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
                 }
             };
             // 'get_question_result'
@@ -117,12 +115,12 @@ namespace Arcadia.Games
             {
                 Id = "try_get_question_result",
                 UpdateOnExecute = false,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
-                    if (session.MeetsCriterion("has_all_players_answered"))
+                    if (ctx.Session.MeetsCriterion("has_all_players_answered"))
                     {
-                        session.CancelQueuedAction();
-                        session.InvokeAction("get_question_result", true);
+                        ctx.Session.CancelQueuedAction();
+                        ctx.Session.InvokeAction("get_question_result", true);
                         
                     }
                 }
@@ -132,12 +130,12 @@ namespace Arcadia.Games
             {
                 Id = "try_get_next_question",
                 UpdateOnExecute = false,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
-                    if (session.MeetsCriterion("has_answered_all_questions"))
-                        session.InvokeAction("get_results", true);
+                    if (ctx.Session.MeetsCriterion("has_answered_all_questions"))
+                        ctx.Session.InvokeAction("get_results", true);
                     else
-                        session.InvokeAction("get_next_question", true);
+                        ctx.Session.InvokeAction("get_next_question", true);
                 }
             };
 
@@ -150,24 +148,24 @@ namespace Arcadia.Games
             {
                 Id = "get_next_question",
                 UpdateOnExecute = true,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
                     // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in server.GetConnectionsInState(GameState.Playing))
+                    foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
                     {
                         connection.Frequency = 10;
                     }
 
-                    int currentQuestion = session.GetPropertyValue<int>("current_question");
+                    int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
                     CurrentQuestion = QuestionPool[currentQuestion];
-                    session.AddToProperty("current_question", 1);
+                    ctx.Session.AddToProperty("current_question", 1);
 
-                    DisplayContent content = server.GetDisplayChannel(10).Content;
+                    DisplayContent content = ctx.Server.GetDisplayChannel(10).Content;
 
                     content.GetComponent("question_header")
                         .Draw(
-                            Orikivo.Format.Counter(GetConfigValue<double>("questionduration")),
-                            session.GetPropertyValue<int>("current_question"),
+                            Format.Counter(GetConfigValue<double>("questionduration")),
+                            ctx.Session.GetPropertyValue<int>("current_question"),
                             GetConfigValue<int>("questioncount"),
                             CurrentQuestion.Question);
 
@@ -184,9 +182,9 @@ namespace Arcadia.Games
                         .GetComponent("footer")
                         .Draw(CurrentQuestion.Difficulty.ToString(),
                               CurrentQuestion.Topic.ToString(),
-                              $"{CurrentQuestion.Value} {Orikivo.Format.TryPluralize("Point", CurrentQuestion.Value)}");
+                              $"{CurrentQuestion.Value} {Format.TryPluralize("Point", CurrentQuestion.Value)}");
 
-                    session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
+                    ctx.Session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
                 }
             };
 
@@ -210,27 +208,27 @@ namespace Arcadia.Games
             {
                 Id = "get_results",
                 UpdateOnExecute = true,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
                     // set all currently playing connection to frequency 12
-                    foreach(ServerConnection connection in server.Connections.Where(x => x.State == GameState.Playing))
+                    foreach(ServerConnection connection in ctx.Server.Connections.Where(x => x.State == GameState.Playing))
                     {
                         connection.Frequency = 12;
                     }
 
-                    foreach(PlayerData data in session.Players)
+                    foreach(PlayerData data in ctx.Session.Players)
                     {
                         Console.WriteLine($"{data.Player.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
                     }
 
-                    session._server
+                    ctx.Session._server
                     .GetDisplayChannel(12).Content
                     .GetComponent("leaderboard")
-                     .Draw(session.Players
+                     .Draw(ctx.Session.Players
                         .OrderByDescending(x => x.GetPropertyValue<int>("score"))
                         .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.GetPropertyValue<int>("score")}**p"));
 
-                    session.QueueAction(TimeSpan.FromSeconds(15), "end");
+                    ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
                 }
             };
 
@@ -251,13 +249,13 @@ namespace Arcadia.Games
             {
                 Id = "try_restart",
                 UpdateOnExecute = false,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
-                    if (session.MeetsCriterion("most_players_want_rematch"))
+                    if (ctx.Session.MeetsCriterion("most_players_want_rematch"))
                     {
-                        session.CancelQueuedAction();
+                        ctx.Session.CancelQueuedAction();
                         // reset all player attributes
-                        foreach (PlayerData data in session.Players)
+                        foreach (PlayerData data in ctx.Session.Players)
                         {
                             foreach (GameProperty attribute in data.Properties)
                             {
@@ -266,7 +264,7 @@ namespace Arcadia.Games
                         }
 
                         // reset all game attributes
-                        foreach (GameProperty attribute in session.Properties)
+                        foreach (GameProperty attribute in ctx.Session.Properties)
                         {
                             attribute.Reset();
                         }
@@ -277,7 +275,7 @@ namespace Arcadia.Games
                             GetConfigValue<TriviaDifficulty>("difficulty"),
                             GetConfigValue<TriviaTopic>("topics")).ToList();
 
-                        session.InvokeAction("try_get_next_question", true);
+                        ctx.Session.InvokeAction("try_get_next_question", true);
                     }
                 }
             };

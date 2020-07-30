@@ -1,8 +1,9 @@
 ﻿using System;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     // this is a ruleset that can be used to quickly determine if certain criteria was met
+    // It's possible that this can be scrapped; I don't see much use for it
     public class GameCriterion
     {
         public GameCriterion() {}

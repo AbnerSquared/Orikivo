@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
+    /// <summary>
+    /// Represents the data of a <see cref="Multiplayer.Player"/> from a <see cref="GameSession"/>.
+    /// </summary>
     public class PlayerData
     {
         public Player Player { get; internal set; }
@@ -12,7 +15,7 @@ namespace Arcadia
 
         public void SetPropertyValue(string id, object value)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not the specified property '{id}'");
 
             Properties.First(x => x.Id == id).Set(value);
@@ -20,7 +23,7 @@ namespace Arcadia
 
         public void AddToProperty(string id, int value)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not the specified property '{id}'");
 
             var property = Properties.First(x => x.Id == id);
@@ -36,7 +39,7 @@ namespace Arcadia
 
         public GameProperty GetProperty(string id)
         {
-            if (!Properties.Any(x => x.Id == id))
+            if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);

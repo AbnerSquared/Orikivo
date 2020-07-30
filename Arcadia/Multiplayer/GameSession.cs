@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     public class GameSession
     {
@@ -25,9 +25,9 @@ namespace Arcadia
             {
                 Id = "end",
                 UpdateOnExecute = true,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
-                    session.State = SessionState.Finish;
+                    ctx.Session.State = SessionState.Finish;
                     _server.EndCurrentSession();
                 }
             });
@@ -36,7 +36,7 @@ namespace Arcadia
             {
                 Id = "destroy",
                 UpdateOnExecute = true,
-                OnExecute = delegate (PlayerData player, GameSession session, GameServer server)
+                OnExecute = delegate (GameContext ctx)
                 {
                     _server.DestroyCurrentSession();
                 }
@@ -75,7 +75,7 @@ namespace Arcadia
 
         internal void QueueAction(TimeSpan delay, string actionId)
         {
-            ActionQueue timer = new ActionQueue(delay, actionId, this);
+            var timer = new ActionQueue(delay, actionId, this);
             _actionQueue.Add(timer);
             _currentQueuedAction = timer.Id;
         }
@@ -122,7 +122,7 @@ namespace Arcadia
             GameAction action = Actions.First(x => x.Id == actionId);
 
             // TODO: Use InputContext instead of GameContext for input invocations
-            action.OnExecute(null, this, _server);
+            action.OnExecute(new GameContext(null, this, _server));
 
             // this causes a pause, so limit it to the actions that need to update
             if (action.UpdateOnExecute)
@@ -140,7 +140,7 @@ namespace Arcadia
 
             GameAction action = Actions.First(x => x.Id == actionId);
                 
-            action.OnExecute(null, this, _server);
+            action.OnExecute(new GameContext(null, this, _server));
 
             // this causes a pause, so limit it to the actions that need to update
             if (action.UpdateOnExecute)

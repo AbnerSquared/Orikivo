@@ -1,27 +1,46 @@
 ﻿using Discord;
 using System;
+using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     // likewise, the player should have a system that makes it easier to know if they are already in a server,
     // or if they were custom built
+
+    /// <summary>
+    /// Represents a generic player connection to a <see cref="GameServer"/>.
+    /// </summary>
     public class Player
     {
-        // who is my base user?
+        /// <summary>
+        /// Represents the <see cref="IUser"/> that this <see cref="Player"/> originates from.
+        /// </summary>
         public IUser User { get; set; }
 
-        // is this player the host?
+        /// <summary>
+        /// If true, this <see cref="Player"/> is the host of this <see cref="GameServer"/>.
+        /// </summary>
         public bool Host { get; set; }
 
-        // is this player currently in-game?
+        /// <summary>
+        /// If true, this <see cref="Player"/> is currently playing a game.
+        /// </summary>
         public bool Playing { get; set; }
 
-        // maybe change where this is stored?
-        // if i have a private display connection bound, what is it?
-        public PlayerChannel Channel { get; set; }
-
-        // when did this player join the server?
-        // if the host is removed, the new host is the oldest person in the server
+        /// <summary>
+        /// Represents the <see cref="DateTime"/> at which this <see cref="Player"/> joined a <see cref="GameServer"/>.
+        /// </summary>
         public DateTime JoinedAt { get; set; }
+
+        /// <summary>
+        /// Establishes and returns a connection to the direct channel of this <see cref="Player"/>.
+        /// </summary>
+        /// <param name="display">Represents the <see cref="DisplayChannel"/> to establish the <see cref="ServerConnection"/> with.</param>
+        /// <param name="properties">Represents the properties that the <see cref="ServerConnection"/> will inherit.</param>
+        /// <returns>A new <see cref="ServerConnection"/> to the specified <see cref="Player"/>.</returns>
+        public async Task<ServerConnection> GetConnectionAsync(DisplayChannel display, ConnectionProperties properties = null)
+        {
+            return await ServerConnection.CreateAsync(this, display);
+        }
     }
 }

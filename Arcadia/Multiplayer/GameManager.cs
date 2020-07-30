@@ -1,13 +1,12 @@
-﻿using Arcadia.Games;
+﻿using Arcadia.Multiplayer.Games;
 using Discord;
 using Discord.WebSocket;
-using Orikivo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 
 {
     internal static class LobbyVars
@@ -139,7 +138,7 @@ namespace Arcadia
                 {
                     ChannelId = channel.Id,
                     MessageId = internalMessage.Id,
-                    InternalChannel = channel,
+                    Channel = channel,
                     InternalMessage = internalMessage,
                     Frequency = 0,
                     State = GameState.Waiting,
@@ -191,7 +190,7 @@ namespace Arcadia
             DisplayChannel display = server.GetDisplayChannel(GameState.Waiting);
             DisplayChannel editing = server.GetDisplayChannel(GameState.Editing);
             string playerLimitCounter = server.Config.ValidateGame() ?
-                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
                 : "infinite players";
 
             /*
@@ -221,7 +220,7 @@ namespace Arcadia
 
             ServerConnection connection = new ServerConnection
             {
-                InternalChannel = channel,
+                Channel = channel,
                 ChannelId = channel.Id,
                 Frequency = 0,
                 State = GameState.Waiting,
@@ -344,16 +343,16 @@ namespace Arcadia
         }
 
         public async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
-            => await OnReaction(message, channel, reaction, ReactionFlag.Add);
+            => await OnReaction(message, channel, reaction, ReactionHandling.Add);
 
         public async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
-            => await OnReaction(message, channel, reaction, ReactionFlag.Remove);
+            => await OnReaction(message, channel, reaction, ReactionHandling.Remove);
 
         private async Task OnReaction(
             Cacheable<IUserMessage, ulong> message,
             ISocketMessageChannel channel,
             SocketReaction reaction,
-            ReactionFlag flag)
+            ReactionHandling flag)
         {
             // ignore all bots
             if (reaction.User.GetValueOrDefault()?.IsBot ?? false)
@@ -527,7 +526,7 @@ namespace Arcadia
                             }
                             else
                             {
-                                GameBuilder game = server.Config.GetGame();
+                                GameBuilder game = server.Config.LoadGame();
 
                                 if (game != null)
                                 {
@@ -594,7 +593,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent(LobbyVars.Header)
@@ -626,7 +625,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -695,7 +694,7 @@ namespace Arcadia
 
                             await connection.InternalMessage.DeleteAsync();
 
-                            connection.InternalMessage = await connection.InternalChannel.SendMessageAsync(waiting.ToString());
+                            connection.InternalMessage = await connection.Channel.SendMessageAsync(waiting.ToString());
                             connection.MessageId = connection.InternalMessage.Id;
 
                             return;
@@ -783,7 +782,7 @@ namespace Arcadia
                                 if (server.Config.ValidateGame())
                                 {
                                     editing.GetComponent("game_config").Active = true;
-                                    editing.GetComponent("game_config").Draw(server.Config.GetGame().Config.Select(x => $"**{x.Name}**: `{x.Value.ToString()}`"), server.Config.GetGame().Details.Name);
+                                    editing.GetComponent("game_config").Draw(server.Config.LoadGame().Config.Select(x => $"**{x.Name}**: `{x.Value.ToString()}`"), server.Config.LoadGame().Details.Name);
                                 }
 
                                 editing.GetComponent("message_box").Draw(server.Config.Title);
@@ -899,7 +898,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -931,7 +930,7 @@ namespace Arcadia
                             }
 
                             string playerLimitCounter = server.Config.ValidateGame() ?
-                                $"{server.Config.GetGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.GetGame().Details.PlayerLimit)}"
+                                $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
                                 : "infinite players";
 
                             waiting.GetComponent("header")
@@ -1129,7 +1128,7 @@ namespace Arcadia
                         // [HOST, PLAYER] CUSTOM <value>
                         if (server.Config.ValidateGame())
                         {
-                            var game = server.Config.GetGame();
+                            var game = server.Config.LoadGame();
 
                             foreach(ConfigProperty option in game.Config)
                             {
@@ -1210,7 +1209,7 @@ namespace Arcadia
                         foreach (IInput input in display.Inputs)
                         {
                             var rawCtx = ctx;
-                            if (input.Type == KeyType.Text)
+                            if (input.Type == InputType.Text)
                             {
                                 if (!(input as TextInput).CaseSensitive)
                                 {
@@ -1303,7 +1302,7 @@ namespace Arcadia
                     .Connections
                     .First(x => x.MessageId == message.Id);
                 
-                connection.InternalMessage = await connection.InternalChannel
+                connection.InternalMessage = await connection.Channel
                     .SendMessageAsync(server
                     .GetDisplayChannel(connection.Frequency).ToString());
 

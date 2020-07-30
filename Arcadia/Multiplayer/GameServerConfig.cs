@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Arcadia
+namespace Arcadia.Multiplayer
 {
     public class GameServerConfig
     {
@@ -33,7 +33,7 @@ namespace Arcadia
             return GameManager.Games.ContainsKey(GameId);
         }
 
-        public GameBuilder GetGame()
+        public GameBuilder LoadGame()
         {
             if (!ValidateGame())
                 return null;
