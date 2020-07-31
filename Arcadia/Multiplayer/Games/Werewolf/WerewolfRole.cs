@@ -10,6 +10,7 @@
         public string Name { get; set; }
         public string Summary { get; set; }
 
+        // This is used to help generate roles based on player count
         // if < 0, is an enemy, if 0, neutral, if > 0, is good
         public int Moral { get; set; }
 

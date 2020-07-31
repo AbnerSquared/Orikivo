@@ -44,6 +44,9 @@ namespace Arcadia.Multiplayer
         // what is currently being played in this server, if a session is active? if this is null, there is no active game.
         public GameSession Session { get; set; }
 
+        public ServerConnection GetConnectionFor(ulong channelId)
+            => Connections.First(x => x.ChannelId == x.Channel.Id);
+
         public DisplayChannel GetDisplayChannel(int frequency)
         {
             foreach (DisplayChannel channel in DisplayChannels)
@@ -62,6 +65,22 @@ namespace Arcadia.Multiplayer
 
             return null;
         }
+
+        public void SetFrequencyForState(GameState state, int frequency)
+        {
+            foreach (ServerConnection connection in Connections)
+            {
+                if (state.HasFlag(connection.State))
+                    connection.Frequency = frequency;
+            }
+        }
+
+        // This gets all of the connections pointing at a user
+        public IEnumerable<ServerConnection> GetDirectConnections()
+            => Connections.Where(x => x.Type == ConnectionType.Direct);
+
+        public IEnumerable<ServerConnection> GetConnections(GameState state, ConnectionType type = ConnectionType.Guild)
+            => Connections.Where(x => type.HasFlag(x.Type) && state.HasFlag(x.State));
 
         public IEnumerable<ServerConnection> GetConnectionsInState(GameState state)
             => Connections.Where(x => state.HasFlag(x.State));

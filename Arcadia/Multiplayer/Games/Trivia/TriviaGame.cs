@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -734,7 +735,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
-        public override void OnSessionStart(GameServer server, GameSession session)
+        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
             Config = server.Config.GameConfig;
 

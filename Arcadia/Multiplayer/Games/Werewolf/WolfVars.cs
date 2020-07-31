@@ -2,6 +2,9 @@
 {
     internal static class WolfVars
     {
+        // this keeps the player assigned to their proper index.
+        internal static readonly string Index = "index";
+
         internal static readonly string Role = "role";
 
         internal static readonly string IsWinner = "is_winner";

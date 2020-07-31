@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Discord;
 using Orikivo;
 
@@ -37,6 +39,22 @@ namespace Arcadia.Multiplayer.Games
 
     public class WerewolfGame : GameBuilder
     {
+        public WerewolfGame()
+        {
+            Id = "Werewolf";
+            Details = new GameDetails
+            {
+                Name = "Werewolf",
+                Summary = "Figure out the werewolves and save the village.",
+                RequiredPlayers = 1,
+                PlayerLimit = 8
+            };
+
+            Config = new List<ConfigProperty>
+            {
+                ConfigProperty.Create("revealrolesondeath", "Reveal roles on death", false)
+            };
+        }
         // CONFIG
 
         // ON DAY START
@@ -102,11 +120,11 @@ namespace Arcadia.Multiplayer.Games
         {
             // generate roles and apply to each player here
             List<WerewolfRole> roles = GenerateRoles(players.Count);
-            return players.Select(x => CreatePlayer(x, Randomizer.Take(roles))).ToList();
+            return players.Select((x, i) => CreatePlayer(x, Randomizer.Take(roles), i)).ToList();
             // PLAYER ATTRIBUTES
         }
 
-        private static PlayerData CreatePlayer(Player player, WerewolfRole role)
+        private static PlayerData CreatePlayer(Player player, WerewolfRole role, int index)
         {
             return new PlayerData
             {
@@ -114,6 +132,7 @@ namespace Arcadia.Multiplayer.Games
                 Properties = new List<GameProperty>
                 {
                     // BASE PROPERTIES: These are base variables that are used across all players constantly
+                    GameProperty.Create(WolfVars.Index, index),
                     GameProperty.Create(WolfVars.Role, role),
                     GameProperty.Create(WolfVars.IsDead, false),
                     GameProperty.Create(WolfVars.IsWinner, true),
@@ -183,6 +202,13 @@ namespace Arcadia.Multiplayer.Games
 
         private static bool HasAbility(PlayerData player)
             => player.GetPropertyValue<WerewolfRole>(WolfVars.Role).Ability != WerewolfAbility.None;
+
+        private static bool TryGetAbility(PlayerData player, out WerewolfAbility ability)
+        {
+            ability = player.GetPropertyValue<WerewolfRole>(WolfVars.Role).Ability;
+
+            return ability != WerewolfAbility.None;
+        }
 
         private static bool CanSkipCurrentPhase(GameSession session)
             => session.GetPropertyValue<WerewolfPhase>(WolfVars.CurrentPhase).HasFlag(WerewolfPhase.Day);
@@ -356,7 +382,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         private static bool CanVote(PlayerData player)
-            => !GetPassive(player).HasFlag(WerewolfPassive.Pacifist | WerewolfPassive.Hunt);
+            => !GetPassive(player).HasFlag(WerewolfPassive.Pacifist | WerewolfPassive.Militarist);
 
         private static void EndVoteInput(GameContext ctx)
         {
@@ -535,6 +561,9 @@ namespace Arcadia.Multiplayer.Games
         {
             // Set the primary channel to the frequency used to handle the day phase
 
+            // Update the list of players
+            UpdatePlayerList(ctx.Session, ctx.Server);
+
             // If there was anyone that recently died or is marked for deaths, handle those first
             if (ctx.Session.Players.Any(HasRecentlyDied) || ctx.Session.Players.Any(IsMarkedForDeath))
             {
@@ -552,6 +581,10 @@ namespace Arcadia.Multiplayer.Games
         // ACTION end_day
         private static void EndDay(GameContext ctx)
         {
+            // specify the end of day
+            ctx.Server.GetDisplayChannel(WolfChannel.Main)
+                .Content.GetGroup("console").Append("The day has ended.");
+
             ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartNight);
             // ON ENTRY:
             // Start a timer for 10 seconds that invokes the action StartNight
@@ -606,44 +639,7 @@ namespace Arcadia.Multiplayer.Games
         private static bool AllDeadWolf(GameSession session)
             => GetWolfCount(session) == 0;
 
-        public override List<DisplayChannel> OnBuildDisplays(List<PlayerData> players)
-        {
-            return new List<DisplayChannel>
-            {
-                // Initial Channel
-                // This is the channel used when starting the game
-
-                // Main Channel
-                // This is the channel used during the day and night phase
-                new DisplayChannel
-                {
-                    Inputs = new List<IInput>
-                    {
-                        new TextInput("agree", OnAgree),
-                        new TextInput("accuse", OnAccuse),
-                        new TextInput("skip", OnSkip)
-                    }
-                }
-
-                // Death Channel
-                // This is the channel used when someone has died
-
-                // Inputs:
-                // - skip: If they are the host, this is automatically skipped
-                //    Otherwise, increase 'requested_skips' by 1 and attempt to skip
-
-
-                // These are initialized as the game proceeds
-                // Private Channels: Wolf Channel, Seer Channel, Hunt Channel, Bodyguard Channel, Ghost Channel
-
-                // Vote Channels: If the configuration 'Random names' is true, each player must vote in their own channel
-                // If they already have a private channel established, store the previous frequency, and swap to the voting frequency
-                // After they vote or they time out, set the previous frequency back
-
-                // Result Channel
-                // This is the channel used for when the game ends
-            };
-        }
+        
 
         // 'agree'
         private static void OnAgree(InputContext ctx)
@@ -721,13 +717,56 @@ namespace Arcadia.Multiplayer.Games
 
         }
 
-        public override void OnSessionStart(GameServer server, GameSession session)
+        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
+            // Set all of the currently connected channels to the specified frequency
+            server.SetFrequencyForState(GameState.Playing, WolfChannel.Main);
+
+            foreach (PlayerData player in session.Players)
+            {
+                // Set this stuff up AFTER you point all of the connections to the right frequency
+                if (TryGetAbility(player, out WerewolfAbility ability))
+                {
+                    // This initializes all of the displays to be set up.
+                    DisplayChannel display = server.GetDisplayChannel(GetFrequencyFor(ability));
+                    ServerConnection connection = await player.Player.GetConnectionAsync(display);
+                }
+
+                // On the main channel, initialize all of the player slots
+                server.GetDisplayChannel(WolfChannel.Main)
+                    .Content.GetGroup("players")
+                    .Set(player.GetPropertyValue<int>(WolfVars.Index), GetPlayerInfo(player, session));
+            }
+
             // Synchronize the specified config to the game
             Config = server.Config.GameConfig;
 
             // Start the game
             session.InvokeAction(WolfVars.Start, true);
+        }
+
+        private static void UpdatePlayerList(GameSession session, GameServer server)
+        {
+            foreach (PlayerData player in session.Players)
+            {
+                // On the main channel, initialize all of the player slots
+                server.GetDisplayChannel(WolfChannel.Main)
+                    .Content.GetGroup("players")
+                    .Set(player.GetPropertyValue<int>(WolfVars.Index),
+                        GetPlayerInfo(player, session));
+            }
+        }
+
+        private int GetFrequencyFor(WerewolfAbility ability)
+        {
+            return ability switch
+            {
+                WerewolfAbility.Peek => WolfChannel.Peek,
+                WerewolfAbility.Feast => WolfChannel.Feast,
+                WerewolfAbility.Hunt => WolfChannel.Hunt,
+                // WerewolfAbility.Protect => WolfChannel.Protect,
+                _ => throw new Exception("The specified ability does not have a dedicated frequency")
+            };
         }
 
         public override SessionResult OnSessionFinish(GameSession session)
@@ -738,5 +777,168 @@ namespace Arcadia.Multiplayer.Games
 
             return result;
         }
+
+        public override List<DisplayChannel> OnBuildDisplays(List<PlayerData> players)
+        {
+            return new List<DisplayChannel>
+            {
+                // Initial Channel
+                // This is the channel used when starting the game
+                new DisplayChannel
+                {
+                    Frequency = WolfChannel.Initial,
+                    Content = new DisplayContent
+                    {
+                        Components = new List<IComponent>
+                        {
+                            new Component
+                            {
+                                Id = "header",
+                                Position = 0,
+                                Value = "> Welcome to **Werewolf**."
+                            }
+                        }
+                    }
+                },
+
+                // Main Channel
+                // This is the channel used during the day and night phase
+                new DisplayChannel
+                {
+                    Frequency = WolfChannel.Main,
+                    Content = new DisplayContent
+                    {
+                        Components = new List<IComponent>
+                        {
+                            new Component
+                            {
+                                Active = true,
+                                Position = 0,
+                                Id = "header",
+                                Formatter = new ComponentFormatter
+                                {
+                                    // 0: Round count
+                                    // 1: Phase icon
+                                    // 2: Phase name
+                                    // 3: Phase extra details (can be left empty)
+                                    BaseFormatter = "> **Round {0}**\n> {1} **{2}** {3}",
+                                    OverrideBaseValue = true
+                                }
+                            },
+                            new ComponentGroup
+                            {
+                                Active = true,
+                                Position = 1,
+                                Id = "console",
+                                Formatter = new ComponentFormatter
+                                {
+                                    BaseFormatter = "```{0}```",
+                                    ElementFormatter = "• {0}",
+                                    Separator = "\n",
+                                    OverrideBaseValue = false
+                                },
+
+                                Capacity = 6,
+                                Values = new string[6] { "", "", "", "", "", "" }
+                            },
+                            new ComponentGroup
+                            {
+                                Active = true,
+                                Position = 2,
+                                Id = "players",
+                                Formatter = new ComponentFormatter
+                                {
+                                    BaseFormatter = "> **Residents**\n{0}",
+                                    ElementFormatter = "{0}", // the formatting is handled elsewhere
+                                    Separator = "\n"
+                                },
+                                
+                                Capacity = players.Count,
+                                Values = new string[players.Count]
+                            }
+                        }
+                    },
+                    Inputs = new List<IInput>
+                    {
+                        new TextInput("agree", OnAgree),
+                        new TextInput("accuse", OnAccuse),
+                        new TextInput("skip", OnSkip)
+                    }
+                }
+
+                // Death Channel
+                // This is the channel used when someone has died
+
+                // Inputs:
+                // - skip: If they are the host, this is automatically skipped
+                //    Otherwise, increase 'requested_skips' by 1 and attempt to skip
+
+
+                // These are initialized as the game proceeds
+                // Private Channels: Wolf Channel, Seer Channel, Hunt Channel, Bodyguard Channel, Ghost Channel
+
+                // Vote Channels: If the configuration 'Random names' is true, each player must vote in their own channel
+                // If they already have a private channel established, store the previous frequency, and swap to the voting frequency
+                // After they vote or they time out, set the previous frequency back
+
+                // Result Channel
+                // This is the channel used for when the game ends
+            };
+        }
+
+        private static string GetPlayerInfo(PlayerData player, GameSession session)
+        {
+            var info = new StringBuilder();
+
+            // Get public expression icon
+            info.Append(GetExpression(player, session));
+
+            info.Append($" • ");
+
+            if (!IsAlive(player))
+                info.Append($"~~*{player.Player.User.Username}*~~ (Dead)");
+            else
+            {
+                info.Append($"**{player.Player.User.Username}**#{player.GetPropertyValue<int>(WolfVars.Index)}");
+
+                if (IsSuspect(player, session))
+                {
+                    info.Append(" (Suspect)");
+                }
+                else if (IsHurt(player))
+                {
+                    info.Append("(Hurt)");
+                }
+            }
+
+            return info.ToString();
+        }
+
+        private static bool IsSuspect(PlayerData player, GameSession session)
+            => session.GetPropertyValue<ulong>(WolfVars.Suspect) == player.Player.User.Id;
+
+        private static string GetExpression(PlayerData player, GameSession session)
+        {
+            if (IsSuspect(player, session))
+                return "😟";
+
+            if (IsHurt(player))
+                return "🤕";
+
+            return "😐";
+        }
+    }
+
+    internal static class WolfChannel
+    {
+        internal static readonly int Initial = 19;
+        internal static readonly int Main = 20;
+        internal static readonly int Results = 21;
+        internal static readonly int Death = 22;
+        internal static readonly int Peek = 23;
+        internal static readonly int Feast = 24;
+        internal static readonly int Hunt = 25;
+        internal static readonly int Hunted = 26;
+        internal static readonly int Protect = 27;
     }
 }

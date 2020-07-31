@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer
 {
@@ -58,7 +59,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents the method used to start a <see cref="GameSession"/>.
         /// </summary>
-        public abstract void OnSessionStart(GameServer server, GameSession session);
+        public abstract Task OnSessionStartAsync(GameServer server, GameSession session);
 
         // NOTE: This is what Arcadia retrieves when a GameSession finishes, allowing you to update stats, money, and items.
         // NOTE: THIS CANNOT GIVE YOU ITEMS THAT AREN'T MEANT TO ORIGINATE FROM A GAME
@@ -70,7 +71,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Builds the <see cref="GameSession"/> for this <see cref="GameBuilder"/> on the specified <see cref="GameServer"/>.
         /// </summary>
-        public virtual void Build(GameServer server)
+        public virtual async Task BuildAsync(GameServer server)
         {
             // Initialize the new game session
             var session = new GameSession(server, this);
@@ -81,7 +82,7 @@ namespace Arcadia.Multiplayer
                 connection.State = GameState.Playing;
 
             // Read the method used when a session starts
-            OnSessionStart(server, session);
+            await OnSessionStartAsync(server, session);
         }
 
         public ConfigProperty GetConfigProperty(string id)

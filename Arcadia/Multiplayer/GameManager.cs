@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Orikivo;
 
 namespace Arcadia.Multiplayer
 
@@ -36,7 +37,8 @@ namespace Arcadia.Multiplayer
 
         internal static Dictionary<string, GameBuilder> Games => new Dictionary<string, GameBuilder>
         {
-            ["Trivia"] = new TriviaGame()
+            ["Trivia"] = new TriviaGame(),
+            ["Werewolf"] = new WerewolfGame()
         };
 
         internal Dictionary<string, GameServer> Servers { get; set; }
@@ -54,7 +56,7 @@ namespace Arcadia.Multiplayer
             return Games[gameId];
         }
 
-        // this attempts to join an existing server, if one is present
+        // This attempts to join an existing server, if one is present
         public async Task JoinServerAsync(IUser user, IMessageChannel channel, string serverId)
         {
             if (user.IsBot)
@@ -99,7 +101,7 @@ namespace Arcadia.Multiplayer
             DisplayContent content = server.GetDisplayChannel(GameState.Waiting).Content;
             DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
 
-            Player player = new Player
+            var player = new Player
             {
                 Host = false,
                 User = user,
@@ -437,47 +439,36 @@ namespace Arcadia.Multiplayer
         {
             IUser user = message.Author;
 
-            // ignore all bots
+            // Ignore all bots
             if (user.IsBot)
                 return;
 
-            // if this message was sent in a channel that contains a server and the user is in a server
+            // If this message was sent in a channel that contains a server and the user is in a server
             if (ReservedChannels.ContainsKey(message.Channel.Id))
             {
-                // if the user is currently in a server, check to see if they are in the same server
-                // otherwise, ignore them because they are meant for another game
+                // If the user is currently in a server, check to see if they are in the same server
+                // Otherwise, ignore them because they are meant for another game
                 if (ReservedUsers.ContainsKey(user.Id))
                     if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
                         return;
 
                 GameServer server = Servers[ReservedChannels[message.Channel.Id]];
-
                 Player player = server.GetPlayer(user.Id);
+                ServerConnection connection = server.Connections.First(x => x.ChannelId == message.Channel.Id);
 
-                ServerConnection connection = server.Connections
-                    .First(x => x.ChannelId == message.Channel.Id);
-
-                // This is where input handling starts to diverge:
+                // Extract only the input of the message
                 string ctx = message.Content;
 
-                /*
-                // if this connection is able to delete messages, automatically remove it
-                // only if the message sent was a valid command
-                if (connection.CanDeleteMessages)
-                {
-                    await message.DeleteAsync();
-                }*/
-
-                // get the correlated channel for the specific game state.
+                // Load all of the display channels for the specified game states
                 DisplayContent waiting = server.GetDisplayChannel(GameState.Waiting).Content;
                 DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
 
-                // if true, update all editing components as well
+                // If true, update all editing components as well
                 bool isEditing = true;
 
-                // check the session state
-                // if SessionState.Finish OR SessionState.Destroy
-                // get rid of the session.
+                // Check the session's current state
+                // If SessionState.Finish OR SessionState.Destroy
+                // Get rid of the session.
                 if (server.Session != null)
                 {
                     if (server.Session.State == SessionState.Destroy)
@@ -538,7 +529,7 @@ namespace Arcadia.Multiplayer
                                         }
                                         else
                                         {
-                                            game.Build(server);
+                                            await game.BuildAsync(server);
                                             return;
                                             //notice = $"[Console] The session builder is currently in development. Unable to start.";
                                         }
@@ -781,8 +772,14 @@ namespace Arcadia.Multiplayer
 
                                 if (server.Config.ValidateGame())
                                 {
-                                    editing.GetComponent("game_config").Active = true;
-                                    editing.GetComponent("game_config").Draw(server.Config.LoadGame().Config.Select(x => $"**{x.Name}**: `{x.Value.ToString()}`"), server.Config.LoadGame().Details.Name);
+                                    if (Check.NotNullOrEmpty(server.Config.GameConfig))
+                                    {
+                                        editing.GetComponent("game_config").Active = true;
+                                        editing.GetComponent("game_config").Draw(
+                                            server.Config.LoadGame().Config.Select(x =>
+                                                $"**{x.Name}**: `{x.Value}`"),
+                                            server.Config.LoadGame().Details.Name);
+                                    }
                                 }
 
                                 editing.GetComponent("message_box").Draw(server.Config.Title);
@@ -1044,11 +1041,10 @@ namespace Arcadia.Multiplayer
                             break;
                         }
 
-                        
                         if (ctx.StartsWith("title"))
                         {
                             // if they are already in the server
-                            if (player != null)
+                            if (player == null)
                                 return;
 
                             // if they are not the host
@@ -1073,8 +1069,9 @@ namespace Arcadia.Multiplayer
 
                         if (ctx.StartsWith("game"))
                         {
+
                             // if they are already in the server
-                            if (player != null)
+                            if (player == null)
                                 return;
 
                             // if they are not the host
@@ -1094,13 +1091,69 @@ namespace Arcadia.Multiplayer
                                 break;
                             }
 
+                            var reader = new StringReader(ctx);
+                            reader.Skip(4);
+                            reader.SkipWhiteSpace();
+
+                            string game = reader.ReadString();
+
+                            Console.WriteLine(game);
+
+                            if (Check.NotNull(game))
+                            {
+                                server.Config.GameId = game;
+
+                                if (!server.Config.ValidateGame())
+                                {
+                                    string notice = $"[To {user.Username}] You have specified an unknown game mode.";
+                                    editing.GetGroup("message_box").Append(notice);
+                                    editing.GetGroup("message_box").Draw();
+                                    server.Config.GameId = "Trivia";
+                                }
+                                else
+                                {
+                                    string notice = $"[To {user.Username}] Game mode set to '{server.Config.GameId}'.";
+                                    waiting.GetGroup("message_box").Append(notice);
+
+                                    if (isEditing)
+                                    {
+                                        editing.GetGroup("message_box").Append(notice);
+                                        editing.GetComponent("message_box").Draw(server.Config.Title);
+                                        editing.GetComponent("config").Draw(server.Config.Title, server.Config.Privacy, server.Config.GameId);
+                                    }
+
+                                    server.Config.LoadGame();
+                                    if (Check.NotNullOrEmpty(server.Config.GameConfig))
+                                    {
+                                        editing.GetComponent("game_config").Active = true;
+                                        editing.GetComponent("game_config").Draw(
+                                            server.Config.LoadGame().Config.Select(x =>
+                                                $"**{x.Name}**: `{x.Value.ToString()}`"),
+                                            server.Config.LoadGame().Details.Name);
+                                    }
+
+                                    string playerLimitCounter = server.Config.ValidateGame() ?
+                                        $"{server.Config.LoadGame().Details.PlayerLimit} {Orikivo.Format.TryPluralize("player", server.Config.LoadGame().Details.PlayerLimit)}"
+                                        : "infinite players";
+
+                                    waiting.GetComponent("header")
+                                        .Draw(server.Config.Title,
+                                            server.Id,
+                                            server.Config.GameId,
+                                            server.Players.Count,
+                                            playerLimitCounter);
+
+
+                                }
+                            }
+
                             break;
                         }
 
                         if (ctx.StartsWith("privacy"))
                         {
                             // if they are already in the server
-                            if (player != null)
+                            if (player == null)
                                 return;
 
                             // if they are not the host
@@ -1294,7 +1347,7 @@ namespace Arcadia.Multiplayer
         {
             // check to see where the message was deleted
 
-            // if the deletion was in a reserved channel, get the server that contains the channel
+            // If the deletion was in a reserved channel, get the server that contains the channel
             if (ReservedChannels.ContainsKey(channel.Id))
             {
                 GameServer server = Servers[ReservedChannels[channel.Id]];
@@ -1302,6 +1355,7 @@ namespace Arcadia.Multiplayer
                     .Connections
                     .First(x => x.MessageId == message.Id);
                 
+                // Send a new message to that channel's connection to refresh it
                 connection.InternalMessage = await connection.Channel
                     .SendMessageAsync(server
                     .GetDisplayChannel(connection.Frequency).ToString());
@@ -1324,14 +1378,12 @@ namespace Arcadia.Multiplayer
         - If they were the last person in the server, destroy the server
         - If they were the last person to a connection, remove the connection
 
-
     CreateServerAsync(IUser user, IMessageChannel channel)
         - Creates a new server with the user as the host
         - If a user is already in another server, cancel the attempt
         - If the channel is already reserved, cancel the attempt
         - If the server connection was initialized in a guild, attach a GuildId to the connection
         - That way, if another connection to the same server is initialized in the same guild, it can be prevented.
-
 
     DestroyServerAsync(GameServer server)
         - Destroys an existing server
@@ -1342,8 +1394,6 @@ namespace Arcadia.Multiplayer
         - Attempts to add a player into an existing server
         - If the server is full, they are unable to join
 
-
-
     RemovePlayerAsync(Player player, string reason = null)
         - If the reason is null, the player will be assumed as willingly left.
         - Otherwise, the player will have been marked as kicked
@@ -1353,7 +1403,6 @@ namespace Arcadia.Multiplayer
     AddConnectionAsync(IMessageChannel channel, GameServer server)
         - This establishes a new connection to a server by a specified channel
         - All new connections must default to GameState.Waiting
-        
 
     RemoveConnectionAsync(ServerConnection connection)
         - This forcibly removes a connection from a server with a specified channel
@@ -1371,7 +1420,4 @@ namespace Arcadia.Multiplayer
     OnMessageReceived
 
     OnMessageDeleted
-     
-     
-     
  */

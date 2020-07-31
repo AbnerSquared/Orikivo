@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Arcadia.Multiplayer
 {
+    // TODO: Instead of storing a list of components, make the display content itself the component container
     public class DisplayContent
     {
         public DisplayContent()

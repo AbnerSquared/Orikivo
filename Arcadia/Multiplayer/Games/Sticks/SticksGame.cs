@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -74,7 +75,7 @@ namespace Arcadia.Multiplayer.Games
             throw new NotImplementedException();
         }
 
-        public override void OnSessionStart(GameServer server, GameSession session)
+        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
             throw new NotImplementedException();
         }

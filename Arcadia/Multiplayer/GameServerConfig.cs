@@ -33,13 +33,33 @@ namespace Arcadia.Multiplayer
             return GameManager.Games.ContainsKey(GameId);
         }
 
+        public bool ValidateGame(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return false;
+
+            return GameManager.Games.ContainsKey(id);
+        }
+
         public GameBuilder LoadGame()
         {
             if (!ValidateGame())
                 return null;
 
-            Game ??= GameManager.GetGame(GameId);
-            GameConfig = Game.Config;
+            if (Game != null)
+            {
+                if (GameId != Game.Id)
+                    Game = GameManager.GetGame(GameId);
+                else
+                    Game ??= GameManager.GetGame(GameId);
+
+                GameConfig = Game.Config;
+            }
+            else
+            {
+                Game ??= GameManager.GetGame(GameId);
+                GameConfig = Game.Config;
+            }
 
             return Game;
         }
