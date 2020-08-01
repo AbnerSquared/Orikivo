@@ -5,6 +5,8 @@ namespace Arcadia.Multiplayer
 {
     public class InputResult
     {
+        public string Source { get; internal set; }
+
         public bool IsSuccess { get; set; }
 
         // the input that was successfully parsed

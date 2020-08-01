@@ -13,12 +13,13 @@ namespace Arcadia.Multiplayer
     {
         // This is the callback used instead, as it keeps up to date instead of the callback
         private readonly GameSession _session;
-
+        private TimeSpan Duration { get; set; }
         public ActionQueue(TimeSpan duration, string actionId, GameSession session)
         {
             if (session.Actions.All(x => x.Id != actionId))
                 throw new Exception($"Expected GameSession to have specified action '{actionId}', but returned null");
 
+            Duration = duration;
             _session = session;
             Id = KeyBuilder.Generate(6);
             StartedAt = DateTime.UtcNow;
@@ -31,9 +32,16 @@ namespace Arcadia.Multiplayer
             EndedAt = null;
         }
 
+        public ActionQueue(string id, TimeSpan duration, string actionId, GameSession session) : this(duration,
+            actionId, session)
+        {
+            Id = id;
+            Console.WriteLine($"[{Id}] Timer reference set to {Id}.");
+        }
+
         public string Id { get; }
 
-        internal Timer Timer { get; }
+        internal Timer Timer { get; private set; }
         public bool IsCancelled { get; set; }
         public bool IsElapsed { get; set; }
         public bool IsCompleted { get; set; }
@@ -41,9 +49,31 @@ namespace Arcadia.Multiplayer
 
         public DateTime StartedAt { get; set; }
 
+        public DateTime? PausedAt { get; private set; }
+
         public DateTime? EndedAt { get; set; }
 
         public bool Disposed { get; private set; }
+
+        public void Pause()
+        {
+            PausedAt = DateTime.UtcNow;
+            Console.WriteLine($"[{Id}] Action paused at {PausedAt.Value}");
+        }
+
+        public void Resume()
+        {
+            if (!PausedAt.HasValue)
+                return;
+
+            TimeSpan diff = StartedAt - PausedAt.Value;
+
+            PausedAt = null;
+            StartedAt = DateTime.UtcNow;
+            Duration = Duration.Subtract(diff);
+            Timer = new Timer(OnElapse, null, Duration, TimeSpan.FromMilliseconds(-1));
+            Console.WriteLine($"[{Id}] Action resumed at {DateTime.UtcNow}");
+        }
 
         public void Cancel()
         {
@@ -72,6 +102,15 @@ namespace Arcadia.Multiplayer
                 return;
             }
 
+            // if the timer was cancelled, just ignore it and set the timer cancellation back to false
+            if (PausedAt.HasValue)
+            {
+                Console.WriteLine($"[{Id}] Action is currently paused.");
+                Timer.Dispose();
+                Timer = null;
+                return;
+            }
+
             IsCompleted = true;
             IsElapsed = true;
             EndedAt = DateTime.UtcNow;
@@ -86,8 +125,13 @@ namespace Arcadia.Multiplayer
             if (Disposed)
                 return;
 
+            // If no timer is specified, ignore it, but do not mark as disposed since it could be paused
+            if (Timer == null)
+                return;
+
             Timer.Dispose();
             Logger.Debug($"[{Id}] Action queue disposed at {DateTime.UtcNow}.");
+            _session.ActionQueue.Remove(this);
             Disposed = true;
         }
 

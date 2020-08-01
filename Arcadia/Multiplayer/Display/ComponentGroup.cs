@@ -11,6 +11,8 @@ namespace Arcadia.Multiplayer
 
         public bool Active { get; set; }
 
+        public bool AutoDraw { get; set; }
+
         public int Position { get; set; }
 
         public ComponentFormatter Formatter { get; internal set; }
@@ -54,6 +56,10 @@ namespace Arcadia.Multiplayer
             // if the existing size is == capacity
             // push all of the values back 1, removing the oldest entry
             // insert the newest
+
+            // AutoDraw only works IF the component does not require additional arguments.
+            if (AutoDraw)
+                Draw();
         }
 
         // this will set a specific index to the specified value
@@ -61,6 +67,10 @@ namespace Arcadia.Multiplayer
         {
             if (index < Capacity && index >= 0)
                 Values[index] = value;
+
+            // AutoDraw only works IF the component does not require additional arguments.
+            if (AutoDraw)
+                Draw();
         }
 
         // this will set a specific value in its index to null
@@ -68,12 +78,20 @@ namespace Arcadia.Multiplayer
         {
             if (index < Capacity && index >= 0)
                 Values[index] = "";
+
+            // AutoDraw only works IF the component does not require additional arguments.
+            if (AutoDraw)
+                Draw();
         }
 
         // this will remove all values from the array
         public void Clear()
         {
             Values = new string[Capacity];
+
+            // AutoDraw only works IF the component does not require additional arguments.
+            if (AutoDraw)
+                Draw();
         }
 
         // this renders the component group

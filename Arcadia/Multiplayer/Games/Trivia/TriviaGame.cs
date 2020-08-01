@@ -8,7 +8,7 @@ namespace Arcadia.Multiplayer.Games
 {
     internal static class TriviaVars
     {
-
+        internal static readonly string TotalAnswered = "total_answered";
     }
 
     public class TriviaGame : GameBuilder
@@ -317,15 +317,17 @@ namespace Arcadia.Multiplayer.Games
                 _ => $"{index}"
             };
         }
-        
-        
+
+        private static bool HasAllPlayersAnswered(GameSession session)
+            => session.GetPropertyValue<int>(TriviaVars.TotalAnswered) == session.Players.Count;
+
         public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
         {
             var rules = new List<GameCriterion>();
 
             // 'has_all_players_answered'
             // This rule simply checks to see if: 'players_voted' == Players.Count
-            var hasAllPlayersAnswered = new GameCriterion
+            var hasAllPlayersAnswered = new GameCriterion("has_all_players_answered", HasAllPlayersAnswered)
             {
                 Id = "has_all_players_answered",
                 Criterion = delegate(GameSession session)

@@ -47,6 +47,21 @@ namespace Arcadia.Multiplayer
         public ServerConnection GetConnectionFor(ulong channelId)
             => Connections.First(x => x.ChannelId == x.Channel.Id);
 
+        public void GroupAll(string group)
+        {
+            foreach (ServerConnection connection in Connections)
+                connection.Group = group;
+        }
+
+        public IEnumerable<ServerConnection> GetGroup(string group)
+            => Connections.Where(x => x.Group == group);
+
+        public void UngroupAll()
+        {
+            foreach (ServerConnection connection in Connections)
+                connection.Group = null;
+        }
+
         public DisplayChannel GetDisplayChannel(int frequency)
         {
             foreach (DisplayChannel channel in DisplayChannels)
@@ -132,6 +147,7 @@ namespace Arcadia.Multiplayer
                 {
                     connection.Frequency = 0;
                     connection.State = GameState.Waiting;
+                    connection.Group = null;
                 }
             }
 

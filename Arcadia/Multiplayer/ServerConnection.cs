@@ -60,6 +60,9 @@ namespace Arcadia.Multiplayer
 
         public ConnectionType Type { get; set; }
 
+        // this allows you to group server connections together
+        public string Group { get; set; }
+
         public ulong? GuildId { get; set; }
 
         public ulong ChannelId { get; set; }

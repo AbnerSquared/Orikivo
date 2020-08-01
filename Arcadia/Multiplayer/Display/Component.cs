@@ -10,6 +10,8 @@ namespace Arcadia.Multiplayer
         
         public bool Active { get; set; }
 
+        public bool AutoDraw { get; set; }
+
         public int Position { get; set; }
 
         public ComponentFormatter Formatter { get; internal set; }
@@ -91,6 +93,10 @@ namespace Arcadia.Multiplayer
         public void Set(string value)
         {
             Value = value;
+
+            // AutoDraw only works IF the component does not require additional arguments.
+            if (AutoDraw)
+                Draw();
         }
     }
 }

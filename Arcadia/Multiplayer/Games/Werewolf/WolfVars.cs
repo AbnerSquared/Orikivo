@@ -2,6 +2,10 @@
 {
     internal static class WolfVars
     {
+        internal static readonly string RemoveSuspect = "remove_suspect";
+        internal static readonly string AwaitDefense = "await_defense";
+
+        internal static readonly string TryEndVote = "try_end_vote";
         // this keeps the player assigned to their proper index.
         internal static readonly string Index = "index";
 
@@ -61,6 +65,10 @@
         internal static readonly string Suspect = "suspect";
         internal static readonly string RequestedSkips = "requested_skips";
         internal static readonly string ReadInputs = "read_inputs";
+        internal static readonly string HasTrial = "has_trial";
+
+        // This defines the winning group.
+        internal static readonly string WinningGroup = "winning_group";
 
         // if true, this will not invoke the GetDeaths call on each round.
         internal static readonly string HasCheckedDeaths = "has_checked_deaths";
@@ -68,7 +76,7 @@
         // this keeps track of all of the nights:
         // if NightCount == 0:
         // 
-        internal static readonly string TotalNights = "total_nights";
+        internal static readonly string TotalRounds = "total_rounds";
 
         // ACTIONs
 

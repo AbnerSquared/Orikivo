@@ -6,6 +6,9 @@
 
         bool Active { get; set; }
 
+        // AutoDraw allows the component to toggle drawing.
+        bool AutoDraw { get; set; }
+
         int Position { get; set; }
 
         ComponentFormatter Formatter { get; }

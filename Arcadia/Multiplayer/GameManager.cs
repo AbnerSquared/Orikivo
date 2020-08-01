@@ -380,6 +380,15 @@ namespace Arcadia.Multiplayer
                 if (connection.MessageId != reaction.MessageId)
                     return;
 
+                // If the current connection doesn't allow input, ignore it
+                if (connection.BlockInput)
+                    return;
+
+                // If the entire session doesn't allow input, ignore it
+                if (server.Session != null)
+                    if (server.Session.BlockInput)
+                        return;
+
                 DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
 
                 foreach (IInput input in display.Inputs)
@@ -456,6 +465,10 @@ namespace Arcadia.Multiplayer
                 Player player = server.GetPlayer(user.Id);
                 ServerConnection connection = server.Connections.First(x => x.ChannelId == message.Channel.Id);
 
+                // If the current connection doesn't allow input, ignore it
+                if (connection.BlockInput)
+                    return;
+
                 // Extract only the input of the message
                 string ctx = message.Content;
 
@@ -482,6 +495,10 @@ namespace Arcadia.Multiplayer
                         result.Apply(_container);
                         server.DestroyCurrentSession();
                     }
+
+                    // If the entire session doesn't allow input, ignore it
+                    if (server.Session.BlockInput)
+                        return;
                 }
 
                 // to make things easier
@@ -519,8 +536,11 @@ namespace Arcadia.Multiplayer
                             {
                                 GameBuilder game = server.Config.LoadGame();
 
+
+                                Console.Write("Loading game.");
                                 if (game != null)
                                 {
+                                    Console.Write("Game exists.");
                                     if (game.Details != null)
                                     {
                                         if (!game.Details.CanStart(server.Players.Count))
@@ -529,8 +549,18 @@ namespace Arcadia.Multiplayer
                                         }
                                         else
                                         {
-                                            await game.BuildAsync(server);
-                                            return;
+
+                                            Console.Write("Building game.");
+                                            try
+                                            {
+                                                game.BuildAsync(server).ConfigureAwait(false).GetAwaiter().GetResult();
+                                                return;
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Console.WriteLine(e);
+                                                notice = $"[Console] An exception has been thrown while starting '{server.Config.GameId}'.";
+                                            }
                                             //notice = $"[Console] The session builder is currently in development. Unable to start.";
                                         }
                                     }

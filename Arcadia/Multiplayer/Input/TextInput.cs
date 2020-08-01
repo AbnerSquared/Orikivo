@@ -42,6 +42,8 @@ namespace Arcadia.Multiplayer
         {
             InputResult result = new InputResult();
 
+            result.Source = input.Text;
+
             // name parameters
             if (input.Text.StartsWith(Name))
             {

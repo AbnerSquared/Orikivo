@@ -67,7 +67,7 @@ namespace Arcadia.Multiplayer
         // these are all of the possible rules
         public List<GameCriterion> Criteria { get; set; }
 
-        private List<ActionQueue> _actionQueue = new List<ActionQueue>();
+        internal List<ActionQueue> ActionQueue = new List<ActionQueue>();
         private string _currentQueuedAction;
 
         // If true, nobody is allowed to invoke a command
@@ -76,13 +76,20 @@ namespace Arcadia.Multiplayer
         internal void QueueAction(TimeSpan delay, string actionId)
         {
             var timer = new ActionQueue(delay, actionId, this);
-            _actionQueue.Add(timer);
+            ActionQueue.Add(timer);
+            _currentQueuedAction = timer.Id;
+        }
+
+        internal void QueueAction(string id, TimeSpan delay, string actionId)
+        {
+            var timer = new ActionQueue(id, delay, actionId, this);
+            ActionQueue.Add(timer);
             _currentQueuedAction = timer.Id;
         }
 
         internal void CancelQueuedAction()
         {
-            if (_actionQueue.Count == 0)
+            if (ActionQueue.Count == 0)
                 return;
 
             if (GetCurrentQueuedAction() == null)
@@ -91,20 +98,20 @@ namespace Arcadia.Multiplayer
             // marks this timer as cancelled.
             GetCurrentQueuedAction().Cancel();
 
-            _actionQueue.Remove(GetCurrentQueuedAction());
+            ActionQueue.Remove(GetCurrentQueuedAction());
         }
 
         internal void CancelAllTimers()
         {
-            foreach (ActionQueue timer in _actionQueue)
+            foreach (ActionQueue timer in ActionQueue)
             {
                 timer.Cancel();
             }
         }
 
-        private ActionQueue GetQueuedAction(string id)
+        internal ActionQueue GetQueuedAction(string id)
         {
-            return _actionQueue.FirstOrDefault(x => x.Id == id);
+            return ActionQueue.FirstOrDefault(x => x.Id == id);
         }
 
         private ActionQueue GetCurrentQueuedAction()
