@@ -1,9 +1,8 @@
-﻿using Discord;
-using Orikivo;
-using System;
+﻿using Orikivo;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
@@ -16,20 +15,22 @@ namespace Arcadia.Multiplayer
         {
             _manager = manager;
             Id = KeyBuilder.Generate(8);
-            DisplayChannels = new List<DisplayChannel>();
-            DisplayChannels.AddRange(DisplayChannel.GetReservedChannels());
+            DisplayChannels = DisplayChannel.GetReservedChannels();
+            // DisplayChannels.AddRange(DisplayChannel.GetReservedChannels());
             Players = new List<Player>();
             Connections = new List<ServerConnection>();
         }
 
-        // the unique id of this lobby
-        public string Id;
+        /// <summary>
+        /// Represents the unique identifier for this <see cref="GameServer"/>.
+        /// </summary>
+        public string Id { get; }
 
         // all base displays for the game server
-        public List<DisplayChannel> DisplayChannels { get; set; }
+        public List<DisplayChannel> DisplayChannels { get; }
 
         // everyone connected to the lobby
-        public List<Player> Players { get; set; }
+        public List<Player> Players { get; }
 
         public Player Host => Players.First(x => x.Host);
 
@@ -39,7 +40,7 @@ namespace Arcadia.Multiplayer
         // whenever a message or reaction is sent into any of these channels, attempt to figure out who sent it
 
         // what are the configurations for this current server?
-        public GameServerConfig Config { get; set; }
+        public ServerConfig Config { get; set; }
 
         // what is currently being played in this server, if a session is active? if this is null, there is no active game.
         public GameSession Session { get; set; }
@@ -112,15 +113,15 @@ namespace Arcadia.Multiplayer
         // this gets all visible channels a player can see in this server
         public async Task<Dictionary<Player, List<ulong>>> GetPlayerConnectionsAsync()
         {
-            Dictionary<Player, List<ulong>> playerConnections = new Dictionary<Player, List<ulong>>();
+            var playerConnections = new Dictionary<Player, List<ulong>>();
 
             foreach(Player player in Players)
             {
-                List<ulong> channelIds = new List<ulong>();
+                var channelIds = new List<ulong>();
 
                 foreach (ServerConnection connection in Connections)
                 {
-                    if (await connection.Channel.GetUserAsync(player.User.Id, CacheMode.AllowDownload) == null)
+                    if (await connection.Channel.GetUserAsync(player.User.Id) == null)
                         continue;
 
                     channelIds.Add(connection.ChannelId);
@@ -148,6 +149,7 @@ namespace Arcadia.Multiplayer
                     connection.Frequency = 0;
                     connection.State = GameState.Waiting;
                     connection.Group = null;
+                    connection.BlockInput = false;
                 }
             }
 
@@ -157,8 +159,8 @@ namespace Arcadia.Multiplayer
             DisplayContent waiting = GetDisplayChannel(GameState.Waiting).Content;
             DisplayContent editing = GetDisplayChannel(GameState.Editing).Content;
 
-            (waiting.GetComponent("message_box") as ComponentGroup).Append("[Console] The current session has ended.");
-            (editing.GetComponent("message_box") as ComponentGroup).Append("[Console] The current session has ended.");
+            waiting.GetGroup("message_box").Append("[Console] The current session has ended.");
+            editing.GetGroup("message_box").Append("[Console] The current session has ended.");
 
             waiting.GetComponent("message_box").Draw();
             editing.GetComponent("message_box").Draw(Config.Title);
@@ -168,13 +170,16 @@ namespace Arcadia.Multiplayer
         public async Task UpdateAsync()
         {
             DisplayChannel channel = null;
+
             foreach (ServerConnection connection in Connections)
             {
-                Console.WriteLine($"{connection.ChannelId} - {connection.State.ToString()}");
+                Logger.Debug($"{connection.ChannelId} - {connection.State.ToString()}");
                 // this way, you don't have to get the same channel again
                 channel = connection.State == GameState.Playing ?
-                    channel?.Frequency == connection.Frequency ? channel : GetDisplayChannel(connection.Frequency)
-                    : GetDisplayChannel(connection.State);
+                        channel?.Frequency == connection.Frequency ?
+                            channel
+                            : GetDisplayChannel(connection.Frequency)
+                        : GetDisplayChannel(connection.State);
 
                 if (channel == null)
                 {
@@ -182,7 +187,7 @@ namespace Arcadia.Multiplayer
                 }
                 else
                 {
-                    string content = channel.Content.ToString();
+                    var content = channel.Content.ToString();
 
                     if (connection.InternalMessage == null)
                     {
@@ -191,6 +196,7 @@ namespace Arcadia.Multiplayer
                         continue;
                     }
 
+                    // If the existing message is already equal to the content specified
                     if (connection.InternalMessage.Content == content)
                         continue;
 
@@ -198,6 +204,5 @@ namespace Arcadia.Multiplayer
                 }
             }
         }
-
     }
 }

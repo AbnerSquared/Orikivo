@@ -2,7 +2,7 @@
 
 namespace Arcadia.Multiplayer
 {
-    public class GameServerConfig
+    public class ServerConfig
     {
 
         private GameBuilder Game;

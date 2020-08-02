@@ -176,7 +176,7 @@ namespace Arcadia.Multiplayer
             };
 
             var server = new GameServer(this);
-            server.Config = new GameServerConfig
+            server.Config = new ServerConfig
             {
                 Privacy = Privacy.Public,
                 GameId = "Trivia",
@@ -560,6 +560,7 @@ namespace Arcadia.Multiplayer
                                             {
                                                 Console.WriteLine(e);
                                                 notice = $"[Console] An exception has been thrown while starting '{server.Config.GameId}'.";
+                                                server.DestroyCurrentSession();
                                             }
                                             //notice = $"[Console] The session builder is currently in development. Unable to start.";
                                         }

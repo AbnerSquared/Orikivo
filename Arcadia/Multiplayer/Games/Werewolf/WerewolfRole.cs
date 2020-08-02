@@ -2,7 +2,19 @@
 {
     public class WerewolfRole
     {
-        public static readonly WerewolfRole Villager = new WerewolfRole();
+        public static readonly WerewolfRole Villager = new WerewolfRole
+        {
+            Ability = WerewolfAbility.None,
+            Group = WerewolfGroup.Villager,
+            Id = "villager",
+            Name = "Villager",
+            InheritSeer = false,
+            Moral = 1,
+            IsWolfLike = false,
+            Passive = WerewolfPassive.None,
+            Initial = WerewolfInitial.None,
+            Summary = "You are a default villager."
+        };
         public static readonly WerewolfRole Wolf = new WerewolfRole();
         public static readonly WerewolfRole Seer = new WerewolfRole();
 

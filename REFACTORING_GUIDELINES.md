@@ -2,7 +2,33 @@
 > This is intended to be a general set of rules to follow when writing or refactoring code on Orikivo.
 
 ## General
-`To be filled`
+
+### Explicitly state variables where needed
+> If the value of the variable does not specify a type, it must be explicitly written.
+
+```cs
+// DO:
+var v = new Class();
+
+// DO NOT:
+Class v = new Class();
+```
+
+### Limit non-bracket methods to a single depth
+> This means that if there's a chain of single non-bracket methods, it should be wrapped.
+```cs
+// DO:
+foreach(var v in enumerable)
+{
+    if (v == c)
+        return true;
+}
+
+// DO NOT:
+foreach (var v in enumerable)
+    if (v == c)
+        return true;
+```
 
 ## Comments
 
@@ -25,4 +51,13 @@ public void Method()
 ```
 
 ## LINQ
-`To be filled`
+
+### Use .Count() instead of .Where().Count()
+> .Count() supports the usage of predicates.
+```cs
+// DO:
+enumerable.Count(x => x.IsTrue);
+
+// DO NOT:
+enumerable.Where(x => x.IsTrue).Count();
+```

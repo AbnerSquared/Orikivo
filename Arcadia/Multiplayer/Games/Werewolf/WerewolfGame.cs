@@ -120,10 +120,10 @@ namespace Arcadia.Multiplayer.Games
 
             // In here, you have to incorporate a max allowed per session.
             for (int i = 0; i < playerCount; i++)
-                roles.Add(Randomizer.ChooseAny(WerewolfRole.Villager, WerewolfRole.Seer, WerewolfRole.Wolf));
+                roles.Add(Randomizer.ChooseAny(WerewolfRole.Villager));
 
             // This is where roles are generated based on the number of players
-            return new List<WerewolfRole>();
+            return roles;
         }
 
         public override List<PlayerData> OnBuildPlayers(List<Player> players)
@@ -751,8 +751,10 @@ namespace Arcadia.Multiplayer.Games
         // ACTION start_day
         private static void StartDay(GameContext ctx)
         {
+            ctx.Session.SetPropertyValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
             // Update the list of players
             UpdatePlayerList(ctx.Session, ctx.Server);
+            SetMainHeader(ctx.Server, ctx.Session);
 
             // If there was anyone that recently died or is marked for deaths, handle those first
             if (ctx.Session.Players.Any(HasRecentlyDied) || ctx.Session.Players.Any(IsMarkedForDeath))
@@ -1151,6 +1153,8 @@ namespace Arcadia.Multiplayer.Games
                     .Set(player.GetPropertyValue<int>(WolfVars.Index),
                         GetPlayerInfo(player, session));
             }
+
+            server.GetDisplayChannel(WolfChannel.Main).Content.GetComponent("players").Draw();
         }
 
         private int GetFrequencyFor(WerewolfAbility ability)
