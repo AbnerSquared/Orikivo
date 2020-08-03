@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Arcadia.Multiplayer
 {
@@ -50,12 +51,25 @@ namespace Arcadia.Multiplayer
 
         public T GetPropertyValue<T>(string id)
         {
-            var property = GetProperty(id);
+            GameProperty property = GetProperty(id);
 
             if (property.ValueType?.IsEquivalentTo(typeof(T)) ?? false)
                 return (T) property.Value;
 
             throw new Exception($"The specified property '{id}' does not match the implicit type reference of {typeof(T).Name}");
+        }
+
+        public override string ToString()
+        {
+            var info = new StringBuilder();
+            info.AppendLine($"Data for {Player.User.Username}:");
+
+            foreach (GameProperty property in Properties)
+            {
+                info.AppendLine($"{property.Id}: {property.Value} ({property.ValueType.Name})");
+            }
+
+            return info.ToString();
         }
     }
 

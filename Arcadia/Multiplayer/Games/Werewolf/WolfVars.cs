@@ -4,11 +4,13 @@
     {
         internal static readonly string RemoveSuspect = "remove_suspect";
         internal static readonly string AwaitDefense = "await_defense";
-
+        internal static readonly string HandleAbilities = "handle_abilities";
         internal static readonly string TryEndVote = "try_end_vote";
         // this keeps the player assigned to their proper index.
         internal static readonly string Index = "index";
+        internal static readonly string InitialRole = "initial_role";
 
+        internal static readonly string Name = "name";
         internal static readonly string Role = "role";
 
         internal static readonly string IsWinner = "is_winner";
@@ -16,7 +18,7 @@
         // if true, the player is dead and CANNOT interact with the game at all
         internal static readonly string IsDead = "is_dead";
 
-        internal static readonly string DeathFrom = "death_from";
+        internal static readonly string DeathInfo = "death_info";
 
         // if true, the player will die at the end of the night
         internal static readonly string IsHurt = "is_hurt";
@@ -41,6 +43,8 @@
         // if they can protect, they choose a player to keep safe
         internal static readonly string CanProtect = "can_protect";
 
+        internal static readonly string RequestedSkip = "requested_skip";
+
         // if not dead and injured, they will day upon the end of the next day phase.
         
         
@@ -64,8 +68,9 @@
         internal static readonly string NextPhase = "next_phase";
         internal static readonly string Suspect = "suspect";
         internal static readonly string RequestedSkips = "requested_skips";
-        internal static readonly string ReadInputs = "read_inputs";
+        internal static readonly string HandledInputs = "handled_inputs";
         internal static readonly string HasTrial = "has_trial";
+        internal static readonly string CurrentInput = "current_input";
 
         // This defines the winning group.
         internal static readonly string WinningGroup = "winning_group";
@@ -103,7 +108,7 @@
         // This reads the LastPlayerKilled property to get that specific player to:
         //    - Reveal their role
         //    - What they were killed by
-        internal static readonly string OnDeath = "on_death";
+        internal static readonly string HandleDeath = "handle_death";
 
         // This is called at the start of a day
         internal static readonly string HandleDeaths = "handle_deaths";

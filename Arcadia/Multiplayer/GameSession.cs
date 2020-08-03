@@ -7,15 +7,14 @@ namespace Arcadia.Multiplayer
     public class GameSession
     {
         internal readonly GameServer _server;
-        internal readonly GameBuilder _game;
-
-        internal GameSession() { }
+        internal readonly GameBuilder Game;
 
         // create a game session with the information provided
         public GameSession(GameServer server, GameBuilder info)
         {
             _server = server;
-            _game = info;
+            Game = info;
+            Game.SetGameConfig(server);
             Players = info.OnBuildPlayers(server.Players);
             Criteria = info.OnBuildRules(Players);
             Actions = info.OnBuildActions(Players);
@@ -204,12 +203,12 @@ namespace Arcadia.Multiplayer
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
-            var attribute = Properties.First(x => x.Id == id);
+            GameProperty property = Properties.First(x => x.Id == id);
 
-            if (attribute.ValueType != typeof(int))
+            if (property.ValueType != typeof(int))
                 throw new Exception($"Cannot add to attribute '{id}' as it is not a type of Int32");
 
-            attribute.Value = ((int)attribute.Value) + value;
+            property.Value = (int) property.Value + value;
         }
 
         public PlayerData GetPlayerData(ulong userId)

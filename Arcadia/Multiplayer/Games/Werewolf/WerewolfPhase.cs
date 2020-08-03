@@ -3,11 +3,13 @@
     public enum WerewolfPhase
     {
         Unknown = 0,
-        Start, // Starting phase
-        Day, // Day phase
-        Trial, // Trial phase
-        Death, // Death phase
-        Night, // Night phase
-        End // Closing phase
+
+        // Day phase: (Can point to: Night, Accuse)
+        Day = 1,
+        // Day sub-phases: Accuse, Trial, Defense, Vote
+
+        Death = 2, // Death phase
+
+        Night = 4 // Night phase
     }
 }

@@ -6,17 +6,37 @@ namespace Arcadia.Multiplayer.Games
     public enum WerewolfPassive
     {
         None = 0,
-        Tough = 1, // if attacked by wolves, they can live through the day, dying at the end of the night
+
+        /// <summary>
+        /// Players are able to take a hit, dying once night falls.
+        /// </summary>
+        Tough = 1,
         
-        
-        
-        // This always forces the player to vote to live
+        /// <summary>
+        /// Forces the player to always vote for survival.
+        /// </summary>
         Pacifist = 2,
 
         // This always forces the player to vote for death
+        /// <summary>
+        /// Forces the player to always vote for death.
+        /// </summary>
         Militarist = 4,
 
-        // they can see everything that is happening, being able to write 1 letter at the start of each day
-        Ghost = 8 
+        /// <summary>
+        /// Players are dead at the start, but are spectators and can write a single letter at the start of each day.
+        /// </summary>
+        Ghost = 8,
+
+        /// <summary>
+        /// Players appear as a wolf to the seer.
+        /// </summary>
+        Wolfish = 16,
+
+        // If the seer dies, everyone OR the first one with this passive becomes a seer.
+        /// <summary>
+        /// Players inherit the role of a seer if the current seer is killed.
+        /// </summary>
+        Apprentice = 32
     }
 }

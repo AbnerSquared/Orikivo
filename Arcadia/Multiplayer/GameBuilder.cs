@@ -9,6 +9,9 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public abstract class GameBuilder
     {
+        internal void SetGameConfig(GameServer server)
+            => Config = server.Config.GameConfig;
+
         // CANNOT BE NULL
         /// <summary>
         /// Represents the global identifier for this <see cref="GameBuilder"/>.
@@ -68,6 +71,12 @@ namespace Arcadia.Multiplayer
         /// </summary>
         public abstract SessionResult OnSessionFinish(GameSession session);
 
+        // TODO: Implement usage of OnPlayerRemoved in games to handle random disconnects
+        public virtual void OnPlayerRemoved(Player player)
+        {
+
+        }
+
         /// <summary>
         /// Builds the <see cref="GameSession"/> for this <see cref="GameBuilder"/> on the specified <see cref="GameServer"/>.
         /// </summary>
@@ -76,6 +85,7 @@ namespace Arcadia.Multiplayer
             // Initialize the new game session
             var session = new GameSession(server, this);
             server.Session = session;
+            
 
             // Set all of the server connections to playing
             foreach (ServerConnection connection in server.Connections)

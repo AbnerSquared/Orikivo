@@ -108,6 +108,9 @@ namespace Arcadia.Multiplayer
         // If true, inputs cannot be read in this connection
         public bool BlockInput { get; set; }
 
+        // If specified, overrides the content received from the frequency
+        public string ContentOverride { get; set; }
+
         // this determines what is currently being executed in the server connection
         public GameState State { get; set; }
     }

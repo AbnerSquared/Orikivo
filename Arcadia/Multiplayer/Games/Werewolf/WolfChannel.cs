@@ -5,6 +5,7 @@
         internal static readonly int Initial = 19;
         internal static readonly int Main = 20;
         internal static readonly int Results = 21;
+        internal static readonly int Vote = 28;
         internal static readonly string ConsoleNode = "console";
         internal static readonly string HeaderNode = "header";
         internal static readonly string SummaryNode = "summary";

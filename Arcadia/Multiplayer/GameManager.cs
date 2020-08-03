@@ -244,7 +244,7 @@ namespace Arcadia.Multiplayer
 
         internal void EndSession(GameSession session)
         {
-            SessionResult result = session._game.OnSessionFinish(session);
+            SessionResult result = session.Game.OnSessionFinish(session);
             result.Apply(_container);
         }
 
@@ -491,7 +491,7 @@ namespace Arcadia.Multiplayer
                     else if (server.Session.State == SessionState.Finish)
                     {
                         // for now, we don't worry about this.
-                        SessionResult result = server.Session._game.OnSessionFinish(server.Session);
+                        SessionResult result = server.Session.Game.OnSessionFinish(server.Session);
                         result.Apply(_container);
                         server.DestroyCurrentSession();
                     }
