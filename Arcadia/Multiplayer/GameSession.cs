@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orikivo;
+using Orikivo.Drawing.Graphics2D;
 
 namespace Arcadia.Multiplayer
 {
@@ -12,6 +14,7 @@ namespace Arcadia.Multiplayer
         // create a game session with the information provided
         public GameSession(GameServer server, GameBuilder info)
         {
+            StartedAt = DateTime.UtcNow;
             _server = server;
             Game = info;
             Game.SetGameConfig(server);
@@ -47,6 +50,8 @@ namespace Arcadia.Multiplayer
 
             ActivityDisplay = "playing a game";
         }
+
+        public DateTime StartedAt { get; set; }
 
         // this is used to display where the game is currently at
         public string ActivityDisplay { get; set; }
@@ -108,6 +113,16 @@ namespace Arcadia.Multiplayer
             }
         }
 
+        internal void DisposeAllTimers()
+        {
+            foreach (ActionQueue timer in ActionQueue)
+            {
+                timer.SafeDispose();
+            }
+
+            ActionQueue.Clear();
+        }
+
         internal ActionQueue GetQueuedAction(string id)
         {
             return ActionQueue.FirstOrDefault(x => x.Id == id);
@@ -135,7 +150,16 @@ namespace Arcadia.Multiplayer
                 _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        internal void InvokeAction(string actionId, bool overrideTimer = false)
+        // This is the root action invoked
+        // If unspecified
+
+        internal bool LastPendingState { get; set; }
+        internal bool PendingUpdate { get; set; }
+
+        internal int CurrentDepth { get; set; } = 0;
+        internal int RootDepth { get; set; } = 0;
+
+        internal void InvokeAction(string actionId, bool overrideTimer = false, bool overridePending = false)
         {
             if (!overrideTimer)
                 if (GetCurrentQueuedAction()?.IsElapsed ?? false)
@@ -145,12 +169,53 @@ namespace Arcadia.Multiplayer
                 throw new Exception($"Could not find the specified action '{actionId}'");
 
             GameAction action = Actions.First(x => x.Id == actionId);
-                
-            action.OnExecute(new GameContext(null, this, _server));
+            /*
+            int baseDepth = RootDepth + 1;
 
-            // this causes a pause, so limit it to the actions that need to update
+            if (PendingUpdate)
+            {
+                CurrentDepth++;
+            }
+            else
+            {
+                RootDepth = baseDepth;
+                CurrentDepth = RootDepth;
+                PendingUpdate = action.UpdateOnExecute;
+            }*/
+
+            //Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] {PendingUpdate} (root depth {RootDepth}, current depth {CurrentDepth})");
+            try
+            {
+                action.OnExecute(new GameContext(null, this, _server));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                _server.DestroyCurrentSession();
+                return;
+            }
+            /*
+            if (PendingUpdate)
+            {
+                if (CurrentDepth == RootDepth)
+                {
+                    Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Depth values match, now updating");
+                    _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    PendingUpdate = false;
+                    CurrentDepth = 0;
+                    RootDepth = 0;
+                    return;
+                }
+                
+                Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] An update is already pending");
+                CurrentDepth--;
+                return;
+            }*/
+
             if (action.UpdateOnExecute)
+            {
                 _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
 
         internal bool MeetsCriterion(string ruleId)

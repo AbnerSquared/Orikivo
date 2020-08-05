@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Driver;
 using Orikivo;
 using Format = Orikivo.Format;
 
@@ -242,6 +243,8 @@ namespace Arcadia.Multiplayer.Games
                 // suspect: The ID of the current suspect
                 GameProperty.Create(WolfVars.Suspect, 0UL),
 
+                GameProperty.Create(WolfVars.Accuser, 0UL),
+
                 // current_input: The current input being handled
                 GameProperty.Create(WolfVars.CurrentInput, WerewolfAbility.None),
 
@@ -275,7 +278,7 @@ namespace Arcadia.Multiplayer.Games
         {
             return new List<GameAction>
             {
-                new GameAction(WolfVars.Start, Start),
+                new GameAction(WolfVars.Start, Start, false),
                 new GameAction(WolfVars.GetResults, GetResults),
                 new GameAction(WolfVars.StartDay, StartDay),
                 new GameAction(WolfVars.EndDay, EndDay),
@@ -320,8 +323,14 @@ namespace Arcadia.Multiplayer.Games
                 {
                     // This initializes all of the displays to be set up.
                     DisplayChannel display = server.GetDisplayChannel(GetFrequencyFor(GetAbility(player)));
-                    ServerConnection connection = await player.Player.GetConnectionAsync(display);
-                    connection.Group = "secondary";
+                    display.Content.ValueOverride = $"> You are a **{player.GetPropertyValue<WerewolfRole>(WolfVars.Role).Name}**.";
+                    var properties = ConnectionProperties.Default;
+                    properties.ContentOverride = $"> You are a **{player.GetPropertyValue<WerewolfRole>(WolfVars.Role).Name}**.";
+
+                    var connection = await ServerConnection.CreateAsync(player.Player, display, properties);
+                    connection.Origin = OriginType.Session;
+                    connection.Group = GetAbility(player).ToString().ToLower();
+                    server.Connections.Add(connection);
                 }
 
                 var index = player.GetPropertyValue<int>(WolfVars.Index);
@@ -407,11 +416,8 @@ namespace Arcadia.Multiplayer.Games
                                 }
                             },
                             // main/players
-                            new ComponentGroup
+                            new ComponentGroup("players", 1, players.Count)
                             {
-                                Active = true,
-                                Position = 1,
-                                Id = "players",
                                 Formatter = new ComponentFormatter
                                 {
                                     BaseFormatter = "> **Players**\n{0}",
@@ -419,7 +425,6 @@ namespace Arcadia.Multiplayer.Games
                                     Separator = "\n"
                                 },
 
-                                Capacity = players.Count,
                                 Values = new string[players.Count]
                             }
                         }
@@ -1002,6 +1007,8 @@ namespace Arcadia.Multiplayer.Games
                 // Handle the suspect's death
                 ctx.Session.BlockInput = false;
                 ctx.Session.SetPropertyValue(WolfVars.HasTrial, false);
+                ctx.Session.SetPropertyValue(WolfVars.Suspect, 0UL);
+                ctx.Session.SetPropertyValue(WolfVars.Accuser, 0UL);
                 ctx.Session.InvokeAction(WolfVars.HandleDeath, true);
             }
             else
@@ -1009,6 +1016,8 @@ namespace Arcadia.Multiplayer.Games
                 // Otherwise, go directly to the night phase
                 ctx.Session.BlockInput = false;
                 ctx.Session.SetPropertyValue(WolfVars.HasTrial, false);
+                ctx.Session.SetPropertyValue(WolfVars.Suspect, 0UL);
+                ctx.Session.SetPropertyValue(WolfVars.Accuser, 0UL);
                 ctx.Session.InvokeAction(WolfVars.StartNight, true);
             }
         }
@@ -1206,6 +1215,10 @@ namespace Arcadia.Multiplayer.Games
         // ACTION start_day
         private static void StartDay(GameContext ctx)
         {
+            // Set all of the primary channels to the main frequency
+            foreach (ServerConnection connection in ctx.Server.GetGroup("primary"))
+                connection.Frequency = WolfChannel.Main;
+
             // Set the current phase to day
             ctx.Session.SetPropertyValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
 
@@ -1275,7 +1288,10 @@ namespace Arcadia.Multiplayer.Games
             }
 
             // Handle all abilities
-            ctx.Session.InvokeAction(WolfVars.HandleAbilities, true);
+            // ctx.Session.InvokeAction(WolfVars.HandleAbilities, true);
+
+            // Since abilities don't work right now, only work with the voting mechanic
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.EndNight);
         }
 
         private static bool HasPrivateChannel(PlayerData player, GameServer server)
@@ -1357,12 +1373,22 @@ namespace Arcadia.Multiplayer.Games
             if (!HasSuspect(ctx.Session))
                 return;
 
+            // If the suspect agrees, ignore input
+            if (IsSuspect(ctx.Player, ctx.Session))
+                return;
+
+            // If the accuser agrees, ignore input
+            if (IsAccuser(ctx.Player, ctx.Session))
+
             // This gets the queued action of the specified ID, and pauses it.
             ctx.Session.GetQueuedAction("day_timer").Pause();
             ctx.Session.SetPropertyValue(WolfVars.HasTrial, true);
             // Otherwise, start trial
             ctx.Session.InvokeAction(WolfVars.StartTrial);
         }
+
+        private static bool IsAccuser(PlayerData player, GameSession session)
+            => session.GetPropertyValue<ulong>(WolfVars.Accuser) == player.Player.User.Id;
 
         private static string WriteFeastPartners(PlayerData player, GameSession session)
         {
@@ -1507,6 +1533,7 @@ namespace Arcadia.Multiplayer.Games
         private static void RemoveSuspect(GameContext ctx)
         {
             ctx.Session.SetPropertyValue(WolfVars.Suspect, 0UL);
+            ctx.Session.SetPropertyValue(WolfVars.Accuser, 0UL);
             ctx.Server.GetDisplayChannel(WolfChannel.Main).Content.GetGroup("console").Append("The accusation has subsided.");
             ctx.Server.GetDisplayChannel(WolfChannel.Main).GetComponent("console").Draw();
             // This gets the queued action of the specified ID, and resumes it.

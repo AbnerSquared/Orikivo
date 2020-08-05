@@ -9,6 +9,20 @@ namespace Arcadia.Multiplayer.Games
     internal static class TriviaVars
     {
         internal static readonly string TotalAnswered = "total_answered";
+        internal static readonly string GetQuestionResult = "get_question_result";
+        internal static readonly string TryGetQuestionResult = "try_get_question_result";
+        internal static readonly string TryGetNextQuestion = "try_get_next_question";
+        internal static readonly string GetNextQuestion = "get_next_question";
+        internal static readonly string GetResults = "get_results";
+        internal static readonly string TryRestart = "try_restart";
+    }
+
+    internal static class TriviaConfig
+    {
+        internal static readonly string Topics = "topics";
+        internal static readonly string Difficulty = "difficulty";
+        internal static readonly string QuestionCount = "questioncount";
+        internal static readonly string QuestionDuration = "questionduration";
     }
 
     public class TriviaGame : GameBuilder
@@ -42,257 +56,189 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
+
+        // 'get_question_result'
+        // This action is executed from 'get_next_question'
+
+        // This shows the result of the question that they answered
+
+        // A timer is set for 3 seconds
+        // When the timer runs out, the action 'try_get_next_question' is executed
+        private void GetQuestionResult(GameContext ctx)
+        {
+            // set all currently playing displays to freq. 10
+            foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
+            {
+                connection.Frequency = 11;
+            }
+
+            //session.CancelQueuedAction();
+
+            int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
+            ctx.Session.SetPropertyValue("players_answered", 0);
+
+            DisplayContent content = ctx.Server.GetDisplayChannel(11).Content;
+
+            content
+                .GetComponent("result")
+                .Draw(ctx.Session.GetPropertyValue<int>("current_question"),
+                      GetConfigValue<int>("questioncount"),
+                      CurrentQuestion.Question,
+                      CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
+                        .First(x => !string.IsNullOrWhiteSpace(x)));
+
+            foreach (PlayerData playerData in ctx.Session.Players)
+            {
+                bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
+
+                if (!hasAnswered)
+                {
+                    playerData.ResetProperty("streak");
+                }
+                else
+                {
+                    bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
+
+
+                    if (isCorrect)
+                    {
+                        int points = GetPoints(CurrentQuestion.Value,
+                            playerData.GetPropertyValue<int>("streak"),
+                            playerData.GetPropertyValue<int>("answer_position"),
+                            CurrentQuestion.Difficulty);
+
+                        playerData.AddToProperty("score", points);
+                    }
+                }
+
+                playerData.ResetProperty("has_answered");
+                playerData.ResetProperty("is_correct");
+            }
+
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
+        }
+
+        private static void TryGetQuestionResult(GameContext ctx)
+        {
+            if (ctx.Session.MeetsCriterion("has_all_players_answered"))
+            {
+                ctx.Session.CancelQueuedAction();
+                ctx.Session.InvokeAction(TriviaVars.GetQuestionResult, true);
+            }
+        }
+
+        private static void TryGetNextQuestion(GameContext ctx)
+        {
+            if (ctx.Session.MeetsCriterion("has_answered_all_questions"))
+                ctx.Session.InvokeAction(TriviaVars.GetResults, true);
+            else
+                ctx.Session.InvokeAction(TriviaVars.GetNextQuestion, true);
+        }
+
+        private void GetNextQuestion(GameContext ctx)
+        {
+            // set all currently playing displays to freq. 10
+            foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
+            {
+                connection.Frequency = 10;
+            }
+
+            int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
+            CurrentQuestion = QuestionPool[currentQuestion];
+            ctx.Session.AddToProperty("current_question", 1);
+
+            DisplayContent content = ctx.Server.GetDisplayChannel(10).Content;
+
+            content.GetComponent("question_header")
+                .Draw(
+                    Format.Counter(GetConfigValue<double>("questionduration")),
+                    ctx.Session.GetPropertyValue<int>("current_question"),
+                    GetConfigValue<int>("questioncount"),
+                    CurrentQuestion.Question);
+
+            // select only 3 random answers and shuffle with the correct answer in there
+            CurrentAnswers = Randomizer.Shuffle(Randomizer
+                .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), 3)
+                .Append(CurrentQuestion.Answers.First(x => x.IsCorrect)));
+
+            content
+                .GetComponent("answers")
+                .Draw(CurrentAnswers.Select((x, i) => $"[**{GetLetter(i).ToUpper()}**] {x.Response}"));
+
+            content
+                .GetComponent("footer")
+                .Draw(CurrentQuestion.Difficulty.ToString(),
+                    CurrentQuestion.Topic.ToString(),
+                    $"{CurrentQuestion.Value} {Format.TryPluralize("Point", CurrentQuestion.Value)}");
+
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
+        }
+
+
+        private void GetResults(GameContext ctx)
+        {
+            // set all currently playing connection to frequency 12
+            foreach (ServerConnection connection in ctx.Server.Connections.Where(x => x.State == GameState.Playing))
+            {
+                connection.Frequency = 12;
+            }
+
+            foreach (PlayerData data in ctx.Session.Players)
+            {
+                Console.WriteLine($"{data.Player.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
+            }
+
+            ctx.Session._server
+                .GetDisplayChannel(12).Content
+                .GetComponent("leaderboard")
+                .Draw(ctx.Session.Players
+                    .OrderByDescending(x => x.GetPropertyValue<int>("score"))
+                    .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.GetPropertyValue<int>("score")}**p"));
+
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
+        }
+
+        private void TryRestart(GameContext ctx)
+        {
+            if (ctx.Session.MeetsCriterion("most_players_want_rematch"))
+            {
+                ctx.Session.CancelQueuedAction();
+                // reset all player attributes
+                foreach (PlayerData data in ctx.Session.Players)
+                {
+                    foreach (GameProperty attribute in data.Properties)
+                    {
+                        attribute.Reset();
+                    }
+                }
+
+                // reset all game attributes
+                foreach (GameProperty attribute in ctx.Session.Properties)
+                {
+                    attribute.Reset();
+                }
+
+                // regenerate question pool.
+                QuestionPool = GenerateQuestions(
+                    GetConfigValue<int>("questioncount"),
+                    GetConfigValue<TriviaDifficulty>("difficulty"),
+                    GetConfigValue<TriviaTopic>("topics")).ToList();
+
+                ctx.Session.InvokeAction("try_get_next_question", true);
+            }
+        }
+
         public override List<GameAction> OnBuildActions(List<PlayerData> players)
         {
-            var actions = new List<GameAction>();
-
-            var getQuestionResult = new GameAction
+            return new List<GameAction>
             {
-                Id = "get_question_result",
-                UpdateOnExecute = true,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
-                    {
-                        connection.Frequency = 11;
-                    }
-
-                    //session.CancelQueuedAction();
-
-                    int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
-                    ctx.Session.SetPropertyValue("players_answered", 0);
-
-                    DisplayContent content = ctx.Server.GetDisplayChannel(11).Content;
-
-                    content
-                        .GetComponent("result")
-                        .Draw(ctx.Session.GetPropertyValue<int>("current_question"),
-                              GetConfigValue<int>("questioncount"),
-                              CurrentQuestion.Question,
-                              CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
-                                .First(x => !string.IsNullOrWhiteSpace(x)));
-
-                    foreach (PlayerData playerData in ctx.Session.Players)
-                    {
-                        bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
-
-                        if (!hasAnswered)
-                        {
-                            playerData.ResetProperty("streak");
-                        }
-                        else
-                        {
-                            bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
-
-
-                            if (isCorrect)
-                            {
-                                int points = GetPoints(CurrentQuestion.Value,
-                                    playerData.GetPropertyValue<int>("streak"),
-                                    playerData.GetPropertyValue<int>("answer_position"),
-                                    CurrentQuestion.Difficulty);
-
-                                playerData.AddToProperty("score", points);
-                            }
-                        }
-
-                        playerData.ResetProperty("has_answered");
-                        playerData.ResetProperty("is_correct");
-                    }
-
-                    ctx.Session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
-                }
+                new GameAction(TriviaVars.GetQuestionResult, GetQuestionResult),
+                new GameAction("try_get_question_result", TryGetQuestionResult, false),
+                new GameAction("try_get_next_question", TryGetNextQuestion, false),
+                new GameAction("get_next_question", GetNextQuestion),
+                new GameAction("get_results", GetResults),
+                new GameAction("try_restart", TryRestart, false)
             };
-            // 'get_question_result'
-            // This action is executed from 'get_next_question'
-
-            // This shows the result of the question that they answered
-
-            // A timer is set for 3 seconds
-            // When the timer runs out, the action 'try_get_next_question' is executed
-
-            var tryGetQuestionResult = new GameAction
-            {
-                Id = "try_get_question_result",
-                UpdateOnExecute = false,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    if (ctx.Session.MeetsCriterion("has_all_players_answered"))
-                    {
-                        ctx.Session.CancelQueuedAction();
-                        ctx.Session.InvokeAction("get_question_result", true);
-                        
-                    }
-                }
-            };
-
-            var tryGetNextQuestion = new GameAction
-            {
-                Id = "try_get_next_question",
-                UpdateOnExecute = false,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    if (ctx.Session.MeetsCriterion("has_answered_all_questions"))
-                        ctx.Session.InvokeAction("get_results", true);
-                    else
-                        ctx.Session.InvokeAction("get_next_question", true);
-                }
-            };
-
-            // 'try_get_next_question'
-            // This action is executed right after 'get_question_result'
-            // If the rule 'has_answered_all_questions' is true, the action 'get_results' is executed
-            // Otherwise, if that rule is false, the action 'get_next_question' is executed instead
-
-            var getNextQuestion = new GameAction
-            {
-                Id = "get_next_question",
-                UpdateOnExecute = true,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    // set all currently playing displays to freq. 10
-                    foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
-                    {
-                        connection.Frequency = 10;
-                    }
-
-                    int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
-                    CurrentQuestion = QuestionPool[currentQuestion];
-                    ctx.Session.AddToProperty("current_question", 1);
-
-                    DisplayContent content = ctx.Server.GetDisplayChannel(10).Content;
-
-                    content.GetComponent("question_header")
-                        .Draw(
-                            Format.Counter(GetConfigValue<double>("questionduration")),
-                            ctx.Session.GetPropertyValue<int>("current_question"),
-                            GetConfigValue<int>("questioncount"),
-                            CurrentQuestion.Question);
-
-                    // select only 3 random answers and shuffle with the correct answer in there
-                    CurrentAnswers = Randomizer.Shuffle(Randomizer
-                            .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), 3)
-                            .Append(CurrentQuestion.Answers.First(x => x.IsCorrect)));
-
-                    content
-                        .GetComponent("answers")
-                        .Draw(CurrentAnswers.Select((x, i) => $"[**{GetLetter(i).ToUpper()}**] {x.Response}"));
-
-                    content
-                        .GetComponent("footer")
-                        .Draw(CurrentQuestion.Difficulty.ToString(),
-                              CurrentQuestion.Topic.ToString(),
-                              $"{CurrentQuestion.Value} {Format.TryPluralize("Point", CurrentQuestion.Value)}");
-
-                    ctx.Session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
-                }
-            };
-
-            // 'get_next_question'
-            // This action sets the display to frequency 10
-
-            // This action is executed from OnSessionStart()
-            // This action is executed from 'try_get_next_question'
-            // This action is executed from 'restart'
-
-            // This iterates through to get the next available question
-
-            // A timer is set for 30 seconds
-            // When the timer runs out, the action 'get_question_result' is executed
-
-            // The rule 'has_all_players_answered' is set for this action
-            // If 'has_all_players_answered' is true, the action 'get_question_result' is executed
-            // Otherwise, the game is left as is
-
-            var getResults = new GameAction
-            {
-                Id = "get_results",
-                UpdateOnExecute = true,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    // set all currently playing connection to frequency 12
-                    foreach(ServerConnection connection in ctx.Server.Connections.Where(x => x.State == GameState.Playing))
-                    {
-                        connection.Frequency = 12;
-                    }
-
-                    foreach(PlayerData data in ctx.Session.Players)
-                    {
-                        Console.WriteLine($"{data.Player.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
-                    }
-
-                    ctx.Session._server
-                    .GetDisplayChannel(12).Content
-                    .GetComponent("leaderboard")
-                     .Draw(ctx.Session.Players
-                        .OrderByDescending(x => x.GetPropertyValue<int>("score"))
-                        .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.GetPropertyValue<int>("score")}**p"));
-
-                    ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
-                }
-            };
-
-            // 'get_results'
-            // This action sets the display to frequency 12
-
-            // This action is executed from 'try_get_next_question'
-
-            // This action simply shows the leaderboard of all players
-
-            // A timer is set for 15 seconds
-            // When the timer runs out, the session is ended
-
-            // The rule 'most_players_want_rematch' is set for this action
-            // If 'most_players_want_rematch' is true, the action 'restart' is executed
-
-            var tryRestart = new GameAction
-            {
-                Id = "try_restart",
-                UpdateOnExecute = false,
-                OnExecute = delegate (GameContext ctx)
-                {
-                    if (ctx.Session.MeetsCriterion("most_players_want_rematch"))
-                    {
-                        ctx.Session.CancelQueuedAction();
-                        // reset all player attributes
-                        foreach (PlayerData data in ctx.Session.Players)
-                        {
-                            foreach (GameProperty attribute in data.Properties)
-                            {
-                                attribute.Reset();
-                            }
-                        }
-
-                        // reset all game attributes
-                        foreach (GameProperty attribute in ctx.Session.Properties)
-                        {
-                            attribute.Reset();
-                        }
-
-                        // regenerate question pool.
-                        QuestionPool = GenerateQuestions(
-                            GetConfigValue<int>("questioncount"),
-                            GetConfigValue<TriviaDifficulty>("difficulty"),
-                            GetConfigValue<TriviaTopic>("topics")).ToList();
-
-                        ctx.Session.InvokeAction("try_get_next_question", true);
-                    }
-                }
-            };
-            // 'restart'
-            // This action resets all game and player attributes, and restarts the game as it was new
-            // After everything is reset, the action 'try_get_next_question' is executed 
-
-            actions.Add(getQuestionResult);
-            actions.Add(tryGetQuestionResult);
-            actions.Add(tryGetNextQuestion);
-            actions.Add(getNextQuestion);
-            actions.Add(getResults);
-            actions.Add(tryRestart);
-
-
-            return actions;
         }
 
         private string GetPositionSuffix(int position)
@@ -723,7 +669,7 @@ namespace Arcadia.Multiplayer.Games
             if (answerPosition == 0)
                 return 0;
 
-            return (int)Math.Floor(((value * (1.0 - ((answerPosition - 1) / 10))) * multiplier) + streakValue);
+            return (int)Math.Floor(((value * (1.0 - ((answerPosition - 1) / (double) 10))) * multiplier) + streakValue);
         }
 
         private float GetDifficultyMultiplier(TriviaDifficulty difficulty)
@@ -743,13 +689,13 @@ namespace Arcadia.Multiplayer.Games
 
             // generate the question pool
             QuestionPool = GenerateQuestions(
-                GetConfigValue<int>("questioncount"),
-                GetConfigValue<TriviaDifficulty>("difficulty"),
-                GetConfigValue<TriviaTopic>("topics")
+                GetConfigValue<int>(TriviaConfig.QuestionCount),
+                GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty),
+                GetConfigValue<TriviaTopic>(TriviaConfig.Topics)
                 ).ToList();
 
             // once all of that is ready, invoke action try_get_next_questions
-            session.InvokeAction("try_get_next_question", true);
+            session.InvokeAction(TriviaVars.TryGetNextQuestion, true);
         }
 
         public override SessionResult OnSessionFinish(GameSession session)
@@ -801,7 +747,7 @@ namespace Arcadia.Multiplayer.Games
             return Randomizer.ChooseMany(availableQuestions, questionCount);
         }
 
-        private IEnumerable<TriviaQuestion> FilterQuestions(TriviaDifficulty difficulty, TriviaTopic topic)
+        private static IEnumerable<TriviaQuestion> FilterQuestions(TriviaDifficulty difficulty, TriviaTopic topic)
         {
             return Questions.Where(x => difficulty.HasFlag(x.Difficulty) && topic.HasFlag(x.Topic));
         }
@@ -811,24 +757,5 @@ namespace Arcadia.Multiplayer.Games
         public List<TriviaQuestion> QuestionPool { get; set; }
 
         public IEnumerable<TriviaAnswer> CurrentAnswers { get; set; }
-        /*
-         **Question 1**
-         Solve the following problem: 2 + 2
-
-         A. 3
-         B. 6
-         C. 4
-         D. 20
-         */
-
-        /*
-         **Question 1**
-         Solve the following problem: 2 + 2
-         
-         ~~A. 3~~
-         ~~B. 6~~
-         C. 4
-         ~~D. 20~~
-         */
     }
 }

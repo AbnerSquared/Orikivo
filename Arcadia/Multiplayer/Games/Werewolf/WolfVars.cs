@@ -67,6 +67,7 @@
         internal static readonly string CurrentPhase = "current_phase";
         internal static readonly string NextPhase = "next_phase";
         internal static readonly string Suspect = "suspect";
+        internal static readonly string Accuser = "accuser";
         internal static readonly string RequestedSkips = "requested_skips";
         internal static readonly string HandledInputs = "handled_inputs";
         internal static readonly string HasTrial = "has_trial";

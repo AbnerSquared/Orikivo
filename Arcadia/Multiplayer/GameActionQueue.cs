@@ -135,5 +135,19 @@ namespace Arcadia.Multiplayer
             Disposed = true;
         }
 
+        public void SafeDispose()
+        {
+            if (Disposed)
+                return;
+
+            // If no timer is specified, ignore it, but do not mark as disposed since it could be paused
+            if (Timer == null)
+                return;
+
+            Timer.Dispose();
+            Logger.Debug($"[{Id}] Action queue disposed at {DateTime.UtcNow}.");
+            Disposed = true;
+        }
+
     }
 }

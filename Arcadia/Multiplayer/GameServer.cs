@@ -1,14 +1,16 @@
-﻿using Orikivo;
+﻿using System;
+using Orikivo;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Orikivo.Framework;
+using Format = Discord.Format;
 
 namespace Arcadia.Multiplayer
 {
     public class GameServer
     {
-        // i'm not a fan of requiring the game manager, find another way to end a session
         private readonly GameManager _manager;
 
         public GameServer(GameManager manager)
@@ -16,10 +18,11 @@ namespace Arcadia.Multiplayer
             _manager = manager;
             Id = KeyBuilder.Generate(8);
             DisplayChannels = DisplayChannel.GetReservedChannels();
-            // DisplayChannels.AddRange(DisplayChannel.GetReservedChannels());
             Players = new List<Player>();
             Connections = new List<ServerConnection>();
         }
+
+        public bool IsFull => Config.IsValidGame() && Players.Count >= GameManager.GetGame(Config.GameId).Details.PlayerLimit;
 
         /// <summary>
         /// Represents the unique identifier for this <see cref="GameServer"/>.
@@ -37,10 +40,16 @@ namespace Arcadia.Multiplayer
         // all of the channels that this lobby is connected to
         public List<ServerConnection> Connections { get; set; }
 
+        // This is a list of server invites
+        // Duplicate invites cannot be initialized
+        // Once a player uses an invite, it is removed from the invitation list
+        
+        public List<ServerInvite> Invites { get; set; }
+
         // whenever a message or reaction is sent into any of these channels, attempt to figure out who sent it
 
         // what are the configurations for this current server?
-        public ServerConfig Config { get; set; }
+        public ServerProperties Config { get; set; }
 
         // what is currently being played in this server, if a session is active? if this is null, there is no active game.
         public GameSession Session { get; set; }
@@ -48,11 +57,20 @@ namespace Arcadia.Multiplayer
         public ServerConnection GetConnectionFor(ulong channelId)
             => Connections.First(x => x.ChannelId == x.Channel.Id);
 
+        public bool HasConnection(ulong channelId)
+            => Connections.Any(x => x.ChannelId == channelId);
+
         public void GroupAll(string group)
         {
             foreach (ServerConnection connection in Connections)
                 connection.Group = group;
         }
+
+        public Player GetOldestPlayer()
+            => Players.OrderBy(x => x.JoinedAt).FirstOrDefault();
+
+        public Player GetNewestPlayer()
+            => Players.OrderBy(x => x.JoinedAt).LastOrDefault();
 
         public IEnumerable<ServerConnection> GetGroup(string group)
             => Connections.Where(x => x.Group == group);
@@ -101,6 +119,13 @@ namespace Arcadia.Multiplayer
         public IEnumerable<ServerConnection> GetConnectionsInState(GameState state)
             => Connections.Where(x => state.HasFlag(x.State));
 
+        // Updates all connections with the specified state to the new state
+        public void ChangeState(GameState previous, GameState current)
+        {
+            foreach (ServerConnection connection in Connections.Where(x => x.State.HasFlag(previous)))
+                connection.State = current;
+        }
+
         public Player GetPlayer(ulong id)
         {
             foreach (Player player in Players)
@@ -144,6 +169,13 @@ namespace Arcadia.Multiplayer
         {
             foreach (ServerConnection connection in Connections)
             {
+                // This might be bad in a synchronous method, so find a better spot for it
+                // Handle the deletion of all connections created during a session
+                if (connection.Origin == OriginType.Session)
+                    connection.DestroyAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                else if (connection.CreatedAt > Session.StartedAt && connection.Origin == OriginType.Unknown)
+                    connection.DestroyAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
                 if ((GameState.Watching | GameState.Playing).HasFlag(connection.State))
                 {
                     connection.Frequency = 0;
@@ -153,17 +185,20 @@ namespace Arcadia.Multiplayer
                 }
             }
 
-            Session.CancelAllTimers();
+            Connections.RemoveAll(x => x.Origin == OriginType.Session || x.Origin == OriginType.Unknown && x.CreatedAt > Session.StartedAt);
+            // If this display is not a reserved channel, remove it
+            DisplayChannels.RemoveAll(x => !x.Reserved);
+            Session.DisposeAllTimers();
             Session = null;
 
             DisplayContent waiting = GetDisplayChannel(GameState.Waiting).Content;
             DisplayContent editing = GetDisplayChannel(GameState.Editing).Content;
 
-            waiting.GetGroup("message_box").Append("[Console] The current session has ended.");
-            editing.GetGroup("message_box").Append("[Console] The current session has ended.");
+            waiting.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
+            editing.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
 
-            waiting.GetComponent("message_box").Draw();
-            editing.GetComponent("message_box").Draw(Config.Title);
+            waiting.GetComponent(LobbyVars.Console).Draw();
+            editing.GetComponent(LobbyVars.Console).Draw(Config.Title);
         }
 
         // this tells the game manager to update all ServerConnection channels bound to this frequency
@@ -183,11 +218,11 @@ namespace Arcadia.Multiplayer
 
                 if (channel == null)
                 {
-                    await connection.InternalMessage.ModifyAsync($"Could not find a channel at the specified frequency ({connection.Frequency}).");
+                    await connection.InternalMessage.ModifyAsync($"> ⚠️ Could not find a channel at the specified frequency ({connection.Frequency}).");
                 }
                 else
                 {
-                    var content = channel.Content.ToString();
+                    string content = Check.NotNull(connection.ContentOverride) ? connection.ContentOverride :  channel.Content.ToString();
 
                     if (connection.InternalMessage == null)
                     {
@@ -203,6 +238,8 @@ namespace Arcadia.Multiplayer
                     await connection.InternalMessage.ModifyAsync(content);
                 }
             }
+
+            Console.WriteLine($"[{Orikivo.Format.Time(DateTime.UtcNow)}] Server update was called");
         }
     }
 }

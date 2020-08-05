@@ -23,8 +23,8 @@ namespace Orikivo.Text
         {
             var result = new StringBuilder();
 
-            int i = 0;
-            int len = 0;
+            var i = 0;
+            var len = 0;
             foreach (T element in Elements)
             {
                 if (i > 0)
@@ -51,7 +51,7 @@ namespace Orikivo.Text
         {
             var result = new StringBuilder();
 
-            int i = 0;
+            var i = 0;
             int len = format.BaseFormatter.Length - 3; // {0} is the -3 part
             foreach (T element in Elements)
             {

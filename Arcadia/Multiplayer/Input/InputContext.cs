@@ -7,14 +7,12 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class InputContext
     {
-
-        public InputContext() {}
-
-        public InputContext(IUser invoker, ServerConnection connection, GameServer server)
+        public InputContext(IUser invoker, ServerConnection connection, GameServer server, InputResult input)
         {
             Invoker = invoker;
             Connection = connection;
             Server = server;
+            Input = input;
         }
 
         public IUser Invoker { get; set; }

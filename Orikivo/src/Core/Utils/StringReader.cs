@@ -90,6 +90,16 @@ namespace Orikivo
             return _cursor + len <= _string.Length;
         }
 
+        public bool StartsWith(char c)
+        {
+            return GetRemaining().StartsWith(c);
+        }
+
+        public bool StartsWith(string text)
+        {
+            return GetRemaining().StartsWith(text);
+        }
+
         public bool CanRead()
         {
             return CanRead(1);

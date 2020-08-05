@@ -35,21 +35,20 @@ namespace Orikivo.Text
 
         public static IEnumerable<T> GroupAt<T>(in IEnumerable<T> set, int page, int size)
         {
-            int pageCount = GetPageCount(set.Count(), size);
-            page = Clamp(0, pageCount, page);
-
             if (!set.Any())
                 return set;
 
-            IEnumerable<T> remainder = set.Skip(size * page);
+            int pageCount = GetPageCount(set.Count(), size);
+            page = Clamp(0, pageCount, page);
+
             var group = new List<T>();
 
-            for (int i = 0; i < size; i++)
+            foreach (T item in set.Skip(size * page))
             {
-                if (remainder.Count() - 1 < i)
-                    continue;
-                else
-                    group.Add(remainder.ElementAt(i));
+                if (group.Count >= size)
+                    break;
+
+                group.Add(item);
             }
 
             return group;

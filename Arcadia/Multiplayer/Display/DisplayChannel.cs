@@ -6,21 +6,28 @@ using System.Text;
 
 namespace Arcadia.Multiplayer
 {
+    // TODO: Remove RefreshRate from DisplayChannel and implement it into ServerConnection
+    /// <summary>
+    /// Represents a text-based display for a <see cref="GameServer"/>.
+    /// </summary>
     public class DisplayChannel
     {
         // this is an array of reserved frequencies
         // these channels are always paired into a game server
-        public static int[] ReservedFrequencies => new int[2] { 1, 0 };
+
+        // 2: Watching channel
+        // 1: Waiting channel
+        // 0: Editing channel
+        public static int[] ReservedFrequencies => new[] { 2, 1, 0 };
 
         internal DisplayChannel() { }
 
-        public DisplayChannel(int frequency, DisplayContent content, TimeSpan? refreshRate = null)
+        public DisplayChannel(int frequency, DisplayContent content)
         {
             if (ReservedFrequencies.Contains(frequency))
                 throw new Exception("This frequency is reserved.");
 
             Frequency = frequency;
-            RefreshRate = refreshRate ?? TimeSpan.FromSeconds(1);
             Content = content;
             Reserved = false;
             Inputs = new List<IInput>();
@@ -41,14 +48,14 @@ namespace Arcadia.Multiplayer
                         Active = true,
                         Formatter = new ComponentFormatter
                         {
-                            BaseFormatter = "**{0}** #{1}\n*{2}* ({3}/{4})",
+                            BaseFormatter = "**{0}** #{1}\n*{2}* ({3})",
                             OverrideBaseValue = true
                         }
                     },
 
                     new ComponentGroup
                     {
-                        Id = "message_box",
+                        Id = "console",
                         Position = 1,
                         Active = true,
                         Formatter = new ComponentFormatter
@@ -69,7 +76,7 @@ namespace Arcadia.Multiplayer
                 {
                     new ComponentGroup
                     {
-                        Id = "message_box",
+                        Id = "console",
                         Formatter = new ComponentFormatter
                         {
                             Separator = "\n",
@@ -121,7 +128,6 @@ namespace Arcadia.Multiplayer
                 State = GameState.Waiting,
                 Content = waiting,
                 Inputs = new List<IInput>(),
-                RefreshRate = TimeSpan.FromSeconds(1),
                 Reserved = true
             });
 
@@ -132,24 +138,22 @@ namespace Arcadia.Multiplayer
                 State = GameState.Editing,
                 Content = editing,
                 Inputs = new List<IInput>(),
-                RefreshRate = TimeSpan.FromSeconds(1),
                 Reserved = true
             });
 
             // reserved watching channel
-
-            // reserved playing channel
             return channels;
         }
+
+        // Instead of the frequency system, it could be possible to simply use object references to the server connection
+        // and set their references again once initialized?
+
 
         // what frequency is this display broadcasting to?
         public int Frequency { get; set; } // default is 0, the lobby.
         // the lobby is always there
 
         public GameState? State { get; set; } = null; // default is null
-
-        // how fast can this display update? minimum of 1 second.
-        public TimeSpan RefreshRate { get; set; }
 
         // what is this display currently showing?
         public DisplayContent Content { get; set; }

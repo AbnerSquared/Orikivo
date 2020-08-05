@@ -78,10 +78,10 @@ namespace Arcadia.Multiplayer
                 if (!Formatter.OverrideBaseValue)
                     argBuffers = argBuffers.Prepend(Value);
 
-                Console.WriteLine(argBuffers.Count());
-                Console.WriteLine(Formatter.GetArgCount());
-                Console.WriteLine(Formatter.BaseFormatter);
-                Console.WriteLine(string.Join("\n", argBuffers.Select(x => x?.ToString())));
+                //Console.WriteLine(argBuffers.Count());
+                //Console.WriteLine(Formatter.GetArgCount());
+                //Console.WriteLine(Formatter.BaseFormatter);
+                //Console.WriteLine(string.Join("\n", argBuffers.Select(x => x?.ToString())));
 
                 var argArrays = argBuffers.ToArray();                
                 Buffer = string.Format(Formatter.BaseFormatter, argArrays.ToArray());

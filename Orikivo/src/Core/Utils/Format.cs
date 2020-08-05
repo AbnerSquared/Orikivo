@@ -18,6 +18,9 @@ namespace Orikivo
         private static readonly string[] SensitiveCharacters = { "\\", "*", "_", "~", "`", "|", ">" };
         public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
 
+        public static bool IsSensitive(string text)
+            => text.ContainsAny("\\", "*", "_", "~", "`", "|", ">");
+
         // TODO: Use Discord.Net's version of Quote(text)
         public static string Quote(string text)
         {
@@ -181,7 +184,7 @@ namespace Orikivo
             => HumanizeType(typeof(T));
 
         public static string Time(DateTime time)
-            => time.ToString(@"hh\:mm\:ss");
+            => time.ToString(@"HH\:mm\:ss");
 
         public static string Date(DateTime date, char separator = '/')
             => date.ToString($"M{separator}d{separator}yyyy");

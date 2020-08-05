@@ -19,7 +19,7 @@ namespace Orikivo
         internal static readonly string JsonFrame = "{0}.json";
         internal static readonly string GlobalFileName = "global";
         internal static string BaseDirectory = @"..\data\";
-        private static readonly object _lock = new object();
+        // private static readonly object _lock = new object();
 
         public static JsonSerializerSettings DefaultSerializerSettings
             => new JsonSerializerSettings
@@ -37,7 +37,7 @@ namespace Orikivo
             where T : IJsonEntity
         {
             //lock (_lock)
-                Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
+            Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
         }
 
         private static string GetDirectory(string directory)
@@ -54,30 +54,19 @@ namespace Orikivo
         /// <param name="serializer"></param>
         public static void Save<T>(T obj, string path, JsonSerializer serializer = null)
         {
-            Console.WriteLine($"[Debug] -- Saving object of type '{typeof(T).Name}'. --");
+            Logger.Debug($"[Debug] -- Saving object of type '{typeof(T).Name}'. --");
             path = JsonUtils.GetDirectoryIndex<T>() + path;
-            using (StreamWriter stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write))) //File.CreateText(path))
-            {
-                //using (var writer = new JsonTextWriter(stream))
-                //{
-                serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
-                serializer.Serialize(stream, obj);
-                //}
-            }
+            using var stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write));
+            serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+            serializer.Serialize(stream, obj);
         }
 
         public static void Save<T>(T obj, string folder, string name, JsonSerializer serializer = null)
         {
             string path = GetDirectory(folder) + name;
-
-            using (StreamWriter stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write))) //File.CreateText(path))
-            {
-                //using (var writer = new JsonTextWriter(stream))
-                //{
-                serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
-                serializer.Serialize(stream, obj);
-                //}
-            }
+            using var stream = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write));
+            serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+            serializer.Serialize(stream, obj);
         }
 
         public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
@@ -106,11 +95,12 @@ namespace Orikivo
             {
                 using (var reader = new JsonTextReader(stream))
                 {
-                    serializer = serializer ?? JsonSerializer.Create(DefaultSerializerSettings);
-                    T tmp = serializer.Deserialize<T>(reader);
-                    if (throwOnEmpty)
-                        if (tmp == null)
+                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+                    var tmp = serializer.Deserialize<T>(reader);
+
+                    if (throwOnEmpty && tmp == null)
                             throw new Exception("The file deserialized returned as empty.");
+
                     return tmp == null ? default : tmp;
                 }
             }
@@ -129,11 +119,9 @@ namespace Orikivo
                 return default;
             }
 
-            using (StreamReader stream = File.OpenText(path))
-            {
-                T tmp = Deserialize<T>(stream.ReadToEndAsync().Result, converter);
-                return tmp ?? default;
-            }
+            using StreamReader stream = File.OpenText(path);
+            var tmp = Deserialize<T>(stream.ReadToEndAsync().Result, converter);
+            return tmp ?? default;
         }
 
         public static JsonContainer<TKey, TObject> RestoreContainer<TKey, TObject>(string directory)
@@ -149,7 +137,7 @@ namespace Orikivo
 
             foreach (string path in files)
             {
-                T value = Load<T>(path);
+                var value = Load<T>(path);
                 tmp.AddOrUpdate(ulong.Parse(Path.GetFileNameWithoutExtension(path)), value, (k, v) => value);
             }
 

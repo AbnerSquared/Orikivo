@@ -9,6 +9,7 @@
         {
             AutoRefreshCounter = 4,
             CanDeleteMessages = false,
+            BlockInput = false,
             State = GameState.Waiting,
             Frequency = 0
         };
@@ -19,8 +20,12 @@
 
         public bool CanDeleteMessages { get; set; } = false;
 
+        public bool BlockInput { get; set; } = false;
+
         // After 4 messages is sent that CANNOT be deleted, this screen is refreshed, which resends the content into
         // a new message body
         public int AutoRefreshCounter { get; set; } = 4;
+
+        public string ContentOverride { get; set; } = null;
     }
 }

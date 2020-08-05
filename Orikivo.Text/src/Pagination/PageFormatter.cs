@@ -12,14 +12,7 @@ namespace Orikivo.Text
 
         public Func<T, string> ElementFormatter
         {
-            get
-            {
-                if (_elementFormatter == null)
-                    return x => x.ToString();
-
-                return _elementFormatter;
-            }
-
+            get => _elementFormatter ?? (x => x.ToString());
             set => _elementFormatter = value;
         }
 

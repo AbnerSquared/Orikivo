@@ -7,6 +7,16 @@ namespace Arcadia.Multiplayer
 {
     public class ComponentGroup : IComponent
     {
+        public ComponentGroup() {}
+
+        public ComponentGroup(string id, int position, int capacity, bool active = true)
+        {
+            Id = id;
+            Position = position;
+            Capacity = capacity;
+            Active = active;
+        }
+
         public string Id { get; internal set; }
 
         public bool Active { get; set; }
@@ -213,7 +223,7 @@ namespace Arcadia.Multiplayer
                 // now prepend the valueBuffer that was initialized
                 argBuffers = argBuffers.Prepend(valueBuffer);
 
-                Console.WriteLine(string.Join("\n", argBuffers));
+                //Console.WriteLine(string.Join("\n", argBuffers));
 
                 // finally, you can now properly format the string with the specified arguments
                 // this render is sent to the buffer, where it can be easily referenced with each channel update
