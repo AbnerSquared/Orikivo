@@ -14,7 +14,7 @@ namespace Arcadia.Multiplayer
 
         public List<GameProperty> Properties { get; set; }
 
-        public void SetPropertyValue(string id, object value)
+        public void SetValue(string id, object value)
         {
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not the specified property '{id}'");
@@ -22,12 +22,24 @@ namespace Arcadia.Multiplayer
             Properties.First(x => x.Id == id).Set(value);
         }
 
-        public void AddToProperty(string id, int value)
+        // Sets a value from another value already specified
+        public void SetValue(string id, string fromId)
         {
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not the specified property '{id}'");
 
-            var property = Properties.First(x => x.Id == id);
+            if (Properties.All(x => x.Id != fromId))
+                throw new Exception($"Could not the specified property '{fromId}'");
+
+            Properties.First(x => x.Id == id).Set(Properties.First(x => x.Id == fromId).Value);
+        }
+
+        public void AddToValue(string id, int value)
+        {
+            if (Properties.All(x => x.Id != id))
+                throw new Exception($"Could not the specified property '{id}'");
+
+            GameProperty property = Properties.First(x => x.Id == id);
 
             if (property.ValueType != typeof(int))
                 throw new Exception($"Cannot add to the specified property '{id}' as it is not a type of Int32");
@@ -46,10 +58,10 @@ namespace Arcadia.Multiplayer
             return Properties.First(x => x.Id == id);
         }
 
-        public object GetPropertyValue(string id)
+        public object ValueOf(string id)
             => GetProperty(id)?.Value;
 
-        public T GetPropertyValue<T>(string id)
+        public T ValueOf<T>(string id)
         {
             GameProperty property = GetProperty(id);
 
@@ -57,6 +69,12 @@ namespace Arcadia.Multiplayer
                 return (T) property.Value;
 
             throw new Exception($"The specified property '{id}' does not match the implicit type reference of {typeof(T).Name}");
+        }
+
+        public void Reset()
+        {
+            foreach (GameProperty property in Properties)
+                property.Reset();
         }
 
         public override string ToString()

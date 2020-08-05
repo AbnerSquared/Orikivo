@@ -2,11 +2,14 @@
 
 namespace Arcadia.Multiplayer
 {
-    public class ConfigProperty : GameProperty
+    /// <summary>
+    /// Represents an option for a <see cref="GameBase"/>.
+    /// </summary>
+    public class GameOption : GameProperty
     {
-        public static ConfigProperty Create<T>(string id, string name, T defaultValue, string summary = "")
+        public static GameOption Create<T>(string id, string name, T defaultValue, string summary = "")
         {
-            return new ConfigProperty
+            return new GameOption
             {
                 Id = id,
                 Name = name,
@@ -18,12 +21,12 @@ namespace Arcadia.Multiplayer
         }
 
         /// <summary>
-        /// Represents the display name of this <see cref="ConfigProperty"/>.
+        /// Represents the display name of this <see cref="GameOption"/>.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Represents the display summary of this <see cref="ConfigProperty"/>.
+        /// Represents the display summary of this <see cref="GameOption"/>.
         /// </summary>
         public string Summary { get; set; }
 

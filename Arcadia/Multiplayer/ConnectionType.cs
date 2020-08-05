@@ -3,22 +3,22 @@
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents the type of connection that a <see cref="ServerConnection"/> references.
+    /// Represents the type of connection that an <see cref="IConnection"/> references.
     /// </summary>
     public enum ConnectionType
     {
         /// <summary>
-        /// Represents a <see cref="ServerConnection"/> with an unknown origin.
+        /// Represents an unknown origin.
         /// </summary>
         Unknown = 0,
 
         /// <summary>
-        /// Represents a <see cref="ServerConnection"/> that originated from an <see cref="IGuild"/>.
+        /// Represents an <see cref="IConnection"/> that originated from an <see cref="IGuild"/>.
         /// </summary>
         Guild = 1,
 
         /// <summary>
-        /// Represents a <see cref="ServerConnection"/> that originated from an <see cref="IUser"/>.
+        /// Represents an <see cref="IConnection"/> that originated from an <see cref="IUser"/>.
         /// </summary>
         Direct = 2
     }

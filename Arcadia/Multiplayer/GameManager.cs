@@ -53,7 +53,7 @@ namespace Arcadia.Multiplayer
             _client.MessageDeleted += OnMessageDeleted;
         }
 
-        internal static Dictionary<string, GameBuilder> Games => new Dictionary<string, GameBuilder>
+        internal static Dictionary<string, GameBase> Games => new Dictionary<string, GameBase>
         {
             ["Trivia"] = new TriviaGame(),
             ["Werewolf"] = new WerewolfGame()
@@ -69,7 +69,7 @@ namespace Arcadia.Multiplayer
         public IEnumerable<GameServer> GetPublicServers()
             => Servers.Values.Where(x => x.Config.Privacy == Privacy.Public);
 
-        public static GameBuilder GetGame(string gameId)
+        public static GameBase GetGame(string gameId)
         {
             if (!Games.ContainsKey(gameId))
                 return null;
@@ -201,12 +201,15 @@ namespace Arcadia.Multiplayer
             server
                 .GetDisplayChannel(GameState.Waiting)
                 .GetComponent(LobbyVars.Header)
-                .Draw(server.Config.Title, server.Id, server.Config.GameId, playerCounter);
+                .Draw(server.Config.Name, server.Id, server.Config.GameId, playerCounter);
         }
 
         // this starts a new base game server
-        public async Task CreateServerAsync(IUser user, IMessageChannel channel, IGuild guild = null)
+        public async Task CreateServerAsync(IUser user, IMessageChannel channel, IGuild guild = null, string gameId = null)
         {
+            // If unspecified get the default game mode.
+            gameId ??= "Trivia";
+
             // Ignore all bots
             if (user.IsBot)
                 return;
@@ -230,8 +233,8 @@ namespace Arcadia.Multiplayer
                 Config = new ServerProperties
                 {
                     Privacy = Privacy.Public,
-                    GameId = "Trivia",
-                    Title = $"{user.Username}'s Server"
+                    GameId = gameId,
+                    Name = $"{user.Username}'s Server"
                 }
             };
 
@@ -291,7 +294,7 @@ namespace Arcadia.Multiplayer
         internal async Task DestroyServerAsync(GameServer server)
         {
             // Override the display to specify that the server was destroyed
-            server.GetDisplayChannel(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Config.Title}** has been shut down.\n> Sorry about the inconvenience.";
+            server.GetDisplayChannel(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Config.Name}** has been shut down.\n> Sorry about the inconvenience.";
 
             // Set all connections to the default state
             foreach (ServerConnection connection in server.Connections)
@@ -498,7 +501,7 @@ namespace Arcadia.Multiplayer
         {
             server.GetDisplayChannel(GameState.Editing)
                 .Content.GetComponent("config")
-                .Draw(server.Config.Title, server.Config.Privacy, server.Config.GameId);
+                .Draw(server.Config.Name, server.Config.Privacy, server.Config.GameId);
         }
 
         private static void RefreshGameConfig(GameServer server)
@@ -510,18 +513,18 @@ namespace Arcadia.Multiplayer
 
             server.Config.LoadGame();
 
-            if (!Check.NotNullOrEmpty(server.Config.GameConfig))
+            if (!Check.NotNullOrEmpty(server.Config.GameOptions))
                 return;
 
             editing.GetComponent("game_config").Active = true;
             editing.GetComponent("game_config").Draw(
-                server.Config.GameConfig.Select(x => $"**{x.Name}**: `{x.Value}`"),
+                server.Config.GameOptions.Select(x => $"**{x.Name}**: `{x.Value}`"),
                 DetailsOf(server.Config.GameId).Name);
         }
 
         private static void RefreshConsole(GameServer server)
         {
-            server.GetDisplayChannel(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Config.Title);
+            server.GetDisplayChannel(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
             server.GetDisplayChannel(GameState.Waiting).Content.GetComponent(LobbyVars.Console).Draw();
         }
 
@@ -537,7 +540,7 @@ namespace Arcadia.Multiplayer
             if (!draw)
                 return;
 
-            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Title);
+            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
             waiting.GetComponent(LobbyVars.Console).Draw();
         }
 
@@ -663,7 +666,7 @@ namespace Arcadia.Multiplayer
                             string gameName = details.Name ?? "UNKNOWN_GAME";
 
                             // Try to start the game
-                            if (details.CanStart(server.Players.Count))
+                            if (server.Players.Count >= details.RequiredPlayers && server.Players.Count <= details.PlayerLimit)
                             {
                                 try
                                 {
@@ -835,11 +838,11 @@ namespace Arcadia.Multiplayer
 
                             if (server.Config.IsValidGame())
                             {
-                                if (Check.NotNullOrEmpty(server.Config.GameConfig))
+                                if (Check.NotNullOrEmpty(server.Config.GameOptions))
                                 {
                                     editing.GetComponent("game_config").Active = true;
                                     editing.GetComponent("game_config").Draw(
-                                        server.Config.LoadGame().Config.Select(x =>
+                                        server.Config.LoadGame().Options.Select(x =>
                                             $"**{x.Name}**: `{x.Value}`"),
                                         server.Config.LoadGame().Details.Name);
                                 }
@@ -847,8 +850,8 @@ namespace Arcadia.Multiplayer
 
                             RefreshGameConfig(server);
 
-                            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Title);
-                            editing.GetComponent("config").Draw(server.Config.Title, server.Config.Privacy, server.Config.GameId);
+                            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
+                            editing.GetComponent("config").Draw(server.Config.Name, server.Config.Privacy, server.Config.GameId);
                             break;
                         }
 
@@ -1046,12 +1049,12 @@ namespace Arcadia.Multiplayer
                             notice = $"[To {user.Username}] A title cannot be empty or consist of only whitespace characters.";
                         else if (Format.IsSensitive(title))
                             notice = $"[To {user.Username}] A title cannot contain any Markdown sequence characters.";
-                        else if (title.Length > ServerProperties.MaxTitleLength)
-                            notice = $"[To {user.Username}] A title must be less than or equal to {ServerProperties.MaxTitleLength} characters in size.";
+                        else if (title.Length > ServerProperties.MaxNameLength)
+                            notice = $"[To {user.Username}] A title must be less than or equal to {ServerProperties.MaxNameLength} characters in size.";
                         else
                         {
-                            server.Config.Title = title;
-                            notice = $"[Console] The title of this server has been renamed to \"{server.Config.Title}\".";
+                            server.Config.Name = title;
+                            notice = $"[Console] The title of this server has been renamed to \"{server.Config.Name}\".";
                             RefreshServerConfig(server);
                             RefreshConsoleHeader(server);
                             RefreshConsole(server);
@@ -1151,9 +1154,9 @@ namespace Arcadia.Multiplayer
                     // [HOST, PLAYER] CUSTOM <value>
                     if (server.Config.IsValidGame())
                     {
-                        GameBuilder game = server.Config.LoadGame();
+                        GameBase game = server.Config.LoadGame();
 
-                        foreach(ConfigProperty option in game.Config)
+                        foreach(GameOption option in game.Options)
                         {
                             if (ctx.StartsWith(option.Id))
                             {

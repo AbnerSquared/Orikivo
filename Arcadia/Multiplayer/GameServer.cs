@@ -3,9 +3,7 @@ using Orikivo;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 using Orikivo.Framework;
-using Format = Discord.Format;
 
 namespace Arcadia.Multiplayer
 {
@@ -22,7 +20,7 @@ namespace Arcadia.Multiplayer
             Connections = new List<ServerConnection>();
         }
 
-        public bool IsFull => Config.IsValidGame() && Players.Count >= GameManager.GetGame(Config.GameId).Details.PlayerLimit;
+        public bool IsFull => Config.IsValidGame() && Players.Count >= GameManager.DetailsOf(Config.GameId).PlayerLimit;
 
         /// <summary>
         /// Represents the unique identifier for this <see cref="GameServer"/>.
@@ -66,12 +64,6 @@ namespace Arcadia.Multiplayer
                 connection.Group = group;
         }
 
-        public Player GetOldestPlayer()
-            => Players.OrderBy(x => x.JoinedAt).FirstOrDefault();
-
-        public Player GetNewestPlayer()
-            => Players.OrderBy(x => x.JoinedAt).LastOrDefault();
-
         public IEnumerable<ServerConnection> GetGroup(string group)
             => Connections.Where(x => x.Group == group);
 
@@ -108,10 +100,6 @@ namespace Arcadia.Multiplayer
                     connection.Frequency = frequency;
             }
         }
-
-        // This gets all of the connections pointing at a user
-        public IEnumerable<ServerConnection> GetDirectConnections()
-            => Connections.Where(x => x.Type == ConnectionType.Direct);
 
         public IEnumerable<ServerConnection> GetConnections(GameState state, ConnectionType type = ConnectionType.Guild)
             => Connections.Where(x => type.HasFlag(x.Type) && state.HasFlag(x.State));
@@ -188,7 +176,7 @@ namespace Arcadia.Multiplayer
             Connections.RemoveAll(x => x.Origin == OriginType.Session || x.Origin == OriginType.Unknown && x.CreatedAt > Session.StartedAt);
             // If this display is not a reserved channel, remove it
             DisplayChannels.RemoveAll(x => !x.Reserved);
-            Session.DisposeAllTimers();
+            Session.DisposeQueue();
             Session = null;
 
             DisplayContent waiting = GetDisplayChannel(GameState.Waiting).Content;
@@ -198,7 +186,7 @@ namespace Arcadia.Multiplayer
             editing.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
 
             waiting.GetComponent(LobbyVars.Console).Draw();
-            editing.GetComponent(LobbyVars.Console).Draw(Config.Title);
+            editing.GetComponent(LobbyVars.Console).Draw(Config.Name);
         }
 
         // this tells the game manager to update all ServerConnection channels bound to this frequency

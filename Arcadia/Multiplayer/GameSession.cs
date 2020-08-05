@@ -9,15 +9,16 @@ namespace Arcadia.Multiplayer
     public class GameSession
     {
         internal readonly GameServer _server;
-        internal readonly GameBuilder Game;
+        internal readonly GameBase Game;
 
         // create a game session with the information provided
-        public GameSession(GameServer server, GameBuilder info)
+        public GameSession(GameServer server, GameBase info)
         {
             StartedAt = DateTime.UtcNow;
             _server = server;
             Game = info;
             Game.SetGameConfig(server);
+            Options = server.Config.GameOptions;
             Players = info.OnBuildPlayers(server.Players);
             Criteria = info.OnBuildRules(Players);
             Actions = info.OnBuildActions(Players);
@@ -62,6 +63,9 @@ namespace Arcadia.Multiplayer
         // these are all of the currently active players
         public List<PlayerData> Players { get; internal set; }
 
+        // this is the options, derived from a game server
+        public List<GameOption> Options { get; internal set; }
+
         // these are all of the attributes that are set
         public List<GameProperty> Properties { get; internal set; }
 
@@ -77,6 +81,7 @@ namespace Arcadia.Multiplayer
         // If true, nobody is allowed to invoke a command
         public bool BlockInput { get; set; }
 
+        // If the action queued doesn't matter too much, just perform a quick fire-and-forget
         internal void QueueAction(TimeSpan delay, string actionId)
         {
             var timer = new ActionQueue(delay, actionId, this);
@@ -84,6 +89,13 @@ namespace Arcadia.Multiplayer
             _currentQueuedAction = timer.Id;
         }
 
+        // If working with an action outside of the list of actions
+        internal void QueueAction(TimeSpan delay, Action<GameContext> action, bool updateOnExecute = true)
+        {
+
+        }
+
+        // If the action queue does matter, give it a unique id so that it's easier to reference
         internal void QueueAction(string id, TimeSpan delay, string actionId)
         {
             var timer = new ActionQueue(id, delay, actionId, this);
@@ -91,29 +103,35 @@ namespace Arcadia.Multiplayer
             _currentQueuedAction = timer.Id;
         }
 
-        internal void CancelQueuedAction()
+        internal void QueueAction(string id, TimeSpan delay, Action<GameContext> action, bool updateOnExecute = true)
+        {
+
+        }
+
+        internal void CancelNewestInQueue()
         {
             if (ActionQueue.Count == 0)
                 return;
 
-            if (GetCurrentQueuedAction() == null)
+            if (GetNewestInQueue() == null)
                 return;
 
             // marks this timer as cancelled.
-            GetCurrentQueuedAction().Cancel();
+            GetNewestInQueue().Cancel();
 
-            ActionQueue.Remove(GetCurrentQueuedAction());
+            ActionQueue.Remove(GetNewestInQueue());
         }
 
-        internal void CancelAllTimers()
+        internal void CancelInQueue(string id)
         {
-            foreach (ActionQueue timer in ActionQueue)
-            {
-                timer.Cancel();
-            }
+            if (ActionQueue.Count == 0)
+                return;
+
+            if (GetInQueue(id) == null)
+                return;
         }
 
-        internal void DisposeAllTimers()
+        internal void DisposeQueue()
         {
             foreach (ActionQueue timer in ActionQueue)
             {
@@ -123,18 +141,31 @@ namespace Arcadia.Multiplayer
             ActionQueue.Clear();
         }
 
-        internal ActionQueue GetQueuedAction(string id)
+        // This completely resets all properties and clears all timers
+        internal void Reset()
+        {
+            DisposeQueue();
+
+            foreach (GameProperty property in Properties)
+                property.Reset();
+
+            foreach (PlayerData player in Players)
+                player.Reset();
+        }
+
+        internal ActionQueue GetInQueue(string id)
         {
             return ActionQueue.FirstOrDefault(x => x.Id == id);
         }
 
-        private ActionQueue GetCurrentQueuedAction()
-            => GetQueuedAction(_currentQueuedAction);
+        private ActionQueue GetNewestInQueue()
+            => GetInQueue(_currentQueuedAction);
 
+        // Invoke an existing action
         internal void InvokeAction(string actionId, InputContext ctx, bool overrideTimer = false)
         {
             if (!overrideTimer)
-                if (GetCurrentQueuedAction()?.IsElapsed ?? false)
+                if (GetNewestInQueue()?.IsElapsed ?? false)
                     return;
 
             if (Actions.All(x => x.Id != actionId))
@@ -150,6 +181,12 @@ namespace Arcadia.Multiplayer
                 _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
+        // Invoke a direct action method instead
+        internal void InvokeAction(Action<GameContext> action, bool overrideTimer = false)
+        {
+
+        }
+
         // This is the root action invoked
         // If unspecified
 
@@ -162,7 +199,7 @@ namespace Arcadia.Multiplayer
         internal void InvokeAction(string actionId, bool overrideTimer = false, bool overridePending = false)
         {
             if (!overrideTimer)
-                if (GetCurrentQueuedAction()?.IsElapsed ?? false)
+                if (GetNewestInQueue()?.IsElapsed ?? false)
                     return;
 
             if (Actions.All(x => x.Id != actionId))
@@ -237,10 +274,10 @@ namespace Arcadia.Multiplayer
         public void ResetProperty(string id)
             => GetProperty(id)?.Reset();
 
-        public object GetPropertyValue(string id)
+        public object ValueOf(string id)
             => GetProperty(id)?.Value;
 
-        public T GetPropertyValue<T>(string id)
+        public T ValueOf<T>(string id)
         {
             var property = GetProperty(id);
 
@@ -255,7 +292,10 @@ namespace Arcadia.Multiplayer
             throw new Exception("The specified type within the property does not match the implicit type reference");
         }
 
-        public void SetPropertyValue(string id, object value)
+        public Type TypeOf(string id)
+            => GetProperty(id)?.ValueType;
+
+        public void SetValue(string id, object value)
         {
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
@@ -263,7 +303,18 @@ namespace Arcadia.Multiplayer
             Properties.First(x => x.Id == id).Set(value);
         }
 
-        public void AddToProperty(string id, int value)
+        public void SetValue(string id, string fromId)
+        {
+            if (Properties.All(x => x.Id != id))
+                throw new Exception($"Could not the specified property '{id}'");
+
+            if (Properties.All(x => x.Id != fromId))
+                throw new Exception($"Could not the specified property '{fromId}'");
+
+            Properties.First(x => x.Id == id).Set(Properties.First(x => x.Id == fromId).Value);
+        }
+
+        public void AddToValue(string id, int value)
         {
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
@@ -276,7 +327,7 @@ namespace Arcadia.Multiplayer
             property.Value = (int) property.Value + value;
         }
 
-        public PlayerData GetPlayerData(ulong userId)
+        public PlayerData DataOf(ulong userId)
         {
             if (Players.All(x => x.Player.User.Id != userId))
                 throw new Exception("Cannot find session data for the specified user");

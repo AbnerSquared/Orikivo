@@ -1,34 +1,35 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Arcadia.Multiplayer.Games;
 
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents a generic constructor for a game.
+    /// Represents a generic base structure for a game.
     /// </summary>
-    public abstract class GameBuilder
+    public abstract class GameBase
     {
         internal void SetGameConfig(GameServer server)
-            => Config = server.Config.GameConfig;
+            => Options = server.Config.GameOptions;
 
         // CANNOT BE NULL
         /// <summary>
-        /// Represents the global identifier for this <see cref="GameBuilder"/>.
+        /// Represents the global identifier for this <see cref="GameBase"/>.
         /// </summary>
         public string Id { get; protected set; }
 
         // CANNOT BE NULL
         /// <summary>
-        /// Represents the details of this <see cref="GameBuilder"/>.
+        /// Represents the details of this <see cref="GameBase"/>.
         /// </summary>
         public GameDetails Details { get; protected set; }
 
         // CAN BE NULL
         /// <summary>
-        /// Represents all of the possible configurations that this <see cref="GameBuilder"/> allows.
+        /// Represents all of the possible configurations that this <see cref="GameBase"/> allows.
         /// </summary>
-        public List<ConfigProperty> Config { get; protected set; } = new List<ConfigProperty>();
+        public List<GameOption> Options { get; protected set; } = new List<GameOption>();
 
         /// <summary>
         /// When specified, handles building the required data for every player in a <see cref="GameSession"/>.
@@ -36,26 +37,26 @@ namespace Arcadia.Multiplayer
         public abstract List<PlayerData> OnBuildPlayers(List<Player> players);
 
         /// <summary>
-        /// When specified, handles collecting all of the required global properties for this <see cref="GameBuilder"/>.
+        /// When specified, handles collecting all of the required global properties for this <see cref="GameBase"/>.
         /// </summary>
         /// <returns></returns>
         public abstract List<GameProperty> OnBuildProperties();
 
         // NOTE: Player references are included to allow you to require specific player IDs on certain actions
         /// <summary>
-        /// When specified, handling collection all of the required actions for this <see cref="GameBuilder"/>.
+        /// When specified, handling collection all of the required actions for this <see cref="GameBase"/>.
         /// </summary>
         public abstract List<GameAction> OnBuildActions(List<PlayerData> players);
 
         /// <summary>
-        /// When specified, handles collecting all of the required criterion for this <see cref="GameBuilder"/>.
+        /// When specified, handles collecting all of the required criterion for this <see cref="GameBase"/>.
         /// </summary>
         public abstract List<GameCriterion> OnBuildRules(List<PlayerData> players);
 
         /// <summary>
-        /// When specified, builds all of the required display channels for this <see cref="GameBuilder"/> and returns them.
+        /// When specified, builds all of the required display channels for this <see cref="GameBase"/> and returns them.
         /// </summary>
-        /// <param name="players">Represents the collection of players for this <see cref="GameBuilder"/>.</param>
+        /// <param name="players">Represents the collection of players for this <see cref="GameBase"/>.</param>
         public abstract List<DisplayChannel> OnBuildDisplays(List<PlayerData> players);
 
         // NOTE: At this point, the GameSession is already built. All you need to do is set the game up for the GameServer
@@ -77,8 +78,10 @@ namespace Arcadia.Multiplayer
 
         }
 
+        //public abstract IBaseSession OnBuildSession(GameServer server);
+
         /// <summary>
-        /// Builds the <see cref="GameSession"/> for this <see cref="GameBuilder"/> on the specified <see cref="GameServer"/>.
+        /// Builds the <see cref="GameSession"/> for this <see cref="GameBase"/> on the specified <see cref="GameServer"/>.
         /// </summary>
         public virtual async Task BuildAsync(GameServer server)
         {
@@ -95,12 +98,12 @@ namespace Arcadia.Multiplayer
             await OnSessionStartAsync(server, session);
         }
 
-        public ConfigProperty GetConfigProperty(string id)
+        public GameOption GetConfigProperty(string id)
         {
-            if (Config.All(x => x.Id != id))
+            if (Options.All(x => x.Id != id))
                 throw new System.Exception("Could not find the specified configuration value.");
 
-            return Config.First(x => x.Id == id);
+            return Options.First(x => x.Id == id);
         }
 
         public object GetConfigValue(string id)
@@ -110,7 +113,7 @@ namespace Arcadia.Multiplayer
 
         public T GetConfigValue<T>(string id)
         {
-            ConfigProperty property = GetConfigProperty(id);
+            GameOption property = GetConfigProperty(id);
 
             if (property.ValueType == null)
                 throw new System.Exception($"The specified config value '{id}' does not have an explicitly defined type");

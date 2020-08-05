@@ -5,16 +5,25 @@ using Orikivo;
 
 namespace Arcadia.Multiplayer
 {
+    /// <summary>
+    /// Represents the origin of an <see cref="IConnection"/>
+    /// </summary>
     public enum OriginType
     {
+        /// <summary>
+        /// Represents an unknown origin.
+        /// </summary>
         Unknown = 0,
 
-        // Specifies that the server connection originated from the GameServer
         Server = 1,
 
         // Specifies that the server connection originated from the GameSession
         Session = 2
     }
+
+    // Create a SessionConnection, Which inherits IConnection, and can be easily modified for a GameSession
+    // Have SessionConnection store their own properties
+    // 
 
     public class ServerConnection
     {
@@ -72,8 +81,6 @@ namespace Arcadia.Multiplayer
             };
         }
 
-        
-
         public ServerConnection() {}
 
         public ServerConnection(IMessageChannel channel,
@@ -97,63 +104,58 @@ namespace Arcadia.Multiplayer
             CreatedAt = DateTime.UtcNow;
         }
 
+        // STATIC, KEEP ONCE SET
         public DateTime CreatedAt { get; set; }
 
+        // SPECIFIED ON INHERITED INITIALIZATION
         public ConnectionType Type { get; set; }
 
         // Specifies the origin of this ServerConnection
         internal OriginType Origin { get; set; }
 
-        // this allows you to group server connections together
+        // CONFIG
         public string Group { get; set; }
 
+        // INTERNAL REF
         public ulong? GuildId { get; set; }
 
+        // REMOVE, refer to Channel
         public ulong ChannelId { get; set; }
 
+        // REMOVE, refer to InternalMessage
         public ulong MessageId { get; set; }
 
-        // only 1 channel can be bound to a server at a time
-        // check to see if the specified channel is connected to anything else.
-        // likewise, you can simply create a cache of channels with their ID and server ID
-        // where should i listen to input?
+        // CONTAINER OF DISPLAY
         public IMessageChannel Channel { get; set; }
 
-        // what message should i update?
+        // DISPLAY OF CONNECTION
         public IUserMessage InternalMessage { get; set; }
 
-        // what is the frequency of the display am I currently pointing to?
+        // PUBLIC, DISPLAY POINTER
         public int Frequency { get; set; }
 
-        // when was the last time this connection was refreshed
-        // if the refresh rate is specified, if the time since the last refresh is shorter
-        // don't refresh the console. likewise, you can create an async refresh that refreshes automatically
-        // once the time to refresh has been met.
+        // INTERNAL REF
         internal DateTime LastRefreshed { get; set; }
 
-        // The refresh rate of this connection
-        // If update calls are going faster than that, wait until it can before updating again
+        // CONFIG
         public TimeSpan? RefreshRate { get; set; }
 
-        // this keeps track of how many messages were sent after the server message was sent.
-        // if enough messages are sent after the lobby message and
-        // can delete messages is false
-        // a new message is sent in replacement
+        // CONFIG, KEEP HIDDEN
         internal int RefreshCounter { get; set; }
 
-        // Keeps track of how many messages appear in front of it.
+        // KEEP HIDDEN
         internal int CurrentMessageCounter { get; set; }
 
-        // determines if the bot can attempt to delete messages
+        // MERGE WITH CanDeleteMessages
         public bool CouldDeleteMessages { get; set; }
 
-        // determines if the bot can 100% delete messages in this channel
+        // CONFIG
         public bool CanDeleteMessages { get; set; } = false;
 
-        // If true, inputs cannot be read in this connection
+        // CONFIG
         public bool BlockInput { get; set; }
 
-        // If specified, overrides the content received from the frequency
+        // REMOVE THIS
         public string ContentOverride { get; set; }
 
         // this determines what is currently being executed in the server connection

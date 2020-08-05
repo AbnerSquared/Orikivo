@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public class SticksGame : GameBuilder
+    public class SticksGame : GameBase
     {
         public override List<PlayerData> OnBuildPlayers(List<Player> players)
         {

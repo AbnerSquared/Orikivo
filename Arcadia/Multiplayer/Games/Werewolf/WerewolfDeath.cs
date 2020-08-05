@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -10,13 +11,16 @@ namespace Arcadia.Multiplayer.Games
         // The ID of the person that died
         public ulong UserId { get; set; }
 
-        // The ID of the killer, if any
-        public ulong? KillerId { get; set; }
+        // This list of killers, if any
+        public List<ulong> Killers { get; set; }
 
         // The method at which they were killed
         public WerewolfDeathMethod Method { get; set; }
 
         // The time at which they were killed
         public DateTime DiedAt { get; set; }
+
+        // This keep track if a death was handled
+        public bool Handled { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace Arcadia.Multiplayer
 
         public GameSession Session => Server.Session;
 
-        public PlayerData Player => Server.Session?.GetPlayerData(Invoker.Id);
+        public PlayerData Player => Server.Session?.DataOf(Invoker.Id);
 
         public InputResult Input { get; set; }
     }

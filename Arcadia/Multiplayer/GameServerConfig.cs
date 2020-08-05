@@ -8,40 +8,38 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class ServerProperties
     {
-        public const int MaxTitleLength = 42;
+        // This is the max length of a server name
+        public const int MaxNameLength = 42;
 
-        private GameBuilder Game;
+        private GameBase Game;
 
-        /// <summary>
-        /// Gets or sets the value that represents the name of a <see cref="GameServer"/>.
-        /// </summary>
-        public string Title { get; set; }
+        // This is the name of this server
+        public string Name { get; set; }
 
-        /// <summary>
-        /// Gets or sets the identifier of the game that the <see cref="GameServer"/> will play.
-        /// </summary>
+        // This represents the ID of the game that will be played
         public string GameId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the visibility of the <see cref="GameServer"/>.
-        /// </summary>
+        // This handles the visibility of this server
         public Privacy Privacy { get; set; }
 
-        public List<ConfigProperty> GameConfig { get; internal set; }
+        // This can probably be renamed to CustomOptions
+        public List<GameOption> GameOptions { get; internal set; }
 
         public GameDetails GameDetails => GameManager.Games.ContainsKey(GameId) ? GameManager.GetGame(GameId).Details : null;
 
-        public ConfigProperty GetConfigProperty(string id)
+
+        // TODO: Move these methods into a class that it fits for better
+        public GameOption GetConfigProperty(string id)
         {
-            if (GameConfig.All(x => x.Id != id))
+            if (GameOptions.All(x => x.Id != id))
                 throw new System.Exception("Could not find the specified configuration value.");
 
-            return GameConfig.First(x => x.Id == id);
+            return GameOptions.First(x => x.Id == id);
         }
 
         public void SetOption(string optionId, object value)
         {
-            ConfigProperty option = GetConfigProperty(optionId);
+            GameOption option = GetConfigProperty(optionId);
 
             if (option.ValueType.IsEquivalentTo(value.GetType()))
                 option.Value = value;
@@ -57,7 +55,7 @@ namespace Arcadia.Multiplayer
             return !string.IsNullOrWhiteSpace(id) && GameManager.Games.ContainsKey(id);
         }
 
-        public GameBuilder LoadGame()
+        public GameBase LoadGame()
         {
             if (Game != null && GameId == Game.Id)
                 return Game;
@@ -69,7 +67,7 @@ namespace Arcadia.Multiplayer
                 Game = GameManager.GetGame(GameId);
             
             Game ??= GameManager.GetGame(GameId);
-            GameConfig = Game.Config;
+            GameOptions = Game.Options;
 
             return Game;
         }

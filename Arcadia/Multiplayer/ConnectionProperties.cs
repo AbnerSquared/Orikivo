@@ -14,18 +14,25 @@
             Frequency = 0
         };
 
+        // The default frequency to set this connection to
         public int Frequency { get; set; } = 0;
 
+        // The game state that should be set for this connection
         public GameState State { get; set; } = GameState.Waiting;
 
+        // If this connection can delete messages
         public bool CanDeleteMessages { get; set; } = false;
 
+        // If this connection should ignore input
         public bool BlockInput { get; set; } = false;
 
         // After 4 messages is sent that CANNOT be deleted, this screen is refreshed, which resends the content into
         // a new message body
+
+        // The size of the auto refresh counter, used to handle auto-refreshing
         public int AutoRefreshCounter { get; set; } = 4;
 
+        // The default value for this connection REMOVE
         public string ContentOverride { get; set; } = null;
     }
 }

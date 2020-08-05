@@ -25,7 +25,7 @@ namespace Arcadia.Multiplayer.Games
         internal static readonly string QuestionDuration = "questionduration";
     }
 
-    public class TriviaGame : GameBuilder
+    public class TriviaGame : GameBase
     {
         public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
         {
@@ -47,12 +47,12 @@ namespace Arcadia.Multiplayer.Games
                 RequiredPlayers = 1
             };
 
-            Config = new List<ConfigProperty>
+            Options = new List<GameOption>
             {
-                ConfigProperty.Create("topics", "Topics", TriviaTopic.Any),
-                ConfigProperty.Create("difficulty", "Difficulty", TriviaDifficulty.Any),
-                ConfigProperty.Create("questioncount", "Question Count", 5),
-                ConfigProperty.Create("questionduration", "Question Duration", 15d)
+                GameOption.Create("topics", "Topics", TriviaTopic.Any),
+                GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any),
+                GameOption.Create("questioncount", "Question Count", 5),
+                GameOption.Create("questionduration", "Question Duration", 15d)
             };
         }
 
@@ -74,14 +74,14 @@ namespace Arcadia.Multiplayer.Games
 
             //session.CancelQueuedAction();
 
-            int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
-            ctx.Session.SetPropertyValue("players_answered", 0);
+            int currentQuestion = ctx.Session.ValueOf<int>("current_question");
+            ctx.Session.SetValue("players_answered", 0);
 
             DisplayContent content = ctx.Server.GetDisplayChannel(11).Content;
 
             content
                 .GetComponent("result")
-                .Draw(ctx.Session.GetPropertyValue<int>("current_question"),
+                .Draw(ctx.Session.ValueOf<int>("current_question"),
                       GetConfigValue<int>("questioncount"),
                       CurrentQuestion.Question,
                       CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
@@ -89,7 +89,7 @@ namespace Arcadia.Multiplayer.Games
 
             foreach (PlayerData playerData in ctx.Session.Players)
             {
-                bool hasAnswered = playerData.GetPropertyValue<bool>("has_answered");
+                bool hasAnswered = playerData.ValueOf<bool>("has_answered");
 
                 if (!hasAnswered)
                 {
@@ -97,17 +97,17 @@ namespace Arcadia.Multiplayer.Games
                 }
                 else
                 {
-                    bool isCorrect = playerData.GetPropertyValue<bool>("is_correct");
+                    bool isCorrect = playerData.ValueOf<bool>("is_correct");
 
 
                     if (isCorrect)
                     {
                         int points = GetPoints(CurrentQuestion.Value,
-                            playerData.GetPropertyValue<int>("streak"),
-                            playerData.GetPropertyValue<int>("answer_position"),
+                            playerData.ValueOf<int>("streak"),
+                            playerData.ValueOf<int>("answer_position"),
                             CurrentQuestion.Difficulty);
 
-                        playerData.AddToProperty("score", points);
+                        playerData.AddToValue("score", points);
                     }
                 }
 
@@ -122,7 +122,7 @@ namespace Arcadia.Multiplayer.Games
         {
             if (ctx.Session.MeetsCriterion("has_all_players_answered"))
             {
-                ctx.Session.CancelQueuedAction();
+                ctx.Session.CancelNewestInQueue();
                 ctx.Session.InvokeAction(TriviaVars.GetQuestionResult, true);
             }
         }
@@ -143,16 +143,16 @@ namespace Arcadia.Multiplayer.Games
                 connection.Frequency = 10;
             }
 
-            int currentQuestion = ctx.Session.GetPropertyValue<int>("current_question");
+            int currentQuestion = ctx.Session.ValueOf<int>("current_question");
             CurrentQuestion = QuestionPool[currentQuestion];
-            ctx.Session.AddToProperty("current_question", 1);
+            ctx.Session.AddToValue("current_question", 1);
 
             DisplayContent content = ctx.Server.GetDisplayChannel(10).Content;
 
             content.GetComponent("question_header")
                 .Draw(
                     Format.Counter(GetConfigValue<double>("questionduration")),
-                    ctx.Session.GetPropertyValue<int>("current_question"),
+                    ctx.Session.ValueOf<int>("current_question"),
                     GetConfigValue<int>("questioncount"),
                     CurrentQuestion.Question);
 
@@ -192,8 +192,8 @@ namespace Arcadia.Multiplayer.Games
                 .GetDisplayChannel(12).Content
                 .GetComponent("leaderboard")
                 .Draw(ctx.Session.Players
-                    .OrderByDescending(x => x.GetPropertyValue<int>("score"))
-                    .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.GetPropertyValue<int>("score")}**p"));
+                    .OrderByDescending(x => x.ValueOf<int>("score"))
+                    .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.ValueOf<int>("score")}**p"));
 
             ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
         }
@@ -202,7 +202,7 @@ namespace Arcadia.Multiplayer.Games
         {
             if (ctx.Session.MeetsCriterion("most_players_want_rematch"))
             {
-                ctx.Session.CancelQueuedAction();
+                ctx.Session.CancelNewestInQueue();
                 // reset all player attributes
                 foreach (PlayerData data in ctx.Session.Players)
                 {
@@ -265,7 +265,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         private static bool HasAllPlayersAnswered(GameSession session)
-            => session.GetPropertyValue<int>(TriviaVars.TotalAnswered) == session.Players.Count;
+            => session.ValueOf<int>(TriviaVars.TotalAnswered) == session.Players.Count;
 
         public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
         {
@@ -278,7 +278,7 @@ namespace Arcadia.Multiplayer.Games
                 Id = "has_all_players_answered",
                 Criterion = delegate(GameSession session)
                 {
-                    return session.GetPropertyValue<int>("players_answered") == session.Players.Count;
+                    return session.ValueOf<int>("players_answered") == session.Players.Count;
                 }
             };
 
@@ -290,7 +290,7 @@ namespace Arcadia.Multiplayer.Games
                 Id = "most_players_want_rematch",
                 Criterion = delegate(GameSession session)
                 {
-                    return session.GetPropertyValue<int>("rematch_requests") >= (session.Players.Count / 2);
+                    return session.ValueOf<int>("rematch_requests") >= (session.Players.Count / 2);
                 }
             };
 
@@ -299,7 +299,7 @@ namespace Arcadia.Multiplayer.Games
                 Id = "has_answered_all_questions",
                 Criterion = delegate (GameSession session)
                 {
-                    return session.GetPropertyValue<int>("current_question") == GetConfigValue<int>("questioncount");
+                    return session.ValueOf<int>("current_question") == GetConfigValue<int>("questioncount");
                 }
             };
 
@@ -402,27 +402,27 @@ namespace Arcadia.Multiplayer.Games
                         OnExecute = delegate(InputContext ctx)
                         {
 
-                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
 
-                            if (data.GetPropertyValue<bool>("has_answered"))
+                            if (data.ValueOf<bool>("has_answered"))
                                 return;
 
                             var answerSelected = CurrentAnswers.ElementAt(0);
 
-                            data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
 
                             if (answerSelected.IsCorrect)
                             {
-                                data.AddToProperty("streak", 1);
+                                data.AddToValue("streak", 1);
                             }
                             else
                             {
                                 data.ResetProperty("streak");
                             }
 
-                            ctx.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", ctx.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
                             ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
@@ -432,9 +432,9 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
 
-                            if (data.GetPropertyValue<bool>("has_answered"))
+                            if (data.ValueOf<bool>("has_answered"))
                                 return;
 
                             int answerCount = CurrentAnswers.Count();
@@ -444,20 +444,20 @@ namespace Arcadia.Multiplayer.Games
 
                             var answerSelected = CurrentAnswers.ElementAt(1);
 
-                            data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
 
                             if (answerSelected.IsCorrect)
                             {
-                                data.AddToProperty("streak", 1);
+                                data.AddToValue("streak", 1);
                             }
                             else
                             {
                                 data.ResetProperty("streak");
                             }
 
-                            ctx.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", ctx.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
                             ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
@@ -467,9 +467,9 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            var data = ctx.Session.GetPlayerData(ctx.Invoker.Id);
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
 
-                            if (data.GetPropertyValue<bool>("has_answered"))
+                            if (data.ValueOf<bool>("has_answered"))
                                 return;
 
                             int answerCount = CurrentAnswers.Count();
@@ -479,20 +479,20 @@ namespace Arcadia.Multiplayer.Games
 
                             var answerSelected = CurrentAnswers.ElementAt(2);
 
-                            data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
 
                             if (answerSelected.IsCorrect)
                             {
-                                data.AddToProperty("streak", 1);
+                                data.AddToValue("streak", 1);
                             }
                             else
                             {
                                 data.ResetProperty("streak");
                             }
 
-                            ctx.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", ctx.Server.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
                             ctx.Session.InvokeAction("try_get_question_result");
                         }
                     },
@@ -502,9 +502,9 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            var data = ctx.Server.Session.GetPlayerData(ctx.Invoker.Id);
+                            var data = ctx.Server.Session.DataOf(ctx.Invoker.Id);
 
-                            if (data.GetPropertyValue<bool>("has_answered"))
+                            if (data.ValueOf<bool>("has_answered"))
                                 return;
 
                             int answerCount = CurrentAnswers.Count();
@@ -514,20 +514,20 @@ namespace Arcadia.Multiplayer.Games
 
                             var answerSelected = CurrentAnswers.ElementAt(3);
 
-                            data.SetPropertyValue("has_answered", true);
-                            data.SetPropertyValue("is_correct", answerSelected.IsCorrect);
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
                             
                             if (answerSelected.IsCorrect)
                             {
-                                data.AddToProperty("streak", 1);
+                                data.AddToValue("streak", 1);
                             }
                             else
                             {
                                 data.ResetProperty("streak");
                             }
 
-                            ctx.Server.Session.AddToProperty("players_answered", 1);
-                            data.SetPropertyValue("answer_position", ctx.Server.Session.GetPropertyValue<int>("players_answered"));
+                            ctx.Server.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
                             ctx.Server.Session.InvokeAction("try_get_question_result");
                         }
                     }
@@ -569,7 +569,7 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            ctx.Session.CancelQueuedAction();
+                            ctx.Session.CancelNewestInQueue();
                             ctx.Session.InvokeAction("try_get_next_question", true);
                         }
                     }
@@ -606,7 +606,7 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            ctx.Session.AddToProperty("rematch_requests", 1);
+                            ctx.Session.AddToValue("rematch_requests", 1);
                             ctx.Session.InvokeAction("try_restart", true);
                         }
                     },
@@ -616,7 +616,7 @@ namespace Arcadia.Multiplayer.Games
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-                            ctx.Session.CancelQueuedAction();
+                            ctx.Session.CancelNewestInQueue();
                             ctx.Session.InvokeAction("end", true);
                         }
                     }
@@ -685,7 +685,7 @@ namespace Arcadia.Multiplayer.Games
 
         public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
-            Config = server.Config.GameConfig;
+            Options = server.Config.GameOptions;
 
             // generate the question pool
             QuestionPool = GenerateQuestions(
@@ -731,12 +731,12 @@ namespace Arcadia.Multiplayer.Games
 
         private ulong GetWinningPlayerId(GameSession session)
         {
-            return session.Players.OrderByDescending(x => x.GetPropertyValue("score")).First().Player.User.Id;
+            return session.Players.OrderByDescending(x => x.ValueOf("score")).First().Player.User.Id;
         }
 
         private int GetScore(GameSession session, ulong playerId)
         {
-            return session.GetPlayerData(playerId).GetPropertyValue<int>("score");
+            return session.DataOf(playerId).ValueOf<int>("score");
         }
 
         internal IEnumerable<TriviaQuestion> GenerateQuestions(int questionCount, TriviaDifficulty difficultyRange, TriviaTopic topic)

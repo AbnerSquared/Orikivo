@@ -4,6 +4,9 @@ using System.Linq;
 namespace Arcadia.Multiplayer
 {
     // a single string
+    /// <summary>
+    /// Represents a text component for a <see cref="DisplayContent"/>.
+    /// </summary>
     public class Component : IComponent
     {
         public string Id { get; internal set; }

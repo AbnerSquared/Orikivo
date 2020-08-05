@@ -36,7 +36,7 @@ namespace Arcadia.Modules
         {
             var lobby = new StringBuilder();
 
-            lobby.AppendLine($"> `{server.Id}` • **{server.Config.Title}** (**{server.Players.Count:##,0}** {Format.TryPluralize("player", server.Players.Count)})");
+            lobby.AppendLine($"> `{server.Id}` • **{server.Config.Name}** (**{server.Players.Count:##,0}** {Format.TryPluralize("player", server.Players.Count)})");
             lobby.AppendLine($"> {WriteGameName(server)}: {WriteActivity(server)}");
             return lobby.ToString();
         }
@@ -86,7 +86,7 @@ namespace Arcadia.Modules
 
         [Command("hostserver")]
         [Summary("Host a new game server.")]
-        public async Task HostServerAsync()
+        public async Task HostServerAsync([Name("game_id")]string gameId = null)
         {
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
@@ -100,7 +100,16 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.CreateServerAsync(Context.User, Context.Channel, Context.Guild);
+            if (Check.NotNull(gameId))
+            {
+                if (!GameManager.Games.ContainsKey(gameId))
+                {
+                    await Context.Channel.WarnAsync("Unable to initialize a server for the specified game mode");
+                    return;
+                }
+            }
+
+            await _games.CreateServerAsync(Context.User, Context.Channel, Context.Guild, gameId);
         }
 
         [Command("joinserver")]
@@ -116,12 +125,6 @@ namespace Arcadia.Modules
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
                 await Context.Channel.WarnAsync("You are already in a server.");
-                return;
-            }
-
-            if (_games.ReservedChannels.ContainsKey(Context.Channel.Id))
-            {
-                await Context.Channel.WarnAsync("This channel is already dedicated to a server.");
                 return;
             }
 
@@ -144,12 +147,6 @@ namespace Arcadia.Modules
                 return;
             }
 
-            if (_games.ReservedChannels.ContainsKey(Context.Channel.Id))
-            {
-                await Context.Channel.WarnAsync("This channel is already dedicated to a server.");
-                return;
-            }
-
             await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(), Context.Guild);
         }
 
@@ -169,16 +166,13 @@ namespace Arcadia.Modules
                 return;
             }
 
-            if (_games.ReservedChannels.ContainsKey(Context.Channel.Id))
+            if (Check.NotNull(gameId))
             {
-                await Context.Channel.WarnAsync("This channel is already dedicated to a server.");
-                return;
-            }
-
-            if (!GameManager.Games.ContainsKey(gameId))
-            {
-                await Context.Channel.WarnAsync("An invalid game mode was specified.");
-                return;
+                if (!GameManager.Games.ContainsKey(gameId))
+                {
+                    await Context.Channel.WarnAsync("An invalid game mode was specified.");
+                    return;
+                }
             }
 
             await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(gameId), Context.Guild);
