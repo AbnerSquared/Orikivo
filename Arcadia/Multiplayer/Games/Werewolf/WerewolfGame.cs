@@ -62,12 +62,19 @@ namespace Arcadia.Multiplayer.Games
             // Initialize the new list of available roles
             var roles = new List<WerewolfRole>();
 
+
+            bool hasWerewolf = false;
             // Handle game balance here
             for (var i = 0; i < playerCount; i++)
-                roles.Add(Randomizer.Choose(availableRoles));
+            {
+                if (!hasWerewolf)
+                    roles.Add(WerewolfRole.Werewolf);
+                else
+                    roles.Add(WerewolfRole.Villager);
+            }
 
-            // Return the list of generated roles
-            return roles;
+            // Return the list of generated roles (this is a bit heavy on operations
+            return Randomizer.Shuffle(roles).ToList();
         }
 
         #region Helpers
@@ -588,8 +595,6 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("agree", OnAgree),
                         new TextInput("accuse", OnAccuse),
                         new TextInput("skip", OnSkip),
-                        new TextInput("live", OnLive),
-                        new TextInput("die", OnDie),
                         new TextInput("say", OnSpeak),
                         new TextInput("silent", OnSilent)
                     }
@@ -678,6 +683,11 @@ namespace Arcadia.Multiplayer.Games
                                 }
                             }
                         }
+                    },
+                    Inputs = new List<IInput>()
+                    {
+                        new TextInput("live", OnLive),
+                        new TextInput("die", OnDie)
                     }
                 },
 
@@ -1015,10 +1025,12 @@ namespace Arcadia.Multiplayer.Games
             {
                 // Otherwise, go directly to the night phase
                 ctx.Session.BlockInput = false;
+                SetChannel(ctx.Server, WolfChannel.Main);
                 ctx.Session.SetPropertyValue(WolfVars.HasTrial, false);
                 ctx.Session.SetPropertyValue(WolfVars.Suspect, 0UL);
                 ctx.Session.SetPropertyValue(WolfVars.Accuser, 0UL);
-                ctx.Session.InvokeAction(WolfVars.StartNight, true);
+                ctx.Server.GetDisplayChannel(WolfChannel.Main).Content.GetGroup("console").Append("There weren't enough votes to allow the kill to go through.");
+                ctx.Session.QueueAction(TimeSpan.FromSeconds(5), WolfVars.EndDay);
             }
         }
 
@@ -1434,7 +1446,7 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             ctx.Server.GetDisplayChannel(WolfChannel.Main).Content.GetGroup("console").Append($"The suspect has said in their defense: {statement}");
-            ctx.Session.InvokeAction(WolfVars.StartVoteInput);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(5), WolfVars.StartVoteInput);
         }
 
         private static bool IsNight(GameSession session)
