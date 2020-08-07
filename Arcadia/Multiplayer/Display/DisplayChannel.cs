@@ -8,9 +8,9 @@ namespace Arcadia.Multiplayer
 {
     // TODO: Remove RefreshRate from DisplayChannel and implement it into ServerConnection
     /// <summary>
-    /// Represents a text-based display for a <see cref="GameServer"/>.
+    /// Represents a text-based display broadcast for a <see cref="GameServer"/>.
     /// </summary>
-    public class DisplayChannel
+    public class DisplayBroadcast
     {
         // this is an array of reserved frequencies
         // these channels are always paired into a game server
@@ -20,9 +20,9 @@ namespace Arcadia.Multiplayer
         // 0: Editing channel
         public static int[] ReservedFrequencies => new[] { 2, 1, 0 };
 
-        internal DisplayChannel() { }
+        internal DisplayBroadcast() { }
 
-        public DisplayChannel(int frequency, DisplayContent content)
+        public DisplayBroadcast(int frequency, DisplayContent content)
         {
             if (ReservedFrequencies.Contains(frequency))
                 throw new Exception("This frequency is reserved.");
@@ -35,7 +35,7 @@ namespace Arcadia.Multiplayer
 
         internal bool Reserved { get; private set; }
 
-        public static List<DisplayChannel> GetReservedChannels()
+        public static List<DisplayBroadcast> GetReservedBroadcasts()
         {
             var waiting = new DisplayContent
             {
@@ -119,10 +119,10 @@ namespace Arcadia.Multiplayer
                 }
             };
 
-            var channels = new List<DisplayChannel>();
+            var channels = new List<DisplayBroadcast>();
             
             // reserved watching channel
-            channels.Add(new DisplayChannel
+            channels.Add(new DisplayBroadcast
             {
                 Frequency = 0,
                 State = GameState.Waiting,
@@ -132,7 +132,7 @@ namespace Arcadia.Multiplayer
             });
 
             // reserved editing channel
-            channels.Add(new DisplayChannel
+            channels.Add(new DisplayBroadcast
             {
                 Frequency = 1,
                 State = GameState.Editing,

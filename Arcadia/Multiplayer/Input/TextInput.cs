@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Orikivo;
+using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
@@ -12,11 +13,12 @@ namespace Arcadia.Multiplayer
     {
         public TextInput() {}
 
-        public TextInput(string name, Action<InputContext> onExecute)
+        public TextInput(string name, Action<InputContext> onExecute, bool updateOnExecute = false)
         {
             Name = name;
             OnExecute = onExecute;
             RequirePlayer = true;
+            UpdateOnExecute = true;
         }
 
         // what does the player need to type to execute this key?
@@ -40,7 +42,10 @@ namespace Arcadia.Multiplayer
 
         public InputResult TryParse(Input input)
         {
-            InputResult result = new InputResult();
+            var result = new InputResult();
+
+            Console.WriteLine(Name);
+            Console.WriteLine(input.Text);
 
             result.Source = input.Text;
 
@@ -52,6 +57,7 @@ namespace Arcadia.Multiplayer
 
                 var reader = new StringReader(input.Text);
                 reader.Skip(Name.Length);
+                reader.SkipWhiteSpace();
 
                 while (reader.CanRead())
                 {
@@ -65,6 +71,7 @@ namespace Arcadia.Multiplayer
                 result.IsSuccess = false;
             }
 
+            Console.WriteLine($"[{Orikivo.Format.Time(DateTime.UtcNow)}] Attempted to parse input {Name} with result of {result.IsSuccess}");
             return result;
         }
     }

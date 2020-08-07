@@ -51,13 +51,14 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// When specified, handles collecting all of the required criterion for this <see cref="GameBase"/>.
         /// </summary>
-        public abstract List<GameCriterion> OnBuildRules(List<PlayerData> players);
+        public virtual List<GameCriterion> OnBuildRules(List<PlayerData> players)
+            => new List<GameCriterion>();
 
         /// <summary>
         /// When specified, builds all of the required display channels for this <see cref="GameBase"/> and returns them.
         /// </summary>
         /// <param name="players">Represents the collection of players for this <see cref="GameBase"/>.</param>
-        public abstract List<DisplayChannel> OnBuildDisplays(List<PlayerData> players);
+        public abstract List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players);
 
         // NOTE: At this point, the GameSession is already built. All you need to do is set the game up for the GameServer
         /// <summary>

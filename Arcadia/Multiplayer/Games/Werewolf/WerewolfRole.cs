@@ -130,7 +130,10 @@ namespace Arcadia.Multiplayer.Games
         Convicted = 16,
 
         // The player is currently accusing someone
-        Accusant = 32
+        Accusant = 32,
+
+        // The player's role has been globally revealed
+        Revealed = 64
     }
 
     // player data

@@ -14,7 +14,7 @@ namespace Arcadia.Multiplayer.Games
             {
                 return new PlayerData
                 {
-                    Player = x,
+                    Source = x,
                     Properties = new List<GameProperty>
                     {
                         // position
@@ -70,7 +70,7 @@ namespace Arcadia.Multiplayer.Games
             throw new NotImplementedException();
         }
 
-        public override List<DisplayChannel> OnBuildDisplays(List<PlayerData> players)
+        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
             throw new NotImplementedException();
         }

@@ -15,7 +15,7 @@ namespace Arcadia.Multiplayer
         {
             _manager = manager;
             Id = KeyBuilder.Generate(8);
-            DisplayChannels = DisplayChannel.GetReservedChannels();
+            Broadcasts = DisplayBroadcast.GetReservedBroadcasts();
             Players = new List<Player>();
             Connections = new List<ServerConnection>();
         }
@@ -28,7 +28,7 @@ namespace Arcadia.Multiplayer
         public string Id { get; }
 
         // all base displays for the game server
-        public List<DisplayChannel> DisplayChannels { get; }
+        public List<DisplayBroadcast> Broadcasts { get; }
 
         // everyone connected to the lobby
         public List<Player> Players { get; }
@@ -73,18 +73,18 @@ namespace Arcadia.Multiplayer
                 connection.Group = null;
         }
 
-        public DisplayChannel GetDisplayChannel(int frequency)
+        public DisplayBroadcast GetBroadcast(int frequency)
         {
-            foreach (DisplayChannel channel in DisplayChannels)
-                if (channel.Frequency == frequency)
-                    return channel;
+            foreach (DisplayBroadcast broadcast in Broadcasts)
+                if (broadcast.Frequency == frequency)
+                    return broadcast;
 
             return null;
         }
 
-        public DisplayChannel GetDisplayChannel(GameState state)
+        public DisplayBroadcast GetBroadcast(GameState state)
         {
-            foreach (DisplayChannel channel in DisplayChannels)
+            foreach (DisplayBroadcast channel in Broadcasts)
                 if (channel.State.HasValue)
                     if (channel.State.Value == state)
                         return channel;
@@ -160,9 +160,15 @@ namespace Arcadia.Multiplayer
                 // This might be bad in a synchronous method, so find a better spot for it
                 // Handle the deletion of all connections created during a session
                 if (connection.Origin == OriginType.Session)
+                {
                     connection.DestroyAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    continue;
+                }
                 else if (connection.CreatedAt > Session.StartedAt && connection.Origin == OriginType.Unknown)
+                {
                     connection.DestroyAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    continue;
+                }
 
                 if ((GameState.Watching | GameState.Playing).HasFlag(connection.State))
                 {
@@ -175,12 +181,12 @@ namespace Arcadia.Multiplayer
 
             Connections.RemoveAll(x => x.Origin == OriginType.Session || x.Origin == OriginType.Unknown && x.CreatedAt > Session.StartedAt);
             // If this display is not a reserved channel, remove it
-            DisplayChannels.RemoveAll(x => !x.Reserved);
+            Broadcasts.RemoveAll(x => !x.Reserved);
             Session.DisposeQueue();
             Session = null;
 
-            DisplayContent waiting = GetDisplayChannel(GameState.Waiting).Content;
-            DisplayContent editing = GetDisplayChannel(GameState.Editing).Content;
+            DisplayContent waiting = GetBroadcast(GameState.Waiting).Content;
+            DisplayContent editing = GetBroadcast(GameState.Editing).Content;
 
             waiting.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
             editing.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
@@ -192,25 +198,34 @@ namespace Arcadia.Multiplayer
         // this tells the game manager to update all ServerConnection channels bound to this frequency
         public async Task UpdateAsync()
         {
-            DisplayChannel channel = null;
+            DisplayBroadcast broadcast = null;
 
             foreach (ServerConnection connection in Connections)
             {
+                // Ignore player connections for now
+                if (connection.Type == ConnectionType.Direct)
+                {
+                    if (Session != null && connection.ContentOverride != null)
+                        await connection.InternalMessage.ModifyAsync(connection.ContentOverride.ToString());
+
+                    continue;
+                }
+
                 Logger.Debug($"{connection.ChannelId} - {connection.State.ToString()}");
                 // this way, you don't have to get the same channel again
-                channel = connection.State == GameState.Playing ?
-                        channel?.Frequency == connection.Frequency ?
-                            channel
-                            : GetDisplayChannel(connection.Frequency)
-                        : GetDisplayChannel(connection.State);
+                broadcast = connection.State == GameState.Playing ?
+                        broadcast?.Frequency == connection.Frequency ?
+                            broadcast
+                            : GetBroadcast(connection.Frequency)
+                        : GetBroadcast(connection.State);
 
-                if (channel == null)
+                if (broadcast == null)
                 {
                     await connection.InternalMessage.ModifyAsync($"> ⚠️ Could not find a channel at the specified frequency ({connection.Frequency}).");
                 }
                 else
                 {
-                    string content = Check.NotNull(connection.ContentOverride) ? connection.ContentOverride :  channel.Content.ToString();
+                    string content = Check.NotNull(connection.ContentOverride?.ToString()) ? connection.ContentOverride?.ToString() :  broadcast.Content.ToString();
 
                     if (connection.InternalMessage == null)
                     {
@@ -227,7 +242,7 @@ namespace Arcadia.Multiplayer
                 }
             }
 
-            Console.WriteLine($"[{Orikivo.Format.Time(DateTime.UtcNow)}] Server update was called");
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Server update was called");
         }
     }
 }

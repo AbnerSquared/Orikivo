@@ -7,6 +7,12 @@ namespace Arcadia.Multiplayer.Games
     // Otherwise, ignore their own UserId
     public class WerewolfPeekData
     {
+        public WerewolfPeekData(ulong userId, bool innocent)
+        {
+            UserId = userId;
+            Innocent = innocent;
+        }
+
         // This is the userId that this peek info is for
         public ulong UserId { get; set; }
 

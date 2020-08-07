@@ -39,7 +39,7 @@ namespace Arcadia.Multiplayer
     public class PlayerConnection
     {
         // this auto-sets up a player channel with the specified player and display channel.
-        public static async Task<PlayerConnection> CreateAsync(Player player, DisplayChannel channel)
+        public static async Task<PlayerConnection> CreateAsync(Player player, DisplayBroadcast channel)
         {
             IDMChannel dm = await player.User.GetOrCreateDMChannelAsync();
 

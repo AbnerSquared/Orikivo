@@ -1,7 +1,9 @@
 ﻿using Discord;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orikivo;
+using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
@@ -32,31 +34,35 @@ namespace Arcadia.Multiplayer
         // {
         //     Display = display;
         // }
-        public static async Task<ServerConnection> CreateAsync(Player player, DisplayChannel display, ConnectionProperties properties = null)
+        public static async Task<ServerConnection> CreateAsync(Player player, ConnectionProperties properties = null)
         {
             properties ??= ConnectionProperties.Default;
             IDMChannel channel = await player.User.GetOrCreateDMChannelAsync();
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Creating connection with ID of {channel.Id} for {player.User.Id}");
+
             return new ServerConnection
             {
                 RefreshRate = TimeSpan.FromSeconds(1),
                 Type = ConnectionType.Direct,
                 RefreshCounter = 4,
                 BlockInput = false,
+                UserId = player.User.Id,
                 CouldDeleteMessages = properties.CanDeleteMessages,
                 Channel = channel,
-                InternalMessage = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride : display.ToString()),
+                InternalMessage = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : "Unspecified content"),
                 ChannelId = channel.Id,
-                Frequency = display.Frequency,
+                Frequency = properties.Frequency,
                 LastRefreshed = DateTime.UtcNow,
                 State = properties.State,
-                ContentOverride = properties.ContentOverride
+                ContentOverride = properties.ContentOverride,
+                Inputs = properties.Inputs
             };
         }
 
-        public static async Task<ServerConnection> CreateAsync(IMessageChannel channel, DisplayChannel display, ConnectionProperties properties = null)
+        public static async Task<ServerConnection> CreateAsync(IMessageChannel channel, DisplayBroadcast display, ConnectionProperties properties = null)
         {
             properties ??= ConnectionProperties.Default;
-            IUserMessage message = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride : display.ToString());
+            IUserMessage message = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : display.ToString());
 
             return new ServerConnection
             {
@@ -77,6 +83,7 @@ namespace Arcadia.Multiplayer
                 CanDeleteMessages = false,
                 BlockInput = properties.BlockInput,
                 ContentOverride = properties.ContentOverride,
+                Inputs = properties.Inputs,
                 State = properties.State
             };
         }
@@ -102,6 +109,7 @@ namespace Arcadia.Multiplayer
             CouldDeleteMessages = canDeleteMessages;
             LastRefreshed = DateTime.UtcNow;
             CreatedAt = DateTime.UtcNow;
+            Inputs = new List<IInput>();
         }
 
         // STATIC, KEEP ONCE SET
@@ -119,6 +127,7 @@ namespace Arcadia.Multiplayer
         // INTERNAL REF
         public ulong? GuildId { get; set; }
 
+        public ulong UserId { get; set; }
         // REMOVE, refer to Channel
         public ulong ChannelId { get; set; }
 
@@ -156,7 +165,10 @@ namespace Arcadia.Multiplayer
         public bool BlockInput { get; set; }
 
         // REMOVE THIS
-        public string ContentOverride { get; set; }
+        public DisplayContent ContentOverride { get; set; }
+
+        // If this server connection has any specific inputs
+        public List<IInput> Inputs { get; set; } = new List<IInput>();
 
         // this determines what is currently being executed in the server connection
         public GameState State { get; set; }
@@ -174,7 +186,7 @@ namespace Arcadia.Multiplayer
 
         public async Task RefreshAsync(GameServer server)
         {
-            DisplayContent content = State == GameState.Playing ? server.GetDisplayChannel(Frequency)?.Content : server.GetDisplayChannel(State)?.Content;
+            DisplayContent content = State == GameState.Playing ? server.GetBroadcast(Frequency)?.Content : server.GetBroadcast(State)?.Content;
 
             if (content == null)
                 throw new Exception("Expected display channel but returned null");
@@ -187,7 +199,7 @@ namespace Arcadia.Multiplayer
             }
 
             await InternalMessage.DeleteAsync();
-            InternalMessage = await Channel.SendMessageAsync(Check.NotNull(ContentOverride) ? ContentOverride : content.ToString());
+            InternalMessage = await Channel.SendMessageAsync(Check.NotNull(ContentOverride?.ToString()) ? ContentOverride?.ToString() : content.ToString());
             MessageId = InternalMessage.Id;
             LastRefreshed = DateTime.UtcNow;
             CurrentMessageCounter = 0;

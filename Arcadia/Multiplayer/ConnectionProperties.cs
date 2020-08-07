@@ -1,4 +1,6 @@
-﻿namespace Arcadia.Multiplayer
+﻿using System.Collections.Generic;
+
+namespace Arcadia.Multiplayer
 {
     /// <summary>
     /// Represents the properties of a <see cref="ServerConnection"/>.
@@ -33,6 +35,8 @@
         public int AutoRefreshCounter { get; set; } = 4;
 
         // The default value for this connection REMOVE
-        public string ContentOverride { get; set; } = null;
+        public DisplayContent ContentOverride { get; set; } = null;
+
+        public List<IInput> Inputs { get; set; } = new List<IInput>();
     }
 }

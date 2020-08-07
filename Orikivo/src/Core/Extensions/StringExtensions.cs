@@ -1,9 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Orikivo
 {
     public static class StringExtensions
     {
+        public static StringBuilder Append(this StringBuilder stringBuilder, char c, int count)
+        {
+            for (int i = 0; i < count; i++)
+                stringBuilder.Append(c);
+
+            return stringBuilder;
+        }
+
+        public static StringBuilder Append(this StringBuilder stringBuilder, string s, int count)
+        {
+            for (int i = 0; i < count; i++)
+                stringBuilder.Append(s);
+
+            return stringBuilder;
+        }
+
+
         public static string ValueOrDefault(this string s)
             => Check.NotNull(s) ? s : "";
 

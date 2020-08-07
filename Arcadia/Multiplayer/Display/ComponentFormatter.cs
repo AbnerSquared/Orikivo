@@ -4,6 +4,21 @@ namespace Arcadia.Multiplayer
 {
     public class ComponentFormatter
     {
+        public ComponentFormatter() {}
+
+        public ComponentFormatter(string baseFormatter, bool overrideBaseValue = false)
+        {
+            BaseFormatter = baseFormatter;
+            OverrideBaseValue = overrideBaseValue;
+        }
+
+        public ComponentFormatter(string baseFormatter, string elementFormatter, string separator, bool overrideBaseValue = false)
+        {
+            BaseFormatter = baseFormatter;
+            ElementFormatter = elementFormatter;
+            Separator = separator;
+            OverrideBaseValue = overrideBaseValue;
+        }
         // For IComponent
         // when this formatter is set on a component, BaseFormatter is the only thing that is used
         // if you are designing a formatter that will require the input of other components,
@@ -24,7 +39,7 @@ namespace Arcadia.Multiplayer
         // if this is set to true for a ComponentGroup, drawing the component requires a list to reference from
         // by default however, this will be set to false
         // If this is set to true, the first argument specified will be the list that will be formatted
-        public bool OverrideBaseValue { get; set; } = false;
+        public bool OverrideBaseValue { get; set; }
 
         // this returns the number of required arguments needed to properly use this formatter
         // if OverrideBaseIndex is set to true, this also increases its number by 1

@@ -171,7 +171,7 @@ namespace Arcadia.Multiplayer
                     State = GameState.Waiting
                 };
 
-                connection = await ServerConnection.CreateAsync(channel, server.GetDisplayChannel(GameState.Waiting), properties);
+                connection = await ServerConnection.CreateAsync(channel, server.GetBroadcast(GameState.Waiting), properties);
                 server.Connections.Add(connection);
                 ReservedChannels.Add(channel.Id, server.Id);
             }
@@ -199,7 +199,7 @@ namespace Arcadia.Multiplayer
             }
 
             server
-                .GetDisplayChannel(GameState.Waiting)
+                .GetBroadcast(GameState.Waiting)
                 .GetComponent(LobbyVars.Header)
                 .Draw(server.Config.Name, server.Id, server.Config.GameId, playerCounter);
         }
@@ -256,7 +256,7 @@ namespace Arcadia.Multiplayer
                 State = GameState.Waiting
             };
 
-            var connection = await ServerConnection.CreateAsync(channel, server.GetDisplayChannel(GameState.Waiting), properties);
+            var connection = await ServerConnection.CreateAsync(channel, server.GetBroadcast(GameState.Waiting), properties);
             connection.Origin = OriginType.Server;
 
             if (guild != null)
@@ -294,7 +294,7 @@ namespace Arcadia.Multiplayer
         internal async Task DestroyServerAsync(GameServer server)
         {
             // Override the display to specify that the server was destroyed
-            server.GetDisplayChannel(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Config.Name}** has been shut down.\n> Sorry about the inconvenience.";
+            server.GetBroadcast(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Config.Name}** has been shut down.\n> Sorry about the inconvenience.";
 
             // Set all connections to the default state
             foreach (ServerConnection connection in server.Connections)
@@ -441,7 +441,7 @@ namespace Arcadia.Multiplayer
                     if (server.Session.BlockInput)
                         return;
 
-                DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
+                DisplayBroadcast display = server.GetBroadcast(connection.Frequency);
 
                 foreach (IInput input in display.Inputs)
                 {
@@ -499,14 +499,14 @@ namespace Arcadia.Multiplayer
         // Refreshes the server's configuration details
         private static void RefreshServerConfig(GameServer server)
         {
-            server.GetDisplayChannel(GameState.Editing)
+            server.GetBroadcast(GameState.Editing)
                 .Content.GetComponent("config")
                 .Draw(server.Config.Name, server.Config.Privacy, server.Config.GameId);
         }
 
         private static void RefreshGameConfig(GameServer server)
         {
-            DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
+            DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
             if (!server.Config.IsValidGame())
                 return;
@@ -524,15 +524,15 @@ namespace Arcadia.Multiplayer
 
         private static void RefreshConsole(GameServer server)
         {
-            server.GetDisplayChannel(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
-            server.GetDisplayChannel(GameState.Waiting).Content.GetComponent(LobbyVars.Console).Draw();
+            server.GetBroadcast(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
+            server.GetBroadcast(GameState.Waiting).Content.GetComponent(LobbyVars.Console).Draw();
         }
 
         // Appends the specified message to all of the reserved console components and updates accordingly
         private static void AppendToConsole(GameServer server, string message, bool draw = true)
         {
-            DisplayContent waiting = server.GetDisplayChannel(GameState.Waiting).Content;
-            DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
+            DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
+            DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
             waiting.GetGroup(LobbyVars.Console).Append(message);
             editing.GetGroup(LobbyVars.Console).Append(message);
@@ -562,25 +562,50 @@ namespace Arcadia.Multiplayer
         {
             var allowUpdate = true;
             IUser user = message.Author;
+            string serverId = "";
 
             // Ignore all bots
             if (user.IsBot)
                 return;
 
-            // Ignore if the origin of this message is not in the reserves
             if (!ReservedChannels.ContainsKey(message.Channel.Id))
-                return;
+            {
+                IDMChannel channel = await user.GetOrCreateDMChannelAsync();
+
+
+                Console.WriteLine("Checking dm comparison");
+                if (channel.Id != message.Channel.Id)
+                    return;
+            }
+            else
+            {
+                serverId = ReservedChannels[message.Channel.Id];
+            }
 
             // Ignore if the user is already reserved but the servers references don't match
             if (ReservedUsers.ContainsKey(user.Id))
-                if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
-                    return;
+            {
+                // Ignore if the origin of this message is not in the reserves
+                if (ReservedChannels.ContainsKey(message.Channel.Id))
+                {
+                    Console.WriteLine("Checking reserve comparison");
+                    if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
+                        return;
+                }
+                else
+                {
+                    serverId = ReservedUsers[user.Id];
+                }
+            }
 
+            
+
+            Console.WriteLine("Reserve comparison success");
             // Throw an error if the reserved reference points to an empty server
-            if (!Servers.ContainsKey(ReservedChannels[message.Channel.Id]))
-                throw new Exception("Unable to find the requested server for the specified channel");
+            if (!Servers.ContainsKey(serverId))
+                throw new Exception("Unable to find the requested server for the specified user");
 
-            GameServer server = Servers[ReservedChannels[message.Channel.Id]];
+            GameServer server = Servers[serverId];
 
             // Throw an error if the specified channel saved in the reserves doesn't exist on this server
             if (!server.HasConnection(message.Channel.Id))
@@ -588,17 +613,23 @@ namespace Arcadia.Multiplayer
 
             Player player = server.GetPlayer(user.Id);
             ServerConnection connection = server.Connections.First(x => x.ChannelId == message.Channel.Id);
+            Console.WriteLine("Reading input");
+            //if (!ReservedChannels.ContainsKey(message.Channel.Id) && connection.UserId != user.Id)
+            //    return;
 
             // If the current connection doesn't allow input, ignore it
             if (connection.BlockInput)
+            {
+                Console.WriteLine("Input blocked, not handling");
                 return;
+            }
 
             // Extract only the content of the message
             string ctx = message.Content;
 
             // Load all of the display channels for the specified game states
-            DisplayContent waiting = server.GetDisplayChannel(GameState.Waiting).Content;
-            DisplayContent editing = server.GetDisplayChannel(GameState.Editing).Content;
+            DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
+            DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
             // Check if the session exists
             if (server.Session != null)
@@ -1246,16 +1277,24 @@ namespace Arcadia.Multiplayer
                 // If they are currently in an active session, handle the specified inputs instead for the specified display channel
                 case GameState.Playing:
                     // Get the display channel that the server connection is referencing
-                    DisplayChannel display = server.GetDisplayChannel(connection.Frequency);
+                    DisplayBroadcast display = server.GetBroadcast(connection.Frequency);
+
+                    var inputs = display.Inputs;
+
+                    Console.WriteLine($"Connection input count: {connection.Inputs?.Count}");
+
+                    if (Check.NotNullOrEmpty(connection.Inputs))
+                        inputs = connection.Inputs;
 
                     // Iterate through all inputs specified
-                    foreach (IInput input in display.Inputs)
+                    foreach (IInput input in inputs)
                     {
                         string rawCtx = ctx;
 
                         // If the following input type is a TextInput
                         if (input is TextInput tInput)
                         {
+                            Console.WriteLine("Text input found.");
                             // Check to see if it's case sensitive
                             if (!tInput.CaseSensitive)
                                 rawCtx = ctx.ToLower();
@@ -1268,14 +1307,26 @@ namespace Arcadia.Multiplayer
                         {
                             // Check criterion, if any
                             if (result.Input.Criterion != null)
+                            {
                                 if (!result.Input.Criterion(user, connection, server))
                                     break;
+                            }
 
                             if (result.Input.OnExecute == null)
                                 throw new Exception("Expected a function for the following input but returned null");
-                            
-                            // Execute the specified method for the matched input
-                            result.Input.OnExecute(new InputContext(user, connection, server, result));
+
+                            try
+                            {
+                                // Execute the specified method for the matched input
+                                result.Input.OnExecute(new InputContext(user, connection, server, result));
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                                server.DestroyCurrentSession();
+                                AppendToConsole(server, $"[Console] An exception has been thrown while handling an input.");
+                                return;
+                            }
 
                             // If the existing player no longer exists in the server
                             if (player != null)
@@ -1303,12 +1354,12 @@ namespace Arcadia.Multiplayer
                             
                             // Make a check if the server is allowed to update
                             allowUpdate = result.Input.UpdateOnExecute;
+
+                            Console.WriteLine("Handled input successfully.");
+                            // Stop reading inputs once one is successful
+                            break;
                         }
-
-                        // Stop reading inputs once one is successful
-                        break;
                     }
-
                     break;
             }
             
@@ -1394,7 +1445,7 @@ namespace Arcadia.Multiplayer
                 // Send a new message to that channel's connection to refresh it
                 connection.InternalMessage = await connection.Channel
                     .SendMessageAsync(server
-                    .GetDisplayChannel(connection.Frequency).ToString());
+                    .GetBroadcast(connection.Frequency).ToString());
 
                 connection.MessageId = connection.InternalMessage.Id;
             }

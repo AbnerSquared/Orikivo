@@ -47,7 +47,7 @@ namespace Arcadia.Multiplayer
 
             Properties = info.OnBuildProperties();
 
-            _server.DisplayChannels.AddRange(info.OnBuildDisplays(Players));
+            _server.Broadcasts.AddRange(info.OnBuildBroadcasts(Players));
 
             ActivityDisplay = "playing a game";
         }
@@ -198,6 +198,8 @@ namespace Arcadia.Multiplayer
 
         internal void InvokeAction(string actionId, bool overrideTimer = false, bool overridePending = false)
         {
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Invoking action {actionId}");
+
             if (!overrideTimer)
                 if (GetNewestInQueue()?.IsElapsed ?? false)
                     return;
@@ -257,6 +259,7 @@ namespace Arcadia.Multiplayer
 
         internal bool MeetsCriterion(string ruleId)
         {
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Checking criterion {ruleId}");
             if (Criteria.All(x => x.Id != ruleId))
                 throw new Exception($"Could not find the specified rule '{ruleId}'");
 
@@ -265,10 +268,33 @@ namespace Arcadia.Multiplayer
 
         public GameProperty GetProperty(string id)
         {
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Getting property {id}");
+
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);
+        }
+
+        public GameOption GetOption(string id)
+        {
+            if (Options.All(x => x.Id != id))
+                throw new Exception($"Could not find the specified option '{id}'");
+
+            return Options.First(x => x.Id == id);
+        }
+
+        public object GetOptionValue(string id)
+            => GetOption(id)?.Value;
+
+        public T GetOptionValue<T>(string id)
+        {
+            GameOption option = GetOption(id);
+
+            if (option.ValueType == null || !option.ValueType.IsEquivalentTo(typeof(T)))
+                throw new Exception("The specified type within the property does not match the implicit type reference");
+
+            return (T)option.Value;
         }
 
         public void ResetProperty(string id)
@@ -297,10 +323,18 @@ namespace Arcadia.Multiplayer
 
         public void SetValue(string id, object value)
         {
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Setting property {id} to {value.ToString()}");
+
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
             Properties.First(x => x.Id == id).Set(value);
+        }
+
+        public void SetForEachPlayer(string id, object value)
+        {
+            foreach (PlayerData player in Players)
+                player.SetValue(id, value);
         }
 
         public void SetValue(string id, string fromId)
@@ -316,6 +350,8 @@ namespace Arcadia.Multiplayer
 
         public void AddToValue(string id, int value)
         {
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Adding {value} to property {id}");
+
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");
 
@@ -329,10 +365,12 @@ namespace Arcadia.Multiplayer
 
         public PlayerData DataOf(ulong userId)
         {
-            if (Players.All(x => x.Player.User.Id != userId))
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Getting data of {userId}");
+
+            if (Players.All(x => x.Source.User.Id != userId))
                 throw new Exception("Cannot find session data for the specified user");
 
-            return Players.First(x => x.Player.User.Id == userId);
+            return Players.First(x => x.Source.User.Id == userId);
         }
     }
 }

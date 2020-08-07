@@ -10,7 +10,7 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class PlayerData
     {
-        public Player Player { get; internal set; }
+        public Player Source { get; internal set; }
 
         public List<GameProperty> Properties { get; set; }
 
@@ -80,7 +80,7 @@ namespace Arcadia.Multiplayer
         public override string ToString()
         {
             var info = new StringBuilder();
-            info.AppendLine($"Data for {Player.User.Username}:");
+            info.AppendLine($"Data for {Source.User.Username}:");
 
             foreach (GameProperty property in Properties)
             {

@@ -77,7 +77,7 @@ namespace Arcadia.Multiplayer.Games
             int currentQuestion = ctx.Session.ValueOf<int>("current_question");
             ctx.Session.SetValue("players_answered", 0);
 
-            DisplayContent content = ctx.Server.GetDisplayChannel(11).Content;
+            DisplayContent content = ctx.Server.GetBroadcast(11).Content;
 
             content
                 .GetComponent("result")
@@ -147,7 +147,7 @@ namespace Arcadia.Multiplayer.Games
             CurrentQuestion = QuestionPool[currentQuestion];
             ctx.Session.AddToValue("current_question", 1);
 
-            DisplayContent content = ctx.Server.GetDisplayChannel(10).Content;
+            DisplayContent content = ctx.Server.GetBroadcast(10).Content;
 
             content.GetComponent("question_header")
                 .Draw(
@@ -185,15 +185,15 @@ namespace Arcadia.Multiplayer.Games
 
             foreach (PlayerData data in ctx.Session.Players)
             {
-                Console.WriteLine($"{data.Player.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
+                Console.WriteLine($"{data.Source.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
             }
 
             ctx.Session._server
-                .GetDisplayChannel(12).Content
+                .GetBroadcast(12).Content
                 .GetComponent("leaderboard")
                 .Draw(ctx.Session.Players
                     .OrderByDescending(x => x.ValueOf<int>("score"))
-                    .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Player.User.Username}**: **{x.ValueOf<int>("score")}**p"));
+                    .Select((x, i) => $"[**{i + 1}**{GetPositionSuffix(i + 1)}] **{x.Source.User.Username}**: **{x.ValueOf<int>("score")}**p"));
 
             ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
         }
@@ -340,16 +340,16 @@ namespace Arcadia.Multiplayer.Games
 
         // create display channels here
         // inputs are specified here
-        public override List<DisplayChannel> OnBuildDisplays(List<PlayerData> players)
+        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
-            var displays = new List<DisplayChannel>();
+            var displays = new List<DisplayBroadcast>();
             // frequency 10 (question)
             // This is what displays all of the questions and allows for answering
             // The action 'show_question_result' is executed when:
             // - All current players chose an answer
             // - The timer of 30 seconds since the question started runs out
 
-            var question = new DisplayChannel
+            var question = new DisplayBroadcast
             {
                 Frequency = 10,
                 Content = new DisplayContent
@@ -537,7 +537,7 @@ namespace Arcadia.Multiplayer.Games
             // Display 2: Question Result (Frequency 11)
             // This is what shows what the actual answer was
             // There is a basic timer of 3 seconds before executing the action 'try_get_next_question'
-            var questionResult = new DisplayChannel
+            var questionResult = new DisplayBroadcast
             {
                 Frequency = 11,
                 Content = new DisplayContent
@@ -577,7 +577,7 @@ namespace Arcadia.Multiplayer.Games
             };
 
 
-            var results = new DisplayChannel
+            var results = new DisplayBroadcast
             {   Frequency = 12,
                 Content = new DisplayContent
                 {
@@ -642,7 +642,7 @@ namespace Arcadia.Multiplayer.Games
             var sessionData = players.Select(x =>
                 new PlayerData
                 {
-                    Player = x,
+                    Source = x,
                     Properties = new List<GameProperty>
                     {
                         GameProperty.Create("score", 0),
@@ -705,7 +705,7 @@ namespace Arcadia.Multiplayer.Games
             // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
             foreach (PlayerData player in session.Players)
             {
-                ulong playerId = player.Player.User.Id;
+                ulong playerId = player.Source.User.Id;
                 var stats = new List<StatUpdatePacket>();
                 
                 stats.Add(new StatUpdatePacket(TriviaStats.TimesPlayed, 1));
@@ -731,7 +731,7 @@ namespace Arcadia.Multiplayer.Games
 
         private ulong GetWinningPlayerId(GameSession session)
         {
-            return session.Players.OrderByDescending(x => x.ValueOf("score")).First().Player.User.Id;
+            return session.Players.OrderByDescending(x => x.ValueOf("score")).First().Source.User.Id;
         }
 
         private int GetScore(GameSession session, ulong playerId)

@@ -9,6 +9,23 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class Component : IComponent
     {
+        public Component() { }
+
+        public Component(string id, int position, bool active = true)
+        {
+            Id = id;
+            Position = position;
+            Active = active;
+        }
+
+        public Component(string id, int position, ComponentFormatter formatter, bool active = true)
+        {
+            Id = id;
+            Position = position;
+            Formatter = formatter;
+            Active = active;
+        }
+
         public string Id { get; internal set; }
         
         public bool Active { get; set; }

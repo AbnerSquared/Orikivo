@@ -33,10 +33,14 @@ namespace Orikivo
         /// <summary>
         /// Selects an element at random from a collection.
         /// </summary>
-        public static T Choose<T>(IEnumerable<T> args)
+        public static T Choose<T>(in IEnumerable<T> args)
         {
             if (!Check.NotNullOrEmpty(args))
                 throw new NullReferenceException("The arguments specified cannot be null or empty.");
+
+            // If there's only one element, just return that
+            if (args.Count() == 1)
+                return args.First();
 
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
         }
