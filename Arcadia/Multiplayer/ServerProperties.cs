@@ -11,22 +11,35 @@ namespace Arcadia.Multiplayer
         // This is the max length of a server name
         public const int MaxNameLength = 42;
 
+        public static readonly ServerProperties Default = new ServerProperties
+        {
+            GameId = "Trivia",
+            Privacy = Privacy.Public,
+            Name = "New Game Server"
+        };
+
+        public static ServerProperties GetDefault(string hostName)
+        {
+            ServerProperties properties = Default;
+            properties.Name = $"{hostName}'s Server";
+
+            return properties;
+        }
+
+        public ServerProperties()
+        {
+            GameOptions = new List<GameOption>();
+        }
+
         private GameBase Game;
 
-        // This is the name of this server
         public string Name { get; set; }
 
-        // This represents the ID of the game that will be played
         public string GameId { get; set; }
 
-        // This handles the visibility of this server
         public Privacy Privacy { get; set; }
 
-        // This can probably be renamed to CustomOptions
         public List<GameOption> GameOptions { get; internal set; }
-
-        public GameDetails GameDetails => GameManager.Games.ContainsKey(GameId) ? GameManager.GetGame(GameId).Details : null;
-
 
         // TODO: Move these methods into a class that it fits for better
         public GameOption GetConfigProperty(string id)
@@ -65,7 +78,7 @@ namespace Arcadia.Multiplayer
 
             if (Game != null && GameId != Game.Id)
                 Game = GameManager.GetGame(GameId);
-            
+
             Game ??= GameManager.GetGame(GameId);
             GameOptions = Game.Options;
 

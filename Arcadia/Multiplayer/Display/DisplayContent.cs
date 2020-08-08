@@ -1,24 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace Arcadia.Multiplayer
 {
-    // TODO: Instead of storing a list of components, make the display content itself the component container
-    public class DisplayContent
+    [DebuggerDisplay(@"{DebuggerDisplay,nq}")]
+    public class DisplayContent : List<IComponent>
     {
-        public DisplayContent()
+        public DisplayContent(string separator = "\n", string valueOverride = null)
         {
-            Components = new List<IComponent>();
+            ValueOverride = valueOverride;
+            Separator = separator;
         }
 
-        public List<IComponent> Components { get; set; }
-
-        // when this value is specified,
-        // all components are ignored,
-        // only drawing this
         public string ValueOverride { get; set; }
+
+        public string Separator { get; set; }
 
         public override string ToString()
         {
@@ -27,39 +26,37 @@ namespace Arcadia.Multiplayer
 
             var writer = new StringBuilder();
 
-            if (Components.Count == 0)
+            if (Count == 0)
             {
                 return "Empty Content";
             }
 
-            foreach(IComponent component in Components.OrderBy(x => x.Position))
+            int i = 0;
+            foreach(IComponent component in this.OrderBy(x => x.Position))
             {
                 // if this component is not active, skip over it and continue
                 if (!component.Active)
                     continue;
 
-                // refer to the buffer, and only if the buffer is null, can a default component draw be specified
-                writer.AppendLine(string.IsNullOrWhiteSpace(component.Buffer) ? component.Draw() : component.Buffer);
+                if (i > 0)
+                    writer.Append(Separator);
+
+                writer.Append(string.IsNullOrWhiteSpace(component.Buffer) ? component.Draw() : component.Buffer);
+                i++;
             }
 
             return writer.ToString();
         }
 
         private int GetLowestPosition()
-            => Components.OrderBy(x => x.Position).First().Position;
+            => this.OrderBy(x => x.Position).First().Position;
 
         private int GetHighestPosition()
-            => Components.OrderByDescending(x => x.Position).First().Position;
+            => this.OrderByDescending(x => x.Position).First().Position;
 
         public IComponent GetComponent(string id)
         {
-            foreach(IComponent component in Components)
-            {
-                if (component.Id == id)
-                    return component;
-            }
-
-            return null;
+            return this.FirstOrDefault(x => x.Id == id);
         }
 
         public ComponentGroup GetGroup(string id)
@@ -70,7 +67,6 @@ namespace Arcadia.Multiplayer
             throw new InvalidCastException("Unable to cast IComponent as ComponentGroup");
         }
 
-        // this brings the specific component to the top of the list
         public void MoveToTop(string id)
         {
             IComponent component = GetComponent(id);
@@ -78,12 +74,9 @@ namespace Arcadia.Multiplayer
             if (component == null)
                 return;
 
-            // in this case, you would have to set the index of this component
             component.Position = GetLowestPosition() - 1;
-            // to the lowest available position
         }
 
-        // this brings the specific component to the bottom of the list
         public void MoveToBottom(string id)
         {
             IComponent component = GetComponent(id);
@@ -94,7 +87,6 @@ namespace Arcadia.Multiplayer
             component.Position = GetHighestPosition() + 1;
         }
 
-        // this sets the specific component to the specific position
         public void SetPosition(string id, int position)
         {
             IComponent component = GetComponent(id);
@@ -105,9 +97,6 @@ namespace Arcadia.Multiplayer
             component.Position = position;
         }
 
-        // swaps the position of both components
-        // if either of the components don't exist,
-        // cancel this the method
         public void Swap(string oldId, string newId)
         {
             IComponent a = GetComponent(oldId);
@@ -120,5 +109,7 @@ namespace Arcadia.Multiplayer
             a.Position = b.Position;
             b.Position = oldPos;
         }
+
+        private string DebuggerDisplay => $"Components: {Count}{(!string.IsNullOrWhiteSpace(ValueOverride) ? $", Value Override: {ValueOverride}" : "")}";
     }
 }

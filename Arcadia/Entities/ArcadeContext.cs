@@ -11,16 +11,16 @@ namespace Arcadia
         public ArcadeContext(DiscordSocketClient client, ArcadeContainer data, SocketUserMessage message)
             : base(client, message)
         {
-            Logger.Debug("-- Intializing arcade context. --");
+            Logger.Debug("-- Initializing arcade context. --");
             Data = data;
-            
+
             if (Guild != null)
             {
                 GetOrAddGuild(Guild);
                 Server.Synchronize(Guild);
             }
 
-            Logger.Debug($"-- {(Account == null ? "Account exists" : "Account does not exist")}. --");
+            Logger.Debug($"-- {(Account != null ? "Account exists" : "Account does not exist")}. --");
         }
 
         internal ArcadeContainer Data { get; }
@@ -38,10 +38,19 @@ namespace Arcadia
         {
             get
             {
+                if (Guild == null)
+                    return null;
+
                 Data.Guilds.TryGet(Guild.Id, out BaseGuild guild);
                 return guild;
             }
-            set => Data.Guilds.AddOrUpdate(Guild.Id, value);
+            set
+            {
+                if (Guild == null)
+                    return;
+
+                Data.Guilds.AddOrUpdate(Guild.Id, value);
+            }
         }
 
         internal ArcadeUser GetOrAddUser(SocketUser user)

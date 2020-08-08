@@ -82,7 +82,7 @@ namespace Arcadia.Multiplayer.Games
             content
                 .GetComponent("result")
                 .Draw(ctx.Session.ValueOf<int>("current_question"),
-                      GetConfigValue<int>("questioncount"),
+                    ctx.Session.GetConfigValue<int>("questioncount"),
                       CurrentQuestion.Question,
                       CurrentAnswers.Select((x, i) => x.IsCorrect ? $"[**{GetLetter(i).ToUpper()}**] {x.Response}" : null)
                         .First(x => !string.IsNullOrWhiteSpace(x)));
@@ -151,9 +151,9 @@ namespace Arcadia.Multiplayer.Games
 
             content.GetComponent("question_header")
                 .Draw(
-                    Format.Counter(GetConfigValue<double>("questionduration")),
+                    Format.Counter(ctx.Session.GetConfigValue<double>("questionduration")),
                     ctx.Session.ValueOf<int>("current_question"),
-                    GetConfigValue<int>("questioncount"),
+                    ctx.Session.GetConfigValue<int>("questioncount"),
                     CurrentQuestion.Question);
 
             // select only 3 random answers and shuffle with the correct answer in there
@@ -171,7 +171,7 @@ namespace Arcadia.Multiplayer.Games
                     CurrentQuestion.Topic.ToString(),
                     $"{CurrentQuestion.Value} {Format.TryPluralize("Point", CurrentQuestion.Value)}");
 
-            ctx.Session.QueueAction(TimeSpan.FromSeconds(GetConfigValue<double>("questionduration")), "get_question_result");
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(ctx.Session.GetConfigValue<double>("questionduration")), "get_question_result");
         }
 
 
@@ -188,7 +188,7 @@ namespace Arcadia.Multiplayer.Games
                 Console.WriteLine($"{data.Source.User.Username}:\n{string.Join('\n', data.Properties.Select(x => $"{x.Id}: {x.Value.ToString()}"))}");
             }
 
-            ctx.Session._server
+            ctx.Session.Server
                 .GetBroadcast(12).Content
                 .GetComponent("leaderboard")
                 .Draw(ctx.Session.Players
@@ -220,9 +220,9 @@ namespace Arcadia.Multiplayer.Games
 
                 // regenerate question pool.
                 QuestionPool = GenerateQuestions(
-                    GetConfigValue<int>("questioncount"),
-                    GetConfigValue<TriviaDifficulty>("difficulty"),
-                    GetConfigValue<TriviaTopic>("topics")).ToList();
+                    ctx.Session.GetConfigValue<int>("questioncount"),
+                    ctx.Session.GetConfigValue<TriviaDifficulty>("difficulty"),
+                    ctx.Session.GetConfigValue<TriviaTopic>("topics")).ToList();
 
                 ctx.Session.InvokeAction("try_get_next_question", true);
             }
@@ -299,7 +299,7 @@ namespace Arcadia.Multiplayer.Games
                 Id = "has_answered_all_questions",
                 Criterion = delegate (GameSession session)
                 {
-                    return session.ValueOf<int>("current_question") == GetConfigValue<int>("questioncount");
+                    return session.ValueOf<int>("current_question") == session.GetConfigValue<int>("questioncount");
                 }
             };
 
@@ -349,47 +349,43 @@ namespace Arcadia.Multiplayer.Games
             // - All current players chose an answer
             // - The timer of 30 seconds since the question started runs out
 
-            var question = new DisplayBroadcast
+            var question = new DisplayBroadcast(10)
             {
-                Frequency = 10,
                 Content = new DisplayContent
                 {
-                    Components = new List<IComponent>
+                    new Component
                     {
-                        new Component
+                        Active = true,
+                        Id = "question_header",
+                        Position = 0,
+                        Formatter = new ComponentFormatter
                         {
-                            Active = true,
-                            Id = "question_header",
-                            Position = 0,
-                            Formatter = new ComponentFormatter
-                            {
-                                BaseFormatter = "⏲️ {0}\n**Question {1}** (of {2})\n> {3}",
-                                OverrideBaseValue = true
-                            }
-                        },
-                        new ComponentGroup
+                            BaseFormatter = "⏲️ {0}\n**Question {1}** (of {2})\n> {3}",
+                            OverrideBaseValue = true
+                        }
+                    },
+                    new ComponentGroup
+                    {
+                        Active = true,
+                        Id = "answers",
+                        Position = 1,
+                        Formatter = new ComponentFormatter
                         {
-                            Active = true,
-                            Id = "answers",
-                            Position = 1,
-                            Formatter = new ComponentFormatter
-                            {
-                                BaseFormatter = "{0}\n",
-                                ElementFormatter = "> {0}",
-                                Separator = "\n",
-                                OverrideBaseValue = true
-                            }
-                        },
-                        new Component
+                            BaseFormatter = "{0}\n",
+                            ElementFormatter = "> {0}",
+                            Separator = "\n",
+                            OverrideBaseValue = true
+                        }
+                    },
+                    new Component
+                    {
+                        Active = true,
+                        Id = "footer",
+                        Position = 2,
+                        Formatter = new ComponentFormatter
                         {
-                            Active = true,
-                            Id = "footer",
-                            Position = 2,
-                            Formatter = new ComponentFormatter
-                            {
-                                BaseFormatter = "**Difficulty**: `{0}`\n**Topic**: `{1}`\n**Value**: `{2}`",
-                                OverrideBaseValue = true
-                            }
+                            BaseFormatter = "**Difficulty**: `{0}`\n**Topic**: `{1}`\n**Value**: `{2}`",
+                            OverrideBaseValue = true
                         }
                     }
                 },
@@ -537,27 +533,23 @@ namespace Arcadia.Multiplayer.Games
             // Display 2: Question Result (Frequency 11)
             // This is what shows what the actual answer was
             // There is a basic timer of 3 seconds before executing the action 'try_get_next_question'
-            var questionResult = new DisplayBroadcast
+            var questionResult = new DisplayBroadcast(11)
             {
-                Frequency = 11,
                 Content = new DisplayContent
                 {
-                    Components = new List<IComponent>
+                    new Component
                     {
-                        new Component
+                        Active = true,
+                        Id = "result",
+                        Position = 0,
+                        Formatter = new ComponentFormatter
                         {
-                            Active = true,
-                            Id = "result",
-                            Position = 0,
-                            Formatter = new ComponentFormatter
-                            {
-                                // 0: currentQuestion
-                                // 1: questionCount
-                                // 2: questionValue
-                                // 3: correctResponse
-                                BaseFormatter = "**Question {0}** (of {1})\n> {2}\n\n> **Correct Response**:\n> {3}",
-                                OverrideBaseValue = true
-                            }
+                            // 0: currentQuestion
+                            // 1: questionCount
+                            // 2: questionValue
+                            // 3: correctResponse
+                            BaseFormatter = "**Question {0}** (of {1})\n> {2}\n\n> **Correct Response**:\n> {3}",
+                            OverrideBaseValue = true
                         }
                     }
                 },
@@ -577,26 +569,23 @@ namespace Arcadia.Multiplayer.Games
             };
 
 
-            var results = new DisplayBroadcast
-            {   Frequency = 12,
+            var results = new DisplayBroadcast(12)
+            {
                 Content = new DisplayContent
                 {
-                    Components = new List<IComponent>
-                   {
-                       new ComponentGroup
-                       {
-                           Active = true,
-                           Formatter = new ComponentFormatter
-                           {
-                               Separator = "\n",
-                               BaseFormatter = "**Results**\n{0}",
-                               ElementFormatter = "{0}",
-                               OverrideBaseValue = true
-                           },
-                           Id = "leaderboard",
-                           Position = 0
-                       }
-                   }
+                    new ComponentGroup
+                    {
+                        Active = true,
+                        Formatter = new ComponentFormatter
+                        {
+                            Separator = "\n",
+                            BaseFormatter = "**Results**\n{0}",
+                            ElementFormatter = "{0}",
+                            OverrideBaseValue = true
+                        },
+                        Id = "leaderboard",
+                        Position = 0
+                    }
                 },
                 Inputs = new List<IInput>
                 {
@@ -637,7 +626,7 @@ namespace Arcadia.Multiplayer.Games
             return displays;
         }
 
-        public override List<PlayerData> OnBuildPlayers(List<Player> players)
+        public override List<PlayerData> OnBuildPlayers(IEnumerable<Player> players)
         {
             var sessionData = players.Select(x =>
                 new PlayerData
@@ -689,9 +678,9 @@ namespace Arcadia.Multiplayer.Games
 
             // generate the question pool
             QuestionPool = GenerateQuestions(
-                GetConfigValue<int>(TriviaConfig.QuestionCount),
-                GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty),
-                GetConfigValue<TriviaTopic>(TriviaConfig.Topics)
+                session.GetConfigValue<int>(TriviaConfig.QuestionCount),
+                session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty),
+                session.GetConfigValue<TriviaTopic>(TriviaConfig.Topics)
                 ).ToList();
 
             // once all of that is ready, invoke action try_get_next_questions

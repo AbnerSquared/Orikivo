@@ -1,6 +1,7 @@
 ﻿using Orikivo;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Arcadia.Multiplayer
@@ -15,6 +16,7 @@ namespace Arcadia.Multiplayer
             Position = position;
             Capacity = capacity;
             Active = active;
+            Values = new string[capacity];
         }
 
         public string Id { get; internal set; }
@@ -197,13 +199,15 @@ namespace Arcadia.Multiplayer
                         throw new Exception("The base index reference was marked as an override but is missing an enumerable");
 
                     // this now determines if the first argument specified is an enumerable
-                    var values = args[0];
-                    if (!(values is IEnumerable))
+                    object value = args[0];
+                    if (!(value is IEnumerable enumerable))
                         throw new InvalidCastException("The value specified could not be cast into an IEnumerable.");
 
                     valueBuffer = string.Join(Formatter.Separator,
-                        ((IEnumerable)values).OfType<object>().Select(x => string.Format(Formatter.ElementFormatter, x)));
-                    
+                        enumerable.OfType<object>().Select(x => string.Format(Formatter.ElementFormatter, x)));
+
+                    if (Formatter.AutoResize)
+                        Capacity = enumerable.OfType<object>().Count();
                 }
                 else // otherwise, if the base index is to not be overridden
                 {
@@ -212,8 +216,11 @@ namespace Arcadia.Multiplayer
                         Values.Select(x => string.Format(Formatter.ElementFormatter, x)));
                 }
 
+                //if (valueBuffer.Length > Capacity)
+                //    throw new ArgumentOutOfRangeException(nameof(valueBuffer));
+
                 // this now sets up the argument buffer
-                var argBuffers = args.Select(x => x.ToString());
+                IEnumerable<string> argBuffers = args.Select(x => x.ToString());
 
                 // if the base index was overridden
                 // skip over the first element to remove the base value collection to use
@@ -227,7 +234,7 @@ namespace Arcadia.Multiplayer
 
                 // finally, you can now properly format the string with the specified arguments
                 // this render is sent to the buffer, where it can be easily referenced with each channel update
-                Buffer = string.Format(Formatter.BaseFormatter, argBuffers.ToArray());
+                Buffer = string.Format(Formatter.BaseFormatter, argBuffers.ToArray<object>());
             }
 
             return Buffer;

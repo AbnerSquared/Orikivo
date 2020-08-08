@@ -12,12 +12,13 @@ namespace Arcadia.Multiplayer
             OverrideBaseValue = overrideBaseValue;
         }
 
-        public ComponentFormatter(string baseFormatter, string elementFormatter, string separator, bool overrideBaseValue = false)
+        public ComponentFormatter(string baseFormatter, string elementFormatter, string separator, bool overrideBaseValue = false, bool autoResize = false)
         {
             BaseFormatter = baseFormatter;
             ElementFormatter = elementFormatter;
             Separator = separator;
             OverrideBaseValue = overrideBaseValue;
+            AutoResize = autoResize;
         }
         // For IComponent
         // when this formatter is set on a component, BaseFormatter is the only thing that is used
@@ -40,6 +41,9 @@ namespace Arcadia.Multiplayer
         // by default however, this will be set to false
         // If this is set to true, the first argument specified will be the list that will be formatted
         public bool OverrideBaseValue { get; set; }
+
+        // If this is set to true, the Capacity of a ComponentGroup will be automatically resized to see fit.
+        public bool AutoResize { get; set; }
 
         // this returns the number of required arguments needed to properly use this formatter
         // if OverrideBaseIndex is set to true, this also increases its number by 1

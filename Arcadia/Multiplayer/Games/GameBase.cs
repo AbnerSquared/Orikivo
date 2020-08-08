@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Arcadia.Multiplayer.Games;
 
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents a generic base structure for a game.
+    /// Represents a generic structure for a game.
     /// </summary>
     public abstract class GameBase
     {
@@ -29,12 +28,12 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents all of the possible configurations that this <see cref="GameBase"/> allows.
         /// </summary>
-        public List<GameOption> Options { get; protected set; } = new List<GameOption>();
+        public List<GameOption> Options { get; internal set; } = new List<GameOption>();
 
         /// <summary>
         /// When specified, handles building the required data for every player in a <see cref="GameSession"/>.
         /// </summary>
-        public abstract List<PlayerData> OnBuildPlayers(List<Player> players);
+        public abstract List<PlayerData> OnBuildPlayers(IEnumerable<Player> players);
 
         /// <summary>
         /// When specified, handles collecting all of the required global properties for this <see cref="GameBase"/>.
@@ -79,8 +78,6 @@ namespace Arcadia.Multiplayer
 
         }
 
-        //public abstract IBaseSession OnBuildSession(GameServer server);
-
         /// <summary>
         /// Builds the <see cref="GameSession"/> for this <see cref="GameBase"/> on the specified <see cref="GameServer"/>.
         /// </summary>
@@ -89,7 +86,6 @@ namespace Arcadia.Multiplayer
             // Initialize the new game session
             var session = new GameSession(server, this);
             server.Session = session;
-            
 
             // Set all of the server connections to playing
             foreach (ServerConnection connection in server.Connections)
@@ -97,32 +93,6 @@ namespace Arcadia.Multiplayer
 
             // Read the method used when a session starts
             await OnSessionStartAsync(server, session);
-        }
-
-        public GameOption GetConfigProperty(string id)
-        {
-            if (Options.All(x => x.Id != id))
-                throw new System.Exception("Could not find the specified configuration value.");
-
-            return Options.First(x => x.Id == id);
-        }
-
-        public object GetConfigValue(string id)
-        {
-            return GetConfigProperty(id)?.Value;
-        }
-
-        public T GetConfigValue<T>(string id)
-        {
-            GameOption property = GetConfigProperty(id);
-
-            if (property.ValueType == null)
-                throw new System.Exception($"The specified config value '{id}' does not have an explicitly defined type");
-
-            if (property.ValueType.IsEquivalentTo(typeof(T)))
-                return (T) property.Value;
-
-            throw new System.Exception("The implicit type specified does not match the explicitly defined type of the specified property");
         }
     }
 }

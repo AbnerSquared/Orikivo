@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Net;
 
 namespace Orikivo
 {
@@ -80,20 +81,33 @@ namespace Orikivo
         }
 
         public static async Task<IUserMessage> ReplaceAsync(this IUserMessage message,
-            string filePath,
             string text = null,
             bool isTTS = false,
             Embed embed = null,
+            string filePath = null,
             bool deleteLastMessage = false,
             RequestOptions options = null,
             bool isSpoiler = false)
         {
-            IUserMessage next = await message.Channel.SendFileAsync(filePath,
-                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
-                isTTS,
-                embed ?? message.GetRichEmbed()?.Build(),
-                options,
-                isSpoiler);
+            IUserMessage next;
+
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+                next = await message.Channel.SendFileAsync(filePath,
+                    !string.IsNullOrWhiteSpace(text) ? text : message.Content,
+                    isTTS,
+                    embed ?? message.GetRichEmbed()?.Build(),
+                    options,
+                    isSpoiler);
+            }
+            else
+            {
+                next = await message.Channel.SendMessageAsync(
+                    !string.IsNullOrWhiteSpace(text) ? text : message.Content,
+                    isTTS,
+                    embed ?? message.GetRichEmbed()?.Build(),
+                    options);
+            }
 
             if (deleteLastMessage)
                 await message.DeleteAsync();
@@ -101,23 +115,17 @@ namespace Orikivo
             return next;
         }
 
-        public static async Task<IUserMessage> ReplaceAsync(this IUserMessage message,
-            string text = null,
-            bool isTTS = false,
-            Embed embed = null,
-            bool deleteLastMessage = false,
-            RequestOptions options = null)
+        public static async Task<bool> TryDeleteAsync(this IMessage message, RequestOptions options = null)
         {
-            IUserMessage next = await message.Channel.SendMessageAsync(
-                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
-                isTTS,
-                embed ?? message.GetRichEmbed()?.Build(),
-                options);
-
-            if (deleteLastMessage)
-                await message.DeleteAsync();
-
-            return next;
+            try
+            {
+                await message.DeleteAsync(options);
+                return true;
+            }
+            catch (HttpException)
+            {
+                return false;
+            }
         }
 
         // TODO: Use the base Notifier class instead to give it the ability to be generic
@@ -135,7 +143,7 @@ namespace Orikivo
                 content.AppendLine(user.Notifier.Notify());
                 user.Notifier.LastNotified = DateTime.UtcNow;
             }
-            
+
             if (!string.IsNullOrWhiteSpace(text))
                 content.Append(text);
 

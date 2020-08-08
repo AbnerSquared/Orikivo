@@ -2,26 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using Orikivo;
-using Orikivo.Drawing.Graphics2D;
+using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
     public class GameSession
     {
-        internal readonly GameServer _server;
+        internal readonly GameServer Server;
         internal readonly GameBase Game;
 
         // create a game session with the information provided
-        public GameSession(GameServer server, GameBase info)
+        public GameSession(GameServer server, GameBase game)
         {
             StartedAt = DateTime.UtcNow;
-            _server = server;
-            Game = info;
-            Game.SetGameConfig(server);
+            Server = server;
+            Game = game;
+            Game.Options = server.Options;
             Options = server.Config.GameOptions;
-            Players = info.OnBuildPlayers(server.Players);
-            Criteria = info.OnBuildRules(Players);
-            Actions = info.OnBuildActions(Players);
+            Players = game.OnBuildPlayers(server.Players);
+            Criteria = game.OnBuildRules(Players);
+            Actions = game.OnBuildActions(Players);
 
             // base game actions required
             Actions.Add(new GameAction
@@ -31,7 +31,7 @@ namespace Arcadia.Multiplayer
                 OnExecute = delegate (GameContext ctx)
                 {
                     ctx.Session.State = SessionState.Finish;
-                    _server.EndCurrentSession();
+                    ctx.Server.EndCurrentSession();
                 }
             });
 
@@ -39,17 +39,15 @@ namespace Arcadia.Multiplayer
             {
                 Id = "destroy",
                 UpdateOnExecute = true,
-                OnExecute = delegate (GameContext ctx)
+                OnExecute = delegate
                 {
-                    _server.DestroyCurrentSession();
+                    Server.DestroyCurrentSession();
                 }
             });
 
-            Properties = info.OnBuildProperties();
-
-            _server.Broadcasts.AddRange(info.OnBuildBroadcasts(Players));
-
-            ActivityDisplay = "playing a game";
+            Properties = game.OnBuildProperties();
+            Server.Broadcasts.AddRange(game.OnBuildBroadcasts(Players));
+            ActivityDisplay = "Playing a game";
         }
 
         public DateTime StartedAt { get; set; }
@@ -89,23 +87,12 @@ namespace Arcadia.Multiplayer
             _currentQueuedAction = timer.Id;
         }
 
-        // If working with an action outside of the list of actions
-        internal void QueueAction(TimeSpan delay, Action<GameContext> action, bool updateOnExecute = true)
-        {
-
-        }
-
         // If the action queue does matter, give it a unique id so that it's easier to reference
         internal void QueueAction(string id, TimeSpan delay, string actionId)
         {
             var timer = new ActionQueue(id, delay, actionId, this);
             ActionQueue.Add(timer);
             _currentQueuedAction = timer.Id;
-        }
-
-        internal void QueueAction(string id, TimeSpan delay, Action<GameContext> action, bool updateOnExecute = true)
-        {
-
         }
 
         internal void CancelNewestInQueue()
@@ -129,6 +116,8 @@ namespace Arcadia.Multiplayer
 
             if (GetInQueue(id) == null)
                 return;
+
+            GetInQueue(id).Cancel();
         }
 
         internal void DisposeQueue()
@@ -161,7 +150,6 @@ namespace Arcadia.Multiplayer
         private ActionQueue GetNewestInQueue()
             => GetInQueue(_currentQueuedAction);
 
-        // Invoke an existing action
         internal void InvokeAction(string actionId, InputContext ctx, bool overrideTimer = false)
         {
             if (!overrideTimer)
@@ -173,32 +161,16 @@ namespace Arcadia.Multiplayer
 
             GameAction action = Actions.First(x => x.Id == actionId);
 
-            // TODO: Use InputContext instead of GameContext for input invocations
-            action.OnExecute(new GameContext(null, this, _server));
+            action.OnExecute(new GameContext(ctx));
 
             // this causes a pause, so limit it to the actions that need to update
             if (action.UpdateOnExecute)
-                _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                Server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
-
-        // Invoke a direct action method instead
-        internal void InvokeAction(Action<GameContext> action, bool overrideTimer = false)
-        {
-
-        }
-
-        // This is the root action invoked
-        // If unspecified
-
-        internal bool LastPendingState { get; set; }
-        internal bool PendingUpdate { get; set; }
-
-        internal int CurrentDepth { get; set; } = 0;
-        internal int RootDepth { get; set; } = 0;
 
         internal void InvokeAction(string actionId, bool overrideTimer = false, bool overridePending = false)
         {
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Invoking action {actionId}");
+            Logger.Debug($"Invoking action {actionId}");
 
             if (!overrideTimer)
                 if (GetNewestInQueue()?.IsElapsed ?? false)
@@ -211,49 +183,42 @@ namespace Arcadia.Multiplayer
             /*
             int baseDepth = RootDepth + 1;
 
-            if (PendingUpdate)
-            {
-                CurrentDepth++;
-            }
-            else
+            if (!PendingUpdate)
             {
                 RootDepth = baseDepth;
-                CurrentDepth = RootDepth;
                 PendingUpdate = action.UpdateOnExecute;
             }*/
 
-            //Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] {PendingUpdate} (root depth {RootDepth}, current depth {CurrentDepth})");
             try
             {
-                action.OnExecute(new GameContext(null, this, _server));
+                action.OnExecute(new GameContext(null, this, Server));
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                _server.DestroyCurrentSession();
+                Server.DestroyCurrentSession();
                 return;
             }
+
             /*
             if (PendingUpdate)
             {
-                if (CurrentDepth == RootDepth)
+                if (baseDepth == RootDepth)
                 {
                     Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Depth values match, now updating");
                     _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                     PendingUpdate = false;
-                    CurrentDepth = 0;
                     RootDepth = 0;
                     return;
                 }
                 
                 Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] An update is already pending");
-                CurrentDepth--;
                 return;
             }*/
 
             if (action.UpdateOnExecute)
             {
-                _server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                Server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -284,10 +249,10 @@ namespace Arcadia.Multiplayer
             return Options.First(x => x.Id == id);
         }
 
-        public object GetOptionValue(string id)
+        public object GetConfigValue(string id)
             => GetOption(id)?.Value;
 
-        public T GetOptionValue<T>(string id)
+        public T GetConfigValue<T>(string id)
         {
             GameOption option = GetOption(id);
 
@@ -305,15 +270,10 @@ namespace Arcadia.Multiplayer
 
         public T ValueOf<T>(string id)
         {
-            var property = GetProperty(id);
+            GameProperty property = GetProperty(id);
 
-            if (property.ValueType != null)
-            {
-                if (property.ValueType.IsEquivalentTo(typeof(T)))
-                {
-                    return (T)property.Value;
-                }
-            }
+            if (property.ValueType != null && property.ValueType.IsEquivalentTo(typeof(T)))
+                return (T)property.Value;
 
             throw new Exception("The specified type within the property does not match the implicit type reference");
         }
@@ -323,7 +283,7 @@ namespace Arcadia.Multiplayer
 
         public void SetValue(string id, object value)
         {
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Setting property {id} to {value.ToString()}");
+            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Setting property {id} to {value}");
 
             if (Properties.All(x => x.Id != id))
                 throw new Exception($"Could not find the specified property '{id}'");

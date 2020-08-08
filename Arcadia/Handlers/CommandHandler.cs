@@ -31,9 +31,7 @@ namespace Arcadia
         }
 
         public string GetPrefix(ArcadeContext ctx)
-            => ctx.Account?.Config.Prefix ??
-               ctx.Server?.Config.Prefix ??
-               OriGlobal.DEFAULT_PREFIX;
+            => ctx.Account?.Config.Prefix ?? ctx.Server?.Config.Prefix ?? OriGlobal.DEFAULT_PREFIX;
 
         public async Task ReadInputAsync(SocketMessage arg)
         {

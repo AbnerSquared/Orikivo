@@ -7,32 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Orikivo.Framework;
 using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
-
 {
-    internal static class LobbyVars
-    {
-        internal static readonly string Header = "header";
-        internal static readonly string Console = "console";
-    }
-
-    internal static class ServerCommand
-    {
-        internal static readonly string Start = "start";
-        internal static readonly string Join = "join";
-        internal static readonly string Leave = "leave";
-        internal static readonly string Config = "config";
-        internal static readonly string Watch = "watch";
-        internal static readonly string Back = "back";
-        internal static readonly string Host = "host";
-        internal static readonly string Players = "players";
-        internal static readonly string Connections = "connections";
-        internal static readonly string Privacy = "privacy";
-        internal static readonly string Invite = "invite";
-    }
-
     public class GameManager
     {
         private readonly DiscordSocketClient _client;
@@ -47,27 +26,20 @@ namespace Arcadia.Multiplayer
             ReservedUsers = new Dictionary<ulong, string>();
 
             _client.ChannelDestroyed += OnChannelDestroyed;
+
             _client.ReactionAdded += OnReactionAdded;
             _client.ReactionRemoved += OnReactionRemoved;
+
             _client.MessageReceived += OnMessageReceived;
             _client.MessageDeleted += OnMessageDeleted;
         }
 
+        // This should be moved elsewhere?
         internal static Dictionary<string, GameBase> Games => new Dictionary<string, GameBase>
         {
             ["Trivia"] = new TriviaGame(),
             ["Werewolf"] = new WerewolfGame()
         };
-
-        internal Dictionary<string, GameServer> Servers { get; set; }
-
-        // this is all channels that are currently bound to a game server
-        internal Dictionary<ulong, string> ReservedChannels { get; set; }
-
-        internal Dictionary<ulong, string> ReservedUsers { get; set; }
-
-        public IEnumerable<GameServer> GetPublicServers()
-            => Servers.Values.Where(x => x.Config.Privacy == Privacy.Public);
 
         public static GameBase GetGame(string gameId)
         {
@@ -77,7 +49,27 @@ namespace Arcadia.Multiplayer
             return Games[gameId];
         }
 
-        // This attempts to grab a random server ID
+        public Dictionary<string, GameServer> Servers { get; }
+
+        /// <summary>
+        /// Represents a collection of all channels that are currently bound to a <see cref="GameServer"/>.
+        /// </summary>
+        internal Dictionary<ulong, string> ReservedChannels { get; }
+
+        /// <summary>
+        /// Represents a collection of all users that are currently bound to a <see cref="GameServer"/>.
+        /// </summary>
+        internal Dictionary<ulong, string> ReservedUsers { get; }
+
+        public IEnumerable<GameServer> GetServersFor(ulong userId)
+        {
+            // Include where the player is in an existing connection
+            return Servers.Values.Where(x => x.Config.Privacy == Privacy.Public || x.Invites.Any(x => x.UserId == userId));
+        }
+
+        public IEnumerable<GameServer> GetPublicServers()
+            => Servers.Values.Where(x => x.Config.Privacy == Privacy.Public);
+
         public string GetRandomServer()
         {
             // Randomizer.Choose(IEnumerable<T> set, Func<T, bool> predicate)
@@ -87,8 +79,15 @@ namespace Arcadia.Multiplayer
             return Randomizer.Choose(Servers.Values.Where(x => x.Config.Privacy == Privacy.Public && !x.IsFull)).Id;
         }
 
-        // This attempts to grab a random server ID for the specified game mode
-        // Quick-join games that have room for players
+        public string GetRandomServerFor(ulong userId)
+        {
+            // Randomizer.Choose(IEnumerable<T> set, Func<T, bool> predicate)
+            if (Servers.Values.All(x => x.IsFull))
+                return null;
+
+            return Randomizer.Choose(Servers.Values.Where(x => (x.Config.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull)).Id;
+        }
+
         public string GetRandomServer(string gameId)
         {
             if (!Games.ContainsKey(gameId))
@@ -100,8 +99,19 @@ namespace Arcadia.Multiplayer
             return Randomizer.Choose(Servers.Values.Where(x => x.Config.Privacy == Privacy.Public && !x.IsFull && x.Config.GameId == gameId)).Id;
         }
 
+        public string GetRandomServerFor(ulong userId, string gameId)
+        {
+            if (!Games.ContainsKey(gameId))
+                return null;
+
+            if (Servers.Values.All(x => x.IsFull))
+                return null;
+
+            return Randomizer.Choose(Servers.Values.Where(x => (x.Config.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull && x.Config.GameId == gameId)).Id;
+        }
+
         // This attempts to join an existing server, if one is present
-        public async Task JoinServerAsync(IUser user, IMessageChannel channel, string serverId, IGuild guild = null)
+        public async Task JoinServerAsync(IUser user, IMessageChannel channel, string serverId)
         {
             if (user.IsBot)
                 return;
@@ -141,42 +151,9 @@ namespace Arcadia.Multiplayer
                 await channel.SendMessageAsync("You have already joined this server.");
                 return;
             }
-            
-            var player = new Player
-            {
-                Host = false,
-                User = user,
-                JoinedAt = DateTime.UtcNow,
-                Playing = false
-            };
 
-            server.Players.Add(player);
-            ReservedUsers.Add(user.Id, server.Id);
-
-            RefreshConsoleHeader(server);
-            AppendToConsole(server, $"[Console] {user.Username} has joined.");
-
-            // if there's a connection already in place, simply update this message.
-            ServerConnection connection = server.Connections.FirstOrDefault(x => x.ChannelId == channel.Id);
-
-            // otherwise, if there isn't a connection, establish a new one.
-            if (connection == null)
-            {
-                var properties = new ConnectionProperties
-                {
-                    AutoRefreshCounter = 4,
-                    BlockInput = false,
-                    CanDeleteMessages = true,
-                    Frequency = 0,
-                    State = GameState.Waiting
-                };
-
-                connection = await ServerConnection.CreateAsync(channel, server.GetBroadcast(GameState.Waiting), properties);
-                server.Connections.Add(connection);
-                ReservedChannels.Add(channel.Id, server.Id);
-            }
-
-            await server.UpdateAsync();
+            await server.AddPlayerAsync(user);
+            await server.AddConnectionAsync(channel);
         }
 
         public static GameDetails DetailsOf(string gameId)
@@ -205,73 +182,20 @@ namespace Arcadia.Multiplayer
         }
 
         // this starts a new base game server
-        public async Task CreateServerAsync(IUser user, IMessageChannel channel, IGuild guild = null, string gameId = null)
+        public async Task CreateServerAsync(IUser user, IMessageChannel channel, string gameId = null)
         {
-            // If unspecified get the default game mode.
-            gameId ??= "Trivia";
-
-            // Ignore all bots
             if (user.IsBot)
                 return;
 
-            // If the user or channel is reserved, throw an error
-            if (ReservedUsers.ContainsKey(user.Id) || ReservedChannels.ContainsKey(channel.Id))
-                throw new Exception("Cannot initialize a new server as either the user or a channel is reserved to an existing server");
+            ServerProperties properties = ServerProperties.GetDefault(user.Username);
 
-            // Create the player and host of the server
-            var host = new Player
-            {
-                Host = true,
-                User = user,
-                JoinedAt = DateTime.UtcNow,
-                Playing = false
-            };
+            if (!string.IsNullOrWhiteSpace(gameId) && Games.ContainsKey(gameId))
+                properties.GameId = gameId;
 
-            // Initialize the new server
-            var server = new GameServer(this)
-            {
-                Config = new ServerProperties
-                {
-                    Privacy = Privacy.Public,
-                    GameId = gameId,
-                    Name = $"{user.Username}'s Server"
-                }
-            };
+            var server = await GameServer.CreateAsync(this, user, channel);
 
-            // Add the creator of the server
-            server.Players.Add(host);
-
-            ReservedUsers.Add(user.Id, server.Id);
-            ReservedChannels.Add(channel.Id, server.Id); // server.Config.Title, server.Id, server.Config.GameId, server.Players.Count\
-
-            RefreshConsoleHeader(server);
-            AppendToConsole(server, $"[Console] {user.Username} has joined.");
-
-            var properties = new ConnectionProperties
-            {
-                AutoRefreshCounter = 4,
-                BlockInput = false,
-                CanDeleteMessages = true,
-                Frequency = 0,
-                State = GameState.Waiting
-            };
-
-            var connection = await ServerConnection.CreateAsync(channel, server.GetBroadcast(GameState.Waiting), properties);
-            connection.Origin = OriginType.Server;
-
-            if (guild != null)
-            {
-                connection.Type = ConnectionType.Guild;
-                connection.GuildId = guild.Id;
-            }
-
-            await EnsureDeleteAsync(connection);
-
-            if (guild != null)
-                connection.GuildId = guild.Id;
-
-            server.Connections.Add(connection);
-            Servers.Add(server.Id, server);
+            foreach (ServerConnection connection in server.Connections)
+                await SetDeleteStateAsync(connection);
         }
 
         internal void EndSession(GameSession session)
@@ -326,74 +250,13 @@ namespace Arcadia.Multiplayer
 
             // Remove and delete the server
             Servers.Remove(server.Id);
-        }
-
-        // this releases a player from the reserves, and removes them from the server they are in
-        internal async Task RemovePlayerAsync(Player player)
-        {
-            if (ReservedUsers.ContainsKey(player.User.Id))
-            {
-                // get the server from the key given by the reserved users
-                GameServer server = Servers[ReservedUsers[player.User.Id]];
-
-                if (server == null)
-                    return;
-
-                if (server.GetPlayer(player.User.Id) != null)
-                {
-                    server.Players.Remove(player);
-                    ReservedUsers.Remove(player.User.Id);
-
-                    IDMChannel dm = await player.User.GetOrCreateDMChannelAsync();
-                    await dm.SendMessageAsync("You were removed from the server\nReason: Manual kick, unknown");
-                }
-            }
+            server.Destroyed = true;
         }
 
         public async Task OnChannelDestroyed(SocketChannel channel)
         {
-            // if a channel is destroyed, check for everyone that could only see that channel
             if (ReservedChannels.ContainsKey(channel.Id))
-            {
-                GameServer server = Servers[ReservedChannels[channel.Id]];
-
-                ServerConnection connection = server.Connections.First(x => x.ChannelId == channel.Id);
-
-                Dictionary<Player, List<ulong>> playerConnections = await server.GetPlayerConnectionsAsync();
-
-                server.Connections.Remove(connection);
-
-                foreach ((Player player, List<ulong> channelIds) in playerConnections)
-                {
-                    // if the channel that was deleted is the only channel a player can view, remove them from the game
-                    if (channelIds.Count == 1 && channelIds.Contains(channel.Id))
-                    {
-                        server.Players.Remove(player);
-
-                        if (ReservedUsers.ContainsKey(player.User.Id))
-                            ReservedUsers.Remove(player.User.Id);
-                        
-                        IDMChannel dm = await player.User.GetOrCreateDMChannelAsync();
-                        await dm.SendMessageAsync("You were kicked from the server\nReason: No available channel to participate in");
-                    }
-                }
-
-                // if there are no players, destroy the server
-                if (server.Players.Count == 0)
-                {
-                    await DestroyServerAsync(server);
-                    return;
-                }
-
-                // if there are no current hosts, set a new one by the time they joined the server
-                if (server.Host == null)
-                {
-                    server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
-                }
-            }
-
-            // if everyone lost a connection to the server, return the game to the lobby and end the active game session
-            // and state that a channel was destroyed, causing too many players to leave
+                await Servers[ReservedChannels[channel.Id]].RemoveConnectionAsync(channel.Id);
         }
 
         public async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
@@ -445,6 +308,9 @@ namespace Arcadia.Multiplayer
 
                 foreach (IInput input in display.Inputs)
                 {
+                    if (!(input is ReactionInput))
+                        continue;
+
                     InputResult result = input.TryParse(new Input { Reaction = reaction.Emote, Flag = flag });
 
                     if (result.IsSuccess)
@@ -470,18 +336,6 @@ namespace Arcadia.Multiplayer
                             {
                                 if (server.GetPlayer(reaction.UserId) == null)
                                 {
-                                    if (ReservedUsers.ContainsKey(reaction.UserId))
-                                        ReservedUsers.Remove(reaction.UserId);
-
-                                    // if the player that was removed was the last player, destroy the server
-                                    if (server.Players.Count == 0)
-                                        await DestroyServerAsync(server);
-
-                                    // if the player that was removed was the host, set a new host
-                                    if (server.Host == null)
-                                    {
-                                        server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
-                                    }
                                 }
                             }
 
@@ -558,69 +412,59 @@ namespace Arcadia.Multiplayer
 
             return info.ToString();
         }
+
         public async Task OnMessageReceived(SocketMessage message)
         {
-            var allowUpdate = true;
+            bool allowUpdate = true;
             IUser user = message.Author;
-            string serverId = "";
-
             // Ignore all bots
             if (user.IsBot)
                 return;
 
             if (!ReservedChannels.ContainsKey(message.Channel.Id))
             {
-                IDMChannel channel = await user.GetOrCreateDMChannelAsync();
-
-
-                Console.WriteLine("Checking dm comparison");
-                if (channel.Id != message.Channel.Id)
-                    return;
-            }
-            else
-            {
-                serverId = ReservedChannels[message.Channel.Id];
+                Logger.Debug("Message channel not reserved to server");
+                return;
             }
 
             // Ignore if the user is already reserved but the servers references don't match
             if (ReservedUsers.ContainsKey(user.Id))
             {
-                // Ignore if the origin of this message is not in the reserves
-                if (ReservedChannels.ContainsKey(message.Channel.Id))
+                if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
                 {
-                    Console.WriteLine("Checking reserve comparison");
-                    if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
-                        return;
-                }
-                else
-                {
-                    serverId = ReservedUsers[user.Id];
+                    Logger.Debug("Reserved channel does not match reserved user");
+                    return;
                 }
             }
 
-            
+            Logger.Debug("Reserve comparison success");
 
-            Console.WriteLine("Reserve comparison success");
             // Throw an error if the reserved reference points to an empty server
-            if (!Servers.ContainsKey(serverId))
+            if (!Servers.ContainsKey(ReservedChannels[message.Channel.Id]))
+            {
+                Logger.Debug("Unable to find the requested server from the specified channel");
                 throw new Exception("Unable to find the requested server for the specified user");
+            }
 
-            GameServer server = Servers[serverId];
+            GameServer server = Servers[ReservedChannels[message.Channel.Id]];
 
             // Throw an error if the specified channel saved in the reserves doesn't exist on this server
             if (!server.HasConnection(message.Channel.Id))
+            {
+                Logger.Debug("Unable to retrieve the server connection for the specified channel");
                 throw new Exception("Unable to retrieve the server connection for the specified channel");
+            }
+
+            Logger.Debug("Ensure connection success");
+
 
             Player player = server.GetPlayer(user.Id);
-            ServerConnection connection = server.Connections.First(x => x.ChannelId == message.Channel.Id);
-            Console.WriteLine("Reading input");
-            //if (!ReservedChannels.ContainsKey(message.Channel.Id) && connection.UserId != user.Id)
-            //    return;
+            ServerConnection connection = server.GetConnection(message.Channel.Id);
 
             // If the current connection doesn't allow input, ignore it
             if (connection.BlockInput)
             {
-                Console.WriteLine("Input blocked, not handling");
+                Logger.Debug("Input blocked, not handling");
                 return;
             }
 
@@ -646,10 +490,12 @@ namespace Arcadia.Multiplayer
                         server.DestroyCurrentSession();
                         break;
                 }
-                
+
                 // Otherwise, ignore if the session doesn't allow input
                 if (server.Session.BlockInput)
                     return;
+
+                Logger.Debug("Session ensure success");
             }
 
             allowUpdate = player != null;
@@ -701,15 +547,17 @@ namespace Arcadia.Multiplayer
                             {
                                 try
                                 {
+                                    allowUpdate = true;
                                     await server.Config.LoadGame().BuildAsync(server);
-                                    return;
+                                    break;
                                 }
                                 catch (Exception e)
                                 {
                                     Console.WriteLine(e);
                                     notice = $"[Console] An exception has been thrown while initializing {gameName}.";
+                                    AppendToConsole(server, notice);
                                     server.DestroyCurrentSession();
-                                    return;
+                                    break;
                                 }
                             }
 
@@ -734,24 +582,8 @@ namespace Arcadia.Multiplayer
                         if (player != null)
                             break;
 
-                        allowUpdate = true;
-                        // Create their information
-                        var newPlayer = new Player
-                        {
-                            User = user,
-                            JoinedAt = DateTime.UtcNow,
-                            Host = false,
-                            Playing = false
-                        };
-                        
-                        // Add them to the server and reserves
-                        server.Players.Add(newPlayer);
-                        ReservedUsers.Add(user.Id, server.Id);
-
-                        string notice = $"[Console] {user.Username} has joined.";
-
-                        AppendToConsole(server, notice);
-                        RefreshConsoleHeader(server);
+                        allowUpdate = false;
+                        await server.AddPlayerAsync(user);
                         break;
                     }
 
@@ -762,40 +594,8 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        // Remove them from the server and reserves
-                        server.Players.Remove(player);
-                        ReservedUsers.Remove(user.Id);
-
-                        // Destroy the server if the removed player was the only player left
-                        if (server.Players.Count == 0)
-                        {
-                            await DestroyServerAsync(server);
-                            return;
-                        }
-
-                        RefreshConsoleHeader(server);
-                        
-                        string leaveNotice = $"[Console] {user.Username} has left.";
-                        AppendToConsole(server, leaveNotice, false);
-
-                        // If the player that left was the host
-                        if (player.Host)
-                        {
-                            Player oldest = server.Players.OrderBy(x => x.JoinedAt).FirstOrDefault();
-                            
-                            if (oldest == null)
-                                throw new Exception("Expected player but returned null");
-
-                            oldest.Host = true;
-                            
-                            string hostNotice = $"[Console] {oldest.User.Username} is now the host.";
-                            AppendToConsole(server, hostNotice, false);
-                            
-                            // If the host was changed, return the channel in editing state to it's default
-                            server.ChangeState(GameState.Editing, GameState.Waiting);
-                        }
-
-                        RefreshConsole(server);
+                        allowUpdate = false;
+                        await server.RemovePlayerAsync(user.Id);
                         break;
                     }
 
@@ -808,8 +608,7 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        // Refresh the display, if possible
-                        await connection.RefreshAsync(server);
+                        await connection.RefreshAsync();
                         return;
                     }
 
@@ -855,7 +654,6 @@ namespace Arcadia.Multiplayer
                         // if they are not the host
                         if (!player.Host)
                             notice = $"[To {user.Username}] Only the host can edit the server config.";
-                        
 
                         // if there is an existing connection already in the editing state
                         else if (server.Connections.Any(x => x.State == GameState.Editing))
@@ -933,24 +731,8 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        allowUpdate = true;
-                        // Create their information
-                        var newPlayer = new Player
-                        {
-                            User = user,
-                            JoinedAt = DateTime.UtcNow,
-                            Host = false,
-                            Playing = false
-                        };
-
-                        // Add them to the server and reserves
-                        server.Players.Add(newPlayer);
-                        ReservedUsers.Add(user.Id, server.Id);
-
-                        string notice = $"[Console] {user.Username} has joined.";
-
-                        AppendToConsole(server, notice);
-                        RefreshConsoleHeader(server);
+                        allowUpdate = false;
+                        await server.AddPlayerAsync(user);
                         break;
                     }
 
@@ -961,40 +743,8 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        // Remove them from the server and reserves
-                        server.Players.Remove(player);
-                        ReservedUsers.Remove(user.Id);
-
-                        // Destroy the server if the removed player was the only player left
-                        if (server.Players.Count == 0)
-                        {
-                            await DestroyServerAsync(server);
-                            return;
-                        }
-
-                        RefreshConsoleHeader(server);
-
-                        string leaveNotice = $"[Console] {user.Username} has left.";
-                        AppendToConsole(server, leaveNotice, false);
-
-                        // If the player that left was the host
-                        if (player.Host)
-                        {
-                            Player oldest = server.Players.OrderBy(x => x.JoinedAt).FirstOrDefault();
-
-                            if (oldest == null)
-                                throw new Exception("Expected player but returned null");
-
-                            oldest.Host = true;
-
-                            string hostNotice = $"[Console] {oldest.User.Username} is now the host.";
-                            AppendToConsole(server, hostNotice, false);
-
-                            // If the host was changed, return the channel in editing state to it's default
-                            server.ChangeState(GameState.Editing, GameState.Waiting);
-                        }
-
-                        RefreshConsole(server);
+                        allowUpdate = false;
+                        await server.RemovePlayerAsync(user.Id);
                         break;
                     }
 
@@ -1024,8 +774,7 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        // Refresh the display, if possible
-                        await connection.RefreshAsync(server);
+                        await connection.RefreshAsync();
                         return;
                     }
 
@@ -1167,9 +916,11 @@ namespace Arcadia.Multiplayer
 
                         if (Enum.TryParse(remainder, true, out Privacy privacy))
                         {
-                            server.Config.Privacy = privacy;
-                            notice = $"[Console] The privacy of this server has been set to {server.Config.Privacy.ToString()}.";
-                            RefreshServerConfig(server);
+                            if (await server.UpdatePrivacyAsync(privacy))
+                            {
+                                allowUpdate = false;
+                                break;
+                            }
                         }
                         else
                         {
@@ -1276,139 +1027,85 @@ namespace Arcadia.Multiplayer
                 // This represents a custom display channel for a server connection
                 // If they are currently in an active session, handle the specified inputs instead for the specified display channel
                 case GameState.Playing:
-                    // Get the display channel that the server connection is referencing
-                    DisplayBroadcast display = server.GetBroadcast(connection.Frequency);
-
-                    var inputs = display.Inputs;
-
-                    Console.WriteLine($"Connection input count: {connection.Inputs?.Count}");
-
-                    if (Check.NotNullOrEmpty(connection.Inputs))
-                        inputs = connection.Inputs;
-
-                    // Iterate through all inputs specified
-                    foreach (IInput input in inputs)
+                    foreach (IInput input in connection.GetAvailableInputs())
                     {
-                        string rawCtx = ctx;
+                        // Continue if not a text input
+                        if (!(input is TextInput))
+                            continue;
 
-                        // If the following input type is a TextInput
-                        if (input is TextInput tInput)
+                        InputResult result = input.TryParse(ctx);
+
+                        // Continue if not successful
+                        if (!result.IsSuccess)
+                            continue;
+
+                        // Check criterion, if any
+                        if (result.Input.Criterion != null)
                         {
-                            Console.WriteLine("Text input found.");
-                            // Check to see if it's case sensitive
-                            if (!tInput.CaseSensitive)
-                                rawCtx = ctx.ToLower();
+                            if (!result.Input.Criterion(user, connection, server))
+                                break;
                         }
 
-                        // Parse the following input
-                        InputResult result = input.TryParse(rawCtx);
+                        if (result.Input.OnExecute == null)
+                            throw new Exception("Expected a function for the following input but returned null");
 
-                        if (result.IsSuccess)
+                        try
                         {
-                            // Check criterion, if any
-                            if (result.Input.Criterion != null)
-                            {
-                                if (!result.Input.Criterion(user, connection, server))
-                                    break;
-                            }
+                            result.Input.OnExecute(new InputContext(user, connection, server, result));
 
-                            if (result.Input.OnExecute == null)
-                                throw new Exception("Expected a function for the following input but returned null");
-
-                            try
-                            {
-                                // Execute the specified method for the matched input
-                                result.Input.OnExecute(new InputContext(user, connection, server, result));
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                                server.DestroyCurrentSession();
-                                AppendToConsole(server, $"[Console] An exception has been thrown while handling an input.");
+                            if (server.Destroyed)
                                 return;
-                            }
-
-                            // If the existing player no longer exists in the server
-                            if (player != null)
-                            {
-                                if (server.GetPlayer(user.Id) == null)
-                                {
-                                    // Remove the player that was reserved
-                                    ReservedUsers.Remove(user.Id);
-
-                                    // If the player that was removed was the only player, destroy the server
-                                    if (server.Players.Count == 0)
-                                    {
-                                        await DestroyServerAsync(server);
-                                        return;
-                                    }
-
-                                    // If the player that was removed was the host, set a new host
-                                    if (server.Host == null)
-                                        server.Players.OrderBy(x => x.JoinedAt).First().Host = true;
-                                }
-                            }
-                            // Likewise, if there wasn't a player before and they were added, add them to the reserves
-                            else if (server.GetPlayer(user.Id) != null)
-                                ReservedUsers[user.Id] = server.Id;
-                            
-                            // Make a check if the server is allowed to update
-                            allowUpdate = result.Input.UpdateOnExecute;
-
-                            Console.WriteLine("Handled input successfully.");
-                            // Stop reading inputs once one is successful
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            server.DestroyCurrentSession();
+                            AppendToConsole(server, $"[Console] An exception has been thrown while handling an input.");
                             break;
                         }
+
+                        // Make a check if the server is allowed to update
+                        allowUpdate = result.Input.UpdateOnExecute;
+
+                        Logger.Debug("Handled input successfully");
+                        break;
                     }
+
                     break;
             }
-            
-            // If the user isn't a part of the server, leave their message and add one to the counter
-            if (server.GetPlayer(user.Id) == null)
-            {
-                if (connection.RefreshCounter > 0) // If the refresh counter is greater than 0
-                {
-                    
-                    connection.CurrentMessageCounter++;
-                    Console.WriteLine($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
-                    if (connection.CurrentMessageCounter >= connection.RefreshCounter)
-                    {
-                        await connection.RefreshAsync(server);
-                    }
-                }
 
-                // If the game server can update, do so
-                if (allowUpdate)
-                    await server.UpdateAsync();
-
-                return;
-            }
-
-            // Check to see if the bot is allowed to delete messages for the server connection
-            if (connection.CouldDeleteMessages)
-                await EnsureDeleteAsync(connection);
-
+            Logger.Debug("Handled input");
             // If the bot is allowed to delete messages in this server connection
-            if (connection.CanDeleteMessages)
-                await message.DeleteAsync();
+            if (connection.DeleteMessages && server.GetPlayer(user.Id) != null)
+            {
+                Logger.Debug("Attempt delete message");
+                if (!await message.TryDeleteAsync())
+                {
+                    connection.DeleteMessages = false;
+                    Logger.Debug("Revoked delete permission");
+                }
+            }
             else if (connection.RefreshCounter > 0) // If the refresh counter is greater than 0
             {
-                Console.WriteLine($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
+                Logger.Debug($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
                 connection.CurrentMessageCounter++;
 
                 if (connection.CurrentMessageCounter >= connection.RefreshCounter)
                 {
-                    await connection.RefreshAsync(server);
+                    Logger.Debug("Replacing connection content");
+                    await connection.RefreshAsync();
                 }
             }
 
-            // If the game server can update, do so
             if (allowUpdate)
+            {
                 await server.UpdateAsync();
+                Logger.Debug("Allow update success");
+            }
         }
 
         // Checks to see if it can delete messages for the specified server connection
-        private async Task EnsureDeleteAsync(ServerConnection connection)
+        internal async Task SetDeleteStateAsync(ServerConnection connection)
         {
             if (connection.GuildId.HasValue)
             {
@@ -1417,17 +1114,15 @@ namespace Arcadia.Multiplayer
                 if (guild != null)
                 {
                     IGuildUser bot = await guild.GetCurrentUserAsync();
-                    connection.CanDeleteMessages = bot?.GuildPermissions.ManageMessages ?? false;
+                    connection.DeleteMessages = bot?.GuildPermissions.ManageMessages ?? false;
                 }
             }
             else
             {
-                connection.CanDeleteMessages = connection.Type == ConnectionType.Direct;
+                connection.DeleteMessages = connection.Type == ConnectionType.Direct;
             }
 
-            connection.CouldDeleteMessages = false;
-
-            Console.WriteLine($"Can delete messages? {connection.CanDeleteMessages}");
+            Logger.Debug($"Ensured deletion state as {connection.DeleteMessages}");
         }
 
         public async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -1438,73 +1133,14 @@ namespace Arcadia.Multiplayer
             if (ReservedChannels.ContainsKey(channel.Id))
             {
                 GameServer server = Servers[ReservedChannels[channel.Id]];
-                ServerConnection connection = server
-                    .Connections
-                    .First(x => x.MessageId == message.Id);
-                
-                // Send a new message to that channel's connection to refresh it
-                connection.InternalMessage = await connection.Channel
-                    .SendMessageAsync(server
-                    .GetBroadcast(connection.Frequency).ToString());
+                ServerConnection connection = server.GetConnection(channel.Id);
 
-                connection.MessageId = connection.InternalMessage.Id;
+                if (connection.MessageId == message.Id)
+                {
+                    connection.IsDeleted = true;
+                    await connection.RefreshAsync();
+                }
             }
         }
     }
 }
-
-/*
- 
-    Servers
-    JoinServerAsync(IUser user, IMessageChannel channel, GameServer server)
-        - Attempts to add a player into a server
-    
-    LeaveServerAsync(IUser user, IMessageChannel channel)
-        - Attempts to remove a player from an existing server
-        - If they were the host, set a new host
-        - If they were the last person in the server, destroy the server
-        - If they were the last person to a connection, remove the connection
-
-    CreateServerAsync(IUser user, IMessageChannel channel)
-        - Creates a new server with the user as the host
-        - If a user is already in another server, cancel the attempt
-        - If the channel is already reserved, cancel the attempt
-        - If the server connection was initialized in a guild, attach a GuildId to the connection
-        - That way, if another connection to the same server is initialized in the same guild, it can be prevented.
-
-    DestroyServerAsync(GameServer server)
-        - Destroys an existing server
-        - Forcibly moves everyone to the default state
-        - Releases all reserved users and channels
-    
-    AddPlayerAsync(Player player)
-        - Attempts to add a player into an existing server
-        - If the server is full, they are unable to join
-
-    RemovePlayerAsync(Player player, string reason = null)
-        - If the reason is null, the player will be assumed as willingly left.
-        - Otherwise, the player will have been marked as kicked
-        - This attempts to remove the player from the existing server they are in
-        - If they are not in a server, cancel the attempt
-    
-    AddConnectionAsync(IMessageChannel channel, GameServer server)
-        - This establishes a new connection to a server by a specified channel
-        - All new connections must default to GameState.Waiting
-
-    RemoveConnectionAsync(ServerConnection connection)
-        - This forcibly removes a connection from a server with a specified channel
-        - If this was the last connection to the server, destroy the server
-        - If the connection removed was the only channel the host had access to, set a new host
-        - Cancel a session if this method is executed on a channel with the state GameState.Playing
-
-    Handles
-    OnChannelDestroyed
-    
-    OnReactionAdded
-    
-    OnReactionRemoved
-    
-    OnMessageReceived
-
-    OnMessageDeleted
- */

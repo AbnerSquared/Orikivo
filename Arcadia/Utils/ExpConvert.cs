@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orikivo
+namespace Arcadia
 {
     /// <summary>
     /// Represents a class that handles conversion relating to experience.

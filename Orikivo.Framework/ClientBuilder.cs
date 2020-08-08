@@ -26,7 +26,7 @@ namespace Orikivo.Framework
 
             if (!string.IsNullOrWhiteSpace(configPath))
                 SetConfigPath(configPath);
-                
+
             Services = new ServiceCollection();
         }
 

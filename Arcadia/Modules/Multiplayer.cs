@@ -109,7 +109,7 @@ namespace Arcadia.Modules
                 }
             }
 
-            await _games.CreateServerAsync(Context.User, Context.Channel, Context.Guild, gameId);
+            await _games.CreateServerAsync(Context.User, Context.Channel, gameId);
         }
 
         [Command("joinserver")]
@@ -128,7 +128,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, serverId, Context.Guild);
+            await _games.JoinServerAsync(Context.User, Context.Channel, serverId);
         }
 
         [Command("quickjoin"), Priority(0)]
@@ -147,7 +147,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(), Context.Guild);
+            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer());
         }
 
         [Command("quickjoin"), Priority(1)]
@@ -175,7 +175,7 @@ namespace Arcadia.Modules
                 }
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(gameId), Context.Guild);
+            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(gameId));
         }
 
         /*

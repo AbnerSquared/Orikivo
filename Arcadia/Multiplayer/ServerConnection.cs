@@ -1,210 +1,211 @@
 ﻿using Discord;
+using Orikivo;
+using Orikivo.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Orikivo;
 using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
-    /// <summary>
-    /// Represents the origin of an <see cref="IConnection"/>
-    /// </summary>
-    public enum OriginType
-    {
-        /// <summary>
-        /// Represents an unknown origin.
-        /// </summary>
-        Unknown = 0,
-
-        Server = 1,
-
-        // Specifies that the server connection originated from the GameSession
-        Session = 2
-    }
-
-    // Create a SessionConnection, Which inherits IConnection, and can be easily modified for a GameSession
-    // Have SessionConnection store their own properties
-    // 
-
     public class ServerConnection
     {
-        // private DisplayChannel Display { get; private set; }
-        // public void SetDisplay(DisplayChannel display)
-        // {
-        //     Display = display;
-        // }
         public static async Task<ServerConnection> CreateAsync(Player player, ConnectionProperties properties = null)
         {
             properties ??= ConnectionProperties.Default;
-            IDMChannel channel = await player.User.GetOrCreateDMChannelAsync();
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Creating connection with ID of {channel.Id} for {player.User.Id}");
+            PlayerChannel channel = await player.GetOrCreateChannelAsync();
+            Logger.Debug($"Creating connection with ID of {channel.Id} for {player.User.Id}");
+            IUserMessage message = await channel.SendAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : $"> ⚠️ Could not find a channel at the specified frequency ({properties.Frequency}).");
+
+            if (message == null)
+                throw new Exception("This user is unable to receive messages");
 
             return new ServerConnection
             {
+                Server = player.Server,
                 RefreshRate = TimeSpan.FromSeconds(1),
                 Type = ConnectionType.Direct,
                 RefreshCounter = 4,
                 BlockInput = false,
                 UserId = player.User.Id,
-                CouldDeleteMessages = properties.CanDeleteMessages,
-                Channel = channel,
-                InternalMessage = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : "Unspecified content"),
+                DeleteMessages = properties.CanDeleteMessages,
+                Channel = channel.Source,
+                Message = message,
                 ChannelId = channel.Id,
                 Frequency = properties.Frequency,
                 LastRefreshed = DateTime.UtcNow,
                 State = properties.State,
                 ContentOverride = properties.ContentOverride,
-                Inputs = properties.Inputs
+                Inputs = properties.Inputs,
+                Origin = properties.Origin
             };
         }
 
-        public static async Task<ServerConnection> CreateAsync(IMessageChannel channel, DisplayBroadcast display, ConnectionProperties properties = null)
+        public static async Task<ServerConnection> CreateAsync(IMessageChannel channel, GameServer server, ConnectionProperties properties = null)
         {
             properties ??= ConnectionProperties.Default;
-            IUserMessage message = await channel.SendMessageAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : display.ToString());
+            IUserMessage message = await channel.SendMessageAsync(server.GetBroadcast(properties.Frequency)?.ToString() ?? $"> ⚠️ Could not find a channel at the specified frequency ({properties.Frequency}).");
 
             return new ServerConnection
             {
-                RefreshRate = TimeSpan.FromSeconds(1),
-                CreatedAt = DateTime.UtcNow,
-                Type = ConnectionType.Unknown, // Handle ConnectionType.Guild
-                Group = null,
-                GuildId = null,
-                ChannelId = channel.Id,
-                MessageId = message.Id,
-                Channel = channel,
-                InternalMessage = message,
+                Server = server,
                 Frequency = properties.Frequency,
-                LastRefreshed = DateTime.UtcNow,
+                State = properties.State,
+                RefreshRate = properties.RefreshRate,
                 RefreshCounter = properties.AutoRefreshCounter,
-                CurrentMessageCounter = 0,
-                CouldDeleteMessages = properties.CanDeleteMessages,
-                CanDeleteMessages = false,
                 BlockInput = properties.BlockInput,
                 ContentOverride = properties.ContentOverride,
                 Inputs = properties.Inputs,
-                State = properties.State
+                ChannelId = channel.Id,
+                MessageId = message.Id,
+                Message = message,
+                DeleteMessages = properties.CanDeleteMessages,
+                LastRefreshed = DateTime.UtcNow
             };
         }
 
-        public ServerConnection() {}
-
-        public ServerConnection(IMessageChannel channel,
-            IUserMessage messageBind,
-            int frequency = 0,
-            GameState state = GameState.Waiting,
-            bool canDeleteMessages = false, ulong? guildId = null)
+        private ServerConnection()
         {
-            BlockInput = false;
-            RefreshCounter = 4;
-            Type = guildId.HasValue ? ConnectionType.Guild : ConnectionType.Unknown;
-            Channel = channel;
-            InternalMessage = messageBind;
-            ChannelId = channel.Id;
-            MessageId = messageBind.Id;
-            GuildId = guildId;
-            Frequency = frequency;
-            State = state;
-            CouldDeleteMessages = canDeleteMessages;
-            LastRefreshed = DateTime.UtcNow;
             CreatedAt = DateTime.UtcNow;
-            Inputs = new List<IInput>();
         }
 
-        // STATIC, KEEP ONCE SET
-        public DateTime CreatedAt { get; set; }
+        public GameServer Server { get; internal set; }
 
-        // SPECIFIED ON INHERITED INITIALIZATION
+        public DateTime CreatedAt { get; }
+
         public ConnectionType Type { get; set; }
 
-        // Specifies the origin of this ServerConnection
         internal OriginType Origin { get; set; }
 
-        // CONFIG
         public string Group { get; set; }
 
-        // INTERNAL REF
         public ulong? GuildId { get; set; }
 
         public ulong UserId { get; set; }
-        // REMOVE, refer to Channel
         public ulong ChannelId { get; set; }
 
-        // REMOVE, refer to InternalMessage
         public ulong MessageId { get; set; }
 
-        // CONTAINER OF DISPLAY
-        public IMessageChannel Channel { get; set; }
+        public IMessageChannel Channel { get; private set; }
 
-        // DISPLAY OF CONNECTION
-        public IUserMessage InternalMessage { get; set; }
+        private IUserMessage Message { get; set; }
 
-        // PUBLIC, DISPLAY POINTER
         public int Frequency { get; set; }
 
-        // INTERNAL REF
-        internal DateTime LastRefreshed { get; set; }
+        internal DateTime LastRefreshed { get; private set; }
 
-        // CONFIG
         public TimeSpan? RefreshRate { get; set; }
 
-        // CONFIG, KEEP HIDDEN
         internal int RefreshCounter { get; set; }
 
-        // KEEP HIDDEN
         internal int CurrentMessageCounter { get; set; }
 
-        // MERGE WITH CanDeleteMessages
-        public bool CouldDeleteMessages { get; set; }
+        public bool DeleteOnRefresh { get; set; } = true;
 
-        // CONFIG
-        public bool CanDeleteMessages { get; set; } = false;
+        public bool DeleteMessages { get; internal set; }
 
-        // CONFIG
         public bool BlockInput { get; set; }
 
-        // REMOVE THIS
         public DisplayContent ContentOverride { get; set; }
 
-        // If this server connection has any specific inputs
         public List<IInput> Inputs { get; set; } = new List<IInput>();
 
-        // this determines what is currently being executed in the server connection
         public GameState State { get; set; }
+
+        public bool Destroyed { get; internal set; }
+
+        // If true, this cannot update
+        public bool Paused { get; set; } = false;
+
+        internal bool IsDeleted { get; set; }
+
+        public List<IInput> GetAvailableInputs()
+        {
+            DisplayBroadcast broadcast = State == GameState.Playing
+                ? Server.GetBroadcast(Frequency)
+                : Server.GetBroadcast(State);
+
+            var inputs = new List<IInput>(Inputs);
+
+            if (broadcast != null)
+                inputs.AddRange(broadcast.Inputs);
+
+            return inputs;
+        }
 
         public async Task DestroyAsync()
         {
-            if (Type == ConnectionType.Direct)
-                await InternalMessage.DeleteAsync();
-            else
-            {
-                if (CanDeleteMessages)
-                    await InternalMessage.DeleteAsync();
-            }
+            if (Destroyed)
+                throw new Exception("This connection was destroyed");
+
+            if (Server.HasConnection(ChannelId))
+                await Server.RemoveConnectionAsync(ChannelId);
+
+            if (DeleteMessages)
+                await Message.TryDeleteAsync();
         }
 
-        public async Task RefreshAsync(GameServer server)
+        public async Task RefreshAsync()
         {
-            DisplayContent content = State == GameState.Playing ? server.GetBroadcast(Frequency)?.Content : server.GetBroadcast(State)?.Content;
+            if (Destroyed)
+                throw new Exception("This connection was destroyed");
 
-            if (content == null)
-                throw new Exception("Expected display channel but returned null");
+            if (Paused)
+            {
+                Logger.Debug("Connection paused");
+                return;
+            }
+
+            //if (!DeleteMessages && RefreshCounter > 0 && CurrentMessageCounter < RefreshCounter)
+            //    return;
+
+            DisplayContent content = State == GameState.Playing
+                ? Server?.GetBroadcast(Frequency)?.Content
+                : Server?.GetBroadcast(State)?.Content;
+
+            string text = Check.NotNull(ContentOverride?.ToString())
+                ? ContentOverride?.ToString()
+                : content?.ToString() ?? $"> ⚠️ Could not find a channel at the specified frequency ({Frequency}).";
+
+            if (Message == null || IsDeleted)
+            {
+                Message = await Channel.SendMessageAsync(text);
+                MessageId = Message.Id;
+                LastRefreshed = DateTime.UtcNow;
+                IsDeleted = false;
+
+                Logger.Debug("Created replacement message");
+                return;
+            }
 
             // If the time to refresh is less than the specified refresh rate, ignore
             if (DateTime.UtcNow - LastRefreshed < RefreshRate)
             {
-                Console.WriteLine("Unable to refresh, refresh called too quickly");
+                Logger.Debug("Refresh called too quickly");
                 return;
             }
 
-            await InternalMessage.DeleteAsync();
-            InternalMessage = await Channel.SendMessageAsync(Check.NotNull(ContentOverride?.ToString()) ? ContentOverride?.ToString() : content.ToString());
-            MessageId = InternalMessage.Id;
-            LastRefreshed = DateTime.UtcNow;
-            CurrentMessageCounter = 0;
+            if (RefreshCounter > 0 && CurrentMessageCounter >= RefreshCounter)
+            {
+                Message = await Message.ReplaceAsync(text, deleteLastMessage: DeleteOnRefresh);
+                MessageId = Message.Id;
+                LastRefreshed = DateTime.UtcNow;
+                CurrentMessageCounter = 0;
+                Logger.Debug("Replace message success");
+                return;
+            }
 
-            Console.WriteLine($"[{Orikivo.Format.Time(DateTime.UtcNow)}] Connection refresh was called");
+            // Don't update if the content is already exactly the same
+            if (Message.Content == text)
+            {
+                Logger.Debug("Duplicate text specified");
+                return;
+            }
+
+            await Message.ModifyAsync(text);
+            LastRefreshed = DateTime.UtcNow;
+
+            Logger.Debug("Connection refresh was called");
         }
     }
 }

@@ -16,7 +16,8 @@ namespace Orikivo
                     LogLevel = LogSeverity.Info,
                     MessageCacheSize = 100,
                     LargeThreshold = 250,
-                    RateLimitPrecision = RateLimitPrecision.Millisecond
+                    RateLimitPrecision = RateLimitPrecision.Millisecond,
+                    //GatewayIntents = GatewayIntents.DirectMessages | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessageReactions
                 };
             }
         }

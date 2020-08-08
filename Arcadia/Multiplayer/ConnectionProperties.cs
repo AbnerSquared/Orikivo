@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Arcadia.Multiplayer
 {
@@ -13,7 +14,8 @@ namespace Arcadia.Multiplayer
             CanDeleteMessages = false,
             BlockInput = false,
             State = GameState.Waiting,
-            Frequency = 0
+            Frequency = 0,
+            Origin = OriginType.Unknown
         };
 
         // The default frequency to set this connection to
@@ -21,6 +23,8 @@ namespace Arcadia.Multiplayer
 
         // The game state that should be set for this connection
         public GameState State { get; set; } = GameState.Waiting;
+
+        public OriginType Origin { get; set; } = OriginType.Unknown;
 
         // If this connection can delete messages
         public bool CanDeleteMessages { get; set; } = false;
@@ -38,5 +42,7 @@ namespace Arcadia.Multiplayer
         public DisplayContent ContentOverride { get; set; } = null;
 
         public List<IInput> Inputs { get; set; } = new List<IInput>();
+
+        public TimeSpan RefreshRate { get; set; } = TimeSpan.FromSeconds(1);
     }
 }

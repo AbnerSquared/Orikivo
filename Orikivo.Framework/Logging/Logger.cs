@@ -7,8 +7,8 @@ namespace Orikivo.Framework
 {
     public static class Logger
     {
-        public const ConsoleColor DEFAULT_FOREGROUND_COLOR = ConsoleColor.Gray;
-        public const ConsoleColor DEFAULT_BACKGROUND_COLOR = ConsoleColor.Black;
+        private const ConsoleColor DEFAULT_FOREGROUND_COLOR = ConsoleColor.Gray;
+        private const ConsoleColor DEFAULT_BACKGROUND_COLOR = ConsoleColor.Black;
 
         private static ConsoleColor? _foregroundColor;
         private static ConsoleColor? _backgroundColor;
@@ -21,26 +21,14 @@ namespace Orikivo.Framework
 
         public static ConsoleColor? ForegroundColor
         {
-            get
-            {
-                return Console.ForegroundColor;
-            }
-            set
-            {
-                Console.ForegroundColor = value ?? DEFAULT_FOREGROUND_COLOR;
-            }
+            get => Console.ForegroundColor;
+            set => Console.ForegroundColor = value ?? DEFAULT_FOREGROUND_COLOR;
         }
 
         public static ConsoleColor? BackgroundColor
         {
-            get
-            {
-                return Console.BackgroundColor;
-            }
-            set
-            {
-                Console.BackgroundColor = value ?? DEFAULT_BACKGROUND_COLOR;
-            }
+            get => Console.BackgroundColor;
+            set => Console.BackgroundColor = value ?? DEFAULT_BACKGROUND_COLOR;
         }
 
         public static void Log(ConsoleString value)
@@ -55,18 +43,24 @@ namespace Orikivo.Framework
             WriteToFile(content);
         }
 
-        public static void Debug(ConsoleString value)
+        public static void Debug(ConsoleString value, bool showTimestamp = true)
         {
             if (DebugAllowed)
             {
+                if (showTimestamp)
+                    Write($"[{DateTime.UtcNow:HH:mm:ss}] ");
+
                 WriteLine(value);
             }
         }
 
-        public static void Debug(string content)
+        public static void Debug(string content, bool showTimestamp = true)
         {
             if (DebugAllowed)
             {
+                if (showTimestamp)
+                    Write($"[{DateTime.UtcNow:HH:mm:ss}] ");
+
                 WriteLine(content);
             }
         }
@@ -77,6 +71,9 @@ namespace Orikivo.Framework
             WriteLine(value.Content);
             RestoreColors();
         }
+
+        public static void Write(string content)
+            => Console.Write(content);
 
         public static void WriteLine(string content)
             => Console.WriteLine(content);

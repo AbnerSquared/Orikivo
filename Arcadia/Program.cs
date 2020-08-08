@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
 using Orikivo.Framework;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Arcadia.Casino;
@@ -15,18 +14,18 @@ using Orikivo;
 
 namespace Arcadia
 {
-    // Entry-point for Orikivo Arcade
     internal sealed class Program
     {
         private static void Main(string[] args)
         {
             Task.Run(async () =>
             {
-                var _cancelSource = new CancellationTokenSource();
+                Logger.DebugAllowed = true;
+                var cancelSource = new CancellationTokenSource();
 
                 var layout = new ConsoleLayout
                 {
-                    Title = $"Orikivo Arcade: {Orikivo.OriGlobal.ClientVersion}",
+                    Title = $"Orikivo Arcade: {OriGlobal.ClientVersion}",
                     BackgroundColor = null,
                     ForegroundColor = null,
                     CursorVisible = false
@@ -37,13 +36,13 @@ namespace Arcadia
                 var builder = new ClientBuilder();
 
                 builder.Services
-                .AddSingleton<GameManager>()
-                .AddSingleton<InfoService>()
-                .AddSingleton<ArcadeContainer>()
-                .AddSingleton<LogService>()
-                .AddSingleton<Orikivo.EventHandler>()
-                .AddSingleton<CommandHandler>()
-                .AddSingleton(new MongoClient());
+                    .AddSingleton<GameManager>()
+                    .AddSingleton<InfoService>()
+                    .AddSingleton<ArcadeContainer>()
+                    .AddSingleton<LogService>()
+                    .AddSingleton<EventHandler>()
+                    .AddSingleton<CommandHandler>()
+                    .AddSingleton(new MongoClient());
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
@@ -76,10 +75,10 @@ namespace Arcadia
                     Type = ActivityType.Listening
                 };
 
-                client.Provider.GetRequiredService<Orikivo.EventHandler>();
+                client.Provider.GetRequiredService<EventHandler>();
                 client.Provider.GetRequiredService<CommandHandler>();
 
-                await client.StartAsync(_cancelSource.Token);
+                await client.StartAsync(cancelSource.Token);
             }).GetAwaiter().GetResult();
         }
     }

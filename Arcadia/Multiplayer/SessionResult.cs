@@ -13,11 +13,6 @@ namespace Arcadia.Multiplayer
         public Dictionary<ulong, List<StatUpdatePacket>> Stats { get; } = new Dictionary<ulong, List<StatUpdatePacket>>();
         public Dictionary<ulong, List<ItemUpdatePacket>> Items { get; } = new Dictionary<ulong, List<ItemUpdatePacket>>();
 
-        // Experience
-        // Rewards
-        // Stats
-        // Money
-
         public void Apply(ArcadeContainer container)
         {
             foreach (ulong userId in UserIds)
@@ -42,6 +37,4 @@ namespace Arcadia.Multiplayer
             }
         }
     }
-
-    // TODO: implement a reserved set of stats that cannot be changed.
 }

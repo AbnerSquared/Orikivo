@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using Orikivo;
+using Orikivo.Framework;
 using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer.Games
@@ -100,7 +101,7 @@ namespace Arcadia.Multiplayer.Games
         public static string WriteDeathRemainText(GameSession session)
         {
             int remaining = session.Players.Count(x => !x.ValueOf<WerewolfStatus>(WolfVars.Status).HasFlag(WerewolfStatus.Dead));
-            return $"> **{remaining:##,0}** {Format.TryPluralize("resident", remaining)} remain. Tread carefully.";
+            return $"\n> **{remaining:##,0}** {Format.TryPluralize("resident", remaining)} remain{(remaining == 1 ? "s" : "")}. Tread carefully.";
         }
 
         public static string WriteAccuseText(PlayerData accuser, PlayerData suspect)
@@ -175,7 +176,7 @@ namespace Arcadia.Multiplayer.Games
 
         public static string WriteRoleInfo(PlayerData player, GameSession session)
         {
-            if (session.GetOptionValue<bool>(WolfConfig.RevealPartners))
+            if (session.GetConfigValue<bool>(WolfConfig.RevealPartners))
                 if (player.ValueOf<WerewolfRole>(WolfVars.Role).Ability.HasFlag(WerewolfAbility.Feast))
                     return WriteAbilityPartners(player, session);
 
@@ -255,7 +256,7 @@ namespace Arcadia.Multiplayer.Games
                 PlayerData player = session.DataOf(peek.UserId);
 
                 // If shared peeking is enabled and the player can also peek, ignore them
-                if (session.GetOptionValue<bool>(WolfConfig.SharedPeeking))
+                if (session.GetConfigValue<bool>(WolfConfig.SharedPeeking))
                 {
                     if (player.ValueOf<WerewolfRole>(WolfVars.Role).Ability.HasFlag(WerewolfAbility.Peek))
                         continue;
@@ -295,7 +296,7 @@ namespace Arcadia.Multiplayer.Games
                 if (player.ValueOf<WerewolfStatus>(WolfVars.Status).HasFlag(WerewolfStatus.Dead))
                     continue;
 
-                summary.AppendLine($"• {player.ValueOf<string>(WolfVars.Name)}");
+                summary.AppendLine($"• **{player.ValueOf<string>(WolfVars.Name)}**#{player.ValueOf<int>(WolfVars.Index)}");
 
                 if (WerewolfGame.IsAbilityShared(session, WerewolfAbility.Feast))
                 {
@@ -318,7 +319,7 @@ namespace Arcadia.Multiplayer.Games
         {
             string state = isVisible ? innocent ? "🐺" : "😇" : "🎭";
 
-            return $"{state} • {player.ValueOf<string>(WolfVars.Name)}";
+            return $"{state} • **{player.ValueOf<string>(WolfVars.Name)}**#{player.ValueOf<int>(WolfVars.Index)}";
         }
 
         public static string WriteVoteCounter(GameSession session)
@@ -391,8 +392,8 @@ namespace Arcadia.Multiplayer.Games
             {
                 Name = "Werewolf",
                 Summary = "Figure out the werewolves and save the village.",
-                RequiredPlayers = 1,
-                PlayerLimit = 8
+                RequiredPlayers = 3,
+                PlayerLimit = 16
             };
 
             Options = new List<GameOption>
@@ -407,13 +408,10 @@ namespace Arcadia.Multiplayer.Games
 
         private List<string> RandomNames { get; set; }
 
-        private List<WerewolfRole> GenerateRoles(int playerCount)
+        private List<WerewolfRole> GenerateRoles(WerewolfRoleDeny roleDeny, int playerCount)
         {
             // Load up all available default roles
             List<WerewolfRole> availableRoles = WerewolfRole.GetPack(WerewolfRolePack.Custom);
-
-            // Load all denied roles
-            var roleDeny = GetConfigValue<WerewolfRoleDeny>(WolfConfig.RoleDeny);
 
             // Remove all of the specified denied roles from the list of available roles
             foreach (WerewolfRoleDeny deny in roleDeny.GetActiveFlags())
@@ -473,7 +471,7 @@ namespace Arcadia.Multiplayer.Games
             return ability switch
             {
                 WerewolfAbility.Feast => true,
-                WerewolfAbility.Peek => session.GetOptionValue<bool>(WolfConfig.SharedPeeking),
+                WerewolfAbility.Peek => session.GetConfigValue<bool>(WolfConfig.SharedPeeking),
                 _ => false
             };
         }
@@ -618,16 +616,13 @@ namespace Arcadia.Multiplayer.Games
         {
             return new DisplayContent
             {
-                Components = new List<IComponent>
+                new Component("header", 0)
                 {
-                    new Component("header", 0)
-                    {
-                        Formatter = new ComponentFormatter("> {0}", true)
-                    },
-                    new Component("players", 1)
-                    {
-                        Formatter = new ComponentFormatter("\n{0}", true)
-                    }
+                    Formatter = new ComponentFormatter("> {0}", true)
+                },
+                new Component("players", 1)
+                {
+                    Formatter = new ComponentFormatter("\n{0}", true)
                 }
             };
         }
@@ -662,7 +657,7 @@ namespace Arcadia.Multiplayer.Games
 
         private PlayerData CreatePlayer(Player player, WerewolfRole role, int index)
         {
-            Console.WriteLine("Creating player...");
+            Logger.Debug("Creating player...");
             var data = new PlayerData
             {
                 Source = player,
@@ -672,7 +667,7 @@ namespace Arcadia.Multiplayer.Games
                     GameProperty.Create(WolfVars.Index, index),
 
                     // name: The player's name.
-                    GameProperty.Create(WolfVars.Name, GetConfigValue<bool>(WolfConfig.RandomizeNames) ? Randomizer.Take(RandomNames) : player.User.Username),
+                    GameProperty.Create(WolfVars.Name, (((bool?) Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value) ?? false) ? Randomizer.Take(RandomNames) : player.User.Username),
 
                     // initial_role: The ID of their initial role given
                     GameProperty.Create(WolfVars.InitialRoleId, role.Id),
@@ -703,12 +698,12 @@ namespace Arcadia.Multiplayer.Games
 
 
         #region Required
-        public override List<PlayerData> OnBuildPlayers(List<Player> players)
+        public override List<PlayerData> OnBuildPlayers(IEnumerable<Player> players)
         {
-            if (GetConfigValue<bool>(WolfConfig.RandomizeNames))
-                RandomNames = Randomizer.ChooseMany(WolfFormat.DefaultRandomNames, players.Count).ToList();
+            if (((bool?) Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value) ?? false)
+                RandomNames = Randomizer.ChooseMany(WolfFormat.DefaultRandomNames, players.Count()).ToList();
 
-            List<WerewolfRole> roles = GenerateRoles(players.Count);
+            List<WerewolfRole> roles = GenerateRoles(((WerewolfRoleDeny?)Options.FirstOrDefault(x => x.Id == WolfConfig.RoleDeny)?.Value) ?? WerewolfRoleDeny.None, players.Count());
 
             return players.Select((x, i) => CreatePlayer(x, Randomizer.Take(roles), i)).ToList();
         }
@@ -790,7 +785,7 @@ namespace Arcadia.Multiplayer.Games
         public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
             // Set all of the currently connected channels to the specified frequency and group them
-            server.SetFrequencyForState(GameState.Playing, WolfChannel.Main);
+            server.SetStateFrequency(GameState.Playing, WolfChannel.Main);
             server.GroupAll("primary");
 
             DisplayContent main = server.GetBroadcast(WolfChannel.Main).Content;
@@ -804,14 +799,14 @@ namespace Arcadia.Multiplayer.Games
                 if (HasAbility(player))
                 {
                     var properties = ConnectionProperties.Default;
+                    properties.Frequency = -1;
                     properties.State = GameState.Playing;
                     properties.ContentOverride = BuildAbilityContent();
                     properties.ContentOverride.ValueOverride = WolfFormat.WriteRoleInfo(player, session);
                     properties.Inputs = new List<IInput>{ new TextInput("pick", OnPick, true) };
+                    properties.Origin = OriginType.Session;
 
-                    var connection = await ServerConnection.CreateAsync(player.Source, properties);
-                    connection.Origin = OriginType.Session;
-                    server.Connections.Add(connection);
+                    await server.AddConnectionAsync(player.Source, properties);
                 }
 
                 var index = player.ValueOf<int>(WolfVars.Index);
@@ -837,28 +832,24 @@ namespace Arcadia.Multiplayer.Games
         {
             return new List<DisplayBroadcast>
             {
-                new DisplayBroadcast
+                new DisplayBroadcast(WolfChannel.Main)
                 {
-                    Frequency = WolfChannel.Main,
                     Content = new DisplayContent
                     {
-                        Components = new List<IComponent>
+                        new Component("header", 0)
                         {
-                            new Component("header", 0)
-                            {
-                                Formatter = new ComponentFormatter("> **Round {0}**\n> {1}", true)
-                            },
-                            new ComponentGroup("console", 1, 6)
-                            {
-                                Formatter = new ComponentFormatter("```{0}```", "• {0}", "\n"),
-                                Values = new string[6],
-                                AutoDraw = true
-                            },
-                            new ComponentGroup("players", 2, players.Count)
-                            {
-                                Formatter = new ComponentFormatter("> **Residents**\n{0}", "{0}", "\n"),
-                                Values = new string[players.Count]
-                            }
+                            Formatter = new ComponentFormatter("> **Round {0}**\n> {1}", true)
+                        },
+                        new ComponentGroup("console", 1, 6)
+                        {
+                            Formatter = new ComponentFormatter("```{0}```", "• {0}", "\n"),
+                            Values = new string[6],
+                            AutoDraw = true
+                        },
+                        new ComponentGroup("players", 2, players.Count)
+                        {
+                            Formatter = new ComponentFormatter("> **Residents**\n{0}", "{0}", "\n"),
+                            Values = new string[players.Count]
                         }
                     },
                     Inputs = new List<IInput>
@@ -870,43 +861,35 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("silent", OnSilent, true)
                     }
                 },
-                new DisplayBroadcast
+                new DisplayBroadcast(WolfChannel.Death)
                 {
-                    Frequency = WolfChannel.Death,
                     Content = new DisplayContent
                     {
-                        Components = new List<IComponent>
+                        new Component("header", 0)
                         {
-                            new Component("header", 0)
-                            {
-                                Formatter = new ComponentFormatter("> 💀 **{0}** has died.", true)
-                            },
-                            new Component("summary", 1)
-                            {
-                                Formatter = new ComponentFormatter("```{0}```", true)
-                            },
-                            new Component("reveal", 2)
-                            {
-                                Formatter = new ComponentFormatter("> They were a **{0}**.{1}", true)
-                            }
+                            Formatter = new ComponentFormatter("> 💀 **{0}** has died.", true)
+                        },
+                        new Component("summary", 1)
+                        {
+                            Formatter = new ComponentFormatter("```{0}```", true)
+                        },
+                        new Component("reveal", 2)
+                        {
+                            Formatter = new ComponentFormatter("> They were a **{0}**.{1}", true)
                         }
                     }
                 },
-                new DisplayBroadcast
+                new DisplayBroadcast(WolfChannel.Vote)
                 {
-                    Frequency = WolfChannel.Vote,
                     Content = new DisplayContent
                     {
-                        Components = new List<IComponent>
+                        new Component("header", 0)
                         {
-                            new Component("header", 0)
-                            {
-                                Formatter = new ComponentFormatter("> Should **{0}** be killed for their suspicion?", true)
-                            },
-                            new Component("counter", 1)
-                            {
-                                Formatter = new ComponentFormatter("> {0}", true)
-                            }
+                            Formatter = new ComponentFormatter("> Should **{0}** be killed for their suspicion?", true)
+                        },
+                        new Component("counter", 1)
+                        {
+                            Formatter = new ComponentFormatter("> {0}", true)
                         }
                     },
                     Inputs = new List<IInput>
@@ -915,26 +898,22 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("die", OnDie, true)
                     }
                 },
-                new DisplayBroadcast
+                new DisplayBroadcast(WolfChannel.Results)
                 {
-                    Frequency = WolfChannel.Results,
                     Content = new DisplayContent
                     {
-                        Components = new List<IComponent>
+                        new Component("header", 0)
                         {
-                            new Component("header", 0)
-                            {
-                                Formatter = new ComponentFormatter("> The **{0}** win.\n> **Rounds: {1}**", true)
-                            },
-                            new Component("summary", 1)
-                            {
-                                Formatter = new ComponentFormatter("```{0}```", true)
-                            },
-                            new ComponentGroup("facts", 2, 1)
-                            {
-                                Formatter = new ComponentFormatter("{0}","• {0}", "\n"),
-                                Values = new[] { "This is a random fact placeholder." }
-                            }
+                            Formatter = new ComponentFormatter("> The **{0}** win.\n> **Rounds: {1}**", true)
+                        },
+                        new Component("summary", 1)
+                        {
+                            Formatter = new ComponentFormatter("```{0}```", true)
+                        },
+                        new ComponentGroup("facts", 2, 1)
+                        {
+                            Formatter = new ComponentFormatter("{0}","• {0}", "\n"),
+                            Values = new[] { "This is a random fact placeholder." }
                         }
                     }
                 }
@@ -1418,6 +1397,7 @@ namespace Arcadia.Multiplayer.Games
                 if (ctx.Session.Players.Where(x => HasAbility(x, GetCurrentAbility(ctx.Session))).All(x => x.ValueOf<bool>(WolfVars.HasUsedAbility)))
                 {
                     Console.WriteLine("Ability has been used, now closing...");
+                    ctx.Session.CancelNewestInQueue();
                     ctx.Session.InvokeAction(WolfVars.EndAbility, true);
                     return;
                 }
@@ -1433,6 +1413,7 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             Console.WriteLine("Ability has been used, now closing...");
+            ctx.Session.CancelNewestInQueue();
             ctx.Session.InvokeAction(WolfVars.EndAbility, true);
         }
 

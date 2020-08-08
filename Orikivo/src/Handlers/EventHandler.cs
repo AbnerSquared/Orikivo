@@ -18,9 +18,10 @@ namespace Orikivo
             _client = client;
             _client.Ready += OnReadyAsync;
         }
+
         private async Task OnReadyAsync()
         {
-            //_logger.Debug("Orikivo has connected to Discord.");
+            Logger.Debug($"{_client.CurrentUser.Username} is ready.");
         }
     }
 }
