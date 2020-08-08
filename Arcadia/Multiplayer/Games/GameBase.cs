@@ -33,7 +33,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// When specified, handles building the required data for every player in a <see cref="GameSession"/>.
         /// </summary>
-        public abstract List<PlayerData> OnBuildPlayers(IEnumerable<Player> players);
+        public abstract List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players);
 
         /// <summary>
         /// When specified, handles collecting all of the required global properties for this <see cref="GameBase"/>.

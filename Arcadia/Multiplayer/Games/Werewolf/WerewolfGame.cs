@@ -698,7 +698,7 @@ namespace Arcadia.Multiplayer.Games
 
 
         #region Required
-        public override List<PlayerData> OnBuildPlayers(IEnumerable<Player> players)
+        public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
             if (((bool?) Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value) ?? false)
                 RandomNames = Randomizer.ChooseMany(WolfFormat.DefaultRandomNames, players.Count()).ToList();

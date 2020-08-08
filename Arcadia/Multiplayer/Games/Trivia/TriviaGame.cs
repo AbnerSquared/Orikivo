@@ -626,7 +626,7 @@ namespace Arcadia.Multiplayer.Games
             return displays;
         }
 
-        public override List<PlayerData> OnBuildPlayers(IEnumerable<Player> players)
+        public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
             var sessionData = players.Select(x =>
                 new PlayerData
@@ -653,7 +653,6 @@ namespace Arcadia.Multiplayer.Games
             // streaks can be set up by 5, 10, 15, 20, 25, 30, 35, etc.
             int streakValue = streak <= 0 ? 0 : (streak - 1) * 5; // a one question delay is added to prevent streak bonuses on the first question.
             float multiplier = GetDifficultyMultiplier(difficulty);
-            
             // this means they never answered
             if (answerPosition == 0)
                 return 0;
@@ -696,7 +695,6 @@ namespace Arcadia.Multiplayer.Games
             {
                 ulong playerId = player.Source.User.Id;
                 var stats = new List<StatUpdatePacket>();
-                
                 stats.Add(new StatUpdatePacket(TriviaStats.TimesPlayed, 1));
                 stats.Add(new StatUpdatePacket(TriviaStats.HighestScore, GetScore(session, playerId), StatUpdateType.SetIfGreater));
 

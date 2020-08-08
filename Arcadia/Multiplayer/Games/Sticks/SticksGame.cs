@@ -8,7 +8,7 @@ namespace Arcadia.Multiplayer.Games
 {
     public class SticksGame : GameBase
     {
-        public override List<PlayerData> OnBuildPlayers(IEnumerable<Player> players)
+        public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
             return players.Select((x, i) =>
             {

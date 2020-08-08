@@ -102,7 +102,6 @@ namespace Arcadia.Casino
 
             int rawReturn = RandomProvider.Instance.Next(earnLowerBound * RndLength, (earnUpperBound + 1) * RndLength);
             var baseReturnValue = (int) Math.Truncate(rawReturn / (double) RndLength);
-            
             int maxSeed = GetMaxSeed();
 
             int seed = RandomProvider.Instance.Next(MinSeed, maxSeed + 1);
@@ -112,15 +111,20 @@ namespace Arcadia.Casino
             int slotDiff = Math.Abs(GoldSlot - CurseSlot);
             bool goldDirection =  slotDiff >= goldSize || slotDiff >= curseSize;
             int goldDir = goldDirection ? 1 : -1;
-            
+
             var debug = new StringBuilder();
 
-            debug.AppendLine($"Reward: {baseReturnValue} [Min: {earnLowerBound}] [Max: {earnUpperBound}]")
-                .AppendLine($"[Slots: {goldSize}] Gold: {GetGoldReward()} ({goldChance}%) [Root: {GoldSlot}]")
-                .AppendLine($"Difference: {slotDiff} [GoldDir: {goldDir}] [CurseDir: {-goldDir}]")
+            debug
+                .AppendLine("Executed a Gimi generation")
+                .AppendLine($"Reward Base: {baseReturnValue} [Min: {earnLowerBound}] [Max: {earnUpperBound}]")
+                .AppendLine($"Gold Base: {GetGoldReward()} [Slots: 0, 2000] ({PercentOf(2 / (double) maxSeed, maxSeed)}%)")
+                .AppendLine($"Curse Base: {GetCurseReward()} [Slots: 1, 1999] ({PercentOf(2 / (double)maxSeed, maxSeed)}%)")
                 .AppendLine($"Seed: {seed} [Min: {MinSeed}] [Max: {maxSeed}] [WinDir: {(Direction ? 1 : -1)}]");
 
             var goldSlots = new List<int>();
+            goldSlots.Add(MinSeed);
+            goldSlots.Add(maxSeed);
+            /*
             for (var i = 0; i < goldSize; i++)
             {
                 int goldSlot = (GoldSlot + i * goldDir) % maxSeed;
@@ -128,8 +132,11 @@ namespace Arcadia.Casino
 
                 debug.AppendLine($"Gold Slot {i}: {goldSlot} [Max: {maxSeed}]");
             }
-
+            */
             var curseSlots = new List<int>();
+            curseSlots.Add(MinSeed + 1);
+            curseSlots.Add(maxSeed - 1);
+            /*
             for (var i = 0; i < curseSize; i++)
             {
                 int curseSlot = (CurseSlot + i * -goldDir) % maxSeed;
@@ -140,7 +147,7 @@ namespace Arcadia.Casino
                 debug.AppendLine($"Curse Slot {i}: {curseSlot} [Max: {maxSeed}]");
                 curseSlots.Add(curseSlot);
             }
-
+            */
             int reward;
             GimiResultFlag flag;
 
@@ -148,13 +155,11 @@ namespace Arcadia.Casino
             {
                 flag = GimiResultFlag.Gold;
                 reward = GetGoldReward();
-                debug.AppendLine($"IsGold");
             }
             else if (curseSlots.Contains(seed))
             {
                 flag = GimiResultFlag.Curse;
                 reward = GetCurseReward();
-                debug.AppendLine($"IsCursed");
             }
             else
             {
@@ -162,10 +167,10 @@ namespace Arcadia.Casino
                 flag = isSameDir ? GimiResultFlag.Win : GimiResultFlag.Lose;
                 reward = baseReturnValue;
 
-                debug.AppendLine($"IsWin: {isSameDir}");
             }
 
-            debug.AppendLine($"Returns: {reward}");
+            debug.AppendLine($"Result: {flag}");
+            debug.Append($"Reward: {reward}");
 
             Logger.Debug(debug.ToString());
 
