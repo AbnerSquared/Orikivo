@@ -11,7 +11,6 @@ namespace Arcadia.Multiplayer
         internal readonly GameServer Server;
         internal readonly GameBase Game;
 
-        // create a game session with the information provided
         public GameSession(GameServer server, GameBase game)
         {
             StartedAt = DateTime.UtcNow;
@@ -153,7 +152,7 @@ namespace Arcadia.Multiplayer
         internal void InvokeAction(string actionId, InputContext ctx, bool overrideTimer = false)
         {
             if (!overrideTimer)
-                if (GetNewestInQueue()?.IsElapsed ?? false)
+                if (GetNewestInQueue()?.IsBusy ?? false)
                     return;
 
             if (Actions.All(x => x.Id != actionId))
@@ -173,7 +172,7 @@ namespace Arcadia.Multiplayer
             Logger.Debug($"Invoking action {actionId}");
 
             if (!overrideTimer)
-                if (GetNewestInQueue()?.IsElapsed ?? false)
+                if (GetNewestInQueue()?.IsBusy ?? false)
                     return;
 
             if (Actions.All(x => x.Id != actionId))
@@ -186,7 +185,7 @@ namespace Arcadia.Multiplayer
             if (!PendingUpdate)
             {
                 RootDepth = baseDepth;
-                PendingUpdate = action.UpdateOnExecute;
+                PendingUpdate = PendingUpdate || action.UpdateOnExecute;
             }*/
 
             try
@@ -217,40 +216,46 @@ namespace Arcadia.Multiplayer
             }*/
 
             if (action.UpdateOnExecute)
-            {
                 Server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-            }
         }
 
         internal bool MeetsCriterion(string ruleId)
         {
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Checking criterion {ruleId}");
+            Logger.Debug($"Checking criterion {ruleId}");
+
             if (Criteria.All(x => x.Id != ruleId))
                 throw new Exception($"Could not find the specified rule '{ruleId}'");
 
-            return Criteria.First(x => x.Id == ruleId).Criterion.Invoke(this);
+            GameCriterion criterion = Criteria.First(x => x.Id == ruleId);
+
+            if (criterion.Criterion == null)
+                throw new Exception("Expected game criterion to have a specified invokable method");
+
+            return criterion.Criterion(this);
         }
 
         public GameProperty GetProperty(string id)
         {
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Getting property {id}");
+            Logger.Debug($"Getting property {id}");
 
             if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not find the specified property '{id}'");
+                throw new ValueNotFoundException("Could not find the specified property", id);
 
             return Properties.First(x => x.Id == id);
         }
 
         public GameOption GetOption(string id)
         {
+            Logger.Debug($"Getting option {id}");
+
             if (Options.All(x => x.Id != id))
-                throw new Exception($"Could not find the specified option '{id}'");
+                throw new ValueNotFoundException("Could not find the specified option", id);
 
             return Options.First(x => x.Id == id);
         }
 
         public object GetConfigValue(string id)
-            => GetOption(id)?.Value;
+            => GetOption(id).Value;
 
         public T GetConfigValue<T>(string id)
         {
@@ -263,30 +268,30 @@ namespace Arcadia.Multiplayer
         }
 
         public void ResetProperty(string id)
-            => GetProperty(id)?.Reset();
+            => GetProperty(id).Reset();
 
         public object ValueOf(string id)
-            => GetProperty(id)?.Value;
+            => GetProperty(id).Value;
 
         public T ValueOf<T>(string id)
         {
             GameProperty property = GetProperty(id);
 
-            if (property.ValueType != null && property.ValueType.IsEquivalentTo(typeof(T)))
-                return (T)property.Value;
+            if (property.ValueType == null || !property.ValueType.IsEquivalentTo(typeof(T)))
+                throw new Exception("The specified type within the property does not match the implicit type reference");
 
-            throw new Exception("The specified type within the property does not match the implicit type reference");
+            return (T)property.Value;
         }
 
         public Type TypeOf(string id)
-            => GetProperty(id)?.ValueType;
+            => GetProperty(id).ValueType;
 
         public void SetValue(string id, object value)
         {
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Setting property {id} to {value}");
+            Logger.Debug($"Set property {id} to {value}");
 
             if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not find the specified property '{id}'");
+                throw new ValueNotFoundException("Could not find the specified property", id);
 
             Properties.First(x => x.Id == id).Set(value);
         }

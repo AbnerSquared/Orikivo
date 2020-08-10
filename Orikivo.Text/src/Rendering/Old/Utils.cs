@@ -225,13 +225,13 @@ namespace Orikivo.Text
             // SCROLLING
             for (int y = pY; y < pY + obj.Height; y++)
             {
-                int overlapY = (int)Math.Floor((double)(y / grid.Height));
-                int cY = y - (overlapY * grid.Height);
+                int overlapY = (int)Math.Floor(y / (double)grid.Height);
+                int cY = y - overlapY * grid.Height;
 
                 for (int x = pX; x < pX + obj.Width; x++)
                 {
-                    int overlapX = (int)Math.Floor((double)(x / grid.Width));
-                    int cX = x - (overlapX * grid.Width);
+                    int overlapX = (int)Math.Floor(x / (double)grid.Width);
+                    int cX = x - overlapX * grid.Width;
 
                     Console.WriteLine($"({cX}, {cY})");
                     values.Add(new CharValue(obj.Chars[y - pY][x - pX], cX, cY));
@@ -350,5 +350,7 @@ namespace Orikivo.Text
 
         public static float GetAngledVectorY(float y, float angle)
             => (float)(y * Math.Sin(angle % 360));
+
+
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Arcadia.Multiplayer.Games
+﻿namespace Arcadia.Multiplayer.Games.Werewolf
 {
     public enum WerewolfChatMode
     {

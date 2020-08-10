@@ -19,7 +19,7 @@ namespace Orikivo
         }
 
         [JsonConstructor]
-        internal BaseGuild(ulong id, string name, DateTime createdAt, ulong ownerId,
+        public BaseGuild(ulong id, string name, DateTime createdAt, ulong ownerId,
             GuildConfig config)
         {
             Id = id;

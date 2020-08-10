@@ -1,64 +1,113 @@
-﻿using System;
+﻿using Orikivo;
+using Orikivo.Framework;
+using System;
 using System.Linq;
 using System.Threading;
-using Orikivo;
-using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
     /// <summary>
     /// Represents a queued <see cref="GameAction"/>.
     /// </summary>
-    public class ActionQueue
+    public sealed class ActionQueue
     {
         // This is the callback used instead, as it keeps up to date instead of the callback
         private readonly GameSession _session;
-        private TimeSpan Duration { get; set; }
+
+        /// <summary>
+        /// Initializes a new <see cref="ActionQueue"/> with a generated ID.
+        /// </summary>
+        /// <param name="duration">The delay at which this <see cref="ActionQueue"/> will be called in.</param>
+        /// <param name="actionId">The ID of the <see cref="GameAction"/> to invoke.</param>
+        /// <param name="session">The <see cref="GameSession"/> to bind this <see cref="ActionQueue"/> for.</param>
         public ActionQueue(TimeSpan duration, string actionId, GameSession session)
         {
             if (session.Actions.All(x => x.Id != actionId))
-                throw new Exception($"Expected GameSession to have specified action '{actionId}', but returned null");
+                throw new ValueNotFoundException("Failed to find the specified action in the current game session", actionId);
 
-            Duration = duration;
             _session = session;
+            CreatedAt = StartedAt = DateTime.UtcNow;
             Id = KeyBuilder.Generate(6);
-            StartedAt = DateTime.UtcNow;
-            Console.WriteLine($"[{Id}] Timer started at {StartedAt} with elapse action pointing to '{actionId}' in {duration.TotalSeconds} seconds.");
-            Timer = new Timer(OnElapse, null, duration, TimeSpan.FromMilliseconds(-1));
-            IsCancelled = false;
-            IsElapsed = false;
-            IsCompleted = false;
             ActionId = actionId;
-            EndedAt = null;
+            Delay = duration;
+            Timer = new Timer(OnElapse, null, duration, TimeSpan.FromMilliseconds(-1));
+            Logger.Debug($"[{Id}] Queued '{actionId}' (at {Format.FullTime(StartedAt)}) to invoke in {Format.Countdown(duration)}.");
         }
 
-        public ActionQueue(string id, TimeSpan duration, string actionId, GameSession session) : this(duration,
-            actionId, session)
+        /// <summary>
+        /// Initializes a new <see cref="ActionQueue"/> with a unique ID.
+        /// </summary>
+        /// <param name="id">The ID to set for this <see cref="ActionQueue"/>.</param>
+        /// <param name="duration">The delay at which this <see cref="ActionQueue"/> will be called in.</param>
+        /// <param name="actionId">The ID of the <see cref="GameAction"/> to invoke.</param>
+        /// <param name="session">The <see cref="GameSession"/> to bind this <see cref="ActionQueue"/> for.</param>
+        public ActionQueue(string id, TimeSpan duration, string actionId, GameSession session)
         {
+            if (session.ActionQueue.Any(x => x.Id == id))
+                throw new Exception($"There is already a queue with the specified ID ('{id}').");
+
+            if (session.Actions.All(x => x.Id != actionId))
+                throw new ValueNotFoundException("Failed to find the specified action in the current game session", actionId);
+
+            _session = session;
+            CreatedAt = StartedAt = DateTime.UtcNow;
             Id = id;
-            Console.WriteLine($"[{Id}] Timer reference set to {Id}.");
+            ActionId = actionId;
+            Delay = duration;
+            Timer = new Timer(OnElapse, null, duration, TimeSpan.FromMilliseconds(-1));
+            Logger.Debug($"[{Id}] Queued '{actionId}' (at {Format.FullTime(StartedAt)}) to invoke in {Format.Countdown(duration)}.");
         }
 
         public string Id { get; }
 
-        internal Timer Timer { get; private set; }
-        public bool IsCancelled { get; set; }
-        public bool IsElapsed { get; set; }
-        public bool IsCompleted { get; set; }
-        public string ActionId { get; set; }
+        public string ActionId { get; }
 
-        public DateTime StartedAt { get; set; }
+        private Timer Timer { get; set; }
 
+        /// <summary>
+        /// Determines if this <see cref="ActionQueue"/> was cancelled.
+        /// </summary>
+        public bool IsCancelled { get; private set; }
+
+        /// <summary>
+        /// Determines if this <see cref="ActionQueue"/> was already completed.
+        /// </summary>
+        public bool IsCompleted { get; private set; }
+
+        /// <summary>
+        /// Determines if this <see cref="ActionQueue"/> is currently invoking the specified action.
+        /// </summary>
+        public bool IsBusy { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="DateTime"/> at which this <see cref="ActionQueue"/> was initialized.
+        /// </summary>
+        public DateTime CreatedAt { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DateTime"/> at which this <see cref="ActionQueue"/> started.
+        /// </summary>
+        public DateTime StartedAt { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="DateTime"/> at which this <see cref="ActionQueue"/> was paused, if any.
+        /// </summary>
         public DateTime? PausedAt { get; private set; }
 
-        public DateTime? EndedAt { get; set; }
+        private TimeSpan Delay { get; set; }
 
+        /// <summary>
+        /// Determines if this <see cref="ActionQueue"/> was disposed.
+        /// </summary>
         public bool Disposed { get; private set; }
 
         public void Pause()
         {
+            if (PausedAt.HasValue)
+                return;
+
             PausedAt = DateTime.UtcNow;
-            Console.WriteLine($"[{Id}] Action paused at {PausedAt.Value}");
+            Logger.Debug($"[{Id}] Action paused at {PausedAt.Value}");
         }
 
         public void Resume()
@@ -67,12 +116,11 @@ namespace Arcadia.Multiplayer
                 return;
 
             TimeSpan diff = StartedAt - PausedAt.Value;
-
             PausedAt = null;
             StartedAt = DateTime.UtcNow;
-            Duration = Duration.Subtract(diff);
-            Timer = new Timer(OnElapse, null, Duration, TimeSpan.FromMilliseconds(-1));
-            Console.WriteLine($"[{Id}] Action resumed at {DateTime.UtcNow}");
+            Delay = Delay.Subtract(diff);
+            Timer = new Timer(OnElapse, null, Delay, TimeSpan.FromMilliseconds(-1));
+            Logger.Debug($"[{Id}] Queue timer resumed");
         }
 
         public void Cancel()
@@ -84,70 +132,73 @@ namespace Arcadia.Multiplayer
                 return;
 
             IsCancelled = true;
-            EndedAt = DateTime.UtcNow;
-            Console.WriteLine($"[{Id}] Action cancelled at {EndedAt.Value}");
+            Logger.Debug($"[{Id}] Queue cancelled");
         }
 
-        // The state object isn't utilized, so it could be left null
+        // NOTE: The state object parameter isn't utilized for this class, and is left null
         private void OnElapse(object state)
         {
             if (Disposed)
                 return;
 
-            // if the timer was cancelled, just ignore it and set the timer cancellation back to false
             if (IsCancelled)
             {
-                Console.WriteLine($"[{Id}] Action has been cancelled and not execute.");
+                Logger.Debug($"[{Id}] Queue called but was cancelled");
                 Dispose();
                 return;
             }
 
-            // if the timer was cancelled, just ignore it and set the timer cancellation back to false
             if (PausedAt.HasValue)
             {
-                Console.WriteLine($"[{Id}] Action is currently paused.");
+                Logger.Debug($"[{Id}] Queue called but is paused");
                 Timer.Dispose();
                 Timer = null;
                 return;
             }
 
             IsCompleted = true;
-            IsElapsed = true;
-            EndedAt = DateTime.UtcNow;
-            Logger.Debug($"[{Id}] Action timed out at {EndedAt.Value}. Now executing '{ActionId}'.");
+            IsBusy = true;
+
+            Logger.Debug($"[{Id}] Queue called, executing action '{ActionId}'");
             _session.InvokeAction(ActionId, true);
-            IsElapsed = false;
+            IsBusy = false;
+
+            Logger.Debug($"[{Id}] Queue call complete, now disposing");
             Dispose();
         }
 
-        public void Dispose()
-        {
-            if (Disposed)
-                return;
-
-            // If no timer is specified, ignore it, but do not mark as disposed since it could be paused
-            if (Timer == null)
-                return;
-
-            Timer.Dispose();
-            Logger.Debug($"[{Id}] Action queue disposed at {DateTime.UtcNow}.");
-            _session.ActionQueue.Remove(this);
-            Disposed = true;
-        }
-
+        /// <summary>
+        /// Disposes of this <see cref="ActionQueue"/>.
+        /// </summary>
         public void SafeDispose()
         {
             if (Disposed)
                 return;
 
-            // If no timer is specified, ignore it, but do not mark as disposed since it could be paused
             if (Timer == null)
+            {
+                // ReSharper disable once InvertIf
+                if (PausedAt.HasValue)
+                {
+                    Logger.Debug($"[{Id}] Queue call was paused but disposed");
+                    Disposed = true;
+                }
                 return;
+            }
 
             Timer.Dispose();
-            Logger.Debug($"[{Id}] Action queue disposed at {DateTime.UtcNow}.");
             Disposed = true;
+
+            Logger.Debug($"[{Id}] Queue call {(IsCompleted ? "successfully " : "")}disposed.");
         }
 
+        /// <summary>
+        /// Disposes of this <see cref="ActionQueue"/> and removes it from the <see cref="GameSession"/> cache.
+        /// </summary>
+        public void Dispose()
+        {
+            SafeDispose();
+            _session.ActionQueue.Remove(this);
+        }
     }
 }

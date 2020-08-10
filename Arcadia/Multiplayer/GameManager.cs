@@ -604,11 +604,11 @@ namespace Arcadia.Multiplayer
                     // [PLAYER] refresh
                     if (ctx == "refresh")
                     {
-                        // Ignore if they do not exist
+                        // Ignore if the player does not exist
                         if (player == null)
                             break;
 
-                        await connection.RefreshAsync();
+                        await connection.RefreshAsync(true);
                         return;
                     }
 
@@ -774,7 +774,7 @@ namespace Arcadia.Multiplayer
                         if (player == null)
                             break;
 
-                        await connection.RefreshAsync();
+                        await connection.RefreshAsync(true);
                         return;
                     }
 
@@ -1027,15 +1027,22 @@ namespace Arcadia.Multiplayer
                 // This represents a custom display channel for a server connection
                 // If they are currently in an active session, handle the specified inputs instead for the specified display channel
                 case GameState.Playing:
+                    if (server.Session == null)
+                        throw new Exception("Expected server to have an active game session");
+
                     foreach (IInput input in connection.GetAvailableInputs())
                     {
-                        // Continue if not a text input
+                        // Ignore if a player is required and their data is not in the session
+                        if (input.RequirePlayer && server.Session.DataOf(user.Id) == null)
+                            continue;
+
+                        // Ignore if the input type is not a text input
                         if (!(input is TextInput))
                             continue;
 
                         InputResult result = input.TryParse(ctx);
 
-                        // Continue if not successful
+                        // Ignore if the input is not successful
                         if (!result.IsSuccess)
                             continue;
 
@@ -1053,22 +1060,24 @@ namespace Arcadia.Multiplayer
                         {
                             result.Input.OnExecute(new InputContext(user, connection, server, result));
 
+                            // If the server was destroyed by this input, return
                             if (server.Destroyed)
                                 return;
+
+                            // Otherwise, make a check if the server is allowed to update
+                            allowUpdate = result.Input.UpdateOnExecute;
+
+                            Logger.Debug($"Handled input successfully");
+                            break;
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e);
                             server.DestroyCurrentSession();
                             AppendToConsole(server, $"[Console] An exception has been thrown while handling an input.");
+                            allowUpdate = true;
                             break;
                         }
-
-                        // Make a check if the server is allowed to update
-                        allowUpdate = result.Input.UpdateOnExecute;
-
-                        Logger.Debug("Handled input successfully");
-                        break;
                     }
 
                     break;

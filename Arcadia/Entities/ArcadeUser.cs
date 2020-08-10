@@ -62,7 +62,7 @@ namespace Arcadia
 
         [JsonIgnore]
         public int Level => ExpConvert.AsLevel(Exp);
-        
+
         [JsonProperty("ascent")]
         public int Ascent { get; internal set; }
 
@@ -148,8 +148,6 @@ namespace Arcadia
             {
                 Balance += (ulong) value;
             }
-
-            
         }
 
         public void Take(long value)
@@ -168,7 +166,6 @@ namespace Arcadia
             {
                 Debt += (ulong) value;
             }
-            
         }
     }
 }

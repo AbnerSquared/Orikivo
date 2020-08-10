@@ -128,7 +128,7 @@ namespace Arcadia
 
                 Quest quest = GetQuest(data.Id);
                 result.AppendLine($"> **Slot {i}: {quest.Name}** • {quest.Difficulty.ToString()} ({GetProgress(data)})");
-                
+
                 if (Check.NotNull(quest.Summary))
                     result.AppendLine($"> {quest.Summary}");
 

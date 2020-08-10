@@ -108,7 +108,7 @@ namespace Arcadia
                 // This is given to you if you are cursed while pocket lawyer is on cooldown
                 Content = "Pocket Lawyer can't save you this time.",
                 Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Items.PocketLawyer)?.Ticks > 0
-            } 
+            }
         };
 
         public static readonly CasinoReply[] Gold =

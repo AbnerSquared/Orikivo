@@ -1,7 +1,6 @@
 ﻿using System;
 using Orikivo;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -13,6 +12,7 @@ namespace Arcadia.Multiplayer
     public class GameServer
     {
         private readonly GameManager _manager;
+        private readonly List<Player> _players;
 
         private static void DrawHeader(GameServer server)
         {
@@ -97,8 +97,6 @@ namespace Arcadia.Multiplayer
 
             return server;
         }
-
-        private readonly List<Player> _players;
 
         private GameServer(GameManager manager, IUser host, ServerProperties properties = null)
         {
@@ -287,9 +285,7 @@ namespace Arcadia.Multiplayer
             foreach ((Player player, List<ulong> channelIds) in await GetPlayerConnectionsAsync())
             {
                 if (channelIds.Count == 1 && channelIds.Contains(channelId))
-                {
                     removedUserIds.Add(player.User.Id);
-                }
             }
 
             await RemovePlayerGroupAsync(removedUserIds, "All visible connections were destroyed");
@@ -443,11 +439,7 @@ namespace Arcadia.Multiplayer
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
 
-            foreach (DisplayBroadcast broadcast in Broadcasts)
-                if (broadcast.Frequency == frequency)
-                    return broadcast;
-
-            return null;
+            return Broadcasts.FirstOrDefault(x => x.Frequency == frequency);
         }
 
         public DisplayBroadcast GetBroadcast(GameState state)
@@ -455,11 +447,7 @@ namespace Arcadia.Multiplayer
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
 
-            foreach (DisplayBroadcast channel in Broadcasts)
-                if (channel.State == state)
-                        return channel;
-
-            return null;
+            return Broadcasts.FirstOrDefault(x => x.State == state);
         }
 
         public void SetStateFrequency(GameState state, int frequency)
@@ -528,7 +516,7 @@ namespace Arcadia.Multiplayer
             return playerConnections;
         }
 
-        public void EndCurrentSession()
+        internal void EndCurrentSession()
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -545,38 +533,29 @@ namespace Arcadia.Multiplayer
 
             foreach (ServerConnection connection in Connections)
             {
-                if ((GameState.Watching | GameState.Playing).HasFlag(connection.State))
-                {
-                    connection.Frequency = 0;
-                    connection.State = GameState.Waiting;
-                    connection.Group = null;
-                    connection.BlockInput = false;
-                }
+                if (!(GameState.Watching | GameState.Playing).HasFlag(connection.State))
+                    continue;
+
+                connection.Frequency = 0;
+                connection.State = GameState.Waiting;
+                connection.Group = null;
+                connection.BlockInput = false;
             }
 
-            var toRemove  = Connections.Where(x => x.Origin == OriginType.Session || x.Origin == OriginType.Unknown && x.CreatedAt > Session.StartedAt).ToList();
+            List<ServerConnection> toRemove  = Connections
+                .Where(x => x.Origin == OriginType.Session || x.Origin == OriginType.Unknown && x.CreatedAt > Session.StartedAt).ToList();
 
             foreach (ServerConnection connection in toRemove)
-            {
                 RemoveConnectionAsync(connection.ChannelId).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
 
             // If this display is not a reserved channel, remove it
             Broadcasts.RemoveAll(x => !x.Reserved);
             Session.DisposeQueue();
             Session = null;
 
-            DisplayContent waiting = GetBroadcast(GameState.Waiting).Content;
-            DisplayContent editing = GetBroadcast(GameState.Editing).Content;
-
-            waiting.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
-            editing.GetGroup(LobbyVars.Console).Append("[Console] The current session has ended.");
-
-            waiting.GetComponent(LobbyVars.Console).Draw();
-            editing.GetComponent(LobbyVars.Console).Draw(Config.Name);
+            AddConsoleText(this, $"[Console] The current session has ended.");
         }
 
-        // this tells the game manager to update all ServerConnection channels bound to this frequency
         public async Task UpdateAsync()
         {
             if (Destroyed)
@@ -585,6 +564,7 @@ namespace Arcadia.Multiplayer
             foreach (ServerConnection connection in Connections)
             {
                 Logger.Debug($"Refreshing {connection.ChannelId} - {connection.State.ToString()}");
+
                 try
                 {
                     await connection.RefreshAsync();
@@ -594,8 +574,6 @@ namespace Arcadia.Multiplayer
                     Logger.Debug($"Error thrown when refreshing connection\n{e.Message}\n{e.StackTrace}");
                 }
             }
-
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Server update was called");
         }
     }
 }

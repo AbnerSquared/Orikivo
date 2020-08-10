@@ -65,7 +65,7 @@ namespace Orikivo.Desync
             => GetLocation().Name;
 
         public Location GetLocation()
-            => Engine.World.Find(Id) ?? throw new ResultNotFoundException("Could not find a location with the specified ID.");
+            => Engine.World.Find(Id) ?? throw new ValueNotFoundException("Could not find a location with the specified ID.");
 
         /// <summary>
         /// Returns a string that summarizes this location.

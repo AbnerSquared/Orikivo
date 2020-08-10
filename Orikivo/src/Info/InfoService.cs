@@ -346,7 +346,7 @@ namespace Orikivo
             if (type == InfoType.Command)
             {
                 if (!Check.NotNullOrEmpty(commands))
-                    throw new ResultNotFoundException($"No commands could be found that matched the name '{ctx.Root}'.");
+                    throw new ValueNotFoundException($"No commands could be found that matched the name '{ctx.Root}'.");
 
                 // If a priority was specified, slim the search down to that specific command
                 if (ctx.HasPriority)
@@ -354,7 +354,7 @@ namespace Orikivo
                     commands = commands.Where(x => x.Priority == ctx.Priority);
 
                     if (!Check.NotNullOrEmpty(commands))
-                        throw new ResultNotFoundException($"The priority for the specified command does not exist.");
+                        throw new ValueNotFoundException($"The priority for the specified command does not exist.");
 
                     if (commands.Count() > 1)
                         throw new MultiMatchException("The priority for the specified command exists in more than one instance.");
@@ -369,7 +369,7 @@ namespace Orikivo
                     commands.ForEach(x => parameters = parameters.Concat(GetParameters(x, ctx.Parameter)));
 
                     if (!Check.NotNullOrEmpty(parameters))
-                        throw new ResultNotFoundException("The parameter specified could not be found within any of the commands");
+                        throw new ValueNotFoundException("The parameter specified could not be found within any of the commands");
 
                     if (parameters.Count() > 1)
                         throw new MultiMatchException($"The parameter enlisted is specified for multiple commands.");
@@ -387,7 +387,7 @@ namespace Orikivo
                 InfoType.Overload => new OverloadNode(commands.First()),
                 InfoType.Command => new CommandNode(commands),
                 InfoType.Parameter => new ParameterNode(parameter),
-                _ => throw new ResultNotFoundException("A ContextNode value could not be created with the given context.")
+                _ => throw new ValueNotFoundException("A ContextNode value could not be created with the given context.")
             };
         }
 
@@ -399,7 +399,7 @@ namespace Orikivo
 
                 return ctx.Aliases;
             }
-            catch (ResultNotFoundException)
+            catch (ValueNotFoundException)
             {
                 return new List<string>();
             }
@@ -449,7 +449,7 @@ namespace Orikivo
             IEnumerable<InfoMatch> values = GetMatchingValues(parent, name);
 
             if (!Check.NotNullOrEmpty(values))
-                throw new ResultNotFoundException($"No matches were found when searching for a value of the name '{name}'.");
+                throw new ValueNotFoundException($"No matches were found when searching for a value of the name '{name}'.");
 
             if (values.Where(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)).Count() > 0)
                 return values.Where(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)).First();
@@ -474,7 +474,7 @@ namespace Orikivo
             IEnumerable<ModuleInfo> modules = GetModules(parent, name);
 
             if (!Check.NotNullOrEmpty(modules))
-                throw new ResultNotFoundException($"No matches were found when searching for matching modules of the name '{name}'.");
+                throw new ValueNotFoundException($"No matches were found when searching for matching modules of the name '{name}'.");
 
             if (modules.Count() > 1) // Add support for ambiguity.
                 throw new MultiMatchException($"Multiple results were given when searching for a module of the name '{name}'.");
@@ -535,7 +535,7 @@ namespace Orikivo
             IEnumerable<ModuleInfo> groups = GetGroups(parent, name);
 
             if (!Check.NotNullOrEmpty(groups))
-                throw new ResultNotFoundException($"No matches were found when searching for matching groups of the name '{name}'.");
+                throw new ValueNotFoundException($"No matches were found when searching for matching groups of the name '{name}'.");
 
             if (groups.Count() > 1) // Add support for ambiguity.
                 throw new MultiMatchException($"Multiple results were given when searching for a group of the name '{name}'.");
@@ -569,7 +569,7 @@ namespace Orikivo
             IEnumerable<CommandInfo> commands = GetCommands(name);
 
             if (!Check.NotNullOrEmpty(commands))
-                throw new ResultNotFoundException($"No matches were found when searching for matching command of the name '{name}'.");
+                throw new ValueNotFoundException($"No matches were found when searching for matching command of the name '{name}'.");
 
             if (commands.Count() > 1)
                 throw new MultiMatchException($"Multiple results were given when searching for a command of the name '{name}'.");

@@ -145,7 +145,7 @@ namespace Arcadia.Multiplayer
                 await Message.TryDeleteAsync();
         }
 
-        public async Task RefreshAsync()
+        public async Task RefreshAsync(bool replacePrevious = false)
         {
             if (Destroyed)
                 throw new Exception("This connection was destroyed");
@@ -167,7 +167,7 @@ namespace Arcadia.Multiplayer
                 ? ContentOverride?.ToString()
                 : content?.ToString() ?? $"> ⚠️ Could not find a channel at the specified frequency ({Frequency}).";
 
-            if (Message == null || IsDeleted)
+            if (Message == null || IsDeleted || replacePrevious)
             {
                 Message = await Channel.SendMessageAsync(text);
                 MessageId = Message.Id;

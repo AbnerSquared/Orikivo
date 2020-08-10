@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcadia.Multiplayer.Games
+namespace Arcadia.Multiplayer.Games.Werewolf
 {
     [Flags]
     public enum WerewolfGroup

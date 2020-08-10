@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using Orikivo;
 using Orikivo.Framework;
 using Format = Orikivo.Format;
+using Arcadia.Multiplayer.Games.Werewolf;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -612,6 +613,9 @@ namespace Arcadia.Multiplayer.Games
         private static IEnumerable<PlayerData> GetLivingPlayers(GameSession session)
             => session.Players.Where(IsAlive);
 
+        private static IEnumerable<PlayerData> GetLivingWolves(GameSession session)
+            => session.Players.Where(x => IsAlive(x) && IsWolf(x));
+
         private static DisplayContent BuildAbilityContent()
         {
             return new DisplayContent
@@ -706,6 +710,23 @@ namespace Arcadia.Multiplayer.Games
             List<WerewolfRole> roles = GenerateRoles(((WerewolfRoleDeny?)Options.FirstOrDefault(x => x.Id == WolfConfig.RoleDeny)?.Value) ?? WerewolfRoleDeny.None, players.Count());
 
             return players.Select((x, i) => CreatePlayer(x, Randomizer.Take(roles), i)).ToList();
+        }
+
+        public override void OnPlayerRemoved(Player player)
+        {
+            // If a player was removed:
+
+            var death = new WerewolfDeath(player.User.Id, WerewolfDeathMethod.Unknown);
+
+            // If the game has already ended, ignore it
+
+            // If the current phase is day-time AND there isn't an accusation in place, handle their death immediately
+
+            // If the current phase is night, add their information as an unhandled death
+            // If an ability is being handled, remove their vote data
+            // If the ability was already called on someone AND they left, allow the player to choose another
+            // If an ability vote session is called and someone leaves, remove all of the votes on that player
+            // AND if there was at least one vote on that player, extend the ability vote timer by 10 seconds.
         }
 
         public override List<GameProperty> OnBuildProperties()
@@ -1017,12 +1038,8 @@ namespace Arcadia.Multiplayer.Games
                     continue;
                 }
 
-                var death = new WerewolfDeath
-                {
-                    Method = WerewolfDeathMethod.Wolf,
-                    UserId = player.Source.User.Id,
-                    Killers = ctx.Session.Players.Where(IsWolf).Select(x => x.Source.User.Id).ToList()
-                };
+                var death = new WerewolfDeath(player.Source.User.Id, WerewolfDeathMethod.Wolf,
+                    GetLivingWolves(ctx.Session).Select(x => x.Source.User.Id).ToList());
 
                 // Mark the player as dead
                 SetStatus(player, WerewolfStatus.Dead);
@@ -1173,15 +1190,9 @@ namespace Arcadia.Multiplayer.Games
             // If there is anyone injured, kill them.
             foreach (PlayerData player in ctx.Session.Players.Where(IsHurt))
             {
+                var death = new WerewolfDeath(player.Source.User.Id, WerewolfDeathMethod.Injury);
+
                 SetStatus(player, WerewolfStatus.Dead);
-
-                var death = new WerewolfDeath
-                {
-                    UserId = player.Source.User.Id,
-                    DiedAt = DateTime.UtcNow,
-                    Method = WerewolfDeathMethod.Injury
-                };
-
                 ctx.Session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths).Add(death);
             }
 
@@ -1298,9 +1309,16 @@ namespace Arcadia.Multiplayer.Games
             int toDie = CountDeathVotes(ctx.Session);
             int pending = CountPendingVotes(ctx.Session);
 
+            var killers = new List<ulong>();
+
             // Reset all of the votes once you've received the vote counts
-            foreach (PlayerData player in ctx.Session.Players)
+            foreach (PlayerData player in GetLivingPlayers(ctx.Session))
+            {
+                if (player.ValueOf<WerewolfVote>(WolfVars.Vote) == WerewolfVote.Die)
+                    killers.Add(player.Source.User.Id);
+
                 player.SetValue(WolfVars.Vote, WerewolfVote.Pending);
+            }
 
             ctx.Session.BlockInput = true;
             ctx.Session.GetInQueue("day_timer").Cancel();
@@ -1312,12 +1330,8 @@ namespace Arcadia.Multiplayer.Games
                 if (suspect == null)
                     throw new Exception("Expected suspect but returned null");
 
-                var death = new WerewolfDeath
-                {
-                    UserId = suspect.Source.User.Id,
-                    DiedAt = DateTime.UtcNow,
-                    Method = WerewolfDeathMethod.Hang
-                };
+                // Mark everyone who voted for their death as a killer
+                var death = new WerewolfDeath(suspect.Source.User.Id, WerewolfDeathMethod.Hang, killers);
 
                 // Kill the suspect
                 SetStatus(suspect, WerewolfStatus.Dead);
@@ -1551,7 +1565,8 @@ namespace Arcadia.Multiplayer.Games
             // If not the suspect, ignore input
             if (!IsSuspect(ctx.Player, ctx.Session))
                 return;
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Silence received");
+
+            Logger.Debug($"Suspect chose to remain silent");
             // Cancel the currently queued action (from 'start_trial', 30 seconds => 'start_vote_input')
             ctx.Session.CancelNewestInQueue();
 
@@ -1562,15 +1577,19 @@ namespace Arcadia.Multiplayer.Games
 
         private static void OnLive(InputContext ctx)
         {
-            // If there isn't a current trial active, ignore it.
+            // Ignore if there is no suspect
             if (!HasSuspect(ctx.Session))
                 return;
 
-            // If the suspect, ignore input
+            // Ignore if the suspect is on trial
+            if (IsOnTrial(ctx.Session))
+                return;
+
+            // Ignore if the suspect is voting
             if (IsSuspect(ctx.Player, ctx.Session))
                 return;
 
-            // If their vote is not pending, ignore their input
+            // Ignore if their vote is not pending
             if (ctx.Player.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending)
                 return;
 
@@ -1586,19 +1605,19 @@ namespace Arcadia.Multiplayer.Games
 
         private static void OnDie(InputContext ctx)
         {
-            // If there isn't a current trial active, ignore it.
+            // Ignore if there is no suspect
             if (!HasSuspect(ctx.Session))
                 return;
 
-            // If the suspect, ignore input
+            // Ignore if the suspect is on trial
+            if (IsOnTrial(ctx.Session))
+                return;
+
+            // Ignore if the suspect is voting
             if (IsSuspect(ctx.Player, ctx.Session))
                 return;
 
-            // If their vote is not pending, ignore their input
-            if (ctx.Player.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending)
-                return;
-
-            // If their vote is not pending, ignore their input
+            // Ignore if their vote is not pending
             if (ctx.Player.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending)
                 return;
 
@@ -1616,7 +1635,7 @@ namespace Arcadia.Multiplayer.Games
         {
             Console.WriteLine("Accusation called");
 
-            // Ensure that the invoker is in the current session
+            // Ignore if a player could not be found
             if (ctx.Player == null)
                 return;
 
@@ -1646,17 +1665,21 @@ namespace Arcadia.Multiplayer.Games
                 if (suspect.Source.User.Id == ctx.Player.Source.User.Id)
                     return;
 
+                DisplayContent console = ctx.Server.GetBroadcast(WolfChannel.Main).Content;
+
                 ctx.Session.SetValue(WolfVars.Suspect, suspect.Source.User.Id);
                 ctx.Session.SetValue(WolfVars.Accuser, ctx.Invoker.Id);
-                ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Append(WolfFormat.WriteAccuseText(ctx.Player, suspect));
-                ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Draw();
+
+                console.GetGroup("console").Append(WolfFormat.WriteAccuseText(ctx.Player, suspect));
+                console.GetGroup("console").Draw();
+
                 WolfFormat.WritePlayerList(ctx.Session, ctx.Server);
 
                 // This gets the queued action of the specified ID, and pauses it.
                 ctx.Session.GetInQueue("day_timer").Pause();
                 ctx.Session.QueueAction(TimeSpan.FromSeconds(5), WolfVars.EndConviction);
 
-                Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] A conviction has started");
+                Logger.Debug("A conviction has started");
             }
         }
 
@@ -1690,7 +1713,7 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             string input = ctx.Input.Args.First();
-            Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Found input {input}");
+            Logger.Debug($"Parsing '{input}' for pick <input>");
 
             if (ctx.Session.Players.Count(x => TryParsePlayer(x, input)) != 1)
             {
@@ -1715,7 +1738,7 @@ namespace Arcadia.Multiplayer.Games
                 if (ctx.Session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).Any(x => x.VoterIds.Contains(ctx.Invoker.Id)))
                     return;
 
-                Console.WriteLine($"[{Format.Time(DateTime.UtcNow)}] Adding vote to ability votes");
+                Logger.Debug($"Adding vote to ability votes");
 
                 var votes = ctx.Session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes);
                 // Get the user's vote data

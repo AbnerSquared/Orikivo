@@ -1,26 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Arcadia.Multiplayer.Games
+namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    /// <summary>
-    /// Represents a death in Werewolf.
-    /// </summary>
     public class WerewolfDeath
     {
-        // The ID of the person that died
-        public ulong UserId { get; set; }
+        public WerewolfDeath(ulong userId, WerewolfDeathMethod method)
+        {
+            UserId = userId;
+            DiedAt = DateTime.UtcNow;
+            Method = method;
+            KillerIds = new List<ulong>();
+            Handled = false;
+        }
 
-        // This list of killers, if any
-        public List<ulong> Killers { get; set; }
+        public WerewolfDeath(ulong userId, WerewolfDeathMethod method, ulong killerId)
+        {
+            UserId = userId;
+            DiedAt = DateTime.UtcNow;
+            Method = method;
+            KillerIds = new List<ulong> { killerId };
+            Handled = false;
+        }
 
-        // The method at which they were killed
-        public WerewolfDeathMethod Method { get; set; }
+        public WerewolfDeath(ulong userId, WerewolfDeathMethod method, List<ulong> killerIds)
+        {
+            UserId = userId;
+            DiedAt = DateTime.UtcNow;
+            Method = method;
+            KillerIds = killerIds ?? new List<ulong>();
+            Handled = false;
+        }
 
-        // The time at which they were killed
-        public DateTime DiedAt { get; set; }
+        public ulong UserId { get; }
 
-        // This keep track if a death was handled
-        public bool Handled { get; set; }
+        public DateTime DiedAt { get; }
+
+        public WerewolfDeathMethod Method { get; }
+
+        public List<ulong> KillerIds { get; }
+
+        public bool Handled { get; internal set; }
     }
 }

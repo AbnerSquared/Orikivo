@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcadia.Multiplayer.Games
+namespace Arcadia.Multiplayer.Games.Werewolf
 {
     // Abilities are something that requires their own private channel
     [Flags]

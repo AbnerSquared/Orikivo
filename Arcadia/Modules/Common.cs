@@ -50,7 +50,7 @@ namespace Arcadia.Modules
         {
             if (!MeritHelper.Exists(meritId))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits that ID."));
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
                 return;
             }
 
@@ -123,44 +123,7 @@ namespace Arcadia.Modules
                 await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** **{MeritHelper.NameOf(Merits.ProgressPioneer)}**.");
         }
 
-        //[Command("testgiveitem")]
-        [RequireUser]
-        public async Task GiveItemAsync(SocketUser user = null)
-        {
-            try
-            {
-                user ??= Context.User;
-                Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
-
-                if (participant == null)
-                {
-                    await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
-                    return;
-                }
-
-                int owned = ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass);
-
-                ItemHelper.GiveItem(participant, Items.PaletteGlass);
-
-                if (ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass) > owned)
-                {
-                    await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** a **{ItemHelper.NameOf(Items.PaletteGlass)}**.");
-                }
-                else if (ItemHelper.GetOwnedAmount(participant, Items.PaletteGlass) == owned)
-                {
-                    await Context.Channel.SendMessageAsync($"> Could not give **{participant.Username}** a **{ItemHelper.NameOf(Items.PaletteGlass)}**. They already own the most possible.");
-                }
-                else
-                {
-                    await Context.Channel.SendMessageAsync($"> I don't know what happened for this message to appear.");
-                }
-            }
-            catch (Exception e)
-            {
-                await Context.Channel.CatchAsync(e);
-            }
         
-        }
 
         //[Command("catalog")]
         //[Command("catalog")]

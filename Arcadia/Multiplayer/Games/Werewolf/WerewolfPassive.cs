@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcadia.Multiplayer.Games
+namespace Arcadia.Multiplayer.Games.Werewolf
 {
     [Flags]
     public enum WerewolfPassive
@@ -11,7 +11,7 @@ namespace Arcadia.Multiplayer.Games
         /// Players are able to take a hit, dying once night falls.
         /// </summary>
         Tough = 1,
-        
+
         /// <summary>
         /// Forces the player to always vote for survival.
         /// </summary>
@@ -33,7 +33,7 @@ namespace Arcadia.Multiplayer.Games
         /// </summary>
         Wolfish = 16,
 
-        // If the seer dies, everyone OR the first one with this passive becomes a seer.
+        // NOTE: If the Seer dies, everyone OR the first one with this passive becomes a Seer
         /// <summary>
         /// Players inherit the role of a seer if the current seer is killed.
         /// </summary>

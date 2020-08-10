@@ -17,13 +17,13 @@ namespace Arcadia.Casino
         }
 
         public int ExpectedTick { get; }
-        
+
         public int ActualTick { get; }
-        
+
         public long Wager { get; }
-        
+
         public float Multiplier { get; }
-        
+
         public long Reward { get; }
 
         public bool IsSuccess => Flag == TickResultFlag.Win;

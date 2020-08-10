@@ -60,7 +60,7 @@ namespace Arcadia.Multiplayer
         public object Value
         {
             get => _value;
-            
+
             internal set
             {
                 if (ValueType != null)

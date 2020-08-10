@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace Arcadia.Casino
 {
+    public enum CasinoMode
+    {
+        Gimi = 1,
+        Tick = 2
+    }
+
     public class CasinoReply
     {
         internal CasinoReply() {}
@@ -17,9 +23,9 @@ namespace Arcadia.Casino
         public int Priority { get; }
         public string Content { get; internal set; }
 
-        public Func<ArcadeUser, GimiResult, bool> Criteria { get; set; }
+        public Func<ArcadeUser, ICasinoResult, bool> Criteria { get; set; }
 
-        public Func<ArcadeUser, GimiResult, string> Writer { get; set; }
+        public Func<ArcadeUser, ICasinoResult, string> Writer { get; set; }
 
         public static implicit operator CasinoReply(string value)
             => new CasinoReply { Content = value };

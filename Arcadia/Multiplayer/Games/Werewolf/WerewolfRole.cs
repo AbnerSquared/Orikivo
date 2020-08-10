@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
-namespace Arcadia.Multiplayer.Games
+namespace Arcadia.Multiplayer.Games.Werewolf
 {
     public class WerewolfRole
     {
@@ -102,5 +100,11 @@ namespace Arcadia.Multiplayer.Games
         public WerewolfPassive Passive { get; set; }
 
         public WerewolfAbility Ability { get; set; }
+
+        public WerewolfAbilityUsage AbilityUsage { get; set; }
     }
+
+    // If initial, the ability is called at the start of the first night
+    // If nightly, the ability is called per night
+    // If once, the ability can be called only once per night
 }
