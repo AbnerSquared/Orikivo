@@ -36,15 +36,15 @@ namespace Arcadia.Modules
         {
             var lobby = new StringBuilder();
 
-            lobby.AppendLine($"> `{server.Id}` • **{server.Config.Name}** (**{server.Players.Count:##,0}** {Format.TryPluralize("player", server.Players.Count)})");
+            lobby.AppendLine($"> `{server.Id}` • **{server.Name}** (**{server.Players.Count:##,0}** {Format.TryPluralize("player", server.Players.Count)})");
             lobby.AppendLine($"> {WriteGameName(server)}: {WriteActivity(server)}");
             return lobby.ToString();
         }
 
         private static string WriteGameName(GameServer server)
         {
-            if (server.Config.IsValidGame(server.Config.GameId))
-                return GameManager.GetGame(server.Config.GameId).Details.Name;
+            if (GameManager.Games.ContainsKey(server.GameId))
+                return GameManager.DetailsOf(server.GameId).Name;
 
             return "Unknown Game";
         }

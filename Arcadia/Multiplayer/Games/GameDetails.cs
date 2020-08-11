@@ -21,5 +21,7 @@ namespace Arcadia.Multiplayer
 
         // what is the limit of players that can join?
         public int PlayerLimit { get; set; } = 16;
+
+        public bool CanSpectate { get; set; }
     }
 }

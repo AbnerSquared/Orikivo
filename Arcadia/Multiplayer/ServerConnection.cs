@@ -4,7 +4,6 @@ using Orikivo.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
@@ -155,9 +154,6 @@ namespace Arcadia.Multiplayer
                 Logger.Debug("Connection paused");
                 return;
             }
-
-            //if (!DeleteMessages && RefreshCounter > 0 && CurrentMessageCounter < RefreshCounter)
-            //    return;
 
             DisplayContent content = State == GameState.Playing
                 ? Server?.GetBroadcast(Frequency)?.Content

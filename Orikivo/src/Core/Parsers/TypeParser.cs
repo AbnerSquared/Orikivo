@@ -68,7 +68,7 @@ namespace Orikivo
                 result = input;
                 return true;
             }
-            
+
             if (type == typeof(bool))
             {
                 bool success = bool.TryParse(input, out bool value);

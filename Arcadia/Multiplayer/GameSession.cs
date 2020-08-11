@@ -17,7 +17,7 @@ namespace Arcadia.Multiplayer
             Server = server;
             Game = game;
             Game.Options = server.Options;
-            Options = server.Config.GameOptions;
+            Options = server.Options;
             Players = game.OnBuildPlayers(server.Players);
             Criteria = game.OnBuildRules(Players);
             Actions = game.OnBuildActions(Players);
@@ -49,10 +49,15 @@ namespace Arcadia.Multiplayer
             ActivityDisplay = "Playing a game";
         }
 
-        public DateTime StartedAt { get; set; }
+        public DateTime StartedAt { get; }
 
         // this is used to display where the game is currently at
         public string ActivityDisplay { get; set; }
+
+        // This is the frequency at which the spectators can watch the game from
+        // This is the group for spectators
+        // Whatever is changed for this group, is applied to this game
+        public string SpectatorGroup { get; set; }
 
         // this is used to handle the current state of a session
         public SessionState State { get; set; } = SessionState.Continue;

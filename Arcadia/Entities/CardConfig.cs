@@ -14,7 +14,7 @@ namespace Arcadia
         [JsonConstructor]
         internal CardConfig(ComponentPalette palette)
         {
-            Palette = palette;
+            Palette = palette ?? new ComponentPalette(PaletteType.Default);
         }
 
         [ReadOnly]

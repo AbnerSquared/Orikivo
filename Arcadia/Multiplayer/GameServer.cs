@@ -14,28 +14,28 @@ namespace Arcadia.Multiplayer
         private readonly GameManager _manager;
         private readonly List<Player> _players;
 
-        private static void DrawHeader(GameServer server)
+        private void DrawHeader()
         {
-            GameDetails gameDetails = GameManager.DetailsOf(server.GameId);
+            GameDetails gameDetails = GameManager.DetailsOf(GameId);
 
-            string gameName = server.GameId;
-            string playerCounter = $"{server.Players.Count:##,0} {Format.TryPluralize("player", server.Players.Count)}";
+            string gameName = GameId;
+            string playerCounter = $"{Players.Count:##,0} {Format.TryPluralize("player", Players.Count)}";
 
             if (gameDetails != null)
             {
                 gameName = gameDetails.Name;
-                playerCounter = $"{server.Players.Count:##,0}/{gameDetails.PlayerLimit:##,0} {Format.TryPluralize("player", gameDetails.PlayerLimit)}";
+                playerCounter = $"{Players.Count:##,0}/{gameDetails.PlayerLimit:##,0} {Format.TryPluralize("player", gameDetails.PlayerLimit)}";
             }
 
-            server.GetBroadcast(GameState.Waiting).Content
+            GetBroadcast(GameState.Waiting).Content
                 .GetComponent(LobbyVars.Header)
-                .Draw(server.Name, server.Id, gameName, playerCounter);
+                .Draw(Name, Id, gameName, playerCounter);
         }
 
-        private static void AddConsoleText(GameServer server, string text, bool draw = true)
+        private void AddConsoleText(string text, bool draw = true)
         {
-            DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
-            DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
+            DisplayContent waiting = GetBroadcast(GameState.Waiting).Content;
+            DisplayContent editing = GetBroadcast(GameState.Editing).Content;
 
             waiting.GetGroup(LobbyVars.Console).Append(text);
             editing.GetGroup(LobbyVars.Console).Append(text);
@@ -44,14 +44,56 @@ namespace Arcadia.Multiplayer
                 return;
 
             waiting.GetComponent(LobbyVars.Console).Draw();
-            editing.GetComponent(LobbyVars.Console).Draw(server.Name);
+            editing.GetComponent(LobbyVars.Console).Draw(Name);
         }
 
-        private static void DrawConfig(GameServer server)
+        private void DrawConfig()
         {
-            server.GetBroadcast(GameState.Editing).Content
-                .GetComponent("config")
-                .Draw(server.Name, server.Privacy, server.GameId);
+            GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, GameId);
+        }
+
+        private void DrawGameConfig()
+        {
+            DisplayContent editing = GetBroadcast(GameState.Editing).Content;
+
+            if (!GameManager.Games.ContainsKey(GameId))
+                return;
+
+            if (!Check.NotNullOrEmpty(Options))
+            {
+                editing["game_config"].Active = false;
+                return;
+            }
+
+            editing["game_config"].Active = true;
+            editing["game_config"].Draw(
+                Options.Select(x => $"**{x.Name}**: `{x.Value}`"),
+                GameManager.DetailsOf(GameId).Name);
+        }
+
+        private void DrawConsole()
+        {
+            GetBroadcast(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(Name);
+            GetBroadcast(GameState.Waiting).Content.GetComponent(LobbyVars.Console).Draw();
+        }
+
+        private void LoadGameConfig()
+        {
+            if (string.IsNullOrWhiteSpace(GameId) || !GameManager.Games.ContainsKey(GameId))
+            {
+                return;
+            }
+
+            GameBase game = GameManager.GetGame(GameId);
+
+            if (game != null)
+            {
+                Options = game.Options;
+                return;
+            }
+
+            Options = new List<GameOption>();
+            return;
         }
 
         /// <summary>
@@ -69,8 +111,8 @@ namespace Arcadia.Multiplayer
 
             var server = new GameServer(manager, user, properties);
 
-            DrawHeader(server);
-            AddConsoleText(server, $"[Console] {user.Username} has joined.");
+            server.DrawHeader();
+            server.AddConsoleText($"[Console] {user.Username} has joined.");
 
             manager.ReservedUsers.Add(user.Id, server.Id);
             manager.ReservedChannels.Add(channel.Id, server.Id);
@@ -107,21 +149,21 @@ namespace Arcadia.Multiplayer
             Name = properties.Name;
             GameId = properties.GameId;
             Privacy = properties.Privacy;
-            Config = properties;
             Broadcasts = DisplayBroadcast.GetReservedBroadcasts();
             Connections = new List<ServerConnection>();
             Invites = new List<ServerInvite>();
-            Options = new List<GameOption>();
             _players = new List<Player>
             {
                 new Player(this, host)
             };
             Destroyed = false;
+
+            LoadGameConfig();
         }
 
         internal bool Destroyed { get; set; }
 
-        public bool IsFull => Config.IsValidGame() && Players.Count >= GameManager.DetailsOf(Config.GameId).PlayerLimit;
+        public bool IsFull => GameManager.Games.ContainsKey(GameId) && Players.Count >= GameManager.DetailsOf(GameId).PlayerLimit;
 
         /// <summary>
         /// Represents the unique identifier for this <see cref="GameServer"/>.
@@ -151,17 +193,128 @@ namespace Arcadia.Multiplayer
 
         public List<GameOption> Options { get; private set; }
 
-        public ServerProperties Config { get; }
-
         public GameSession Session { get; internal set; }
+
+        public async Task<bool> StartGameAsync()
+        {
+            if (Session != null)
+            {
+                AddConsoleText("[Console] A game is already in progress.");
+                return true;
+            }
+
+            if (!GameManager.Games.ContainsKey(GameId))
+            {
+                AddConsoleText("[Console] Unable to find the specified game.");
+                return false;
+            }
+
+            GameDetails details = GameManager.DetailsOf(GameId);
+
+            if (details == null)
+            {
+                AddConsoleText($"[Console] Unable to initialize a session of '{GameId}'");
+                return false;
+            }
+            else
+            {
+                string name = details.Name ?? "UNKNOWN_GAME";
+
+                if (Players.Count >= details.RequiredPlayers &&
+                    Players.Count <= details.PlayerLimit)
+                {
+                    try
+                    {
+                        await GameManager.GetGame(GameId).BuildAsync(this);
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        AddConsoleText($"[Console] An exception has been thrown while initializing {name}.");
+                        DestroyCurrentSession();
+                        return false;
+                    }
+                }
+
+                if (Players.Count >= details.PlayerLimit)
+                {
+                    AddConsoleText($"[Console] There are too many players in this server to start a game of {name}.");
+                    return false;
+                }
+
+                if (Players.Count < details.RequiredPlayers)
+                {
+                    int requiredPlayers = details.RequiredPlayers - Players.Count;
+                    string conjoin = requiredPlayers > 1 ? "are" : "is";
+                    string buffer = $"[Console] {requiredPlayers} more {Format.TryPluralize("player", requiredPlayers)} {conjoin} required to start a game of {name}.";
+
+                    AddConsoleText(buffer);
+                    return false;
+                }
+            }
+
+            return false;
+        }
 
         public async Task<bool> UpdateNameAsync(string name)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
 
+            if (!Check.NotNull(name))
+            {
+                AddConsoleText("[Console] A name cannot be empty or consist of only whitespace characters.");
+                return false;
+            }
+
+            if (Format.IsSensitive(name))
+            {
+                AddConsoleText("[Console] A name cannot contain any Markdown sequence characters.");
+                return false;
+            }
+
+            if (name.Length > ServerProperties.MaxNameLength)
+            {
+                AddConsoleText($"[Console] A name must be less than or equal to {ServerProperties.MaxNameLength} characters in size.");
+                return false;
+            }
+
+            Name = name;
+            AddConsoleText($"[Console] The name of this server has been renamed to \"{Name}\".");
+            DrawConfig();
+            DrawConsole();
+            DrawHeader();
+
             await UpdateAsync();
             return true;
+        }
+
+        public async Task<bool> SetOptionAsync(string id, string value)
+        {
+            if (!GameManager.Games.ContainsKey(GameId))
+            {
+                AddConsoleText("[Console] Unable to load the options for the specified game.");
+                return false;
+            }
+
+            foreach (GameOption option in Options)
+            {
+                if (id != option.Id)
+                    continue;
+
+                if (TypeParser.TryParse(option.ValueType, value, out object result))
+                {
+                    option.Value = result;
+                    AddConsoleText($"[Console] Set \"{option.Name}\" to the specified value.");
+                    DrawGameConfig();
+                    await UpdateAsync();
+                    return true;
+                }
+            }
+
+            AddConsoleText("[Console] Unable to find the specified option.");
+            return false;
         }
 
         public async Task<bool> UpdatePrivacyAsync(Privacy privacy)
@@ -173,8 +326,8 @@ namespace Arcadia.Multiplayer
                 return true;
 
             Privacy = privacy;
-            AddConsoleText(this, $"[Console] The privacy of this server has been set to {Privacy}.");
-            DrawConfig(this);
+            AddConsoleText($"[Console] The privacy of this server has been set to {Privacy}.");
+            DrawConfig();
 
             await UpdateAsync();
             return true;
@@ -184,6 +337,21 @@ namespace Arcadia.Multiplayer
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
+
+            if (string.IsNullOrWhiteSpace(gameId) || !GameManager.Games.ContainsKey(gameId))
+            {
+                AddConsoleText("[Console] An unknown game mode was specified.");
+                return false;
+            }
+
+            GameId = gameId;
+
+            AddConsoleText($"[Console] The game mode has been set to '{GameId}'.");
+
+            LoadGameConfig();
+            DrawConfig();
+            DrawGameConfig();
+            DrawHeader();
 
             await UpdateAsync();
             return true;
@@ -311,8 +479,8 @@ namespace Arcadia.Multiplayer
             _players.Add(new Player(this, user));
             _manager.ReservedUsers.Add(user.Id, Id);
 
-            DrawHeader(this);
-            AddConsoleText(this, $"[Console] {user.Username} has joined.");
+            DrawHeader();
+            AddConsoleText($"[Console] {user.Username} has joined.");
             await UpdateAsync();
             return true;
         }
@@ -339,8 +507,8 @@ namespace Arcadia.Multiplayer
                     return;
                 }
 
-                DrawHeader(this);
-                AddConsoleText(this, $"[Console] {player.User.Username} has left.", false);
+                DrawHeader();
+                AddConsoleText($"[Console] {player.User.Username} has left.", false);
 
                 if (Check.NotNull(reason))
                 {
@@ -355,7 +523,7 @@ namespace Arcadia.Multiplayer
 
                 HostId = oldest.User.Id;
 
-                AddConsoleText(this, $"[Console] {oldest.User.Username} is now the host.");
+                AddConsoleText($"[Console] {oldest.User.Username} is now the host.");
                 ChangeState(GameState.Editing, GameState.Waiting);
             }
 
@@ -381,8 +549,8 @@ namespace Arcadia.Multiplayer
                 return true;
             }
 
-            DrawHeader(this);
-            AddConsoleText(this, $"[Console] {player.User.Username} has left.");
+            DrawHeader();
+            AddConsoleText($"[Console] {player.User.Username} has left.");
 
             if (userId == HostId)
             {
@@ -390,7 +558,7 @@ namespace Arcadia.Multiplayer
 
                 HostId = oldest.User.Id;
 
-                AddConsoleText(this, $"[Console] {oldest.User.Username} is now the host.");
+                AddConsoleText($"[Console] {oldest.User.Username} is now the host.");
                 ChangeState(GameState.Editing, GameState.Waiting);
             }
 
@@ -553,7 +721,7 @@ namespace Arcadia.Multiplayer
             Session.DisposeQueue();
             Session = null;
 
-            AddConsoleText(this, $"[Console] The current session has ended.");
+            AddConsoleText("[Console] The current session has ended.");
         }
 
         public async Task UpdateAsync()

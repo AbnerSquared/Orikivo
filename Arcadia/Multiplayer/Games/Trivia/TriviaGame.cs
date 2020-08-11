@@ -673,7 +673,7 @@ namespace Arcadia.Multiplayer.Games
 
         public override async Task OnSessionStartAsync(GameServer server, GameSession session)
         {
-            Options = server.Config.GameOptions;
+            Options = server.Options;
 
             // generate the question pool
             QuestionPool = GenerateQuestions(

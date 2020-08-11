@@ -76,7 +76,7 @@ namespace Arcadia.Multiplayer
                         },
                         new ComponentGroup("game_config", 2, 0, false)
                         {
-                            Formatter = new ComponentFormatter("**{1}: Config**\n{0}", "> {0}", "\n", true, true)
+                            Formatter = new ComponentFormatter("\n**{1}: Config**\n{0}", "> {0}", "\n", true, true)
                         }
                     }
                 }

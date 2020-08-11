@@ -110,6 +110,9 @@ namespace Arcadia.Multiplayer
             b.Position = oldPos;
         }
 
+        public IComponent this[string id]
+            => GetComponent(id);
+
         private string DebuggerDisplay => $"Components: {Count}{(!string.IsNullOrWhiteSpace(ValueOverride) ? $", Value Override: {ValueOverride}" : "")}";
     }
 }

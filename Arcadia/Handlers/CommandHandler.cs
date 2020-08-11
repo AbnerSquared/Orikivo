@@ -6,6 +6,7 @@ using Orikivo.Desync;
 using Orikivo.Framework;
 using System;
 using System.Threading.Tasks;
+using Arcadia.Multiplayer;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia
@@ -17,9 +18,10 @@ namespace Arcadia
         private readonly ArcadeContainer _container;
         private readonly IServiceProvider _provider;
         private readonly InfoService _info;
+        private readonly GameManager _games;
 
         public CommandHandler(DiscordSocketClient client, CommandService service, ArcadeContainer container,
-            IServiceProvider provider, InfoService info)
+            IServiceProvider provider, InfoService info, GameManager games)
         {
             _client = client;
             _service = service;
@@ -28,6 +30,7 @@ namespace Arcadia
             _client.MessageReceived += ReadInputAsync;
             _service.CommandExecuted += OnExecutedAsync;
             _info = info;
+            _games = games;
         }
 
         public string GetPrefix(ArcadeContext ctx)
@@ -37,6 +40,10 @@ namespace Arcadia
         {
             // Ignore bots
             if (arg.Author.IsBot)
+                return;
+
+            // Ignore users if they are in a game session
+            if (_games.ReservedUsers.ContainsKey(arg.Author.Id))
                 return;
 
             // Set up initial values
@@ -111,7 +118,7 @@ namespace Arcadia
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
             // TODO: Make the specific context exchangeable.
-            ArcadeContext ctx = context as ArcadeContext;
+            var ctx = context as ArcadeContext;
 
             // Attempt to set a global cooldown on the account that executed this command
 
@@ -124,7 +131,13 @@ namespace Arcadia
                         await context.Channel.CatchAsync((execute).Exception);
                 }
                 else
+                {
+                    // Ignore unknown commands
+                    if (result.Error == CommandError.UnknownCommand)
+                        return;
+
                     await context.Channel.ThrowAsync(result.ErrorReason);
+                }
 
                 return;
             }
@@ -140,7 +153,6 @@ namespace Arcadia
         // update all accounts and users accordingly based on the command
         private async Task UpdateAsync(CommandInfo command, ArcadeContext ctx)
         {
-            
             /*
             // Manage or update cooldowns
             CooldownAttribute cooldown = command.Attributes.FirstAttribute<CooldownAttribute>();

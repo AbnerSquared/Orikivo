@@ -64,11 +64,11 @@ namespace Arcadia.Multiplayer
         public IEnumerable<GameServer> GetServersFor(ulong userId)
         {
             // Include where the player is in an existing connection
-            return Servers.Values.Where(x => x.Config.Privacy == Privacy.Public || x.Invites.Any(x => x.UserId == userId));
+            return Servers.Values.Where(x => x.Privacy == Privacy.Public || x.Invites.Any(x => x.UserId == userId));
         }
 
         public IEnumerable<GameServer> GetPublicServers()
-            => Servers.Values.Where(x => x.Config.Privacy == Privacy.Public);
+            => Servers.Values.Where(x => x.Privacy == Privacy.Public);
 
         public string GetRandomServer()
         {
@@ -76,7 +76,7 @@ namespace Arcadia.Multiplayer
             if (Servers.Values.All(x => x.IsFull))
                 return null;
 
-            return Randomizer.Choose(Servers.Values.Where(x => x.Config.Privacy == Privacy.Public && !x.IsFull)).Id;
+            return Randomizer.Choose(Servers.Values.Where(x => x.Privacy == Privacy.Public && !x.IsFull)).Id;
         }
 
         public string GetRandomServerFor(ulong userId)
@@ -85,7 +85,7 @@ namespace Arcadia.Multiplayer
             if (Servers.Values.All(x => x.IsFull))
                 return null;
 
-            return Randomizer.Choose(Servers.Values.Where(x => (x.Config.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull)).Id;
+            return Randomizer.Choose(Servers.Values.Where(x => (x.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull)).Id;
         }
 
         public string GetRandomServer(string gameId)
@@ -96,7 +96,7 @@ namespace Arcadia.Multiplayer
             if (Servers.Values.All(x => x.IsFull))
                 return null;
 
-            return Randomizer.Choose(Servers.Values.Where(x => x.Config.Privacy == Privacy.Public && !x.IsFull && x.Config.GameId == gameId)).Id;
+            return Randomizer.Choose(Servers.Values.Where(x => x.Privacy == Privacy.Public && !x.IsFull && x.GameId == gameId)).Id;
         }
 
         public string GetRandomServerFor(ulong userId, string gameId)
@@ -107,7 +107,7 @@ namespace Arcadia.Multiplayer
             if (Servers.Values.All(x => x.IsFull))
                 return null;
 
-            return Randomizer.Choose(Servers.Values.Where(x => (x.Config.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull && x.Config.GameId == gameId)).Id;
+            return Randomizer.Choose(Servers.Values.Where(x => (x.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull && x.GameId == gameId)).Id;
         }
 
         // This attempts to join an existing server, if one is present
@@ -166,7 +166,7 @@ namespace Arcadia.Multiplayer
 
         private void RefreshConsoleHeader(GameServer server)
         {
-            GameDetails details = DetailsOf(server.Config.GameId);
+            GameDetails details = DetailsOf(server.GameId);
 
             string playerCounter = $"{server.Players.Count:##,0} {Format.TryPluralize("player", server.Players.Count)}";
 
@@ -178,7 +178,7 @@ namespace Arcadia.Multiplayer
             server
                 .GetBroadcast(GameState.Waiting)
                 .GetComponent(LobbyVars.Header)
-                .Draw(server.Config.Name, server.Id, server.Config.GameId, playerCounter);
+                .Draw(server.Name, server.Id, server.GameId, playerCounter);
         }
 
         // this starts a new base game server
@@ -192,7 +192,7 @@ namespace Arcadia.Multiplayer
             if (!string.IsNullOrWhiteSpace(gameId) && Games.ContainsKey(gameId))
                 properties.GameId = gameId;
 
-            var server = await GameServer.CreateAsync(this, user, channel);
+            var server = await GameServer.CreateAsync(this, user, channel, properties);
 
             foreach (ServerConnection connection in server.Connections)
                 await SetDeleteStateAsync(connection);
@@ -210,7 +210,7 @@ namespace Arcadia.Multiplayer
             if (server.Session != null)
             {
                 server.DestroyCurrentSession();
-                AppendToConsole(server, "[Console] The current session has been destroyed.");
+                AddConsoleText(server, "[Console] The current session has been destroyed.");
             }
         }
 
@@ -218,7 +218,7 @@ namespace Arcadia.Multiplayer
         internal async Task DestroyServerAsync(GameServer server)
         {
             // Override the display to specify that the server was destroyed
-            server.GetBroadcast(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Config.Name}** has been shut down.\n> Sorry about the inconvenience.";
+            server.GetBroadcast(GameState.Waiting).Content.ValueOverride = $"> ⚠️ **{server.Name}** has been shut down.\n> Sorry about the inconvenience.";
 
             // Set all connections to the default state
             foreach (ServerConnection connection in server.Connections)
@@ -355,35 +355,36 @@ namespace Arcadia.Multiplayer
         {
             server.GetBroadcast(GameState.Editing)
                 .Content.GetComponent("config")
-                .Draw(server.Config.Name, server.Config.Privacy, server.Config.GameId);
+                .Draw(server.Name, server.Privacy, server.GameId);
         }
 
         private static void RefreshGameConfig(GameServer server)
         {
             DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
-            if (!server.Config.IsValidGame())
+            if (!Games.ContainsKey(server.GameId))
                 return;
 
-            server.Config.LoadGame();
-
-            if (!Check.NotNullOrEmpty(server.Config.GameOptions))
+            if (!Check.NotNullOrEmpty(server.Options))
+            {
+                editing["game_config"].Active = false;
                 return;
+            }
 
-            editing.GetComponent("game_config").Active = true;
-            editing.GetComponent("game_config").Draw(
-                server.Config.GameOptions.Select(x => $"**{x.Name}**: `{x.Value}`"),
-                DetailsOf(server.Config.GameId).Name);
+            editing["game_config"].Active = true;
+            editing["game_config"].Draw(
+                server.Options.Select(x => $"**{x.Name}**: `{x.Value}`"),
+                DetailsOf(server.GameId).Name);
         }
 
         private static void RefreshConsole(GameServer server)
         {
-            server.GetBroadcast(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
+            server.GetBroadcast(GameState.Editing).Content.GetComponent(LobbyVars.Console).Draw(server.Name);
             server.GetBroadcast(GameState.Waiting).Content.GetComponent(LobbyVars.Console).Draw();
         }
 
         // Appends the specified message to all of the reserved console components and updates accordingly
-        private static void AppendToConsole(GameServer server, string message, bool draw = true)
+        private static void AddConsoleText(GameServer server, string message, bool draw = true)
         {
             DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
             DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
@@ -394,7 +395,7 @@ namespace Arcadia.Multiplayer
             if (!draw)
                 return;
 
-            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
+            editing.GetComponent(LobbyVars.Console).Draw(server.Name);
             waiting.GetComponent(LobbyVars.Console).Draw();
         }
 
@@ -413,10 +414,24 @@ namespace Arcadia.Multiplayer
             return info.ToString();
         }
 
+        private static string WriteConnectionInfo(ServerConnection connection)
+        {
+            var info = new StringBuilder();
+
+            //if (connection.GuildId.HasValue)
+            //    info.Append($"{connection.GuildId}/");
+
+            info.Append($"{connection.ChannelId}");
+            info.Append($" - {connection.State} ({connection.Frequency})");
+
+            return info.ToString();
+        }
+
         public async Task OnMessageReceived(SocketMessage message)
         {
             bool allowUpdate = true;
             IUser user = message.Author;
+
             // Ignore all bots
             if (user.IsBot)
                 return;
@@ -457,23 +472,11 @@ namespace Arcadia.Multiplayer
 
             Logger.Debug("Ensure connection success");
 
-
             Player player = server.GetPlayer(user.Id);
             ServerConnection connection = server.GetConnection(message.Channel.Id);
 
-            // If the current connection doesn't allow input, ignore it
-            if (connection.BlockInput)
-            {
-                Logger.Debug("Input blocked, not handling");
-                return;
-            }
-
             // Extract only the content of the message
             string ctx = message.Content;
-
-            // Load all of the display channels for the specified game states
-            DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
-            DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
             // Check if the session exists
             if (server.Session != null)
@@ -491,599 +494,501 @@ namespace Arcadia.Multiplayer
                         break;
                 }
 
-                // Otherwise, ignore if the session doesn't allow input
-                if (server.Session.BlockInput)
-                    return;
-
                 Logger.Debug("Session ensure success");
             }
 
             allowUpdate = player != null;
 
-            // Handle the input given based on the server connection state
-            switch (connection.State)
+            if (!connection.BlockInput && (!server.Session?.BlockInput ?? true))
             {
-                // This represents the primary lobby
-                case GameState.Waiting:
+                // Load all of the display channels for the specified game states
+                DisplayContent waiting = server.GetBroadcast(GameState.Waiting).Content;
+                DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
-                    // [HOST, PLAYER] start
-                    if (ctx == "start")
-                    {
-                        var notice = "";
+                // Handle the input given based on the server connection state
+                switch (connection.State)
+                {
+                    // This represents the primary lobby
+                    case GameState.Waiting:
 
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        // Ignore if they are not the host
-                        if (!player.Host)
+                        // [HOST, PLAYER] start
+                        if (ctx == "start")
                         {
-                            notice = $"[To {user.Username}] Only the host may start the game.";
-                            AppendToConsole(server, notice);
-                            break;
-                        }
+                            var notice = "";
 
-                        GameDetails details = DetailsOf(server.Config.GameId);
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
 
-                        // Ignore if the game already started
-                        if (server.Session != null)
-                            notice = $"[Console] A game is already in progress.";
-
-                        // Ignore if the game is invalid
-                        else if (!server.Config.IsValidGame())
-                            notice = $"[Console] Unable to validate the specified game.";
-
-                        // Ignore if the details of the game don't exist
-                        else if (details == null)
-                            notice = $"[Console] Unable to start a session '{server.Config.GameId}'.";
-
-                        // Otherwise, attempt to start the game
-                        else
-                        {
-                            string gameName = details.Name ?? "UNKNOWN_GAME";
-
-                            // Try to start the game
-                            if (server.Players.Count >= details.RequiredPlayers && server.Players.Count <= details.PlayerLimit)
+                            // Ignore if they are not the host
+                            if (!player.Host)
                             {
-                                try
-                                {
-                                    allowUpdate = true;
-                                    await server.Config.LoadGame().BuildAsync(server);
-                                    break;
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
-                                    notice = $"[Console] An exception has been thrown while initializing {gameName}.";
-                                    AppendToConsole(server, notice);
-                                    server.DestroyCurrentSession();
-                                    break;
-                                }
-                            }
-
-                            if (server.Players.Count >= details.PlayerLimit)
-                                notice = $"[Console] There are too many players in this server to start {gameName}.";
-                            else if (server.Players.Count < details.RequiredPlayers)
-                            {
-                                int requiredPlayers = details.RequiredPlayers - server.Players.Count;
-                                string conjoin = requiredPlayers > 1 ? "are" : "is";
-                                notice = $"[Console] {requiredPlayers} more {Format.TryPluralize("player", requiredPlayers)} {conjoin} required to start {gameName}.";
-                            }
-                        }
-
-                        AppendToConsole(server, notice);
-                        break;
-                    }
-
-                    // join
-                    if (ctx == "join")
-                    {
-                        // Ignore if they already exist
-                        if (player != null)
-                            break;
-
-                        allowUpdate = false;
-                        await server.AddPlayerAsync(user);
-                        break;
-                    }
-
-                    // [PLAYER] leave
-                    if (ctx == "leave")
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        allowUpdate = false;
-                        await server.RemovePlayerAsync(user.Id);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] invite <user>
-
-                    // [PLAYER] refresh
-                    if (ctx == "refresh")
-                    {
-                        // Ignore if the player does not exist
-                        if (player == null)
-                            break;
-
-                        await connection.RefreshAsync(true);
-                        return;
-                    }
-
-                    // [PLAYER] players
-                    if (ctx == "players") // TODO: Implement cooldown
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        // This has to handle in the case of too many players being in a server at once
-                        string buffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(WritePlayerInfo))}";
-                        AppendToConsole(server, buffer);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] connections
-                    if (ctx == "connections") // TODO: Implement cooldown
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        string buffer = $"[To {user.Username}] Only the host may view server connections.";
-
-                        // List connections if the player is the host
-                        if (player.Host)
-                            buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => $"{x.ChannelId} - {x.State.ToString()}"))}";
-
-                        AppendToConsole(server, buffer);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] config
-                    if (ctx == "config")
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        var notice = "";
-
-                        // if they are not the host
-                        if (!player.Host)
-                            notice = $"[To {user.Username}] Only the host can edit the server config.";
-
-                        // if there is an existing connection already in the editing state
-                        else if (server.Connections.Any(x => x.State == GameState.Editing))
-                            notice = $"[Console] There is already a connection that is editing the configuration.";
-
-                        // Otherwise, set this specific server connection to editing mode.
-                        else
-                        {
-                            connection.State = GameState.Editing;
-                            connection.Frequency = 1;
-
-                            if (server.Config.IsValidGame())
-                            {
-                                if (Check.NotNullOrEmpty(server.Config.GameOptions))
-                                {
-                                    editing.GetComponent("game_config").Active = true;
-                                    editing.GetComponent("game_config").Draw(
-                                        server.Config.LoadGame().Options.Select(x =>
-                                            $"**{x.Name}**: `{x.Value}`"),
-                                        server.Config.LoadGame().Details.Name);
-                                }
-                            }
-
-                            RefreshGameConfig(server);
-
-                            editing.GetComponent(LobbyVars.Console).Draw(server.Config.Name);
-                            editing.GetComponent("config").Draw(server.Config.Name, server.Config.Privacy, server.Config.GameId);
-                            break;
-                        }
-
-                        AppendToConsole(server, notice);
-                        break;
-                    }
-
-                    // [PLAYER] watch
-                    if (ctx == "watch")
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        var buffer = "";
-
-                        // if the game hasn't started yet
-                        if (server.Session == null)
-                        {
-                            buffer = $"[Console] Unable to call vote for spectating as there is no current session.";
-                            AppendToConsole(server, buffer);
-                            break;
-                        }
-
-                        // if they are the host, automatically start it.
-                        if (player.Host)
-                        {
-                            buffer = $"[Console] The spectator control panel is currently in development. Unable to initialize.";
-                            AppendToConsole(server, buffer);
-                            break;
-                        }
-
-                        // TODO: start up a spectator vote session, and if > 67% of players agree, start spectating
-                        buffer = $"[Console] The spectator control panel is currently in development. Unable to initialize.";
-                        AppendToConsole(server, buffer);
-                        break;
-                    }
-
-                    return;
-
-                // This represents the configuration panel
-                case GameState.Editing:
-
-                    // join
-                    if (ctx == "join")
-                    {
-                        // Ignore if they already exist
-                        if (player == null)
-                            break;
-
-                        allowUpdate = false;
-                        await server.AddPlayerAsync(user);
-                        break;
-                    }
-
-                    // [PLAYER] leave
-                    if (ctx == "leave")
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        allowUpdate = false;
-                        await server.RemovePlayerAsync(user.Id);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] connections
-                    if (ctx == "connections") // TODO: Implement cooldown
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        string buffer = $"[To {user.Username}] Only the host may view server connections.";
-
-                        // List connections if the player is the host
-                        if (player.Host)
-                            buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(x => $"{x.ChannelId} - {x.State.ToString()}"))}";
-
-                        AppendToConsole(server, buffer);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] kick <player>
-
-                    // [PLAYER] refresh
-                    if (ctx == "refresh")
-                    {
-                        // Ignore if they do not exist
-                        if (player == null)
-                            break;
-
-                        await connection.RefreshAsync(true);
-                        return;
-                    }
-
-                    // [HOST, PLAYER] back
-                    if (ctx == "back")
-                    {
-                        // if they are already in the server
-                        if (player == null)
-                            break;
-
-                        // if they are not the host
-                        if (!player.Host)
-                        {
-                            string notice = $"[To {user.Username}] Only the host may exit the server configuration.";
-                            AppendToConsole(server, notice);
-                            break;
-                        }
-
-                        connection.State = GameState.Waiting;
-                        connection.Frequency = 0;
-
-                        RefreshConsole(server);
-                        RefreshConsoleHeader(server);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] title <value>
-                    if (ctx.StartsWith("title"))
-                    {
-                        var notice = "";
-
-                        // if they are already in the server
-                        if (player == null)
-                            break;
-
-                        // if they are not the host
-                        if (!player.Host)
-                        {
-                            notice = $"[To {user.Username}] Only the host may edit the server's title.";
-                            AppendToConsole(server, notice);
-                            break;
-                        }
-
-                        var reader = new StringReader(ctx);
-                        reader.Skip(5);
-                        reader.SkipWhiteSpace();
-
-                        // Limit title length to 42 (32 for username limit, with an additional 10 characters)
-                        string title = reader.GetRemaining();
-
-                        if (!Check.NotNull(title))
-                            notice = $"[To {user.Username}] A title cannot be empty or consist of only whitespace characters.";
-                        else if (Format.IsSensitive(title))
-                            notice = $"[To {user.Username}] A title cannot contain any Markdown sequence characters.";
-                        else if (title.Length > ServerProperties.MaxNameLength)
-                            notice = $"[To {user.Username}] A title must be less than or equal to {ServerProperties.MaxNameLength} characters in size.";
-                        else
-                        {
-                            server.Config.Name = title;
-                            notice = $"[Console] The title of this server has been renamed to \"{server.Config.Name}\".";
-                            RefreshServerConfig(server);
-                            RefreshConsoleHeader(server);
-                            RefreshConsole(server);
-                        }
-
-                        AppendToConsole(server, notice);
-                        break;
-                    }
-
-                    // [HOST, PLAYER] game <value>
-                    if (ctx.StartsWith("game"))
-                    {
-
-                        // If they are already in the server
-                        if (player == null)
-                            break;
-
-                        // If they are not the host
-                        if (!player.Host)
-                        {
-                            string notice = $"[To {user.Username}] Only the host may edit the server's game mode.";
-                            AppendToConsole(server, notice);
-                            break;
-                        }
-
-                        var reader = new StringReader(ctx);
-                        reader.Skip(4);
-                        reader.SkipWhiteSpace();
-
-                        string game = reader.ReadString();
-
-                        if (Check.NotNull(game))
-                        {
-                            server.Config.GameId = game;
-
-                            if (server.Config.IsValidGame())
-                            {
-                                string notice = $"[Console] The game mode has been set to '{server.Config.GameId}'.";
-                                AppendToConsole(server, notice);
-                                RefreshServerConfig(server);
-
-                                server.Config.LoadGame();
-                                RefreshGameConfig(server);
-                                RefreshConsoleHeader(server);
-                            }
-                            else
-                            {
-                                string notice = $"[To {user.Username}] An unknown game mode was specified.";
-                                AppendToConsole(server, notice);
-                                server.Config.GameId = "Trivia";
-                            }
-                        }
-
-                        break;
-                    }
-
-                    // [HOST, PLAYER] privacy <value>
-                    if (ctx.StartsWith("privacy"))
-                    {
-                        var notice = "";
-
-                        // if they are already in the server
-                        if (player == null)
-                            break;
-
-                        // if they are not the host
-                        if (!player.Host)
-                        {
-                            notice = $"[To {user.Username}] Only the host may edit the server's privacy.";
-                            AppendToConsole(server, notice);
-                            break;
-                        }
-
-                        var reader = new StringReader(ctx);
-                        reader.Skip(7);
-                        reader.SkipWhiteSpace();
-
-                        string remainder = reader.GetRemaining();
-
-                        if (Enum.TryParse(remainder, true, out Privacy privacy))
-                        {
-                            if (await server.UpdatePrivacyAsync(privacy))
-                            {
-                                allowUpdate = false;
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may start the game.");
                                 break;
                             }
+
+                            allowUpdate = !await server.StartGameAsync();
+                            break;
                         }
-                        else
+
+                        // join
+                        if (ctx == "join")
                         {
-                            notice = $"[To {user.Username}] Unable to parse the specified privacy.";
+                            // Ignore if they already exist
+                            if (player != null)
+                                break;
+
+                            allowUpdate = false;
+                            await server.AddPlayerAsync(user);
+                            break;
                         }
 
-                        AppendToConsole(server, notice);
-                        break;
-                    }
-
-                    // if no other commands are valid, attempt to parse a custom configuration
-                    // otherwise, just return.
-                    // [HOST, PLAYER] CUSTOM <value>
-                    if (server.Config.IsValidGame())
-                    {
-                        GameBase game = server.Config.LoadGame();
-
-                        foreach(GameOption option in game.Options)
+                        // [PLAYER] leave
+                        if (ctx == "leave")
                         {
-                            if (ctx.StartsWith(option.Id))
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            allowUpdate = false;
+                            await server.RemovePlayerAsync(user.Id);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] invite <user>
+                        /*
+                        if (ctx == "invite")
+                        {
+                            if (player == null)
+                                break;
+
+                            allowUpdate = false;
+                            // [Console] Sent an invite to USERNAME.
+                            // [Console] Unable to send an invite to USERNAME.
+                        }
+                        */
+
+                        // [PLAYER] refresh
+                        if (ctx == "refresh")
+                        {
+                            // Ignore if the player does not exist
+                            if (player == null)
+                                break;
+
+                            allowUpdate = false;
+                            await connection.RefreshAsync(true);
+                            return;
+                        }
+
+                        // [PLAYER] players
+                        if (ctx == "players") // TODO: Implement cooldown
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            // This has to handle in the case of too many players being in a server at once
+                            string buffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(WritePlayerInfo))}";
+                            AddConsoleText(server, buffer);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] connections
+                        if (ctx == "connections") // TODO: Implement cooldown
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            string buffer = $"[To {user.Username}] Only the host may view server connections.";
+
+                            // List connections if the player is the host
+                            if (player.Host)
+                                buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(WriteConnectionInfo))}";
+
+                            AddConsoleText(server, buffer);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] config
+                        if (ctx == "config")
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            var notice = "";
+
+                            // If they are not the host
+                            if (!player.Host)
+                                notice = $"[To {user.Username}] Only the host can edit the server config.";
+
+                            // If there is an existing connection already in the editing state
+                            else if (server.Connections.Any(x => x.State == GameState.Editing))
+                                notice = $"[Console] There is already a connection that is editing the configuration.";
+
+                            // Otherwise, set this specific server connection to editing mode.
+                            else
                             {
-                                var notice = "";
+                                connection.State = GameState.Editing;
+                                connection.Frequency = 1;
+                                RefreshGameConfig(server);
+                                RefreshServerConfig(server);
+                                editing["console"].Draw(server.Name);
+                                break;
+                            }
 
-                                if (player == null)
-                                    break;
+                            AddConsoleText(server, notice);
+                            break;
+                        }
 
-                                if (!player.Host)
+                        // [PLAYER] watch
+                        if (ctx == "watch")
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            var buffer = "";
+
+                            // if the game hasn't started yet
+                            if (server.Session == null)
+                            {
+                                buffer = $"[Console] Unable to call vote for spectating as there is no current session.";
+                                AddConsoleText(server, buffer);
+                                break;
+                            }
+
+                            // if they are the host, automatically start it.
+                            if (player.Host)
+                            {
+                                if (!server.Session.Game.Details.CanSpectate)
                                 {
-                                    notice = $"[To {user.Username}] Only the host may edit configuration values.";
-                                    AppendToConsole(server, notice);
-                                    break;
-                                }
-
-                                var reader = new StringReader(ctx);
-                                reader.Skip(option.Id.Length);
-                                reader.SkipWhiteSpace();
-
-                                string remainder = reader.GetRemaining();
-
-                                // Using the remainder of the input given, attempt to parse the specified type
-                                /*
-                                if (option.ValueType.IsEnum)
-                                {
-                                    if (Enum.TryParse(option.ValueType, remainder, true, out object result))
-                                        server.Config.SetOption(option.Id, result);
-                                }
-                                */
-
-                                // I don't know if the type parser is efficient or not, confirm later on
-                                if (TypeParser.TryParse(option.ValueType, remainder, out object result))
-                                {
-                                    server.Config.SetOption(option.Id, result);
-                                    notice = $"[To {user.Username}] Updated \"{option.Name}\" to the specified value.";
-                                    RefreshGameConfig(server);
+                                    buffer = "[Console] The current session does not support spectating.";
                                 }
                                 else
                                 {
-                                    notice = $"[To {user.Username}] Unable to parse the specified value given.";
+                                    buffer = $"[Console] The spectator control panel is currently in development. Unable to initialize.";
                                 }
 
-                                AppendToConsole(server, notice);
+                                AddConsoleText(server, buffer);
+                                break;
+                            }
+
+                            // TODO: start up a spectator vote session, and if > 67% of players agree, start spectating
+                            buffer =
+                                $"[Console] The spectator control panel is currently in development. Unable to initialize.";
+                            AddConsoleText(server, buffer);
+                            break;
+                        }
+
+                        break;
+
+                    // This represents the configuration panel
+                    case GameState.Editing:
+                        var reader = new StringReader(ctx);
+
+                        // join
+                        if (ctx == "join")
+                        {
+                            // Ignore if they already exist
+                            if (player == null)
+                                break;
+
+                            allowUpdate = false;
+                            await server.AddPlayerAsync(user);
+                            break;
+                        }
+
+                        // [PLAYER] leave
+                        if (ctx == "leave")
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            allowUpdate = false;
+                            await server.RemovePlayerAsync(user.Id);
+                            break;
+                        }
+
+                        // [PLAYER] players
+                        if (ctx == "players") // TODO: Implement cooldown
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            // This has to handle in the case of too many players being in a server at once
+                            string buffer = $"Players ({server.Players.Count}): {string.Join(", ", server.Players.Select(WritePlayerInfo))}";
+                            AddConsoleText(server, buffer);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] connections
+                        if (ctx == "connections") // TODO: Implement cooldown
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            string buffer = $"[To {user.Username}] Only the host may view server connections.";
+
+                            // List connections if the player is the host
+                            if (player.Host)
+                                buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(WriteConnectionInfo))}";
+
+                            AddConsoleText(server, buffer);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] kick <player>
+
+                        // [PLAYER] refresh
+                        if (ctx == "refresh")
+                        {
+                            // Ignore if they do not exist
+                            if (player == null)
+                                break;
+
+                            await connection.RefreshAsync(true);
+                            return;
+                        }
+
+                        // [HOST, PLAYER] back
+                        if (ctx == "back")
+                        {
+                            // if they are already in the server
+                            if (player == null)
+                                break;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may exit the server configuration.");
+                                break;
+                            }
+
+                            connection.State = GameState.Waiting;
+                            connection.Frequency = 0;
+
+                            RefreshConsole(server);
+                            RefreshConsoleHeader(server);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] title <value>
+                        if (ctx.StartsWith("name"))
+                        {
+                            // If they are already in the server
+                            if (player == null)
+                                break;
+
+                            // If they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's name.");
+                                break;
+                            }
+
+                            reader.Skip(5);
+                            reader.SkipWhiteSpace();
+
+                            // Limit title length to 42 (32 for username limit, with an additional 10 characters)
+                            string name = reader.GetRemaining();
+                            allowUpdate = !await server.UpdateNameAsync(name);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] game <value>
+                        if (ctx.StartsWith("game"))
+                        {
+
+                            // If they are already in the server
+                            if (player == null)
+                                break;
+
+                            // If they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's game mode.");
+                                break;
+                            }
+
+                            reader.Skip(4);
+                            reader.SkipWhiteSpace();
+
+                            string game = reader.ReadString();
+                            allowUpdate = !await server.UpdateGameAsync(game);
+                            break;
+                        }
+
+                        // [HOST, PLAYER] privacy <value>
+                        if (ctx.StartsWith("privacy"))
+                        {
+                            // if they are already in the server
+                            if (player == null)
+                                break;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's privacy.");
+                                break;
+                            }
+
+                            reader.Skip(7);
+                            reader.SkipWhiteSpace();
+
+                            string remainder = reader.GetRemaining();
+                            bool isValid = Enum.TryParse(remainder, true, out Privacy privacy);
+
+                            if (!isValid)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Unable to parse the specified privacy.");
+                                break;
+                            }
+
+                            allowUpdate = !await server.UpdatePrivacyAsync(privacy);
+                            break;
+                        }
+
+                        // if no other commands are valid, attempt to parse a custom configuration
+                        // otherwise, just return.
+                        // [HOST, PLAYER] CUSTOM <value>
+                        if (Games.ContainsKey(server.GameId))
+                        {
+                            if (player == null)
+                                break;
+
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may edit configuration values.");
+                                break;
+                            }
+
+                            string id = reader.ReadUnquotedString();
+
+                            if (server.Options.All(x => x.Id != id))
+                                break;
+
+                            if (!reader.Contains(' '))
+                            {
+                                AddConsoleText(server, "[Console] A value was not specified for the option.");
+                                break;
+                            }
+
+                            reader.SkipWhiteSpace();
+
+                            string remainder = reader.GetRemaining();
+                            Logger.Debug($"{id} => {remainder}");
+                            allowUpdate = !await server.SetOptionAsync(id, remainder);
+                        }
+
+                        break;
+
+                    // This represents the spectator control panel (INCOMPLETE)
+                    case GameState.Watching:
+                        // [HOST, PLAYER] end
+                        if (ctx == "end")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                break;
+
+                            // if they are the host, force end the current session
+
+                            // otherwise, send a note stating that they cannot force end a session unless
+                            // they are a host
+
+                            break;
+                            //break;
+                        }
+
+                        // [PLAYER] back
+                        if (ctx == "back")
+                        {
+                            // if they are not in the server
+                            if (player == null)
+                                break;
+
+                            // if they are the host, automatically call
+
+                            // otherwise, begin calling the vote to switch over to spectator mode.
+
+                            break;
+                            //break;
+                        }
+
+                        break;
+
+                    // This represents a custom display channel for a server connection
+                    // If they are currently in an active session, handle the specified inputs instead for the specified display channel
+                    case GameState.Playing:
+                        if (server.Session == null)
+                            throw new Exception("Expected server to have an active game session");
+
+                        foreach (IInput input in connection.GetAvailableInputs())
+                        {
+                            // Ignore if a player is required and their data is not in the session
+                            if (input.RequirePlayer && server.Session.DataOf(user.Id) == null)
+                                continue;
+
+                            // Ignore if the input type is not a text input
+                            if (!(input is TextInput))
+                                continue;
+
+                            InputResult result = input.TryParse(ctx);
+
+                            // Ignore if the input is not successful
+                            if (!result.IsSuccess)
+                                continue;
+
+                            // Check criterion, if any
+                            if (result.Input.Criterion != null)
+                            {
+                                if (!result.Input.Criterion(user, connection, server))
+                                    break;
+                            }
+
+                            if (result.Input.OnExecute == null)
+                                throw new Exception("Expected a function for the following input but returned null");
+
+                            try
+                            {
+                                result.Input.OnExecute(new InputContext(user, connection, server, result));
+
+                                // If the server was destroyed by this input, return
+                                if (server.Destroyed)
+                                    return;
+
+                                // Otherwise, make a check if the server is allowed to update
+                                allowUpdate = result.Input.UpdateOnExecute;
+
+                                Logger.Debug($"Handled input successfully");
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                                server.DestroyCurrentSession();
+                                AddConsoleText(server,
+                                    $"[Console] An exception has been thrown while handling an input.");
+                                allowUpdate = true;
                                 break;
                             }
                         }
-                    }
-
-                    break;
-
-                // This represents the spectator control panel (INCOMPLETE)
-                case GameState.Watching:
-                    // [HOST, PLAYER] end
-                    if (ctx == "end")
-                    {
-                        // if they are not in the server
-                        if (player == null)
-                            break;
-
-                        // if they are the host, force end the current session
-
-                        // otherwise, send a note stating that they cannot force end a session unless
-                        // they are a host
 
                         break;
-                        //break;
-                    }
+                }
 
-                    // [PLAYER] back
-                    if (ctx == "back")
-                    {
-                        // if they are not in the server
-                        if (player == null)
-                            break;
-
-                        // if they are the host, automatically call
-
-                        // otherwise, begin calling the vote to switch over to spectator mode.
-
-                        break;
-                        //break;
-                    }
-
-                    break;
-
-                // This represents a custom display channel for a server connection
-                // If they are currently in an active session, handle the specified inputs instead for the specified display channel
-                case GameState.Playing:
-                    if (server.Session == null)
-                        throw new Exception("Expected server to have an active game session");
-
-                    foreach (IInput input in connection.GetAvailableInputs())
-                    {
-                        // Ignore if a player is required and their data is not in the session
-                        if (input.RequirePlayer && server.Session.DataOf(user.Id) == null)
-                            continue;
-
-                        // Ignore if the input type is not a text input
-                        if (!(input is TextInput))
-                            continue;
-
-                        InputResult result = input.TryParse(ctx);
-
-                        // Ignore if the input is not successful
-                        if (!result.IsSuccess)
-                            continue;
-
-                        // Check criterion, if any
-                        if (result.Input.Criterion != null)
-                        {
-                            if (!result.Input.Criterion(user, connection, server))
-                                break;
-                        }
-
-                        if (result.Input.OnExecute == null)
-                            throw new Exception("Expected a function for the following input but returned null");
-
-                        try
-                        {
-                            result.Input.OnExecute(new InputContext(user, connection, server, result));
-
-                            // If the server was destroyed by this input, return
-                            if (server.Destroyed)
-                                return;
-
-                            // Otherwise, make a check if the server is allowed to update
-                            allowUpdate = result.Input.UpdateOnExecute;
-
-                            Logger.Debug($"Handled input successfully");
-                            break;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                            server.DestroyCurrentSession();
-                            AppendToConsole(server, $"[Console] An exception has been thrown while handling an input.");
-                            allowUpdate = true;
-                            break;
-                        }
-                    }
-
-                    break;
+                Logger.Debug("Handled input");
+            }
+            else
+            {
+                allowUpdate = false;
             }
 
-            Logger.Debug("Handled input");
             // If the bot is allowed to delete messages in this server connection
             if (connection.DeleteMessages && server.GetPlayer(user.Id) != null)
             {

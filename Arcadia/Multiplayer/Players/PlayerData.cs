@@ -6,7 +6,7 @@ using System.Text;
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents the data of a <see cref="Multiplayer.Player"/> from a <see cref="GameSession"/>.
+    /// Represents the data of a <see cref="Player"/> from a <see cref="GameSession"/>.
     /// </summary>
     public class PlayerData
     {
@@ -25,30 +25,21 @@ namespace Arcadia.Multiplayer
         // Sets a value from another value already specified
         public void SetValue(string id, string fromId)
         {
-            if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not the specified property '{id}'");
-
-            if (Properties.All(x => x.Id != fromId))
-                throw new Exception($"Could not the specified property '{fromId}'");
-
-            Properties.First(x => x.Id == id).Set(Properties.First(x => x.Id == fromId).Value);
+            GetProperty(id).Set(GetProperty(fromId).Value);
         }
 
         public void AddToValue(string id, int value)
         {
-            if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not the specified property '{id}'");
-
-            GameProperty property = Properties.First(x => x.Id == id);
+            GameProperty property = GetProperty(id);
 
             if (property.ValueType != typeof(int))
                 throw new Exception($"Cannot add to the specified property '{id}' as it is not a type of Int32");
 
-            property.Value = ((int)property.Value) + value;
+            property.Value = (int)property.Value + value;
         }
 
         public void ResetProperty(string id)
-            => GetProperty(id)?.Reset();
+            => GetProperty(id).Reset();
 
         public GameProperty GetProperty(string id)
         {
@@ -83,9 +74,7 @@ namespace Arcadia.Multiplayer
             info.AppendLine($"Data for {Source.User.Username}:");
 
             foreach (GameProperty property in Properties)
-            {
-                info.AppendLine($"{property.Id}: {property.Value} ({property.ValueType.Name})");
-            }
+                info.AppendLine($"{property.Id}: {property.Value.ToString()}");
 
             return info.ToString();
         }

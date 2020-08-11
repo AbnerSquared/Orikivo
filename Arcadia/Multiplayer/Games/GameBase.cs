@@ -10,7 +10,7 @@ namespace Arcadia.Multiplayer
     public abstract class GameBase
     {
         internal void SetGameConfig(GameServer server)
-            => Options = server.Config.GameOptions;
+            => Options = server.Options;
 
         // CANNOT BE NULL
         /// <summary>
