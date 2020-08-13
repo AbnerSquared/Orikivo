@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Orikivo;
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
@@ -23,6 +22,14 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [RequireUser]
+        [Command("boosters")]
+        [Summary("View all of your currently equipped boosters.")]
+        public async Task ViewBoosterAsync()
+        {
+            await Context.Channel.SendMessageAsync(BoostHelper.Write(Context.Account));
+        }
+
         [RequireUser]
         [Command("merit")]
         [Summary("View the details of a merit.")]

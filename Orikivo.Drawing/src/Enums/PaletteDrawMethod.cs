@@ -1,9 +1,20 @@
 ﻿namespace Orikivo.Drawing
 {
-    public enum PaletteDrawMethod
+    public enum DrawableColorHandling
     {
-        Ignore = 1, // the palette isn't used.
-        Layer = 2, // the palette is referenced on layers
-        Force = 4 // the palette is forced onto everything
+        /// <summary>
+        /// Ignores overriding the colors on each <see cref="DrawableLayer"/>.
+        /// </summary>
+        Ignore = 1,
+
+        /// <summary>
+        /// Attempts to replace the colors on each <see cref="DrawableLayer"/> using a color map reference.
+        /// </summary>
+        Map = 2,
+
+        /// <summary>
+        /// Forces the colors on each <see cref="DrawableLayer"/> to the specified <see cref="GammaPalette"/>.
+        /// </summary>
+        Force = 4
     }
 }

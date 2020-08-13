@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace Orikivo.Text
+namespace Orikivo.Text.Pagination
 {
     public class Page<T>
     {
@@ -25,6 +25,7 @@ namespace Orikivo.Text
 
             var i = 0;
             var len = 0;
+
             foreach (T element in Elements)
             {
                 if (i > 0)
@@ -43,7 +44,7 @@ namespace Orikivo.Text
                 result.Append(value);
                 i++;
             }
-            
+
             return string.Format(formatter, result);
         }
 

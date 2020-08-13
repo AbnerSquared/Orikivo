@@ -14,6 +14,16 @@ namespace Arcadia
             {
                 new Merit
                 {
+                    Id = "generic:ignition",
+                    Name = "Ignition",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "You have equipped your first booster.",
+                    Criteria = user => user.Boosters.Count > 0
+                },
+                new Merit
+                {
                     Id = "generic:progress_pioneer",
                     Name = "Progression Pioneer",
                     Group = MeritGroup.Generic,
@@ -66,14 +76,49 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "casino:precognitive_chance",
-                    Name = "Precognitive Chance",
+                    Id = "casino:lucky_guesses",
+                    Name = "Lucky Guesses",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Silver,
                     Value = 25,
                     Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
                     Criteria = user => user.GetStat(TickStats.LongestWinExact) >= 3,
                     Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:gimi_beginner",
+                    Name = "Gimi Beginner",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "You have requested funds 100 times.",
+                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 100
+                },
+                new Merit
+                {
+                    Id = "casino:gimi_advocate",
+                    Name = "Gimi Advocate",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Silver,
+                    Value = 25,
+                    Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
+                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 1000
+                },
+                new Merit
+                {
+                    Id = "casino:gimi_expert",
+                    Name = "Gimi Expert",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Gold,
+                    Value = 50,
+                    Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
+                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 1000,
+                    Hidden = true,
+                    Reward = new Reward
+                    {
+                        Money = 100
+                    }
                 },
                 new Merit
                 {
@@ -180,6 +225,11 @@ namespace Arcadia
                 }
             }
 
+            if (user == null)
+            {
+                info.AppendLine($"> `{merit.Id}`");
+            }
+
             info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
 
             if (Check.NotNull(merit.Quote))
@@ -217,12 +267,16 @@ namespace Arcadia
 
                 if (merit.Reward.Money > 0)
                 {
-                    info.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
+                    info.AppendLine($"> • 💸 **{merit.Reward.Money:##,0}**");
                 }
 
-                foreach ((string itemId, int amount) in merit.Reward.ItemIds)
+                if (merit.Reward.ItemIds != null)
                 {
-                    info.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                    foreach ((string itemId, int amount) in merit.Reward.ItemIds)
+                    {
+                        info.AppendLine(
+                            $"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                    }
                 }
             }
 
@@ -461,7 +515,7 @@ namespace Arcadia
             if (money > 0)
             {
                 result.AppendLine($"> 💸 **{money:##,0}**");
-                user.Give(money);
+                user.Give(money, false);
             }
 
             foreach ((string itemId, int amount) in items)
@@ -494,7 +548,7 @@ namespace Arcadia
             if (merit.Reward.Money > 0)
             {
                 result.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
-                user.Give(merit.Reward.Money);
+                user.Give(merit.Reward.Money, false);
             }
 
             foreach ((string itemId, int amount) in merit.Reward.ItemIds)

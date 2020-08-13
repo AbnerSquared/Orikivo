@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using static System.MathF;
 
 namespace Orikivo.Drawing
@@ -138,18 +140,18 @@ namespace Orikivo.Drawing
 
         public static Size GetNonEmptySize(Bitmap bmp)
             => new Size(GetNonEmptyWidth(bmp), GetNonEmptyHeight(bmp));
-        
+
         public static Bitmap DrawOutline(Bitmap bmp, int width, Color color, Color? alphaColor = null, bool drawOnNew = false)
         {
             Grid<Color> pixels = ImageEditor.GetPixelData(bmp);
             var validPoints = new List<(int px, int py)>();
-            Color alpha = alphaColor ?? Color.Empty;
+            Color alpha = alphaColor ?? Color.FromArgb(0, 0, 0, 0);
 
             for (int y = 0; y < bmp.Height; y++)
             {
                 for (int x = 0; x < bmp.Width; x++)
                 {
-                    if (pixels.GetValue(x, y) == alpha)
+                    if (pixels[x, y] == alpha)
                         continue;
 
                     int minX = x - width;
@@ -173,9 +175,16 @@ namespace Orikivo.Drawing
                             if (n < 0)
                                 continue;
 
+                            //Console.WriteLine($"{m} ({minX}/{maxX}) || {n} ({minY}/{maxY})");
+
                             if (!validPoints.Contains((m, n)))
-                                if (pixels.GetValue(m, n) == alpha)
+                            {
+                                if (pixels[m, n].Equals(alpha))
+                                {
+                                    //Console.WriteLine(pixels[m, n].ToString());
                                     validPoints.Add((m, n));
+                                }
+                            }
                         }
                     }
                 }
@@ -184,12 +193,22 @@ namespace Orikivo.Drawing
             if (drawOnNew)
             {
                 var result = new Grid<Color>(bmp.Width, bmp.Height, alpha);
-                validPoints.ForEach(x => result.SetValue(color, x.px, x.py));
-                return ImageEditor.CreateArgbBitmap(result.Values);
+
+                var handle = new ImageHandle(bmp.Width, bmp.Height);
+
+                foreach ((int pX, int pY) in validPoints)
+                    handle.SetPixel(pX, pY, color);
+
+                return handle.Bitmap;
+                // validPoints.ForEach(x => result.SetValue(color, x.px, x.py));
+                // return ImageEditor.CreateArgbBitmap(result.Values);
             }
 
-            validPoints.ForEach(x => pixels.SetValue(color, x.px, x.py));
-            return bmp;
+            foreach ((int pX, int pY) in validPoints)
+                pixels.SetValue(color, pX, pY);
+
+            return ImageEditor.CreateArgbBitmap(pixels.Values);
+            // return bmp;
         }
 
         public static Bitmap Pad(Bitmap image, Padding padding, bool dispose = false)
@@ -198,7 +217,6 @@ namespace Orikivo.Drawing
 
             using (Graphics g = Graphics.FromImage(result))
                 ImageEditor.ClipAndDrawImage(g, image, padding.Left, padding.Top);
-
 
             if (dispose)
                 image.Dispose();
@@ -231,16 +249,18 @@ namespace Orikivo.Drawing
         public static Bitmap Rotate(Bitmap bmp, AngleF angle, Point? axis = null)
         {
             Size bounds = GetRotationBounds(bmp.Width, bmp.Height, angle);
-            Bitmap rotated = new Bitmap(bounds.Width, bounds.Height);
-            using (Graphics g = Graphics.FromImage(rotated))
-            {
-                axis ??= new Point(bounds.Width / 2, bounds.Height / 2);
+            var rotated = new Bitmap(bounds.Width, bounds.Height);
+            using Graphics g = Graphics.FromImage(rotated);
 
-                g.TranslateTransform(axis.Value.X, axis.Value.Y); // the initial translate transform is top left of the image.
-                g.RotateTransform(angle);
-                g.TranslateTransform(-axis.Value.X, -axis.Value.Y);
-                g.DrawImage(bmp, (bounds.Width - bmp.Width) / 2, (bounds.Height - bmp.Height) / 2);
-            }
+            float mX = bounds.Width / (float) 2;
+            float mY = bounds.Height / (float) 2;
+
+            axis ??= new Point((int)Floor(mX), (int)Floor(mY));
+
+            g.TranslateTransform(axis.Value.X, axis.Value.Y);
+            g.RotateTransform(angle);
+            g.TranslateTransform(-axis.Value.X, -axis.Value.Y);
+            g.DrawImage(bmp, (bounds.Width - bmp.Width) / 2, (bounds.Height - bmp.Height) / 2);
 
             return rotated;
         }
@@ -253,8 +273,8 @@ namespace Orikivo.Drawing
 
         private static Size GetRotationBounds(int oldWidth, int oldHeight, AngleF angle)
         {
-            AngleF gamma = 90.0f;
-            AngleF beta = 180.0f - angle - gamma;
+            AngleF gamma = 90f;
+            AngleF beta = 180f - angle - gamma;
 
             float c1 = oldHeight;
             float c2 = oldWidth;
@@ -264,116 +284,99 @@ namespace Orikivo.Drawing
             float a2 = Abs(c2 * Sin(angle.Radians) / Sin(gamma.Radians));
             float b2 = Abs(c2 * Sin(beta.Radians) / Sin(gamma.Radians));
 
-            int width = (int)Round(b2 + a1);
-            int height = (int)Round(b1 + a2);
+            int width = (int) Floor(b2 + a1);
+            int height = (int) Floor(b1 + a2);
 
             return new Size(width, height);
         }
 
-        public static Bitmap SetSize(Bitmap bmp, int width, int height)
+        public static Bitmap SetSize(Bitmap image, int width, int height)
         {
             var result = new Bitmap(width, height);
 
-            result.SetResolution(bmp.HorizontalResolution, bmp.VerticalResolution);
+            result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
-            using (Graphics g = Graphics.FromImage(result)) // this method of resizing might be a tad too much
-            {
-                g.CompositingMode = CompositingMode.SourceCopy;
-                g.CompositingQuality = CompositingQuality.HighQuality;
-                g.InterpolationMode = InterpolationMode.NearestNeighbor;
-                g.SmoothingMode = SmoothingMode.None;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            using Graphics g = Graphics.FromImage(result);
+            using var wrap = new ImageAttributes();
 
-                using (var wrap = new ImageAttributes())
-                {
-                    wrap.SetWrapMode(WrapMode.TileFlipXY);
+            g.CompositingMode = CompositingMode.SourceCopy;
+            g.CompositingQuality = CompositingQuality.HighQuality;
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            g.SmoothingMode = SmoothingMode.None;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            wrap.SetWrapMode(WrapMode.TileFlipXY);
 
-                    var destination = new Rectangle(0, 0, width, height);
-                    g.DrawImage(bmp, destination, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, wrap);
-                }
-            }
+            var destination = new Rectangle(0, 0, width, height);
+            g.DrawImage(image, destination, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrap);
 
             return result;
         }
 
-        public static Bitmap Scale(Bitmap bmp, float widthScale, float heightScale)
-            => SetSize(bmp, (int)Floor(bmp.Width * widthScale), (int)Floor(bmp.Height * heightScale));
+        public static Bitmap Scale(Bitmap image, float widthScale, float heightScale)
+            => SetSize(image, (int)Floor(image.Width * widthScale), (int)Floor(image.Height * heightScale));
 
-        public static Bitmap SetOpacity(Bitmap bmp, float opacity)
+        public static Bitmap SetOpacity(Bitmap image, float opacity)
         {
-            var result = new Bitmap(bmp.Width, bmp.Height);
+            var result = new Bitmap(image.Width, image.Height);
+            using Graphics g = Graphics.FromImage(result);
 
-            using (Graphics g = Graphics.FromImage(result))
+            var attributes = new ImageAttributes();
+            var m = new ColorMatrix
             {
-                var attributes = new ImageAttributes();
-                var m = new ColorMatrix
-                {
-                    Matrix33 = opacity
-                };
+                Matrix33 = opacity
+            };
 
-                attributes.SetColorMatrix(m, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+            attributes.SetColorMatrix(m, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
-                var destination = new Rectangle(0, 0, result.Width, result.Height);
-                g.DrawImage(bmp, destination, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attributes);
-            }
+            var destination = new Rectangle(0, 0, result.Width, result.Height);
+            g.DrawImage(image, destination, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
 
             return result;
         }
 
         public static Bitmap Transform(Size viewport, Bitmap bmp, ImageTransform transform, float opacity = 1.0f)
         {
-            Bitmap result = new Bitmap(viewport.Width, viewport.Height, PixelFormat.Format32bppArgb);
+            var result = new Bitmap(viewport.Width, viewport.Height, PixelFormat.Format32bppArgb);
 
-            using (Graphics g = Graphics.FromImage(result))
+            using Graphics g = Graphics.FromImage(result);
+            using Bitmap edited = Transform(bmp, transform, opacity);
+
+            Size bounds = GetRotationBounds(bmp.Width, bmp.Height, transform.Rotation);
+
+            float mX = transform.Position.X - (bounds.Width - bmp.Width) / (float) 2;
+            float mY = transform.Position.Y - (bounds.Height - bmp.Height) / (float) 2;
+
+            var position = new Point((int) Floor(mX), (int) Floor(mY));
+
+            if (position.X < 0 || position.X > viewport.Width ||
+                position.Y < 0 || position.Y > viewport.Height)
             {
-                using (Bitmap edited = Transform(bmp, transform, opacity))
+                if (position.X < 0 || position.X + edited.Width > viewport.Width ||
+                    position.Y < 0 || position.Y + edited.Height > viewport.Height)
                 {
-                    Size bounds = GetRotationBounds(bmp.Width, bmp.Height, transform.Rotation);
+                    Rectangle clip = ImageEditor.ClampRectangle(Point.Empty, viewport, position, edited.Size);
+                    using Bitmap crop = Crop(edited, clip);
 
-                    // POSITION
-                    PointF rawPosition = new PointF(transform.Position.X - ((bounds.Width - bmp.Width) / 2),
-                        transform.Position.Y - ((bounds.Height - bmp.Height) / 2));
-                    Point position = Point.Truncate(rawPosition);
-
-                    if (position.X > viewport.Width && position.Y > viewport.Height)
-                    {
-                        if (position.X < 0 || position.X + (edited.Width) > viewport.Width ||
-                            position.Y < 0 || position.Y + (edited.Height) > viewport.Height)
-                        {
-                            Rectangle cropRect = ImageEditor.ClampRectangle(Point.Empty, viewport, position, edited.Size);
-
-                            using (Bitmap crop = Crop(edited, cropRect))
-                                ImageEditor.ClipAndDrawImage(g, crop, position);
-                        }
-                        else
-                            ImageEditor.ClipAndDrawImage(g, edited, position);
-                    }
-                    else
-                        ImageEditor.ClipAndDrawImage(g, edited, position);
+                    ImageEditor.ClipAndDrawImage(g, crop, position);
+                    return result;
                 }
             }
 
+            ImageEditor.ClipAndDrawImage(g, edited, position);
             return result;
         }
 
         public static Bitmap Transform(Bitmap bmp, ImageTransform transform, float opacity = 1.0f)
         {
-            // SCALE
-            using (Bitmap scaled = Scale(bmp, transform.Scale.X, transform.Scale.Y))
-            {
-                // ROTATE
-                using (Bitmap rotated = Rotate(scaled, transform.Rotation))
-                {
-                    // OPACITY
-                    return SetOpacity(rotated, opacity);
-                }
-            }
+            using Bitmap scaled = Scale(bmp, transform.Scale.X, transform.Scale.Y);
+            using Bitmap rotated = Rotate(scaled, transform.Rotation);
+            return SetOpacity(rotated, opacity);
         }
 
         // TODO: Determine file type before making it a Bitmap.
         public static Bitmap GetHttpImage(string url)
         {
-            using (WebClient webClient = new WebClient())
+            using (var webClient = new WebClient())
                 using (Stream stream = webClient.OpenRead(url))
                     return new Bitmap(stream);
         }

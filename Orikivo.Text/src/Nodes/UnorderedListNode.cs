@@ -3,7 +3,8 @@
     public class UnorderedListNode
     {
         public char Bullet;
-        public int TabSize;
+        public char BulletSeparator;
+        public int IndentLength;
         public ListEntry[] Entries;
     }
 }

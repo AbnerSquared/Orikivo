@@ -9,13 +9,13 @@
 
         public const float MaxValue = 360f - float.Epsilon;
 
-        public static readonly AngleF Up = 90f;
+        public const float Up = 90f;
 
-        public static readonly AngleF Down = 270f;
+        public const float Down = 270f;
 
-        public static readonly AngleF Left = 180f;
+        public const float Left = 180f;
 
-        public static readonly AngleF Right = 0f;
+        public const float Right = 0f;
 
         public AngleF(float f)
         {

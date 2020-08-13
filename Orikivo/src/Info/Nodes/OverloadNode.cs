@@ -133,7 +133,6 @@ namespace Orikivo
                     if (!Check.NotNull(Name))
                     {
                         format.Append(Discord.Format.Bold(Group));
-                        
                     }
                     else
                     {
@@ -228,14 +227,14 @@ namespace Orikivo
                 }
 
                 // permissions
-
+                /*
                 // id
                 if (Check.NotNull(Id))
                 {
                     format.AppendLine();
                     format.Append($"**ID**: `{Id}`");
                 }
-
+                */
                 return format.ToString();
             }
         }

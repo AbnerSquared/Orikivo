@@ -22,42 +22,35 @@ namespace Orikivo.Drawing
         /// </summary>
         public Coordinate Offset { get; set; } = Coordinate.Empty;
 
-        /// <summary>
-        /// Gets the top-left x- and y- coordinates of this <see cref="DrawableLayer"/>.
-        /// </summary>
-        public Coordinate Position => new Coordinate(Offset.X + Properties.Padding.Left, Offset.Y + Properties.Padding.Top);
-
         public DrawableProperties Properties
         {
             get => _properties ?? DrawableProperties.Default;
-            set => _properties = value; 
+            set => _properties = value;
         }
 
         internal bool Disposed { get; set; }
 
         internal Coordinate GetFarthestPoint()
         {
-            Coordinate position = Position;
+            var position = new Coordinate(Offset.X + Properties.Padding.Left, Offset.Y + Properties.Padding.Top);
+            using Bitmap image = GetBaseImage();
 
-            using (Bitmap image = GetBaseImage())
-            {
-                if (image == null)
-                    return position;
+            if (image == null)
+                return position;
 
-                int width = image.Width;
-                int height = image.Height;
+            int width = image.Width;
+            int height = image.Height;
 
-                if (MaxWidth.HasValue)
-                    if (width > MaxWidth.Value)
-                        width = MaxWidth.Value;
+            if (MaxWidth.HasValue)
+                if (width > MaxWidth.Value)
+                    width = MaxWidth.Value;
 
-                if (MaxHeight.HasValue)
-                    if (height > MaxHeight.Value)
-                        height = MaxHeight.Value;
+            if (MaxHeight.HasValue)
+                if (height > MaxHeight.Value)
+                    height = MaxHeight.Value;
 
-                position.X += width;
-                position.Y += height;
-            }
+            position.X += width;
+            position.Y += height;
 
             return position;
         }

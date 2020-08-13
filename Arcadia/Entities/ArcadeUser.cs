@@ -21,6 +21,7 @@ namespace Arcadia
             Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
+            Boosters = new List<BoosterData>();
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig(Graphics.PaletteType.Default);
@@ -29,7 +30,7 @@ namespace Arcadia
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong balance, ulong tokenBalance, ulong chipBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<QuestData> quests, List<ItemData> items, CardConfig card)
+            Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
@@ -40,6 +41,7 @@ namespace Arcadia
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
+            Boosters = boosters ?? new List<BoosterData>();
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig(Graphics.PaletteType.Default);
@@ -72,8 +74,8 @@ namespace Arcadia
         [JsonProperty("merits")]
         public Dictionary<string, MeritData> Merits { get; }
 
-        // [JsonProperty("boosters")]
-        // public List<BoosterData> Boosters { get; }
+        [JsonProperty("boosters")]
+        public List<BoosterData> Boosters { get; }
 
         [JsonProperty("quests")]
         public List<QuestData> Quests { get; }
@@ -132,8 +134,11 @@ namespace Arcadia
         }
 
         // TODO: make the type of integer consistent with balances
-        public void Give(long value)
+        public void Give(long value, bool canBoost = true)
         {
+            if (canBoost)
+                value = ItemHelper.BoostValue(this, value, BoosterType.Money);
+
             if ((long) Debt >= value)
             {
                 Debt -= (ulong) value;
@@ -150,21 +155,66 @@ namespace Arcadia
             }
         }
 
-        public void Take(long value)
+        public void Give(long value, out long actual, bool canBoost = true)
         {
+            actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Money) : value;
+
+            if ((long)Debt >= actual)
+            {
+                Debt -= (ulong)actual;
+            }
+            else if ((long)Debt > 0)
+            {
+                actual -= (long)Debt;
+                Debt = 0;
+                Balance += (ulong)actual;
+            }
+            else
+            {
+                Balance += (ulong)actual;
+            }
+        }
+
+        public void Take(long value, bool canBoost = true)
+        {
+            if (canBoost)
+                value = ItemHelper.BoostValue(this, value, BoosterType.Debt);
+
             if ((long) Balance >= value)
             {
+                // The money booster is negatively applied
                 Balance -= (ulong) value;
             }
             else if ((long) Balance > 0)
             {
-                value -= (long)Balance;
+                value -= (long) Balance;
                 Balance = 0;
                 Debt += (ulong) value;
             }
             else
             {
                 Debt += (ulong) value;
+            }
+        }
+
+        public void Take(long value, out long actual, bool canBoost = true)
+        {
+            actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Debt) : value;
+
+            if ((long)Balance >= actual)
+            {
+                // The money booster is negatively applied
+                Balance -= (ulong)actual;
+            }
+            else if ((long)Balance > 0)
+            {
+                actual -= (long)Balance;
+                Balance = 0;
+                Debt += (ulong)actual;
+            }
+            else
+            {
+                Debt += (ulong)actual;
             }
         }
     }

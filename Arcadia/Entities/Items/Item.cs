@@ -13,6 +13,9 @@ namespace Arcadia
         public string GetName()
             => ItemHelper.NameOf(Id);
 
+        public string GetQuote()
+            => Randomizer.Choose(Quotes);
+
         public string Summary { get; set; }
 
         public List<string> Quotes { get; set; }

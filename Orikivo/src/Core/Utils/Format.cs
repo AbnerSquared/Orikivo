@@ -195,7 +195,10 @@ namespace Orikivo
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");
 
-        
+        public static string Percent(float rate)
+        {
+            return $"**{rate * 100:##,0}**%";
+        }
 
         /// <summary>
         /// Attempts to map all known characters to its subscript variant.
@@ -271,7 +274,7 @@ namespace Orikivo
 
 
         // 70 => 1.06m
-        public static string Counter(double seconds)
+        public static string Counter(double seconds, bool useMarkdown = true)
         {
             if (seconds < 0)
                 seconds *= -1;
@@ -288,6 +291,9 @@ namespace Orikivo
                 else
                     break;
             }
+
+            if (!useMarkdown)
+                return $"{upper:##,0.##}{GetCounterPrefix(i)}";
 
             return $"**{upper:##,0.##}**{GetCounterPrefix(i)}";
         }

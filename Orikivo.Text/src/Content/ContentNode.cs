@@ -8,11 +8,16 @@ namespace Orikivo.Text
 {
     public abstract class ContentNode
     {
+        protected virtual bool ReadAttributes { get; } = true;
         protected abstract string Formatting { get; }
+
         public override string ToString()
         {
+            if (!ReadAttributes)
+                return Formatting;
+
             List<NodeValue> nodes = GetNodeValues();
-            string[] values = new string[nodes.Count];
+            var values = new object[nodes.Count];
 
             foreach(NodeValue node in nodes)
                 values[node.Index] = node.Value;
@@ -26,7 +31,7 @@ namespace Orikivo.Text
 
             int i = 0;
             PropertyInfo[] properties = GetType().GetProperties();
-            
+
             foreach (PropertyInfo property in properties)
             {
                 var indexer = property.GetCustomAttribute<NodeAttribute>();
@@ -46,15 +51,18 @@ namespace Orikivo.Text
                 {
                     if (groupFormatting != null)
                     {
-                        if (!(source is IEnumerable))
+                        if (!(source is IEnumerable<object> enumerable))
                             throw new InvalidCastException("The value specified could not be cast into an IEnumerable.");
 
-                        value = string.Format(groupFormatting.Format,
-                            string.Join(groupFormatting.Separator,
-                            ((IEnumerable)source).OfType<object>().Select(x => string.Format(groupFormatting.ElementFormat, x))));
+                        string elements = string.Join(groupFormatting.Separator,
+                            enumerable.Select(x => string.Format(groupFormatting.ElementFormat, x)));
+
+                        value = string.Format(groupFormatting.Format, elements);
                     }
                     else if (formatting != null)
+                    {
                         value = string.Format(formatting.Format, value);
+                    }
                 }
 
                 values.Add(new NodeValue(index, value ?? ""));

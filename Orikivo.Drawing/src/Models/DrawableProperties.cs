@@ -10,12 +10,12 @@
             Scale = Vector2.One,
             Matte = null,
             Palette = GammaPalette.Default,
-            PaletteMethod = PaletteDrawMethod.Layer,
+            ColorHandling = DrawableColorHandling.Map,
             Opacity = 1,
             Border = null
         };
 
-        public PaletteDrawMethod PaletteMethod { get; set; } = PaletteDrawMethod.Layer;
+        public DrawableColorHandling ColorHandling { get; set; } = DrawableColorHandling.Map;
 
         public GammaPalette Palette { get; set; }
         

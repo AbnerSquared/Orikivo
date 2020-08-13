@@ -42,6 +42,12 @@ namespace Arcadia
                 user.SetStat(a, user.GetStat(b));
         }
 
+        public static long GetOrAdd(ArcadeUser user, string a, long defaultValue)
+        {
+            SetIfEmpty(user, a, defaultValue);
+            return user.GetStat(a);
+        }
+
         public static void SetIfGreater(ArcadeUser user, string a, long b)
         {
             if (b > user.GetStat(a))
@@ -103,7 +109,8 @@ namespace Arcadia
             => user.Stats.Where((key, value) =>
                 !key.StartsWith(StatGroups.Cooldown)
                 && value != 0
-                && !key.StartsWith(ItemHelper.Items.Select(x => x.Id)));
+                && !key.StartsWith(ItemHelper.Items.Select(x => x.Id)))
+                .OrderBy(x => x.Key);
 
         private static int GetPageCount(ArcadeUser user, int pageSize)
             => (int) Math.Ceiling(GetVisibleStats(user).Count() / (double) pageSize);
@@ -119,7 +126,7 @@ namespace Arcadia
             result.AppendLine("**");
 
             int pageCount = GetPageCount(user, pageSize) - 1;
-            var stats = GetVisibleStats(user);
+            IEnumerable<KeyValuePair<string, long>> stats = GetVisibleStats(user);
 
             page = page < 0 ? 0 : page > pageCount ? pageCount : page;
 

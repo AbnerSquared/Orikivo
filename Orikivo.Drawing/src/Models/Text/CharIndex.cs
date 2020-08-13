@@ -12,18 +12,9 @@
             Char = c;
             IsSuccess = isSuccess;
 
-            if (isSuccess)
-            {
-                Page = page.Value;
-                Row = row.Value;
-                Column = column.Value;
-            }
-            else
-            {
-                Page = 0;
-                Row = 0;
-                Column = 0;
-            }
+            Page = page.GetValueOrDefault(0);
+            Row = row.GetValueOrDefault(0);
+            Column = column.GetValueOrDefault(0);
         }
 
         /// <summary>

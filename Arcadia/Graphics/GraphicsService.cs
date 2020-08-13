@@ -74,6 +74,9 @@ namespace Arcadia.Graphics
         public Bitmap DrawText(string content, FontFace font, ImageProperties properties = null)
             => _text.DrawText(content, font, properties);
 
+        public Bitmap DrawText(string content, FontType font, ImageProperties properties = null)
+            => _text.DrawText(content, GetFont(font), properties);
+
         public Bitmap DrawText(string content, Color color, ImageProperties properties = null)
             => _text.DrawText(content, color, properties);
 
@@ -97,6 +100,18 @@ namespace Arcadia.Graphics
 
         public Bitmap DrawText(string content, FontFace font, Gamma gamma, PaletteType palette, ImageProperties properties = null)
             => _text.DrawText(content, font, GetPalette(palette)[gamma], properties);
+
+        public Bitmap DrawText(string content, FontType font, Color color, ImageProperties properties = null)
+            => _text.DrawText(content, GetFont(font), color, properties);
+
+        public Bitmap DrawText(string content, FontType font, Gamma gamma, ImageProperties properties = null)
+            => _text.DrawText(content, GetFont(font), Palette[gamma], properties);
+
+        public Bitmap DrawText(string content, FontType font, Gamma gamma, GammaPalette palette, ImageProperties properties = null)
+            => _text.DrawText(content, GetFont(font), palette[gamma], properties);
+
+        public Bitmap DrawText(string content, FontType font, Gamma gamma, PaletteType palette, ImageProperties properties = null)
+            => _text.DrawText(content, GetFont(font), GetPalette(palette)[gamma], properties);
 
         public Bitmap DrawCard(CardDetails details, PaletteType palette)
         {
@@ -144,6 +159,10 @@ namespace Arcadia.Graphics
             // AVATAR
             if (!properties.Deny.HasFlag(CardDeny.Avatar))
             {
+                var imageProperties = DrawableProperties.Default;
+                imageProperties.Padding = new Padding(right: 2);
+
+                //card.AddLayer(DrawImage(ref cursor, ImageHelper.GetHttpImage(details.AvatarUrl), palette, imageProperties));
                 var avatar = new BitmapLayer
                 {
                     Source = ImageEditor.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
@@ -310,6 +329,18 @@ namespace Arcadia.Graphics
             Console.WriteLine($"Card generated in {Format.RawCounter(stopwatch.ElapsedMilliseconds)}.");
 
             return result;
+        }
+
+        public DrawableLayer DrawImage(ref Cursor cursor, Bitmap image, GammaPalette palette, DrawableProperties properties = null)
+        {
+            var layer = new BitmapLayer(ImageEditor.ForcePalette(image, palette))
+            {
+                Properties = properties ?? DrawableProperties.Default,
+                Offset = cursor
+            };
+
+            cursor.X += image.Width + layer.Properties.Padding.Width;
+            return layer;
         }
 
         public void Dispose()

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orikivo.Text
+namespace Orikivo.Text.Pagination
 {
     public class PageFormatter<T>
     {

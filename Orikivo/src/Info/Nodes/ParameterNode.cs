@@ -173,13 +173,14 @@ namespace Orikivo
                     format.AppendLine();
                 }
 
+                /*
                 // id
                 if (Check.NotNull(Id))
                 {
                     format.AppendLine();
                     format.Append($"**ID**: `{Id}`");
                 }
-
+                */
                 return format.ToString();
             }
         }

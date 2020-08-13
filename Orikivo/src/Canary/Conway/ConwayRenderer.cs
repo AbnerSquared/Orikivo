@@ -190,7 +190,7 @@ namespace Orikivo.Canary
                     float remainder = 1.0f - RangeF.Convert(0, DecayTickLength.GetValueOrDefault(0) + 1, 0.0f, 1.0f,
                                    RangeF.Clamp(0, DecayTickLength.GetValueOrDefault(0) + 1, lastActive));
 
-                    return ImmutableColor.Merge(DeadColor, LiveColor, remainder);
+                    return ImmutableColor.Blend(DeadColor, LiveColor, remainder);
                 }
 
                 return cell.LastActiveTick == CurrentTick ? LiveColor : DeadColor;

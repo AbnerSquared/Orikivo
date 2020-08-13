@@ -95,7 +95,7 @@ namespace Arcadia.Casino
             }
 
             if (IsSuccess)
-                user.ChipBalance += (ulong) Reward;
+                user.ChipBalance += (ulong) ItemHelper.BoostValue(user, Reward, BoosterType.Chips);
 
             string header = $"**{type} 🧩 {value:##,0}**";
             string content = GetQuote(ExpectedTick, ActualTick, Multiplier, Reward, IsSuccess);

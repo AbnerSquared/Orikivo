@@ -11,6 +11,7 @@ namespace Arcadia
         Capsule = 8,
         Tool = 16,
         Decorator = 32,
-        Automaton = 64
+        Automaton = 64,
+        Booster = 128
     }
 }

@@ -3,7 +3,7 @@
     public class OrderedListNode
     {
         public OrderedBullet Bullet;
-        public int TabSize;
+        public int IndentLength;
         public ListEntry[] Entries;
     }
 }

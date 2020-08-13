@@ -210,29 +210,6 @@ namespace Orikivo.Modules
             await Context.Channel.SendFileAsync(path);
         }
 
-        [Command("engineanimateascii")]
-        [Summary("Creates a GIFASCII animation using the AsciiEngine.")]
-        public async Task DrawRenderAsync(
-            [Summary("The value to scroll across the grid.")]string text = "NEW TEXT",
-            [Summary("The collision method that is used for this object")]GridCollideMethod collideMethod = GridCollideMethod.Scroll,
-            [Summary("The width of the grid.")]int width = 16,
-            [Summary("The height of the grid.")]int height = 4,
-            [Summary("The X velocity component of this object.")]float xVelocity = 1.0f,
-            [Summary("The Y velocity component of this object.")]float yVelocity = 0.0f,
-            [Summary("The amount of frames to render.")]int frameCount = 10,
-            [Summary("The amount of time to increment by.")]float step = 1.00f,
-            [Summary("The amount of time each frame is shown (in milliseconds).")]int delay = 150)
-        {
-            int minWidth = text.Split('\n').OrderByDescending(x => x.Length).First().Length;
-            int minHeight = text.Split('\n').Length;
-            using (var engine = new AsciiEngine(width < minWidth ? minWidth : width, height < minHeight ? minHeight : height))
-            {
-                engine.CurrentGrid.CreateAndAddObject(text, '\n', 0, 0, 0, collideMethod, new AsciiVector(xVelocity, yVelocity, 0, 0));
-                string[] frames = engine.GetFrames(0, frameCount, step);
-                await DrawAnimAsync(delay, frames);
-            }
-        }
-
         /// <summary>
         /// Creates a GIFASCII animation from a provided attachment.
         /// </summary>
@@ -241,7 +218,7 @@ namespace Orikivo.Modules
         [RequireAttachment(ExtensionType.Text, "frames")]
         public async Task DrawAnimAsync([Summary("The length of delay per frame (in milliseconds).")]int delay = 150, int? loop = null)
         {
-            Attachment content = Context.Message.Attachments.Where(x => EnumUtils.GetUrlExtension(x.Filename) == ExtensionType.Text).First();
+            Attachment content = Context.Message.Attachments.First(x => EnumUtils.GetUrlExtension(x.Filename) == ExtensionType.Text);
 
             using (var client = new OriWebClient())
             {
@@ -645,7 +622,7 @@ namespace Orikivo.Modules
 
                         // TODO: Make ImmutableColor.Empty values
                         pixels.SetEachValue((x, y) =>
-                            ImmutableColor.Merge(new ImmutableColor(0, 0, 0, 255), new ImmutableColor(255, 255, 255, 255),
+                            ImmutableColor.Blend(new ImmutableColor(0, 0, 0, 255), new ImmutableColor(255, 255, 255, 255),
                                 mask.GetValue(x, y)));
 
                         using (Bitmap masked = ImageEditor.CreateRgbBitmap(pixels.Values))

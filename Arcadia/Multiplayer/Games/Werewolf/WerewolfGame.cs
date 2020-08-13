@@ -52,7 +52,6 @@ namespace Arcadia.Multiplayer.Games
             // Initialize the new list of available roles
             var roles = new List<WerewolfRole>();
 
-            bool hasWerewolf = false;
             int werewolfCount = (int) Math.Floor(playerCount / (double) 3);
             int currentWolf = 0;
             // Handle game balance here

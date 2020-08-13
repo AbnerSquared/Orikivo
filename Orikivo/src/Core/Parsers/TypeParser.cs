@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
+    internal delegate bool ParseDelegate<T>(string input, out T value);
+
     // TODO: Implement string being null (ex. if someone types "null", you set the string to null)
     /// <summary>
     /// Represents a parser for <see cref="Type"/> values.

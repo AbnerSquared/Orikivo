@@ -118,7 +118,7 @@ namespace Orikivo
 
         private string GetBackpackContent()
         {
-            StringBuilder bp = new StringBuilder();
+            var bp = new StringBuilder();
 
             bp.AppendLine("**Backpack**");
 
@@ -167,7 +167,7 @@ namespace Orikivo
 
         private string GetCurrentMenu(MarketState state, string reply = null)
         {
-            StringBuilder menu = new StringBuilder();
+            var menu = new StringBuilder();
 
             LastState = State;
             State = state;

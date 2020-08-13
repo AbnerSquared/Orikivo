@@ -84,13 +84,14 @@ namespace Orikivo
                     format.AppendJoin("\n", Overloads.OrderBy(o => o.Index).Select(o => $"> {o.Syntax}"));
                     format.AppendLine();
 
+                    /*
                     // Write ID (DEBUG)
                     if (Check.NotNull(Id))
                     {
                         format.AppendLine();
                         format.Append($"**ID**: `{Id}`");
                     }
-
+                    */
                     return format.ToString();
                 }
                 else

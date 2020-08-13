@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading.Tasks;
 
 namespace Orikivo.Drawing
 {
@@ -41,17 +40,8 @@ namespace Orikivo.Drawing
 
         public DrawableProperties Properties
         {
-            get
-            {
-                if (_properties == null)
-                    _properties = DrawableProperties.Default;
-
-                return _properties;
-            }
-            set
-            {
-                _properties = value;
-            }
+            get { return _properties ??= DrawableProperties.Default; }
+            set => _properties = value;
         }
 
         public Border Border { get; set; }
@@ -98,6 +88,9 @@ namespace Orikivo.Drawing
         }
 
         // NOTE: This auto-resizes the Drawable to perfectly fill all layers
+        /// <summary>
+        /// Trims all empty pixels in this <see cref="Drawable"/> to only keep the bounding box of all layers.
+        /// </summary>
         public void Trim()
         {
             int maxWidth = 0;
@@ -105,7 +98,7 @@ namespace Orikivo.Drawing
 
             foreach (DrawableLayer layer in InternalLayers)
             {
-                var farthest = layer.GetFarthestPoint();
+                Coordinate farthest = layer.GetFarthestPoint();
 
                 if (farthest.X > maxWidth)
                     maxWidth = farthest.X;
@@ -113,7 +106,6 @@ namespace Orikivo.Drawing
                 if (farthest.Y > maxHeight)
                     maxHeight = farthest.Y;
             }
-
 
             Viewport = new Unit(maxWidth, maxHeight);
         }
@@ -127,41 +119,32 @@ namespace Orikivo.Drawing
 
             using (Graphics graphics = Graphics.FromImage(result))
             {
-                //Parallel.ForEach(InternalLayers, delegate (DrawableLayer layer) {
                 foreach (DrawableLayer layer in InternalLayers)
                 {
                     if (layer.Disposed)
-                        continue; // return;
+                        continue;
 
-                    using (Bitmap inner = layer.Build())
+                    using Bitmap inner = layer.Build();
+
+                    if (inner == null)
+                        continue;
+
+                    int x = layer.Offset.X;
+                    int y = layer.Offset.Y;
+                    int u = Properties.Padding.Left + x;
+                    int v = Properties.Padding.Top + y;
+
+                    if (x < 0 || x + inner.Width > Viewport.Width ||
+                        y < 0 || y + inner.Height > Viewport.Height)
                     {
-                        if (inner == null)
-                            continue; // return;
-
-                        if (layer.Offset.X > Viewport.Width
-                            && layer.Offset.Y > Viewport.Height)
-                        {
-                            // NOTE: This is if the inner image is out of bounds
-                            if (layer.Offset.X < 0
-                                || layer.Offset.X + inner.Width > Viewport.Width
-                                || layer.Offset.Y < 0
-                                || layer.Offset.Y + inner.Height > Viewport.Height)
-                            {
-                                Rectangle clip = ImageEditor.ClampRectangle(Point.Empty, Viewport, layer.Offset, inner.Size);
-
-                                using (Bitmap visible = ImageHelper.Crop(inner, clip))
-                                    ImageEditor.ClipAndDrawImage(graphics, visible, layer.Position);
-
-                                continue; // return;
-                            }
-                        }
-
-                        int x = Properties.Padding.Left + layer.Offset.X;
-                        int y = Properties.Padding.Top + layer.Offset.Y;
-                        ImageEditor.ClipAndDrawImage(graphics, inner, x, y);
+                        Rectangle clip = ImageEditor.ClampRectangle(Point.Empty, Viewport, layer.Offset, inner.Size);
+                        using Bitmap visible = ImageHelper.Crop(inner, clip);
+                        ImageEditor.ClipAndDrawImage(graphics, visible, u, v);
+                        continue;
                     }
+
+                    ImageEditor.ClipAndDrawImage(graphics, inner, u, v);
                 }
-                //});
             }
 
             if (Border != null)
@@ -170,11 +153,16 @@ namespace Orikivo.Drawing
             if (!Properties.Margin.IsEmpty)
                 result = ImageHelper.Pad(result, Properties.Margin);
 
-            // NOTE: This sets the forced color map
-            result = ImageHelper.SetColorMap(result, GammaPalette.Default, Palette);
+            result = Properties.ColorHandling switch
+            {
+                DrawableColorHandling.Ignore => result,
+                DrawableColorHandling.Force => ImageEditor.ForcePalette(result, Palette),
+                DrawableColorHandling.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
+                _ => result
+            };
 
             if (Properties.Scale.X > 1 && Properties.Scale.Y > 1)
-                result = ImageHelper.Scale(result, (int)Properties.Scale.X, (int)Properties.Scale.Y);
+                result = ImageHelper.Scale(result, Properties.Scale.X, Properties.Scale.Y);
 
             return result;
         }
@@ -189,9 +177,7 @@ namespace Orikivo.Drawing
         public virtual void Dispose()
         {
             foreach (DrawableLayer layer in InternalLayers)
-            {
                 layer.Dispose();
-            }
         }
     }
 }

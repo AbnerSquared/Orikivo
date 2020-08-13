@@ -87,7 +87,7 @@ namespace Orikivo
         public InfoService(CommandService commands, InfoFormatter formatter = null) // , InfoFormatter formatter = null
         {
             _commands = commands;
-            Guides = DefaultGuides;
+            Guides = formatter?.OnLoadGuides() ?? DefaultGuides;
             _formatter = formatter; // ?? InfoFormatter.Default;
         }
 

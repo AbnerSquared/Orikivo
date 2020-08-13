@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Orikivo.Text
+namespace Orikivo.Text.Pagination
 {
     public static class Paginate
     {
@@ -99,27 +99,6 @@ namespace Orikivo.Text
             }
 
             return string.Format(formatter, result);
-        }
-
-        public static string WriteCompact<T>(in IEnumerable<T> elements,
-            string formatter = "{0}",
-            string separator = "\n", Func<T, string> elementFormatter = null,
-            string onEmptyElement = null)
-        {
-            formatter = string.IsNullOrWhiteSpace(formatter) ? "{0}" : formatter;
-            separator = string.IsNullOrWhiteSpace(separator) ? "\n" : separator;
-            elementFormatter ??= e => e.ToString();
-
-            string inner = string.Join(separator,
-                elements
-                    .Select(delegate(T element)
-                    {
-                        string row = element != null ? elementFormatter(element) : onEmptyElement;
-                        return string.IsNullOrWhiteSpace(row) ? null : row;
-                    })
-                    .Where(x => !string.IsNullOrWhiteSpace(x)));
-
-            return string.Format(formatter, inner);
         }
 
         public static string Write<T>(in IEnumerable<T> elements,

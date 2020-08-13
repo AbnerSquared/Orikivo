@@ -1,23 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Orikivo;
 using Orikivo.Drawing;
 
 namespace Arcadia
 {
+    public class Vendor
+    {
+        public static readonly string NameGeneric = "Vendor";
+        public static readonly string EnterGeneric = "Welcome.";
+        public static readonly string MenuGeneric = "What can I do for you?";
+        public static readonly string TimeoutGeneric = "I'm busy right now. Come back later.";
+        public static readonly string BuyGeneric = "Thank you for your business.";
+        public static readonly string SellGeneric = "Thank you for the sale.";
+        public static readonly string ViewBuyGeneric = "This is everything I have for sale.";
+        public static readonly string ViewSellGeneric = "What can I buy from you?";
+        public static readonly string ExitGeneric = "Goodbye.";
+
+        public string Name { get; set; }
+
+        public List<string> OnEnter { get; set; }
+
+        public List<string> OnMenu { get; set; }
+
+        public List<string> OnTimeout { get; set; }
+
+        public List<string> OnBuy { get; set; }
+
+        public List<string> OnSell { get; set; }
+
+        public List<string> OnViewBuy { get; set; }
+
+        public List<string> OnViewSell { get; set; }
+
+        public List<string> OnExit { get; set; }
+    }
+
     public class Shop
     {
         public string Id { get; set; }
 
         public string Name { get; set; }
-        
-        public Sprite Image { get; set; }
-        
-        public Sprite Interior { get; set; }
-        
-        // the time frame at which they are open on each day.
-        public Orikivo.Desync.TimeBlock Schedule { get; set; }
+
+        public string Quote { get; set; }
+
+        public List<Vendor> Vendors { get; set; }
 
         public CatalogGenerator Catalog { get; set; }
     }
@@ -70,9 +99,7 @@ namespace Arcadia
                     {
                         int discountToApply = RandomProvider.Instance.Next(0, entry.MaxDiscount.Value);
 
-                        float rawDiscount = discountToApply / (float) 100;
-
-                        discountEntries.Add(entry.ItemId, rawDiscount);
+                        discountEntries.Add(entry.ItemId, discountToApply);
                         discounts++;
                     }
                 }
@@ -112,24 +139,60 @@ namespace Arcadia
 
     public class ItemCatalog
     {
+        public ItemCatalog(){}
+
+        public ItemCatalog(ItemCatalogData data)
+        {
+            GeneratedAt = data.GeneratedAt;
+
+            var items = new Dictionary<Item, int>();
+
+            foreach((string item, int amount) in data.ItemIds)
+                items.Add(ItemHelper.GetItem(item), amount);
+
+            Items = items;
+
+            Discounts = data.Discounts;
+        }
+
         public DateTime GeneratedAt { get; set; }
 
         public Dictionary<Item, int> Items { get; set; }
-        
-        public Dictionary<string, float> Discounts { get; set; }
-        
+
+        public Dictionary<string, int> Discounts { get; set; }
+
         public int Count => Items.Values.Sum();
 
         // Maybe introduce compression?
     }
 
+    public class ItemCatalogData
+    {
+        [JsonConstructor]
+        internal ItemCatalogData(DateTime generatedAt, Dictionary<string, int> itemIds,
+            Dictionary<string, int> discounts)
+        {
+            GeneratedAt = generatedAt;
+            ItemIds = itemIds ?? new Dictionary<string, int>();
+            Discounts = discounts ?? new Dictionary<string, int>();
+        }
+
+        [JsonProperty("generated_at")]
+        public DateTime GeneratedAt { get; }
+
+        [JsonProperty("item_ids")]
+        public Dictionary<string, int> ItemIds { get; }
+
+        [JsonProperty("discounts")]
+        public Dictionary<string, int> Discounts { get; }
+    }
+
     public class CatalogEntry
     {
         public string ItemId { get; set; }
-        public ItemTag Tag { get; set; }
+
         public int? MaxAllowed { get; set; }
 
-        // if unspecified, discounts are not allowed.
         public int? MaxDiscount { get; set; }
 
         public bool IsSpecial { get; set; }

@@ -2,6 +2,18 @@
 {
     internal static class Icons
     {
+        internal static string IconOf(BoosterType type)
+        {
+            return type switch
+            {
+                BoosterType.Money => Balance,
+                BoosterType.Debt => Debt,
+                BoosterType.Chips => Chips,
+                BoosterType.Voting => Tokens,
+                _ => "UNKNOWN_ICON"
+            };
+        }
+
         internal static readonly string Booster = "🧃";
         internal static readonly string Balance = "💸";
         internal static readonly string Chips = "🧩";

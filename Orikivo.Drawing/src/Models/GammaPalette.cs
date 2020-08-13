@@ -26,7 +26,7 @@ namespace Orikivo.Drawing
             List<ImmutableColor> colors = new List<ImmutableColor>();
 
             for (int g = 0; g < RequiredLength; g++)
-                colors.Add(ImmutableColor.Merge(background.Values[g], foreground.Values[g], strength));
+                colors.Add(ImmutableColor.Blend(background.Values[g], foreground.Values[g], strength));
 
             return new GammaPalette(colors.ToArray());
         }
@@ -47,7 +47,7 @@ namespace Orikivo.Drawing
                 //if (g == 0)
                 //    strength = 0.1f;
 
-                colors.Add(ImmutableColor.Merge(a[g], b[g], strength));
+                colors.Add(ImmutableColor.Blend(a[g], b[g], strength));
             }
 
             return new GammaPalette(colors.ToArray());

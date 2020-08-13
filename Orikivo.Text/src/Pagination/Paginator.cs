@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Orikivo.Text
+namespace Orikivo.Text.Pagination
 {
     public class Paginator<T>
     {
@@ -16,9 +16,10 @@ namespace Orikivo.Text
         }
 
         public IReadOnlyList<T> Elements { get; }
+
         public int PageSize { get; }
 
-        public int PageCount { get; } // => Paginate.GetPageCount(Elements.Count, PageSize);
+        public int PageCount { get; }
 
         public Page<T> PageAt(int index)
         {

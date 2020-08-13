@@ -170,7 +170,7 @@ namespace Orikivo
         {
             var segment = new StringBuilder();
             bool showTooltips = user?.Config?.Tooltips ?? true;
-            
+
             segment.AppendLine("**Actions**");
 
             if (user?.Husk == null)

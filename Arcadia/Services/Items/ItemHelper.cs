@@ -24,6 +24,90 @@ namespace Arcadia
             }
         };
 
+        public static bool CanApplyBooster(BoosterData booster)
+        {
+            if (booster.ExpiresOn.HasValue)
+            {
+                if ((DateTime.UtcNow - booster.ExpiresOn.Value) > TimeSpan.Zero)
+                    return false;
+            }
+
+            if (booster.UsesLeft.HasValue)
+            {
+                if (booster.UsesLeft <= 0)
+                    return false;
+            }
+
+            return true;
+        }
+
+        // This just reads the boost multiplier
+        public static float GetBoostMultiplier(ArcadeUser user, BoosterType type)
+        {
+            float rate = 1f;
+            var toRemove = new List<BoosterData>();
+            foreach (BoosterData booster in user.Boosters)
+            {
+                if (!CanApplyBooster(booster))
+                    toRemove.Add(booster);
+
+                if (booster.Type != type)
+                    continue;
+
+                rate += booster.Rate;
+
+                if (booster.UsesLeft.HasValue)
+                {
+                    if (booster.UsesLeft <= 0)
+                        toRemove.Add(booster);
+                }
+            }
+
+            user.Boosters.RemoveAll(x => toRemove.Contains(x));
+            return rate < 0 ? 0 : rate;
+        }
+
+        public static long BoostValue(ArcadeUser user, long value, BoosterType type, bool isNegative = false)
+        {
+            double rate = 1;
+
+            if (user.Boosters.Count == 0)
+                return value;
+
+            var toRemove = new List<BoosterData>();
+            foreach (BoosterData booster in user.Boosters)
+            {
+                if (!CanApplyBooster(booster))
+                    toRemove.Add(booster);
+
+                if (booster.Type != type)
+                    continue;
+
+                rate += booster.Rate;
+
+                if (booster.UsesLeft.HasValue)
+                {
+                    if (--booster.UsesLeft <= 0)
+                        toRemove.Add(booster);
+                }
+            }
+
+            foreach (BoosterData booster in toRemove)
+            {
+                user.Boosters.Remove(booster);
+
+                if (Check.NotNull(booster.ParentId))
+                {
+                    Item parent = GetItem(booster.ParentId);
+                    parent?.OnUse?.OnBreak?.Invoke(user);
+                }
+            }
+
+            // Unless the rate is 0%, keep it at a minimum of 1
+            long result = (long) Math.Round(value * (isNegative ? 1 + (1 - rate) : rate), MidpointRounding.AwayFromZero);
+            return result == 0 && (Math.Abs(rate) < 0.001) ? 1 : result;
+        }
+
         public static IEnumerable<Recipe> RecipesFor(string itemId)
             => RecipesFor(GetItem(itemId));
 
@@ -37,7 +121,8 @@ namespace Arcadia
             new ItemGroup
             {
                 Id = "booster",
-                Prefix = "Booster: "
+                Prefix = "Booster: ",
+                Summary = "Modifies the returning value of a specified type."
             },
 
             new ItemGroup
@@ -45,7 +130,7 @@ namespace Arcadia
                 Id = "palette",
                 Prefix = "Card Palette: ",
                 Summary = "A palette that can be equipped on a card."
-            }, 
+            },
             new ItemGroup
             {
                 Id = "summon",
@@ -156,6 +241,38 @@ namespace Arcadia
                 },
                 new Item
                 {
+                    Id = "b_db",
+                    Name = "Debt Blocker",
+                    Quotes = new List<string>
+                    {
+                        "It creates a small shield when near debt."
+                    },
+                    GroupId = ItemGroups.Booster,
+                    Rarity = ItemRarity.Uncommon,
+                    Tag = ItemTag.Booster,
+                    Value = 500,
+                    CanBuy = true,
+                    CanSell = true,
+                    CanDestroy = true,
+                    BypassCriteriaOnGift = true,
+                    Size = 75,
+                    OnUse = new ItemAction
+                    {
+                        Durability = 1,
+                        DeleteOnBreak = true,
+                        Criteria = user => StatHelper.GetOrAdd(user, Vars.BoosterLimit, 1) - user.Boosters.Count > 0,
+                        Action = delegate(ArcadeUser user)
+                        {
+                            user.Boosters.Add(new BoosterData("b_db", BoosterType.Debt, -0.2f, TimeSpan.FromHours(12), 20));
+
+                            return new UsageResult("You have applied a booster.");
+                        },
+                        OnBreak = user => user.Boosters.Add(new BoosterData(BoosterType.Debt, 0.2f, 20))
+                    },
+                    OwnLimit = 2
+                },
+                new Item
+                {
                     Id = "su_pl",
                     Name = "Pocket Lawyer",
                     Summary = "A summon that completely wipes all debt from a user.",
@@ -186,11 +303,7 @@ namespace Arcadia
                             return new UsageResult("> You have been freed from the shackles of debt.");
                         }
                     },
-                    OwnLimit = 3,
-                    MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null,
-                    ToExpire = null
+                    OwnLimit = 3
                 },
                 new Item
                 {
@@ -213,10 +326,6 @@ namespace Arcadia
                     {
                         Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.GammaGreen))
                     },
-                    MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null,
-                    ToExpire = null,
                     OwnLimit = 10
                 },
                 new Item
@@ -240,10 +349,6 @@ namespace Arcadia
                     {
                         Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Crimson))
                     },
-                    MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null,
-                    ToExpire = null,
                     OwnLimit = 10
                 },
                 new Item
@@ -267,10 +372,6 @@ namespace Arcadia
                     {
                         Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Wumpite))
                     },
-                    MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null,
-                    ToExpire = null,
                     OwnLimit = 10
                 },
                 new Item
@@ -294,10 +395,6 @@ namespace Arcadia
                     {
                         Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))
                     },
-                    MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null,
-                    ToExpire = null,
                     OwnLimit = 10
                 }
             };
@@ -345,7 +442,7 @@ namespace Arcadia
 
             if (item.TradeLimit.HasValue)
             {
-                if (data.TradeCount.GetValueOrDefault(0) >= item.TradeLimit.Value)
+                if ((data?.TradeCount ?? 0) >= item.TradeLimit.Value)
                     return false;
             }
 
@@ -404,9 +501,9 @@ namespace Arcadia
             if (lastUsed.HasValue && item.OnUse.Cooldown.HasValue)
             {
                 // if the cooldown has expired, allow use.
-                if ((DateTime.UtcNow - lastUsed.Value.Add(item.OnUse.Cooldown.Value)).TotalSeconds >= 0)
+                if ((DateTime.UtcNow - lastUsed.Value.Add(item.OnUse.Cooldown.Value)) >= TimeSpan.Zero)
                     return true;
-                
+
                 return false;
             }
 
@@ -421,10 +518,7 @@ namespace Arcadia
                         return false;
             }
 
-            if (item.OnUse.Criteria != null)
-                return item.OnUse.Criteria(user);
-                    
-            return true;
+            return item.OnUse.Criteria?.Invoke(user) ?? true;
         }
 
         public static bool IsUnique(string itemId)
@@ -623,7 +717,7 @@ namespace Arcadia
             if (IsUnique(item))
                 return user.Items.Count(x => x.Id == item.Id);
 
-            return user.Items.First().Count;
+            return user.Items.First(x => x.Id == item.Id).Count;
         }
 
         public static void GiveItem(ArcadeUser user, Item item, int amount = 1)
@@ -803,7 +897,12 @@ namespace Arcadia
 
             // If the item broke, invoke that action too.
             if (isBroken)
-                item.OnUse.OnBreak?.Invoke(user);
+            {
+                // Only invoke breaking if the group is not a booster
+                // This is because boosters reference this method when used up
+                if (item.GroupId != ItemGroups.Booster)
+                    item.OnUse.OnBreak?.Invoke(user);
+            }
 
             return result;
         }

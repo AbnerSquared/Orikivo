@@ -39,6 +39,8 @@ namespace Orikivo
             // Reports = ...
         }
 
+        protected override bool ReadAttributes => false;
+
         public string Id { get; } // derives from Family
 
         public string Name { get; }

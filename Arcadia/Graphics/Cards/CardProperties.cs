@@ -1,5 +1,6 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Arcadia.Graphics
 {
@@ -42,6 +43,8 @@ namespace Arcadia.Graphics
         public PaletteType Palette { get; set; } = PaletteType.Default;
 
         public GammaPalette PaletteOverride { get; set; } = null;
+
+        public Color? OutlineColor { get; set; } = null;
 
         public Dictionary<CardComponent, Gamma?> Gamma { get; set; }
 

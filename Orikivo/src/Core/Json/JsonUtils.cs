@@ -12,9 +12,6 @@ namespace Orikivo
             if (typeof(T) == typeof(BaseGuild))
                 return Directory.CreateDirectory(@"..\data\guilds\").FullName;
 
-            if (typeof(T) == typeof(OriGlobal))
-                return Directory.CreateDirectory(@"..\data\global\").FullName;
-
             return Directory.CreateDirectory(@"..\data\").FullName;
         }
     }

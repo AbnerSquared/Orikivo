@@ -6,26 +6,52 @@ namespace Arcadia
     // for Arcadia
     public class BoosterData
     {
-        public BoosterData(BoosterType type, float rate, TimeSpan? decayLength = null, int? useLimit = null)
+        public BoosterData(string itemId, BoosterType type, float rate, TimeSpan? duration = null, int? useLimit = null)
         {
+            ParentId = itemId;
             Type = type;
             Rate = rate;
 
-            if (decayLength.HasValue)
-                ExpiresOn = DateTime.UtcNow.Add(decayLength.Value);
+            if (duration.HasValue)
+                ExpiresOn = DateTime.UtcNow.Add(duration.Value);
 
-            if (useLimit.HasValue)
-                UsesLeft = useLimit.Value;
+            UsesLeft = useLimit;
+        }
+
+        public BoosterData(BoosterType type, float rate, TimeSpan duration)
+        {
+            Type = type;
+            Rate = rate;
+            ExpiresOn = DateTime.UtcNow.Add(duration);
+        }
+
+        public BoosterData(BoosterType type, float rate, int useLimit)
+        {
+            Type = type;
+            Rate = rate;
+            UsesLeft = useLimit;
+        }
+
+        public BoosterData(BoosterType type, float rate, TimeSpan duration, int useLimit)
+        {
+            Type = type;
+            Rate = rate;
+            ExpiresOn = DateTime.UtcNow.Add(duration);
+            UsesLeft = useLimit;
         }
 
         [JsonConstructor]
-        internal BoosterData(BoosterType type, float rate, DateTime? expiresOn, int? usesleft)
+        internal BoosterData(string parentId, BoosterType type, float rate, DateTime? expiresOn, int? usesLeft)
         {
+            ParentId = parentId;
             Type = type;
             Rate = rate;
             ExpiresOn = expiresOn;
-            UsesLeft = usesleft;
+            UsesLeft = usesLeft;
         }
+
+        [JsonProperty("parent_id")]
+        public string ParentId { get; }
 
         [JsonProperty("type")]
         public BoosterType Type { get; }
@@ -40,6 +66,6 @@ namespace Arcadia
 
         // how many times the booster has been activated
         [JsonProperty("uses_left")]
-        public int? UsesLeft { get; }
+        public int? UsesLeft { get; internal set; }
     }
 }

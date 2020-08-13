@@ -15,6 +15,7 @@ namespace Arcadia.Casino
         public bool IsSuccess => Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold);
         public GimiResultFlag Flag { get; }
         public long Reward { get; }
+        public long ModifiedReward { get; private set; }
 
         // UNUSED
         public long Risk { get; } // the risk that was utilized
@@ -48,7 +49,8 @@ namespace Arcadia.Casino
 
                 StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
-                user.Give(Reward);
+                user.Give(Reward, out long actual, Flag != GimiResultFlag.Gold);
+                ModifiedReward = actual;
             }
             else if (Flag.EqualsAny(GimiResultFlag.Lose, GimiResultFlag.Curse))
             {
@@ -74,7 +76,8 @@ namespace Arcadia.Casino
 
                 StatHelper.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
-                user.Take(Reward);
+                user.Take(Reward, out long actual, Flag != GimiResultFlag.Curse);
+                ModifiedReward = actual;
             }
         }
 
@@ -93,7 +96,7 @@ namespace Arcadia.Casino
 
             //long current = user.GetStat(GimiStats.CurrentType);
 
-            user.UpdateStat(GimiStats.TimesPlayed, 1);
+            user.UpdateStat(GimiStats.TimesPlayed);
 
             if (Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold))
             {
@@ -105,14 +108,11 @@ namespace Arcadia.Casino
                 type = "+";
                 color = ImmutableColor.GammaGreen;
 
-                // UPDATING 
-                //StatHelper.Clear(user,
-                //    GimiStats.CurrentCurseStreak,
-                //    GimiStats.CurrentLossStreak,
-                //    GimiStats.CurrentLossAmount);
-                user.SetStat(GimiStats.CurrentCurseStreak, 0);
-                user.SetStat(GimiStats.CurrentLossStreak, 0);
-                user.SetStat(GimiStats.CurrentLossAmount, 0);
+                // UPDATING
+                StatHelper.Clear(user,
+                    GimiStats.CurrentCurseStreak,
+                    GimiStats.CurrentLossStreak,
+                    GimiStats.CurrentLossAmount);
 
                 if (Flag == GimiResultFlag.Win)
                     user.SetStat(GimiStats.CurrentGoldStreak, 0);
@@ -129,8 +129,8 @@ namespace Arcadia.Casino
                     color = GammaPalette.Glass[Gamma.Max];
 
                     ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
-                    user.UpdateStat(GimiStats.TimesGold, 1);
-                    user.UpdateStat(GimiStats.CurrentGoldStreak, 1);
+                    user.UpdateStat(GimiStats.TimesGold);
+                    user.UpdateStat(GimiStats.CurrentGoldStreak);
 
                     StatHelper.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
                 }
@@ -138,8 +138,13 @@ namespace Arcadia.Casino
                 StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
+                long debt = (long)user.Debt;
+                // UPDATING BALANCE
+                user.Give(Reward, out value, Flag != GimiResultFlag.Gold);
+                ModifiedReward = value;
+
                 // 3 > 9
-                if ((long)user.Debt > Reward) // if there's a reward, but the person is still in debt
+                if (debt > ModifiedReward) // if there's a reward, but the person is still in debt
                 {
                     icon = "📃";
                     type = "-";
@@ -148,10 +153,10 @@ namespace Arcadia.Casino
 
                 // 3 > 0
                 // if there's still debt, but it was paid off, show the remainder as what they gained.
-                else if ((long) user.Debt > 0)
+                else if (debt > 0)
                 {
                     // 9 - 3
-                    value = Reward - (long)user.Debt;
+                    value = ModifiedReward - debt;
 
                     if (value == 0)
                     {
@@ -160,9 +165,6 @@ namespace Arcadia.Casino
                         quote = Replies.EvenGeneric;
                     }
                 }
-
-                // UPDATING BALANCE
-                user.Give(Reward);
             }
             else if (Flag.EqualsAny(GimiResultFlag.Lose, GimiResultFlag.Curse))
             {
@@ -181,14 +183,6 @@ namespace Arcadia.Casino
                 if (Flag == GimiResultFlag.Lose)
                 {
                     user.SetStat(GimiStats.CurrentCurseStreak, 0);
-
-                    if ((long)user.Balance < Reward) // if there's a loss larger than the person's balance, show the remainder as debt (ONLY IF > THAN 0)
-                    {
-                        icon = "📃";
-                        type = "+";
-                        value = Reward - (long)user.Balance;
-                        quote = Replies.Debt.Length > 0 ? (string)Randomizer.Choose(Replies.Debt) : Replies.DebtGeneric;
-                    }
                 }
 
                 user.UpdateStat(GimiStats.TimesLost);
@@ -210,8 +204,30 @@ namespace Arcadia.Casino
                 StatHelper.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
 
+                long balance = (long) user.Balance;
                 // UPDATING BALANCE
-                user.Take(Reward);
+                user.Take(Reward, out value, Flag != GimiResultFlag.Curse);
+                ModifiedReward = value;
+
+                if (balance < ModifiedReward) // if there's a loss larger than the person's balance, show the remainder as debt (ONLY IF > THAN 0)
+                {
+                    icon = "📃";
+                    type = "+";
+                    value = ModifiedReward - balance;
+                    quote = Replies.Debt.Length > 0 ? (string)Randomizer.Choose(Replies.Debt) : Replies.DebtGeneric;
+                }
+                else if (balance > 0)
+                {
+                    // 9 - 3
+
+                    if (ModifiedReward - balance == 0)
+                    {
+                        icon = "📧";
+                        value = ModifiedReward - balance;
+                        type = "";
+                        quote = Replies.EvenGeneric;
+                    }
+                }
             }
 
             string header = $"**{type} {icon} {value:##,0.###}**";

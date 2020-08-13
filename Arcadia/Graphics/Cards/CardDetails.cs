@@ -1,16 +1,14 @@
 ﻿using Discord;
-using Discord.WebSocket;
 
 namespace Arcadia.Graphics
 {
-
     /// <summary>
     /// Represents the details of a card.
     /// </summary>
     public class CardDetails
     {
         internal CardDetails() { }
-        public CardDetails(ArcadeUser user, SocketUser socket)
+        public CardDetails(ArcadeUser user, IUser socket)
         {
             Program = socket.Activity?.Name;
             Activity = socket.Activity?.Type;

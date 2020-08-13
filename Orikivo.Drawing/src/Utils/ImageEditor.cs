@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Orikivo.Drawing
         private static readonly Size Bounds4_3 = new Size(400, 300);
         private static readonly Size Bounds1_1 = new Size(300, 300);
         private static readonly Size Bounds1_2 = new Size(400, 200);
-        private static readonly Size Bounds2_1 = new Size(150, 300); 
+        private static readonly Size Bounds2_1 = new Size(150, 300);
 
         private static readonly Size Thumbs16_9 = new Size(80, 45);
         private static readonly Size Thumbs4_3 = new Size(80, 60);
@@ -69,79 +70,60 @@ namespace Orikivo.Drawing
 
 
             var result = new Bitmap(imageWidth, imageHeight);
-            
-            using (Graphics g = Graphics.FromImage(result))
+
+            using Graphics g = Graphics.FromImage(result);
+            var brush = new SolidBrush(color);
+
+            // Do this first to overlap brush marks with center borders
+            ClipAndDrawImage(g, image, hasLeft ? outerLen : 0, hasTop ? outerLen : 0);
+
+            // Left Border
+            if (hasLeft)
             {
-                var brush = new SolidBrush(color);
+                int width = outerLen + innerLen;
+                int height = imageHeight;
 
-                // Do this first to overlap brush marks with center borders
-                ClipAndDrawImage(g, image, hasLeft ? outerLen : 0, hasTop ? outerLen : 0);
-
-                /*
-                if (fillInner)
-                {
-                    g.FillRectangle(brush, outerLen, outerLen, image.Width, image.Height);
-                }
-                */
-
-                // Left Border
-                if (hasLeft)
-                {
-                    int x = 0;
-                    int y = 0;
-
-                    int width = outerLen + innerLen;
-                    int height = imageHeight;
-
-                    g.FillRectangle(brush, x, y, width, height);
-                }
-
-                // Right Border
-                if (hasRight)
-                {
-                    int x = image.Width - innerLen;
-                    
-                    if (hasLeft)
-                        x += outerLen;
-
-                    int y = 0;
-
-                    int width = outerLen + innerLen;
-                    int height = imageHeight;
-
-                    g.FillRectangle(brush, x, y, width, height);
-                }
-
-                // Top Border
-                if (hasTop)
-                {
-                    int x = 0;
-                    int y = 0;
-
-                    int width = imageWidth;
-                    int height = outerLen + innerLen;
-
-                    g.FillRectangle(brush, x, y, width, height);
-                }
-
-                // Bottom Border
-                if (hasBottom)
-                {
-                    int x = 0;
-                    int y = image.Height - innerLen;
-
-                    if (hasTop)
-                        y += outerLen;
-
-                    int width = imageWidth;
-                    int height = outerLen + innerLen;
-
-                    g.FillRectangle(brush, x, y, width, height);
-                }
-
-                brush.Dispose();
-                
+                g.FillRectangle(brush, 0, 0, width, height);
             }
+
+            // Right Border
+            if (hasRight)
+            {
+                int x = image.Width - innerLen;
+
+                if (hasLeft)
+                    x += outerLen;
+
+                int width = outerLen + innerLen;
+                int height = imageHeight;
+
+                g.FillRectangle(brush, x, 0, width, height);
+            }
+
+            // Top Border
+            if (hasTop)
+            {
+                int width = imageWidth;
+                int height = outerLen + innerLen;
+
+                g.FillRectangle(brush, 0, 0, width, height);
+            }
+
+            // Bottom Border
+            if (hasBottom)
+            {
+                int y = image.Height - innerLen;
+
+                if (hasTop)
+                    y += outerLen;
+
+                int width = imageWidth;
+                int height = outerLen + innerLen;
+
+                g.FillRectangle(brush, 0, y, width, height);
+            }
+
+            brush.Dispose();
 
             return result;
         }
@@ -155,31 +137,28 @@ namespace Orikivo.Drawing
             int foreWidth = (int)Math.Floor(RangeF.Convert(0, 1, 0, width, progress));
             var result = new Bitmap(width, height);
 
-            using (Graphics g = Graphics.FromImage(result))
-            {
-                // Background fill
-                using (var backBrush = new SolidBrush(background))
-                {
-                    var backClip = new Rectangle(foreWidth, 0, width - foreWidth, height);
-                    g.SetClip(backClip);
-                    g.FillRectangle(backBrush, backClip);
-                    g.ResetClip();
-                }
+            using Graphics g = Graphics.FromImage(result);
 
-                // Foreground fill
-                using (var foreBrush = new SolidBrush(foreground))
-                {
-                    var foreClip = new Rectangle(0, 0, foreWidth, height);
-                    g.SetClip(foreClip);
-                    g.FillRectangle(foreBrush, foreClip);
-                    g.ResetClip();
-                }
+            using (var backBrush = new SolidBrush(background))
+            {
+                var backClip = new Rectangle(foreWidth, 0, width - foreWidth, height);
+                g.SetClip(backClip);
+                g.FillRectangle(backBrush, backClip);
+                g.ResetClip();
+            }
+
+            using (var foreBrush = new SolidBrush(foreground))
+            {
+                var foreClip = new Rectangle(0, 0, foreWidth, height);
+                g.SetClip(foreClip);
+                g.FillRectangle(foreBrush, foreClip);
+                g.ResetClip();
             }
 
             return result;
         }
 
-        // TODO: Implment angled gradient generation (AngleF angle)
+        // TODO: Implement angled gradient generation (AngleF angle)
         public static Bitmap CreateGradient(Color from, Color to, int width, int height)
         {
             var pixels = new Grid<Color>(width, height, from);
@@ -187,14 +166,14 @@ namespace Orikivo.Drawing
             for (int i = 0; i < width; i++)
             {
                 float strength = RangeF.Convert(0, width, 0, 1, i);
-                Color blend = ImmutableColor.Merge(from, to, strength);
+                Color blend = ImmutableColor.Blend(from, to, strength);
                 pixels.SetColumn(i, blend);
             }
 
             return CreateRgbBitmap(pixels.Values);
         }
 
-        // TODO: Implment angled gradient generation (AngleF angle)
+        // TODO: Implement angled gradient generation (AngleF angle)
         public static Bitmap CreateGradient(Dictionary<float, Color> markers, int width, int height, GradientColorHandling colorHandling = GradientColorHandling.Blend)
         {
             var pixels = new Grid<Color>(width, height, GetInitialColor(markers));
@@ -208,11 +187,11 @@ namespace Orikivo.Drawing
             return CreateRgbBitmap(pixels.Values);
         }
 
-        // TODO: Implment angled gradient generation (AngleF angle)
+        // TODO: Implement angled gradient generation (AngleF angle)
         public static Bitmap CreateGradient(GammaPalette palette, int width, int height, AngleF angle, GradientColorHandling colorHandling = GradientColorHandling.Snap)
         {
+            const float colorDist = 1.0f / GammaPalette.RequiredLength;
             var markers = new Dictionary<float, Color>();
-            float colorDist = 1.0f / GammaPalette.RequiredLength;
 
             for (int i = 0; i < GammaPalette.RequiredLength; i++)
                 markers.Add(colorDist * i, palette[i]);
@@ -238,17 +217,17 @@ namespace Orikivo.Drawing
 
             unsafe
             {
-                var area = new Rectangle(0, 0, bmp.Width, bmp.Height);
+                var area = new Rectangle(0, 0, width, height);
                 BitmapData source = bmp.LockBits(area, ImageLockMode.WriteOnly, bmp.PixelFormat);
 
                 int bitsPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
-                byte* ptr = (byte*)source.Scan0;
+                var ptr = (byte*)source.Scan0;
 
                 Parallel.For(0, sourceHeight, y =>
                 {
-                    byte* row = ptr + (y * source.Stride);
+                    byte* row = ptr + y * source.Stride;
 
                     for (int x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
@@ -277,15 +256,14 @@ namespace Orikivo.Drawing
             {
                 var area = new Rectangle(0, 0, image.Width, image.Height);
                 BitmapData source = image.LockBits(area, ImageLockMode.ReadOnly, image.PixelFormat);
-
                 int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
-                byte* ptr = (byte*)source.Scan0;
+                var ptr = (byte*)source.Scan0;
 
                 Parallel.For(0, sourceHeight, y =>
                 {
-                    byte* row = ptr + (y * source.Stride);
+                    byte* row = ptr + y * source.Stride;
 
                     for (int x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
@@ -311,8 +289,7 @@ namespace Orikivo.Drawing
                 int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
-                
-                byte* ptr = (byte*)source.Scan0;
+                var ptr = (byte*)source.Scan0;
 
                 Parallel.For(0, sourceHeight, y =>
                 {
@@ -331,7 +308,7 @@ namespace Orikivo.Drawing
         public static Grid<float> GetOpacityMask(Bitmap image)
         {
             var mask = new Grid<float>(image.Size, 0);
-            var pixels = GetPixelData(image);
+            Grid<Color> pixels = GetPixelData(image);
 
             mask.SetEachValue((x, y) => RangeF.Convert(0, 255, 0, 1, pixels[x, y].A));
             return mask;
@@ -342,21 +319,10 @@ namespace Orikivo.Drawing
             if (mask.Size != image.Size)
                 throw new ArgumentException("The opacity mask specified must be the same size as the binding image");
 
-            Grid<Color> pixels = GetPixelData(image);
-            pixels.SetEachValue((pixel, x, y) => Color.FromArgb((int)Math.Floor(RangeF.Convert(0, 1, 0, 255, mask[x, y])), pixel));
-            return CreateArgbBitmap(pixels.Values);
-        }
-
-        public static Bitmap SetDirectOpacityMask(Bitmap image, Grid<float> mask)
-        {
-            if (mask.Size != image.Size)
-                throw new ArgumentException("The opacity mask specified must be the same size as the binding image");
-
             unsafe
             {
                 var area = new Rectangle(0, 0, image.Width, image.Height);
                 BitmapData source = image.LockBits(area, ImageLockMode.WriteOnly, image.PixelFormat);
-
                 int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
@@ -365,11 +331,12 @@ namespace Orikivo.Drawing
                 Parallel.For(0, sourceHeight, y =>
                 {
                     byte* row = ptr + y * source.Stride;
-
+                    int pX = 0;
                     for (var x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
-                        var alpha = (byte) Math.Floor(RangeF.Convert(0, 1, 0, 255, mask[x, y]));
+                        var alpha = (byte) Math.Floor(RangeF.Convert(0, 1, 0, 255, mask[pX, y]));
                         row[x + 3] = alpha;
+                        pX++;
                     }
                 });
 
@@ -385,25 +352,23 @@ namespace Orikivo.Drawing
             {
                 var area = new Rectangle(0, 0, bmp.Width, bmp.Height);
                 BitmapData source = bmp.LockBits(area, ImageLockMode.ReadWrite, bmp.PixelFormat);
-
                 int bitsPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
-                byte* ptr = (byte*)source.Scan0;
+                var ptr = (byte*)source.Scan0;
 
                 Parallel.For(0, sourceHeight, y =>
                 {
-                    byte* row = ptr + (y * source.Stride);
+                    byte* row = ptr + y * source.Stride;
 
                     for (int x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
-                        ImmutableColor color = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
-                        Color forcedColor = ImmutableColor.ClosestMatch(color, colors);
+                        var color = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
+                        Color match = ImmutableColor.ClosestMatch(color, colors);
 
-                        //row[x + 3] = forcedColor.A; // This is because you don't want to change opacity
-                        row[x + 2] = forcedColor.R;
-                        row[x + 1] = forcedColor.G;
-                        row[x] = forcedColor.B;
+                        row[x + 2] = match.R;
+                        row[x + 1] = match.G;
+                        row[x] = match.B;
                     }
                 });
 
@@ -429,27 +394,22 @@ namespace Orikivo.Drawing
                 _ => throw new ArgumentException("The ratio type specified is not a valid ratio.")
             };
         }
-        
+
         // TODO: Determine if this method works the same as Drawable.Build()
         public static void DrawImage(Bitmap image, Bitmap inner, int viewportWidth, int viewportHeight, int innerX, int innerY, int innerOffsetX, int innerOffsetY)
         {
-            using (Graphics g = Graphics.FromImage(image))
+            using Graphics g = Graphics.FromImage(image);
+            if (innerOffsetX < 0 || innerOffsetX + image.Width > viewportWidth ||
+                innerOffsetY < 0 || innerOffsetY + image.Height > viewportHeight)
             {
-                if (innerOffsetX > viewportWidth && innerOffsetY > viewportHeight)
-                {
-                    if (innerOffsetX < 0 || innerOffsetX + image.Width > viewportWidth ||
-                        innerOffsetY < 0 || innerOffsetY + image.Height > viewportHeight)
-                    {
-                        // NOTE: The default origin in this case would just be the origin of the viewport
-                        Rectangle visible = ClampRectangle(new Point(0, 0),
-                            new Size(viewportWidth, viewportHeight),
-                            new Point(innerOffsetX, innerOffsetY),
-                            inner.Size);
-
-                        using (Bitmap overlap = ImageHelper.Crop(inner, visible))
-                            ClipAndDrawImage(g, overlap, innerX, innerY);
-                    }
-                }
+                // NOTE: The default origin in this case would just be the origin of the viewport
+                Rectangle visible = ClampRectangle(Point.Empty, new Size(viewportWidth, viewportHeight), new Point(innerOffsetX, innerOffsetY), inner.Size);
+                using Bitmap overlap = ImageHelper.Crop(inner, visible);
+                ClipAndDrawImage(g, overlap, innerX, innerY);
+            }
+            else
+            {
+                ClipAndDrawImage(g, inner, innerX, innerY);
             }
         }
 
@@ -468,51 +428,52 @@ namespace Orikivo.Drawing
         }
 
         // NOTE: Clipping
-        internal static Rectangle ClampRectangle(Point origin, Size size, Point offset, Size innerSize)
+        internal static Rectangle ClampRectangle(Point origin, Size maxSize, Point offset, Size innerSize)
         {
             int x = ClampPoint(origin.X, offset.X);
             int y = ClampPoint(origin.Y, offset.Y);
 
-            int width = ClampLength(origin.X, offset.X, innerSize.Width, size.Width);
-            int height = ClampLength(origin.Y, offset.Y, innerSize.Height, size.Height);
+            int width = ClampLength(origin.X, offset.X, innerSize.Width, maxSize.Width);
+            int height = ClampLength(origin.Y, offset.Y, innerSize.Height, maxSize.Height);
 
             return new Rectangle(x, y, width, height);
         }
 
         internal static CharIndex GetCharIndex(char c, char[][][][] map)
         {
-            (int? I, int? X, int? Y) = new ValueTuple<int?, int?, int?>();
-            
+            (int? i, int? x, int? y) = (-1, -1, -1);
+
             foreach(char[][][] page in map)
             {
-                if (page.Any(x => x.Any(y => y.Contains(c))))
+                i++;
+
+                if (!page.Any(r => r.Any(g => g.Contains(c))))
+                    continue;
+
+                foreach (char[][] row in page)
                 {
-                    I = map.ToList().IndexOf(page);
+                    y++;
 
-                    foreach (char[][] row in page)
+                    if (!row.Any(g => g.Contains(c)))
+                        continue;
+
+                    foreach(char[] group in row)
                     {
-                        if (row.Any(x => x.Contains(c)))
-                        {
-                            Y = page.ToList().IndexOf(row);
+                        x++;
 
-                            foreach(char[] item in row)
-                            {
-                                if (item.Contains(c))
-                                {
-                                    X = row.ToList().IndexOf(item);
-                                    return CharIndex.FromResult(c, I, X, Y);
-                                }
-                            }
-                        }
+                        if (!group.Contains(c))
+                            continue;
+
+                        return CharIndex.FromResult(c, i, x, y);
                     }
                 }
             }
 
-            return CharIndex.FromResult(c, I, X, Y);
+            return CharIndex.FromResult(c, 0, 0, 0);
         }
 
         internal static int GetMidpoint(int length)
-            => (int)Math.Floor((double)(length / 2));
+            => (int)MathF.Floor(length / (float) 2);
 
         internal static Point GetOrigin(Size size, OriginAnchor anchor)
         {
@@ -545,7 +506,7 @@ namespace Orikivo.Drawing
             => edge switch
             {
                 BorderEdge.Outside => 0,
-                BorderEdge.Center => (int)Math.Floor((double)width / 2),
+                BorderEdge.Center => (int)MathF.Floor(width / (float)2),
                 BorderEdge.Inside => width,
                 _ => 0
             };
@@ -554,7 +515,7 @@ namespace Orikivo.Drawing
             => edge switch
             {
                 BorderEdge.Outside => width,
-                BorderEdge.Center => width - (int)Math.Floor((double)width / 2),
+                BorderEdge.Center => width - (int)MathF.Floor(width / (float)2),
                 BorderEdge.Inside => 0,
                 _ => width
             };
@@ -570,38 +531,34 @@ namespace Orikivo.Drawing
             float? lastClosest = GetLastClosest(markers, progress);
             float? nextClosest = GetNextClosest(markers, progress);
 
-            // TODO: Implement GradientException
             if (!lastClosest.HasValue && !nextClosest.HasValue)
                 throw new Exception("Could not find a marker at the specified progress.");
 
-            if (!lastClosest.HasValue && nextClosest.HasValue)
+            if (!lastClosest.HasValue)
                 return markers[nextClosest.Value];
 
-            if (lastClosest.HasValue && !nextClosest.HasValue)
+            if (!nextClosest.HasValue)
                 return markers[lastClosest.Value];
 
             switch (colorHandling)
             {
                 case GradientColorHandling.Snap:
-                    if (lastClosest.Value < nextClosest.Value)
-                        return markers[lastClosest.Value];
+                    return lastClosest.Value < nextClosest.Value ? markers[lastClosest.Value] : markers[nextClosest.Value];
 
-                    return markers[nextClosest.Value];
-
-                // TODO: Implement GradientColorHandling.Dither
                 default:
                     float strength = RangeF.Convert(lastClosest.Value, nextClosest.Value, 0, 1, progress);
-                    return ImmutableColor.Merge(markers[lastClosest.Value], markers[nextClosest.Value], strength);
+                    return ImmutableColor.Blend(markers[lastClosest.Value], markers[nextClosest.Value], strength);
             }
         }
 
         private static float? GetLastClosest(Dictionary<float, Color> markers, float progress)
         {
-            var lastValues = markers.Keys.Where(x => x < progress);
-
-            if (lastValues.Count() > 0)
+            if (markers.Keys.Any(x => x < progress))
             {
-                return lastValues.OrderBy(x => MathF.Abs(progress - x)).First();
+                return markers.Keys
+                    .Where(x => x < progress)
+                    .OrderBy(x => MathF.Abs(progress - x))
+                    .First();
             }
 
             return null;
@@ -609,11 +566,12 @@ namespace Orikivo.Drawing
 
         private static float? GetNextClosest(Dictionary<float, Color> markers, float progress)
         {
-            var nextValues = markers.Keys.Where(x => x >= progress);
-
-            if (nextValues.Count() > 0)
+            if (markers.Keys.Any(x => x >= progress))
             {
-                return nextValues.OrderBy(x => MathF.Abs(progress - x)).First();
+                return markers.Keys
+                    .Where(x => x >= progress)
+                    .OrderBy(x => MathF.Abs(progress - x))
+                    .First();
             }
 
             return null;

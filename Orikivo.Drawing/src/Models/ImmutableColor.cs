@@ -157,20 +157,20 @@ namespace Orikivo.Drawing
         }
 
         // Keep the opacity of the initial alpha
-        public static ImmutableColor Merge(ImmutableColor background, ImmutableColor foreground, float strength)
+        public static ImmutableColor Blend(ImmutableColor background, ImmutableColor foreground, float strength)
         {
             // TODO: Ensure range of 0.0 to 1.0
             if (strength > 1.00f || strength < 0.00f)
                 throw new Exception("The specified merge strength must be within the range of 0.00f to 1.00f.");
 
-            byte r = GetMergeValue(background.R, foreground.R, strength);
-            byte g = GetMergeValue(background.G, foreground.G, strength);
-            byte b = GetMergeValue(background.B, foreground.B, strength);
+            byte r = GetBlendValue(background.R, foreground.R, strength);
+            byte g = GetBlendValue(background.G, foreground.G, strength);
+            byte b = GetBlendValue(background.B, foreground.B, strength);
 
             return new ImmutableColor(r, g, b);
         }
 
-        private static byte GetMergeValue(byte b, byte f, float strength)
+        private static byte GetBlendValue(byte b, byte f, float strength)
             => (byte)Math.Floor((b * (1.00f - strength)) + (f * strength));
 
         /// <summary>

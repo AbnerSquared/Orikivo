@@ -18,7 +18,19 @@ namespace Arcadia.Modules
             var gimi = new Gimi();
             GimiResult result = gimi.Next();
 
-            await Context.Channel.SendMessageAsync(result.ApplyAndDisplay(Context.Account));
+            Message message = result.ApplyAndDisplay(Context.Account);
+
+            await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
+        }
+
+        [RequireUser]
+        [Command("gimiquiet"), Alias("gimiq")]
+        [Summary("An activity that randomly offers a reward value (if you're lucky enough).")]
+        public async Task GimiQuietAsync()
+        {
+            var gimi = new Gimi();
+            GimiResult result = gimi.Next();
+            result.Apply(Context.Account);
         }
 
         [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
@@ -99,7 +111,7 @@ namespace Arcadia.Modules
 
             TickResult result = tick.Next(wager);
 
-            await Context.Channel.SendMessageAsync(result.ApplyAndDisplay(Context.Account));
+            await Context.Channel.SendMessageAsync(Context.Account, result.ApplyAndDisplay(Context.Account));
         }
 
         // TODO: Implement a proper cashing out system.
@@ -138,9 +150,9 @@ namespace Arcadia.Modules
 
             var chips = (ulong) MoneyConvert.GetChips(amount);
 
-            Context.Account.Take(amount);
+            Context.Account.Take(amount, false);
             Context.Account.ChipBalance += chips;
-            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips.ToString("##,0")}**.");
+            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips:##,0}**.");
 
         }
     }

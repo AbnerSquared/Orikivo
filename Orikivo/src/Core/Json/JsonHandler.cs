@@ -89,21 +89,18 @@ namespace Orikivo
             {
                 File.Create(path).Dispose();
                 return default;
-            } 
-
-            using (StreamReader stream = File.OpenText(path))
-            {
-                using (var reader = new JsonTextReader(stream))
-                {
-                    serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
-                    var tmp = serializer.Deserialize<T>(reader);
-
-                    if (throwOnEmpty && tmp == null)
-                            throw new Exception("The file deserialized returned as empty.");
-
-                    return tmp == null ? default : tmp;
-                }
             }
+
+            using StreamReader stream = File.OpenText(path);
+            using var reader = new JsonTextReader(stream);
+
+            serializer ??= JsonSerializer.Create(DefaultSerializerSettings);
+            var tmp = serializer.Deserialize<T>(reader);
+
+            if (throwOnEmpty && tmp == null)
+                throw new Exception("The file deserialized returned as empty.");
+
+            return tmp == null ? default : tmp;
         }
 
         /// <summary>
