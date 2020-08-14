@@ -14,7 +14,7 @@ namespace Orikivo.Drawing
         public bool CanCacheChars { get; set; }
 
         public List<FontFace> Fonts { get; set; }
-        
+
         public char[][][][] CharMap { get; set; }
     }
 }

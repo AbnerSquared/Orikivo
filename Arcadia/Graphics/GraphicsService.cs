@@ -248,7 +248,7 @@ namespace Arcadia.Graphics
                     {
                         // TODO: 
                         Source = ImageEditor.CreateFillable(palette[emptyGamma], palette[fillGamma],
-                            counter.Source.Width - 1, 2, toNextLevel),
+                            counter.Source.Width, 2, toNextLevel),
                         Offset = new Coordinate(cursor.X, cursor.Y + counterHeight)
                     };
 

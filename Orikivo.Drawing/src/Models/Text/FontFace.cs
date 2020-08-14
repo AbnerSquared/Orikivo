@@ -1,13 +1,12 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents a font to be used alongside <see cref="DrawableFactory"/> when drawing bodies of text.
+    /// Represents a font that specifies how characters are drawn.
     /// </summary>
     public class FontFace
     {
@@ -22,33 +21,6 @@ namespace Orikivo.Drawing
                 tag |= FontTag.UnicodeSupported;
 
             return tag;
-        }
-
-
-        // TODO: Make .FromPath(string) use the generic JsonHandler.
-        public static FontFace FromPath(string path)
-        {
-            if (!File.Exists(path))
-            {
-                File.Create(path).Dispose();
-                return default;
-            }
-
-            using (StreamReader stream = File.OpenText(path))
-            {
-                JsonSerializerSettings settings = new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-                    Formatting = Formatting.Indented
-                };
-
-                using (var reader = new JsonTextReader(stream))
-                {
-                    FontFace font = JsonSerializer.Create(settings).Deserialize<FontFace>(reader);
-                    return font ?? (default);
-                }
-            }
         }
 
         public FontFace(FontFaceBuilder builder)
@@ -84,9 +56,6 @@ namespace Orikivo.Drawing
         [JsonProperty("height")]
         public int CharHeight { get; }
 
-        /// <summary>
-        /// The <see cref="Padding"/> that will be used with each <see cref="char"/> sprite value.
-        /// </summary>
         [JsonProperty("padding")]
         public Padding Padding { get; }
 
@@ -116,9 +85,7 @@ namespace Orikivo.Drawing
             => Overrides?.FirstOrDefault(x => x.Chars.Contains(c))?.GetOffset() ?? Point.Empty;
 
         public int GetCharWidth(char c)
-            => WhiteSpaceInfo.IsWhiteSpace(c) ?
-               GetWhiteSpace(c)?.Width ?? CharWidth
-               : Overrides?.FirstOrDefault(x => x.Chars.Contains(c))?.Width ?? CharWidth;
+            => GetWhiteSpace(c)?.Width ?? Overrides?.FirstOrDefault(x => x.Chars.Contains(c))?.Width ?? CharWidth;
 
         public WhiteSpaceInfo GetWhiteSpace(char c)
             => Whitespace.FirstOrDefault(x => x.Chars.Contains(c));

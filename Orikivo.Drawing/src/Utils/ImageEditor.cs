@@ -420,6 +420,9 @@ namespace Orikivo.Drawing
         public static void ClipAndDrawImage(Graphics graphics, Bitmap image, Point point)
             => ClipAndDrawImage(graphics, image, new Rectangle(point, image.Size));
 
+        public static void ClipAndDrawImage(Graphics graphics, Bitmap image, Point point, Size size)
+            => ClipAndDrawImage(graphics, image, new Rectangle(point, size));
+
         public static void ClipAndDrawImage(Graphics graphics, Bitmap image, Rectangle clip)
         {
             graphics.SetClip(clip);

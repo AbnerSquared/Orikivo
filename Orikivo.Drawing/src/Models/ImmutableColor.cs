@@ -11,6 +11,7 @@ namespace Orikivo.Drawing
     /// </summary>
     public struct ImmutableColor
     {
+        public static readonly ImmutableColor Default = new ImmutableColor(0xFFFFFF);
         public static readonly ImmutableColor NeonRed = new ImmutableColor(0xF8427D);
         public static readonly ImmutableColor GammaGreen = new ImmutableColor(0x6EFAC8);
 
