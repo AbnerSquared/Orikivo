@@ -10,11 +10,29 @@ namespace Arcadia
 
         public string Name { get; set; }
 
+        public string Icon { get; set; }
+
         public string GetName()
             => ItemHelper.NameOf(Id);
 
         public string GetQuote()
             => Randomizer.Choose(Quotes);
+
+        public string GetIcon()
+        {
+            if (Check.NotNull(Icon))
+                return Icon;
+
+            if (Check.NotNull(GroupId))
+            {
+                ItemGroup group = ItemHelper.GetGroup(GroupId);
+
+                if (Check.NotNull(group?.Icon))
+                    return group?.Icon;
+            }
+
+            return "";
+        }
 
         public string Summary { get; set; }
 
@@ -43,7 +61,7 @@ namespace Arcadia
         // buy, sell, trade, or gift the item
         // it returns a multiplier float that will be applied to the
         // base value. If 0, the specified action cannot be performed
-        
+
         // If null, this will simply refer to the CanSell/CanBuy
         public Func<ItemMarketAction, UniqueItemData, float> MarketCriteria { get; set; }
 

@@ -27,7 +27,10 @@ namespace Arcadia
             Progress = progress ?? new Dictionary<string, long>();
         }
 
+        [JsonProperty("id")]
         public string Id { get; }
+
+
 
         /// <summary>
         /// Keeps track of all of the required criterion for a <see cref="Quest"/>.

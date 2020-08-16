@@ -101,5 +101,29 @@ namespace Orikivo
 
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> enumerable)
             => enumerable.ToDictionary(x => x.Key, x => x.Value);
+
+        /// <summary>
+        /// Adds a sequence of key value pairs to the specified dictionary or adds to the existing value if the specified key already exists.
+        /// </summary>
+        public static void AddOrSum<TKey>(this Dictionary<TKey, long> a, Dictionary<TKey, long> b)
+        {
+            foreach ((TKey key, long value) in b)
+            {
+                if (!a.TryAdd(key, value))
+                    a[key] += value;
+            }
+        }
+
+        /// <summary>
+        /// Adds a sequence of key value pairs to the specified dictionary or adds to the existing value if the specified key already exists.
+        /// </summary>
+        public static void AddOrSum<TKey>(this Dictionary<TKey, int> a, Dictionary<TKey, int> b)
+        {
+            foreach ((TKey key, int value) in b)
+            {
+                if (!a.TryAdd(key, value))
+                    a[key] += value;
+            }
+        }
     }
 }

@@ -24,6 +24,16 @@ namespace Arcadia
             }
         };
 
+        public static string IconOf(string itemId)
+        {
+            Item item = GetItem(itemId);
+
+            if (item == null)
+                return "";
+
+            return item.GetIcon();
+        }
+
         public static bool CanApplyBooster(BoosterData booster)
         {
             if (booster.ExpiresOn.HasValue)
@@ -121,25 +131,29 @@ namespace Arcadia
             new ItemGroup
             {
                 Id = "booster",
+                Icon = Icons.Booster,
                 Prefix = "Booster: ",
-                Summary = "Modifies the returning value of a specified type."
+                Summary = "Modifies the multiplier for a specified form of income."
             },
 
             new ItemGroup
             {
                 Id = "palette",
+                Icon = Icons.Palette,
                 Prefix = "Card Palette: ",
-                Summary = "A palette that can be equipped on a card."
+                Summary = "Modifies the color scheme that is displayed on a card."
             },
             new ItemGroup
             {
                 Id = "summon",
+                Icon = Icons.Summon,
                 Prefix = "Summon: "
             },
             new ItemGroup
             {
                 Id = "automaton",
-                Prefix = "Automaton: "
+                Prefix = "Automaton: ",
+                Summary = "Grants the ability to automate specific actions."
             }
         };
 

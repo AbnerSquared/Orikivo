@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
-using Orikivo.Desync;
 
 namespace Arcadia
 {
@@ -112,8 +111,8 @@ namespace Arcadia
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
                     Value = 50,
-                    Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
-                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 1000,
+                    Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
+                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 5000,
                     Hidden = true,
                     Reward = new Reward
                     {
@@ -127,7 +126,7 @@ namespace Arcadia
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Diamond,
                     Value = 250,
-                    Quote = "Where most people gave up, you kept asking 10,000 times over.",
+                    Quote = "No matter what anyone said, you kept going 10,000 times over.",
                     Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 10000,
                     Hidden = true,
                     Reward = new Reward
@@ -208,6 +207,19 @@ namespace Arcadia
         public static bool Exists(string id)
             => Merits.Any(x => x.Id == id);
 
+        public static long GetScore(ArcadeUser user)
+        {
+            long score = 0;
+            foreach ((string id, MeritData data) in user.Merits)
+            {
+                Merit merit = GetMerit(id);
+
+                score += merit.Value;
+            }
+
+            return score;
+        }
+
         public static string Write(Merit merit, ArcadeUser user = null)
         {
             var info = new StringBuilder();
@@ -225,11 +237,7 @@ namespace Arcadia
                 }
             }
 
-            if (user == null)
-            {
-                info.AppendLine($"> `{merit.Id}`");
-            }
-
+            info.AppendLine($"> `{merit.Id}`");
             info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
 
             if (Check.NotNull(merit.Quote))
@@ -292,6 +300,7 @@ namespace Arcadia
                 info.AppendLine(Format.Warning("This is an exclusive merit."));
             }
 
+            info.AppendLine($"> `{merit.Id}`");
             info.Append("> ");
 
             if (user != null)
@@ -342,7 +351,7 @@ namespace Arcadia
             return progress.ToString();
         }
 
-        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int maxAllowedValues = 8)
+        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int maxAllowedValues = 5)
         {
             var info = new StringBuilder();
 
@@ -356,7 +365,12 @@ namespace Arcadia
             if (flag != MeritQuery.Default)
                 info.Append($": {flag.ToString()}");
 
-            info.AppendLine("**");
+            info.Append("**");
+
+            if (flag == MeritQuery.Default)
+                info.Append($" (**{GetScore(user)}**m)");
+
+            info.AppendLine();
 
             info.AppendLine($"> {GetSummary(flag)}\n");
 

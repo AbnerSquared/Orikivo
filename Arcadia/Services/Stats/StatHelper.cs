@@ -91,6 +91,9 @@ namespace Arcadia
         public static DateTime AsTime(ArcadeUser user, string statId)
             => new DateTime(user.GetStat(statId));
 
+        public static TimeSpan GetRemainder(ArcadeUser user, string statId, TimeSpan cooldown)
+            => cooldown - SinceLast(user, statId);
+
         public static TimeSpan SinceLast(ArcadeUser user, string statId)
             => TimeSpan.FromTicks(DateTime.UtcNow.Ticks - user.GetStat(statId));
 

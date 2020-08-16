@@ -43,6 +43,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => "> 📈 **Leaderboard: Debt**",
                 LeaderboardQuery.Level => "> 📈 **Leaderboard: Experience**",
                 LeaderboardQuery.Chips => "> 📈 **Leaderboard: Casino**",
+                LeaderboardQuery.Merits => "> 📈 **Leaderboard: Merits**",
                 _ => "> 📈 **Leaderboard**"
             };
         }
@@ -56,6 +57,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => "> *These are the users with enough debt to make a pool.*",
                 LeaderboardQuery.Level => "> *These are the users dedicated to Orikivo.*",
                 LeaderboardQuery.Chips => "> *These are the users that rule over the **Casino**.*",
+                LeaderboardQuery.Merits => "> *These are the users that have accomplished big things.*",
                 _ => ""
             };
         }
@@ -68,6 +70,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => "The Cursed",
                 LeaderboardQuery.Level => "The Experienced",
                 LeaderboardQuery.Chips => "The Gambler",
+                LeaderboardQuery.Merits => "The Accolade Hunter",
                 _ => "INVALID_FLAG"
             };
         }
@@ -80,12 +83,15 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => "with 📃",
                 LeaderboardQuery.Level => "at level",
                 LeaderboardQuery.Chips => "with 🧩",
+                LeaderboardQuery.Merits => "with",
                 _ => "INVALID_FLAG"
             };
         }
 
         private static readonly string LeaderFormat = "> **{0}**: **{1}** {2} **{3}**";
+        private static readonly string LeaderBaseFormat = "> **{0}**: **{1}** {2} {3}";
         private static readonly string UserFormat = "**{0}** ... {1} **{2}**";
+        private static readonly string CustomBaseFormat = "**{0}** ... {1}";
         private static readonly string CustomFormat = "**{0}** ... **{1}**";
 
         // This is only on LeaderboardFlag.Default
@@ -109,6 +115,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => string.Format(LeaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
                 LeaderboardQuery.Level => string.Format(LeaderFormat, title, user.Username, segment, WriteLevel(user)),
                 LeaderboardQuery.Chips => string.Format(LeaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
+                LeaderboardQuery.Merits => string.Format(LeaderBaseFormat, title, user.Username, segment, $"**{MeritHelper.GetScore(user)}**m"),
                 _ => "INVALID_FLAG"
             };
         }
@@ -124,6 +131,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
                 LeaderboardQuery.Level => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
                 LeaderboardQuery.Chips => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
+                LeaderboardQuery.Merits => string.Format(CustomBaseFormat, user.Username, $"**{MeritHelper.GetScore(user)}**m"),
                 LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetStat(statId)),
                 _ => "INVALID_FLAG"
             };
@@ -171,6 +179,7 @@ namespace Arcadia.Services
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Money, GetLeader(users, LeaderboardQuery.Money, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Debt, GetLeader(users, LeaderboardQuery.Debt, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Chips, GetLeader(users, LeaderboardQuery.Chips, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Merits, GetLeader(users, LeaderboardQuery.Merits, Sort)));
                 //leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
             }
             else
@@ -205,6 +214,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Debt => (long) user.Debt,
                 LeaderboardQuery.Level => user.Ascent * 100 + user.Level,
                 LeaderboardQuery.Chips => (long) user.ChipBalance,
+                LeaderboardQuery.Merits => MeritHelper.GetScore(user),
                 LeaderboardQuery.Custom => user.GetStat(statId),
                 _ => 0
             };

@@ -28,6 +28,7 @@ namespace Arcadia.Services
         Debt = 2,
         Level = 3,
         Chips = 4,
-        Custom = 5 // This allows for leaderboards by stats
+        Merits = 5,
+        Custom = 6 // This allows for leaderboards by stats
     }
 }

@@ -5,6 +5,8 @@
         // This is the ID of the group
         public string Id { get; set; }
 
+        public string Icon { get; set; }
+
         // This is applied to the name before the name of the item
         public string Prefix { get; set; }
 

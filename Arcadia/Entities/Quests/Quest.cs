@@ -19,6 +19,10 @@ namespace Arcadia
         public Func<ArcadeUser, bool> ToAssign { get; set; }
 
         public List<StatCriterion> Criteria { get; internal set; } = new List<StatCriterion>();
+
+        public Reward Reward { get; set; }
+
+        public int? MaxAllowed { get; set; }
     }
 
     public class GuildQuest

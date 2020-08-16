@@ -6,6 +6,13 @@ namespace Orikivo
 {
     public class Message
     {
+        public Message(string text = "", bool isTTS = false, Embed embed = null)
+        {
+            Text = text;
+            IsTTS = isTTS;
+            Embed = embed;
+        }
+
         public Message(MessageBuilder builder, Notifier notifier = null)
         {
             if (Check.NotNull(builder.Embedder))
@@ -66,8 +73,6 @@ namespace Orikivo
                 Text = text.ToString();
                 IsTTS = builder.IsTTS;
                 IsSpoiler = builder.IsSpoiler;
-
-                
             }
         }
 

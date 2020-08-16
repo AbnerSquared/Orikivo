@@ -81,19 +81,45 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("objectives"), Alias("missions", "quests", "tasks")]
-        [Summary("View all of your currently assigned quests.")]
-        public async Task ViewQuestsAsync()
+        [Command("assign")]
+        [Summary("Assign a new set of quests.")]
+        public async Task AssignQuestsAsync()
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.ViewCurrent(Context.Account));
+            await Context.Channel.SendMessageAsync(QuestHelper.AssignAndDisplay(Context.Account));
         }
 
         [RequireUser]
-        //[Command("objectives"), Alias("missions", "quests", "tasks")]
-        [Summary("View the currently assigned objective on the specified slot.")]
-        public async Task ViewQuestAsync(int slotIndex)
+        [Command("complete")]
+        [Summary("Claim the rewards from all of your completed objectives")]
+        public async Task CompleteQuestsAsync()
         {
+            await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
+        }
 
+        [RequireUser]
+        [Command("toss")]
+        [Summary("Toss the specified objective you are currently working on.")]
+        public async Task TossQuestAsync(int slot)
+        {
+            slot--;
+            await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, slot));
+        }
+
+        [RequireUser]
+        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(0)]
+        [Summary("View all of your currently assigned quests.")]
+        public async Task ViewQuestsAsync()
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
+        }
+
+        [RequireUser]
+        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(1)]
+        [Summary("View the currently assigned objective on the specified slot.")]
+        public async Task ViewQuestAsync(int slot)
+        {
+            slot--;
+            await Context.Channel.SendMessageAsync(QuestHelper.ViewSlot(Context.Account, slot));
         }
 
         [RequireUser]
