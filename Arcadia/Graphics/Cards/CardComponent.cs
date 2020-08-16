@@ -1,20 +1,21 @@
 ﻿using System;
-using Discord;
+using System.Collections.Generic;
+using System.Drawing;
 using Orikivo.Drawing;
+using Color = Discord.Color;
 
 namespace Arcadia.Graphics
 {
+    [Flags]
     public enum CardComponent
     {
         Username = 1,
         Activity = 2,
-        Border = 3,
-        Background = 4,
-        Avatar = 5,
-        Level = 6,
-        Money = 7,
-        Exp = 8, // foreground exp
-        Bar = 9 // background exp
+        Avatar = 4,
+        Level = 8,
+        Money = 16,
+        Exp = 32,
+        Bar = 64
     }
 
     public enum ComponentType
@@ -22,84 +23,60 @@ namespace Arcadia.Graphics
         Image = 1,
         Icon = 2,
         Text = 3,
-        Bar = 4
-    }
-
-    public interface ICardComponent
-    {
-        public ComponentType Type { get; }
-        public GammaPalette Palette { get; }
-        public int OffsetX { get; }
-        public int OffsetY { get; }
-    }
-
-    public class ImageComponent
-    {
-        public string Url;
-        public int Size;
-        public Color? BackgroundColor;
-        public Color? FramePrimaryColor;
-        public Color? FrameSecondaryColor;
-        public string BorderId;
-        public GammaPalette ImagePalette;
-        public Padding Padding;
-        public int OffsetX;
-        public int OffsetY;
-    }
-
-    public class BorderComponent
-    {
-        public int Width;
-        public BorderAllow Sides;
-        public string FillStyleId;
-        public Padding Padding;
-        public Padding Margin;
-        public Color? PrimaryColor;
-        public Color? SecondaryColor;
-    }
-
-    public class TextComponent
-    {
-        public string Content;
-        public FontFace Font;
-        public Casing Casing;
-        public Color? OutlineColor;
-        public Gamma? PrimaryGamma;
-        public Gamma? SecondaryGamma;
-        public GammaPalette Palette; // If the CardLayout specifies that the text will not use primary/secondary, it will instead be ignored
-        public string FillStyleId; // solid, based on EXP, gradient, etc.
-        public Shadow Shadow; // an optional text shadow
-        public int OffsetX;
-        public int OffsetY;
-        public Padding Padding;
-    }
-
-    public enum FillType
-    {
-        Solid,
-        Exp
-    }
-
-    public class FillStyle
-    {
-        // This can handle custom fill styles
+        Solid = 4
     }
 
     // Likewise, this is also handled by Merit slots
-    public class IconComponent
+    public class IconComponent : ICardComponent
     {
-        public Sheet SheetReference;
-        public int SheetIndex;
-        public GammaPalette Palette;
-        public FrameComponent Frame;
-        public int OffsetX;
-        public int OffsetY;
+        public ComponentInfo Info { get; }
+        public FillInfo Fill { get; }
+
+        public string ReferencePath { get; set; }
+        public int ReferenceIndex { get; set; }
+        public int CropWidth { get; set; }
+        public int CropHeight { get; set; }
+
+        public void Draw(Drawable card, ref Cursor cursor, ref ComponentReference previous)
+        {
+            // Get the layer offsets
+            int offsetX = CardInfo.GetOffsetX(Info, cursor, previous);
+            int offsetY = CardInfo.GetOffsetY(Info, cursor, previous);
+
+            // Get the image source
+            var sheet = new Sheet(ReferencePath, CropWidth, CropHeight);
+            var sprite = sheet.GetSprite(ReferenceIndex);
+            var icon = ImageHelper.SetColorMap(sprite, GammaPalette.Default, Fill.Palette);
+
+            // Build the new layer
+            var layer = new BitmapLayer(icon)
+            {
+                Offset = new Coordinate(offsetX, offsetY)
+            };
+
+            layer.Properties.Padding = Info.Padding;
+
+            // Try to offset the cursor
+            if (Info.CursorOffset.HasFlag(CursorOffset.X))
+                cursor.X += layer.Source.Width + layer.Properties.Padding.Width;
+
+            if (Info.CursorOffset.HasFlag(CursorOffset.Y))
+                cursor.Y += layer.Source.Height + layer.Properties.Padding.Height;
+
+            // Finally, update the component reference
+            previous.Update(layer.Source.Width, layer.Source.Height, layer.Properties.Padding);
+
+            // Add the layer to the card
+            card.AddLayer(layer);
+        }
     }
 
     public class FrameComponent
     {
-        public Sheet SheetReference;
-        public int SheetIndex;
+        public string ReferencePath;
+        public int ReferenceIndex;
+        public int CropWidth;
+        public int CropHeight;
         public GammaPalette Palette;
         // This defines what this frame is meant for, so that it can't be incorrectly assigned
         public CardComponent AvailableTypes;
@@ -112,16 +89,82 @@ namespace Arcadia.Graphics
         public GammaPalette Palette;
     }
 
-    // This incorporates: CardLayout, CardConfig (will be renamed to CardProperties), CardDetails, to create all of the proper card components
-    public class CardBuilder
+    public class ComponentReference
     {
-        public BackgroundComponent Background;
+        public int Width { get; internal set; }
+        public int Height { get; internal set; }
+        public int PaddingWidth { get; internal set; }
+        public int PaddingHeight { get; internal set; }
+
+        internal void Update(int width, int height, Padding padding)
+        {
+            Width = width;
+            Height = height;
+            PaddingWidth = padding.Width;
+            PaddingHeight = padding.Height;
+        }
     }
 
-
-    public class Card
+    public interface ICardComponent
     {
-        // This gathers up all of the compiled/finalized components to draw in the GraphicsService
+        ComponentInfo Info { get; }
+        FillInfo Fill { get; }
+        void Draw(Drawable card, ref Cursor cursor, ref ComponentReference previous);
+    }
+
+    public class ImageComponent : ICardComponent
+    {
+        public ComponentInfo Info { get; }
+        public FillInfo Fill { get; }
+
+        public string Url;
+        public int Size;
+        public Color? BackgroundColor;
+        public Color? FramePrimaryColor;
+        public Color? FrameSecondaryColor;
+        public string BorderId;
+
+        public void Draw(Drawable card, ref Cursor cursor, ref ComponentReference previous)
+        {
+
+        }
+    }
+
+    public class TextComponent : ICardComponent
+    {
+        public ComponentInfo Info { get; }
+        public FillInfo Fill { get; }
+
+        public string Content;
+
+        public FontFace Font;
+
+        public Casing Casing;
+
+        public Padding Padding;
+
+        public void Draw(Drawable card, ref Cursor cursor, ref ComponentReference previous)
+        {
+
+        }
+    }
+
+    public enum FillMode
+    {
+        // REQ: NONE
+        None = 0,
+
+        // REQ: Palette, Primary
+        Solid = 1,
+
+        // REQ: Palette, Primary, Secondary, Direction
+        Experience = 2,
+
+        // REQ: Palette, Direction
+        Gradient = 3,
+
+        // REQ: Palette
+        Reference = 4
     }
 
     public enum LayoutType
@@ -129,6 +172,9 @@ namespace Arcadia.Graphics
         Default, // This is the current card layout
     }
 
+    /// <summary>
+    /// Represents the layout details of a card.
+    /// </summary>
     public class CardLayout
     {
         public const int MaxImageWidth = 400;
@@ -136,179 +182,196 @@ namespace Arcadia.Graphics
 
         public static readonly CardLayout Default = new CardLayout
         {
-            // GraphicsService should draw each component in increasing priority
-            /* CardLayout.Default
-             * Width = 192
-             * Height = 32
-             * Padding = 2
-             * Margin = 2
-             * Origin = (0, 0)
-             * CanTrim = true [Do not trim the card if it cannot be trimmed]
-             *
-             * Border
-             * Thickness = 2
-             *
-             * Avatar
-             * Type = ComponentType.Image
-             * Priority = 0
-             * Width = 32
-             * Height = 32
-             * Padding = Right: 2
-             * Margin = 0
-             * CursorOffset = CursorOffset.X
-             *
-             * Name
-             * Type = ComponentType.Text
-             * Priority = 1
-             * Width = Font.WidthOf(Details.Name)
-             * Height = Font.CharHeight
-             * Padding = Bottom: 2
-             * CursorOffset = CursorOffset.Y
-             *
-             * Activity
-             * Type = ComponentType.Text
-             * Priority = 2
-             * Width = Font.WidthOf(Details.Activity)
-             * Height = Font.CharHeight
-             * Padding = Bottom: 2
-             * CursorOffset = CursorOffset.Y
-             *
-             * Level/ (Group)
-             *
-             * Icon
-             * Type = ComponentType.Icon
-             * Priority = 3
-             * Reference = @"../assets/icons/levels.png"
-             * ReferencePointer = (1, 1)
-             * Width = 6
-             * Height = 6
-             * Padding = Right: 1
-             * CursorOffset = CursorOffset.X
-             * 
-             * Counter
-             * Priority = 4
-             * Type = ComponentType.Counter
-             * Width = Font.WidthOf(Details.Level)
-             * Height = Font.CharHeight
-             * Padding = Right: 5, Bottom: 1
-             * CursorOffset = CursorOffset.None
-             * CanShowSuffix = false
-             *
-             * Exp
-             * Type = ComponentType.Bar
-             * Priority = 5
-             * Width = Counter.Width
-             * Height = 2
-             * OffsetY = Counter.Height + Counter.Padding.Height
-             * OffsetHandling = OffsetHandling.Additive
-             * CursorOffset = CursorOffset.X
-             *
-             * Money/ (Group)
-             *
-             * Icon
-             * Type = ComponentType.Icon
-             * Priority = 6
-             * Reference = @"../assets/icons/coins.png"
-             * ReferencePointer = (1, 1)
-             * Width = 8
-             * Height = 8
-             * Padding = Right: 2
-             * CursorOffset = CursorOffset.X
-             * CursorOffsetHandling = OffsetHandling.Additive
-             * CursorOffsetUsage = OffsetUsage.Temporary
-             * CursorOffsetY = -1 (temporary set the cursor offset of y -1, then place it back once done)
-             *
-             * Counter
-             * Type = ComponentType.Counter
-             * Priority = 7
-             * Width = Font.WidthOf(text)
-             * Height = Font.CharHeight
-             * Padding = Right: 1
-             * CursorOffset = CursorOffset.X
-             * CanShowSuffix = true
-             * MaxLength = 3
-             *
-             * Suffix
-             * Type = ComponentType.Icon
-             * Priority = 8
-             * Reference = @"../assets/icons/suffixes.png"
-             * ReferencePointer = (1, NumberGroup)
-             * Width = 6
-             * Height = 6
-             * CursorOffset = CursorOffset.None
-             */
+            Width = 192,
+            Height = 32,
+            Padding = 2,
+            Margin = 2,
+            CursorOriginX = 0,
+            CursorOriginY = 0,
+            CanTrim = true,
+            Components = new List<ComponentInfo>
+            {
+                // Avatar
+                new ComponentInfo
+                {
+                    Type = ComponentType.Image,
+                    Group = CardComponent.Avatar,
+                    Priority = 0,
+                    //MaxWidth = 32,
+                    //MaxHeight = 32,
+                    //SizeHandling = SizeHandling.Set,
+                    Padding = new Padding(right: 2),
+                    CursorOffset = CursorOffset.X
+                },
+
+                // Username
+                new ComponentInfo
+                {
+                    Type = ComponentType.Text,
+                    Group = CardComponent.Username,
+                    Priority = 1,
+                    //MaxWidth = 158, // 192 - 34
+                    //SizeHandling = SizeHandling.Throw,
+                    Padding = new Padding(bottom: 2),
+                    CursorOffset = CursorOffset.Y
+                },
+
+                // Activity
+                new ComponentInfo
+                {
+                    Type = ComponentType.Text,
+                    Group = CardComponent.Activity,
+                    Priority = 2,
+                    Padding = new Padding(bottom: 2),
+                    CursorOffset = CursorOffset.Y
+                },
+
+                // Level Icon
+                new ComponentInfo
+                {
+                    Type = ComponentType.Icon,
+                    Group = CardComponent.Level,
+                    Priority = 3,
+                    Padding = new Padding(right: 1),
+                    CursorOffset = CursorOffset.X
+                },
+
+                // Level Counter
+                new ComponentInfo
+                {
+                    Type = ComponentType.Text,
+                    Group = CardComponent.Level,
+                    Priority = 4,
+                    Padding = new Padding(right: 5, bottom: 1),
+                    CursorOffset = CursorOffset.None
+                },
+
+                // Exp bar
+                new ComponentInfo
+                {
+                    Type = ComponentType.Solid,
+                    Group = CardComponent.Level | CardComponent.Exp,
+                    Priority = 5,
+                    //MaxHeight = 2,
+                    CursorOffset = CursorOffset.X,
+                    OffsetHandling = OffsetHandling.Additive,
+                    OffsetUsage = OffsetUsage.Include,
+                    PreviousInherit = SizeInherit.Width,
+                    PreviousOffsetInherit = SizeInherit.Y
+                },
+
+                new ComponentInfo
+                {
+                    Type = ComponentType.Icon,
+                    Group = CardComponent.Money,
+                    Priority = 6,
+                    Padding = new Padding(right: 2),
+                    CursorOffset = CursorOffset.X,
+                    OffsetHandling = OffsetHandling.Additive,
+                    OffsetUsage = OffsetUsage.Temporary,
+                    OffsetY = -1
+                },
+
+                new ComponentInfo
+                {
+                    Type = ComponentType.Text,
+                    Group = CardComponent.Money,
+                    Priority = 7,
+                    Padding = new Padding(right: 1),
+                    CursorOffset = CursorOffset.X
+                }
+            }
         };
 
-        public bool Trim;
+        public bool CanTrim { get; set; }
 
-        // This defines all of the components that this card layout will utilize
-        // The card builder can then read this, and handle accordingly
-        public CardComponent UsedComponents;
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int CursorOriginX { get; set; }
+        public int CursorOriginY { get; set; }
+        public Padding Padding { get; set; }
+        public Padding Margin { get; set; }
+
         // this will be used to created component presets
+        public List<ComponentInfo> Components { get; set; }
 
         // Likewise, this should also be able to understand reading component style IDs and assign them to the layout accordingly
     }
 
-    public enum OffsetUsage
+    public class CardBuilder
     {
-        // The cursor offset specified will be reverted after it is drawn
-        Temporary = 1,
+        public CardLayout Layout { get; set; }
 
-        // The cursor offset specified will not be reverted
-        Include = 2
     }
 
-    public interface IComponentInfo
+    public class CardInfo
     {
-        public ComponentType Type { get; }
-        public int Priority { get; }
+        public static int GetOffsetX(ComponentInfo info, Cursor cursor, ComponentReference previous)
+        {
+            int x = 0;
+
+            if (info.OffsetHandling == OffsetHandling.Additive)
+                x = cursor.X;
+
+            if (info.OffsetX != 0)
+                x += info.OffsetX;
+
+            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.Width))
+                x += previous.Width;
+
+            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.PaddingWidth))
+                x += previous.PaddingWidth;
+
+            return x;
+        }
+
+        public static int GetOffsetY(ComponentInfo info, Cursor cursor, ComponentReference previous)
+        {
+            int y = 0;
+
+            if (info.OffsetHandling == OffsetHandling.Additive)
+                y = cursor.Y;
+
+            if (info.OffsetY != 0)
+                y += info.OffsetY;
+
+            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.Height))
+                y += previous.Height;
+
+            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.PaddingHeight))
+                y += previous.PaddingHeight;
+
+            return y;
+        }
+
+        public bool CanTrim { get; }
         public int Width { get; }
         public int Height { get; }
-
         public Padding Padding { get; }
+        public Padding Margin { get; }
+        public int CursorOriginX { get; }
+        public int CursorOriginY { get; }
+        public List<ICardComponent> Components { get; }
+        public GammaPalette BasePalette { get; }
+        public int BorderThickness { get; }
+        public BorderAllow BorderAllow { get; }
+        public FillInfo BorderFill { get; }
+
+        public string BackgroundUrl { get; }
+        public bool TileBackground { get; }
+        public FillInfo BackgroundFill { get; }
     }
 
-    public class IconComponentInfo : IComponentInfo
+    public class FillInfo
     {
-        public ComponentType Type => ComponentType.Icon;
-        public int Priority { get; set; }
-        public int Height { get; set; }
-        public int Width { get; set; }
-
-        public Padding Padding { get; set; }
-
-        public int OffsetX { get; set; }
-        public int OffsetY { get; set; }
-        public int CursorOffsetX { get; set; }
-        public int CursorOffsetY { get; set; }
-
-        public OffsetHandling CursorOffsetHandling { get; set; }
-        public CursorOffset CursorOffset { get; set; }
-        public OffsetUsage CursorOffsetUsage { get; set; }
-        public OffsetUsage OffsetUsage { get; set; }
-        public OffsetHandling OffsetHandling { get; set; }
+        public Color? OutlineColor;
+        public Gamma? Primary;
+        public Gamma? Secondary;
+        public GammaPalette Palette;
+        public FillMode Usage;
+        public Direction Direction;
     }
 
-    public class CounterComponent
-    {
-
-    }
-
-    [Flags]
-    public enum CursorOffset
-    {
-        None = 0,
-        X = 1,
-        Y = 2,
-        XY = X | Y
-    }
-
-    public enum OffsetHandling
-    {
-        // The specified Offset will replace the cursor
-        Replace = 1,
-
-        // The specified offset will be conjoined with the cursor
-        Additive = 2
-    }
+    // Get the fill space of text by simply requesting the opacity mask
+    // Set up the fill design by creating a bitmap of the same width and height
 }

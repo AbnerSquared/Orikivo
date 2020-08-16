@@ -1,6 +1,37 @@
-﻿namespace Orikivo.Drawing.Encoding.Gif
+﻿using System;
+using System.IO;
+using System.Linq;
+
+namespace Orikivo.Drawing.Encoding.Gif
 {
+    internal static class StreamExtensions
+    {
+        public static void WriteInt32Byte(this Stream stream, int value)
+        {
+            stream.WriteByte(Convert.ToByte(value));
+        }
+        public static void WriteUInt16(this Stream stream, int value)
+        {
+            stream.WriteByte(Convert.ToByte(value & 0xFF));
+            stream.WriteByte(Convert.ToByte((value >> 8) & 0xFF));
+        }
+
+        public static void WriteString(this Stream stream, string value)
+        {
+            stream.Write(value.Select(c => (byte)c).ToArray(), 0, value.Length);
+        }
+    }
     /*
+
+        public static byte[] ToBytes(this ushort value)
+        {
+            var bytes = new byte[2];
+
+            bytes[0] = (byte) (value & 0xFF);
+            bytes[1] = (byte) ((value >> 8) & 0xFF);
+
+            return bytes;
+        }
      
         Block Name                  Required   Label       Ext.   Vers.
         Application Extension       Opt. (*)   0xFF (255)  yes    89a
@@ -105,5 +136,10 @@
 
         public ColorTriplet[] GlobalColorTable;
         public ImageBlock[] Images;
+    }
+
+    public class GifDecoder
+    {
+
     }
 }

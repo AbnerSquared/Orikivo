@@ -208,7 +208,7 @@ namespace Orikivo.Drawing.Graphics2D
 
         public Bitmap Build()
         {
-            return ImageEditor.CreateArgbBitmap(Pixels.Values);
+            return ImageHelper.CreateArgbBitmap(Pixels.Values);
         }
     }
 }

@@ -137,18 +137,18 @@ namespace Orikivo.Drawing
                     if (x < 0 || x + inner.Width > Viewport.Width ||
                         y < 0 || y + inner.Height > Viewport.Height)
                     {
-                        Rectangle clip = ImageEditor.ClampRectangle(Point.Empty, Viewport, layer.Offset, inner.Size);
+                        Rectangle clip = ImageHelper.ClampRectangle(Point.Empty, Viewport, layer.Offset, inner.Size);
                         using Bitmap visible = ImageHelper.Crop(inner, clip);
-                        ImageEditor.ClipAndDrawImage(graphics, visible, u, v);
+                        ImageHelper.ClipAndDrawImage(graphics, visible, u, v);
                         continue;
                     }
 
-                    ImageEditor.ClipAndDrawImage(graphics, inner, u, v);
+                    ImageHelper.ClipAndDrawImage(graphics, inner, u, v);
                 }
             }
 
             if (Border != null)
-                result = ImageEditor.SetBorder(result, Border.Color, Border.Thickness, Border.Edge, Border.Allow);
+                result = ImageHelper.SetBorder(result, Border.Color, Border.Thickness, Border.Edge, Border.Allow);
 
             if (!Properties.Margin.IsEmpty)
                 result = ImageHelper.Pad(result, Properties.Margin);
@@ -156,7 +156,7 @@ namespace Orikivo.Drawing
             result = Properties.ColorHandling switch
             {
                 DrawableColorHandling.Ignore => result,
-                DrawableColorHandling.Force => ImageEditor.ForcePalette(result, Palette),
+                DrawableColorHandling.Force => ImageHelper.ForcePalette(result, Palette),
                 DrawableColorHandling.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
                 _ => result
             };

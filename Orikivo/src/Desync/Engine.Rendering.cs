@@ -15,7 +15,7 @@ namespace Orikivo.Desync
             Grid<Color> mask = CreateMapMask(map.Progression, Color.Transparent, GammaPalette.Default[Gamma.Min]);
 
             result.Palette = palette;
-            result.AddLayer(new BitmapLayer(ImageEditor.CreateArgbBitmap(mask.Values)));
+            result.AddLayer(new BitmapLayer(ImageHelper.CreateArgbBitmap(mask.Values)));
 
             return result.BuildAndDispose();
         }

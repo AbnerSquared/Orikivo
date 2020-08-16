@@ -41,16 +41,16 @@ namespace Orikivo.Desync
             {
                 // replace this with the interior images provided from a Location.
                 using (Bitmap bg = new Bitmap("../assets/npcs/npc_frame.png"))
-                    ImageEditor.ClipAndDrawImage(g, bg, new Point(0, 0));
+                    ImageHelper.ClipAndDrawImage(g, bg, new Point(0, 0));
 
                 using (Bitmap body = Body.Value.GetImage())
-                    ImageEditor.ClipAndDrawImage(g, body, Body.GetOffset());
+                    ImageHelper.ClipAndDrawImage(g, body, Body.GetOffset());
 
                 using (Bitmap head = Head.Value.GetImage())
-                    ImageEditor.ClipAndDrawImage(g, head, Head.GetOffset());
+                    ImageHelper.ClipAndDrawImage(g, head, Head.GetOffset());
 
                 using (Bitmap face = GetReactionOrDefault(tone).Value.GetImage())
-                    ImageEditor.ClipAndDrawImage(g, face, DefaultFaceOffset);
+                    ImageHelper.ClipAndDrawImage(g, face, DefaultFaceOffset);
             }
 
             result = ImageHelper.SetColorMap(result, GammaPalette.Default, palette);

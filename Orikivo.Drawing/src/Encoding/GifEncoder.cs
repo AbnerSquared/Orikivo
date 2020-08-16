@@ -72,7 +72,7 @@ namespace Orikivo.Drawing.Encoding
             using (MemoryStream source = new MemoryStream())
             {
                 // This makes sure that the color palettes for the GIF are neatly stored.
-                EncodeUtils.CreateGifStream(image, source, Quality); 
+                EncodeUtils.CreateGifStream(image, source, Quality);
 
                 if (_isFirstImage)
                 {
@@ -132,23 +132,23 @@ namespace Orikivo.Drawing.Encoding
         private void WriteImageBlock(Stream source, bool includeColorTable, int x, int y, int height, int width)
         {
             source.Position = IMAGE_BLOCK_POS;
-            byte[] header = new byte[IMAGE_BLOCK_HEADER_LENGTH];
+            var header = new byte[IMAGE_BLOCK_HEADER_LENGTH];
             source.Read(header, 0, header.Length);
             WriteByte(header[0]);
             WriteShort(x); // x pos
             WriteShort(y); // y pos
             WriteShort(height); // Height
             WriteShort(width); // Width
-        
+
             if (includeColorTable)
             {
                 source.Position = GLOBAL_COLOR_TABLE_POS;
-                WriteByte(source.ReadByte() & 0x3F | 0x80); // enable local color table
+                WriteByte((source.ReadByte() & 0x3F) | 0x80); // enable local color table
                 WriteColorTable(source);
             }
             else
             {
-                WriteByte(header[9] & 0x07 | 0x07); // disable local color table
+                WriteByte((header[9] & 0x07) | 0x07); // disable local color table
             }
 
             WriteByte(header[10]); // LZW min code size
@@ -183,7 +183,7 @@ namespace Orikivo.Drawing.Encoding
 
         private void WriteString(string value)
         {
-            _stream.Write(value.ToArray().Select(c => (byte)c).ToArray(), 0, value.Length);   
+            _stream.Write(value.ToArray().Select(c => (byte)c).ToArray(), 0, value.Length);
         }
 
         public void Dispose()

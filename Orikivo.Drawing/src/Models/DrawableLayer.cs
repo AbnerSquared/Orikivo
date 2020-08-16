@@ -3,10 +3,11 @@ using System.Drawing;
 
 namespace Orikivo.Drawing
 {
+    // Revert the implementation of Properties; Instead, use the properties class to set initial values, and then edit from there.
     public abstract class DrawableLayer : IDisposable
     {
         private DrawableProperties _properties;
-        
+
         /// <summary>
         /// The max width the <see cref="DrawableLayer"/> can be set to.
         /// </summary>
@@ -88,7 +89,7 @@ namespace Orikivo.Drawing
 
                 using (Graphics graphics = Graphics.FromImage(result))
                 {
-                    ImageEditor.ClipAndDrawImage(graphics, image, Properties.Padding.Left, Properties.Padding.Top);
+                    ImageHelper.ClipAndDrawImage(graphics, image, Properties.Padding.Left, Properties.Padding.Top);
 
                     // TODO: Implement ImageConfig manipulation.
                 }

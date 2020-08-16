@@ -7,17 +7,17 @@ namespace Orikivo.Drawing
     /// </summary>
     public class ImageChannels
     {
-        private ImageChannels() { }
+        private ImageChannels(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            Red = Green = Blue = new Grid<float>(width, height);
+        }
 
         public static ImageChannels FromImage(Bitmap image)
         {
-            Grid<Color> pixels = ImageEditor.GetPixelData(image);
-            var channels = new ImageChannels();
-
-            channels.Width = image.Width;
-            channels.Height = image.Height;
-
-            channels.Red = channels.Green = channels.Blue = new Grid<float>(image.Size, 0);
+            Grid<Color> pixels = ImageHelper.GetPixelData(image);
+            var channels = new ImageChannels(image.Width, image.Height);
 
             channels.Red.SetEachValue((x, y) => RangeF.Convert(0, 255, 0, 1, pixels[x, y].R));
             channels.Green.SetEachValue((x, y) => RangeF.Convert(0, 255, 0, 1, pixels[x, y].G));
@@ -26,15 +26,15 @@ namespace Orikivo.Drawing
             return channels;
         }
 
-        public int Width { get; private set; }
+        public int Width { get; }
 
-        public int Height { get; private set; }
+        public int Height { get; }
 
-        public Grid<float> Red { get; private set; }
+        public Grid<float> Red { get; }
 
-        public Grid<float> Green { get; private set; }
+        public Grid<float> Green { get; }
 
-        public Grid<float> Blue { get; private set; }
+        public Grid<float> Blue { get; }
 
         public Bitmap Build()
         {
@@ -43,7 +43,7 @@ namespace Orikivo.Drawing
 
             image.SetEachValue((x, y) => ImmutableColor.FromRange(Red[x, y], Green[x, y], Blue[x, y]));
 
-            return ImageEditor.CreateArgbBitmap(image.Values);
+            return ImageHelper.CreateArgbBitmap(image.Values);
         }
     }
 }

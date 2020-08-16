@@ -26,7 +26,7 @@
 
             byte loopHighByte = 0;
             byte loopLowByte = 0;
-            
+
             if (LoopCount.HasValue)
             {
                 loopHighByte = (byte) (LoopCount & 0xFF);

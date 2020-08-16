@@ -47,7 +47,7 @@ namespace Orikivo
 
         public static Bitmap GetBitmap(Grid<Color> pixels, int scale = 1)
         {
-            Bitmap image = ImageEditor.CreateRgbBitmap(pixels.Values);
+            Bitmap image = ImageHelper.CreateRgbBitmap(pixels.Values);
 
             if (scale > 1)
             {
@@ -146,7 +146,7 @@ namespace Orikivo
             {
                 var avatar = new BitmapLayer
                 {
-                    Source = ImageEditor.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
+                    Source = ImageHelper.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
                     Offset = new Point(cursor.X, cursor.Y)
                 };
                 avatar.Properties.Padding = new Padding(right: 2);

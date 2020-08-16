@@ -30,7 +30,7 @@ namespace Orikivo.Drawing
 
         public void SetPixel(int x, int y, Color color)
         {
-            int index = x + y * Width;
+            int index = x + y * Width * 4;
             //int argb = color.ToArgb();
             Bits[index + 3] = color.A;
             Bits[index + 2] = color.R;
@@ -40,7 +40,7 @@ namespace Orikivo.Drawing
 
         public Color GetPixel(int x, int y)
         {
-            int index = x + y * Width;
+            int index = x + y * Width * 4;
             // int argb = Bits[index];
             return Color.FromArgb(Bits[index + 3], Bits[index + 2], Bits[index + 1], Bits[index]);
         }

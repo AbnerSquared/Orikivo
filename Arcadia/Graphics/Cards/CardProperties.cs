@@ -20,8 +20,8 @@ namespace Arcadia.Graphics
             {
                 [CardComponent.Activity] = Orikivo.Drawing.Gamma.Max,
                 [CardComponent.Avatar] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Background] = null,
-                [CardComponent.Border] = Orikivo.Drawing.Gamma.Max,
+                //[CardComponent.Background] = null,
+                //[CardComponent.Border] = Orikivo.Drawing.Gamma.Max,
                 [CardComponent.Username] = Orikivo.Drawing.Gamma.Max,
                 [CardComponent.Exp] = Orikivo.Drawing.Gamma.Max,
                 [CardComponent.Bar] = Orikivo.Drawing.Gamma.Bright,

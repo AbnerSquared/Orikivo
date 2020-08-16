@@ -1,10 +1,13 @@
-﻿namespace Orikivo.Drawing
+﻿using System;
+
+namespace Orikivo.Drawing
 {
+    [Flags]
     public enum Direction
     {
         Left = 1,
-        Top = 2,
-        Right = 3,
-        Bottom = 4
+        Up = 2,
+        Right = 4,
+        Down = 8
     }
 }

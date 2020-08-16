@@ -6,6 +6,119 @@ using System.Diagnostics;
 
 namespace Arcadia.Graphics
 {
+    // What is the type of component being specified?
+    // In what position is this component drawn?
+    // if -1, it is inherited from the image crop
+    // What is the padding for this component?
+    // What is the horizontal offset of this component's origin?
+    // What is the vertical offset of this component's origin?
+    // Will the cursor be offset by this component's width or height once drawn?
+    // Will the specified offset that was set be permanent or temporary?
+    // Will the specified offset by added with the cursor offset or replaced?
+    // GraphicsService should draw each component in increasing priority
+
+    /* CardLayout.Default
+     * Width = 192
+     * Height = 32
+     * Padding = 2
+     * Margin = 2
+     * Origin = (0, 0)
+     * CanTrim = true [Do not trim the card if it cannot be trimmed]
+     *
+     * Border
+     * Thickness = 2
+     *
+     * Avatar
+     * Type = ComponentType.Image
+     * Priority = 0
+     * Width = 32
+     * Height = 32
+     * Padding = Right: 2
+     * Margin = 0
+     * CursorOffset = CursorOffset.X
+     *
+     * Name
+     * Type = ComponentType.Text
+     * Priority = 1
+     * Width = Font.WidthOf(Details.Name)
+     * Height = Font.CharHeight
+     * Padding = Bottom: 2
+     * CursorOffset = CursorOffset.Y
+     *
+     * Activity
+     * Type = ComponentType.Text
+     * Priority = 2
+     * Width = Font.WidthOf(Details.Activity)
+     * Height = Font.CharHeight
+     * Padding = Bottom: 2
+     * CursorOffset = CursorOffset.Y
+     *
+     * Level/ (Group)
+     *
+     * Icon
+     * Type = ComponentType.Icon
+     * Priority = 3
+     * Reference = @"../assets/icons/levels.png"
+     * ReferencePointer = (1, 1)
+     * Width = 6
+     * Height = 6
+     * Padding = Right: 1
+     * CursorOffset = CursorOffset.X
+     * 
+     * Counter
+     * Priority = 4
+     * Type = ComponentType.Counter
+     * Width = Font.WidthOf(Details.Level)
+     * Height = Font.CharHeight
+     * Padding = Right: 5, Bottom: 1
+     * CursorOffset = CursorOffset.None
+     * CanShowSuffix = false
+     *
+     * Exp
+     * Type = ComponentType.Bar
+     * Priority = 5
+     * Width = Counter.Width
+     * Height = 2
+     * OffsetY = Counter.Height + Counter.Padding.Height
+     * OffsetHandling = OffsetHandling.Additive
+     * CursorOffset = CursorOffset.X
+     *
+     * Money/ (Group)
+     *
+     * Icon
+     * Type = ComponentType.Icon
+     * Priority = 6
+     * Reference = @"../assets/icons/coins.png"
+     * ReferencePointer = (1, 1)
+     * Width = 8
+     * Height = 8
+     * Padding = Right: 2
+     * CursorOffset = CursorOffset.X
+     * CursorOffsetHandling = OffsetHandling.Additive
+     * CursorOffsetUsage = OffsetUsage.Temporary
+     * CursorOffsetY = -1 (temporary set the cursor offset of y -1, then place it back once done)
+     *
+     * Counter
+     * Type = ComponentType.Counter
+     * Priority = 7
+     * Width = Font.WidthOf(text)
+     * Height = Font.CharHeight
+     * Padding = Right: 1
+     * CursorOffset = CursorOffset.X
+     * CanShowSuffix = true
+     * MaxLength = 3
+     *
+     * THE SUFFIX WILL BE HANDLED IN GRAPHICS_SERVICE
+     * Suffix
+     * Type = ComponentType.Icon
+     * Priority = 8
+     * Reference = @"../assets/icons/suffixes.png"
+     * ReferencePointer = (1, NumberGroup)
+     * Width = 6
+     * Height = 6
+     * CursorOffset = CursorOffset.None
+     */
+
     /// <summary>
     /// Handles all of the rendering processes for Orikivo.
     /// </summary>
@@ -46,9 +159,19 @@ namespace Arcadia.Graphics
                 _ => GammaPalette.Default
             };
 
+        public static bool CanGroup(CardComponent component)
+        {
+            return component switch
+            {
+                CardComponent.Level => true,
+                CardComponent.Money => true,
+                _ => false
+            };
+        }
+
         public static Bitmap GetBitmap(Grid<Color> pixels, int scale = 1)
         {
-            Bitmap image = ImageEditor.CreateRgbBitmap(pixels.Values);
+            Bitmap image = ImageHelper.CreateRgbBitmap(pixels.Values);
 
             if (scale > 1)
             {
@@ -129,6 +252,16 @@ namespace Arcadia.Graphics
                 _ => value
             };
 
+        private void DrawComponent(CardInfo info)
+        {
+
+
+            int previousWidth = 0;
+            int previousHeight = 0;
+            int previousPadWidth = 0;
+            int previousPadHeight = 0;
+        }
+
         public Bitmap DrawCard(CardDetails details, CardProperties properties = null)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -165,7 +298,7 @@ namespace Arcadia.Graphics
                 //card.AddLayer(DrawImage(ref cursor, ImageHelper.GetHttpImage(details.AvatarUrl), palette, imageProperties));
                 var avatar = new BitmapLayer
                 {
-                    Source = ImageEditor.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
+                    Source = ImageHelper.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
                     Offset = cursor
                 };
                 avatar.Properties.Padding = new Padding(right: 2);
@@ -247,7 +380,7 @@ namespace Arcadia.Graphics
                     var exp = new BitmapLayer
                     {
                         // TODO: 
-                        Source = ImageEditor.CreateFillable(palette[emptyGamma], palette[fillGamma],
+                        Source = ImageHelper.CreateProgressBar(palette[emptyGamma], palette[fillGamma],
                             counter.Source.Width, 2, toNextLevel),
                         Offset = new Coordinate(cursor.X, cursor.Y + counterHeight)
                     };
@@ -278,7 +411,7 @@ namespace Arcadia.Graphics
                 string balance = Format.Condense(money, out NumberGroup suffix);
 
                 string text = $"{(inDebt ? "-" : "")}{balance}";
-                
+
                 // COUNTER
                 // CardComponent: Name of all colorable components
                 var moneyGamma = properties.Gamma[CardComponent.Money] ?? Gamma.Max;
@@ -299,7 +432,7 @@ namespace Arcadia.Graphics
 
                     var counterSuffix = new BitmapLayer
                     {
-                        Source = ImageHelper.Trim(ImageHelper.SetColorMap(suffixSheet.GetSprite(1, (int)suffix), GammaPalette.Default, Palette), true),
+                        Source = ImageHelper.SetColorMap(suffixSheet.GetSprite(1, (int)suffix), GammaPalette.Default, Palette),
                         Offset = cursor
                     };
 
@@ -309,7 +442,7 @@ namespace Arcadia.Graphics
 
             if (properties.Border != 0)
             {
-                var borderGamma = properties.Gamma[CardComponent.Border] ?? Gamma.Max;
+                var borderGamma = Gamma.Max;
                 card.Border = new Border
                 {
                     Allow = properties.Border,
@@ -333,7 +466,7 @@ namespace Arcadia.Graphics
 
         public DrawableLayer DrawImage(ref Cursor cursor, Bitmap image, GammaPalette palette, DrawableProperties properties = null)
         {
-            var layer = new BitmapLayer(ImageEditor.ForcePalette(image, palette))
+            var layer = new BitmapLayer(ImageHelper.ForcePalette(image, palette))
             {
                 Properties = properties ?? DrawableProperties.Default,
                 Offset = cursor
@@ -341,6 +474,16 @@ namespace Arcadia.Graphics
 
             cursor.X += image.Width + layer.Properties.Padding.Width;
             return layer;
+        }
+
+        // Creates a progress bar for an image of the same proportions, and applies the original opacity mask of the initial image to the progress bar
+        public Bitmap SetProgressMask(Bitmap image, Color foreground, Color background, float progress, Direction direction = Direction.Right)
+        {
+            Bitmap bar = ImageHelper.CreateProgressBar(background, foreground, image.Width, image.Height, progress, direction);
+
+            Grid<float> mask = ImageHelper.GetOpacityMask(image);
+
+            return ImageHelper.SetOpacityMask(bar, mask);
         }
 
         public void Dispose()

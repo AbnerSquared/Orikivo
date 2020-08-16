@@ -3,19 +3,17 @@ using System.Drawing;
 
 namespace Orikivo.Drawing
 {
-    public class CachedChar : IDisposable
+    internal class CachedChar : IDisposable
     {
         public CachedChar(int fontIndex, Bitmap value)
         {
             FontIndex = fontIndex;
-            Value = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value), "Cannot cache a sprite for a character if the specified image is null");
             Disposed = false;
         }
 
-        // NOTE: The font index of this character, relative to the TextFactory's FontIndex.
         public int FontIndex { get; internal set; }
 
-        // NOTE: The image value for the char
         public Bitmap Value { get; internal set; }
 
         public bool Disposed { get; private set; }

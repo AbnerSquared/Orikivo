@@ -13,63 +13,63 @@ namespace Orikivo.Drawing
         public const string DefaultFontDirectory = "../assets/fonts/";
 
         private readonly bool _cacheable;
+        private readonly List<FontFace> _fonts;
 
         public TextFactory(TextFactoryConfig config = null)
         {
             config ??= TextFactoryConfig.Default;
-            _cacheable = config.CanCacheChars;
+            _cacheable = config.UseCache;
             CharMap = config.CharMap;
-            Fonts = config.Fonts ?? new List<FontFace>();
+            _fonts = config.Fonts ?? new List<FontFace>();
+
+            if (config.UseCache)
+                Cache = new Dictionary<char, CachedChar>();
         }
 
-        public TextFactory(char[][][][] charMap, bool canCacheChars = true)
+        public TextFactory(char[][][][] charMap, bool useCache = true)
         {
-            _cacheable = canCacheChars;
+            _cacheable = useCache;
             CharMap = charMap;
-            Fonts = new List<FontFace>();
+            _fonts = new List<FontFace>();
+            Cache = new Dictionary<char, CachedChar>();
         }
 
         private char[][][][] CharMap { get; }
 
-        private Dictionary<char, CachedChar> Cache { get; } = new Dictionary<char, CachedChar>();
+        private Dictionary<char, CachedChar> Cache { get; }
 
-        public List<FontFace> Fonts { get; }
+        public IReadOnlyList<FontFace> Fonts => _fonts;
 
-        public FontFace CurrentFont => Fonts[_currentFontIndex];
-
-        private int _currentFontIndex;
-
-        public int CurrentFontIndex
-        {
-            get => _currentFontIndex;
-            set
-            {
-                if (value >= Fonts.Count || value == 0)
-                    return;
-
-                _currentFontIndex = value;
-            }
-        }
+        public FontFace CurrentFont => Fonts[CurrentFontIndex];
 
         public bool Disposed { get; private set; }
+
+        private int CurrentFontIndex { get; set; }
 
         /// <summary>
         /// Imports the specified <see cref="FontFace"/> into this <see cref="TextFactory"/> if it hasn't already been imported.
         /// </summary>
         public void ImportFont(FontFace font)
         {
-            if (!Fonts.Contains(font))
-                Fonts.Add(font);
+            if (font is null)
+                return;
+
+            if (_fonts.Count > 0)
+                if (CurrentFont.Equals(font))
+                    return;
+
+            if (!_fonts.Contains(font))
+                _fonts.Add(font);
         }
 
         public void SetFont(FontFace font)
         {
-            if (Fonts.Count > 0)
-                if (CurrentFont == font)
+            if (_fonts.Count > 0)
+                if (CurrentFont.Equals(font))
                     return;
 
             ImportFont(font);
-            CurrentFontIndex = Fonts.IndexOf(font);
+            CurrentFontIndex = _fonts.IndexOf(font);
         }
 
         /// <summary>
@@ -77,12 +77,13 @@ namespace Orikivo.Drawing
         /// </summary>
         internal Bitmap GetRawChar(char c, FontFace font = null)
         {
+            ImportFont(font);
             font ??= CurrentFont;
 
             if (WhiteSpaceInfo.IsWhiteSpace(c) || c == '\n')
                 return null;
 
-            CharIndex i = ImageEditor.GetCharIndex(c, CharMap);
+            CharIndex i = ImageHelper.GetCharIndex(c, CharMap);
 
             if (!i.IsSuccess || !font.SheetUrls.Keys.Contains(i.Page))
             {
@@ -92,6 +93,7 @@ namespace Orikivo.Drawing
 
             // TODO: Handle directory assignment
             using var bmp = new Bitmap($"{DefaultFontDirectory}{font.SheetUrls[i.Page]}");
+
             int x = font.CharWidth * i.Column;
             int y = font.CharHeight * i.Row;
 
@@ -106,25 +108,18 @@ namespace Orikivo.Drawing
         /// </summary>
         public Bitmap GetChar(char value, FontFace font = null, bool trimEmptyPixels = true)
         {
+            ImportFont(font);
             font ??= CurrentFont;
-            SetFont(font);
 
-            if (_cacheable)
-            {
-                if (Cache.ContainsKey(value))
-                {
-                    if (Fonts.IndexOf(font) == Cache[value].FontIndex)
-                        return Cache[value].Value;
-                }
-            }
+            if (Cache.ContainsKey(value) && _fonts.IndexOf(font) == Cache[value].FontIndex)
+                return Cache[value].Value;
 
             Bitmap bmp = GetRawChar(value, font);
 
             if (bmp == null)
                 return null;
 
-            if (_cacheable)
-                Cache[value] = new CachedChar(Fonts.IndexOf(font), bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat));
+            Cache[value] = new CachedChar(_fonts.IndexOf(font), bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat));
 
             if (!font.IsMonospace && trimEmptyPixels)
                 return ImageHelper.Crop(bmp, 0, 0, ImageHelper.GetNonEmptyWidth(bmp), font.CharHeight);
@@ -140,6 +135,7 @@ namespace Orikivo.Drawing
         /// </summary>
         public Dictionary<char, Bitmap> GetChars(string content, FontFace font = null, bool trimEmptyPixels = true)
         {
+            ImportFont(font);
             font ??= CurrentFont;
 
             if (string.IsNullOrWhiteSpace(content))
@@ -161,7 +157,9 @@ namespace Orikivo.Drawing
         // TODO: Implement max width and max height comparisons
         private TextData CreateText(string content, FontFace font, Padding? imagePadding = null, bool trimEmptyPixels = true, bool extendOnOffset = false)
         {
+            ImportFont(font);
             font ??= CurrentFont;
+
             bool canTrim = trimEmptyPixels && !font.IsMonospace;
             Padding padding = imagePadding ?? Padding.Empty;
 
@@ -352,7 +350,7 @@ namespace Orikivo.Drawing
                     if (c.HasSprite())
                     {
                         using Bitmap sprite = c.GetSprite();
-                        ImageEditor.ClipAndDrawImage(graphics, sprite, cursor, c.Size);
+                        ImageHelper.ClipAndDrawImage(graphics, sprite, cursor, c.Size);
                     }
 
                     cursor.X += c.Size.Width + c.Padding.Right; // this already accounts for width/padding.

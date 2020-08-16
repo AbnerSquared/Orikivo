@@ -33,7 +33,7 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Grid{T}"/> from a rectangluar <see cref="Array"/>.
+        /// Initializes a new <see cref="Grid{T}"/> from a rectangular <see cref="Array"/>.
         /// </summary>
         public Grid(T[,] values)
         {

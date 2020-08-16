@@ -8,10 +8,13 @@ namespace Orikivo.Drawing
         public static TextFactoryConfig Default = new TextFactoryConfig
         {
             //FontDirectory = "../assets/fonts/",
-            CanCacheChars = true
+            UseCache = true
         };
 
-        public bool CanCacheChars { get; set; }
+        public bool UseCache { get; set; }
+
+        // TODO: Implement CacheSize instead
+        // public int CacheSize { get; set; }
 
         public List<FontFace> Fonts { get; set; }
 

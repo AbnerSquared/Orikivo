@@ -35,7 +35,7 @@ namespace Orikivo.Modules
         }
         private async Task SendPixelsAsync(Grid<Color> pixels, string fileName, int imageScale = 1)
         {
-            Bitmap image = ImageEditor.CreateRgbBitmap(pixels.Values);
+            Bitmap image = ImageHelper.CreateRgbBitmap(pixels.Values);
 
             if (imageScale > 1)
                 image = ImageHelper.Scale(image, imageScale, imageScale);
@@ -85,7 +85,7 @@ namespace Orikivo.Modules
         {
             GammaPalette result = GammaPalette.Smear(GraphicsService.GetPalette(a), GraphicsService.GetPalette(b));
 
-            await Context.Channel.SendImageAsync(ImageEditor.CreateGradient(result, 128, 64, AngleF.Right),
+            await Context.Channel.SendImageAsync(ImageHelper.CreateGradient(result, 128, 64, AngleF.Right),
                 "../tmp/smear.png");
         }
 
@@ -102,9 +102,9 @@ namespace Orikivo.Modules
             var quarter = new Keyframe(375, 1.0f, new Vector2(16, 16), 180.0f, new Vector2(2, 2));
             var final = new Keyframe(500, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
 
-            var square = new TimelineLayer(ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32), 0, 500, mid, quarter, final);
+            var square = new TimelineLayer(ImageHelper.CreateSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32), 0, 500, mid, quarter, final);
 
-            var background = new TimelineLayer(ImageEditor.CreateSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128), 0, 500, initial);
+            var background = new TimelineLayer(ImageHelper.CreateSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128), 0, 500, initial);
 
             animator.AddLayer(background);
             animator.AddLayer(square);
@@ -121,7 +121,7 @@ namespace Orikivo.Modules
             {
                 Width = 64,
                 Height = 32,
-                Angle = AngleF.Right,
+                Direction = AngleF.Right,
                 ColorHandling = GradientColorHandling.Blend
             };
 
@@ -326,7 +326,7 @@ namespace Orikivo.Modules
             MemoryStream gifStream = new MemoryStream();
             using (GifEncoder encoder = new GifEncoder(gifStream))
             {
-                List<Bitmap> frames = rawFrames.Select(f => ImageEditor.CreateRgbBitmap(f.Values)).ToList();
+                List<Bitmap> frames = rawFrames.Select(f => ImageHelper.CreateRgbBitmap(f.Values)).ToList();
                 encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                 foreach (Bitmap frame in frames)
@@ -366,7 +366,7 @@ namespace Orikivo.Modules
                 new Vector3(posX, posY, posZ),
                 new Vector3(rotX, rotY, rotZ));
 
-            await Context.Channel.SendImageAsync(ImageEditor.CreateRgbBitmap(frame.Values), path);
+            await Context.Channel.SendImageAsync(ImageHelper.CreateRgbBitmap(frame.Values), path);
         }
 
         [Command("animatecube")]
@@ -415,7 +415,7 @@ namespace Orikivo.Modules
                 var gifStream = new MemoryStream();
                 using (var encoder = new GifEncoder(gifStream))
                 {
-                    List<Bitmap> frames = rawFrames.Select(f => ImageEditor.CreateRgbBitmap(f.Values)).ToList();
+                    List<Bitmap> frames = rawFrames.Select(f => ImageHelper.CreateRgbBitmap(f.Values)).ToList();
                     encoder.FrameLength = TimeSpan.FromMilliseconds(delay);
 
                     foreach (Bitmap frame in frames)
@@ -582,8 +582,8 @@ namespace Orikivo.Modules
             var allow = Context.GetOptionOrDefault("allow", BorderAllow.All);
             */
 
-            using (var tmp = ImageEditor.CreateSolid(GraphicsService.GetPalette(palette)[background], width, height))
-                using (Bitmap b = ImageEditor.SetBorder(tmp, GraphicsService.GetPalette(palette)[border], thickness, edge, allow))
+            using (var tmp = ImageHelper.CreateSolid(GraphicsService.GetPalette(palette)[background], width, height))
+                using (Bitmap b = ImageHelper.SetBorder(tmp, GraphicsService.GetPalette(palette)[border], thickness, edge, allow))
                     await Context.Channel.SendImageAsync(b, "../tmp/border.png");
         }
 
@@ -596,10 +596,10 @@ namespace Orikivo.Modules
 
             using (Bitmap card = g.DrawCard(d, PaletteType.GammaGreen))
             {
-                Grid<float> mask = ImageEditor.GetOpacityMask(card);
+                Grid<float> mask = ImageHelper.GetOpacityMask(card);
 
-                using (Bitmap gradient = ImageEditor.CreateGradient(GammaPalette.GammaGreen, card.Width, card.Height, 0.0f))
-                using (Bitmap result = ImageEditor.SetOpacityMask(gradient, mask))
+                using (Bitmap gradient = ImageHelper.CreateGradient(GammaPalette.GammaGreen, card.Width, card.Height, 0.0f))
+                using (Bitmap result = ImageHelper.SetOpacityMask(gradient, mask))
                     await Context.Channel.SendImageAsync(result, $"../tmp/{Context.User.Id}_gradient_card_mask.png");
             }
         }
@@ -616,7 +616,7 @@ namespace Orikivo.Modules
                 {
                     using (var factory = new TextFactory())
                     {
-                        Grid<float> mask = ImageEditor.GetOpacityMask(card);
+                        Grid<float> mask = ImageHelper.GetOpacityMask(card);
 
                         var pixels = new Grid<Color>(card.Size, new ImmutableColor(0, 0, 0, 255));
 
@@ -625,7 +625,7 @@ namespace Orikivo.Modules
                             ImmutableColor.Blend(new ImmutableColor(0, 0, 0, 255), new ImmutableColor(255, 255, 255, 255),
                                 mask.GetValue(x, y)));
 
-                        using (Bitmap masked = ImageEditor.CreateRgbBitmap(pixels.Values))
+                        using (Bitmap masked = ImageHelper.CreateRgbBitmap(pixels.Values))
                             await Context.Channel.SendImageAsync(masked, $"../tmp/{Context.User.Id}_card_mask.png");
                     }
                 }

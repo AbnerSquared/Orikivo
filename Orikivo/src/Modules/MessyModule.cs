@@ -395,7 +395,7 @@ namespace Orikivo.Modules
                 return GammaPalette.Default[(Gamma)x];
             });
 
-            using (Bitmap bmp = ImageEditor.CreateRgbBitmap(colors.Values))
+            using (Bitmap bmp = ImageHelper.CreateRgbBitmap(colors.Values))
                 bmp.Save(path, ImageFormat.Png);
 
             await Context.Channel.SendFileAsync(path);

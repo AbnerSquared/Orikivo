@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace Orikivo.Drawing
 {
@@ -12,9 +10,9 @@ namespace Orikivo.Drawing
         public GradientColorHandling ColorHandling { get; set; } = GradientColorHandling.Blend;
         public int Width { get; set; }
         public int Height { get; set; }
-        public AngleF Angle { get; set; } = AngleF.Right;
+        public Direction Direction { get; set; } = Direction.Right;
 
         protected override Bitmap GetBaseImage()
-            => ImageEditor.CreateGradient(Markers, Width, Height, ColorHandling);
+            => ImageHelper.CreateGradient(Markers, Width, Height, Direction, ColorHandling);
     }
 }
