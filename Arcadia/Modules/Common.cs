@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
+using Orikivo.Framework;
 using GraphicsService = Arcadia.Graphics.GraphicsService;
 using CardDetails = Arcadia.Graphics.CardDetails;
 using CardProperties = Arcadia.Graphics.CardProperties;
@@ -22,6 +23,20 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [RequireUser]
+        [Command("var_test")]
+        public async Task VarTestAsync()
+        {
+            string dummy = GimiStats.TimesPlayed;
+            string dummy2 = $"{Items.PocketLawyer}:last_used";
+            string dummy3 = "invalid::stat";
+            string dummy4 = "invalidstat";
+            string dummy5 = ":invalid";
+            string dummy6 = "*:last_used";
+
+            Logger.Debug(Var.Debug(dummy, dummy2, dummy3, dummy4, dummy5, dummy6));
+        }
+
         [RequireUser]
         [Command("boosters")]
         [Summary("View all of your currently equipped boosters.")]

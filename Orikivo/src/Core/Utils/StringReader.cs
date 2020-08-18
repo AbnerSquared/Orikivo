@@ -2,7 +2,8 @@
 
 namespace Orikivo
 {
-    // https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/StringReader.java
+    // NOTE: Bless you, Mojang
+    // REF: https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/StringReader.java
     public class StringReader
     {
         private const char SYNTAX_ESCAPE = '\\';
@@ -63,6 +64,16 @@ namespace Orikivo
             return _string[_cursor + offset];
         }
 
+        public char? TryPeek()
+        {
+            return CanRead() ? Peek() : (char?)null;
+        }
+
+        public char? TryPeek(int offset)
+        {
+            return CanRead(offset) ? Peek(offset) : (char?)null;
+        }
+
         // Get the char at the cursor and move 1
         public char Read()
         {
@@ -121,10 +132,16 @@ namespace Orikivo
                 Skip();
         }
 
-        public void SkipUntil(char terminator)
+        public void SkipUntil(char terminator, bool skipTerminator = false)
         {
             while (CanRead() && Peek() != terminator)
                 Skip();
+
+            if (skipTerminator && CanRead() && Peek() == terminator)
+            {
+                Skip();
+                return;
+            }
 
             throw new System.Exception("Expected terminator");
         }
@@ -286,10 +303,10 @@ namespace Orikivo
         }
 
 
-        public void Expect(char c)
+        public void Expect(char c, string message = null)
         {
             if (!CanRead() || Peek() != c)
-                throw new System.Exception($"Expected char '{c}'");
+                throw new System.Exception(message ?? $"Expected char '{c}'");
 
             Skip();
         }

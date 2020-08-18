@@ -277,6 +277,9 @@ namespace Arcadia
             return $"> 🗑️ You have declined the **{quest.Name}** objective.";
         }
 
+        //public static string ViewQuest(string questId)
+        //    => ViewQuest(GetQuest(questId));
+
         public static string ViewSlot(ArcadeUser user, int index)
         {
             int capacity = (int)StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
