@@ -30,8 +30,48 @@ namespace Arcadia
                     Money = 50,
                     Exp = 15
                 }
+            },
+            new Quest
+            {
+                Id = "quest:trivial_pursuit",
+                Name = "Trivial Pursuit",
+                Summary = "Test your brain power and push through!",
+                Difficulty = QuestDifficulty.Easy,
+                Criteria = new List<StatCriterion>
+                {
+                    new StatCriterion(TriviaStats.TimesPlayed, 5),
+                    new StatCriterion(TriviaStats.TimesWon, 1)
+                },
+                Type = QuestType.User,
+                Reward = new Reward
+                {
+                    Money = 20,
+                    Exp = 5
+                }
             }
         };
+
+        public static bool MeetsCriterion(string questId, string statId, long current)
+            => MeetsCriterion(GetQuest(questId), statId, current);
+
+        public static long GetCriterionGoal(string questId, string statId)
+            => GetCriterionGoal(GetQuest(questId), statId);
+
+        public static long GetCriterionGoal(Quest quest, string statId)
+        {
+            if (quest.Criteria.All(x => x.Id != statId))
+                throw new Exception("Expected to find criterion ID but returned null");
+
+            return quest.Criteria.First(x => x.Id == statId).ExpectedValue;
+        }
+
+        public static bool MeetsCriterion(Quest quest, string statId, long current)
+        {
+            if (quest.Criteria.All(x => x.Id != statId))
+                return false;
+
+            return current >= quest.Criteria.First(x => x.Id == statId).ExpectedValue;
+        }
 
         public static bool CanAssign(ArcadeUser user)
             => StatHelper.SinceLast(user, Stats.LastAssignedQuest) >= AssignCooldown && user.Quests.Count <= user.GetStat(Stats.QuestCapacity);
@@ -143,7 +183,7 @@ namespace Arcadia
                 total += criterion.ExpectedValue;
             }
 
-            return $"**{MathF.Floor(RangeF.Convert(0, 100, 0, total, sum)):##,0}**% complete";
+            return $"**{RangeF.Convert(0, total, 0, 100, sum):##,0}**% complete";
 
         }
 
@@ -210,10 +250,13 @@ namespace Arcadia
             return info.ToString();
         }
 
-        private static QuestData GetSlot(ArcadeUser user, int index)
+        private static QuestData GetSlot(ArcadeUser user, int index, bool clamp = true)
         {
-            int capacity = (int) StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
-            index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
+            if (clamp)
+            {
+                int capacity = (int) StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
+                index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
+            }
 
             return user.Quests.ElementAtOrDefault(index);
         }
@@ -236,7 +279,10 @@ namespace Arcadia
 
         public static string ViewSlot(ArcadeUser user, int index)
         {
-            QuestData slot = GetSlot(user, index);
+            int capacity = (int)StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
+
+            QuestData slot = GetSlot(user, index, false);
 
             if (slot == null)
                 return $"> {Icons.Warning} There isn't an assigned objective in this slot.";
@@ -255,7 +301,9 @@ namespace Arcadia
 
             foreach (StatCriterion criterion in quest.Criteria)
             {
-                info.AppendLine($"> `{criterion.Id}` (**{slot.Progress[criterion.Id]}**/{criterion.ExpectedValue})");
+                string bullet = criterion.ExpectedValue == slot.Progress[criterion.Id] ? "✓" : "•";
+
+                info.AppendLine($"> {bullet} `{criterion.Id}` (**{slot.Progress[criterion.Id]}**/{criterion.ExpectedValue})");
             }
 
             info.AppendLine($"\n> **{Format.TryPluralize("Reward", GetUniqueCount(quest.Reward))}**");

@@ -15,7 +15,7 @@ namespace Arcadia.Services
 
         private static string GetSummary(Item item)
             => string.Format(_line, "Summary", $"`{item.Summary}`");
-        
+
         private static string GetQuotes(Item item)
             => string.Format(_line, Format.TryPluralize("Quote", item.Quotes.Count), string.Join(", ", item.Quotes.Select(x => $"*`\"{x}\"`*")));
 
@@ -26,7 +26,7 @@ namespace Arcadia.Services
             => string.Format(_line, Format.TryPluralize("Tag", item.Tag.GetActiveFlags().Count()), string.Join(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`")));
 
         private static string GetValue(Item item)
-            => string.Format(_line, "Value", $"**`{item.Value.ToString("##,0")}`**");
+            => string.Format(_line, "Value", $"**`{item.Value:##,0}`**");
 
         private static string GetBuyState(Item item)
             => string.Format(_line, "Can Buy?", item.CanBuy ? "`Yes`": "`No`");
@@ -41,7 +41,7 @@ namespace Arcadia.Services
             => string.Format(_line, "Can Gift?", item.GiftLimit.HasValue ? item.GiftLimit.Value == 0 ? "`No`" : $"`Yes (x{item.GiftLimit.Value.ToString("##,0")})`" : "`Yes`");
 
         private static string GetUseState(Item item)
-            => string.Format(_line, "Can Use?", item.OnUse != null ? "`Yes`": "`No`");
+            => string.Format(_line, "Can Use?", item.Usage != null ? "`Yes`": "`No`");
 
         private static string GetUniqueState(Item item)
             => string.Format(_line, "Is Unique?", ItemHelper.IsUnique(item) ? "`Yes`" : "`No`");
@@ -50,7 +50,7 @@ namespace Arcadia.Services
             => string.Format(_line, "Bypass Requirements On Gift?", item.BypassCriteriaOnGift ? "`Yes`" : "`No`");
 
         private static string GetOwnLimit(Item item)
-            => string.Format(_line, "Own Limit", item.OwnLimit.HasValue ? $"`{item.OwnLimit.Value.ToString("##,0")}`" : "`None`");
+            => string.Format(_line, "Own Limit", item.OwnLimit.HasValue ? $"`{item.OwnLimit.Value:##,0}`" : "`None`");
 
         // this is only the definer
         public static string WriteItem(Item item)

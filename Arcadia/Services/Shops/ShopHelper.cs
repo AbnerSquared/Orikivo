@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
-using Orikivo;
-using Orikivo.Desync;
+using Orikivo.Drawing;
 
 namespace Arcadia
 {
@@ -17,9 +13,9 @@ namespace Arcadia
             {
                 new Shop
                 {
-                    Id = "backlog",
-                    Name = "Backlogs",
-                    Quote = "The shop that collects colorful goods.",
+                    Id = "chrome_cove",
+                    Name = "Chromatic Cove",
+                    Quote = "The reliable place to purchase color palettes.", // The shop that collects colorful goods.
                     Vendors = new List<Vendor>
                     {
                         //Name = "V3-NDR"
@@ -35,19 +31,25 @@ namespace Arcadia
                             {
                                 ItemId = Items.PaletteGammaGreen,
                                 Weight = 99,
-                                MaxDiscount = 10
+                                MinDiscount = 5,
+                                MaxDiscount = 10,
+                                DiscountChance = 0.5f
                             },
                             new CatalogEntry
                             {
                                 ItemId = Items.PaletteWumpite,
                                 Weight = 15,
-                                MaxDiscount = 5
+                                MinDiscount = 1,
+                                MaxDiscount = 5,
+                                DiscountChance = 0.3f
                             },
                             new CatalogEntry
                             {
                                 ItemId = Items.PaletteCrimson,
                                 Weight = 35,
-                                MaxDiscount = 10
+                                MinDiscount = 5,
+                                MaxDiscount = 10,
+                                DiscountChance = 0.4f
                             },
                             new CatalogEntry
                             {
@@ -57,9 +59,16 @@ namespace Arcadia
                                 IsSpecial = true
                             }
                         }
-                    }
+                    },
+                    Buy = true,
+                    Sell = true,
+                    SellDeduction = 50,
+                    SellTags = ItemTag.Palette
                 }
             };
+
+        public static bool Exists(string shopId)
+            => Shops.Any(x => x.Id == shopId);
 
         public static Shop GetShop(string id)
         {
@@ -69,11 +78,64 @@ namespace Arcadia
             return Shops.FirstOrDefault(x => x.Id == id);
         }
 
-        public static ItemCatalog CatalogOf(string shopId)
+        public static ItemCatalog GenerateCatalog(string shopId)
         {
             Shop shop = GetShop(shopId);
 
             return shop?.Catalog.Generate();
+        }
+
+        private static long GetCost(long value, int discountUpper)
+        {
+            discountUpper = Math.Clamp(discountUpper, 0, 100);
+
+            if (discountUpper == 0)
+                return value;
+
+            float discount = RangeF.Convert(0, 100, 0, 1, discountUpper);
+            return (long) MathF.Floor(value * (1 - discount));
+        }
+
+        private static string WriteShopRow(Shop shop)
+        {
+            var row = new StringBuilder();
+
+            row.AppendLine($"\n> `{shop.Id}` • **{shop.Name}**");
+
+            if (!string.IsNullOrWhiteSpace(shop.Quote))
+                row.AppendLine($"> {shop.Quote}");
+
+            return row.ToString();
+        }
+
+        // Make sure to incorporate pagination
+        public static string ViewShops()
+        {
+            // Incorporate the user into this
+            // As it determines what shops they can currently view
+
+            var info = new StringBuilder();
+
+            info.AppendLine($"> 🛒 **Shops**");
+            info.AppendLine($"> Here are all of the available shops.");
+
+
+            foreach (Shop shop in Shops)
+            {
+                info.AppendLine(WriteShopRow(shop));
+            }
+
+            return info.ToString();
+        }
+
+        public static long CostOf(Item item, ItemCatalog catalog)
+        {
+            long value = item.Value;
+
+            if (catalog.Discounts.ContainsKey(item.Id))
+                return GetCost(value, catalog.Discounts[item.Id]);
+
+            return value;
         }
 
         // This writes the catalog info
@@ -81,151 +143,31 @@ namespace Arcadia
         {
             var info = new StringBuilder();
 
+            foreach ((Item item, int amount) in catalog.Items)
+            {
+                int discountUpper = catalog.Discounts.ContainsKey(item.Id) ? catalog.Discounts[item.Id] : 0;
+                info.AppendLine(WriteCatalogEntry(item, amount, discountUpper));
+            }
 
             return info.ToString();
         }
 
-        public static string NameOf(string shopId)
-            => GetShop(shopId).Name;
-    }
 
-    public enum ShopState
-    {
-        Enter = 1,
-        Menu = 2,
-        Buy = 3,
-        Sell = 4,
-        Timeout = 5,
-        ViewBuy = 6,
-        ViewSell = 7,
-        Exit = 8
-    }
-
-    public class ShopHandler : MatchAction
-    {
-        public ShopHandler(ArcadeContext context, Shop shop)
+        private static string WriteCatalogEntry(Item item, int amount, int discountUpper = 0)
         {
-            Context = context;
-            Shop = shop;
-            Vendor = Check.NotNullOrEmpty(shop.Vendors) ? Randomizer.Choose(shop.Vendors) : null;
-            Catalog = shop.Catalog.Generate();
-        }
-
-        public ArcadeContext Context { get; }
-        public Shop Shop { get; }
-        public Vendor Vendor { get; }
-        public ItemCatalog Catalog { get; }
-
-        public ShopState State { get; set; }
-
-        public IUserMessage MessageReference { get; set; }
-
-        public long CostOf(Item item)
-        {
-            long value = item.Value;
-
-            if (Catalog.Discounts.ContainsKey(item.Id))
-            {
-                // 1 - (20 / 100) => .2 => .8
-                float discount = Catalog.Discounts[item.Id] / (float) 100;
-
-                value *= (long) (1 - discount);
-            }
-
-            return value;
-        }
-
-        private static string GetGenericReply(ShopState state)
-        {
-            return state switch
-            {
-                ShopState.Enter => Vendor.EnterGeneric,
-                ShopState.Buy => Vendor.BuyGeneric,
-                ShopState.ViewBuy => Vendor.ViewBuyGeneric,
-                ShopState.Sell => Vendor.SellGeneric,
-                ShopState.ViewSell => Vendor.ViewSellGeneric,
-                ShopState.Exit => Vendor.ExitGeneric,
-                ShopState.Timeout => Vendor.TimeoutGeneric,
-                ShopState.Menu => Vendor.MenuGeneric,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
-            };
-        }
-
-        private static string GetVendorReply(Vendor vendor, ShopState state)
-        {
-            var replies = state switch
-            {
-                ShopState.Enter => vendor?.OnEnter,
-                ShopState.Buy => vendor?.OnBuy,
-                ShopState.ViewBuy => vendor?.OnViewBuy,
-                ShopState.Sell => vendor?.OnSell,
-                ShopState.ViewSell => vendor?.OnViewSell,
-                ShopState.Exit => vendor?.OnExit,
-                ShopState.Timeout => vendor?.OnTimeout,
-                ShopState.Menu => vendor?.OnMenu,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
-            };
-
-            return Check.NotNullOrEmpty(replies) ? Randomizer.Choose(replies) : GetGenericReply(state);
-        }
-
-        public string WriteVendor(Vendor vendor, ShopState state)
-        {
-            string name = vendor?.Name ?? Vendor.NameGeneric;
-            string reply = GetVendorReply(vendor, state);
-            return $"**{name}**: *\"{reply}\"*";
-        }
-
-        public string WriteMenuHeader()
-        {
-            var header = new StringBuilder();
-            string vendor = WriteVendor(Vendor, State);
-            string actions = WriteActionBar(State);
-
-            header.AppendLine(vendor);
-            header.AppendLine(actions);
-
-            return header.ToString();
-        }
-
-        public string WriteMenuBody()
-        {
-            var body = new StringBuilder();
-            // Menu, Enter, Exit, Timeout: These do not have bodies
-            // ViewBuy: WriteCatalog()
-            // ViewSell: Inventory.Write()
-
-            return body.ToString();
-        }
-
-        private static readonly string OnTryBuy = "I don't sell items.";
-        private static readonly string OnBuyEmpty = "I don't have anything else I can offer you.";
-        private static readonly string OnTrySell = "I don't buy items.";
-        private static readonly string OnSellEmpty = "You don't have anything I can buy from you.";
-
-        public static string WriteActionBar(ShopState state)
-        {
-            var bar = new StringBuilder();
-
-            // Enter: buy sell leave
-            // Menu: buy sell leave
-            // ViewBuy: <item_id> back leave
-            // Buy => Points to Menu or ViewBuy
-            // ViewSell: <item_id> back leave
-            // Sell => Points to ViewSell or Menu
-
-
-            return bar.ToString();
-        }
-
-        public string WriteEntry(Item item, int amount)
-        {
-            if (amount == 0)
-                return "";
-
             var entry = new StringBuilder();
 
-            entry.Append($"> `{item.Id}` **{item.Name}**");
+            // (isSpecial)
+            //    entry.AppendLine("> 🍀 This item is special.");
+
+            entry.Append($"\n> `{item.Id}` ");
+
+            string icon = item.GetIcon();
+
+            if (!string.IsNullOrWhiteSpace(icon))
+                entry.Append($"{icon} ");
+
+            entry.Append($"**{item.GetName()}**");
 
             if (amount > 1)
                 entry.Append($" (x**{amount:##,0}**)");
@@ -233,25 +175,19 @@ namespace Arcadia
             entry.AppendLine();
 
             entry.AppendLine($"> *\"{item.GetQuote()}\"*");
-            entry.AppendLine($"> 💸 **{CostOf(item):##,0}**  • *{item.Rarity}*");
+            entry.Append($"> {Icons.IconOf(item.Currency)} **{GetCost(item.Value, discountUpper):##,0}** ");
+
+            if (discountUpper > 0)
+            {
+                entry.Append($"(**{discountUpper}**% discount) ");
+            }
+
+            entry.Append($"• *{item.Rarity}*");
 
             return entry.ToString();
         }
 
-
-        public override async Task OnStartAsync()
-        {
-
-        }
-
-        public override Task<ActionResult> InvokeAsync(SocketMessage message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task OnTimeoutAsync(SocketMessage message)
-        {
-            throw new NotImplementedException();
-        }
+        public static string NameOf(string shopId)
+            => GetShop(shopId).Name;
     }
 }

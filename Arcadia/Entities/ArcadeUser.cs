@@ -93,6 +93,8 @@ namespace Arcadia
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
         [JsonIgnore] public bool CanAutoGimi { get; set; } = true;
+        [JsonIgnore] public bool CanShop { get; set; } = true;
+        [JsonIgnore] public bool CanTrade { get; set; } = true;
 
         public long GetStat(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
@@ -100,10 +102,20 @@ namespace Arcadia
         public void SetStat(string id, long value)
         {
             // This updates the quest progress without altering main stats
-            if (Quests.Any())
+
+            // If there any quests where the progress contains this ID & its criterion has not been met?
+            if (Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
             {
-                foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
-                    data.Progress[id] = value;
+                QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
+                data.Progress[id] = value;
+
+                // If the criterion was met due to this change, cap the progress to its max value
+                if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
+                    data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+
+                // Instead of updating all quests at once, update the first quest
+                // foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
+                //     data.Progress[id] = value;
             }
 
             if (value == 0)
@@ -125,11 +137,20 @@ namespace Arcadia
             else
                 Stats[id] += amount;
 
-            // This updates the quest progress without altering main stats
-            if (Quests.Any())
+            // If there any quests where the progress contains this ID & its criterion has not been met?
+            if (Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
             {
-                foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
-                    data.Progress[id] += amount;
+                // Get the first match for this predicate
+                QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
+                data.Progress[id] += amount;
+
+                // If the criterion was met due to this change, cap the progress to its max value
+                if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
+                    data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+
+                // Instead of updating all quests at once, update the first quest
+                // foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
+                //     data.Progress[id] = value;
             }
         }
 

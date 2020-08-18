@@ -14,6 +14,18 @@
             };
         }
 
+        internal static string IconOf(CurrencyType type)
+        {
+            return type switch
+            {
+                CurrencyType.Money => Balance,
+                CurrencyType.Chips => Chips,
+                CurrencyType.Tokens => Tokens,
+                CurrencyType.Debt => Debt,
+                _ => Unknown
+            };
+        }
+
         internal static readonly string Unknown = "UNKNOWN_ICON";
         internal static readonly string Complete = "🧤";
         internal static readonly string Assign = "🗺️";

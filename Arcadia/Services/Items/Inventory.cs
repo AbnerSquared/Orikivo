@@ -55,6 +55,50 @@ namespace Arcadia
             return "PB";
         }
 
+        private static string WriteItemRow(int index, string id, ItemData data, int deduction)
+        {
+            Item item = ItemHelper.GetItem(id);
+            var summary = new StringBuilder();
+
+            summary.Append($"> ");
+
+            summary.Append($"`{id}`");
+
+            if (!string.IsNullOrWhiteSpace(data.Data?.Id))
+                summary.Append($"/`{data.Data.Id}`");
+
+            summary.Append($" • **{item.GetName()}**");
+
+            if (data.Count > 1)
+            {
+                summary.Append($" (x**{data.Count}**)");
+            }
+
+            return summary.ToString();
+        }
+
+        private static string WriteItemRow(int index, string id, ItemData data)
+        {
+            Item item = ItemHelper.GetItem(id);
+            var summary = new StringBuilder();
+
+            summary.Append($"> **Slot {index}:** ");
+
+            summary.Append($"`{id}`");
+
+            if (!string.IsNullOrWhiteSpace(data.Data?.Id))
+                summary.Append($"/`{data.Data.Id}`");
+
+            summary.Append($" • **{item.GetName()}**");
+
+            if (data.Count > 1)
+            {
+                summary.Append($" (x**{data.Count}**)");
+            }
+
+            return summary.ToString();
+        }
+
         private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true, bool showTooltips = true)
         {
             Item item = ItemHelper.GetItem(id);
@@ -92,6 +136,31 @@ namespace Arcadia
             return summary.ToString();
         }
 
+        public static string WriteItems(ArcadeUser user, Shop shop)
+        {
+            var inventory = new StringBuilder();
+
+            if (shop.SellDeduction > 0)
+            {
+                inventory.AppendLine($"> **Inventory** (**{shop.SellDeduction}**% deduction)");
+            }
+
+            int i = 0;
+            foreach (ItemData data in user.Items)
+            {
+                ItemTag tag = ItemHelper.GetTag(data.Id);
+
+                // Ignore if this cannot be sold.
+                if (!shop.SellTags.HasFlag(tag))
+                    continue;
+
+                inventory.AppendLine($"\n{WriteItemRow(i + 1, data.Id, data)}");
+                i++;
+            }
+
+            return inventory.ToString();
+        }
+
         public static string Write(ArcadeUser user, bool isPrivate = true)
         {
             // set the default capacity if unspecified
@@ -107,7 +176,7 @@ namespace Arcadia
             int i = 0;
             foreach (ItemData data in user.Items)
             {
-                inventory.AppendLine(WriteItem(i, data.Id, data, isPrivate));
+                inventory.AppendLine(WriteItem(i + 1, data.Id, data, isPrivate));
                 i++;
             }
 

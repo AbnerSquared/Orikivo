@@ -65,6 +65,60 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("shops")]
+        public async Task ViewShopsAsync()
+        {
+            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops());
+        }
+
+        [RequireUser]
+        [Command("shop")]
+        public async Task ShopAsync(string shopId)
+        {
+            // Ignore initialization of another shop if a shop handle is already open
+            if (!Context.Account.CanShop)
+                return;
+
+            if (!ShopHelper.Exists(shopId))
+            {
+                await Context.Channel.WarnAsync("Could not find a shop with the specified ID.");
+                return;
+            }
+
+            Shop shop = ShopHelper.GetShop(shopId);
+            var handle = new ShopHandler(Context, shop);
+
+            await HandleShopAsync(handle);
+            Context.Account.CanShop = true;
+        }
+
+        private async Task HandleShopAsync(ShopHandler shop)
+        {
+            try
+            {
+                var collector = new MessageCollector(Context.Client);
+
+                var options = new MatchOptions
+                {
+                    ResetTimeoutOnAttempt = true,
+                    Timeout = TimeSpan.FromSeconds(30),
+                    Action = shop
+                };
+
+                bool Filter(SocketMessage message, int index)
+                {
+                    return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
+                }
+
+                await collector.MatchAsync(Filter, options);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
+        }
+
+        [RequireUser]
         [Command("claimall")]
         [Summary("Attempt to claim all available merits.")]
         public async Task ClaimAllAsync()

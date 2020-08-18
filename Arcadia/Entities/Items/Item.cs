@@ -4,6 +4,16 @@ using Orikivo;
 
 namespace Arcadia
 {
+    // Details information of
+    public class MarketValueInfo
+    {
+        public CurrencyType Currency { get; set; }
+        public long Value { get; set; }
+        public bool CanBuy { get; set; }
+        public bool CanSell { get; set; }
+    }
+
+
     public class Item
     {
         public string Id { get; set; }
@@ -46,7 +56,11 @@ namespace Arcadia
 
         public ItemRarity Rarity { get; set; }
 
+        // Dictionary<CurrencyType, long> Cost
+        // CostInfo: Currency, Value, CanBuy, CanSell
         public long Value { get; set; }
+
+        public CurrencyType Currency { get; set; } = CurrencyType.Money;
 
         // This determines how much space they take up.
         public long Size { get; set; }
@@ -80,7 +94,7 @@ namespace Arcadia
         // These are the requirements to unlock this item
         public Func<ArcadeUser, bool> ToUnlock { get; set; }
 
-        public ItemAction OnUse { get; set; }
+        public ItemAction Usage { get; set; }
 
         // If this function is ever true, it will expire
         public Func<bool> ToExpire { get; set; }

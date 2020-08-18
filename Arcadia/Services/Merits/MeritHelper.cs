@@ -387,7 +387,7 @@ namespace Arcadia
             else
             {
                 int i = 0;
-                foreach (Merit merit in Merits.Where(GetInvokerFor(flag, user)))
+                foreach (Merit merit in Merits.Where(GetInvokerFor(flag, user)).OrderBy(x => x.Name))
                 {
                     if (i >= maxAllowedValues)
                         break;

@@ -619,7 +619,7 @@ namespace Orikivo
                         (ulong)Math.Floor(Confirm.Value * Market.SellRate) * (ulong)ConfirmCount);
 
                     Last.ApplySell(Context.Account);
-                    
+
                     await UpdateAsync(MarketState.SellComplete);
                     Confirm = null;
                     ConfirmCount = 0;

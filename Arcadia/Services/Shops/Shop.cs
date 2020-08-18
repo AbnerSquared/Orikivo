@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Orikivo;
 using Orikivo.Drawing;
+using Orikivo.Framework;
 
 namespace Arcadia
 {
@@ -38,6 +39,15 @@ namespace Arcadia
         public List<string> OnExit { get; set; }
     }
 
+    [Flags]
+    public enum CurrencyType
+    {
+        Money = 1,
+        Chips = 2,
+        Tokens = 4,
+        Debt = 8
+    }
+
     public class Shop
     {
         public string Id { get; set; }
@@ -49,6 +59,14 @@ namespace Arcadia
         public List<Vendor> Vendors { get; set; }
 
         public CatalogGenerator Catalog { get; set; }
+
+        public bool Buy { get; set; }
+        public bool Sell { get; set; }
+
+        public CurrencyType AllowedCurrency { get; set; }
+        public ItemTag SellTags { get; set; }
+        // Deduct 20% by default
+        public int SellDeduction { get; set; } = 50;
     }
 
     public class CatalogGenerator
@@ -64,17 +82,24 @@ namespace Arcadia
             int specials = 0;
             int discounts = 0;
             var counters = new Dictionary<string, int>();
-            var discountEntries = new Dictionary<string, float>();
-            var entries = new List<Item>();
+            var discountEntries = new Dictionary<string, int>();
+            int entries = 0;
 
             if (Size <= 0)
             {
                 throw new ArgumentException("Cannot initialize a catalog with an empty size.");
             }
 
-            while (entries.Count < Size)
+            while (entries < Size)
             {
-                CatalogEntry entry = GetNextEntry();
+                CatalogEntry entry = GetNextEntry(specials, counters);
+
+                if (entry == null)
+                {
+                    break;
+                }
+
+                Logger.Debug($"Next entry loaded ({entry.ItemId})");
 
                 if (entry.MaxAllowed.HasValue)
                 {
@@ -90,44 +115,68 @@ namespace Arcadia
                     if (specials >= MaxSpecialsAllowed)
                         continue;
 
+                    Logger.Debug($"Special entry applied ({entry.ItemId})");
+
                     specials++;
                 }
 
-                if (entry.MaxDiscount.HasValue)
+                if (entry.DiscountChance > 0 && entry.MaxDiscount.HasValue)
                 {
-                    if (!discountEntries.ContainsKey(entry.ItemId) && discounts < MaxDiscountsAllowed)
+                    if (!discountEntries.ContainsKey(entry.ItemId)
+                        && discounts < MaxDiscountsAllowed
+                        && RandomProvider.Instance.NextDouble() <= entry.DiscountChance)
                     {
-                        int discountToApply = RandomProvider.Instance.Next(0, entry.MaxDiscount.Value);
-
+                        // Since upperBound is exclusive, add 1 to the max discount
+                        int discountToApply = RandomProvider.Instance.Next(entry.MinDiscount ?? 1, entry.MaxDiscount.Value + 1);
                         discountEntries.Add(entry.ItemId, discountToApply);
+
+                        Logger.Debug($"{discountToApply}% discount applied ({entry.ItemId})");
                         discounts++;
                     }
                 }
 
-                if (!ItemHelper.TryGetItem(entry.ItemId, out Item item))
+                if (!ItemHelper.Exists(entry.ItemId))
                     throw new Exception("The specified item ID could not be found.");
 
                 if (!counters.TryAdd(entry.ItemId, 1))
                     counters[entry.ItemId]++;
 
-                entries.Add(ItemHelper.GetItem(entry.ItemId));
+                entries++;
             }
 
-            return new ItemCatalog();
+            Logger.Debug($"Compiling catalog with {entries} {Format.TryPluralize("entry", entries)}");
+
+            return new ItemCatalog(counters, discountEntries);
         }
 
         private int GetTotalWeight()
             => Entries.Select(x => x.Weight).Sum();
 
-        private CatalogEntry GetNextEntry()
+        private int GetAvailableWeight(int specials, Dictionary<string, int> counters)
         {
-            int totalWeight = GetTotalWeight();
+            return GetAvailableEntries(specials, counters).Sum(x => x.Weight);
+        }
+
+        private IEnumerable<CatalogEntry> GetAvailableEntries(int specials, Dictionary<string, int> counters)
+        {
+            return Entries.Where(x =>
+                (specials < MaxSpecialsAllowed || !x.IsSpecial)
+                && (!x.MaxAllowed.HasValue || counters.GetValueOrDefault(x.ItemId, 0) >= x.MaxAllowed));
+        }
+
+        private CatalogEntry GetNextEntry(int specials, Dictionary<string, int> counters)
+        {
+            var entries = GetAvailableEntries(specials, counters);
+            int totalWeight = entries.Sum(x => x.Weight);
             int marker = RandomProvider.Instance.Next(0, totalWeight);
             int weightSum = 0;
 
-            for (int i = 0; i < Entries.Count; i++)
+            if (totalWeight == 0)
+                return null;
+
+            for (int i = 0; i < entries.Count(); i++)
             {
-                weightSum += Entries[i].Weight;
+                weightSum += entries.ElementAt(i).Weight;
 
                 if (marker <= weightSum)
                     return Entries[i];
@@ -140,6 +189,21 @@ namespace Arcadia
     public class ItemCatalog
     {
         public ItemCatalog(){}
+
+        public ItemCatalog(Dictionary<string, int> itemIds, Dictionary<string, int> discounts)
+        {
+            GeneratedAt = DateTime.UtcNow;
+            var items = new Dictionary<Item, int>();
+
+            foreach ((string item, int amount) in itemIds)
+            {
+                items.Add(ItemHelper.GetItem(item), amount);
+            }
+
+            Items = items;
+
+            Discounts = discounts;
+        }
 
         public ItemCatalog(ItemCatalogData data)
         {
@@ -193,7 +257,11 @@ namespace Arcadia
 
         public int? MaxAllowed { get; set; }
 
+        public int? MinDiscount { get; set; }
+
         public int? MaxDiscount { get; set; }
+
+        public float DiscountChance { get; set; }
 
         public bool IsSpecial { get; set; }
 
