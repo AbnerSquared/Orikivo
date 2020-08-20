@@ -497,7 +497,7 @@ namespace Arcadia
                 return data.Data.LastUsed;
             }
 
-            var ticks = user.GetStat(GetCooldownId(statGroup));
+            var ticks = user.GetVar(GetCooldownId(statGroup));
 
             if (ticks == 0)
                 return null;
@@ -959,12 +959,12 @@ namespace Arcadia
                 }
                 else if (item.Usage.CooldownCategory == CooldownCategory.Group)
                 {
-                    user.SetStat($"{item.GroupId}:last_used", DateTime.UtcNow.Ticks);
+                    user.SetVar($"{item.GroupId}:last_used", DateTime.UtcNow.Ticks);
                 }
                 else
                 {
                     // finally, if all of the checks pass, use up the item.
-                    user.SetStat(GetCooldownId(itemId), DateTime.UtcNow.Ticks);
+                    user.SetVar(GetCooldownId(itemId), DateTime.UtcNow.Ticks);
                 }
             }
 

@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Orikivo;
 using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
@@ -29,7 +28,7 @@ namespace Arcadia
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
-            ulong balance, ulong tokenBalance, ulong chipBalance, ulong debt, ulong exp, int ascent, Dictionary<string, long> stats,
+            long balance, long tokenBalance, long chipBalance, long debt, ulong exp, int ascent, Dictionary<string, long> stats,
             Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card)
             : base(id, username, discriminator, createdAt, config)
         {
@@ -48,16 +47,16 @@ namespace Arcadia
         }
 
         [JsonProperty("balance")]
-        public ulong Balance { get; internal set; }
+        public long Balance { get; internal set; }
 
         [JsonProperty("tokens")]
-        public ulong TokenBalance { get; internal set; }
+        public long TokenBalance { get; internal set; }
 
         [JsonProperty("chips")]
-        public ulong ChipBalance { get; internal set; }
+        public long ChipBalance { get; internal set; }
 
         [JsonProperty("debt")]
-        public ulong Debt { get; internal set; }
+        public long Debt { get; internal set; }
 
         [JsonProperty("exp")]
         public ulong Exp { get; internal set; }
@@ -86,93 +85,97 @@ namespace Arcadia
         [JsonProperty("card")]
         public CardConfig Card { get; }
 
-        /// <summary>
-        /// Represents a collection of internal cooldowns for the current process.
-        /// </summary>
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
-        [JsonIgnore] public bool CanAutoGimi { get; set; } = true;
-        [JsonIgnore] public bool CanShop { get; set; } = true;
-        [JsonIgnore] public bool CanTrade { get; set; } = true;
+        [JsonIgnore]
+        public DateTime? GlobalCooldown { get; set; }
 
-        public long GetStat(string id)
+        public bool HasBeenNoticed { get; set; } = false;
+
+        [JsonIgnore]
+        public bool CanAutoGimi { get; set; } = true;
+
+        [JsonIgnore]
+        public bool CanShop { get; set; } = true;
+
+        [JsonIgnore]
+        public bool CanTrade { get; set; } = true;
+
+        public long GetVar(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
 
-        public void SetStat(string id, long value)
+        internal void SetQuestProgress(string id)
         {
-            // This updates the quest progress without altering main stats
+            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
+                return;
 
-            // If there any quests where the progress contains this ID & its criterion has not been met?
-            if (Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
-            {
-                QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
-                data.Progress[id] = value;
+            long value = GetVar(id);
 
-                // If the criterion was met due to this change, cap the progress to its max value
-                if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
-                    data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
+            data.Progress[id] = value;
 
-                // Instead of updating all quests at once, update the first quest
-                // foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
-                //     data.Progress[id] = value;
-            }
+            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
+                data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+        }
 
+        public void SetVar(string id, long value)
+        {
             if (value == 0)
             {
                 if (Stats.ContainsKey(id))
                     Stats.Remove(id);
 
+                SetQuestProgress(id);
                 return;
             }
 
             if (!Stats.TryAdd(id, value))
                 Stats[id] = value;
+
+            SetQuestProgress(id);
         }
 
-        public void UpdateStat(string id, long amount = 1)
+        public void SetVar(string id, long value, out long previous)
+        {
+            previous = GetVar(id);
+            SetVar(id, value);
+        }
+
+        public void AddToVar(string id, long amount = 1)
         {
             if (!Stats.ContainsKey(id))
-                SetStat(id, amount);
+                SetVar(id, amount);
             else
                 Stats[id] += amount;
 
-            // If there any quests where the progress contains this ID & its criterion has not been met?
-            if (Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
-            {
-                // Get the first match for this predicate
-                QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
-                data.Progress[id] += amount;
-
-                // If the criterion was met due to this change, cap the progress to its max value
-                if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
-                    data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
-
-                // Instead of updating all quests at once, update the first quest
-                // foreach (QuestData data in Quests.Where(x => x.Progress.ContainsKey(id)))
-                //     data.Progress[id] = value;
-            }
+            SetQuestProgress(id);
         }
 
-        // TODO: make the type of integer consistent with balances
+        public void AddToVar(string id, long amount, out long previous)
+        {
+            previous = GetVar(id);
+            AddToVar(id, amount);
+        }
+
         public void Give(long value, bool canBoost = true)
         {
             if (canBoost)
                 value = ItemHelper.BoostValue(this, value, BoosterType.Money);
 
-            if ((long) Debt >= value)
+            if (Debt >= value)
             {
-                Debt -= (ulong) value;
+                Debt -= value;
             }
-            else if ((long) Debt > 0)
+            else if (Debt > 0)
             {
-                value -= (long)Debt;
+                value -= Debt;
                 Debt = 0;
-                Balance += (ulong) value;
+                Balance += value;
             }
             else
             {
-                Balance += (ulong) value;
+                Balance += value;
             }
         }
 
@@ -180,19 +183,19 @@ namespace Arcadia
         {
             actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Money) : value;
 
-            if ((long)Debt >= actual)
+            if (Debt >= actual)
             {
-                Debt -= (ulong)actual;
+                Debt -= actual;
             }
-            else if ((long)Debt > 0)
+            else if (Debt > 0)
             {
-                actual -= (long)Debt;
+                actual -= Debt;
                 Debt = 0;
-                Balance += (ulong)actual;
+                Balance += actual;
             }
             else
             {
-                Balance += (ulong)actual;
+                Balance += actual;
             }
         }
 
@@ -201,20 +204,19 @@ namespace Arcadia
             if (canBoost)
                 value = ItemHelper.BoostValue(this, value, BoosterType.Debt);
 
-            if ((long) Balance >= value)
+            if (Balance >= value)
             {
-                // The money booster is negatively applied
-                Balance -= (ulong) value;
+                Balance -= value;
             }
-            else if ((long) Balance > 0)
+            else if (Balance > 0)
             {
-                value -= (long) Balance;
+                value -= Balance;
                 Balance = 0;
-                Debt += (ulong) value;
+                Debt += value;
             }
             else
             {
-                Debt += (ulong) value;
+                Debt += value;
             }
         }
 
@@ -222,20 +224,19 @@ namespace Arcadia
         {
             actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Debt) : value;
 
-            if ((long)Balance >= actual)
+            if (Balance >= actual)
             {
-                // The money booster is negatively applied
-                Balance -= (ulong)actual;
+                Balance -= actual;
             }
-            else if ((long)Balance > 0)
+            else if (Balance > 0)
             {
-                actual -= (long)Balance;
+                actual -= Balance;
                 Balance = 0;
-                Debt += (ulong)actual;
+                Debt += actual;
             }
             else
             {
-                Debt += (ulong)actual;
+                Debt += actual;
             }
         }
     }

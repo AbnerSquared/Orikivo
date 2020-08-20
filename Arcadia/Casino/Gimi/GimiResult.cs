@@ -12,6 +12,8 @@ namespace Arcadia.Casino
             Risk = risk;
         }
 
+        public CasinoMode Mode => CasinoMode.Gimi;
+
         public bool IsSuccess => Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold);
         public GimiResultFlag Flag { get; }
         public long Reward { get; }
@@ -22,27 +24,27 @@ namespace Arcadia.Casino
 
         public void Apply(ArcadeUser user)
         {
-            user.UpdateStat(GimiStats.TimesPlayed);
+            user.AddToVar(GimiStats.TimesPlayed);
 
             if (Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold))
             {
-                user.SetStat(GimiStats.CurrentCurseStreak, 0);
-                user.SetStat(GimiStats.CurrentLossStreak, 0);
-                user.SetStat(GimiStats.CurrentLossAmount, 0);
+                user.SetVar(GimiStats.CurrentCurseStreak, 0);
+                user.SetVar(GimiStats.CurrentLossStreak, 0);
+                user.SetVar(GimiStats.CurrentLossAmount, 0);
 
                 if (Flag == GimiResultFlag.Win)
-                    user.SetStat(GimiStats.CurrentGoldStreak, 0);
+                    user.SetVar(GimiStats.CurrentGoldStreak, 0);
 
-                user.UpdateStat(GimiStats.TimesWon);
-                user.UpdateStat(GimiStats.TotalWon, Reward);
-                user.UpdateStat(GimiStats.CurrentWinStreak);
-                user.UpdateStat(GimiStats.CurrentWinAmount, Reward);
+                user.AddToVar(GimiStats.TimesWon);
+                user.AddToVar(GimiStats.TotalWon, Reward);
+                user.AddToVar(GimiStats.CurrentWinStreak);
+                user.AddToVar(GimiStats.CurrentWinAmount, Reward);
 
                 if (Flag == GimiResultFlag.Gold)
                 {
                     ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
-                    user.UpdateStat(GimiStats.TimesGold);
-                    user.UpdateStat(GimiStats.CurrentGoldStreak);
+                    user.AddToVar(GimiStats.TimesGold);
+                    user.AddToVar(GimiStats.CurrentGoldStreak);
 
                     StatHelper.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
                 }
@@ -55,22 +57,22 @@ namespace Arcadia.Casino
             else if (Flag.EqualsAny(GimiResultFlag.Lose, GimiResultFlag.Curse))
             {
                 // UPDATING STATS
-                user.SetStat(GimiStats.CurrentGoldStreak, 0);
-                user.SetStat(GimiStats.CurrentWinStreak, 0);
-                user.SetStat(GimiStats.CurrentWinAmount, 0);
+                user.SetVar(GimiStats.CurrentGoldStreak, 0);
+                user.SetVar(GimiStats.CurrentWinStreak, 0);
+                user.SetVar(GimiStats.CurrentWinAmount, 0);
 
                 if (Flag == GimiResultFlag.Lose)
-                    user.SetStat(GimiStats.CurrentCurseStreak, 0);
+                    user.SetVar(GimiStats.CurrentCurseStreak, 0);
 
-                user.UpdateStat(GimiStats.TimesLost);
-                user.UpdateStat(GimiStats.TotalLost, Reward);
-                user.UpdateStat(GimiStats.CurrentLossStreak);
-                user.UpdateStat(GimiStats.CurrentLossAmount, Reward);
+                user.AddToVar(GimiStats.TimesLost);
+                user.AddToVar(GimiStats.TotalLost, Reward);
+                user.AddToVar(GimiStats.CurrentLossStreak);
+                user.AddToVar(GimiStats.CurrentLossAmount, Reward);
 
                 if (Flag == GimiResultFlag.Curse)
                 {
-                    user.UpdateStat(GimiStats.TimesCursed);
-                    user.UpdateStat(GimiStats.CurrentCurseStreak);
+                    user.AddToVar(GimiStats.TimesCursed);
+                    user.AddToVar(GimiStats.CurrentCurseStreak);
                     StatHelper.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
                 }
 
@@ -96,7 +98,7 @@ namespace Arcadia.Casino
 
             //long current = user.GetStat(GimiStats.CurrentType);
 
-            user.UpdateStat(GimiStats.TimesPlayed);
+            user.AddToVar(GimiStats.TimesPlayed);
 
             if (Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold))
             {
@@ -115,12 +117,12 @@ namespace Arcadia.Casino
                     GimiStats.CurrentLossAmount);
 
                 if (Flag == GimiResultFlag.Win)
-                    user.SetStat(GimiStats.CurrentGoldStreak, 0);
+                    user.SetVar(GimiStats.CurrentGoldStreak, 0);
 
-                user.UpdateStat(GimiStats.TimesWon);
-                user.UpdateStat(GimiStats.TotalWon, Reward);
-                user.UpdateStat(GimiStats.CurrentWinStreak);
-                user.UpdateStat(GimiStats.CurrentWinAmount, Reward);
+                user.AddToVar(GimiStats.TimesWon);
+                user.AddToVar(GimiStats.TotalWon, Reward);
+                user.AddToVar(GimiStats.CurrentWinStreak);
+                user.AddToVar(GimiStats.CurrentWinAmount, Reward);
 
                 if (Flag == GimiResultFlag.Gold)
                 {
@@ -129,8 +131,8 @@ namespace Arcadia.Casino
                     color = GammaPalette.Glass[Gamma.Max];
 
                     ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
-                    user.UpdateStat(GimiStats.TimesGold);
-                    user.UpdateStat(GimiStats.CurrentGoldStreak);
+                    user.AddToVar(GimiStats.TimesGold);
+                    user.AddToVar(GimiStats.CurrentGoldStreak);
 
                     StatHelper.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
                 }
@@ -138,7 +140,7 @@ namespace Arcadia.Casino
                 StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
                 StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
-                long debt = (long)user.Debt;
+                long debt = user.Debt;
                 // UPDATING BALANCE
                 user.Give(Reward, out value, Flag != GimiResultFlag.Gold);
                 ModifiedReward = value;
@@ -156,7 +158,8 @@ namespace Arcadia.Casino
                 else if (debt > 0)
                 {
                     // 9 - 3
-                    value = ModifiedReward - debt;
+                    // = 9 - 2
+                    value = ModifiedReward;
 
                     if (value == 0)
                     {
@@ -176,19 +179,19 @@ namespace Arcadia.Casino
                 //    current = (long)GimiResultFlag.Lose;
 
                 // UPDATING STATS
-                user.SetStat(GimiStats.CurrentGoldStreak, 0);
-                user.SetStat(GimiStats.CurrentWinStreak, 0);
-                user.SetStat(GimiStats.CurrentWinAmount, 0);
+                user.SetVar(GimiStats.CurrentGoldStreak, 0);
+                user.SetVar(GimiStats.CurrentWinStreak, 0);
+                user.SetVar(GimiStats.CurrentWinAmount, 0);
 
                 if (Flag == GimiResultFlag.Lose)
                 {
-                    user.SetStat(GimiStats.CurrentCurseStreak, 0);
+                    user.SetVar(GimiStats.CurrentCurseStreak, 0);
                 }
 
-                user.UpdateStat(GimiStats.TimesLost);
-                user.UpdateStat(GimiStats.TotalLost, Reward);
-                user.UpdateStat(GimiStats.CurrentLossStreak);
-                user.UpdateStat(GimiStats.CurrentLossAmount, Reward);
+                user.AddToVar(GimiStats.TimesLost);
+                user.AddToVar(GimiStats.TotalLost, Reward);
+                user.AddToVar(GimiStats.CurrentLossStreak);
+                user.AddToVar(GimiStats.CurrentLossAmount, Reward);
 
                 if (Flag == GimiResultFlag.Curse)
                 {
@@ -196,8 +199,8 @@ namespace Arcadia.Casino
                     type = "-";
                     color = GammaPalette.Alconia[Gamma.Standard];
 
-                    user.UpdateStat(GimiStats.TimesCursed);
-                    user.UpdateStat(GimiStats.CurrentCurseStreak);
+                    user.AddToVar(GimiStats.TimesCursed);
+                    user.AddToVar(GimiStats.CurrentCurseStreak);
                     StatHelper.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
                 }
 
@@ -230,7 +233,7 @@ namespace Arcadia.Casino
                 }
             }
 
-            string header = $"**{type} {icon} {value:##,0.###}**";
+            string header = $"**{type} {icon} {value:##,0}**";
             string content = $"*\"{quote}\"*";
 
             embedder.Header = header;

@@ -39,7 +39,7 @@ namespace Arcadia
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "Your requests have been met with gold.",
-                    Criteria = user => user.GetStat(GimiStats.TimesGold) > 0
+                    Criteria = user => user.GetVar(GimiStats.TimesGold) > 0
                 },
                 new Merit
                 {
@@ -49,7 +49,7 @@ namespace Arcadia
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "Your greed has led you to perish under the moonlight.",
-                    Criteria = user => user.GetStat(GimiStats.TimesCursed) > 0
+                    Criteria = user => user.GetVar(GimiStats.TimesCursed) > 0
                 },
                 new Merit
                 {
@@ -59,7 +59,7 @@ namespace Arcadia
                     Rank = MeritRank.Gold,
                     Value = 50,
                     Quote = "Midas must've gifted you with his abilities.",
-                    Criteria = user => user.GetStat(GimiStats.LongestGold) >= 2,
+                    Criteria = user => user.GetVar(GimiStats.LongestGold) >= 2,
                     Hidden = true
                 },
                 new Merit
@@ -70,7 +70,7 @@ namespace Arcadia
                     Rank = MeritRank.Gold,
                     Value = 50,
                     Quote = "Your ruthless requests released the worst of this world.",
-                    Criteria = user => user.GetStat(GimiStats.LongestCurse) >= 2,
+                    Criteria = user => user.GetVar(GimiStats.LongestCurse) >= 2,
                     Hidden = true
                 },
                 new Merit
@@ -81,7 +81,7 @@ namespace Arcadia
                     Rank = MeritRank.Silver,
                     Value = 25,
                     Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
-                    Criteria = user => user.GetStat(TickStats.LongestWinExact) >= 3,
+                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 3,
                     Hidden = true
                 },
                 new Merit
@@ -92,7 +92,7 @@ namespace Arcadia
                     Rank = MeritRank.Bronze,
                     Value = 10,
                     Quote = "You have requested funds 100 times.",
-                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 100
+                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 100
                 },
                 new Merit
                 {
@@ -102,7 +102,7 @@ namespace Arcadia
                     Rank = MeritRank.Silver,
                     Value = 25,
                     Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
-                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 1000
+                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 1000
                 },
                 new Merit
                 {
@@ -112,7 +112,7 @@ namespace Arcadia
                     Rank = MeritRank.Gold,
                     Value = 50,
                     Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
-                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 5000,
+                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 5000,
                     Hidden = true,
                     Reward = new Reward
                     {
@@ -127,7 +127,7 @@ namespace Arcadia
                     Rank = MeritRank.Diamond,
                     Value = 250,
                     Quote = "No matter what anyone said, you kept going 10,000 times over.",
-                    Criteria = user => user.GetStat(GimiStats.TimesPlayed) >= 10000,
+                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 10000,
                     Hidden = true,
                     Reward = new Reward
                     {
@@ -145,7 +145,7 @@ namespace Arcadia
                     Rank = MeritRank.Bronze,
                     Value = 7,
                     Quote = "You've stopped by for 7 days, making your name known.",
-                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 7
+                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 7
                 },
                 new Merit
                 {
@@ -155,7 +155,7 @@ namespace Arcadia
                     Rank = MeritRank.Gold,
                     Value = 30,
                     Quote = "30 days have passed, and you have yet to miss a single one.",
-                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 30
+                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 30
                 },
                 new Merit
                 {
@@ -165,7 +165,7 @@ namespace Arcadia
                     Rank = MeritRank.Platinum,
                     Value = 100,
                     Quote = "You're still here. Even after 100 days.",
-                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 100,
+                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 100,
                     Hidden = true
                 },
                 new Merit
@@ -176,7 +176,7 @@ namespace Arcadia
                     Rank = MeritRank.Diamond,
                     Value = 365,
                     Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
-                    Criteria = user => user.GetStat(Stats.LongestDailyStreak) >= 365,
+                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 365,
                     Hidden = true
                 },
                 new Merit
@@ -187,7 +187,7 @@ namespace Arcadia
                     Rank = MeritRank.Bronze,
                     Value = 10,
                     Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
-                    Criteria = user => user.GetStat($"{Items.PocketLawyer}:times_used") >= 1
+                    Criteria = user => user.GetVar($"{Items.PocketLawyer}:times_used") >= 1
                 } // TODO: Create automatic item stat tracking
             };
 

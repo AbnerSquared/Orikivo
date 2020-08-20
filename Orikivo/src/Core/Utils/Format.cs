@@ -272,6 +272,29 @@ namespace Orikivo
             }
         }
 
+        public static string LongCounter(TimeSpan remaining, bool useMarkdown = true)
+        {
+            double milliseconds = remaining.TotalMilliseconds;
+
+            if (milliseconds < 0)
+                milliseconds *= -1;
+
+            double upper = milliseconds;
+            int i = 0;
+
+            while (upper > GetNextDenominator(i))
+            {
+                upper /= GetNextDenominator(i);
+
+                if (i < 7)
+                    i++;
+                else
+                    break;
+            }
+
+            string markdown = useMarkdown ? "**" : "";
+            return $"{markdown}{upper:##,0.##}{markdown} {GetCounterSuffix(i, true)}";
+        }
 
         // 70 => 1.06m
         public static string Counter(double seconds, bool useMarkdown = true)
@@ -292,10 +315,8 @@ namespace Orikivo
                     break;
             }
 
-            if (!useMarkdown)
-                return $"{upper:##,0.##}{GetCounterPrefix(i)}";
-
-            return $"**{upper:##,0.##}**{GetCounterPrefix(i)}";
+            string markdown = useMarkdown ? "**" : "";
+            return $"{markdown}{upper:##,0.##}{markdown}{GetCounterSuffix(i)}";
         }
 
         public static string RawCounter(double milliseconds)
@@ -316,18 +337,17 @@ namespace Orikivo
                     break;
             }
 
-            return $"{upper:##,0.##}{GetCounterPrefix(i)}";
+            return $"{upper:##,0.##}{GetCounterSuffix(i)}";
         }
 
         // 92399 => 92.3k
-        public static string Condense(ulong value, out NumberGroup group, bool ignoreZeros = true)
+        public static string Condense(long value, out NumberGroup group, bool ignoreZeros = true)
         {
-            
             string text = value.ToString();
             int length = text.Length;
             int pre = length % 3;
 
-            group = (NumberGroup)MathF.Floor(length / 3);
+            group = (NumberGroup)MathF.Floor(length / (float) 3);
 
             if (group > 0)
                 group--;
@@ -357,7 +377,7 @@ namespace Orikivo
                     {
                         if (rem <= 1)
                             return result.ToString();
-                        
+
                         if (text[pre + 1] == '0')
                             return result.ToString();
                     }
@@ -504,7 +524,7 @@ namespace Orikivo
                 return UniquePlurals[word];
 
             // if the specified word is shorter than 3 letters, just return it with an s.
-            if (word.Length < 3)
+            if (word.Length < 3 || word.EndsWith("nth")) // substitute; not official formatting
                 return word + "s";
 
             // regular nouns => word + s
@@ -558,7 +578,6 @@ namespace Orikivo
             // datum => data
             if (word.EndsWith("um"))
                 return word[..^2] + "a";
-            
 
             // this might not be right, but it's worth a shot
             if (word.EndsWith("ies"))
@@ -594,18 +613,18 @@ namespace Orikivo
                 .EqualsAny('a', 'e', 'i', 'o', 'u');
         }
 
-        private static string GetCounterPrefix(int upperIndex)
+        private static string GetCounterSuffix(int upperIndex, bool useFull = false)
         {
             return upperIndex switch
             {
-                7 => "y",
-                6 => "mo",
-                5 => "w",
-                4 => "d",
-                3 => "h",
-                2 => "m",
-                1 => "s",
-                _ => "ms"
+                7 => useFull? "years" : "y",
+                6 => useFull ? "months" : "mo",
+                5 => useFull ? "weeks" : "w",
+                4 => useFull ? "days" : "d",
+                3 => useFull ? "hours" : "h",
+                2 => useFull ? "minutes" : "m",
+                1 => useFull ? "seconds" : "s",
+                _ => useFull ? "milliseconds" : "ms"
             };
         }
 
@@ -614,7 +633,7 @@ namespace Orikivo
             return upperIndex switch
             {
                 7 => 12,
-                6 => 30.44, // average month
+                6 => 30.44,
                 5 => 7,
                 4 => 24,
                 0 => 1000,

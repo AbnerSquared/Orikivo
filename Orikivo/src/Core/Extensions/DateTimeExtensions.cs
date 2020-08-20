@@ -10,15 +10,15 @@ namespace Orikivo
         public static bool IsExpired(this DateTime? time)
         {
             if (time.HasValue)
-                return (DateTime.UtcNow - time.Value).Ticks > 0;
+                return DateTime.UtcNow - time.Value >= TimeSpan.Zero;
 
-            return false;
+            return true;
         }
 
         public static bool IsExpiredIn(this DateTime? time, TimeSpan duration)
         {
             if (time.HasValue)
-                return (DateTime.UtcNow - time.Value.Add(duration)).Ticks > 0;
+                return DateTime.UtcNow.Add(duration) - time.Value >= TimeSpan.Zero;
 
             return false;
         }

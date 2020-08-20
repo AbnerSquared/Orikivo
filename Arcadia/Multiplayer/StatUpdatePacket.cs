@@ -33,7 +33,7 @@ namespace Arcadia.Multiplayer
 
             if (Check.NotNull(ValueId))
             {
-                value = user.GetStat(ValueId);
+                value = user.GetVar(ValueId);
             }
 
             UpdateStat(user, Id, value, Type);
@@ -44,10 +44,10 @@ namespace Arcadia.Multiplayer
             switch(type)
             {
                 case StatUpdateType.Update:
-                    user.UpdateStat(a, b);
+                    user.AddToVar(a, b);
                     break;
                 case StatUpdateType.Set:
-                    user.SetStat(a, b);
+                    user.SetVar(a, b);
                     break;
                 case StatUpdateType.SetIfGreater:
                     StatHelper.SetIfGreater(user, a, b);

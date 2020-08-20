@@ -113,8 +113,7 @@ namespace Orikivo
 
             if (ctx.HasPriority)
                 ctx.Priority = int.TryParse(m.Groups[4].Value, out int index) ? index : 0;
-            
-            
+
             ctx.Type = GetTypeValue(m.Groups[5].Value);
 
             // If an overload index is specified AND the type (if specified) is not a command

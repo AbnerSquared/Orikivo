@@ -8,9 +8,9 @@ namespace Orikivo
 {
     public abstract class ContextNode : ContentNode
     {
-        private const char GROUP_MARKER = '*';
-        private const char MODULE_MARKER = '.';
-        private const char COMMAND_MARKER = '(';
+        public const char GroupMarker = '*';
+        private const char ModuleMarker = '.';
+        private const char CommandMarker = '(';
 
         protected ContextNode(ModuleInfo module)
         {
@@ -18,7 +18,6 @@ namespace Orikivo
             Name = module.Name;
             Aliases = module.Aliases.ToList();
             Summary = module.Summary;
-            // Reports = ...
         }
 
         protected ContextNode(CommandInfo command, bool useIndexing = false)
@@ -36,7 +35,6 @@ namespace Orikivo
             Name = parameter.Name;
             Aliases = null;
             Summary = parameter.Summary;
-            // Reports = ...
         }
 
         protected override bool ReadAttributes => false;
@@ -60,11 +58,11 @@ namespace Orikivo
             // For modules
             while (parent != null)
             {
-                id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + ' ' : parent.Name + MODULE_MARKER);
+                id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + ' ' : parent.Name + ModuleMarker);
                 parent = parent.Parent;
             }
 
-            id.Append(Check.NotNull(module.Group) ? module.Group + GROUP_MARKER : module.Name + MODULE_MARKER);
+            id.Append(Check.NotNull(module.Group) ? module.Group + GroupMarker : module.Name + ModuleMarker);
 
             return id.ToString().ToLower();
         }
@@ -77,20 +75,20 @@ namespace Orikivo
             if (Check.NotNull(command.Name))
             {
                 if (Check.NotNull(command.Module.Group))
-                    id.Replace(GROUP_MARKER, ' ');
+                    id.Replace(GroupMarker, ' ');
 
                 id.Append(command.Name);
             }
 
-            // if there is more than one instance of this command in existance, get the specific priority for the command IF it was wanted.
+            // if there is more than one instance of this command in existence, get the specific priority for the command IF it was requested.
             if (useOverloadIndex)
                 if (command.Module.Commands.Count(x => x.Name == command.Name) > 1)
                     id.Append($"+{command.Priority}");
 
             if (Check.NotNull(command.Module.Group) && !Check.NotNull(command.Name))
-                id.Replace(GROUP_MARKER, COMMAND_MARKER);
+                id.Replace(GroupMarker, CommandMarker);
             else
-                id.Append(COMMAND_MARKER);
+                id.Append(CommandMarker);
 
             return id.ToString().ToLower();
         }

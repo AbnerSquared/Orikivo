@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Casino;
 using Orikivo;
@@ -19,6 +20,7 @@ namespace Arcadia
         public static readonly string ResetGeneric = "Your streak has been reset.";
         public static readonly string CooldownGeneric = "You are currently on cooldown.";
         public static readonly string BonusGeneric = "You have been given a bonus.";
+        public static readonly string TickExactGeneric = "You have guessed the exact tick correctly.";
 
         public static string GetReply(DailyResultFlag flag)
         {
@@ -42,7 +44,22 @@ namespace Arcadia
             return GetGeneric(flag);
         }
 
-        private static bool MeetsCriteria(CasinoReply reply, ArcadeUser user, GimiResult result)
+        public static string GetReply(TickResultFlag flag, ArcadeUser user = null, TickResult result = null)
+        {
+            IEnumerable<CasinoReply> replies = GetReplies(flag);
+
+            if (user != null && result != null)
+            {
+                replies = replies.Where(x => MeetsCriteria(x, user, result));
+            }
+
+            if (Check.NotNullOrEmpty(replies))
+                return Randomizer.Choose(replies).ToString(user, result);
+
+            return GetGeneric(flag);
+        }
+
+        private static bool MeetsCriteria(CasinoReply reply, ArcadeUser user, ICasinoResult result)
         {
             if (reply.Criteria == null)
                 return true;
@@ -70,6 +87,15 @@ namespace Arcadia
                 _ => "INVALID_FLAG"
             };
 
+        private static string GetGeneric(TickResultFlag flag)
+            => flag switch
+            {
+                TickResultFlag.Win => WinGeneric,
+                TickResultFlag.Exact => TickExactGeneric,
+                TickResultFlag.Lose => LoseGeneric,
+                _ => "INVALID_FLAG"
+            };
+
         private static CasinoReply[] GetReplies(GimiResultFlag flag)
             => flag switch
             {
@@ -77,6 +103,15 @@ namespace Arcadia
                 GimiResultFlag.Gold => Gold,
                 GimiResultFlag.Lose => Lose,
                 GimiResultFlag.Curse => Curse,
+                _ => null
+            };
+
+        private static CasinoReply[] GetReplies(TickResultFlag flag)
+            => flag switch
+            {
+                TickResultFlag.Win => TickWin,
+                TickResultFlag.Exact => TickExact,
+                TickResultFlag.Lose => TickLoss,
                 _ => null
             };
 
@@ -131,7 +166,7 @@ namespace Arcadia
             {
                 Content = "Maximum profits achieved!",
                 Criteria = (user, result) => result.Reward == 10
-            } 
+            }
         };
 
         public static readonly CasinoReply[] Recover =
@@ -183,6 +218,95 @@ namespace Arcadia
         {
             "You have achieved true consistency.",
             "Glad to see you could make it."
+        };
+
+        public static readonly CasinoReply[] TickWin =
+        {
+            "Nicely done!",
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is TickResult t
+                                             && t.Multiplier > 5,
+                Writer = delegate(ArcadeUser user, ICasinoResult result)
+                {
+                    if (!(result is TickResult t))
+                        return "INVALID_RESULT_TYPE";
+
+                    return $"You beat the odds, boosting your bet by an astonishing x**{t.Multiplier:##,0.#}**!";
+                }
+            },
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is TickResult,
+                Writer = delegate(ArcadeUser user, ICasinoResult result)
+                {
+                    if (!(result is TickResult t))
+                        return "INVALID_RESULT_TYPE";
+
+                    return $"The machine stopped at **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}.";
+                }
+            },
+        };
+
+        public static readonly CasinoReply[] TickExact =
+        {
+            "Now that was a clean guess.",
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is TickResult,
+                Writer = delegate(ArcadeUser user, ICasinoResult result)
+                {
+                    if (!(result is TickResult t))
+                        return "INVALID_RESULT_TYPE";
+
+                    return $"The machine stopped at exactly **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}. Good guessing!";
+                }
+            },
+        };
+
+        public static readonly CasinoReply[] TickLoss =
+        {
+            "Ouch. Sorry about that.",
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is TickResult tResult
+                                             && tResult.ActualTick > 0,
+                Writer = delegate(ArcadeUser user, ICasinoResult result)
+                {
+                    if (!(result is TickResult t))
+                        return "INVALID_RESULT_TYPE";
+
+                    return $"The machine stopped at **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}.";
+                }
+            },
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is TickResult,
+                Writer = delegate(ArcadeUser user, ICasinoResult result)
+                {
+                    if (!(result is TickResult t))
+                        return "INVALID_RESULT_TYPE";
+
+                    int diff = Math.Abs(t.ActualTick - t.ExpectedTick);
+                    return $"You were **{diff}** {Format.TryPluralize("tick", diff)} away from **{t.ExpectedTick}**.";
+                }
+            },
+            new CasinoReply
+            {
+                Writer = (user, result) => $"You missed a chance to win {Icons.Chips} **{result.Reward:##,0}**."
+            },
+            new CasinoReply
+            {
+                Content = "This machine has flat-lined at the start.",
+                Criteria = (user, result) => result is TickResult t
+                                             && t.ActualTick == 0
+            },
+            new CasinoReply
+            {
+                Content = "You were off by a single tick.",
+                Criteria = (user, result) => result is TickResult t
+                                             && Math.Abs(t.ActualTick - t.ExpectedTick) == 1
+            }
         };
     }
 }

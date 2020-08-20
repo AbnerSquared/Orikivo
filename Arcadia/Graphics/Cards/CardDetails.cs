@@ -34,12 +34,12 @@ namespace Arcadia.Graphics
         /// <summary>
         /// The user's current balance.
         /// </summary>
-        public ulong Balance { get; set; }
+        public long Balance { get; set; }
 
         /// <summary>
         /// The user's current debt.
         /// </summary>
-        public ulong Debt { get; set; }
+        public long Debt { get; set; }
 
         /// <summary>
         /// The user's current experience.

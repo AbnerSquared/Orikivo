@@ -132,7 +132,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Level => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
                 LeaderboardQuery.Chips => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
                 LeaderboardQuery.Merits => string.Format(CustomBaseFormat, user.Username, $"**{MeritHelper.GetScore(user)}**m"),
-                LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetStat(statId)),
+                LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetVar(statId)),
                 _ => "INVALID_FLAG"
             };
         }
@@ -215,7 +215,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Level => user.Ascent * 100 + user.Level,
                 LeaderboardQuery.Chips => (long) user.ChipBalance,
                 LeaderboardQuery.Merits => MeritHelper.GetScore(user),
-                LeaderboardQuery.Custom => user.GetStat(statId),
+                LeaderboardQuery.Custom => user.GetVar(statId),
                 _ => 0
             };
         }

@@ -446,9 +446,9 @@ namespace Arcadia
             if (currency == CurrencyType.Money)
                 User.Take(value, false);
             else if (currency == CurrencyType.Chips)
-                User.ChipBalance -= (ulong)value;
+                User.ChipBalance -= value;
             else if (currency == CurrencyType.Tokens)
-                User.TokenBalance -= (ulong)value;
+                User.TokenBalance -= value;
             else if (currency == CurrencyType.Debt)
                 User.Give(value, false);
         }
@@ -458,9 +458,9 @@ namespace Arcadia
             if (currency == CurrencyType.Money)
                 User.Give(value, false);
             else if (currency == CurrencyType.Chips)
-                User.ChipBalance += (ulong) value;
+                User.ChipBalance += value;
             else if (currency == CurrencyType.Tokens)
-                User.TokenBalance += (ulong) value;
+                User.TokenBalance += value;
             else if (currency == CurrencyType.Debt)
                 User.Take(value, false);
 
@@ -469,7 +469,7 @@ namespace Arcadia
 
         private long GetBalance(CurrencyType currency)
         {
-            ulong balance = currency switch
+            return currency switch
             {
                 CurrencyType.Money => User.Balance,
                 CurrencyType.Chips => User.ChipBalance,
@@ -477,8 +477,6 @@ namespace Arcadia
                 CurrencyType.Debt => User.Debt,
                 _ => throw new Exception("Unknown currency")
             };
-
-            return (long) balance;
         }
 
         private Item GetItemFromCatalog(string itemId)

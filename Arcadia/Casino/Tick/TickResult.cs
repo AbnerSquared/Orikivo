@@ -16,6 +16,8 @@ namespace Arcadia.Casino
             Multiplier = multiplier;
         }
 
+        public CasinoMode Mode => CasinoMode.Tick;
+
         public int ExpectedTick { get; }
 
         public int ActualTick { get; }
@@ -26,7 +28,7 @@ namespace Arcadia.Casino
 
         public long Reward { get; }
 
-        public bool IsSuccess => Flag == TickResultFlag.Win;
+        public bool IsSuccess => Flag.EqualsAny(TickResultFlag.Win, TickResultFlag.Exact);
 
         public TickResultFlag Flag { get; }
 
@@ -38,8 +40,8 @@ namespace Arcadia.Casino
             {
                 return Randomizer.ChooseAny($"The dying tick was **{actualTick}**.",
                     "Ouch. Sorry about that.",
-                    $"You missed a chance at **🧩 {reward:##,0}**.",
-                    "Don't forget that your **Chips** (🧩) are always taken at the start.",
+                    $"You missed a chance at **{Icons.Chips} {reward:##,0}**.",
+                    $"Don't forget that your **Chips** ({Icons.Chips}) are always taken at the start.",
                     diff == expectedTick
                         ? "There was never a successful tick in this round."
                         : $"You were **{diff}** {Format.TryPluralize("tick", diff)} away from **{expectedTick}**.");
@@ -51,7 +53,7 @@ namespace Arcadia.Casino
                     : $"You have received a **x{multiplier:##,0.#}** return.",
                 diff == 0
                     ? $"The dying tick was exactly **{expectedTick}**. Good guessing!"
-                    : "In this round, the dying tick was **14**.");
+                    : $"In this round, the dying tick was **{actualTick}**.");
         }
 
         public Message ApplyAndDisplay(ArcadeUser user)
@@ -60,24 +62,25 @@ namespace Arcadia.Casino
             string type = IsSuccess ? "+" : "-";
             long value = IsSuccess ? Reward : Wager;
 
-            user.UpdateStat(TickStats.TotalBet, Wager);
-            user.UpdateStat(TickStats.TimesPlayed);
+            user.AddToVar(TickStats.TotalBet, Wager);
+            user.AddToVar(TickStats.TimesPlayed);
 
-            user.ChipBalance -= (ulong) Wager;
+            user.ChipBalance -= Wager;
 
             switch (Flag)
             {
+                case TickResultFlag.Exact:
                 case TickResultFlag.Win:
-                    user.SetStat(TickStats.CurrentLossStreak, 0);
+                    user.SetVar(TickStats.CurrentLossStreak, 0);
 
-                    user.UpdateStat(TickStats.TimesWon);
-                    user.UpdateStat(TickStats.TotalWon, Reward);
+                    user.AddToVar(TickStats.TimesWon);
+                    user.AddToVar(TickStats.TotalWon, Reward);
 
                     if (ExpectedTick == ActualTick)
-                        user.UpdateStat(TickStats.TimesWonExact);
+                        user.AddToVar(TickStats.TimesWonExact);
 
-                    user.UpdateStat(TickStats.CurrentWinStreak);
-                    user.UpdateStat(TickStats.CurrentWinAmount, Reward);
+                    user.AddToVar(TickStats.CurrentWinStreak);
+                    user.AddToVar(TickStats.CurrentWinAmount, Reward);
 
                     StatHelper.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
                     StatHelper.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
@@ -86,8 +89,8 @@ namespace Arcadia.Casino
 
                 case TickResultFlag.Lose:
                     StatHelper.Clear(user, TickStats.CurrentWinStreak, TickStats.CurrentWinAmount);
-                    user.UpdateStat(TickStats.TimesLost);
-                    user.UpdateStat(TickStats.CurrentLossStreak);
+                    user.AddToVar(TickStats.TimesLost);
+                    user.AddToVar(TickStats.CurrentLossStreak);
                     break;
 
                 default:
@@ -95,10 +98,12 @@ namespace Arcadia.Casino
             }
 
             if (IsSuccess)
-                user.ChipBalance += (ulong) ItemHelper.BoostValue(user, Reward, BoosterType.Chips);
+                user.ChipBalance += ItemHelper.BoostValue(user, Reward, BoosterType.Chips);
 
             string header = $"**{type} 🧩 {value:##,0}**";
-            string content = GetQuote(ExpectedTick, ActualTick, Multiplier, Reward, IsSuccess);
+
+            string content = Replies.GetReply(Flag, user, this);
+                //GetQuote(ExpectedTick, ActualTick, Multiplier, Reward, IsSuccess);
 
             var embedder = new Embedder
             {

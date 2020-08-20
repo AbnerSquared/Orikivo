@@ -5,7 +5,7 @@ namespace Orikivo
     /// <summary>
     /// Marks a command with a usage cooldown on the account that executed the command.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Method)]
     public class CooldownAttribute : Attribute
     {
         public TimeSpan Duration { get; }

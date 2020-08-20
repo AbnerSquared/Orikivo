@@ -13,7 +13,7 @@ namespace Arcadia
         {
             var progress = new Dictionary<string, long>();
 
-            foreach (StatCriterion criterion in quest.Criteria)
+            foreach (VarCriterion criterion in quest.Criteria)
                 progress.Add(criterion.Id, 0);
 
             Id = quest.Id;

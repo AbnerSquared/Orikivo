@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
@@ -48,8 +49,12 @@ namespace Arcadia.Modules
                 return;
             }
 
-            Context.Account.CanAutoGimi = false;
+            await HandleAutoGimiAsync(times).ConfigureAwait(false);
+        }
 
+        private async Task HandleAutoGimiAsync(int times)
+        {
+            Context.Account.CanAutoGimi = false;
             times = times > 100 ? 100 : times <= 0 ? 1 : times;
 
             long result = 0;
@@ -71,17 +76,14 @@ namespace Arcadia.Modules
                     await Task.Delay(1000);
             }
 
-            // TODO: Make it look nicer!
-            await reference.ModifyAsync($"> 〽️ **The results are in!**\n> **Net Outcome**: **{result:##,0}**");
-
-
+            await reference.ModifyAsync($"> 〽️ **The results are in!**\n> **Net Outcome**: **{result:##,0}**").ConfigureAwait(false);
             Context.Account.CanAutoGimi = true;
         }
 
         [RequireUser]
         [Command("doubler"), Alias("double", "dbl")]
         [Summary("A **Casino** activity that allows you to attempt to make an astonishing return.")]
-        public async Task DoublerAsync(long wager, int expectedTick = 1, TickWinMethod method = TickWinMethod.Below)
+        public async Task DoublerAsync(long wager = 0, int expectedTick = 1, TickWinMethod method = TickWinMethod.Below)
         {
             if (wager < 0)
             {
@@ -91,11 +93,12 @@ namespace Arcadia.Modules
 
             if (wager == 0)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
+                await Context.Channel.SendMessageAsync(CommandDetails.WriteTick());
                 return;
             }
 
-            if (wager > (long)Context.Account.ChipBalance)
+            if (wager > Context.Account.ChipBalance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
                 return;
@@ -138,17 +141,18 @@ namespace Arcadia.Modules
 
             if (amount == 0)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Orite** to convert.");
+                // $"> ⚠️ You need to specify a positive amount of **Orite** to convert.
+                await Context.Channel.SendMessageAsync(CommandDetails.WriteGetChips());
                 return;
             }
 
-            if (amount > (long)Context.Account.Balance)
+            if (amount > Context.Account.Balance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Orite** to convert this amount.");
                 return;
             }
 
-            var chips = (ulong) MoneyConvert.GetChips(amount);
+            var chips = MoneyConvert.GetChips(amount);
 
             Context.Account.Take(amount, false);
             Context.Account.ChipBalance += chips;

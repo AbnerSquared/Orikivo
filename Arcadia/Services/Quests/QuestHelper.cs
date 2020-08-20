@@ -19,10 +19,10 @@ namespace Arcadia
                 Name = "Casino Field Day",
                 Summary = "It's a wonderful day to gamble your happiness away!",
                 Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<StatCriterion>
+                Criteria = new List<VarCriterion>
                 {
-                    new StatCriterion(GimiStats.TimesPlayed, 100),
-                    new StatCriterion(TickStats.TimesPlayed, 100)
+                    new VarCriterion(GimiStats.TimesPlayed, 100),
+                    new VarCriterion(TickStats.TimesPlayed, 100)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -37,10 +37,10 @@ namespace Arcadia
                 Name = "Trivial Pursuit",
                 Summary = "Test your brain power and push through!",
                 Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<StatCriterion>
+                Criteria = new List<VarCriterion>
                 {
-                    new StatCriterion(TriviaStats.TimesPlayed, 5),
-                    new StatCriterion(TriviaStats.TimesWon, 1)
+                    new VarCriterion(TriviaStats.TimesPlayed, 5),
+                    new VarCriterion(TriviaStats.TimesWon, 1)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -74,7 +74,7 @@ namespace Arcadia
         }
 
         public static bool CanAssign(ArcadeUser user)
-            => StatHelper.SinceLast(user, Stats.LastAssignedQuest) >= AssignCooldown && user.Quests.Count <= user.GetStat(Stats.QuestCapacity);
+            => StatHelper.SinceLast(user, Stats.LastAssignedQuest) >= AssignCooldown && user.Quests.Count <= user.GetVar(Stats.QuestCapacity);
 
         public static bool CanAssign(ArcadeUser user, Quest quest)
         {
@@ -113,7 +113,7 @@ namespace Arcadia
                 user.Quests.Add(new QuestData(Randomizer.Choose(assignable)));
             }
 
-            user.SetStat(Stats.LastAssignedQuest, DateTime.UtcNow.Ticks);
+            user.SetVar(Stats.LastAssignedQuest, DateTime.UtcNow.Ticks);
         }
 
         public static Message AssignAndDisplay(ArcadeUser user)
@@ -140,7 +140,7 @@ namespace Arcadia
                 info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({toAssign.Difficulty.ToString()})");
             }
 
-            user.SetStat(Stats.LastAssignedQuest, DateTime.UtcNow.Ticks);
+            user.SetVar(Stats.LastAssignedQuest, DateTime.UtcNow.Ticks);
 
             return new Message(info.ToString());
         }
@@ -177,7 +177,7 @@ namespace Arcadia
 
             long sum = 0;
             long total = 0;
-            foreach (StatCriterion criterion in quest.Criteria)
+            foreach (VarCriterion criterion in quest.Criteria)
             {
                 sum += data.Progress[criterion.Id];
                 total += criterion.ExpectedValue;
@@ -302,7 +302,7 @@ namespace Arcadia
 
             info.AppendLine("> **Tasks**");
 
-            foreach (StatCriterion criterion in quest.Criteria)
+            foreach (VarCriterion criterion in quest.Criteria)
             {
                 string bullet = criterion.ExpectedValue == slot.Progress[criterion.Id] ? "✓" : "•";
 
@@ -322,7 +322,7 @@ namespace Arcadia
             if (quest == null)
                 throw new Exception("Expected to find a parent quest but returned null");
 
-            foreach (StatCriterion criterion in quest.Criteria)
+            foreach (VarCriterion criterion in quest.Criteria)
             {
                 long current = data.Progress[criterion.Id];
 

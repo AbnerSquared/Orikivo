@@ -18,7 +18,7 @@ namespace Arcadia
         // The requirements needed to assign this quest
         public Func<ArcadeUser, bool> ToAssign { get; set; }
 
-        public List<StatCriterion> Criteria { get; internal set; } = new List<StatCriterion>();
+        public List<VarCriterion> Criteria { get; internal set; } = new List<VarCriterion>();
 
         public Reward Reward { get; set; }
 
@@ -38,6 +38,6 @@ namespace Arcadia
         public QuestType Type { get; set; }
         public Func<ArcadeGuild, bool> ToAssign { get; set; }
 
-        public List<StatCriterion> Criteria { get; internal set; } = new List<StatCriterion>();
+        public List<VarCriterion> Criteria { get; internal set; } = new List<VarCriterion>();
     }
 }

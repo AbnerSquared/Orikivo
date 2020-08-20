@@ -36,12 +36,9 @@ namespace Arcadia.Casino
         public override string ToString()
             => Content;
 
-        public string ToString(ArcadeUser user, GimiResult result)
+        public string ToString(ArcadeUser user, ICasinoResult result)
         {
-            if (Writer == null)
-                return Content;
-
-            return Writer(user, result);
+            return Writer == null ? Content : Writer(user, result);
         }
     }
 }

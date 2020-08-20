@@ -407,7 +407,7 @@ namespace Arcadia.Graphics
 
                 bool inDebt = details.Debt > details.Balance;
 
-                ulong money = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
+                long money = inDebt ? details.Debt - details.Balance : details.Balance - details.Debt;
                 string balance = Format.Condense(money, out NumberGroup suffix);
 
                 string text = $"{(inDebt ? "-" : "")}{balance}";
