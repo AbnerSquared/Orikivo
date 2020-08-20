@@ -255,6 +255,7 @@ namespace Arcadia
                     {
                         // If the user accepted the trade invitation, go to the base trade menu.
                         await SetStateAsync(TradeState.Menu, $"> ☑️ **{Participant.Username}** has agreed to trade.");
+                        Participant.CanTrade = false;
                         return ActionResult.Continue;
                     }
 

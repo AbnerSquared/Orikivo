@@ -17,6 +17,11 @@ namespace Arcadia
             return header.ToString();
         }
 
+        public static string WriteCapacity(long capacity)
+        {
+            return $"**{GetCapacity(capacity)} {GetSuffix(capacity)}**";
+        }
+
         // TODO: The capacity determination could be cleaned up.
         private static string GetCapacity(long capacity)
         {
@@ -151,7 +156,7 @@ namespace Arcadia
                 ItemTag tag = ItemHelper.GetTag(data.Id);
 
                 // Ignore if this cannot be sold.
-                if (!shop.SellTags.HasFlag(tag))
+                if ((tag & shop.SellTags) == 0) // if both tags don't have any matching tags, ignore this entry
                     continue;
 
                 inventory.AppendLine($"\n{WriteItemRow(i + 1, data.Id, data)}");

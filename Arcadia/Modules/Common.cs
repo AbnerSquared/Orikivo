@@ -23,8 +23,8 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
-        [RequireUser]
-        [Command("var_test")]
+        //[RequireUser]
+        //[Command("var_test")]
         public async Task VarTestAsync()
         {
             string dummy = GimiStats.TimesPlayed;
@@ -66,6 +66,13 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("cooldowns"), Alias("cooldown", "expiry")]
+        public async Task ViewCooldownsAsync()
+        {
+            await Context.Channel.SendMessageAsync(CooldownHelper.ViewAllTimers(Context.Account));
+        }
+
+        [RequireUser]
         [Command("claim")]
         [Summary("Attempt to claim the specified merit.")]
         public async Task ClaimAsync(string meritId)
@@ -87,6 +94,14 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("stat")]
+        public async Task ViewStatAsync(string id)
+        {
+            await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id));
+        }
+
+        [RequireUser]
+        [RequireData]
         [Command("shop")]
         public async Task ShopAsync(string shopId)
         {
@@ -199,8 +214,8 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Daily.ApplyAndDisplay(Context.Account, result));
         }
 
-        [RequireUser]
-        [Command("giveprogresspioneer")]
+        //[RequireUser]
+        //[Command("giveprogresspioneer")]
         public async Task GivePioneerMerit(SocketUser user = null)
         {
             if (Context.User.Id != OriGlobal.DevId)
@@ -244,9 +259,16 @@ namespace Arcadia.Modules
             if (await CatchEmptyAccountAsync(account))
                 return;
 
+            if (!Context.Account.CanTrade)
+                return;
+
+            Context.Account.CanTrade = false;
+
             var handler = new TradeHandler(Context, account);
 
             await HandleTradeAsync(handler);
+            Context.Account.CanTrade = true;
+            account.CanTrade = true;
         }
 
         private async Task HandleTradeAsync(TradeHandler handler)

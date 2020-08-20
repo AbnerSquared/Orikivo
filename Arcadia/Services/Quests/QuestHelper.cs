@@ -11,6 +11,7 @@ namespace Arcadia
     {
         public static readonly long DefaultQuestCapacity = 1;
         public static readonly TimeSpan AssignCooldown = TimeSpan.FromHours(24);
+        public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(4);
         public static readonly List<Quest> Quests = new List<Quest>
         {
             new Quest
@@ -21,14 +22,14 @@ namespace Arcadia
                 Difficulty = QuestDifficulty.Easy,
                 Criteria = new List<VarCriterion>
                 {
-                    new VarCriterion(GimiStats.TimesPlayed, 100),
-                    new VarCriterion(TickStats.TimesPlayed, 100)
+                    new VarCriterion(GimiStats.TimesPlayed, 25),
+                    new VarCriterion(TickStats.TimesPlayed, 25)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
                 {
-                    Money = 50,
-                    Exp = 15
+                    Money = 20,
+                    Exp = 5
                 }
             },
             new Quest
@@ -74,7 +75,11 @@ namespace Arcadia
         }
 
         public static bool CanAssign(ArcadeUser user)
-            => StatHelper.SinceLast(user, Stats.LastAssignedQuest) >= AssignCooldown && user.Quests.Count <= user.GetVar(Stats.QuestCapacity);
+        {
+            TimeSpan since = StatHelper.SinceLast(user, Stats.LastAssignedQuest);
+
+            return since >= AssignCooldown && user.Quests.Count <= user.GetVar(Stats.QuestCapacity);
+        }
 
         public static bool CanAssign(ArcadeUser user, Quest quest)
         {
@@ -121,26 +126,36 @@ namespace Arcadia
             StatHelper.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
 
             if (!CanAssign(user))
+            {
                 return new Message($"> 🚫 You have already been assigned your daily objectives.\n> Check back in **{Format.Countdown(StatHelper.GetRemainder(user, Stats.LastAssignedQuest, AssignCooldown))}**.");
+            }
 
             if (!HasAnyAssignable(user))
                 return new Message($"> 🚫 You do not meet the criteria to be assigned an objective.");
 
             IEnumerable<Quest> assignable = GetAssignable(user);
 
+            long available = GetCurrentCapacity(user);
+
+            if (available == 0)
+                return new Message($"> 🚫 You don't currently have any room to be assigned any new objectives.");
+
             var info = new StringBuilder();
 
             info.AppendLine($"> {Icons.Assign} You have been assigned new objectives!");
 
             // If you want to allow for preservation of existing quests, ignore ones already specified
-            for (int i = 0; i < GetCurrentCapacity(user); i++)
+            for (int i = 0; i < available; i++)
             {
                 Quest toAssign = Randomizer.Choose(assignable);
                 user.Quests.Add(new QuestData(toAssign));
                 info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({toAssign.Difficulty.ToString()})");
             }
 
-            user.SetVar(Stats.LastAssignedQuest, DateTime.UtcNow.Ticks);
+            TimeSpan amountToSkip = AssignCooldown - ((AssignCooldown / user.GetVar(Stats.QuestCapacity)) * available);
+
+            user.SetVar(Stats.LastAssignedQuest, DateTime.UtcNow.Add(amountToSkip).Ticks);
+            user.AddToVar(Stats.TotalAssignedQuests, available);
 
             return new Message(info.ToString());
         }
@@ -268,12 +283,28 @@ namespace Arcadia
             if (slot == null)
                 return $"> {Icons.Warning} There isn't an assigned objective in this slot.";
 
+            if (user.GetVar(Stats.LastSkippedQuest) > 0)
+                if (StatHelper.SinceLast(user, Stats.LastSkippedQuest) >= SkipCooldown)
+                    return $"> {Icons.Warning} You have skipped an objective too recently. Try again in {Format.Countdown(SkipCooldown - StatHelper.SinceLast(user, Stats.LastSkippedQuest))}.";
+
             Quest quest = GetQuest(slot.Id);
 
             if (quest == null)
                 throw new Exception("Expected to find a parent quest but returned null");
 
             user.Quests.RemoveAt(index);
+            user.SetVar(Stats.LastSkippedQuest, DateTime.UtcNow.Ticks);
+
+            TimeSpan since = StatHelper.SinceLast(user, Stats.LastAssignedQuest);
+
+            bool canAssign = since >= AssignCooldown;
+
+            if (!canAssign)
+            {
+                TimeSpan toSkip = (AssignCooldown - since) / 2; // skip 50% of the remaining time
+                user.SetVar(Stats.LastAssignedQuest, new DateTime(user.GetVar(Stats.LastAssignedQuest)).Add(toSkip).Ticks);
+            }
+
             return $"> 🗑️ You have declined the **{quest.Name}** objective.";
         }
 
@@ -357,6 +388,7 @@ namespace Arcadia
                 Quest quest = GetQuest(completed.Id);
 
                 user.Quests.Remove(completed);
+                user.AddToVar(Stats.TotalCompletedQuests);
                 info.AppendLine($"> **{quest.Name}** ({quest.Difficulty})");
                 info.AppendLine($"> {Icons.Complete} You have completed an objective!\n");
                 info.AppendLine("> You have been rewarded:");
@@ -370,6 +402,7 @@ namespace Arcadia
             info.AppendLine($"> {Icons.Complete} You have completed **{count}** objectives!\n");
             info.AppendLine("> You have been rewarded:");
             info.AppendLine(WriteReward(sum));
+            user.AddToVar(Stats.TotalCompletedQuests, count);
             sum.Apply(user);
 
             return info.ToString();

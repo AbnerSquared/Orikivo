@@ -24,12 +24,14 @@ namespace Arcadia
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig(Graphics.PaletteType.Default);
+            CatalogHistory = new Dictionary<string, CatalogHistory>();
         }
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             long balance, long tokenBalance, long chipBalance, long debt, ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card)
+            Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card,
+            Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
         {
             Balance = balance;
@@ -44,6 +46,7 @@ namespace Arcadia
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig(Graphics.PaletteType.Default);
+            CatalogHistory = catalogHistory ?? new Dictionary<string, CatalogHistory>();
         }
 
         [JsonProperty("balance")]
@@ -84,6 +87,9 @@ namespace Arcadia
 
         [JsonProperty("card")]
         public CardConfig Card { get; }
+
+        [JsonProperty("catalog_history")]
+        public Dictionary<string, CatalogHistory> CatalogHistory { get; }
 
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();

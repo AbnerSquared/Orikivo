@@ -66,7 +66,7 @@ namespace Arcadia.Modules
             return $"{prefix}{booster.Type}";
         }
 
-        private static string WriteName(BoosterData booster)
+        public static string WriteName(BoosterData booster)
         {
             if (Check.NotNull(booster.ParentId))
                 return ItemHelper.GetItem(booster.ParentId)?.Name ?? WriteDefaultName(booster);

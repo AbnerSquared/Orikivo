@@ -22,7 +22,7 @@ namespace Arcadia.Modules
             _mongo = mongo;
         }
 
-        [Command("mongotest")]
+        //[Command("mongotest")]
         public async Task MongoTestAsync()
         {
             if (Context.User.Id != OriGlobal.DevId)

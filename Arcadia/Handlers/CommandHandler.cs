@@ -419,8 +419,18 @@ namespace Arcadia
                 ctx.Data.Guilds.TrySave(ctx.Server);
             }
 
+            var requireGlobal = command.Attributes.FirstOrDefault<RequireDataAttribute>();
+
+            if (requireGlobal != null)
+                ctx.Data.SaveGlobalData();
             // For now, just save global data until a workaround is found
             // JsonHandler.Save(ctx.Container.Global, "global.json");
         }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class RequireDataAttribute : Attribute
+    {
+
     }
 }

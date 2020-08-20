@@ -17,7 +17,8 @@ namespace Arcadia
             Shop = shop;
             State = ShopState.Enter;
             Vendor = Check.NotNullOrEmpty(shop.Vendors) ? Randomizer.Choose(shop.Vendors) : null;
-            Catalog = shop.Catalog.Generate();
+            Catalog = context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
+
         }
 
         public ArcadeContext Context { get; }
@@ -221,7 +222,7 @@ namespace Arcadia
                         await UpdateAsync(OnTryBuy);
                         return ActionResult.Continue;
 
-                    case "buy" when Catalog.Items.Count == 0:
+                    case "buy" when Catalog.ItemIds.Count == 0:
                         await UpdateAsync(OnBuyEmpty);
                         return ActionResult.Continue;
 
@@ -239,6 +240,12 @@ namespace Arcadia
                         return ActionResult.Continue;
 
                     case "sell":
+                        if (User.Items.Count(x => (ItemHelper.GetTag(x.Id) & Shop.SellTags) != 0) == 0)
+                        {
+                            await UpdateAsync("You don't have any items I can buy from you.");
+                            return ActionResult.Continue;
+                        }
+
                         State = ShopState.ViewSell;
                         await UpdateAsync();
                         return ActionResult.Continue;
@@ -295,9 +302,9 @@ namespace Arcadia
                 if (string.IsNullOrWhiteSpace(arg))
                     amount = 1;
                 else if (arg == "all")
-                    amount = Catalog.Items[item];
+                    amount = Catalog.ItemIds[item.Id];
                 else if (int.TryParse(arg, out amount)) // item!
-                    amount = Math.Clamp(amount, 0, Catalog.Items[item]);
+                    amount = Math.Clamp(amount, 0, Catalog.ItemIds[item.Id]);
 
                 if (amount < 1)
                 {
@@ -319,12 +326,16 @@ namespace Arcadia
                 // Take the money from the user
                 Take(GetCost(item, amount), item.Currency);
 
-                // Remove the purchased items from the catalog
-                Catalog.Items[item] -= amount;
+                if (!User.CatalogHistory.ContainsKey(Shop.Id))
+                    User.CatalogHistory[Shop.Id] = new CatalogHistory();
 
-                if (Catalog.Items[item] <= 0)
+
+                // Remove the purchased items from the catalog
+                Catalog.ItemIds[item.Id] -= amount;
+
+                if (Catalog.ItemIds[item.Id] <= 0)
                 {
-                    Catalog.Items.Remove(item);
+                    Catalog.ItemIds.Remove(item.Id);
 
                     if (Catalog.Discounts.ContainsKey(item.Id))
                         Catalog.Discounts.Remove(item.Id);
@@ -333,7 +344,7 @@ namespace Arcadia
                 Notice = WriteBuyNotice(item, amount, GetCost(item, amount));
                 CanClearNotice = false;
 
-                if (Catalog.Items.Count == 0)
+                if (Catalog.ItemIds.Count == 0)
                 {
                     State = ShopState.Menu;
                     await UpdateAsync("You've bought everything in stock. Thank you.");
@@ -375,7 +386,7 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
-                if (!item.Tag.HasFlag(Shop.SellTags))
+                if ((item.Tag & Shop.SellTags) != 0)
                 {
                     await UpdateAsync("Sorry, but I don't buy that here.");
                     return ActionResult.Continue;
@@ -396,6 +407,12 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
+                if (ItemHelper.GetOwnedAmount(User, item) == 0)
+                {
+                    await UpdateAsync("You don't have this item in your inventory.");
+                    return ActionResult.Continue;
+                }
+
                 // Otherwise, if the item can be sold:
 
                 // Take the item from the user
@@ -411,6 +428,37 @@ namespace Arcadia
 
             // Otherwise, wait for the next input
             return ActionResult.Continue;
+        }
+
+        private void RemoveFromInventory(Item item, int amount)
+        {
+            if (!User.CatalogHistory.ContainsKey(Shop.Id))
+                User.CatalogHistory[Shop.Id] = new CatalogHistory();
+
+            ItemHelper.TakeItem(User, item, amount);
+
+            if (!User.CatalogHistory[Shop.Id].SoldIds.TryAdd(item.Id, amount))
+                User.CatalogHistory[Shop.Id].SoldIds[item.Id] += amount;
+        }
+
+        private void RemoveFromCatalog(Item item, int amount)
+        {
+            if (!User.CatalogHistory.ContainsKey(Shop.Id))
+                User.CatalogHistory[Shop.Id] = new CatalogHistory();
+
+            // Remove the purchased items from the catalog
+            Catalog.ItemIds[item.Id] -= amount;
+
+            if (!User.CatalogHistory[Shop.Id].PurchasedIds.TryAdd(item.Id, amount))
+                User.CatalogHistory[Shop.Id].PurchasedIds[item.Id] += amount;
+
+            if (Catalog.ItemIds[item.Id] <= 0)
+            {
+                Catalog.ItemIds.Remove(item.Id);
+
+                if (Catalog.Discounts.ContainsKey(item.Id))
+                    Catalog.Discounts.Remove(item.Id);
+            }
         }
 
         private long GetSellValue(Item item, int amount)
@@ -481,8 +529,8 @@ namespace Arcadia
 
         private Item GetItemFromCatalog(string itemId)
         {
-            if (Catalog.Items.Any(x => x.Key.Id == itemId))
-                return Catalog.Items.First(x => x.Key.Id == itemId).Key;
+            if (Catalog.ItemIds.Any(x => x.Key == itemId))
+                return ItemHelper.GetItem(Catalog.ItemIds.First(x => x.Key == itemId).Key);
 
             return null;
         }
@@ -491,8 +539,6 @@ namespace Arcadia
         {
             if (User.Items.Any(x => x.Data != null && x.Data.Id == itemId))
                 return ItemHelper.ItemOf(User, itemId);
-
-            Item item = ItemHelper.GetItem(itemId);
 
             if (User.Items.All(x => x.Id != itemId))
                 return null;

@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Orikivo;
 using Orikivo.Drawing;
 
 namespace Arcadia
 {
+    public enum ShopMode
+    {
+        Buy = 1,
+        Sell = 2
+    }
+
     public static class ShopHelper
     {
         public static readonly List<Shop> Shops =
@@ -60,8 +67,7 @@ namespace Arcadia
                             }
                         }
                     },
-                    Buy = true,
-                    Sell = true,
+                    Allow = ShopAllow.All,
                     SellDeduction = 50,
                     SellTags = ItemTag.Palette
                 }
@@ -143,15 +149,87 @@ namespace Arcadia
         {
             var info = new StringBuilder();
 
-            foreach ((Item item, int amount) in catalog.Items)
+            foreach ((string itemId, int amount) in catalog.ItemIds)
             {
-                int discountUpper = catalog.Discounts.ContainsKey(item.Id) ? catalog.Discounts[item.Id] : 0;
-                info.AppendLine(WriteCatalogEntry(item, amount, discountUpper));
+                int discountUpper = catalog.Discounts.ContainsKey(itemId) ? catalog.Discounts[itemId] : 0;
+                info.AppendLine(WriteCatalogEntry(ItemHelper.GetItem(itemId), amount, discountUpper));
             }
 
             return info.ToString();
         }
 
+        public static string WriteItemCost(Item item)
+        {
+            if (item.Value == 0)
+                return "**Unknown Cost**";
+
+            return $"{Icons.IconOf(item.Currency)} **{GetCost(item.Value, 0)}**";
+        }
+
+        public static string WriteDiscountRange(Item item, Shop shop)
+        {
+            if (item == null || shop == null)
+                return "";
+
+            var info = new StringBuilder();
+
+            CatalogEntry entry = shop.Catalog?.Entries.FirstOrDefault(x => x.ItemId == item.Id);
+
+            if (entry == null)
+                return "";
+
+            if (entry.DiscountChance <= 0)
+                return "";
+
+            info.Append($"(**{entry.MinDiscount ?? CatalogEntry.DefaultMinDiscount}**% to ");
+            info.Append($"**{entry.MaxDiscount ?? CatalogEntry.DefaultMaxDiscount}**% discount range");
+
+            info.Append($", **{RangeF.Convert(0, 1, 0, 100, entry.DiscountChance):##,0.##}**% chance of discount)");
+
+            return info.ToString();
+        }
+
+        public static string WriteDeductionRange(Item item, Shop shop)
+        {
+            if (item == null || shop == null || shop.SellDeduction <= 0)
+                return "";
+
+            var info = new StringBuilder();
+
+            info.Append($"(**{shop.SellDeduction}**% base sell deduction)");
+
+            return info.ToString();
+        }
+
+        public static string WriteItemValue(Item item, int discount, ShopMode mode, bool showDetails = false)
+        {
+            var cost = new StringBuilder();
+            cost.Append($"{Icons.IconOf(item.Currency)} ");
+
+            if (item.Value == 0)
+            {
+                cost.Append("**Unknown Cost**");
+                return cost.ToString();
+            }
+
+            discount = Math.Clamp(discount, 0, 100);
+
+            if (discount == 100)
+            {
+                cost.Append(mode == ShopMode.Buy ? "**Free**" : "**Worthless**");
+                return cost.ToString();
+            }
+
+            cost.Append($" **{GetCost(item.Value, discount):##,0}**");
+
+            if (showDetails)
+            {
+                cost.Append($" (**{discount}**% ");
+                cost.Append($"{(mode == ShopMode.Buy ? "discount" : "deduction")})");
+            }
+
+            return cost.ToString();
+        }
 
         private static string WriteCatalogEntry(Item item, int amount, int discountUpper = 0)
         {
@@ -174,16 +252,10 @@ namespace Arcadia
 
             entry.AppendLine();
 
-            entry.AppendLine($"> *\"{item.GetQuote()}\"*");
-            entry.Append($"> {Icons.IconOf(item.Currency)} **{GetCost(item.Value, discountUpper):##,0}** ");
+            if (Check.NotNullOrEmpty(item.Quotes))
+                entry.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            if (discountUpper > 0)
-            {
-                entry.Append($"(**{discountUpper}**% discount) ");
-            }
-
-            entry.Append($"• *{item.Rarity}*");
-
+            entry.Append($"> {WriteItemValue(item, discountUpper, ShopMode.Buy, true)} • *{item.Rarity}*");
             return entry.ToString();
         }
 

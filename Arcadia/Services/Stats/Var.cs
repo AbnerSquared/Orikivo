@@ -2,10 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
 {
+    public class VarGroup
+    {
+        public string Id { get; set; }
+
+        public string Name { get; set; }
+
+        public string Summary { get; set; }
+
+        public Func<ArcadeUser, string> Writer { get; set; }
+    }
+
     /// <summary>
     /// Represents a generic implicitly defined value.
     /// </summary>
@@ -15,16 +27,57 @@ namespace Arcadia
         public const char Separator = ':';
         public const char TextSeparator = '_';
 
-        public static readonly List<Var> Vars = new List<Var>
+        public static readonly List<Var> Definers = new List<Var>
         {
             new Var
             {
                 Id = GimiStats.CurrentWinStreak,
                 UpperId = GimiStats.LongestWin,
+                Summary = "This represents your current winning streak in **Gimi**."
+            },
+            new Var
+            {
+                Id = Stats.QuestCapacity,
+                Name = "Quest Capacity",
+                Summary = "This determines how many quests you can receive at a time."
+            },
+            new Var
+            {
+                Id = Vars.BoosterLimit,
+                Name = "Booster Stack Limit",
+                Summary = "This determines how many boosters you can stack at a time."
+            },
+            new Var
+            {
+                Id = Vars.Capacity,
+                Name = "Inventory Capacity",
+                Summary = "This determines how many boosters you can stack at a time.",
+                ValueWriter = Inventory.WriteCapacity
             }
         };
 
-        public static readonly List<string> Groups = new List<string>
+        public static readonly List<VarGroup> Groups = new List<VarGroup>
+        {
+            new VarGroup
+            {
+                Id = "gimi",
+                Name = "Gimi",
+                Summary = "This is a group of stats used for the **Gimi** casino machine.",
+                Writer = (user =>
+                {
+                    var details = new StringBuilder();
+
+
+
+
+
+
+                    return details.ToString();
+                })
+            }
+        };
+
+        public static readonly List<string> GroupIds = new List<string>
         {
             "gimi"
         };
@@ -32,6 +85,45 @@ namespace Arcadia
         public static int Count(ArcadeUser user)
         {
             return user.Stats.Count;
+        }
+
+        public static string ViewDetails(ArcadeUser user, string id)
+        {
+            if (!user.Stats.ContainsKey(id))
+                return $"> {Icons.Warning} Unknown stat specified.";
+
+            var details = new StringBuilder();
+
+            string name = GetDefiner(id)?.Name ?? Humanize(id);
+            string value = GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id)) ?? $"{user.GetVar(id)}";
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                details.AppendLine($"`{id}`");
+                details.AppendLine($"• **{name}** = {value}");
+            }
+            else
+            {
+                details.AppendLine($"• `{id}` = {value}");
+            }
+
+            string summary = GetDefiner(id)?.Summary;
+
+            if (!string.IsNullOrWhiteSpace(summary))
+            {
+                details.AppendLine($"> {summary}");
+            }
+
+            return details.ToString();
+        }
+
+        public static string ViewGroupDetails(ArcadeUser user, string groupId)
+        {
+            VarGroup group = Groups.FirstOrDefault(x => x.Id == groupId);
+
+            var details = new StringBuilder();
+
+            return details.ToString();
         }
 
         public static IEnumerable<string> WithGroup(ArcadeUser user, string group)
@@ -254,7 +346,8 @@ namespace Arcadia
         public static string Humanize(string id)
         {
             if (!IsValid(id))
-                throw new ArgumentException("Invalid ID specified");
+                return "";
+                // throw new ArgumentException("Invalid ID specified");
 
             var text = new StringBuilder();
             string group = GetGroup(id);
@@ -312,7 +405,7 @@ namespace Arcadia
             => GetDefiner(id) != null;
 
         public static bool IsGroupDefined(string group)
-            => Groups.Contains(group);
+            => GroupIds.Contains(group);
 
         public static Var GetDefiner(string id)
         {
@@ -323,7 +416,7 @@ namespace Arcadia
             if (IsDefinedTemplate(id))
                 id = id.Replace(GetGroup(id), Placeholder.ToString());
 
-            return Vars.FirstOrDefault(x => x.Id == id);
+            return Definers.FirstOrDefault(x => x.Id == id);
         }
 
         public static long GetDefaultValue(string id)
@@ -361,7 +454,7 @@ namespace Arcadia
             if (group == Placeholder.ToString())
                 return GetDefiner(template)?.Template ?? TemplateType.Any;
 
-            if (Groups.Contains(group))
+            if (GroupIds.Contains(group))
                 throw new ArgumentException("Expected a template ID");
 
             if (ItemHelper.Exists(group))
@@ -411,11 +504,11 @@ namespace Arcadia
                 return false;
 
             // If a defined group exists for this template, return false
-            if (Groups.Contains(group))
+            if (GroupIds.Contains(group))
                 return false;
 
             // If this stat was defined as an ANY template and a template was replaced
-            if (Vars.FirstOrDefault(x => x.Id == id)?.Template == TemplateType.Any)
+            if (Definers.FirstOrDefault(x => x.Id == id)?.Template == TemplateType.Any)
                 return true;
 
             // Otherwise, try to find an explicit match, and if none is found, a template does not exist
@@ -433,7 +526,7 @@ namespace Arcadia
                 return true;
 
             // If a defined group exists for this template, return false
-            if (Groups.Contains(group))
+            if (GroupIds.Contains(group))
                 return false;
 
             // If this stat was defined and a template is specified
@@ -699,9 +792,15 @@ namespace Arcadia
 
         public string Id { get; private set; }
 
+        public string Name { get; internal set; }
+
         // If this value is greater than the max_id, set the MaxId to this value
         // If unspecified, do nothing
         public string UpperId { get; private set; }
+
+        public string Summary { get; internal set; }
+
+        public Func<long, string> ValueWriter { get; internal set; }
 
         public TemplateType? Template { get; private set; }
 
