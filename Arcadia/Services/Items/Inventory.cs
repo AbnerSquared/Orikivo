@@ -132,7 +132,7 @@ namespace Arcadia
             }
             else
             {
-                if (!ItemHelper.CanTrade(item.Id, data?.Data))
+                if (!ItemHelper.CanTrade(item.Id, data.Data))
                 {
                     summary.Append("\n> ⚠️ This item is untradable.");
                 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Orikivo.Drawing;
 
 namespace Arcadia
 {
@@ -16,6 +17,22 @@ namespace Arcadia
 
         public static long GetTokenMoney(long tokens)
             => (long) Math.Ceiling(tokens * TokenToMoney);
+
+        private static int ClampDiscount(int discount)
+        {
+            return discount < 0 ? 0 : discount > 100 ? 100 : discount;
+        }
+
+        public static long GetCost(long cost, int discount)
+        {
+            discount = ClampDiscount(discount);
+
+            if (discount == 0)
+                return cost;
+
+            float d = RangeF.Convert(0, 100, 0, 1, discount);
+            return (long) MathF.Floor(cost * (1 - d));
+        }
 
         // Tokens are received from voting
         // Due to their rarity, 1 Token is worth 5 Money

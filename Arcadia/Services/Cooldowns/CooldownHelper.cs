@@ -26,7 +26,7 @@ namespace Arcadia
         {
             if (user.InternalCooldowns.ContainsKey(id))
             {
-                return (DateTime.UtcNow - user.InternalCooldowns[id]).Ticks > 0;
+                return (DateTime.UtcNow - user.InternalCooldowns[id]) > TimeSpan.Zero;
             }
 
             return true;

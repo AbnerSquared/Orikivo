@@ -6,7 +6,6 @@ using Orikivo;
 
 namespace Arcadia
 {
-    // TODO: Create criteria-based replies.
     public static class Replies
     {
         public static readonly string DebtGeneric = "You have been fined.";
@@ -281,14 +280,16 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult,
+                Criteria = (user, result) => result is TickResult t
+                                             && !(t.ActualTick - t.ExpectedTick).EqualsAny(t.ActualTick, 0),
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
                     if (!(result is TickResult t))
                         return "INVALID_RESULT_TYPE";
 
+                    int sign = Math.Sign(t.ActualTick - t.ExpectedTick);
                     int diff = Math.Abs(t.ActualTick - t.ExpectedTick);
-                    return $"You were **{diff}** {Format.TryPluralize("tick", diff)} away from **{t.ExpectedTick}**.";
+                    return $"You were **{diff}** {Format.TryPluralize("tick", diff)} {(sign == 1 ? "below" : "above")} **{t.ExpectedTick}**.";
                 }
             },
             new CasinoReply

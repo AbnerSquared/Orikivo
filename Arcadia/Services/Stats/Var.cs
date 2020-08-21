@@ -52,6 +52,7 @@ namespace Arcadia
                 Id = Vars.Capacity,
                 Name = "Inventory Capacity",
                 Summary = "This determines how many boosters you can stack at a time.",
+                DefaultValue = 4000,
                 ValueWriter = Inventory.WriteCapacity
             }
         };

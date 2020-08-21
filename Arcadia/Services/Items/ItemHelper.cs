@@ -79,7 +79,7 @@ namespace Arcadia
 
         public static long BoostValue(ArcadeUser user, long value, BoosterType type, bool isNegative = false)
         {
-            double rate = 1;
+            float rate = 1;
 
             if (user.Boosters.Count == 0)
                 return value;
@@ -113,9 +113,7 @@ namespace Arcadia
                 }
             }
 
-            // Unless the rate is 0%, keep it at a minimum of 1
-            long result = (long) Math.Round(value * (isNegative ? 1 + (1 - rate) : rate), MidpointRounding.AwayFromZero);
-            return result == 0 && (Math.Abs(rate) < 0.001) ? 1 : result;
+            return BoostConvert.GetValue(value, rate, isNegative);
         }
 
         public static IEnumerable<Recipe> RecipesFor(string itemId)

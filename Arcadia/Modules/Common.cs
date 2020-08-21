@@ -5,7 +5,6 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
-using Orikivo.Framework;
 using GraphicsService = Arcadia.Graphics.GraphicsService;
 using CardDetails = Arcadia.Graphics.CardDetails;
 using CardProperties = Arcadia.Graphics.CardProperties;
@@ -14,28 +13,12 @@ using Casing = Arcadia.Graphics.Casing;
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
-    // TODO: Implement shopping
-    // - Missions
-    // - Shopping
     // - Card Customization
 
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
-        //[RequireUser]
-        //[Command("var_test")]
-        public async Task VarTestAsync()
-        {
-            string dummy = GimiStats.TimesPlayed;
-            string dummy2 = $"{Items.PocketLawyer}:last_used";
-            string dummy3 = "invalid::stat";
-            string dummy4 = "invalidstat";
-            string dummy5 = ":invalid";
-            string dummy6 = "*:last_used";
-
-            Logger.Debug(Var.Debug(dummy, dummy2, dummy3, dummy4, dummy5, dummy6));
-        }
 
         [RequireUser]
         [Command("boosters")]

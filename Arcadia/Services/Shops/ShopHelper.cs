@@ -222,7 +222,7 @@ namespace Arcadia
 
             cost.Append($" **{GetCost(item.Value, discount):##,0}**");
 
-            if (showDetails)
+            if (showDetails && discount > 0)
             {
                 cost.Append($" (**{discount}**% ");
                 cost.Append($"{(mode == ShopMode.Buy ? "discount" : "deduction")})");
