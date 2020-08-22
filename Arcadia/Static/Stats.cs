@@ -13,7 +13,8 @@ namespace Arcadia
         internal static readonly string TotalAssignedQuests = "quest:total_assigned";
         internal static readonly string LastAssignedQuest = "quest:last_assigned";
         internal static readonly string LastSkippedQuest = "quest:last_skipped";
-        internal static readonly string QuestAssignTotal = "quest:assign_total";
+
+        internal static readonly string TimesCrafted = "generic:times_crafted";
 
         internal static readonly string TotalMoney = "generic:total_money";
         internal static readonly string TotalChips = "generic:total_chips";
@@ -27,11 +28,11 @@ namespace Arcadia
 
         internal static readonly string TimesTraded = "generic:times_traded";
         internal static readonly string ItemsSold = "generic:items_sold";
-        internal static readonly string ItemsUsed = "generic:items_used";
+        internal static readonly string ItemsUsed = "generic:items_broken";
         internal static readonly string ItemsGifted = "generic:items_gifted";
+        internal static readonly string ItemsBought = "generic:items_bought";
         internal static readonly string TimesUpgraded = "generic:times_upgraded";
         internal static readonly string BoostersUsed = "generic:boosters_used";
-        
 
         internal static readonly string DailyStreak = "daily:current_streak";
         internal static readonly string LongestDailyStreak = "daily:longest_streak";

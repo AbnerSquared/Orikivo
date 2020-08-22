@@ -139,7 +139,6 @@ namespace Arcadia
             "The moonlight burns through your funds.",
             new CasinoReply
             {
-                // This is given to you if you are cursed while pocket lawyer is on cooldown
                 Content = "Pocket Lawyer can't save you this time.",
                 Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Items.PocketLawyer)?.Ticks > 0
             }
@@ -281,6 +280,7 @@ namespace Arcadia
             new CasinoReply
             {
                 Criteria = (user, result) => result is TickResult t
+                                             && t.ActualTick != 0
                                              && !(t.ActualTick - t.ExpectedTick).EqualsAny(t.ActualTick, 0),
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
@@ -289,7 +289,7 @@ namespace Arcadia
 
                     int sign = Math.Sign(t.ActualTick - t.ExpectedTick);
                     int diff = Math.Abs(t.ActualTick - t.ExpectedTick);
-                    return $"You were **{diff}** {Format.TryPluralize("tick", diff)} {(sign == 1 ? "below" : "above")} **{t.ExpectedTick}**.";
+                    return $"You were **{diff}** {Format.TryPluralize("tick", diff)} {(sign == 1 ? "above" : "below")} **{t.ExpectedTick}**.";
                 }
             },
             new CasinoReply

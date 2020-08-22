@@ -4,11 +4,13 @@ using Orikivo;
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Arcadia.Graphics;
 using Arcadia.Services;
 using GraphicsService = Arcadia.Graphics.GraphicsService;
 using CardDetails = Arcadia.Graphics.CardDetails;
 using CardProperties = Arcadia.Graphics.CardProperties;
 using Casing = Arcadia.Graphics.Casing;
+using PaletteType = Arcadia.Graphics.PaletteType;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -19,6 +21,85 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("recipes")]
+        [Summary("View all of your currently known recipes.")]
+        public async Task ViewRecipesAsync()
+        {
+            await Context.Channel.SendMessageAsync(Catalog.ViewRecipes(Context.Account));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("recipe")]
+        [Summary("View information about a specific recipe.")]
+        public async Task ViewRecipeAsync([Name("recipe_id")] string recipeId)
+        {
+            if (!ItemHelper.RecipeExists(recipeId))
+            {
+                await Context.Channel.WarnAsync("Could not find the specified recipe.");
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Catalog.ViewRecipeInfo(Context.Account, ItemHelper.GetRecipe(recipeId)));
+        }
+
+        [RequireUser]
+        [Command("craft")]
+        [Summary("Craft an item from the specified recipe.")]
+        public async Task CraftAsync([Name("recipe_id")] string recipeId)
+        {
+            if (!ItemHelper.RecipeExists(recipeId))
+            {
+                await Context.Channel.WarnAsync("Could not find the specified recipe.");
+                return;
+            }
+
+            Recipe recipe = ItemHelper.GetRecipe(recipeId);
+
+            if (!ItemHelper.CanCraft(Context.Account, recipeId))
+            {
+                var notice = new StringBuilder();
+
+                notice.AppendLine(Format.Warning("You are unable to craft this recipe."));
+                notice.AppendLine("\n> **Missing Components**");
+
+                foreach ((string itemId, int amount) in ItemHelper.GetMissingFromRecipe(Context.Account, recipe))
+                {
+                    notice.AppendLine(Catalog.WriteRecipeComponent(itemId, amount));
+                }
+
+                await Context.Channel.WarnAsync(notice.ToString());
+                return;
+            }
+
+
+            if (ItemHelper.Craft(Context.Account, recipe))
+            {
+                var result = new StringBuilder();
+
+                result.AppendLine($"> 📑 **{ItemHelper.NameOf(recipe.Result.ItemId)}**{(recipe.Result.Amount > 1 ? $" (x**{recipe.Result.Amount:##,0}**)" : "")}");
+                result.AppendLine("> Successfully crafted an item!");
+
+                result.AppendLine("\n> **Losses**");
+
+                foreach ((string itemId, int amount) in recipe.Components)
+                {
+                    string icon = ItemHelper.IconOf(itemId);
+
+                    if (!Check.NotNull(icon))
+                        icon = "•";
+
+                    result.AppendLine($"{icon} **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                }
+
+                await Context.Channel.SendMessageAsync(result.ToString());
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Format.Warning("An unknown error has occured when crafting this recipe."));
+
+        }
 
         [RequireUser]
         [Command("boosters")]
@@ -73,7 +154,7 @@ namespace Arcadia.Modules
         [Command("shops")]
         public async Task ViewShopsAsync()
         {
-            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops());
+            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops(Context.Data.Data));
         }
 
         [RequireUser]
@@ -142,9 +223,10 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("merits")]
         [Summary("View the directory of accomplishments.")]
-        public async Task ViewMeritsAsync(MeritQuery flag = MeritQuery.Default)
+        public async Task ViewMeritsAsync(MeritQuery flag = MeritQuery.Default, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag));
+            page--;
+            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag, page));
         }
 
         [RequireUser]
@@ -331,6 +413,8 @@ namespace Arcadia.Modules
                     ItemHelper.DataOf(account, itemId).Data.GiftCount++;
                 }
             }
+
+            Context.Account.AddToVar(Stats.ItemsGifted);
         }
 
         [Command("use")]
@@ -404,7 +488,7 @@ namespace Arcadia.Modules
 
             //Console.WriteLine(ItemHelper.GetUniqueId());
 
-            await Context.Channel.SendMessageAsync(Catalog.WriteItem(result));
+            await Context.Channel.SendMessageAsync(Catalog.View(result));
         }
 
         // This gets a person's backpack.
@@ -490,6 +574,22 @@ namespace Arcadia.Modules
             values.AppendLine($"**Debt**: 📃 **{account.Debt:##,0}**");
 
             await Context.Channel.SendMessageAsync(values.ToString());
+        }
+
+        [RequireUser]
+        [Command("clearpalette")]
+        [Summary("Remove your currently equipped palette, if any.")]
+        public async Task RemovePaletteAsync()
+        {
+            string name = ItemHelper.NameFor(Context.Account.Card.Palette.Primary, Context.Account.Card.Palette.Secondary);
+
+            if (!ItemHelper.RemovePalette(Context.Account))
+            {
+                await Context.Channel.WarnAsync("You don't have a palette currently equipped.");
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync($"> Successfully removed **{name}** from your **Card Palette**.");
         }
 
         [RequireUser]

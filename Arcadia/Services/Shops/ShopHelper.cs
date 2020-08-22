@@ -115,7 +115,7 @@ namespace Arcadia
         }
 
         // Make sure to incorporate pagination
-        public static string ViewShops()
+        public static string ViewShops(ArcadeData data)
         {
             // Incorporate the user into this
             // As it determines what shops they can currently view
@@ -123,7 +123,13 @@ namespace Arcadia
             var info = new StringBuilder();
 
             info.AppendLine($"> 🛒 **Shops**");
-            info.AppendLine($"> Here are all of the available shops.");
+
+            TimeSpan remainder = TimeSpan.FromDays(1) - DateTime.UtcNow.TimeOfDay;
+
+            if (remainder > TimeSpan.Zero)
+                info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
+            else
+                info.AppendLine($"Here are all of the available shops.");
 
 
             foreach (Shop shop in Shops)

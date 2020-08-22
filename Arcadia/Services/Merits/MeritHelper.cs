@@ -13,6 +13,57 @@ namespace Arcadia
             {
                 new Merit
                 {
+                    Id = "generic:tinkerer",
+                    Name = "Tinkerer",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "You have crafted an item for the first time.",
+                    Criteria = user => user.GetVar(Stats.TimesCrafted) > 0
+                },
+                new Merit
+                {
+                    Id = "generic:trade_beginner",
+                    Name = "Trading Beginner",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "You have traded with another user for the first time.",
+                    Criteria = user => user.GetVar(Stats.TimesTraded) > 0
+                },
+                new Merit
+                {
+                    Id = "generic:bronze_heart",
+                    Name = "Bronze Heart",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Bronze,
+                    Value = 5,
+                    Quote = "You were a kind soul and gave someone else an item of your own.",
+                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 0
+                },
+                new Merit
+                {
+                    Id = "generic:silver_heart",
+                    Name = "Silver Heart",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Silver,
+                    Value = 25,
+                    Quote = "You have been a good person and gifted over 50 items to plenty of people.",
+                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 50
+                },
+                new Merit
+                {
+                    Id = "generic:golden_heart",
+                    Name = "Golden Heart",
+                    Group = MeritGroup.Generic,
+                    Rank = MeritRank.Gold,
+                    Value = 50,
+                    Quote = "You have given over 100 items to plenty of people.",
+                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 100,
+                    Hidden = true
+                },
+                new Merit
+                {
                     Id = "generic:ignition",
                     Name = "Ignition",
                     Group = MeritGroup.Generic,
@@ -58,7 +109,7 @@ namespace Arcadia
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
                     Value = 50,
-                    Quote = "Midas must've gifted you with his abilities.",
+                    Quote = "Midas must have gifted you with his abilities.",
                     Criteria = user => user.GetVar(GimiStats.LongestGold) >= 2,
                     Hidden = true
                 },
@@ -93,6 +144,60 @@ namespace Arcadia
                     Value = 10,
                     Quote = "You have requested funds 100 times.",
                     Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 100
+                },
+                new Merit
+                {
+                    Id = "casino:gimi_clover",
+                    Name = "Clover of Gimi",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "You have won over 20 times in a row in Gimi.",
+                    Criteria = user => user.GetVar(GimiStats.LongestWin) >= 20,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:gimi_curse",
+                    Name = "Curse of Gimi",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "You have lost over 20 times in a row in Gimi.",
+                    Criteria = user => user.GetVar(GimiStats.LongestLoss) >= 20,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:tick_clover",
+                    Name = "Clover of Doubler",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "You have won over 20 times in a row in Doubler.",
+                    Criteria = user => user.GetVar(TickStats.LongestWin) >= 20,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:tick_exact_clover",
+                    Name = "Golden Clover of Doubler",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Gold,
+                    Value = 50,
+                    Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
+                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 20,
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "casino:tick_beginner",
+                    Name = "Doubler Beginner",
+                    Group = MeritGroup.Casino,
+                    Rank = MeritRank.Bronze,
+                    Value = 10,
+                    Quote = "You have attempted to double your chips 100 times.",
+                    Criteria = user => user.GetVar(TickStats.TimesPlayed) >= 100
                 },
                 new Merit
                 {
@@ -351,7 +456,7 @@ namespace Arcadia
             return progress.ToString();
         }
 
-        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int maxAllowedValues = 5)
+        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int page = 0, int pageSize = 5)
         {
             var info = new StringBuilder();
 
@@ -378,18 +483,23 @@ namespace Arcadia
             {
                 foreach (MeritGroup g in MeritGroup.Generic.GetValues())
                 {
-                    info.AppendLine($"`{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
+                    info.AppendLine($"> `{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
                 }
 
                 if (GetCountOf(user, MeritQuery.Hidden) != 0)
-                    info.AppendLine($"`{MeritQuery.Hidden.ToString().ToLower()}` • **{MeritQuery.Hidden.ToString()}**\n> {GetProgress(user, MeritQuery.Hidden)}\n");
+                    info.AppendLine($"> `{MeritQuery.Hidden.ToString().ToLower()}` • **{MeritQuery.Hidden.ToString()}**\n> {GetProgress(user, MeritQuery.Hidden)}\n");
             }
             else
             {
+                List<Merit> merits = Merits.Where(GetInvokerFor(flag, user)).OrderBy(x => x.Name).ToList();
+                int pageCount = (int)Math.Ceiling(merits.Count / (double)pageSize) - 1;
+                page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+
+                int offset = page * pageSize;
                 int i = 0;
-                foreach (Merit merit in Merits.Where(GetInvokerFor(flag, user)).OrderBy(x => x.Name))
+                foreach (Merit merit in merits.Skip(offset))
                 {
-                    if (i >= maxAllowedValues)
+                    if (i >= pageSize)
                         break;
 
                     if (!HasMerit(user, merit.Id) && merit.Hidden)

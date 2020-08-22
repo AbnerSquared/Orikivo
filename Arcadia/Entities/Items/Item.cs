@@ -28,6 +28,22 @@ namespace Arcadia
         public string GetQuote()
             => Randomizer.Choose(Quotes);
 
+        public string GetSummary()
+        {
+            if (Check.NotNull(Summary))
+                return Summary;
+
+            if (Check.NotNull(GroupId))
+            {
+                ItemGroup group = ItemHelper.GetGroup(GroupId);
+
+                if (Check.NotNull(group?.Summary))
+                    return group?.Summary;
+            }
+
+            return "";
+        }
+
         public string GetIcon()
         {
             if (Check.NotNull(Icon))

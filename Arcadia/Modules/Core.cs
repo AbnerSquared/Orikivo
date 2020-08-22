@@ -47,6 +47,7 @@ namespace Arcadia.Modules
         }
 
         [DoNotNotify]
+        [Cooldown(10)]
         [Command("latency"), Alias("ping")]
         public async Task GetLatencyAsync()
             => await CoreService.PingAsync(Context.Channel, Context.Client);

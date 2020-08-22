@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arcadia.Graphics;
 using Arcadia.Services;
 using Orikivo;
 using PaletteType = Arcadia.Graphics.PaletteType;
@@ -10,19 +11,75 @@ namespace Arcadia
     // TODO: Implement item attribute reading and data population
     public static class ItemHelper
     {
-        public static readonly List<Recipe> Recipes = new List<Recipe>
+        public static Dictionary<string, int> GetMissingFromRecipe(ArcadeUser user, Recipe recipe)
+        {
+            if (recipe == null)
+                throw new Exception("Could not find a recipe with the specified ID");
+
+            var missing = new Dictionary<string, int>();
+
+            foreach ((string itemId, int amount) in recipe.Components)
+            {
+                int owned = GetOwnedAmount(user, itemId);
+
+                if (owned < amount)
+                    missing[itemId] = amount - owned;
+            }
+
+            return missing;
+        }
+
+        public static bool HasAttributes(Item item)
+        {
+            return item.CanBuy
+                   | item.CanSell
+                   | item.BypassCriteriaOnGift
+                   | item.OwnLimit.HasValue
+                   | (item.GiftLimit > 0 || !item.GiftLimit.HasValue)
+                   | (item.TradeLimit > 0 || !item.TradeLimit.HasValue)
+                   | IsUnique(item)
+                   | HasUsageAttributes(item);
+        }
+
+        public static bool HasUsageAttributes(Item item)
+        {
+            if (item.Usage == null)
+                return false;
+
+            return item.Usage.Durability.HasValue
+                   | item.Usage.Cooldown.HasValue
+                   | item.Usage.Expiry.HasValue;
+        }
+
+        public static readonly List<Recipe> LRecipes = new List<Recipe>
         {
             new Recipe
             {
                 Id = "recipe:glossy_green",
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteGlass, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteGammaGreen, 1)
+                    new RecipeComponent(Items.PaletteGlass, 1),
+                    new RecipeComponent(Items.PaletteGammaGreen, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteGlossyGreen, 1)
+                Result = new RecipeComponent(Items.PaletteGlossyGreen, 1)
+            },
+            new Recipe
+            {
+                Id = "recipe:glossy_wumpite",
+                Components = new List<RecipeComponent>
+                {
+                    new RecipeComponent(Items.PaletteGlass, 1),
+                    new RecipeComponent(Items.PaletteWumpite, 1)
+                },
+                Result = new RecipeComponent(Items.PaletteGlossyWumpite, 1)
             }
         };
+
+        // TODO: Implement recipe knowledge and criteria
+        public static IEnumerable<Recipe> GetKnownRecipes(ArcadeUser user)
+        {
+            return LRecipes;
+        }
 
         public static string IconOf(string itemId)
         {
@@ -116,12 +173,18 @@ namespace Arcadia
             return BoostConvert.GetValue(value, rate, isNegative);
         }
 
+        public static bool IsIngredient(Item item)
+            => LRecipes.Any(x => x.Components.Any(c => c.ItemId == item.Id));
+
+        public static bool CanCraft(Item item)
+            => LRecipes.Any(x => x.Result.ItemId == item.Id);
+
         public static IEnumerable<Recipe> RecipesFor(string itemId)
             => RecipesFor(GetItem(itemId));
 
         public static IEnumerable<Recipe> RecipesFor(Item item)
         {
-            return Recipes.Where(x => x.Result.ItemId == item.Id);
+            return LRecipes.Where(x => x.Result.ItemId == item.Id);
         }
 
         public static readonly List<ItemGroup> Groups = new List<ItemGroup>
@@ -130,6 +193,7 @@ namespace Arcadia
             {
                 Id = "booster",
                 Icon = Icons.Booster,
+                Name = "Booster",
                 Prefix = "Booster: ",
                 Summary = "Modifies the multiplier for a specified form of income."
             },
@@ -138,6 +202,7 @@ namespace Arcadia
             {
                 Id = "palette",
                 Icon = Icons.Palette,
+                Name = "Palette",
                 Prefix = "Card Palette: ",
                 Summary = "Modifies the color scheme that is displayed on a card."
             },
@@ -145,11 +210,13 @@ namespace Arcadia
             {
                 Id = "summon",
                 Icon = Icons.Summon,
+                Name = "Summon",
                 Prefix = "Summon: "
             },
             new ItemGroup
             {
                 Id = "automaton",
+                Name = "Automaton",
                 Prefix = "Automaton: ",
                 Summary = "Grants the ability to automate specific actions."
             }
@@ -162,15 +229,9 @@ namespace Arcadia
             return (DateTime.UtcNow.Ticks - offset.Ticks);
         }*/
 
-        public static void Craft(ArcadeUser user, Recipe recipe)
-        {
-            if (!CanCraft(user, recipe))
-                throw new ArgumentException("Cannot craft this recipe");
-        }
-
         public static IEnumerable<Item> GetItemsInGroup(string groupId)
         {
-            return Items.Where(x => x.GroupId == groupId);
+            return LItems.Where(x => x.GroupId == groupId);
         }
 
         public static ItemGroup GetGroup(string id)
@@ -183,10 +244,19 @@ namespace Arcadia
 
         public static Recipe GetRecipe(string id)
         {
-            if (Recipes.Count(x => x.Id == id) > 1)
+            if (LRecipes.Count(x => x.Id == id) > 1)
                 throw new ArgumentException("There are more than one recipes with the specified ID.");
 
-            return Recipes.FirstOrDefault(x => x.Id == id);
+            return LRecipes.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static bool KnowsRecipe(ArcadeUser user, string recipeId)
+            => KnowsRecipe(user, GetRecipe(recipeId));
+
+        // TODO: Implement recipe knowledge criteria
+        public static bool KnowsRecipe(ArcadeUser user, Recipe recipe)
+        {
+            return true;
         }
 
         public static bool TryGetRecipe(string id, out Recipe recipe)
@@ -201,13 +271,16 @@ namespace Arcadia
         }
 
         public static bool RecipeExists(string id)
-            => Check.NotNull(id) && Recipes.Any(x => x.Id == id);
+            => Check.NotNull(id) && LRecipes.Any(x => x.Id == id);
 
         public static bool CanCraft(ArcadeUser user, string recipeId)
             => CanCraft(user, GetRecipe(recipeId));
 
         public static bool CanCraft(ArcadeUser user, Recipe recipe)
         {
+            if (recipe == null)
+                throw new Exception("Could not find a recipe with the specified ID");
+
             foreach ((string itemId, int amount) in recipe.Components)
             {
                 if (!HasItem(user, itemId) || GetOwnedAmount(user, itemId) != amount)
@@ -217,8 +290,28 @@ namespace Arcadia
             return true;
         }
 
+        public static bool Craft(ArcadeUser user, string recipeId)
+            => Craft(user, GetRecipe(recipeId));
+
+        public static bool Craft(ArcadeUser user, Recipe recipe)
+        {
+            if (!CanCraft(user, recipe))
+                return false;
+
+            if (recipe.Result == null)
+                throw new Exception("Expected recipe result but returned null");
+
+            foreach ((string itemId, int amount) in recipe.Components)
+                TakeItem(user, itemId, amount);
+
+            GiveItem(user, recipe.Result.ItemId, recipe.Result.Amount);
+
+            user.AddToVar(Stats.TimesCrafted);
+            return true;
+        }
+
         public static string DetailsOf(Item item)
-            => Catalog.WriteItem(item);
+            => Catalog.View(item);
 
         public static Item ItemOf(ArcadeUser user, string uniqueId)
         {
@@ -228,7 +321,7 @@ namespace Arcadia
             return GetItem(user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Id);
         }
 
-        public static List<Item> Items =>
+        public static List<Item> LItems =>
             new List<Item>
             {
                 new Item
@@ -312,7 +405,7 @@ namespace Arcadia
                     {
                         Criteria = user => user.Debt >= 500,
                         Durability = 1,
-                        Cooldown = TimeSpan.FromHours(72),
+                        Cooldown = TimeSpan.FromDays(3),
                         DeleteOnBreak = true,
                         DeleteMode = ItemDeleteMode.Break,
                         Action = delegate (ArcadeUser user)
@@ -376,7 +469,7 @@ namespace Arcadia
                     Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
-                        "Crafted with the shades of a bluish-purple pig-like entity."
+                        "Crafted with the shades of a Wumpus."
                     },
                     GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
@@ -414,24 +507,78 @@ namespace Arcadia
                         Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))
                     },
                     OwnLimit = 10
+                },
+                new Item
+                {
+                    Id = Items.PaletteGlossyGreen,
+                    Name = "Glossy Green",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "It refracts a mixture of light that glows a bright green."
+                    },
+                    GroupId = ItemGroups.Palette,
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 3000,
+                    Size = 150,
+                    TradeLimit = 0,
+                    GiftLimit = 0,
+                    Rarity =  ItemRarity.Rare,
+                    Usage = new ItemAction
+                    {
+                        Action = user => new UsageResult(SetOrSwapPalette(user, new ComponentPalette(PaletteType.GammaGreen, PaletteType.Glass)))
+                    },
+                    OwnLimit = 5
+                },
+                new Item
+                {
+                    Id = Items.PaletteGlossyWumpite,
+                    Name = "Glossy Wumpite",
+                    Summary = "A palette that can be equipped on a card.",
+                    Quotes = new List<string>
+                    {
+                        "It refracts a mixture of light that absorbs the color of a Wumpus."
+                    },
+                    GroupId = ItemGroups.Palette,
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    Value = 3500,
+                    Size = 175,
+                    TradeLimit = 0,
+                    GiftLimit = 0,
+                    Rarity =  ItemRarity.Rare,
+                    Usage = new ItemAction
+                    {
+                        Action = user => new UsageResult(SetOrSwapPalette(user, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass)))
+                    },
+                    OwnLimit = 5
                 }
             };
 
-        private static string SetOrSwapPalette(ArcadeUser user, PaletteType palette)
+        private static string SetOrSwapPalette(ArcadeUser user, ComponentPalette palette)
         {
-            if (user.Card.Palette.Primary == palette)
-                return Format.Warning($"You already have **{palette.ToString()}** equipped on your **Card Palette**.");
+            if (user.Card.Palette == palette)
+                return Format.Warning($"You already have **{NameFor(palette.Primary, palette.Secondary)}** equipped on your **Card Palette**.");
 
-            string result = $"> 📟 Equipped **{palette.ToString()}** to your **Card Palette**.";
+            string result = $"> 📟 Equipped **{NameFor(palette.Primary, palette.Secondary)}** to your **Card Palette**.";
             if (user.Card.Palette.Primary != PaletteType.Default)
             {
-                GiveItem(user, IdFor(user.Card.Palette.Primary));
-                result = $"📟 Swapped out **{NameFor(user.Card.Palette.Primary)}** with **{NameFor(palette)}** for your **Card Palette**.";
+                GiveItem(user, IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
+                result = $"📟 Swapped out **{NameFor(user.Card.Palette.Primary)}** with **{NameFor(palette.Primary, palette.Secondary)}** for your **Card Palette**.";
             }
 
-            TakeItem(user, IdFor(palette));
+            TakeItem(user, IdFor(palette.Primary, palette.Secondary));
             user.Card.Palette = palette;
             return result;
+        }
+
+        public static bool RemovePalette(ArcadeUser user)
+        {
+            if (user.Card.Palette == PaletteType.Default)
+                return false;
+
+            GiveItem(user, IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
+            user.Card.Palette = PaletteType.Default;
+            return true;
         }
 
         public static bool CanGift(string itemId, UniqueItemData data)
@@ -574,7 +721,7 @@ namespace Arcadia
             if (item.GiftLimit.HasValue)
             // does this item have a specified gift limitation?
             if (item.GiftLimit > 0)
-                return true; // TODO: Revert to true when ready
+                return true;
 
             if (item.Usage?.Durability != null)
             {
@@ -595,14 +742,14 @@ namespace Arcadia
 
         public static Item GetItem(string id)
         {
-            if (Items.Count(x => x.Id == id) > 1)
+            if (LItems.Count(x => x.Id == id) > 1)
                 throw new ArgumentException("There are more than one items with the specified ID.");
 
-            return Items.FirstOrDefault(x => x.Id == id);
+            return LItems.FirstOrDefault(x => x.Id == id);
         }
 
         public static bool Exists(string itemId)
-            => Items.Any(x => x.Id == itemId);
+            => LItems.Any(x => x.Id == itemId);
 
 
         public static string GroupOf(string id)
@@ -680,6 +827,7 @@ namespace Arcadia
                 user.Items.First(x => x.Id == item.Id).StackCount -= amount;
             }
 
+            /*
             if (!HasItem(user, item.Id) && item.Tag.HasFlag(ItemTag.Palette))
             {
                 PaletteType type = PaletteOf(item.Id);
@@ -692,19 +840,27 @@ namespace Arcadia
                     user.Card.Palette = PaletteType.Default; // If the palette was taken away, set to default palette.
 
             }
+            */
         }
 
-        internal static string NameFor(PaletteType palette)
-            => GetItem(IdFor(palette)).Name;
+        internal static string NameFor(PaletteType palette, PaletteType? secondary = null)
+            => GetItem(IdFor(palette, secondary)).Name;
 
-        internal static string IdFor(PaletteType palette)
+        internal static string IdFor(PaletteType palette, PaletteType? secondary = null)
         {
             return palette switch
             {
-                PaletteType.GammaGreen => Arcadia.Items.PaletteGammaGreen,
-                PaletteType.Crimson => Arcadia.Items.PaletteCrimson,
-                PaletteType.Glass => Arcadia.Items.PaletteGlass,
-                PaletteType.Wumpite => Arcadia.Items.PaletteWumpite,
+                PaletteType.GammaGreen when secondary == PaletteType.Glass => Items.PaletteGlossyGreen,
+                PaletteType.GammaGreen => Items.PaletteGammaGreen,
+
+                PaletteType.Crimson => Items.PaletteCrimson,
+
+                PaletteType.Glass when secondary == PaletteType.GammaGreen => Items.PaletteGlossyGreen,
+                PaletteType.Glass when secondary == PaletteType.Wumpite => Items.PaletteGlossyWumpite,
+                PaletteType.Glass => Items.PaletteGlass,
+
+                PaletteType.Wumpite when secondary == PaletteType.Glass => Items.PaletteGlossyWumpite,
+                PaletteType.Wumpite => Items.PaletteWumpite,
                 _ => null
             };
         }
@@ -719,16 +875,16 @@ namespace Arcadia
             if (!item.Tag.HasFlag(ItemTag.Palette))
                 throw new ArgumentException("Could not resolve item as type of Palette.");
 
-            if (paletteId == Arcadia.Items.PaletteCrimson)
+            if (paletteId == Items.PaletteCrimson)
                 return PaletteType.Crimson;
 
-            if (paletteId == Arcadia.Items.PaletteGammaGreen)
+            if (paletteId == Items.PaletteGammaGreen)
                 return PaletteType.GammaGreen;
 
-            if (paletteId == Arcadia.Items.PaletteGlass)
+            if (paletteId == Items.PaletteGlass)
                 return PaletteType.Glass;
 
-            if (paletteId == Arcadia.Items.PaletteWumpite)
+            if (paletteId == Items.PaletteWumpite)
                 return PaletteType.Wumpite;
 
             // unknown palette
@@ -976,6 +1132,8 @@ namespace Arcadia
                 // This is because boosters reference this method when used up
                 if (item.GroupId != ItemGroups.Booster)
                     item.Usage.OnBreak?.Invoke(user);
+
+                user.AddToVar(Stats.ItemsUsed);
             }
 
             return result;

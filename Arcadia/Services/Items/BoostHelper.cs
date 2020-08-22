@@ -24,16 +24,11 @@ namespace Arcadia.Modules
             return $"{Icons.IconOf(type)} {Format.Percent(rate)}";
         }
 
-        private static string WriteHeader()
-        {
-            return $"> {Icons.Booster} **Boosters**\n> View all of your currently active boosters.";
-        }
-
         public static string Write(ArcadeUser user)
         {
             var info = new StringBuilder();
 
-            info.AppendLine(WriteHeader());
+            info.AppendLine(Locale.GetHeader(Headers.Booster));
             info.AppendLine();
             info.AppendLine(WriteCurrentRates(user));
 

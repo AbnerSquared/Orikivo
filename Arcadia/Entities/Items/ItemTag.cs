@@ -12,6 +12,7 @@ namespace Arcadia
         Tool = 16,
         Decorator = 32,
         Automaton = 64,
-        Booster = 128
+        Booster = 128,
+        Ingredient = 256
     }
 }

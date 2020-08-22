@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Discord.Commands;
 using Orikivo;
-using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Multiplayer;
 
@@ -22,15 +21,13 @@ namespace Arcadia.Modules
         [Summary("View all currently open game servers.")]
         public async Task ViewServersAsync(int page = 1) // use the page to view through multiple servers, if there is too many to show on one page
         {
-            if (!_games.GetPublicServers().Any())
+            if (!_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0).Any())
             {
                 await Context.Channel.WarnAsync("There aren't any public game servers to show.").ConfigureAwait(false);
                 return;
             }
 
-            var servers = new StringBuilder();
-
-            await Context.Channel.SendMessageAsync(ServerBrowser.View(_games.GetPublicServers(), page - 1)).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(ServerBrowser.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
         }
 
         [Command("hostserver")]
@@ -53,7 +50,7 @@ namespace Arcadia.Modules
             {
                 if (!GameManager.Games.ContainsKey(gameId))
                 {
-                    await Context.Channel.WarnAsync("Unable to initialize a server for the specified game mode").ConfigureAwait(false);
+                    await Context.Channel.WarnAsync("Unable to initialize a server for the specified game mode.").ConfigureAwait(false);
                     return;
                 }
             }

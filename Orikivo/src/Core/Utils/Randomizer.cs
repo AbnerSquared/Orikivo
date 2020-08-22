@@ -30,6 +30,18 @@ namespace Orikivo
             return newArray.ToList();
         }
 
+        public static T ChooseOrDefault<T>(in IEnumerable<T> args)
+        {
+            if (!Check.NotNullOrEmpty(args))
+                return default;
+
+            // If there's only one element, just return that
+            if (args.Count() == 1)
+                return args.First();
+
+            return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
+        }
+
         /// <summary>
         /// Selects an element at random from a collection.
         /// </summary>
@@ -43,6 +55,16 @@ namespace Orikivo
                 return args.First();
 
             return args.ElementAt(RandomProvider.Instance.Next(args.Count()));
+        }
+
+        public static T Choose<T>(in IEnumerable<T> args, Func<T, bool> predicate)
+        {
+            return Choose(args.Where(predicate));
+        }
+
+        public static T ChooseOrDefault<T>(in IEnumerable<T> args, Func<T, bool> predicate)
+        {
+            return ChooseOrDefault(args.Where(predicate));
         }
 
         public static T ChooseAny<T>(params T[] args)

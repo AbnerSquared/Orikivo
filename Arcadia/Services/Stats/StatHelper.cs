@@ -6,6 +6,11 @@ using Orikivo;
 
 namespace Arcadia
 {
+    public enum StatQuery
+    {
+        Default = 1
+    }
+
     public static class StatHelper
     {
         public static readonly Dictionary<string, Descriptor> Descriptions = new Dictionary<string, Descriptor>
@@ -112,7 +117,7 @@ namespace Arcadia
             => user.Stats.Where((key, value) =>
                 !key.StartsWith(StatGroups.Cooldown)
                 && value != 0
-                && !key.StartsWith(ItemHelper.Items.Select(x => x.Id)))
+                && !key.StartsWith(ItemHelper.LItems.Select(x => x.Id)))
                 .OrderBy(x => x.Key);
 
         private static int GetPageCount(ArcadeUser user, int pageSize)
@@ -121,22 +126,22 @@ namespace Arcadia
         public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, int pageSize = 25)
         {
             var result = new StringBuilder();
-            result.Append("> ⏱️ **Stats");
-
-            if (!isSelf)
-                result.Append($": {user.Username}");
-
-            result.AppendLine("**");
 
             int pageCount = GetPageCount(user, pageSize) - 1;
             IEnumerable<KeyValuePair<string, long>> stats = GetVisibleStats(user);
 
             page = page < 0 ? 0 : page > pageCount ? pageCount : page;
-
-            if ((pageCount + 1) > 1)
+            string counter = null;
+            if (pageCount + 1 > 1)
             {
-                result.AppendLine($"> (Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)");
+
+
+                if (pageCount + 1 > 1)
+                    counter = $"(Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)";
             }
+
+
+            result.AppendLine(Locale.GetHeader(Headers.Stat, counter, group: isSelf ? null : user.Username));
 
             result.AppendLine();
 
@@ -156,20 +161,5 @@ namespace Arcadia
 
             return result.ToString();
         }
-    }
-
-    public enum TemplateType
-    {
-        Any = 0,
-        Item = 1
-    }
-
-    public enum VarType
-    {
-        Stat = 1,
-
-        Time = 2,
-
-        Attribute = 3
     }
 }

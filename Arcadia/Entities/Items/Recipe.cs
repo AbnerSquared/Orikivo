@@ -8,10 +8,10 @@ namespace Arcadia
     public class Recipe
     {
         public string Id { get; set; }
-        // a collection of items (as IDs) that are required to craft
+
+        // TODO: Create recipes with variations of the same result with different amounts
         public List<RecipeComponent> Components { get; set; }
 
-        // the result of the craft
         public RecipeComponent Result { get; set; }
     }
 }

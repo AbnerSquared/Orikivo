@@ -67,6 +67,18 @@ namespace Arcadia.Graphics
         public static implicit operator GammaPalette(ComponentPalette palette)
             => palette.Build();
 
+        public static bool operator ==(ComponentPalette left, ComponentPalette right)
+        {
+            return (left?.Primary == right?.Primary)
+                   & (left?.Secondary == right?.Secondary);
+        }
+
+        public static bool operator !=(ComponentPalette left, ComponentPalette right)
+        {
+            return (left?.Primary != right?.Primary)
+                   | (left?.Secondary != right?.Secondary);
+        }
+
         public override string ToString()
         {
             if (Secondary.HasValue)

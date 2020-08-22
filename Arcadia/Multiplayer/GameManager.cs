@@ -61,31 +61,40 @@ namespace Arcadia.Multiplayer
         /// </summary>
         internal Dictionary<ulong, string> ReservedUsers { get; }
 
-        public IEnumerable<GameServer> GetServersFor(ulong userId)
+        public IEnumerable<GameServer> GetServersFor(ulong userId, ulong guildId = 0)
         {
-            // Include where the player is in an existing connection
-            return Servers.Values.Where(x => x.Privacy == Privacy.Public || x.Invites.Any(x => x.UserId == userId));
+            return Servers.Values.Where(x => MeetsServerCriterion(x, userId, guildId));
         }
+
+        private IEnumerable<GameServer> GetOpenServersFor(ulong userId, ulong guildId = 0, string gameId = null)
+        {
+            return Servers.Values.Where(x => MeetsServerCriterion(x, userId, guildId) && !x.IsFull && (string.IsNullOrWhiteSpace(gameId) || x.GameId == gameId));
+        }
+
+        private static bool MeetsServerCriterion(GameServer server, ulong userId, ulong guildId)
+        {
+            return server.Privacy switch
+            {
+                Privacy.Public => true,
+                Privacy.Local => server.Connections.Any(x => x.GuildId == guildId),
+                _ => server.Invites.Any(x => x.UserId == userId)
+            };
+        }
+
+        private IEnumerable<GameServer> GetOpenServers()
+            => Servers.Values.Where(x => x.Privacy == Privacy.Public && !x.IsFull);
 
         public IEnumerable<GameServer> GetPublicServers()
             => Servers.Values.Where(x => x.Privacy == Privacy.Public);
 
         public string GetRandomServer()
         {
-            // Randomizer.Choose(IEnumerable<T> set, Func<T, bool> predicate)
-            if (Servers.Values.All(x => x.IsFull))
-                return null;
-
-            return Randomizer.Choose(Servers.Values.Where(x => x.Privacy == Privacy.Public && !x.IsFull)).Id;
+            return Randomizer.ChooseOrDefault(GetOpenServers(), x=> !x.IsFull)?.Id;
         }
 
-        public string GetRandomServerFor(ulong userId)
+        public string GetRandomServerFor(ulong userId, ulong guildId = 0)
         {
-            // Randomizer.Choose(IEnumerable<T> set, Func<T, bool> predicate)
-            if (Servers.Values.All(x => x.IsFull))
-                return null;
-
-            return Randomizer.Choose(Servers.Values.Where(x => (x.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull)).Id;
+            return Randomizer.ChooseOrDefault(GetOpenServersFor(userId, guildId)).Id;
         }
 
         public string GetRandomServer(string gameId)
@@ -93,21 +102,15 @@ namespace Arcadia.Multiplayer
             if (!Games.ContainsKey(gameId))
                 return null;
 
-            if (Servers.Values.All(x => x.IsFull))
-                return null;
-
-            return Randomizer.Choose(Servers.Values.Where(x => x.Privacy == Privacy.Public && !x.IsFull && x.GameId == gameId)).Id;
+            return Randomizer.Choose(GetPublicServers(), x => x.GameId == gameId && !x.IsFull)?.Id;
         }
 
-        public string GetRandomServerFor(ulong userId, string gameId)
+        public string GetRandomServerFor(ulong userId, string gameId, ulong guildId = 0)
         {
             if (!Games.ContainsKey(gameId))
                 return null;
 
-            if (Servers.Values.All(x => x.IsFull))
-                return null;
-
-            return Randomizer.Choose(Servers.Values.Where(x => (x.Privacy == Privacy.Public || x.Invites.Any(u => u.UserId == userId)) && !x.IsFull && x.GameId == gameId)).Id;
+            return Randomizer.ChooseOrDefault(GetOpenServersFor(userId, guildId, gameId))?.Id;
         }
 
         // This attempts to join an existing server, if one is present

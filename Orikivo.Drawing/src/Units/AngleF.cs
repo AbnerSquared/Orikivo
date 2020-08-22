@@ -1,4 +1,6 @@
-﻿namespace Orikivo.Drawing
+﻿using System;
+
+namespace Orikivo.Drawing
 {
     /// <summary>
     /// Represents a mathematical degree.
@@ -47,22 +49,22 @@
 
         public override bool Equals(object obj)
         {
-            if (obj is AngleF)
-                return ((AngleF)obj) == this;
-            else if (obj is float)
-                return (float)obj == this;
-            else
-                return false;
+            return obj switch
+            {
+                AngleF a => a == this,
+                float f => f == this,
+                _ => false
+            };
         }
 
         public override int GetHashCode()
             => (int) System.MathF.Floor(Degrees * 1000.0f);
 
         public static bool operator ==(AngleF a, AngleF b)
-            => a.Degrees == b.Degrees;
+            => Math.Abs(a.Degrees - b.Degrees) < 0.001f;
 
         public static bool operator !=(AngleF a, AngleF b)
-            => a.Degrees != b.Degrees;
+            => Math.Abs(a.Degrees - b.Degrees) > 0.001f;
 
         public static AngleF operator +(AngleF a, AngleF b)
             => a.Degrees + b.Degrees;
@@ -71,16 +73,16 @@
             => a.Degrees - b.Degrees;
 
         public static bool operator ==(AngleF a, float b)
-            => a.Degrees == Wrap(b);
+            => Math.Abs(a.Degrees - Wrap(b)) < 0.001f;
 
         public static bool operator ==(float a, AngleF b)
-            => b.Degrees == Wrap(a);
+            => Math.Abs(b.Degrees - Wrap(a)) < 0.001f;
 
         public static bool operator !=(AngleF a, float b)
-            => a.Degrees != Wrap(b);
+            => Math.Abs(a.Degrees - Wrap(b)) > 0.001f;
 
         public static bool operator !=(float a, AngleF b)
-            => b.Degrees != Wrap(a);
+            => Math.Abs(b.Degrees - Wrap(a)) > 0.001f;
 
         public static AngleF operator +(AngleF a, float b)
             => a.Degrees + Wrap(b);
@@ -100,7 +102,7 @@
         public static AngleF operator *(AngleF a, float b)
         {
             float t = b % 1.0f;
-            b = t == 0.0f ? 1.0f : t;
+            b = Math.Abs(t) < 0.001f ? 1.0f : t;
 
             return a.Degrees * b;
         }
@@ -108,7 +110,7 @@
         public static AngleF operator *(float a, AngleF b)
         {
             float t = a % 1.0f;
-            a = t == 0.0f ? 1.0f : t;
+            a = Math.Abs(t) < 0.001f ? 1.0f : t;
 
             return b.Degrees * a;
         }
@@ -116,7 +118,7 @@
         public static AngleF operator /(AngleF a, float b)
         {
             float t = b % 1.0f;
-            b = t == 0.0f ? 1.0f : t;
+            b = Math.Abs(t) < 0.001f ? 1.0f : t;
 
             return a.Degrees / b;
         }
@@ -125,7 +127,7 @@
             => a.Degrees;
 
         public static implicit operator int(AngleF a)
-            => (int) System.MathF.Floor(a.Degrees);
+            => (int) MathF.Floor(a.Degrees);
 
         public static implicit operator AngleF(float f)
             => new AngleF(f);

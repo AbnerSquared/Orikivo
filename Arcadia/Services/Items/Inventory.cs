@@ -7,10 +7,10 @@ namespace Arcadia
     {
         private static string GetHeader(long capacity, bool showTooltips = true)
         {
-            var header = new StringBuilder("> 📂 **Inventory**\n> View your contents currently in storage.");
+            var header = new StringBuilder(Locale.GetHeader(Headers.Inventory));
 
             if (showTooltips)
-                header.Append($"\n> You have **{GetCapacity(capacity)}**{GetSuffix(capacity)} available.");
+                header.Append($"\n> You have {WriteCapacity(capacity)} available.");
 
             header.Append("\n");
 
@@ -51,7 +51,7 @@ namespace Arcadia
             if (len < 10)
                 return "MB";
 
-            if (len < 13) 
+            if (len < 13)
                 return "GB";
 
             if (len < 16)
@@ -104,6 +104,7 @@ namespace Arcadia
             return summary.ToString();
         }
 
+        // > **Slot {slot}:** `{id}`/`{unique_id}` {icon ?? •} **{name}** [{size}] (x**{count}**)
         private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true, bool showTooltips = true)
         {
             Item item = ItemHelper.GetItem(id);
@@ -117,26 +118,15 @@ namespace Arcadia
                 summary.Append($"/`{data.Data.Id}`");
 
             summary.Append($" • **{item.GetName()}**");
-            
-            if (data.Count > 1)
-            {
-                summary.Append($" (x**{data.Count}**)");
-            }
 
-            if (isPrivate) // Only write storage size if looking at your own inventory.
-            {
-                if (showTooltips)
-                {
-                    summary.Append($" (**{GetCapacity(item.Size)}**{GetSuffix(item.Size)})");
-                }
-            }
-            else
-            {
-                if (!ItemHelper.CanTrade(item.Id, data.Data))
-                {
-                    summary.Append("\n> ⚠️ This item is untradable.");
-                }
-            }
+            if (isPrivate && showTooltips)
+                summary.Append($" ({WriteCapacity(item.Size)})");
+
+            if (data.Count > 1)
+                summary.Append($" (x**{data.Count}**)");
+
+            if (!isPrivate && !ItemHelper.CanTrade(item.Id, data.Data))
+                summary.Append("\n> ⚠️ This item is untradable.");
 
             return summary.ToString();
         }
@@ -147,7 +137,7 @@ namespace Arcadia
 
             if (shop.SellDeduction > 0)
             {
-                inventory.AppendLine($"> **Inventory** (**{shop.SellDeduction}**% deduction)");
+                inventory.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, $"(**{shop.SellDeduction}**% deduction)"));
             }
 
             int i = 0;
@@ -175,7 +165,7 @@ namespace Arcadia
             if (isPrivate)
                 inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity)));
             else
-                inventory.AppendLine($"> 📂 **{user.Username}'s Inventory**\n");
+                inventory.AppendLine($"{Locale.GetHeader(Headers.Inventory, group: user.Username)}\n");
 
 
             int i = 0;

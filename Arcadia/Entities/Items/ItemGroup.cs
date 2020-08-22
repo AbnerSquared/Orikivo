@@ -7,6 +7,8 @@
 
         public string Icon { get; set; }
 
+        public string Name { get; set; }
+
         // This is applied to the name before the name of the item
         public string Prefix { get; set; }
 

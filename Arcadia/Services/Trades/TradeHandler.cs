@@ -12,7 +12,7 @@ namespace Arcadia
     // TODO: Implement StringReader to parse input to be much more precise than direct string comparison
     public class TradeHandler : MatchAction
     {
-        public TradeHandler(ArcadeContext context, ArcadeUser participant) : base()
+        public TradeHandler(ArcadeContext context, ArcadeUser participant)
         {
             Context = context;
             LastState = null;
@@ -25,38 +25,27 @@ namespace Arcadia
             ParticipantOffer = new Dictionary<string, int>();
         }
 
-        // This is the context received from the initial trade.
         public ArcadeContext Context { get; }
 
-        // The last state on the trade
         public TradeState? LastState { get; private set; }
 
-        // The current state of the trade
-        public TradeState State { get; private set; } 
+        public TradeState State { get; private set; }
 
-        // The reference of the message initialized, used to update
         public IUserMessage MessageReference { get; private set; }
 
-        // The user that initialized the trade
         public ArcadeUser Host { get; }
 
-        // The user that was invited to trade
-        public ArcadeUser Participant { get; } 
+        public ArcadeUser Participant { get; }
 
-        // The ID of the person in their inventory
-        internal ulong? CurrentId { get; set; }
-
-        // True if the host has accepted
         public bool HostReady { get; private set; }
 
-        // True if the participant has accepted
         public bool ParticipantReady { get; private set; }
 
-        // All of the items marked in the host's inventory
         public Dictionary<string, int> HostOffer { get; }
 
-        // All of the items marked in the participant's inventory
         public Dictionary<string, int> ParticipantOffer { get; }
+
+        internal ulong? CurrentId { get; set; }
 
         public override async Task OnStartAsync()
         {
@@ -119,21 +108,8 @@ namespace Arcadia
             {
                 slot.AppendLine($"> **{user.Username}** offers:\n");
 
-                int i = 0;
                 foreach ((string itemId, int amount) in items)
-                {
-                    if (i >= 0)
-                        slot.AppendLine();
-
-                    slot.Append($"> **{ItemHelper.NameOf(itemId)}**");
-
-                    if (amount > 1)
-                    {
-                        slot.Append($" (x**{amount:##,0}**)");
-                    }
-
-                    i++;
-                }
+                    slot.AppendLine(WriteItem(itemId, amount));
             }
 
             return slot.ToString();
@@ -178,7 +154,7 @@ namespace Arcadia
 
         private void AddItemToCurrent(string itemId, int amount = 1)
         {
-            var items = GetCurrentItems();
+            Dictionary<string, int> items = GetCurrentItems();
 
             if (!items.TryAdd(itemId, amount))
                 items[itemId] += amount;
@@ -189,7 +165,7 @@ namespace Arcadia
 
         private void RemoveItemFromCurrent(string itemId, int amount = 1)
         {
-            var items = GetCurrentItems();
+            Dictionary<string, int> items = GetCurrentItems();
 
             if (items.ContainsKey(itemId))
             {
@@ -299,7 +275,6 @@ namespace Arcadia
 
                         CurrentId = account.Id;
                         await SetStateAsync(TradeState.Inventory);
-                        
                         return ActionResult.Continue;
                     }
                     break;
@@ -315,7 +290,7 @@ namespace Arcadia
 
                     // TODO: Handle unique item ID when trading.
 
-                    // Check if the specified item exists in the invoker's inventory
+                    // Check if the specified item exists in the invoker inventory
                     if (!ItemHelper.HasItem(account, input))
                     {
                         await SetStateAsync(TradeState.Inventory, Format.Warning("An invalid item ID was specified."));
@@ -384,10 +359,19 @@ namespace Arcadia
                 case TradeState.Success:
                     content.AppendLine("> ✅ **Success!**\n> The trade has successfully gone through.");
                     content.Append(WriteTradeResult());
+                    Host.AddToVar(Stats.TimesTraded);
+                    Participant.AddToVar(Stats.TimesTraded);
                     break;
             }
 
             await UpdateMessageAsync(content.ToString());
+        }
+
+        private static string WriteItem(string itemId, int amount)
+        {
+            string icon = ItemHelper.IconOf(itemId);
+            string name = ItemHelper.NameOf(itemId);
+            return $"{(Check.NotNull(icon) ? $"{icon} " : "• ")}{name}{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}";
         }
 
         private string WriteTradeResult()
@@ -398,39 +382,28 @@ namespace Arcadia
 
             if (ParticipantOffer.Count > 0)
             {
-                result.AppendLine($"> **{Host.Username}** has received:");
+                result.AppendLine(WriteUserHeader(Host.Username));
+
                 foreach ((string itemId, int amount) in ParticipantOffer)
-                {
-                    result.Append($"**{ItemHelper.NameOf(itemId)}**");
-
-                    if (amount > 1)
-                    {
-                        result.Append($" (x**{amount:##,0}**)");
-                    }
-
-                    result.AppendLine();
-                }
+                    result.AppendLine(WriteItem(itemId, amount));
             }
 
             result.AppendLine();
 
             if (HostOffer.Count > 0)
             {
-                result.AppendLine($"> **{Participant.Username}** has received:");
+                result.AppendLine(WriteUserHeader(Participant.Username));
+
                 foreach ((string itemId, int amount) in HostOffer)
-                {
-                    result.Append($"**{ItemHelper.NameOf(itemId)}**");
-
-                    if (amount > 1)
-                    {
-                        result.Append($" (x**{amount:##,0}**)");
-                    }
-
-                    result.AppendLine();
-                }
+                    result.AppendLine(WriteItem(itemId, amount));
             }
 
             return result.ToString();
+        }
+
+        private static string WriteUserHeader(string username)
+        {
+            return $"> **{username}** has received:";
         }
 
         public override async Task OnTimeoutAsync(SocketMessage message)

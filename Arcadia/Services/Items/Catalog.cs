@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Orikivo;
 
@@ -6,83 +8,227 @@ namespace Arcadia.Services
 {
     public class Catalog
     {
-        private static string _line = "> **{0}**: {1}";
-        private static string GetId(Item item)
-            => string.Format(_line, "ID", $"`{item.Id}`");
+        public static string ViewRecipes(ArcadeUser user)
+        {
+            var recipes = new StringBuilder();
+            recipes.AppendLine(Locale.GetHeader(Headers.Recipe));
 
-        private static string GetName(Item item)
-            => string.Format(_line, "Name", $"**`{ItemHelper.NameOf(item.Id)}`**");
+            IEnumerable<Recipe> known = ItemHelper.GetKnownRecipes(user).ToList();
 
-        private static string GetSummary(Item item)
-            => string.Format(_line, "Summary", $"`{item.Summary}`");
+            if (!Check.NotNullOrEmpty(known))
+            {
+                recipes.AppendLine("> You don't know any recipes.");
+                return recipes.ToString();
+            }
 
-        private static string GetQuotes(Item item)
-            => string.Format(_line, Format.TryPluralize("Quote", item.Quotes.Count), string.Join(", ", item.Quotes.Select(x => $"*`\"{x}\"`*")));
+            foreach (Recipe recipe in known)
+                recipes.AppendLine(WriteRecipeText(user, recipe));
 
-        private static string GetRarity(Item item)
-            => string.Format(_line, "Rarity", $"`{item.Rarity.ToString()}`");
+            return recipes.ToString();
+        }
 
-        private static string GetTags(Item item)
-            => string.Format(_line, Format.TryPluralize("Tag", item.Tag.GetActiveFlags().Count()), string.Join(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`")));
+        private static string WriteRecipeText(ArcadeUser user, Recipe recipe)
+        {
+            var text = new StringBuilder();
 
-        private static string GetValue(Item item)
-            => string.Format(_line, "Value", $"**`{item.Value:##,0}`**");
+            string recipeName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name;
 
-        private static string GetBuyState(Item item)
-            => string.Format(_line, "Can Buy?", item.CanBuy ? "`Yes`": "`No`");
+            if (!Check.NotNull(recipeName))
+                recipeName = "Unknown";
 
-        private static string GetSellState(Item item)
-            => string.Format(_line, "Can Sell?", item.CanSell ? "`Yes`" : "`No`");
+            text.AppendLine($"\n> `{recipe.Id}`")
+                .Append($"> {(ItemHelper.CanCraft(user, recipe) ? "📑" : "📄")} **Recipe: {recipeName}**");
 
-        private static string GetTradeState(Item item)
-            => string.Format(_line, "Can Trade?", item.TradeLimit.HasValue ? item.TradeLimit.Value == 0 ? "`No`" : $"`Yes (x{item.TradeLimit.Value.ToString("##,0")})`" : "`Yes`");
+            return text.ToString();
+        }
 
-        private static string GetGiftState(Item item)
-            => string.Format(_line, "Can Gift?", item.GiftLimit.HasValue ? item.GiftLimit.Value == 0 ? "`No`" : $"`Yes (x{item.GiftLimit.Value.ToString("##,0")})`" : "`Yes`");
+        public static string ViewRecipeInfo(ArcadeUser user, Recipe recipe)
+        {
+            var info = new StringBuilder();
 
-        private static string GetUseState(Item item)
-            => string.Format(_line, "Can Use?", item.Usage != null ? "`Yes`": "`No`");
+            string resultName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name ?? throw new Exception("Expected to find item from recipe but returned null");
+            bool craft = ItemHelper.CanCraft(user, recipe);
 
-        private static string GetUniqueState(Item item)
-            => string.Format(_line, "Is Unique?", ItemHelper.IsUnique(item) ? "`Yes`" : "`No`");
+            info.AppendLine($"> {(craft ? "📑" : "📄")} **Recipe: {resultName}**");
 
-        private static string GetBypassState(Item item)
-            => string.Format(_line, "Bypass Requirements On Gift?", item.BypassCriteriaOnGift ? "`Yes`" : "`No`");
+            if (craft)
+                info.AppendLine("> You can craft this recipe.");
 
-        private static string GetOwnLimit(Item item)
-            => string.Format(_line, "Own Limit", item.OwnLimit.HasValue ? $"`{item.OwnLimit.Value:##,0}`" : "`None`");
+            info.AppendLine($"\n> **Components**");
 
-        // this is only the definer
-        public static string WriteItem(Item item)
+            foreach ((string itemId, int amount) in recipe.Components)
+                info.AppendLine(WriteRecipeComponent(itemId, amount));
+
+            info.AppendLine($"\n> **Result**");
+            info.AppendLine(WriteRecipeComponent(recipe.Result.ItemId, recipe.Result.Amount));
+
+            return info.ToString();
+        }
+
+        public static string WriteRecipeComponent(string itemId, int amount)
+        {
+            string icon = ItemHelper.IconOf(itemId);
+
+            if (!Check.NotNull(icon))
+                icon = "•";
+
+            string name = ItemHelper.GetItem(itemId)?.Name ?? throw new Exception("Expected to find item from recipe but returned null");
+
+            string counter = "";
+
+            if (amount > 1)
+            {
+                counter = $" (x**{amount:##,0}**)";
+            }
+
+            return $"`{itemId}` {icon} **{name}**{counter}";
+        }
+
+        public static string View(Item item)
         {
             var details = new StringBuilder();
 
-            details.AppendLine(GetId(item));
-            details.AppendLine(GetName(item));
+            string icon = item.GetIcon();
 
-            if (!string.IsNullOrWhiteSpace(item.Summary))
-                details.AppendLine(GetSummary(item));
+            if (!Check.NotNull(icon))
+                icon = "📔";
 
-            if (item.Quotes.Count > 0)
-                details.AppendLine(GetQuotes(item));
+            details.AppendLine($"> {icon} **{item.Name}**");
 
-            details.AppendLine(GetRarity(item));
-            details.AppendLine(GetTags(item));
+            if (Check.NotNullOrEmpty(item.Quotes))
+                details.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            if (item.Value > 0)
+            if (item.Tag != 0)
             {
-                details.AppendLine(GetValue(item));
-                details.AppendLine(GetBuyState(item));
-                details.AppendLine(GetSellState(item));
+                details.Append($"**#** ");
+                details.AppendJoin(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString().ToLower()}`"));
+                details.AppendLine();
             }
 
-            details.AppendLine(GetTradeState(item));
-            details.AppendLine(GetGiftState(item));
-            details.AppendLine(GetBypassState(item));
-            details.AppendLine(GetUseState(item));
-            details.AppendLine(GetUniqueState(item));
+            string summary = item.GetSummary();
 
-            details.AppendLine(GetOwnLimit(item));
+            if (Check.NotNull(summary))
+                details.AppendLine($"\n```{summary}```");
+            else
+                details.AppendLine();
+
+            details.AppendLine("> **Details**");
+            details.AppendLine($"**ID:** `{item.Id}`");
+
+            if (Check.NotNull(item.GroupId))
+                details.AppendLine($"**Group:** `{ItemHelper.GetGroup(item.GroupId).Name}`");
+
+            details.AppendLine("\n> **Marketing**");
+            details.AppendLine($"**Rarity:** {item.Rarity.ToString()}");
+
+            if (item.Value > 0)
+                details.AppendLine($"**Value:** {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
+
+            if (item.Size > 0)
+                details.AppendLine($"**Storage Size:** {Inventory.WriteCapacity(item.Size)}");
+
+            if (!ItemHelper.HasAttributes(item))
+                return details.ToString();
+
+            details.AppendLine("\n> **Attributes**");
+
+            if (ItemHelper.IsUnique(item))
+                details.AppendLine("🔸 **Unique**");
+
+            if (item.CanBuy)
+                details.AppendLine("🛍️ **Buyable**");
+
+            if (item.CanSell)
+                details.AppendLine("📦 **Sellable**");
+
+            string bypass = "";
+
+            if (item.BypassCriteriaOnGift)
+                bypass = " - Bypasses criteria when gifted";
+
+            if (item.GiftLimit.HasValue)
+            {
+                if (item.GiftLimit.Value > 0)
+                    details.Append("🎁 **Giftable**");
+
+                if (item.GiftLimit.Value == 1)
+                    details.AppendLine($" (**Once**){bypass}");
+                else if (item.GiftLimit.Value > 1)
+                    details.AppendLine($" (x**{item.GiftLimit.Value:##,0}**){bypass}");
+            }
+            else
+                details.AppendLine($"🎁 **Giftable**{bypass}");
+
+            if (item.TradeLimit.HasValue)
+            {
+                if (item.TradeLimit.Value > 0)
+                    details.Append("📪 **Tradable**");
+
+                if (item.TradeLimit.Value == 1)
+                    details.AppendLine($" (**Once**)");
+                else if (item.TradeLimit.Value > 1)
+                    details.AppendLine($" (x**{item.TradeLimit.Value:##,0}**)");
+            }
+            else
+                details.AppendLine("📪 **Tradable**");
+
+            if (ItemHelper.IsIngredient(item))
+                details.AppendLine("🧂 **Crafting Ingredient**");
+
+            if (ItemHelper.CanCraft(item))
+                details.AppendLine("📒 **Craftable**");
+
+            if (item.OwnLimit.HasValue)
+                details.AppendLine($"📂 **Max Allowed: {item.OwnLimit.Value:##,0}**");
+
+            if (!ItemHelper.HasUsageAttributes(item))
+                return details.ToString();
+
+            if (item.Usage != null)
+            {
+                if (item.Usage.Action != null)
+                    details.AppendLine("🔹 **Usable**");
+
+
+                string removeOn = "";
+
+                if (item.Usage.DeleteOnBreak)
+                    removeOn = " - Removed on break";
+
+                if (item.Usage.Durability.HasValue)
+                {
+                    details.AppendLine($"❤️ **Durability: {item.Usage.Durability.Value:##,0}**{removeOn}");
+                }
+
+                if (item.Usage.Expiry.HasValue)
+                {
+                    string expiryHandle = item.Usage.ExpiryTrigger switch
+                    {
+                        ExpiryTrigger.Use => " - Starts when first used",
+                        ExpiryTrigger.Equip => " - Starts when equipped",
+                        ExpiryTrigger.Own => " - Starts when owned",
+                        ExpiryTrigger.Gift => " - Starts when gifted",
+                        ExpiryTrigger.Trade => " - Starts when traded",
+                        _ => ""
+                    };
+
+                    details.AppendLine($"💀 **Expiry:** {Format.LongCounter(item.Usage.Expiry.Value)}{expiryHandle}");
+                }
+
+                if (item.Usage.Cooldown.HasValue)
+                {
+                    string cooldownHandle = item.Usage.CooldownCategory switch
+                    {
+                        CooldownCategory.Global => " - For all items",
+                        CooldownCategory.Group => " - For this item group only",
+                        CooldownCategory.Item => " - For this item only",
+                        CooldownCategory.Instance => " - For this instance only",
+                        _ => ""
+                    };
+
+                    details.AppendLine($"🕘 **Cooldown:** {Format.LongCounter(item.Usage.Cooldown.Value)}{cooldownHandle}");
+                }
+            }
 
             return details.ToString();
         }
