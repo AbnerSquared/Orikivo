@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
@@ -16,8 +15,23 @@ namespace Arcadia
         public const char Separator = ':';
         public const char TextSeparator = '_';
 
+        private static string WriteTime(long ticks)
+            => Format.FullTime(new DateTime(ticks));
+
         public static readonly List<Var> Definers = new List<Var>
         {
+            new Var
+            {
+                Id = Stats.LastAssignedQuest,
+                Type = VarType.Time,
+                ValueWriter = WriteTime
+            },
+            new Var
+            {
+                Id = Stats.LastSkippedQuest,
+                Type = VarType.Time,
+                ValueWriter = WriteTime
+            },
             new Var
             {
                 Id = GimiStats.CurrentWinStreak,
@@ -28,18 +42,21 @@ namespace Arcadia
             {
                 Id = Stats.QuestCapacity,
                 Name = "Quest Capacity",
+                Type = VarType.Attribute,
                 Summary = "This determines how many quests you can receive at a time."
             },
             new Var
             {
                 Id = Vars.BoosterLimit,
                 Name = "Booster Stack Limit",
+                Type = VarType.Attribute,
                 Summary = "This determines how many boosters you can stack at a time."
             },
             new Var
             {
                 Id = Vars.Capacity,
                 Name = "Inventory Capacity",
+                Type = VarType.Attribute,
                 Summary = "This determines how many boosters you can stack at a time.",
                 DefaultValue = 4000,
                 ValueWriter = Inventory.WriteCapacity
@@ -50,26 +67,56 @@ namespace Arcadia
         {
             new VarGroup
             {
+                Id = "var",
+                Name = "Attribute",
+                Summary = "This is a generic collection of variables primarily used to track custom attributes.",
+                Type = VarType.Attribute
+            },
+            new VarGroup
+            {
+                Id = "catalog",
+                Name = "Catalog Status",
+                Summary = "This is a generic collection of variables primarily used to track the state of an item for the catalog.",
+                Type = VarType.Attribute
+            },
+            new VarGroup
+            {
+                Id = "cooldown",
+                Name = "Cooldown",
+                Summary = "This is a group of variables used to track cooldowns.",
+                Type = VarType.Time,
+                ValueWriter = WriteTime
+            },
+            new VarGroup
+            {
                 Id = "gimi",
                 Name = "Gimi",
                 Summary = "This is a group of stats used for the **Gimi** casino machine.",
+                Type = VarType.Stat,
                 Writer = (user =>
                 {
+                    string winRate = $"**{((user.GetVar(GimiStats.TimesWon) / (double)user.GetVar(GimiStats.TimesPlayed)) * 100):##,0}**%";
+                    long profit = user.GetVar(GimiStats.TotalWon) - user.GetVar(GimiStats.TotalLost);
                     var details = new StringBuilder();
-
-
-
-
-
+                    details.AppendLine($"• **Play Count:** {user.GetVar(GimiStats.TimesPlayed):##,0} ({winRate} win rate)");
+                    details.AppendLine($"• **Wins:** {user.GetVar(GimiStats.TimesWon):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalWon):##,0}**)");
+                    details.AppendLine($"• **Losses:** {user.GetVar(GimiStats.TimesLost):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalLost):##,0}**)");
+                    details.AppendLine($"• **Gold:** {user.GetVar(GimiStats.TimesGold):##,0}");
+                    details.AppendLine($"• **Curse:** {user.GetVar(GimiStats.TimesCursed):##,0}");
+                    details.AppendLine($"\n• **{(profit >= 0 ? "Profits" : "Expenses")}:** {(profit >= 0 ? Icons.Balance : Icons.Debt)} **{profit:##,0}**");
+                    details.AppendLine($"• **Longest Win Streak:** {user.GetVar(GimiStats.LongestWin):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.LargestWin):##,0}**)");
+                    details.AppendLine($"• **Longest Loss Streak:** {user.GetVar(GimiStats.LongestLoss):##,0} ({Icons.Debt} **{user.GetVar(GimiStats.LargestLoss):##,0}**)");
 
                     return details.ToString();
                 })
+            },
+            new VarGroup
+            {
+                Id = "doubler",
+                Name = "Doubler",
+                Summary = "This is a group of stats used for the **Doubler** casino machine.",
+                Type = VarType.Stat
             }
-        };
-
-        public static readonly List<string> GroupIds = new List<string>
-        {
-            "gimi"
         };
 
         public static int Count(ArcadeUser user)
@@ -85,7 +132,9 @@ namespace Arcadia
             var details = new StringBuilder();
 
             string name = GetDefiner(id)?.Name ?? Humanize(id);
-            string value = GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id)) ?? $"{user.GetVar(id)}";
+            string value = GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id))
+                           ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
+                           ?? $"{user.GetVar(id)}";
 
             if (!string.IsNullOrWhiteSpace(name))
             {
@@ -116,6 +165,9 @@ namespace Arcadia
             return details.ToString();
         }
 
+        public static VarGroup GetGroupDefiner(string groupId)
+            => Groups.FirstOrDefault(x => x.Id == groupId);
+
         public static IEnumerable<string> WithGroup(ArcadeUser user, string group)
         {
             return user.Stats.Keys.Where(x => EqualsGroup(x, group));
@@ -125,6 +177,9 @@ namespace Arcadia
         {
             return user.Stats.Keys.Where(x => EqualsKey(x, key));
         }
+
+        public static VarType GetGroupType(string group)
+            => GetGroupDefiner(group)?.Type ?? VarType.Stat;
 
         public static bool EqualsGroup(string id, string group)
         {
@@ -169,10 +224,22 @@ namespace Arcadia
                 user.SetVar(a, user.GetVar(b));
         }
 
+        public static void SetIfGreater(ArcadeUser user, string a, long b)
+        {
+            if (b > user.GetVar(a))
+                user.SetVar(a, b);
+        }
+
         public static void SetIfLesser(ArcadeUser user, string a, string b)
         {
             if (user.GetVar(b) < user.GetVar(a))
                 user.SetVar(a, user.GetVar(b));
+        }
+
+        public static void SetIfLesser(ArcadeUser user, string a, long b)
+        {
+            if (b < user.GetVar(a))
+                user.SetVar(a, b);
         }
 
         public static void Swap(ArcadeUser user, string a, string b)
@@ -184,6 +251,32 @@ namespace Arcadia
         public static long Sum(ArcadeUser user, string a, string b)
         {
             return user.GetVar(a) + user.GetVar(b);
+        }
+
+        public static long Difference(ArcadeUser user, string a, string b)
+        {
+            return Math.Abs(user.GetVar(b) - user.GetVar(a));
+        }
+
+        public static ArcadeUser GetLesser(ArcadeUser a, ArcadeUser b, string id)
+        {
+            if (a.GetVar(id) == b.GetVar(id))
+                return null;
+
+            return a.GetVar(id) < b.GetVar(id) ? a : b;
+        }
+
+        public static ArcadeUser GetGreater(ArcadeUser a, ArcadeUser b, string id)
+        {
+            if (a.GetVar(id) == b.GetVar(id))
+                return null;
+
+            return a.GetVar(id) > b.GetVar(id) ? a : b;
+        }
+
+        public static long Difference(ArcadeUser a, ArcadeUser b, string id)
+        {
+            return Math.Abs(b.GetVar(id) - a.GetVar(id));
         }
 
         public static long Sum(ArcadeUser user, string a, string b, params string[] rest)
@@ -266,11 +359,6 @@ namespace Arcadia
             foreach (string id in ids)
                 Clear(user, id);
         }
-
-        //public static void ClearAll(ArcadeUser user)
-        //{
-        //    user.Stats = new Dictionary<string, long>();
-        //}
 
         public static bool IsType(string id, VarType type)
         {
@@ -395,7 +483,7 @@ namespace Arcadia
             => GetDefiner(id) != null;
 
         public static bool IsGroupDefined(string group)
-            => GroupIds.Contains(group);
+            => Groups.Any(x => x.Id == group);
 
         public static Var GetDefiner(string id)
         {
@@ -416,7 +504,8 @@ namespace Arcadia
 
         public static VarType TypeOf(string id)
         {
-            return GetDefiner(id)?.Type ?? VarType.Stat;
+            // If there isn't a definer for this ID, try to find its matching group type
+            return GetDefiner(id)?.Type ?? GetGroupType(GetGroup(id));
         }
 
         public static string SetTemplate(string template, string value)
@@ -444,7 +533,7 @@ namespace Arcadia
             if (group == Placeholder.ToString())
                 return GetDefiner(template)?.Template ?? TemplateType.Any;
 
-            if (GroupIds.Contains(group))
+            if (IsGroupDefined(group))
                 throw new ArgumentException("Expected a template ID");
 
             if (ItemHelper.Exists(group))
@@ -494,7 +583,7 @@ namespace Arcadia
                 return false;
 
             // If a defined group exists for this template, return false
-            if (GroupIds.Contains(group))
+            if (IsGroupDefined(group))
                 return false;
 
             // If this stat was defined as an ANY template and a template was replaced
@@ -516,7 +605,7 @@ namespace Arcadia
                 return true;
 
             // If a defined group exists for this template, return false
-            if (GroupIds.Contains(group))
+            if (IsGroupDefined(group))
                 return false;
 
             // If this stat was defined and a template is specified
@@ -620,10 +709,7 @@ namespace Arcadia
                     return false;
             }
 
-            if (reader.GetCursor() - groupCursor == 0)
-                return false;
-
-            return true;
+            return reader.GetCursor() - groupCursor != 0;
         }
 
         public static string Parse(string id, bool enforceGroup = false)
@@ -794,7 +880,7 @@ namespace Arcadia
 
         public TemplateType? Template { get; private set; }
 
-        public VarType Type { get; private set; } = VarType.Stat;
+        public VarType? Type { get; private set; }
 
         public long DefaultValue { get; private set; } = 0;
     }

@@ -46,11 +46,11 @@ namespace Arcadia.Casino
                     user.AddToVar(GimiStats.TimesGold);
                     user.AddToVar(GimiStats.CurrentGoldStreak);
 
-                    StatHelper.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                    Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
                 }
 
-                StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
+                Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
+                Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
                 user.Give(Reward, out long actual, Flag != GimiResultFlag.Gold);
                 ModifiedReward = actual;
             }
@@ -73,11 +73,11 @@ namespace Arcadia.Casino
                 {
                     user.AddToVar(GimiStats.TimesCursed);
                     user.AddToVar(GimiStats.CurrentCurseStreak);
-                    StatHelper.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                    Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
                 }
 
-                StatHelper.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                StatHelper.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
+                Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
+                Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
                 user.Take(Reward, out long actual, Flag != GimiResultFlag.Curse);
                 ModifiedReward = actual;
             }
@@ -111,7 +111,7 @@ namespace Arcadia.Casino
                 color = ImmutableColor.GammaGreen;
 
                 // UPDATING
-                StatHelper.Clear(user,
+                Var.Clear(user,
                     GimiStats.CurrentCurseStreak,
                     GimiStats.CurrentLossStreak,
                     GimiStats.CurrentLossAmount);
@@ -134,11 +134,11 @@ namespace Arcadia.Casino
                     user.AddToVar(GimiStats.TimesGold);
                     user.AddToVar(GimiStats.CurrentGoldStreak);
 
-                    StatHelper.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                    Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
                 }
 
-                StatHelper.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                StatHelper.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
+                Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
+                Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
                 long debt = user.Debt;
                 // UPDATING BALANCE
@@ -201,13 +201,13 @@ namespace Arcadia.Casino
 
                     user.AddToVar(GimiStats.TimesCursed);
                     user.AddToVar(GimiStats.CurrentCurseStreak);
-                    StatHelper.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                    Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
                 }
 
-                StatHelper.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                StatHelper.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
+                Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
+                Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
 
-                long balance = (long) user.Balance;
+                long balance = user.Balance;
                 // UPDATING BALANCE
                 user.Take(Reward, out value, Flag != GimiResultFlag.Curse);
                 ModifiedReward = value;

@@ -1,7 +1,7 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
 
-namespace Orikivo
+namespace Orikivo.Canary
 {
     // NOTE: This service will most likely be moved to Arcadia, as Orikivo only focuses on the RPG graphics handler.
     public class CardProperties

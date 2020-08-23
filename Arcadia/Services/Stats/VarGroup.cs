@@ -10,6 +10,10 @@ namespace Arcadia
 
         public string Summary { get; set; }
 
+        public VarType Type { get; set; } = VarType.Stat;
+
+        public Func<long, string> ValueWriter { get; set; }
+
         public Func<ArcadeUser, string> Writer { get; set; }
     }
 }

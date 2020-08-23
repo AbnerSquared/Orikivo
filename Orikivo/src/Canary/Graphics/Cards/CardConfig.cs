@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Orikivo
+namespace Orikivo.Canary
 {
     /// <summary>
     /// Represents the configurations that can be applied to the design of a card.

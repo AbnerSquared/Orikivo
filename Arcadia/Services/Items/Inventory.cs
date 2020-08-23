@@ -125,8 +125,8 @@ namespace Arcadia
             if (data.Count > 1)
                 summary.Append($" (x**{data.Count}**)");
 
-            if (!isPrivate && !ItemHelper.CanTrade(item.Id, data.Data))
-                summary.Append("\n> ⚠️ This item is untradable.");
+            // if (!isPrivate && !ItemHelper.CanTrade(item.Id, data.Data))
+            //    summary.Append("\n> ⚠️ This item is untradable.");
 
             return summary.ToString();
         }
@@ -159,7 +159,7 @@ namespace Arcadia
         public static string Write(ArcadeUser user, bool isPrivate = true)
         {
             // set the default capacity if unspecified
-            StatHelper.SetIfEmpty(user, Vars.Capacity, 4000);
+            Var.SetIfEmpty(user, Vars.Capacity, 4000);
             var inventory = new StringBuilder();
 
             if (isPrivate)

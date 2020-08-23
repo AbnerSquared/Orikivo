@@ -103,7 +103,7 @@ namespace Arcadia
 
         public static void Assign(ArcadeUser user)
         {
-            StatHelper.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            Var.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
 
             if (!CanAssign(user))
                 return;
@@ -123,7 +123,7 @@ namespace Arcadia
 
         public static Message AssignAndDisplay(ArcadeUser user)
         {
-            StatHelper.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            Var.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
 
             if (!CanAssign(user))
             {
@@ -162,12 +162,12 @@ namespace Arcadia
 
         private static long GetCurrentCapacity(ArcadeUser user)
         {
-            return StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity) - user.Quests.Count;
+            return Var.GetOrSet(user, Stats.QuestCapacity, DefaultQuestCapacity) - user.Quests.Count;
         }
 
         public static void Assign(ArcadeUser user, Quest quest)
         {
-            StatHelper.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            Var.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
 
             if (!CanAssign(user, quest))
                 return;
@@ -269,7 +269,7 @@ namespace Arcadia
         {
             if (clamp)
             {
-                int capacity = (int) StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
+                int capacity = (int)Var.GetOrSet(user, Stats.QuestCapacity, DefaultQuestCapacity);
                 index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
             }
 
@@ -313,7 +313,7 @@ namespace Arcadia
 
         public static string ViewSlot(ArcadeUser user, int index)
         {
-            int capacity = (int)StatHelper.GetOrAdd(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            int capacity = (int)Var.GetOrSet(user, Stats.QuestCapacity, DefaultQuestCapacity);
             index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
 
             QuestData slot = GetSlot(user, index, false);
@@ -410,7 +410,7 @@ namespace Arcadia
 
         public static string View(ArcadeUser user)
         {
-            StatHelper.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
+            Var.SetIfEmpty(user, Stats.QuestCapacity, DefaultQuestCapacity);
             var result = new StringBuilder();
 
             result.AppendLine("> 🧧 **Objectives**");

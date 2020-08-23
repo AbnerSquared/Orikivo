@@ -4,16 +4,6 @@ using Orikivo;
 
 namespace Arcadia
 {
-    // Details information of
-    public class MarketValueInfo
-    {
-        public CurrencyType Currency { get; set; }
-        public long Value { get; set; }
-        public bool CanBuy { get; set; }
-        public bool CanSell { get; set; }
-    }
-
-
     public class Item
     {
         public string Id { get; set; }
@@ -23,7 +13,13 @@ namespace Arcadia
         public string Icon { get; set; }
 
         public string GetName()
-            => ItemHelper.NameOf(Id);
+        {
+            if (ItemHelper.TryGetGroup(GroupId, out ItemGroup group))
+                return $"{group.Prefix}{Name}";
+
+            return Name;
+        }
+        // => ItemHelper.NameOf(Id);
 
         public string GetQuote()
             => Randomizer.Choose(Quotes);

@@ -32,30 +32,6 @@ namespace Arcadia.Casino
 
         public TickResultFlag Flag { get; }
 
-        private static string GetQuote(int expectedTick, int actualTick, float multiplier, long reward, bool isSuccess)
-        {
-            int diff = Math.Abs(actualTick - expectedTick);
-
-            if (!isSuccess)
-            {
-                return Randomizer.ChooseAny($"The dying tick was **{actualTick}**.",
-                    "Ouch. Sorry about that.",
-                    $"You missed a chance at **{Icons.Chips} {reward:##,0}**.",
-                    $"Don't forget that your **Chips** ({Icons.Chips}) are always taken at the start.",
-                    diff == expectedTick
-                        ? "There was never a successful tick in this round."
-                        : $"You were **{diff}** {Format.TryPluralize("tick", diff)} away from **{expectedTick}**.");
-            }
-
-            return Randomizer.ChooseAny("Nicely done!",
-                multiplier > 5
-                    ? $"You beat the odds, landing you a **x{multiplier:##,0.#}** return!"
-                    : $"You have received a **x{multiplier:##,0.#}** return.",
-                diff == 0
-                    ? $"The dying tick was exactly **{expectedTick}**. Good guessing!"
-                    : $"In this round, the dying tick was **{actualTick}**.");
-        }
-
         public Message ApplyAndDisplay(ArcadeUser user)
         {
             ImmutableColor color = ImmutableColor.GammaGreen;
@@ -82,13 +58,13 @@ namespace Arcadia.Casino
                     user.AddToVar(TickStats.CurrentWinStreak);
                     user.AddToVar(TickStats.CurrentWinAmount, Reward);
 
-                    StatHelper.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
-                    StatHelper.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
-                    StatHelper.SetIfGreater(user, TickStats.LargestWinSingle, Reward);
+                    Var.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
+                    Var.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
+                    Var.SetIfGreater(user, TickStats.LargestWinSingle, Reward);
                     break;
 
                 case TickResultFlag.Lose:
-                    StatHelper.Clear(user, TickStats.CurrentWinStreak, TickStats.CurrentWinAmount);
+                    Var.Clear(user, TickStats.CurrentWinStreak, TickStats.CurrentWinAmount);
                     user.AddToVar(TickStats.TimesLost);
                     user.AddToVar(TickStats.CurrentLossStreak);
                     break;

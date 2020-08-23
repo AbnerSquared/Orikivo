@@ -34,61 +34,6 @@ namespace Arcadia
             return null;
         }
 
-        public static void Clear(ArcadeUser user, params string[] stats)
-        {
-            foreach (string stat in stats)
-                user.SetVar(stat, 0);
-        }
-
-        // set A to B if B is > than A
-        public static void SetIfGreater(ArcadeUser user, string a, string b)
-        {
-            if (user.GetVar(b) > user.GetVar(a))
-                user.SetVar(a, user.GetVar(b));
-        }
-
-        public static long GetOrAdd(ArcadeUser user, string a, long defaultValue)
-        {
-            SetIfEmpty(user, a, defaultValue);
-            return user.GetVar(a);
-        }
-
-        public static void SetIfGreater(ArcadeUser user, string a, long b)
-        {
-            if (b > user.GetVar(a))
-                user.SetVar(a, b);
-        }
-
-        public static void SetIfEmpty(ArcadeUser user, string stat, long value)
-        {
-            if (user.GetVar(stat) == 0)
-                user.SetVar(stat, value);
-        }
-
-        public static void Swap(ArcadeUser user, string a, string b)
-        {
-            long u = user.GetVar(a);
-            user.SetVar(a, user.GetVar(b));
-            user.SetVar(b, u);
-        }
-
-        public static void SetIfLesser(ArcadeUser user, string a, string b)
-        {
-            if (user.GetVar(b) < user.GetVar(a))
-                user.SetVar(a, user.GetVar(b));
-        }
-
-        public static void SetIfLesser(ArcadeUser user, string a, long b)
-        {
-            if (b < user.GetVar(a))
-                user.SetVar(a, b);
-        }
-
-        // gets the diff between 2 stats
-        public static long Difference(ArcadeUser user, string a, string b)
-        {
-            return user.GetVar(b) - user.GetVar(a);
-        }
 
         public static long Sum(ArcadeUser user, string a, string b)
             => user.GetVar(a) + user.GetVar(b);
@@ -105,24 +50,70 @@ namespace Arcadia
         public static TimeSpan SinceTime(ArcadeUser user, string statId, DateTime time)
             => TimeSpan.FromTicks(time.Ticks - user.GetVar(statId));
 
-        public static bool HasName(string id)
-            => Descriptions.ContainsKey(id) && Check.NotNull(Descriptions[id]?.Name);
-
-        internal static string NameOf(string statId)
-        {
-            return HasName(statId) ? Format.Bold(Descriptions[statId].Name) : Format.LineCode(statId);
-        }
-
         private static IEnumerable<KeyValuePair<string, long>> GetVisibleStats(ArcadeUser user)
-            => user.Stats.Where((key, value) =>
-                !key.StartsWith(StatGroups.Cooldown)
-                && value != 0
-                && !key.StartsWith(ItemHelper.LItems.Select(x => x.Id)))
+            => user.Stats.Where(x =>
+                x.Value != 0
+                && Var.TypeOf(x.Key) == VarType.Stat
+                && !ItemHelper.Exists(Var.GetGroup(x.Key))
+                ).OrderBy(x => x.Key);
+
+        private static IEnumerable<KeyValuePair<string, long>> GetGroupStats(ArcadeUser user, string group)
+            => user.Stats.Where(x =>
+                x.Value != 0
+                && Var.GetGroup(x.Key) == group)
                 .OrderBy(x => x.Key);
 
         private static int GetPageCount(ArcadeUser user, int pageSize)
             => (int) Math.Ceiling(GetVisibleStats(user).Count() / (double) pageSize);
         // 35 / 25 => 1.23
+
+        public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 25)
+        {
+            VarGroup group = Var.GetGroupDefiner(query);
+
+            if (group == null)
+                return Format.Warning("Unable to find the specified stat group.");
+
+            var result = new StringBuilder();
+
+            if (group.Writer != null)
+            {
+                result.AppendLine($"> **Stats: {group.Name}**");
+                result.AppendLine(group.Writer.Invoke(user));
+                return result.ToString();
+            }
+
+            var stats = GetGroupStats(user, group.Id).ToList();
+            int pageCount = (int)Math.Ceiling(stats.Count / (double)pageSize) - 1;
+            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+
+            string counter = null;
+
+            if (pageCount + 1 > 1)
+            {
+                if (pageCount + 1 > 1)
+                    counter = $" (Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)";
+            }
+
+            result.AppendLine($"> **Stats: {group.Name}**{counter}");
+
+            int offset = page * pageSize;
+            int i = 0;
+            foreach ((string id, long value) in stats.Skip(offset))
+            {
+                if (i >= pageSize)
+                    break;
+
+                result.AppendLine($"`{id}`: {value}");
+                i++;
+            }
+
+            if (i == 0)
+                result.AppendLine("An invalid group was specified or an unknown error has occurred.");
+
+            return result.ToString();
+        }
+
         public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, int pageSize = 25)
         {
             var result = new StringBuilder();
@@ -134,8 +125,6 @@ namespace Arcadia
             string counter = null;
             if (pageCount + 1 > 1)
             {
-
-
                 if (pageCount + 1 > 1)
                     counter = $"(Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)";
             }

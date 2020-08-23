@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Orikivo.Desync;
 
-namespace Orikivo
+namespace Orikivo.Canary
 {
     /// <summary>
     /// Represents the details of a card.

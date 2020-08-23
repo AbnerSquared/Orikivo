@@ -18,7 +18,7 @@ namespace Arcadia
 
         [JsonConstructor]
         internal ArcadeGuild(ulong id, string name, DateTime createdAt, ulong ownerId, GuildConfig config,
-            ulong balance, ulong exp, Dictionary<string, long> stats, List<QuestData> quests,
+            long balance, ulong exp, Dictionary<string, long> stats, List<QuestData> quests,
             int? maxAllowedGames) : base(id, name, createdAt, ownerId, config)
         {
             Balance = balance;
@@ -29,7 +29,7 @@ namespace Arcadia
         }
 
         [JsonProperty("balance")]
-        public ulong Balance { get; internal set; }
+        public long Balance { get; internal set; }
 
         [JsonProperty("exp")]
         public ulong Exp { get; internal set; }
@@ -43,12 +43,6 @@ namespace Arcadia
         [JsonProperty("max_allowed_games")]
         public int MaxAllowedGames { get; internal set; }
     }
-
-    // Arcadia property
-    // public ulong Balance { get; internal set; }
-
-    // Arcadia property
-    // public ulong Exp { get; internal set; }
 
     // Moderation property
     // public List<GuildEvent> Events { get; internal set; }

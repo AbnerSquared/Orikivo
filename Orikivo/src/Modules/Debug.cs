@@ -3,6 +3,7 @@ using Orikivo.Drawing;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using Orikivo.Canary;
 
 namespace Orikivo.Modules
 {

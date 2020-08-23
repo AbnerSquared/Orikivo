@@ -91,13 +91,25 @@ namespace Arcadia
             return header.ToString();
         }
 
-        public static string WriteMenuBody(ArcadeUser user, Shop shop, ItemCatalog catalog, ShopState state)
+        private bool HasUpdatedCatalog = false;
+
+        public string WriteMenuBody(ArcadeUser user, Shop shop, ItemCatalog catalog, ShopState state)
         {
             var body = new StringBuilder();
 
             if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
             {
                 body.Append(ShopHelper.WriteCatalog(catalog));
+
+                if (!HasUpdatedCatalog)
+                {
+                    foreach ((string itemId, int amount) in catalog.ItemIds)
+                    {
+                        ItemHelper.SetCatalogStatus(user, itemId, CatalogStatus.Seen);
+                    }
+
+                    HasUpdatedCatalog = true;
+                }
             }
             else if (state.EqualsAny(ShopState.ViewSell, ShopState.Sell))
             {
@@ -151,7 +163,7 @@ namespace Arcadia
             return notice.ToString();
         }
 
-        private static string GetMenu(ArcadeUser user, Vendor vendor, ItemCatalog catalog, Shop shop, ShopState state, string notice = "", string replyOverride = null)
+        private string GetMenu(ArcadeUser user, Vendor vendor, ItemCatalog catalog, Shop shop, ShopState state, string notice = "", string replyOverride = null)
         {
             var menu = new StringBuilder();
 

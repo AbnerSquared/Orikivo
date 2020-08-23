@@ -8,6 +8,138 @@ namespace Arcadia.Services
 {
     public class Catalog
     {
+        public static string View(ArcadeUser user)
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine("> 🗃️ **Catalog**");
+            info.AppendLine("> Learn about all of the items you have discovered so far.");
+
+            if (!ItemHelper.CanViewCatalog(user))
+            {
+                info.AppendLine("You haven't seen any items yet. Get out there and explore!");
+                return info.ToString();
+            }
+
+            foreach (ItemGroup group in ItemHelper.Groups)
+            {
+                int known = ItemHelper.GetKnownCount(user, group.Id);
+                int seen = ItemHelper.GetSeenCount(user, group.Id);
+
+                if (known == 0 && seen == 0)
+                    continue;
+
+                string icon = Check.NotNull(group.Icon) ? $" {group.Icon} " : "  ";
+                info.AppendLine($"\n> `{group.Id}`{icon}**{group.Name}**");
+
+                int count = known == 0 ? seen : known;
+                string term = known == 0 ? "seen" : "known";
+                info.AppendLine($"> **{count}** {term} {Format.TryPluralize("entry", count)}");
+            }
+
+            return info.ToString();
+        }
+
+        private static string GetStatusIcon(CatalogStatus status)
+        {
+            return status switch
+            {
+                CatalogStatus.Known => "",
+                CatalogStatus.Seen => "🔭 ",
+                _ => "UNKNOWN_ICON"
+            };
+        }
+
+        private static readonly int _pageSize = 8;
+
+        private static string ViewAll(ArcadeUser user, int page = 0)
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine("> 🗃️ **Catalog: All**");
+            info.AppendLine("> Use `inspect <item_id>` to learn more about an item entry.");
+
+            var entries = ItemHelper.LItems
+                .Where(x => ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
+                .OrderBy(x => x.GetName()).ToList();
+
+            int pageCount = (int) Math.Ceiling(entries.Count / (double) _pageSize) - 1;
+            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+
+            int offset = page * _pageSize;
+            int i = 0;
+            foreach (Item item in entries.Skip(offset))
+            {
+                if (i >= _pageSize)
+                    break;
+
+                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+
+                if (status == CatalogStatus.Unknown)
+                    continue;
+
+                string icon = item.GetIcon() ?? "•";
+
+                info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
+                i++;
+            }
+
+            return info.ToString();
+        }
+
+        public static string View(ArcadeUser user, string query, int page = 0)
+        {
+            if (!Check.NotNull(query))
+                return View(user);
+
+            if (query == "all")
+                return ViewAll(user, page);
+
+            if (!ItemHelper.GroupExists(query))
+                return Format.Warning("Unable to find the specified group query.");
+
+            if (ItemHelper.GetKnownCount(user, query) == 0
+                && ItemHelper.GetSeenCount(user, query) == 0)
+                return Format.Warning("You are not authorized to view this group query.");
+
+            var info = new StringBuilder();
+
+            ItemGroup group = ItemHelper.GetGroup(query);
+
+            var entries = ItemHelper.LItems
+                .Where(x => x.GroupId == query && ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
+                .OrderBy(x => x.GetName()).ToList();
+
+            int pageCount = (int)Math.Ceiling(entries.Count / (double)_pageSize) - 1;
+            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+
+            int offset = page * _pageSize;
+            int i = 0;
+
+            string baseIcon = group.Icon ?? "🗃️";
+            string extra = pageCount > 1 ? $" (Page **{page:##,0}**/{pageCount:##,0})" : "";
+            info.AppendLine($"> {baseIcon} **Catalog: {group.Name}**{extra}");
+            info.AppendLine("> Use `inspect <item_id>` to learn more about an item entry.");
+
+            foreach (Item item in entries.Skip(offset))
+            {
+                if (i >= _pageSize)
+                    break;
+
+                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+
+                if (status == CatalogStatus.Unknown)
+                    continue;
+
+                string icon = item.GetIcon() ?? "•";
+
+                info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
+                i++;
+            }
+
+            return info.ToString();
+        }
+
         public static string ViewRecipes(ArcadeUser user)
         {
             var recipes = new StringBuilder();
@@ -46,7 +178,7 @@ namespace Arcadia.Services
         {
             var info = new StringBuilder();
 
-            string resultName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name ?? throw new Exception("Expected to find item from recipe but returned null");
+            string resultName = ItemHelper.NameOf(recipe.Result.ItemId);
             bool craft = ItemHelper.CanCraft(user, recipe);
 
             info.AppendLine($"> {(craft ? "📑" : "📄")} **Recipe: {resultName}**");
@@ -72,7 +204,7 @@ namespace Arcadia.Services
             if (!Check.NotNull(icon))
                 icon = "•";
 
-            string name = ItemHelper.GetItem(itemId)?.Name ?? throw new Exception("Expected to find item from recipe but returned null");
+            string name = ItemHelper.NameOf(itemId);
 
             string counter = "";
 
@@ -84,8 +216,11 @@ namespace Arcadia.Services
             return $"`{itemId}` {icon} **{name}**{counter}";
         }
 
-        public static string View(Item item)
+        public static string ViewItem(Item item, CatalogStatus status = CatalogStatus.Known)
         {
+            if (status == CatalogStatus.Unknown)
+                return Format.Warning("You are not authorized to view this item.");
+
             var details = new StringBuilder();
 
             string icon = item.GetIcon();
@@ -97,6 +232,12 @@ namespace Arcadia.Services
 
             if (Check.NotNullOrEmpty(item.Quotes))
                 details.AppendLine($"> *\"{item.GetQuote()}\"*");
+
+            if (status == CatalogStatus.Seen)
+            {
+                details.AppendLine("\n> You do not know enough about this item.");
+                return details.ToString();
+            }
 
             if (item.Tag != 0)
             {

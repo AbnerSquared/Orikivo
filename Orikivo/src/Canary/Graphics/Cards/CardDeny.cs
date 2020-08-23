@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Orikivo.Canary
 {
     [System.Flags]
     public enum CardDeny

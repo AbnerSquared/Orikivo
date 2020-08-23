@@ -2,15 +2,11 @@
 using Discord.WebSocket;
 using Orikivo;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Arcadia.Graphics;
 using Arcadia.Services;
-using GraphicsService = Arcadia.Graphics.GraphicsService;
-using CardDetails = Arcadia.Graphics.CardDetails;
-using CardProperties = Arcadia.Graphics.CardProperties;
-using Casing = Arcadia.Graphics.Casing;
-using PaletteType = Arcadia.Graphics.PaletteType;
+using Arcadia.Graphics;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -21,6 +17,13 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [Command("guides")]
+        [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
+        public async Task ViewGuidesAsync(int page = 1)
+        {
+            page--;
+            await Context.Channel.SendMessageAsync(GuideHelper.View(page));
+        }
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("recipes")]
@@ -33,31 +36,31 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("recipe")]
         [Summary("View information about a specific recipe.")]
-        public async Task ViewRecipeAsync([Name("recipe_id")] string recipeId)
+        public async Task ViewRecipeAsync([Name("recipe_id")] Recipe recipe)
         {
+            /*
             if (!ItemHelper.RecipeExists(recipeId))
             {
                 await Context.Channel.WarnAsync("Could not find the specified recipe.");
                 return;
-            }
+            }*/
 
-            await Context.Channel.SendMessageAsync(Catalog.ViewRecipeInfo(Context.Account, ItemHelper.GetRecipe(recipeId)));
+            await Context.Channel.SendMessageAsync(Catalog.ViewRecipeInfo(Context.Account, recipe));
         }
 
         [RequireUser]
         [Command("craft")]
         [Summary("Craft an item from the specified recipe.")]
-        public async Task CraftAsync([Name("recipe_id")] string recipeId)
+        public async Task CraftAsync([Name("recipe_id")]Recipe recipe)
         {
+            /*
             if (!ItemHelper.RecipeExists(recipeId))
             {
                 await Context.Channel.WarnAsync("Could not find the specified recipe.");
                 return;
-            }
+            }*/
 
-            Recipe recipe = ItemHelper.GetRecipe(recipeId);
-
-            if (!ItemHelper.CanCraft(Context.Account, recipeId))
+            if (!ItemHelper.CanCraft(Context.Account, recipe))
             {
                 var notice = new StringBuilder();
 
@@ -69,7 +72,7 @@ namespace Arcadia.Modules
                     notice.AppendLine(Catalog.WriteRecipeComponent(itemId, amount));
                 }
 
-                await Context.Channel.WarnAsync(notice.ToString());
+                await Context.Channel.SendMessageAsync(notice.ToString());
                 return;
             }
 
@@ -104,7 +107,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("boosters")]
         [Summary("View all of your currently equipped boosters.")]
-        public async Task ViewBoosterAsync()
+        public async Task ViewBoostersAsync()
         {
             await Context.Channel.SendMessageAsync(BoostHelper.Write(Context.Account));
         }
@@ -112,21 +115,22 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("merit")]
         [Summary("View the details of a merit.")]
-        public async Task ViewMeritAsync(string meritId)
+        public async Task ViewMeritAsync(Merit merit)
         {
+            /*
             if (!MeritHelper.Exists(meritId))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
                 return;
-            }
+            }*/
 
-            if (!MeritHelper.HasMerit(Context.Account, meritId) && MeritHelper.GetMerit(meritId).Hidden)
+            if (!MeritHelper.HasMerit(Context.Account, merit) && merit.Hidden)
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("You aren't authorized to view this merit."));
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(MeritHelper.Write(MeritHelper.GetMerit(meritId), Context.Account));
+            await Context.Channel.SendMessageAsync(MeritHelper.Write(merit, Context.Account));
         }
 
         [RequireUser]
@@ -139,15 +143,16 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("claim")]
         [Summary("Attempt to claim the specified merit.")]
-        public async Task ClaimAsync(string meritId)
+        public async Task ClaimAsync(Merit merit)
         {
+            /*
             if (!MeritHelper.Exists(meritId))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
                 return;
-            }
+            }*/
 
-            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
+            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, merit));
         }
 
         [RequireUser]
@@ -167,19 +172,20 @@ namespace Arcadia.Modules
         [RequireUser]
         [RequireData]
         [Command("shop")]
-        public async Task ShopAsync(string shopId)
+        public async Task ShopAsync(Shop shop)
         {
             // Ignore initialization of another shop if a shop handle is already open
             if (!Context.Account.CanShop)
                 return;
-
+            /*
             if (!ShopHelper.Exists(shopId))
             {
                 await Context.Channel.WarnAsync("Could not find a shop with the specified ID.");
                 return;
             }
+            */
 
-            Shop shop = ShopHelper.GetShop(shopId);
+            //Shop shop = ShopHelper.GetShop(shopId);
             var handle = new ShopHandler(Context, shop);
 
             await HandleShopAsync(handle);
@@ -229,37 +235,14 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag, page));
         }
 
+        // NOTE: QUESTS
+
         [RequireUser]
         [Command("assign")]
         [Summary("Assign a new set of quests.")]
         public async Task AssignQuestsAsync()
         {
             await Context.Channel.SendMessageAsync(QuestHelper.AssignAndDisplay(Context.Account));
-        }
-
-        [RequireUser]
-        [Command("complete")]
-        [Summary("Claim the rewards from all of your completed objectives")]
-        public async Task CompleteQuestsAsync()
-        {
-            await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
-        }
-
-        [RequireUser]
-        [Command("toss")]
-        [Summary("Toss the specified objective you are currently working on.")]
-        public async Task TossQuestAsync(int slot)
-        {
-            slot--;
-            await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, slot));
-        }
-
-        [RequireUser]
-        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(0)]
-        [Summary("View all of your currently assigned quests.")]
-        public async Task ViewQuestsAsync()
-        {
-            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
         }
 
         [RequireUser]
@@ -272,6 +255,31 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(0)]
+        [Summary("View all of your currently assigned quests.")]
+        public async Task ViewQuestsAsync()
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
+        }
+
+        [RequireUser]
+        [Command("toss")]
+        [Summary("Toss the specified objective you are currently working on.")]
+        public async Task TossQuestAsync(int slot)
+        {
+            slot--;
+            await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, slot));
+        }
+
+        [RequireUser]
+        [Command("complete")]
+        [Summary("Claim the rewards from all of your completed objectives")]
+        public async Task CompleteQuestsAsync()
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
+        }
+
+        [RequireUser]
         [Command("daily")]
         public async Task GetDailyAsync()
         {
@@ -279,40 +287,13 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Daily.ApplyAndDisplay(Context.Account, result));
         }
 
-        //[RequireUser]
-        //[Command("giveprogresspioneer")]
-        public async Task GivePioneerMerit(SocketUser user = null)
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("catalog")]
+        [Summary("View all of the items you have seen or known about.")]
+        public async Task ViewCatalogAsync(string query = null, int page = 1)
         {
-            if (Context.User.Id != OriGlobal.DevId)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Only the developer may execute this command."));
-                return;
-            }
-
-            user ??= Context.User;
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser participant);
-
-            if (participant == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
-                return;
-            }
-
-            MeritHelper.TryUnlock(participant, Merits.ProgressPioneer);
-            Context.SaveUser(participant);
-
-            if (MeritHelper.HasMerit(participant, Merits.ProgressPioneer))
-                await Context.Channel.SendMessageAsync($"> Gave **{participant.Username}** **{MeritHelper.NameOf(Merits.ProgressPioneer)}**.");
-        }
-
-        
-
-        //[Command("catalog")]
-        //[Command("catalog")]
-        [Summary("View your current **Item** catalog.")]
-        public async Task GetCatalogAsync()
-        {
-
+            page--;
+            await Context.Channel.SendMessageAsync(Catalog.View(Context.Account, query, page));
         }
 
         [Command("trade")]
@@ -364,7 +345,7 @@ namespace Arcadia.Modules
 
         [Command("gift")]
         [Summary("Attempts to gift an **Item** to the specified user.")]
-        public async Task GiftAsync(SocketUser user, string itemId)
+        public async Task GiftAsync(SocketUser user, Item item)
         {
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
@@ -374,22 +355,22 @@ namespace Arcadia.Modules
                 return;
             }
 
+            /*
             // Check if the item exists, similar to use.
             if (!ItemHelper.Exists(itemId))
             {
                 await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
                 return;
-            }
+            }*/
 
-            if (!ItemHelper.HasItem(Context.Account, itemId))
+            if (!ItemHelper.HasItem(Context.Account, item))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
                 return;
             }
 
-
             // Next, check if the item can be gifted.
-            if (!ItemHelper.CanGift(itemId, ItemHelper.DataOf(Context.Account, itemId)?.Data))
+            if (!ItemHelper.CanGift(item, ItemHelper.DataOf(Context.Account, item)?.Data))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
                 return;
@@ -398,20 +379,19 @@ namespace Arcadia.Modules
             // Otherwise, Take the item away from the invoker
             // If the item has a limited gift count, add one to the gift counter and give it to the user.
 
-            ItemHelper.TakeItem(Context.Account, itemId);
+            ItemHelper.TakeItem(Context.Account, item);
 
             // Give the item to the user.
-            ItemHelper.GiveItem(account, itemId);
+            ItemHelper.GiveItem(account, item);
 
-            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{ItemHelper.NameOf(itemId)}**.");
+            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{item.GetName()}**.");
 
-            if (ItemHelper.GetItem(itemId).GiftLimit.HasValue)
+            if (item.GiftLimit.HasValue)
             {
-                bool hasGiftCounter = ItemHelper.DataOf(account, itemId)?.Data?.GiftCount.HasValue ?? false;
+                bool hasGiftCounter = ItemHelper.DataOf(account, item)?.Data?.GiftCount.HasValue ?? false;
+
                 if (hasGiftCounter)
-                {
-                    ItemHelper.DataOf(account, itemId).Data.GiftCount++;
-                }
+                    ItemHelper.DataOf(account, item).Data.GiftCount++;
             }
 
             Context.Account.AddToVar(Stats.ItemsGifted);
@@ -437,10 +417,10 @@ namespace Arcadia.Modules
 
             if (!ItemHelper.CanUse(Context.Account, id))
             {
-                var rem = ItemHelper.GetCooldownRemainder(Context.Account, id);
+                TimeSpan? rem = ItemHelper.GetCooldownRemainder(Context.Account, id);
                 if (rem.HasValue)
                 {
-                    await Context.Channel.SendMessageAsync($"> You can use **{ItemHelper.NameOf(id)}** in {Orikivo.Format.Counter(rem.Value.TotalSeconds)}.");
+                    await Context.Channel.SendMessageAsync($"> You can use **{ItemHelper.NameOf(id)}** in {Format.Counter(rem.Value.TotalSeconds)}.");
                 }
                 else
                 {
@@ -461,41 +441,19 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(id)}**."));
         }
 
-        //[Command("destroy"), Alias("delete", "del")]
-        [Summary("Attempts to destroy the specified **Item** by its internal ID.")]
-        public async Task DestroyItemAsync(string id)
-        {
-            var result = ItemHelper.GetItem(id);
-            if (result == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
-                return;
-            }
-
-
-        }
-
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspect")]
         [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
-        public async Task InspectAsync(string id)
+        public async Task InspectAsync(Item item)
         {
-            var result = ItemHelper.GetItem(id);
-            if (result == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
-                return;
-            }
-
-            //Console.WriteLine(ItemHelper.GetUniqueId());
-
-            await Context.Channel.SendMessageAsync(Catalog.View(result));
+            await Context.Channel.SendMessageAsync(Catalog.ViewItem(item, ItemHelper.GetCatalogStatus(Context.Account, item)));
         }
 
         // This gets a person's backpack.
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inventory"), Alias("backpack", "items", "inv", "bp")]
         [Summary("View your contents currently in storage.")]
-        public async Task GetBackpackAsync(SocketUser user = null) // int page = 0
+        public async Task GetBackpackAsync(SocketUser user = null)
         {
             user ??= Context.User;
             Context.TryGetUser(user.Id, out ArcadeUser account);
@@ -504,6 +462,13 @@ namespace Arcadia.Modules
                 return;
 
             await Context.Channel.SendMessageAsync(Inventory.Write(account, account.Id == Context.Account.Id));
+        }
+
+        [Command("statsof"), Priority(1)]
+        [RequireUser(AccountHandling.ReadOnly)]
+        public async Task GetGroupStatsAsync(string query, int page = 0)
+        {
+            await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, page));
         }
 
         [Command("stats"), Priority(1)]
@@ -532,6 +497,21 @@ namespace Arcadia.Modules
             var board = new Leaderboard(statId, sort);
 
             string result = board.Write(Context.Data.Users.Values.Values, page);
+
+            await Context.Channel.SendMessageAsync(result);
+        }
+
+        [Command("localboard"), Alias("toplocal"), Priority(1)]
+        [Summary("View the local pioneers of a specific category.")]
+        public async Task GetLocalboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default,
+            LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
+        {
+            if (flag == LeaderboardQuery.Custom)
+                flag = LeaderboardQuery.Default;
+
+            var board = new Leaderboard(flag, sort);
+            // Keep note that this may return null by mistake
+            string result = board.Write(Context.Data.Users.Values.Values.Where(x => Context.Guild.GetUser(x.Id) != null), page);
 
             await Context.Channel.SendMessageAsync(result);
         }

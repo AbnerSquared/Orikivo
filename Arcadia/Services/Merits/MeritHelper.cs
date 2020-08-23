@@ -306,6 +306,9 @@ namespace Arcadia
             return Merits.FirstOrDefault(x => x.Id == id);
         }
 
+        public static bool HasMerit(ArcadeUser user, Merit merit)
+            => user.Merits.ContainsKey(merit.Id);
+
         public static bool HasMerit(ArcadeUser user, string id)
             => user.Merits.ContainsKey(id);
 
@@ -597,6 +600,14 @@ namespace Arcadia
             return GetMerit(meritId).Reward != null && user.Merits[meritId].IsClaimed != true;
         }
 
+        public static bool CanClaim(ArcadeUser user, Merit merit)
+        {
+            if (!HasMerit(user, merit))
+                return false;
+
+            return merit.Reward != null && user.Merits[merit.Id].IsClaimed != true;
+        }
+
         public static void TryUnlock(ArcadeUser user, Merit merit)
         {
             if (!IsEligible(user, merit))
@@ -651,18 +662,19 @@ namespace Arcadia
             return result.ToString();
         }
 
-        // attempts to claim the specified merit.
         public static string Claim(ArcadeUser user, string meritId)
-        {
-            Merit merit = GetMerit(meritId);
+            => Claim(user, GetMerit(meritId));
 
-            if (HasMerit(user, meritId) && user.Merits[merit.Id]?.IsClaimed == true)
+        // attempts to claim the specified merit.
+        public static string Claim(ArcadeUser user, Merit merit)
+        {
+            if (HasMerit(user, merit) && user.Merits[merit.Id]?.IsClaimed == true)
                 return $"> ⚠️ You have already claimed **{merit.Name}**.";
 
             if (merit.Reward == null)
                 return $"> ⚠️ There are no rewards assigned to **{merit.Name}**.";
 
-            if (!CanClaim(user, meritId))
+            if (!CanClaim(user, merit))
                 return $"> ⚠️ You are unable to claim **{merit.Name}**.";
 
             var result = new StringBuilder();

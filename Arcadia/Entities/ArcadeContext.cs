@@ -1,8 +1,7 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
-using Orikivo.Desync;
-using Orikivo.Framework;
 
 namespace Arcadia
 {
@@ -11,7 +10,6 @@ namespace Arcadia
         public ArcadeContext(DiscordSocketClient client, ArcadeContainer data, SocketUserMessage message)
             : base(client, message)
         {
-            Logger.Debug("-- Initializing arcade context. --");
             Data = data;
 
             if (Guild != null)
@@ -19,8 +17,6 @@ namespace Arcadia
                 GetOrAddGuild(Guild);
                 Server.Synchronize(Guild);
             }
-
-            Logger.Debug($"-- {(Account != null ? "Account exists" : "Account does not exist")}. --");
         }
 
         internal ArcadeContainer Data { get; }
@@ -53,7 +49,7 @@ namespace Arcadia
             }
         }
 
-        internal ArcadeUser GetOrAddUser(SocketUser user)
+        internal ArcadeUser GetOrAddUser(IUser user)
         {
             if (!Data.Users.TryGet(user.Id, out ArcadeUser value))
             {
@@ -63,7 +59,7 @@ namespace Arcadia
 
             return value;
         }
-        internal BaseGuild GetOrAddGuild(SocketGuild guild)
+        internal BaseGuild GetOrAddGuild(IGuild guild)
         {
             if (!Data.Guilds.TryGet(guild.Id, out BaseGuild value))
             {

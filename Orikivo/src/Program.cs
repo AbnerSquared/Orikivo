@@ -5,6 +5,7 @@ using Orikivo.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Orikivo.Canary;
 using Orikivo.Modules;
 
 namespace Orikivo

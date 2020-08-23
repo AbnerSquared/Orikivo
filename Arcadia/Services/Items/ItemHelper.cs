@@ -8,9 +8,100 @@ using PaletteType = Arcadia.Graphics.PaletteType;
 
 namespace Arcadia
 {
+    public enum CatalogStatus
+    {
+        Unknown = 0,
+        Seen = 1,
+        Known = 2
+    }
+
     // TODO: Implement item attribute reading and data population
     public static class ItemHelper
     {
+        public static IEnumerable<Item> GetSeenItems(ArcadeUser user)
+        {
+            return user.Stats
+                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Seen)
+                .Select(x => GetItem(Var.GetKey(x.Key)));
+        }
+
+        public static IEnumerable<Item> GetKnownItems(ArcadeUser user)
+        {
+            return user.Stats
+                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Known)
+                .Select(x => GetItem(Var.GetKey(x.Key)));
+        }
+
+        public static IEnumerable<Item> GetSeenItems(ArcadeUser user, string itemGroupId)
+        {
+            return user.Stats
+                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId && x.Value == (long)CatalogStatus.Seen)
+                .Select(x => GetItem(Var.GetKey(x.Key)));
+        }
+
+        public static IEnumerable<Item> GetKnownItems(ArcadeUser user, string itemGroupId)
+        {
+            return user.Stats
+                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId && x.Value == (long)CatalogStatus.Known)
+                .Select(x => GetItem(Var.GetKey(x.Key)));
+        }
+
+        public static bool CanViewCatalog(ArcadeUser user)
+        {
+            return user.Stats.Any(x =>
+                x.Key.StartsWith("catalog")
+                && (x.Value == (long) CatalogStatus.Seen
+                || x.Value == (long) CatalogStatus.Known));
+        }
+
+        public static int GetKnownCount(ArcadeUser user)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Known);
+        }
+
+        public static int GetKnownCount(ArcadeUser user, string itemGroup)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup && x.Value == (long)CatalogStatus.Known);
+        }
+
+        public static int GetSeenCount(ArcadeUser user)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Seen);
+        }
+
+        public static int GetSeenCount(ArcadeUser user, string itemGroup)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup && x.Value == (long)CatalogStatus.Seen);
+        }
+
+        private static string GetCatalogId(string itemId)
+            => $"catalog:{itemId}";
+
+        public static CatalogStatus GetCatalogStatus(ArcadeUser user, string itemId)
+        {
+            return (CatalogStatus)user.GetVar(GetCatalogId(itemId));
+        }
+
+        public static CatalogStatus GetCatalogStatus(ArcadeUser user, Item item)
+            => GetCatalogStatus(user, item.Id);
+
+        public static void SetCatalogStatus(ArcadeUser user, string itemId, CatalogStatus status)
+        {
+            // If the user has already seen or known about this item, return;
+            if (GetCatalogStatus(user, itemId) >= status)
+                return;
+
+
+            user.SetVar(GetCatalogId(itemId), (long)status);
+        }
+
+        public static void SetCatalogStatus(ArcadeUser user, Item item, CatalogStatus status)
+            => SetCatalogStatus(user, item.Id, status);
+
         public static Dictionary<string, int> GetMissingFromRecipe(ArcadeUser user, Recipe recipe)
         {
             if (recipe == null)
@@ -311,7 +402,7 @@ namespace Arcadia
         }
 
         public static string DetailsOf(Item item)
-            => Catalog.View(item);
+            => Catalog.ViewItem(item);
 
         public static Item ItemOf(ArcadeUser user, string uniqueId)
         {
@@ -370,7 +461,7 @@ namespace Arcadia
                         Durability = 1,
                         DeleteOnBreak = true,
                         DeleteMode = ItemDeleteMode.Break,
-                        Criteria = user => StatHelper.GetOrAdd(user, Vars.BoosterLimit, 1) - user.Boosters.Count > 0,
+                        Criteria = user => Var.GetOrSet(user, Vars.BoosterLimit, 1) - user.Boosters.Count > 0,
                         Action = delegate(ArcadeUser user)
                         {
                             user.Boosters.Add(new BoosterData("b_db", BoosterType.Debt, -0.2f, TimeSpan.FromHours(12), 20));
@@ -582,9 +673,10 @@ namespace Arcadia
         }
 
         public static bool CanGift(string itemId, UniqueItemData data)
-        {
-            var item = GetItem(itemId);
+            => CanGift(GetItem(itemId), data);
 
+        public static bool CanGift(Item item, UniqueItemData data)
+        {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
@@ -599,9 +691,10 @@ namespace Arcadia
         }
 
         public static bool CanTrade(string itemId, UniqueItemData data)
-        {
-            var item = GetItem(itemId);
+            => CanTrade(GetItem(itemId), data);
 
+        public static bool CanTrade(Item item, UniqueItemData data)
+        {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
@@ -674,16 +767,17 @@ namespace Arcadia
         }
 
         public static bool CanUse(ArcadeUser user, string itemId, UniqueItemData data = null)
-        {
-            Item item = GetItem(itemId);
+            => CanUse(user, GetItem(itemId), data);
 
+        public static bool CanUse(ArcadeUser user, Item item, UniqueItemData data = null)
+        {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
             if (item.Usage == null)
                 return false;
 
-            DateTime? lastUsed = GetLastUsed(user, itemId);
+            DateTime? lastUsed = GetLastUsed(user, item.Id);
 
             if (lastUsed.HasValue && item.Usage.Cooldown.HasValue)
             {
@@ -938,7 +1032,7 @@ namespace Arcadia
             }
 
             AddItem(user, item.Id, amount);
-
+            SetCatalogStatus(user, item, CatalogStatus.Known);
             // If they somehow went over, this will fix that
             /*
             if (currentAmount > item.OwnLimit)
@@ -1017,11 +1111,20 @@ namespace Arcadia
         public static bool HasItem(ArcadeUser user, string itemId)
             => user.Items.Any(x => x.Id == itemId);
 
+        public static bool HasItem(ArcadeUser user, Item item)
+            => HasItem(user, item.Id);
+
+        public static bool HasItem(ArcadeUser user, Item item, string uniqueId)
+            => HasItem(user, item.Id, uniqueId);
+
         public static bool HasItem(ArcadeUser user, string itemId, string uniqueId)
             => user.Items.Any(x => x.Id == itemId && x.Data != null && x.Data.Id == uniqueId);
 
         public static bool HasItemWhen(ArcadeUser user, string itemId, Func<ItemData, bool> criterion)
             => HasItem(user, itemId) && user.Items.Any(criterion);
+
+        public static bool HasItemWhen(ArcadeUser user, Item item, Func<ItemData, bool> criterion)
+            => HasItem(user, item) && user.Items.Any(criterion);
 
         public static UniqueItemData Peek(ArcadeUser user, string uniqueId)
             => user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Data;
@@ -1033,12 +1136,17 @@ namespace Arcadia
                 : x.Id == itemId);
         }
 
+        public static ItemData DataOf(ArcadeUser user, Item item, string uniqueId = null)
+            => DataOf(user, item.Id, uniqueId);
+
         public static ItemTag GetTag(string itemId)
             => GetItem(itemId)?.Tag ?? 0;
 
         public static UsageResult UseItem(ArcadeUser user, string itemId, string uniqueId = null)
+            => UseItem(user, GetItem(itemId), uniqueId);
+
+        public static UsageResult UseItem(ArcadeUser user, Item item, string uniqueId = null)
         {
-            Item item = GetItem(itemId);
             var isBroken = false;
 
             UsageResult result = new UsageResult(false);
@@ -1048,14 +1156,14 @@ namespace Arcadia
                 return result;
 
             // if the user doesn't even have an item.
-            if (!HasItem(user, itemId))
+            if (!HasItem(user, item))
                 return result;
 
             // otherwise, check if the user can use the item
             if (IsUnique(item))
             {
                 // If a unique ID wasn't specified, get the unique ID of the one closest to being broken.
-                uniqueId ??= GetBestUniqueId(user, itemId);
+                uniqueId ??= GetBestUniqueId(user, item);
 
                 // There isn't an available item to use in this case.
                 if (string.IsNullOrWhiteSpace(uniqueId))
@@ -1063,7 +1171,7 @@ namespace Arcadia
 
                 var data = Peek(user, uniqueId);
 
-                if (!CanUse(user, itemId, data))
+                if (!CanUse(user, item, data))
                 {
                     return result;
                 }
@@ -1087,7 +1195,7 @@ namespace Arcadia
             }
             else
             {
-                if (!CanUse(user, itemId))
+                if (!CanUse(user, item))
                     return result;
 
                 if (item.Usage.Durability == 1)
@@ -1106,10 +1214,10 @@ namespace Arcadia
                     if (!IsUnique(item))
                         throw new Exception("Expected an item to be unique");
 
-                    if (!HasItem(user, itemId, uniqueId))
+                    if (!HasItem(user, item, uniqueId))
                         throw new Exception("Expected to find a unique item but does not exist");
 
-                    DataOf(user, itemId, uniqueId).Data.LastUsed = DateTime.UtcNow;
+                    DataOf(user, item, uniqueId).Data.LastUsed = DateTime.UtcNow;
                 }
                 else if (item.Usage.CooldownCategory == CooldownCategory.Group)
                 {
@@ -1118,11 +1226,13 @@ namespace Arcadia
                 else
                 {
                     // finally, if all of the checks pass, use up the item.
-                    user.SetVar(GetCooldownId(itemId), DateTime.UtcNow.Ticks);
+                    user.SetVar(GetCooldownId(item.Id), DateTime.UtcNow.Ticks);
                 }
             }
 
             // As the final step, invoke the action defined on the item.
+            // If the usage wasn't successful, don't update the item.
+            // That way, the criteria can be merged with the usage
             result = item.Usage.Action(user);
 
             // If the item broke, invoke that action too.
@@ -1140,9 +1250,10 @@ namespace Arcadia
         }
 
         private static string GetBestUniqueId(ArcadeUser user, string itemId)
-        {
-            Item item = GetItem(itemId);
+            => GetBestUniqueId(user, GetItem(itemId));
 
+        private static string GetBestUniqueId(ArcadeUser user, Item item)
+        {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
@@ -1150,9 +1261,9 @@ namespace Arcadia
                 throw new ArgumentException("The specified item is not unique.");
 
             // Slim down to all matching item entries of the same item
-            var matching = user.Items.Where(x => x.Id == itemId && !x.Data.Locked);
+            var matching = user.Items.Where(x => x.Id == item.Id && !x.Data.Locked);
 
-            if (user.Items.All(x => x.Id != itemId))
+            if (user.Items.All(x => x.Id != item.Id))
                 return "";
 
             if (item.Usage?.Durability != null)

@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Orikivo.Canary
 {
     public enum CardComponentType
     {

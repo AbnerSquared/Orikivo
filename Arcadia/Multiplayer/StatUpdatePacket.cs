@@ -50,13 +50,13 @@ namespace Arcadia.Multiplayer
                     user.SetVar(a, b);
                     break;
                 case StatUpdateType.SetIfGreater:
-                    StatHelper.SetIfGreater(user, a, b);
+                    Var.SetIfGreater(user, a, b);
                     break;
                 case StatUpdateType.SetIfLesser:
-                    StatHelper.SetIfLesser(user, a, b);
+                    Var.SetIfLesser(user, a, b);
                     break;
                 case StatUpdateType.SetIfEmpty:
-                    StatHelper.SetIfEmpty(user, a, b);
+                    Var.SetIfEmpty(user, a, b);
                     break;
                 default:
                     throw new Exception("Unknown stat update method");

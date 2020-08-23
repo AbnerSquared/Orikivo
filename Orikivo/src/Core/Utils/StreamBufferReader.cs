@@ -12,7 +12,7 @@ namespace Orikivo
         }
 
         private Stream Stream { get; }
-        
+
         public byte[] Value { get; }
 
         public long ReadBytes { get; private set; }

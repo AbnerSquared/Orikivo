@@ -17,7 +17,6 @@ namespace Arcadia.Services
             long lastTicks = user.GetVar(Cooldowns.Daily);
             long streak = user.GetVar(Stats.DailyStreak);
 
-            //TimeSpan since = StatHelper.SinceLast(user, Stats.DailyStreak);
             TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
 
             if (lastTicks > 0)
@@ -74,7 +73,7 @@ namespace Arcadia.Services
                 user.SetVar(Cooldowns.Daily, DateTime.UtcNow.Ticks);
                 user.AddToVar(Stats.DailyStreak);
                 user.AddToVar(Stats.TimesDaily);
-                StatHelper.SetIfGreater(user, Stats.LongestDailyStreak, Stats.DailyStreak);
+                Var.SetIfGreater(user, Stats.LongestDailyStreak, Stats.DailyStreak);
                 user.Give(reward);
             }
 

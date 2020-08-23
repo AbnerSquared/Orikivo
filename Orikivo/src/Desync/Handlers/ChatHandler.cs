@@ -6,6 +6,7 @@ using System.Text;
 using System.Linq;
 using Orikivo.Drawing;
 using Discord;
+using Orikivo.Canary;
 
 namespace Orikivo
 {

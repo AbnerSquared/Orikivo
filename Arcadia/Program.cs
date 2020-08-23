@@ -48,6 +48,11 @@ namespace Arcadia
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
 
                 builder
+                    .AddTypeReader<Item>(new ItemTypeReader())
+                    .AddTypeReader<Merit>(new MeritTypeReader())
+                    .AddTypeReader<Recipe>(new RecipeTypeReader())
+                    .AddTypeReader<Quest>(new QuestTypeReader())
+                    .AddTypeReader<Shop>(new ShopTypeReader())
                     .AddEnumTypeReader<Graphics.CardDeny>()
                     .AddEnumTypeReader<Graphics.Casing>()
                     .AddEnumTypeReader<Graphics.FontType>()

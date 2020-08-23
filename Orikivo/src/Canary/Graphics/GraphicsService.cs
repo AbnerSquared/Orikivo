@@ -5,7 +5,7 @@ using Orikivo.Drawing;
 using Orikivo.Drawing.Graphics2D;
 using Orikivo.Desync;
 
-namespace Orikivo
+namespace Orikivo.Canary
 {
     /// <summary>
     /// Handles all of the rendering processes for Orikivo.

@@ -22,6 +22,7 @@ namespace Arcadia
         }
 
         public Message Message { get; set; }
+
         public bool IsSuccess { get; set; }
     }
 }
