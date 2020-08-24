@@ -13,8 +13,6 @@ namespace Arcadia
 
         public string Quote { get; set; }
 
-        public List<Vendor> Vendors { get; set; }
-
         public CatalogGenerator Catalog { get; set; }
 
         public ShopAllow Allow { get; set; }

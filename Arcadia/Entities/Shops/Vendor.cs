@@ -16,6 +16,8 @@ namespace Arcadia
 
         public string Name { get; set; }
 
+        public ItemTag PreferredTag { get; set; }
+
         public List<string> OnEnter { get; set; }
 
         public List<string> OnMenu { get; set; }

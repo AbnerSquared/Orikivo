@@ -98,9 +98,10 @@ namespace Arcadia.Services
             if (!ItemHelper.GroupExists(query))
                 return Format.Warning("Unable to find the specified group query.");
 
+            // You are not authorized to view this group query.
             if (ItemHelper.GetKnownCount(user, query) == 0
                 && ItemHelper.GetSeenCount(user, query) == 0)
-                return Format.Warning("You are not authorized to view this group query.");
+                return Format.Warning("Unknown group query specified.");
 
             var info = new StringBuilder();
 
@@ -218,8 +219,9 @@ namespace Arcadia.Services
 
         public static string ViewItem(Item item, CatalogStatus status = CatalogStatus.Known)
         {
+            // You are not authorized to view this item.
             if (status == CatalogStatus.Unknown)
-                return Format.Warning("You are not authorized to view this item.");
+                return Format.Warning("Unknown item specified.");
 
             var details = new StringBuilder();
 

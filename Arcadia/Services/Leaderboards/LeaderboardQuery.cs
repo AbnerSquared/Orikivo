@@ -7,6 +7,7 @@ namespace Arcadia.Services
         string Query { get; }
     }
 
+    // This could possibly be used instead so that it's easier to filter out stuff
     public abstract class SearchBase<T>
     {
         public abstract ISearchResult<T> Search(ISearchQuery<T> query);

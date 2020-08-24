@@ -7,6 +7,9 @@ using Discord;
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents a user account for Arcadia.
+    /// </summary>
     public class ArcadeUser : BaseUser
     {
         public ArcadeUser(IUser user)
@@ -61,6 +64,34 @@ namespace Arcadia
         [JsonProperty("debt")]
         public long Debt { get; internal set; }
 
+        [JsonIgnore]
+        public long VBalance
+        {
+            get => GetVar(Vars.Balance);
+            set => SetVar(Vars.Balance, value);
+        }
+
+        [JsonIgnore]
+        public long VTokenBalance
+        {
+            get => GetVar(Vars.Tokens);
+            set => SetVar(Vars.Tokens, value);
+        }
+
+        [JsonIgnore]
+        public long VChipBalance
+        {
+            get => GetVar(Vars.Chips);
+            set => SetVar(Vars.Chips, value);
+        }
+
+        [JsonIgnore]
+        public long VDebt
+        {
+            get => GetVar(Vars.Debt);
+            set => SetVar(Vars.Debt, value);
+        }
+
         [JsonProperty("exp")]
         public ulong Exp { get; internal set; }
 
@@ -94,6 +125,8 @@ namespace Arcadia
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
+        [JsonIgnore] public List<TradeOffer> Offers { get; } = new List<TradeOffer>();
+
         [JsonIgnore]
         public DateTime? GlobalCooldown { get; set; }
 
@@ -118,8 +151,20 @@ namespace Arcadia
 
             long value = GetVar(id);
 
-            QuestData data = Quests.First(x => x.Progress.ContainsKey(id));
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]));
             data.Progress[id] = value;
+
+            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
+                data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+        }
+
+        internal void AddToQuestProgress(string id, long amount)
+        {
+            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
+                return;
+
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]));
+            data.Progress[id] += amount;
 
             if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
                 data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
@@ -155,7 +200,7 @@ namespace Arcadia
             else
                 Stats[id] += amount;
 
-            SetQuestProgress(id);
+            AddToQuestProgress(id, amount);
         }
 
         public void AddToVar(string id, long amount, out long previous)
@@ -247,7 +292,3 @@ namespace Arcadia
         }
     }
 }
-
-
-// Arcadia-only property
-// public Dictionary<ExpType, ulong> ExpData { get; } = new Dictionary<ExpType, ulong> { [ExpType.Global] = 0 };

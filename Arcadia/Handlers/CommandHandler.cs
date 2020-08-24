@@ -274,6 +274,8 @@ namespace Arcadia
 
         public async Task ExecuteAsync(ArcadeContext ctx, int argPos, string input = null)
         {
+
+
             if (ctx.Account != null)
             {
                 if (ctx.Account.GlobalCooldown.HasValue)

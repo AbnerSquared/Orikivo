@@ -15,22 +15,28 @@ namespace Arcadia
         public const char Separator = ':';
         public const char TextSeparator = '_';
 
-        private static string WriteTime(long ticks)
-            => Format.FullTime(new DateTime(ticks));
+        private static string WriteDefault(long value, VarType type = VarType.Stat)
+        {
+            return type switch
+            {
+                VarType.Time => Format.FullTime(new DateTime(value)),
+                VarType.Attribute => $"{value:##,0}",
+                VarType.Stat => $"{value:##,0}",
+                _ => value.ToString()
+            };
+        }
 
         public static readonly List<Var> Definers = new List<Var>
         {
             new Var
             {
                 Id = Stats.LastAssignedQuest,
-                Type = VarType.Time,
-                ValueWriter = WriteTime
+                Type = VarType.Time
             },
             new Var
             {
                 Id = Stats.LastSkippedQuest,
-                Type = VarType.Time,
-                ValueWriter = WriteTime
+                Type = VarType.Time
             },
             new Var
             {
@@ -81,11 +87,17 @@ namespace Arcadia
             },
             new VarGroup
             {
+                Id = "shop",
+                Name = "Shop Status",
+                Summary = "This is a generic collection of variables used to track the status state of a shop.",
+                Type = VarType.Attribute
+            },
+            new VarGroup
+            {
                 Id = "cooldown",
                 Name = "Cooldown",
                 Summary = "This is a group of variables used to track cooldowns.",
-                Type = VarType.Time,
-                ValueWriter = WriteTime
+                Type = VarType.Time
             },
             new VarGroup
             {
@@ -131,10 +143,12 @@ namespace Arcadia
 
             var details = new StringBuilder();
 
+            VarType type = TypeOf(id);
+
             string name = GetDefiner(id)?.Name ?? Humanize(id);
             string value = GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id))
                            ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
-                           ?? $"{user.GetVar(id)}";
+                           ?? WriteDefault(user.GetVar(id), type);
 
             if (!string.IsNullOrWhiteSpace(name))
             {

@@ -693,6 +693,8 @@ namespace Arcadia.Multiplayer.Games
             // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
             foreach (PlayerData player in session.Players)
             {
+                // when applying result packets, you need to specify the ID of the game.
+                // By default, session results can only update specifics
                 ulong playerId = player.Source.User.Id;
                 var stats = new List<StatUpdatePacket>();
                 stats.Add(new StatUpdatePacket(TriviaStats.TimesPlayed, 1));
@@ -709,8 +711,12 @@ namespace Arcadia.Multiplayer.Games
                     stats.Add(new StatUpdatePacket(TriviaStats.CurrentWinStreak, 0, StatUpdateType.Set));
                 }
 
-                result.UserIds.Add(playerId);
-                result.Stats.Add(playerId, stats);
+                var toUpdate = new PlayerResult
+                {
+                    Stats = stats
+                };
+
+                result.UserIds.Add(playerId, toUpdate);
             }
 
             return result;

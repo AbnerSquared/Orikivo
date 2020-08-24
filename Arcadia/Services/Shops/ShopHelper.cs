@@ -7,6 +7,14 @@ using Orikivo.Drawing;
 
 namespace Arcadia
 {
+    public enum ShopStatus
+    {
+        Unknown = 0,
+        Seen = 1,
+        Known = 2,
+        Perfect = 3
+    }
+
     public enum ShopMode
     {
         Buy = 1,
@@ -15,6 +23,12 @@ namespace Arcadia
 
     public static class ShopHelper
     {
+        public static readonly List<Vendor> Vendors =
+            new List<Vendor>
+            {
+                //Name = "V3-NDR"
+            };
+
         public static readonly List<Shop> Shops =
             new List<Shop>
             {
@@ -23,10 +37,6 @@ namespace Arcadia
                     Id = "chrome_cove",
                     Name = "Chromatic Cove",
                     Quote = "The reliable place to purchase color palettes.", // The shop that collects colorful goods.
-                    Vendors = new List<Vendor>
-                    {
-                        //Name = "V3-NDR"
-                    },
                     Catalog = new CatalogGenerator
                     {
                         Size = 2,
@@ -75,6 +85,22 @@ namespace Arcadia
 
         public static bool Exists(string shopId)
             => Shops.Any(x => x.Id == shopId);
+
+        public static IEnumerable<Vendor> GetVendors(ItemTag catalogTags)
+        {
+            return Vendors.Where(x => (x.PreferredTag & catalogTags) != 0);
+        }
+
+        // sum together all unique tags
+        public static ItemTag GetUniqueTags(ItemCatalog catalog)
+        {
+            ItemTag unique = 0;
+
+            foreach ((string itemId, int amount) in catalog.ItemIds)
+                unique |= ItemHelper.GetTag(itemId);
+
+            return unique;
+        }
 
         public static Shop GetShop(string id)
         {

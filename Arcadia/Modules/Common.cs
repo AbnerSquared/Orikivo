@@ -17,6 +17,13 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [Command("offers")]
+        [Summary("View all of the possible trade offers requested to you.")]
+        public async Task ViewOffersAsync()
+        {
+            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account));
+        }
+
         [Command("guides")]
         [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
         public async Task ViewGuidesAsync(int page = 1)

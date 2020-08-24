@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,9 +17,9 @@ namespace Arcadia
             Context = context;
             Shop = shop;
             State = ShopState.Enter;
-            Vendor = Check.NotNullOrEmpty(shop.Vendors) ? Randomizer.Choose(shop.Vendors) : null;
             Catalog = context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
-
+            List<Vendor> possibleVendors = ShopHelper.GetVendors(ShopHelper.GetUniqueTags(Catalog)).ToList();
+            Vendor = Check.NotNullOrEmpty(possibleVendors) ? Randomizer.Choose(possibleVendors) : null;
         }
 
         public ArcadeContext Context { get; }
@@ -101,6 +102,7 @@ namespace Arcadia
             {
                 body.Append(ShopHelper.WriteCatalog(catalog));
 
+                // TODO: Instead of updating the entire catalog for the user, update based on how many items are visible on that page, so that each page has to been seen to know about the item
                 if (!HasUpdatedCatalog)
                 {
                     foreach ((string itemId, int amount) in catalog.ItemIds)
@@ -124,6 +126,7 @@ namespace Arcadia
             return body.ToString();
         }
 
+        // TODO: Add these responses to vendors by default
         private static readonly string OnTryBuy = "I don't sell items.";
         private static readonly string OnBuyEmpty = "I don't have anything else I can offer you.";
         private static readonly string OnBuyFail = "You can't afford to pay for all of this.";

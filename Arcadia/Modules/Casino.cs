@@ -24,16 +24,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
         }
 
-        [RequireUser]
-        [Command("gimiquiet"), Alias("gimiq")]
-        [Summary("An activity that randomly offers a reward value (if you're lucky enough).")]
-        public async Task GimiQuietAsync()
-        {
-            var gimi = new Gimi();
-            GimiResult result = gimi.Next();
-            result.Apply(Context.Account);
-        }
-
+        [RequireItem("au_gimi")]
         [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
         public async Task AutoGimiAsync(int times)
         {
