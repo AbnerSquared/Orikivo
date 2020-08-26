@@ -16,10 +16,14 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal ArcadeData(Dictionary<string, ItemCatalog> catalogs)
+        internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs)
         {
+            LogChannelId = logChannelId;
             Catalogs = catalogs ?? new Dictionary<string, ItemCatalog>();
         }
+
+        [JsonProperty("log_channel_id")]
+        public ulong LogChannelId { get; internal set; }
 
         [JsonProperty("catalogs")]
         public Dictionary<string, ItemCatalog> Catalogs { get; }
@@ -68,34 +72,6 @@ namespace Arcadia
                 user.CatalogHistory[shop.Id].Clear();
 
             return new ItemCatalog(Catalogs[shop.Id]);
-        }
-    }
-
-    public class CatalogHistory
-    {
-        public CatalogHistory()
-        {
-            PurchasedIds = new Dictionary<string, int>();
-            SoldIds = new Dictionary<string, int>();
-        }
-
-        [JsonConstructor]
-        internal CatalogHistory(Dictionary<string, int> purchasedIds, Dictionary<string, int> soldIds)
-        {
-            PurchasedIds = purchasedIds ?? new Dictionary<string, int>();
-            SoldIds = soldIds ?? new Dictionary<string, int>();
-        }
-
-        [JsonProperty("purchased_ids")]
-        public Dictionary<string, int> PurchasedIds { get; }
-
-        [JsonProperty("sold_ids")]
-        public Dictionary<string, int> SoldIds { get; }
-
-        public void Clear()
-        {
-            PurchasedIds.Clear();
-            SoldIds.Clear();
         }
     }
 

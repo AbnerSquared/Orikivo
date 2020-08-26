@@ -2,9 +2,14 @@
 using Discord.WebSocket;
 using Orikivo;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 using MongoDB.Driver;
+using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -44,6 +49,27 @@ namespace Arcadia.Modules
             {
                 await Context.Channel.CatchAsync(e);
             }
+        }
+
+        [DoNotNotify]
+        [Command("changelog")]
+        public async Task ViewChangelogAsync()
+        {
+            IChannel channel = Context.Client.GetChannel(Context.Data.Data.LogChannelId);
+
+            if (channel is IMessageChannel mChannel)
+            {
+                IEnumerable<IMessage> messages = await mChannel.GetMessagesAsync(1).FlattenAsync();
+                IMessage message = messages.FirstOrDefault();
+
+                if (message != null)
+                {
+                    await message.CloneAsync(Context.Channel);
+                    return;
+                }
+            }
+
+            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find a previous changelog to reference."));
         }
 
         [DoNotNotify]
