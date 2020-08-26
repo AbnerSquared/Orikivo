@@ -5,19 +5,19 @@ namespace Arcadia
     [Flags]
     public enum ExpiryTrigger
     {
-        // Expiration starts when first given
+        /// <summary>
+        /// Expiration starts when first placed into an inventory.
+        /// </summary>
         Own = 1,
 
-        // Expiration starts when first used
+        /// <summary>
+        /// Expiration starts when the item is used for the first time.
+        /// </summary>
         Use = 2,
 
-        // Expiration starts when traded
-        Trade = 4,
-
-        // Expiration starts when gifted
-        Gift = 8,
-
-        // Expiration starts when equipped
-        Equip = 16
+        /// <summary>
+        /// Expiration starts when the item is traded with for the first time.
+        /// </summary>
+        Trade = 4
     }
 }

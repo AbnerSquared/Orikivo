@@ -2,27 +2,45 @@
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents the result from an <see cref="Item"/> that was used.
+    /// </summary>
     public class UsageResult
     {
-        public UsageResult(string content, bool isSuccess = true)
+        public static UsageResult FromSuccess(string message = null)
         {
-            Message = new MessageBuilder{ Content = content }.Build();
+            return new UsageResult(message, true);
+        }
+
+        public static UsageResult FromError(string message = null)
+        {
+            return new UsageResult(message, false);
+        }
+
+        public static UsageResult FromSuccess(Message message = null)
+        {
+            return new UsageResult(message, true);
+        }
+
+        public static UsageResult FromError(Message message = null)
+        {
+            return new UsageResult(message, false);
+        }
+
+        private UsageResult(string content, bool isSuccess)
+        {
+            Message = new MessageBuilder(content).Build();
             IsSuccess = isSuccess;
         }
 
-        public UsageResult(Message message, bool isSuccess)
+        private UsageResult(Message message, bool isSuccess)
         {
             Message = message;
             IsSuccess = isSuccess;
         }
 
-        public UsageResult(bool isSuccess)
-        {
-            IsSuccess = isSuccess;
-        }
+        public Message Message { get; }
 
-        public Message Message { get; set; }
-
-        public bool IsSuccess { get; set; }
+        public bool IsSuccess { get; }
     }
 }

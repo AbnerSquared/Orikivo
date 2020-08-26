@@ -3,6 +3,7 @@ using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arcadia.Graphics;
 using Discord;
 
 namespace Arcadia
@@ -15,10 +16,6 @@ namespace Arcadia
         public ArcadeUser(IUser user)
             : base(user)
         {
-            Balance = 0;
-            TokenBalance = 0;
-            ChipBalance = 0;
-            Debt = 0;
             Exp = 0;
             Ascent = 0;
             Stats = new Dictionary<string, long>();
@@ -26,21 +23,22 @@ namespace Arcadia
             Boosters = new List<BoosterData>();
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
-            Card = new CardConfig(Graphics.PaletteType.Default);
+            Card = new CardConfig
+            {
+                Layout = LayoutType.Default,
+                Palette = PaletteType.Default,
+                Font = FontType.Foxtrot
+            };
             CatalogHistory = new Dictionary<string, CatalogHistory>();
         }
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
-            long balance, long tokenBalance, long chipBalance, long debt, ulong exp, int ascent, Dictionary<string, long> stats,
+            ulong exp, int ascent, Dictionary<string, long> stats,
             Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
         {
-            Balance = balance;
-            TokenBalance = tokenBalance;
-            ChipBalance = chipBalance;
-            Debt = debt;
             Exp = exp;
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
@@ -48,9 +46,15 @@ namespace Arcadia
             Boosters = boosters ?? new List<BoosterData>();
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
-            Card = card ?? new CardConfig(Graphics.PaletteType.Default);
+            Card = card ?? new CardConfig
+            {
+                Layout = LayoutType.Default,
+                Palette = PaletteType.Default,
+                Font = FontType.Foxtrot
+            };
             CatalogHistory = catalogHistory ?? new Dictionary<string, CatalogHistory>();
         }
+        /*
 
         [JsonProperty("balance")]
         public long Balance { get; internal set; }
@@ -63,30 +67,31 @@ namespace Arcadia
 
         [JsonProperty("debt")]
         public long Debt { get; internal set; }
+        */
 
         [JsonIgnore]
-        public long VBalance
+        public long Balance
         {
             get => GetVar(Vars.Balance);
             set => SetVar(Vars.Balance, value);
         }
 
         [JsonIgnore]
-        public long VTokenBalance
+        public long TokenBalance
         {
             get => GetVar(Vars.Tokens);
             set => SetVar(Vars.Tokens, value);
         }
 
         [JsonIgnore]
-        public long VChipBalance
+        public long ChipBalance
         {
             get => GetVar(Vars.Chips);
             set => SetVar(Vars.Chips, value);
         }
 
         [JsonIgnore]
-        public long VDebt
+        public long Debt
         {
             get => GetVar(Vars.Debt);
             set => SetVar(Vars.Debt, value);

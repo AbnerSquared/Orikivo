@@ -15,10 +15,12 @@ namespace Arcadia
         Perfect = 3
     }
 
+    [Flags]
     public enum ShopMode
     {
         Buy = 1,
-        Sell = 2
+        Sell = 2,
+        Any = Buy | Sell
     }
 
     public static class ShopHelper
@@ -32,6 +34,29 @@ namespace Arcadia
         public static readonly List<Shop> Shops =
             new List<Shop>
             {
+                new Shop
+                {
+                    Id = "boost_blight",
+                    Name = "Booster's Blight",
+                    Quote = "Purchase an assortment of boosters here.",
+                    Allow = ShopAllow.All,
+                    SellDeduction = 50,
+                    SellTags = ItemTag.Booster,
+                    Catalog = new CatalogGenerator
+                    {
+                        Size = 1,
+                        MaxDiscountsAllowed = 0,
+                        MaxSpecialsAllowed = 0,
+                        Entries = new List<CatalogEntry>
+                        {
+                            new CatalogEntry
+                            {
+                                ItemId = Items.BoosterDebtBlocker,
+                                Weight = 1
+                            }
+                        }
+                    }
+                },
                 new Shop
                 {
                     Id = "chrome_cove",
@@ -160,7 +185,7 @@ namespace Arcadia
 
             foreach (Shop shop in Shops)
             {
-                info.AppendLine(WriteShopRow(shop));
+                info.Append(WriteShopRow(shop));
             }
 
             return info.ToString();

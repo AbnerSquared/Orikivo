@@ -307,9 +307,9 @@ namespace Arcadia
                         return ActionResult.Continue;
                     }
 
-                    var selectedItem = ItemHelper.DataOf(account, input);
+                    ItemData selectedItem = ItemHelper.DataOf(account, input);
 
-                    if (!ItemHelper.CanTrade(input, selectedItem.Data))
+                    if (!ItemHelper.CanTrade(input, selectedItem))
                     {
                         await SetStateAsync(TradeState.Inventory, Format.Warning("This item is unavailable for trading."));
                         return ActionResult.Continue;

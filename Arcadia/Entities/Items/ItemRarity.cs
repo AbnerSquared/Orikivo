@@ -6,5 +6,6 @@
         Uncommon,
         Rare,
         Myth,
+        Desolate
     }
 }

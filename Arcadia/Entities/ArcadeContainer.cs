@@ -67,8 +67,7 @@ namespace Arcadia
             if (user != null && user.CatalogHistory.ContainsKey(shop.Id))
                 user.CatalogHistory[shop.Id].Clear();
 
-
-            return Catalogs[shop.Id];
+            return new ItemCatalog(Catalogs[shop.Id]);
         }
     }
 

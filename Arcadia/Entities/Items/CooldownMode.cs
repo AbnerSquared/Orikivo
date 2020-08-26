@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum CooldownCategory
+    public enum CooldownMode
     {
         Instance = 1, // Applied to this unique instance only
         Item = 2, // Applied to this item only

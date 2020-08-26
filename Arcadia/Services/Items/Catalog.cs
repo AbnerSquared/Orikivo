@@ -143,6 +143,7 @@ namespace Arcadia.Services
 
         public static string ViewRecipes(ArcadeUser user)
         {
+            ItemHelper.UpdateKnownRecipes(user);
             var recipes = new StringBuilder();
             recipes.AppendLine(Locale.GetHeader(Headers.Recipe));
 
@@ -167,9 +168,9 @@ namespace Arcadia.Services
             string recipeName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name;
 
             if (!Check.NotNull(recipeName))
-                recipeName = "Unknown";
+                recipeName = "Unknown Item";
 
-            text.AppendLine($"\n> `{recipe.Id}`")
+            text.AppendLine($"\n> `{ItemHelper.GetRecipeId(recipe)}`")
                 .Append($"> {(ItemHelper.CanCraft(user, recipe) ? "📑" : "📄")} **Recipe: {recipeName}**");
 
             return text.ToString();
@@ -179,8 +180,16 @@ namespace Arcadia.Services
         {
             var info = new StringBuilder();
 
-            string resultName = ItemHelper.NameOf(recipe.Result.ItemId);
+            string resultName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name ?? "Unknown Item";
             bool craft = ItemHelper.CanCraft(user, recipe);
+
+            if (craft)
+            {
+                ItemHelper.SetRecipeStatus(user, recipe, RecipeStatus.Known);
+            }
+            else if (ItemHelper.GetRecipeStatus(user, recipe) == RecipeStatus.Unknown)
+                return Format.Warning("Unknown recipe specified.");
+
 
             info.AppendLine($"> {(craft ? "📑" : "📄")} **Recipe: {resultName}**");
 
@@ -286,21 +295,8 @@ namespace Arcadia.Services
 
             string bypass = "";
 
-            if (item.BypassCriteriaOnGift)
+            if (item.BypassCriteriaOnTrade)
                 bypass = " - Bypasses criteria when gifted";
-
-            if (item.GiftLimit.HasValue)
-            {
-                if (item.GiftLimit.Value > 0)
-                    details.Append("🎁 **Giftable**");
-
-                if (item.GiftLimit.Value == 1)
-                    details.AppendLine($" (**Once**){bypass}");
-                else if (item.GiftLimit.Value > 1)
-                    details.AppendLine($" (x**{item.GiftLimit.Value:##,0}**){bypass}");
-            }
-            else
-                details.AppendLine($"🎁 **Giftable**{bypass}");
 
             if (item.TradeLimit.HasValue)
             {
@@ -313,7 +309,7 @@ namespace Arcadia.Services
                     details.AppendLine($" (x**{item.TradeLimit.Value:##,0}**)");
             }
             else
-                details.AppendLine("📪 **Tradable**");
+                details.AppendLine($"📪 **Tradable**{bypass}");
 
             if (ItemHelper.IsIngredient(item))
                 details.AppendLine("🧂 **Crafting Ingredient**");
@@ -335,7 +331,7 @@ namespace Arcadia.Services
 
                 string removeOn = "";
 
-                if (item.Usage.DeleteOnBreak)
+                if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
                     removeOn = " - Removed on break";
 
                 if (item.Usage.Durability.HasValue)
@@ -348,10 +344,8 @@ namespace Arcadia.Services
                     string expiryHandle = item.Usage.ExpiryTrigger switch
                     {
                         ExpiryTrigger.Use => " - Starts when first used",
-                        ExpiryTrigger.Equip => " - Starts when equipped",
                         ExpiryTrigger.Own => " - Starts when owned",
-                        ExpiryTrigger.Gift => " - Starts when gifted",
-                        ExpiryTrigger.Trade => " - Starts when traded",
+                        ExpiryTrigger.Trade => " - Starts when traded or gifted",
                         _ => ""
                     };
 
@@ -360,12 +354,12 @@ namespace Arcadia.Services
 
                 if (item.Usage.Cooldown.HasValue)
                 {
-                    string cooldownHandle = item.Usage.CooldownCategory switch
+                    string cooldownHandle = item.Usage.CooldownMode switch
                     {
-                        CooldownCategory.Global => " - For all items",
-                        CooldownCategory.Group => " - For this item group only",
-                        CooldownCategory.Item => " - For this item only",
-                        CooldownCategory.Instance => " - For this instance only",
+                        CooldownMode.Global => " - For all items",
+                        CooldownMode.Group => " - For this item group only",
+                        CooldownMode.Item => " - For this item only",
+                        CooldownMode.Instance => " - For this instance only",
                         _ => ""
                     };
 

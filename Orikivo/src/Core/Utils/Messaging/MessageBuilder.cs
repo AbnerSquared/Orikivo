@@ -10,7 +10,7 @@ namespace Orikivo
     {
         public MessageBuilder() { }
 
-        public MessageBuilder(string content, string url)
+        public MessageBuilder(string content, string url = null)
         {
             Content = content;
             Url = url;

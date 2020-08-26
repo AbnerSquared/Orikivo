@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents unique data for an <see cref="Item"/>.
+    /// </summary>
     public class UniqueItemData
     {
         internal UniqueItemData()
@@ -13,25 +16,24 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal UniqueItemData(string id, int? durability, DateTime? expiresOn, DateTime? lastUsed, int? tradeCount, int? giftCount, Dictionary<string, int> capsule, Dictionary<string, long> attributes, Dictionary<string, long> toUnlock)
+        internal UniqueItemData(string id, string name, int? durability, DateTime? expiresOn,
+            DateTime? lastUsed, int? tradeCount,
+            Dictionary<string, long> attributes)
         {
             Id = id;
+            Name = name;
             Durability = durability;
             ExpiresOn = expiresOn;
             LastUsed = lastUsed;
             TradeCount = tradeCount;
-            GiftCount = giftCount;
-            Children = capsule;
-            Attributes = attributes;
-            ToUnlock = toUnlock;
+            Properties = attributes;
         }
 
         [JsonProperty("id")]
         public string Id { get; }
 
-        // If true, this item cannot be auto-used, removed, sold, traded, gifted.
-        [JsonProperty("locked")]
-        public bool Locked { get; internal set; }
+        [JsonProperty("name")]
+        public string Name { get; internal set; }
 
         [JsonProperty("durability")]
         public int? Durability { get; internal set; }
@@ -45,34 +47,8 @@ namespace Arcadia
         [JsonProperty("trade_count")]
         public int? TradeCount { get; internal set; }
 
-        [JsonProperty("gift_count")]
-        public int? GiftCount { get; internal set; }
-
-        // This is everything that is stored in the item
-        [JsonProperty("children")]
-        public Dictionary<string, int> Children { get; internal set; }
-
         // This is everything that the item is keeping track of
-        [JsonProperty("attributes")]
-        public Dictionary<string, long> Attributes { get; internal set; }
-
-        // A list of stats that need to be at a certain value in order to unlock
-        [JsonProperty("to_unlock")]
-        public Dictionary<string, long> ToUnlock { get; internal set; }
-    }
-
-    public class ItemProperty
-    {
-        // The ID of this property
-        public string Id { get; set; }
-
-        // The current value of this item property
-        public long Value { get; set; }
-
-        // When does this property expire?
-        public DateTime? ExpiresOn { get; set; }
-
-        // What is the durability counter?
-        public int? Durability { get; set; }
+        [JsonProperty("properties")]
+        public Dictionary<string, long> Properties { get; internal set; }
     }
 }

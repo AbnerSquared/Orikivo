@@ -31,11 +31,13 @@ namespace Arcadia
             new Var
             {
                 Id = Stats.LastAssignedQuest,
+                Name = "Last Assigned Quest",
                 Type = VarType.Time
             },
             new Var
             {
                 Id = Stats.LastSkippedQuest,
+                Name = "Last Skipped Quest",
                 Type = VarType.Time
             },
             new Var
@@ -63,7 +65,7 @@ namespace Arcadia
                 Id = Vars.Capacity,
                 Name = "Inventory Capacity",
                 Type = VarType.Attribute,
-                Summary = "This determines how many boosters you can stack at a time.",
+                Summary = "This determines how many items you are able to hold at a time.",
                 DefaultValue = 4000,
                 ValueWriter = Inventory.WriteCapacity
             }
@@ -82,14 +84,21 @@ namespace Arcadia
             {
                 Id = "catalog",
                 Name = "Catalog Status",
-                Summary = "This is a generic collection of variables primarily used to track the state of an item for the catalog.",
+                Summary = "This is a collection of variables used to track an item's known status.",
+                Type = VarType.Attribute
+            },
+            new VarGroup
+            {
+                Id = "recipe",
+                Name = "Recipe Status",
+                Summary = "This is a collection of variables used to track the status of a recipe.",
                 Type = VarType.Attribute
             },
             new VarGroup
             {
                 Id = "shop",
                 Name = "Shop Status",
-                Summary = "This is a generic collection of variables used to track the status state of a shop.",
+                Summary = "This is a generic collection of variables used to track a shop's known status.",
                 Type = VarType.Attribute
             },
             new VarGroup
@@ -110,6 +119,7 @@ namespace Arcadia
                     string winRate = $"**{((user.GetVar(GimiStats.TimesWon) / (double)user.GetVar(GimiStats.TimesPlayed)) * 100):##,0}**%";
                     long profit = user.GetVar(GimiStats.TotalWon) - user.GetVar(GimiStats.TotalLost);
                     var details = new StringBuilder();
+
                     details.AppendLine($"• **Play Count:** {user.GetVar(GimiStats.TimesPlayed):##,0} ({winRate} win rate)");
                     details.AppendLine($"• **Wins:** {user.GetVar(GimiStats.TimesWon):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalWon):##,0}**)");
                     details.AppendLine($"• **Losses:** {user.GetVar(GimiStats.TimesLost):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalLost):##,0}**)");
@@ -384,57 +394,6 @@ namespace Arcadia
             return user.GetVar(criterion.Id) >= criterion.ExpectedValue;
         }
 
-        public static string Debug(params string[] dummies)
-        {
-            var info = new StringBuilder();
-
-            foreach (string dummy in dummies)
-            {
-                info.AppendLine($"Mock = {dummy}");
-                bool valid = IsValid(dummy);
-                bool validGroup = IsValid(dummy, true);
-                bool result = TryParse(dummy, out string finalized);
-                bool enforcedResult = TryParse(dummy, out string finalizedEnforce, true);
-                info.AppendLine($"Valid? {valid} (Enforced? {validGroup})");
-                info.AppendLine($"Parsed? {result} = {finalized ?? "N/A"} (Enforced? {enforcedResult} = {finalizedEnforce ?? "N/A"}");
-                info.AppendLine($"Has Definition? {GetDefiner(dummy) != null}");
-
-                if (!valid)
-                {
-                    info.AppendLine("Ending test, not valid...");
-                    info.AppendLine();
-                    continue;
-                }
-
-                info.AppendLine($"Template? {IsTemplate(dummy)}");
-                info.AppendLine($"Defined Template? {IsDefinedTemplate(dummy)}");
-
-                if (IsTemplate(dummy))
-                {
-                    info.AppendLine($"Template = {GetTemplateType(dummy)}");
-
-                    if (!IsDefinedTemplate(dummy))
-                    {
-                        var test = SetTemplate(dummy, Items.PocketLawyer);
-                        info.AppendLine($"Set Template = {test}");
-                        info.AppendLine($"Humanized Set Template = {Humanize(test)}");
-                    }
-                }
-
-                info.AppendLine($"Humanized = {Humanize(dummy)}");
-                info.AppendLine($"Group = {GetGroup(dummy)}");
-                info.AppendLine($"Key = {GetKey(dummy)}");
-                info.AppendLine($"Default Value = {GetDefaultValue(dummy)}");
-                info.AppendLine($"Type = {TypeOf(dummy)}");
-                info.AppendLine();
-            }
-
-            if (info.Length == 0)
-                return "No dummy strings were given.";
-
-            return info.ToString();
-        }
-
         public static string Humanize(string id)
         {
             if (!IsValid(id))
@@ -561,7 +520,9 @@ namespace Arcadia
             return c >= '0' && c <= '9'
                    || c >= 'A' && c <= 'Z'
                    || c >= 'a' && c <= 'z'
-                   || c == TextSeparator;
+                   || c == TextSeparator
+                   || c == '.' || c == '#'
+                   || c == '/';
         }
 
         public static string GetGroup(string id)
@@ -726,136 +687,6 @@ namespace Arcadia
             return reader.GetCursor() - groupCursor != 0;
         }
 
-        public static string Parse(string id, bool enforceGroup = false)
-        {
-            var current = new StringBuilder();
-
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentException("The specified ID is null or empty.");
-
-            id = id.Trim();
-
-            if (!id.Contains(Separator))
-                throw new ArgumentException("Expected a separator but is unspecified");
-
-            var reader = new StringReader(id);
-
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
-                throw new ArgumentException("Expected a normal character but returned as a text separator");
-
-            while (reader.CanRead())
-            {
-                char c = reader.Read();
-
-                if (c == Placeholder)
-                    reader.Expect(Separator, "Expected a separator after the placeholder");
-
-                if (c == Separator)
-                    break;
-
-                if (!IsCharValid(c) && c != Placeholder)
-                    throw new ArgumentException("Invalid character given when parsing the key");
-
-                current.Append(c);
-            }
-
-            if (current.Length == 0)
-                throw new ArgumentException("Expected a group to be specified");
-
-            if (current.ToString() != Placeholder.ToString())
-                if (enforceGroup && !IsGroupDefined(current.ToString()))
-                    throw new ArgumentException("Could not find the specified group");
-
-            current.Append(Separator);
-            int groupLength = current.Length;
-
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
-                throw new ArgumentException("Expected a normal character but returned as a text separator");
-
-            while (reader.CanRead())
-            {
-                char c = reader.Read();
-
-                if (!IsCharValid(c) || c == Separator)
-                    throw new ArgumentException("Invalid character given when parsing the key");
-
-                current.Append(c);
-            }
-
-            if (current.Length - groupLength == 0)
-                throw new ArgumentException("Expected a key to be specified");
-
-            return current.ToString();
-        }
-
-        public static bool TryParse(string id, out string result, bool enforceGroup = false)
-        {
-            var current = new StringBuilder();
-            result = null;
-
-            if (string.IsNullOrWhiteSpace(id))
-                return false;
-
-            id = id.Trim();
-
-            if (!id.Contains(Separator))
-                return false;
-
-            var reader = new StringReader(id);
-
-
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
-                return false;
-
-            while (reader.CanRead())
-            {
-                char c = reader.Read();
-
-                if (c == Placeholder && reader.CanRead() && reader.Peek() != Separator)
-                    return false;
-
-                if (c == Separator)
-                    break;
-
-                if (!IsCharValid(c) && c != Placeholder)
-                    return false;
-
-                current.Append(c);
-            }
-
-            if (current.Length == 0)
-                return false;
-
-            if (current.ToString() != Placeholder.ToString())
-                if (enforceGroup && !IsGroupDefined(current.ToString()))
-                    return false;
-
-            current.Append(Separator);
-            int groupLength = current.Length;
-
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
-                return false;
-
-            if (!reader.CanRead())
-                return false;
-
-            while (reader.CanRead())
-            {
-                char c = reader.Read();
-
-                if (!IsCharValid(c) || c == Separator)
-                    return false;
-
-                current.Append(c);
-            }
-
-            if (current.Length - groupLength == 0)
-                return false;
-
-            result = current.ToString();
-            return true;
-        }
-
         internal Var() {}
 
         internal Var(string key, TemplateType template = TemplateType.Any, VarType type = VarType.Stat, long defaultValue = 0)
@@ -892,10 +723,10 @@ namespace Arcadia
 
         public Func<long, string> ValueWriter { get; internal set; }
 
-        public TemplateType? Template { get; private set; }
+        public TemplateType? Template { get; }
 
         public VarType? Type { get; private set; }
 
-        public long DefaultValue { get; private set; } = 0;
+        public long DefaultValue { get; private set; }
     }
 }

@@ -183,7 +183,7 @@ namespace Arcadia
         {
             User.CanShop = false;
             State = ShopState.Enter;
-            Notice = "> Welcome to **Chromatic Cove**.\n\n";
+            Notice = $"> Welcome to **{Shop.Name}**.\n\n";
             MessageReference = await Context.Channel.SendMessageAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice));
         }
 
@@ -340,21 +340,7 @@ namespace Arcadia
 
                 // Take the money from the user
                 Take(GetCost(item, amount), item.Currency);
-
-                if (!User.CatalogHistory.ContainsKey(Shop.Id))
-                    User.CatalogHistory[Shop.Id] = new CatalogHistory();
-
-
-                // Remove the purchased items from the catalog
-                Catalog.ItemIds[item.Id] -= amount;
-
-                if (Catalog.ItemIds[item.Id] <= 0)
-                {
-                    Catalog.ItemIds.Remove(item.Id);
-
-                    if (Catalog.Discounts.ContainsKey(item.Id))
-                        Catalog.Discounts.Remove(item.Id);
-                }
+                RemoveFromCatalog(item, amount);
 
                 Notice = WriteBuyNotice(item, amount, GetCost(item, amount));
                 CanClearNotice = false;

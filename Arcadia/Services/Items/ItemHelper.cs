@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Arcadia.Graphics;
 using Arcadia.Services;
 using Orikivo;
@@ -8,6 +9,12 @@ using PaletteType = Arcadia.Graphics.PaletteType;
 
 namespace Arcadia
 {
+    public enum RecipeStatus
+    {
+        Unknown = 0,
+        Known = 1
+    }
+
     public enum CatalogStatus
     {
         Unknown = 0,
@@ -18,10 +25,28 @@ namespace Arcadia
     // TODO: Implement item attribute reading and data population
     public static class ItemHelper
     {
+        public static long SizeOf(string itemId)
+            => GetItem(itemId)?.Size ?? 0;
+        public static string GetRecipeId(Recipe recipe)
+        {
+            if (recipe.Components.Count == 0)
+                throw new Exception("Expected at least one recipe component");
+
+            var id = new StringBuilder();
+
+            id.Append($"recipe:{recipe.Result.ItemId}/");
+            id.AppendJoin('.', recipe.Components.Select(GetComponentId));
+
+            return id.ToString();
+        }
+
+        private static string GetComponentId(RecipeComponent component)
+            => $"{component.ItemId}{(component.Amount > 1 ? $"#{component.Amount}" : "")}";
+
         public static IEnumerable<Item> GetSeenItems(ArcadeUser user)
         {
             return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Seen)
+                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Seen)
                 .Select(x => GetItem(Var.GetKey(x.Key)));
         }
 
@@ -35,14 +60,16 @@ namespace Arcadia
         public static IEnumerable<Item> GetSeenItems(ArcadeUser user, string itemGroupId)
         {
             return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId && x.Value == (long)CatalogStatus.Seen)
+                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId &&
+                            x.Value == (long) CatalogStatus.Seen)
                 .Select(x => GetItem(Var.GetKey(x.Key)));
         }
 
         public static IEnumerable<Item> GetKnownItems(ArcadeUser user, string itemGroupId)
         {
             return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId && x.Value == (long)CatalogStatus.Known)
+                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId &&
+                            x.Value == (long) CatalogStatus.Known)
                 .Select(x => GetItem(Var.GetKey(x.Key)));
         }
 
@@ -51,31 +78,33 @@ namespace Arcadia
             return user.Stats.Any(x =>
                 x.Key.StartsWith("catalog")
                 && (x.Value == (long) CatalogStatus.Seen
-                || x.Value == (long) CatalogStatus.Known));
+                    || x.Value == (long) CatalogStatus.Known));
         }
 
         public static int GetKnownCount(ArcadeUser user)
         {
             return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Known);
+                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Known);
         }
 
         public static int GetKnownCount(ArcadeUser user, string itemGroup)
         {
             return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup && x.Value == (long)CatalogStatus.Known);
+                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup &&
+                            x.Value == (long) CatalogStatus.Known);
         }
 
         public static int GetSeenCount(ArcadeUser user)
         {
             return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long)CatalogStatus.Seen);
+                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Seen);
         }
 
         public static int GetSeenCount(ArcadeUser user, string itemGroup)
         {
             return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup && x.Value == (long)CatalogStatus.Seen);
+                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup &&
+                            x.Value == (long) CatalogStatus.Seen);
         }
 
         private static string GetCatalogId(string itemId)
@@ -83,7 +112,10 @@ namespace Arcadia
 
         public static CatalogStatus GetCatalogStatus(ArcadeUser user, string itemId)
         {
-            return (CatalogStatus)user.GetVar(GetCatalogId(itemId));
+            if (GroupOf(itemId) == ItemGroups.Internal)
+                return CatalogStatus.Unknown;
+
+            return (CatalogStatus) user.GetVar(GetCatalogId(itemId));
         }
 
         public static CatalogStatus GetCatalogStatus(ArcadeUser user, Item item)
@@ -91,12 +123,15 @@ namespace Arcadia
 
         public static void SetCatalogStatus(ArcadeUser user, string itemId, CatalogStatus status)
         {
+            if (GroupOf(itemId) == ItemGroups.Internal)
+                return;
+
             // If the user has already seen or known about this item, return;
             if (GetCatalogStatus(user, itemId) >= status)
                 return;
 
 
-            user.SetVar(GetCatalogId(itemId), (long)status);
+            user.SetVar(GetCatalogId(itemId), (long) status);
         }
 
         public static void SetCatalogStatus(ArcadeUser user, Item item, CatalogStatus status)
@@ -124,9 +159,8 @@ namespace Arcadia
         {
             return item.CanBuy
                    | item.CanSell
-                   | item.BypassCriteriaOnGift
+                   | item.BypassCriteriaOnTrade
                    | item.OwnLimit.HasValue
-                   | (item.GiftLimit > 0 || !item.GiftLimit.HasValue)
                    | (item.TradeLimit > 0 || !item.TradeLimit.HasValue)
                    | IsUnique(item)
                    | HasUsageAttributes(item);
@@ -146,7 +180,6 @@ namespace Arcadia
         {
             new Recipe
             {
-                Id = "recipe:glossy_green",
                 Components = new List<RecipeComponent>
                 {
                     new RecipeComponent(Items.PaletteGlass, 1),
@@ -156,7 +189,6 @@ namespace Arcadia
             },
             new Recipe
             {
-                Id = "recipe:glossy_wumpite",
                 Components = new List<RecipeComponent>
                 {
                     new RecipeComponent(Items.PaletteGlass, 1),
@@ -166,10 +198,9 @@ namespace Arcadia
             }
         };
 
-        // TODO: Implement recipe knowledge and criteria
         public static IEnumerable<Recipe> GetKnownRecipes(ArcadeUser user)
         {
-            return LRecipes;
+            return LRecipes.Where(x => GetRecipeStatus(user, x) != RecipeStatus.Unknown);
         }
 
         public static string IconOf(string itemId)
@@ -282,13 +313,18 @@ namespace Arcadia
         {
             new ItemGroup
             {
+                Id = "$",
+                Name = "Internal",
+                Summary = "Items that do not exist as an actual obtainable item."
+            },
+            new ItemGroup
+            {
                 Id = "booster",
                 Icon = Icons.Booster,
                 Name = "Booster",
                 Prefix = "Booster: ",
                 Summary = "Modifies the multiplier for a specified form of income."
             },
-
             new ItemGroup
             {
                 Id = "palette",
@@ -313,12 +349,10 @@ namespace Arcadia
             }
         };
 
-        /*
-        public static long GetUniqueId()
-        {
-            var offset = new DateTime(2020, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            return (DateTime.UtcNow.Ticks - offset.Ticks);
-        }*/
+        public static readonly DateTime UniqueIdOffset = new DateTime(2020, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc);
+
+        public static long CreateUniqueId()
+            => (DateTime.UtcNow - UniqueIdOffset).Ticks;
 
         public static IEnumerable<Item> GetItemsInGroup(string groupId)
         {
@@ -335,19 +369,43 @@ namespace Arcadia
 
         public static Recipe GetRecipe(string id)
         {
-            if (LRecipes.Count(x => x.Id == id) > 1)
+            if (LRecipes.Count(x => GetRecipeId(x) == id) > 1)
                 throw new ArgumentException("There are more than one recipes with the specified ID.");
 
-            return LRecipes.FirstOrDefault(x => x.Id == id);
+            return LRecipes.FirstOrDefault(x => GetRecipeId(x) == id);
+        }
+
+        public static RecipeStatus GetRecipeStatus(ArcadeUser user, Recipe recipe)
+        {
+            return (RecipeStatus) user.GetVar(GetRecipeId(recipe));
+        }
+
+        public static void UpdateKnownRecipes(ArcadeUser user)
+        {
+            foreach (Recipe recipe in LRecipes.Where(x => CanCraft(user, x)))
+                SetRecipeStatus(user, recipe, RecipeStatus.Known);
+        }
+
+        public static void UpdateRecipeStatus(ArcadeUser user, Recipe recipe)
+        {
+            if (CanCraft(user, recipe))
+                SetRecipeStatus(user, recipe, RecipeStatus.Known);
+        }
+
+    public static void SetRecipeStatus(ArcadeUser user, Recipe recipe, RecipeStatus status)
+        {
+            if (GetRecipeStatus(user, recipe) >= status)
+                return;
+
+            user.SetVar(GetRecipeId(recipe), (long) status);
         }
 
         public static bool KnowsRecipe(ArcadeUser user, string recipeId)
             => KnowsRecipe(user, GetRecipe(recipeId));
 
-        // TODO: Implement recipe knowledge criteria
         public static bool KnowsRecipe(ArcadeUser user, Recipe recipe)
         {
-            return true;
+            return user.GetVar(GetRecipeId(recipe)) == (long) RecipeStatus.Known;
         }
 
         public static bool TryGetRecipe(string id, out Recipe recipe)
@@ -362,7 +420,7 @@ namespace Arcadia
         }
 
         public static bool RecipeExists(string id)
-            => Check.NotNull(id) && LRecipes.Any(x => x.Id == id);
+            => Check.NotNull(id) && LRecipes.Any(x => GetRecipeId(x) == id);
 
         public static bool CanCraft(ArcadeUser user, string recipeId)
             => CanCraft(user, GetRecipe(recipeId));
@@ -386,6 +444,9 @@ namespace Arcadia
 
         public static bool Craft(ArcadeUser user, Recipe recipe)
         {
+            if (GetRecipeStatus(user, recipe) == RecipeStatus.Unknown)
+                return false;
+
             if (!CanCraft(user, recipe))
                 return false;
 
@@ -404,6 +465,35 @@ namespace Arcadia
         public static string DetailsOf(Item item)
             => Catalog.ViewItem(item);
 
+        private static bool CanStack(ItemData data)
+            => (data.Seal == null) & (data.Data == null);
+
+        public static ItemData GetBestStack(ArcadeUser user, Item item)
+            => user.Items.FirstOrDefault(x => CanStack(x) && x.Id == item.Id);
+
+        public static ItemData SetInStack(ArcadeUser user, Item item, int amount = 1)
+        {
+            if (amount <= 0)
+                throw new Exception("Expected item amount to be larger than 0");
+
+            ItemData best = user.Items.FirstOrDefault(CanStack);
+
+            if (best != null)
+            {
+                best.StackCount += amount;
+                return best;
+            }
+
+            // If no available stacks are found, a new stack is made instead.
+            best = new ItemData(item.Id, amount);
+            user.Items.Add(best);
+
+            return best;
+        }
+
+        public static string GetBaseName(string itemId)
+            => GetItem(itemId)?.Name ?? itemId;
+
         public static Item ItemOf(ArcadeUser user, string uniqueId)
         {
             if (user.Items.Any(x => x.Data?.Id == uniqueId))
@@ -412,9 +502,59 @@ namespace Arcadia
             return GetItem(user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Id);
         }
 
+        public static ItemData GetItemData(ArcadeUser user, string dataId)
+        {
+            if (!Check.NotNull(dataId))
+                return null;
+
+            bool isUniqueId = user.Items.Any(x => x.Data?.Id == dataId);
+
+            if (!isUniqueId)
+            {
+                if (user.Items.Any(x => x.TempId == dataId))
+                    return user.Items.First(x => x.TempId == dataId);
+
+                if (Exists(dataId))
+                    return GetBestStack(user, GetItem(dataId));
+            }
+
+
+            if (!Exists(dataId) && !isUniqueId)
+            {
+                return null;
+            }
+
+            string itemId = isUniqueId ? ItemOf(user, dataId).Id : dataId;
+            string uniqueId = isUniqueId ? dataId : null;
+
+            bool isUnique = IsUnique(itemId);
+
+            if (isUnique && !isUniqueId)
+            {
+                string uId = GetBestUniqueId(user, itemId);
+
+                if (!Check.NotNull(uId))
+                    return null;
+
+                return DataOf(user, itemId, uId);
+            }
+
+            return DataOf(user, itemId, uniqueId);
+        }
+
         public static List<Item> LItems =>
             new List<Item>
             {
+                new Item
+                {
+                    Id = "$_seal",
+                    GroupId = "$",
+                    Name = "Sealed Item",
+                    Quotes = new List<string>
+                    {
+                        "A mysterious container with unknown contents."
+                    }
+                },
                 new Item
                 {
                     Id = "au_gimi",
@@ -422,22 +562,102 @@ namespace Arcadia
                     Summary = "Gives you the ability to execute the Gimi command a specified number of times. Please note that you are required to wait a second on each execution.",
                     Quotes = new List<string>
                     {
-                        "It echoes a tick fast enough to break the sound barrier."
+                        "It echoes a tick loud enough to break the sound barrier."
                     },
                     GroupId = ItemGroups.Automaton,
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Tool | ItemTag.Automaton,
                     Value = 100000,
-                    CanBuy = false,
-                    CanSell = false,
-                    CanDestroy = true,
+                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell,
                     TradeLimit = 0,
-                    GiftLimit = 0,
                     Size = 1000,
                     OwnLimit = 1,
                     MarketCriteria = null,
-                    ToOwn = null,
-                    ToUnlock = null
+                    ToOwn = null
+                },
+                new Item
+                {
+                    Id = "t_gw",
+                    Name = "Gift Wrap",
+                    Quotes = new List<string>
+                    {
+                        "Add a little mystery to your gifting!"
+                    },
+                    Summary = "Wraps an item to seal its contents.",
+                    Rarity = ItemRarity.Common,
+                    Tag = ItemTag.Tool,
+                    Value = 25,
+                    BypassCriteriaOnTrade = true,
+                    Size = 10,
+                    Usage = new ItemUsage
+                    {
+                        Durability = 1,
+                        DeleteMode = DeleteMode.Break,
+                        Action = delegate(UsageContext ctx)
+                        {
+                            if (!Check.NotNull(ctx.Input))
+                                return UsageResult.FromError("An item data reference must be specified.");
+
+                            var reader = new StringReader(ctx.Input);
+
+                            if (!reader.CanRead())
+                                return UsageResult.FromError("An item data reference must be specified.");
+
+                            string id = reader.ReadUnquotedString();
+
+                            // The amount to wrap. If unspecified, the default is 1.
+                            int amount = 1;
+
+                            if (reader.CanRead())
+                            {
+                                reader.SkipWhiteSpace();
+                                int.TryParse(reader.ReadUnquotedString(), out amount);
+                            }
+
+                            bool isUniqueId = ctx.User.Items.Any(x => x.Data?.Id == id);
+
+                            if (!Exists(id) && !isUniqueId)
+                            {
+                                return UsageResult.FromError("Unknown data reference specified.");
+                            }
+
+                            string itemId = isUniqueId ? ItemOf(ctx.User, id).Id : id;
+                            string uniqueId = isUniqueId ? id : null;
+
+                            bool isUnique = IsUnique(itemId);
+
+                            if (isUnique && !isUniqueId)
+                                return UsageResult.FromError("This item is marked as unique and must be specified by its unique ID.");
+
+                            ItemData data = DataOf(ctx.User, itemId, uniqueId);
+
+                            if (amount < 0)
+                                amount = 1;
+                            else if (amount > data.Count)
+                                amount = data.Count;
+
+                            if (isUnique)
+                            {
+                                data.Seal = new ItemSealData("$_seal");
+                            }
+                            else
+                            {
+                                if (amount == data.Count)
+                                {
+                                    data.Seal = new ItemSealData("$_seal");
+                                }
+                                else
+                                {
+                                    var seal = new ItemData(data.Id, amount);
+                                    seal.Seal = new ItemSealData("$_seal");
+                                    data.StackCount -= amount;
+                                    ctx.User.Items.Add(seal);
+                                }
+                            }
+
+                            return UsageResult.FromSuccess($"> Successfully wrapped {amount:##,0} **{NameOf(itemId)}**.");
+                        }
+                    }
                 },
                 new Item
                 {
@@ -451,22 +671,20 @@ namespace Arcadia
                     Rarity = ItemRarity.Uncommon,
                     Tag = ItemTag.Booster,
                     Value = 500,
-                    CanBuy = true,
-                    CanSell = true,
-                    CanDestroy = true,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Size = 75,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
                         Durability = 1,
-                        DeleteOnBreak = true,
-                        DeleteMode = ItemDeleteMode.Break,
-                        Criteria = user => Var.GetOrSet(user, Vars.BoosterLimit, 1) - user.Boosters.Count > 0,
-                        Action = delegate(ArcadeUser user)
+                        DeleteMode = DeleteMode.Break,
+                        Action = delegate(UsageContext ctx)
                         {
-                            user.Boosters.Add(new BoosterData("b_db", BoosterType.Debt, -0.2f, TimeSpan.FromHours(12), 20));
+                            var booster = new BoosterData("b_db", BoosterType.Debt, -0.2f, TimeSpan.FromHours(12), 20);
 
-                            return new UsageResult("You have applied a booster.");
+                            if (!TryApplyBooster(ctx.User, booster))
+                                return UsageResult.FromError(">");
+
+                            return UsageResult.FromSuccess("> The **Debt Blocker** opens up, revealing a crystal clear shield, ready to deny what it can.");
                         },
                         OnBreak = user => user.Boosters.Add(new BoosterData(BoosterType.Debt, 0.2f, 20))
                     },
@@ -485,24 +703,23 @@ namespace Arcadia
                     GroupId = ItemGroups.Summon,
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Summon,
-                    Value = 1000,
-                    CanBuy = false,
-                    CanSell = true,
-                    CanDestroy = true,
+                    Value = 750,
+                    DeniedHandles = ItemDeny.Buy,
                     TradeLimit = 0,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Size = 100,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Criteria = user => user.Debt >= 500,
                         Durability = 1,
                         Cooldown = TimeSpan.FromDays(3),
-                        DeleteOnBreak = true,
-                        DeleteMode = ItemDeleteMode.Break,
-                        Action = delegate (ArcadeUser user)
+                        DeleteMode = DeleteMode.Break,
+                        Action = delegate (UsageContext ctx)
                         {
-                            user.Debt = 0;
-                            return new UsageResult("> You have been freed from the shackles of debt.");
+                            if (ctx.User.Debt < 500)
+                                return UsageResult.FromError("> You called for help, but the request remains unanswered.");
+
+                            ctx.User.Debt = 0;
+                            return UsageResult.FromSuccess("> You have been freed from the shackles of debt.");
                         }
                     },
                     OwnLimit = 3
@@ -520,13 +737,12 @@ namespace Arcadia
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1000,
                     Size = 50,
-                    CanBuy = true,
-                    CanSell = true,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Rarity =  ItemRarity.Common,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.GammaGreen))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 10
                 },
@@ -543,13 +759,12 @@ namespace Arcadia
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1000,
                     Size = 50,
-                    CanBuy = true,
-                    CanSell = true,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Rarity =  ItemRarity.Common,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Crimson))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 10
                 },
@@ -566,13 +781,12 @@ namespace Arcadia
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1500,
                     Size = 75,
-                    CanBuy = true,
-                    CanSell = true,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Rarity =  ItemRarity.Uncommon,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Wumpite))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 10
                 },
@@ -589,13 +803,12 @@ namespace Arcadia
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 1500,
                     Size = 75,
-                    CanBuy = true,
-                    CanSell = true,
-                    BypassCriteriaOnGift = true,
+                    BypassCriteriaOnTrade = true,
                     Rarity =  ItemRarity.Uncommon,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, PaletteType.Glass))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 10
                 },
@@ -610,14 +823,15 @@ namespace Arcadia
                     },
                     GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
+                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
                     Value = 3000,
                     Size = 150,
                     TradeLimit = 0,
-                    GiftLimit = 0,
                     Rarity =  ItemRarity.Rare,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, new ComponentPalette(PaletteType.GammaGreen, PaletteType.Glass)))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.GammaGreen, PaletteType.Glass))),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 5
                 },
@@ -632,18 +846,31 @@ namespace Arcadia
                     },
                     GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
+                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
                     Value = 3500,
                     Size = 175,
                     TradeLimit = 0,
-                    GiftLimit = 0,
                     Rarity =  ItemRarity.Rare,
-                    Usage = new ItemAction
+                    Usage = new ItemUsage
                     {
-                        Action = user => new UsageResult(SetOrSwapPalette(user, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass)))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass))),
+                        DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 5
                 }
             };
+
+        private static bool TryApplyBooster(ArcadeUser user, BoosterData booster)
+        {
+            if (Var.GetOrSet(user, Vars.BoosterLimit, 1) - user.Boosters.Count <= 0)
+                return false;
+
+            if (booster == null)
+                throw new Exception("Expected a booster data to be specified but returned null");
+
+            user.Boosters.Add(booster);
+            return true;
+        }
 
         private static string SetOrSwapPalette(ArcadeUser user, ComponentPalette palette)
         {
@@ -672,39 +899,39 @@ namespace Arcadia
             return true;
         }
 
-        public static bool CanGift(string itemId, UniqueItemData data)
+        public static bool CanGift(string itemId, ItemData data = null)
             => CanGift(GetItem(itemId), data);
 
-        public static bool CanGift(Item item, UniqueItemData data)
+        public static bool CanGift(Item item, ItemData data = null)
         {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
-            if (item.GiftLimit.HasValue)
+            if (data?.Seal != null)
             {
-                if (data != null)
-                    if (data.GiftCount.GetValueOrDefault(0) >= item.GiftLimit.Value)
-                        return false;
+                if (data.Seal.SenderId.HasValue || Check.NotNullOrEmpty(data.Seal.ToUnlock))
+                    return false;
+
+                return true;
             }
 
-            return true;
+            return item.TradeLimit.HasValue ? (data?.Data?.TradeCount ?? 0) < item.TradeLimit.Value : true;
         }
 
-        public static bool CanTrade(string itemId, UniqueItemData data)
+        public static bool CanTrade(string itemId, ItemData data = null)
             => CanTrade(GetItem(itemId), data);
 
-        public static bool CanTrade(Item item, UniqueItemData data)
+        public static bool CanTrade(Item item, ItemData data = null)
         {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
 
-            if (item.TradeLimit.HasValue)
+            if (data?.Seal != null)
             {
-                if ((data?.TradeCount ?? 0) >= item.TradeLimit.Value)
-                    return false;
+                return false;
             }
 
-            return true;
+            return item.TradeLimit.HasValue ? (data?.Data?.TradeCount ?? 0) < item.TradeLimit.Value : true;
         }
 
         public static DateTime? GetLastUsed(ArcadeUser user, string itemId, string uniqueId = null)
@@ -717,12 +944,12 @@ namespace Arcadia
             if (item.Usage == null)
                 throw new Exception("Expected item usage to be specified but returned null");
 
-            string statGroup = item.Usage?.CooldownCategory switch
+            string statGroup = item.Usage?.CooldownMode switch
             {
-                CooldownCategory.Instance => uniqueId ?? throw new Exception("Expected a unique item reference but was unspecified"),
-                CooldownCategory.Item => itemId,
-                CooldownCategory.Group => item.GroupId ?? throw new Exception("Expected an item group but was empty"),
-                CooldownCategory.Global => "global",
+                CooldownMode.Instance => uniqueId ?? throw new Exception("Expected a unique item reference but was unspecified"),
+                CooldownMode.Item => itemId,
+                CooldownMode.Group => item.GroupId ?? throw new Exception("Expected an item group but was empty"),
+                CooldownMode.Global => "global",
                 _ => null
             };
 
@@ -766,10 +993,10 @@ namespace Arcadia
             return null;
         }
 
-        public static bool CanUse(ArcadeUser user, string itemId, UniqueItemData data = null)
+        public static bool CanUse(ArcadeUser user, string itemId, ItemData data = null)
             => CanUse(user, GetItem(itemId), data);
 
-        public static bool CanUse(ArcadeUser user, Item item, UniqueItemData data = null)
+        public static bool CanUse(ArcadeUser user, Item item, ItemData data = null)
         {
             if (item == null)
                 throw new ArgumentException("Could not find an item with the specified ID.");
@@ -782,24 +1009,23 @@ namespace Arcadia
             if (lastUsed.HasValue && item.Usage.Cooldown.HasValue)
             {
                 // if the cooldown has expired, allow use.
-                if ((DateTime.UtcNow - lastUsed.Value.Add(item.Usage.Cooldown.Value)) >= TimeSpan.Zero)
+                if (DateTime.UtcNow - lastUsed.Value.Add(item.Usage.Cooldown.Value) >= TimeSpan.Zero)
                     return true;
 
                 return false;
             }
 
-            if (data != null)
+            if (data?.Data != null)
             {
-                if (data.ExpiresOn.HasValue)
-                    if (DateTime.UtcNow >= data.ExpiresOn.Value)
+                if (data.Data.ExpiresOn.HasValue)
+                    if (DateTime.UtcNow >= data.Data.ExpiresOn.Value)
                         return false;
 
-                if (data.Durability.HasValue)
-                    if (data.Durability == 0)
-                        return false;
+                if (data.Data.Durability <= 0)
+                    return false;
             }
 
-            return item.Usage.Criteria?.Invoke(user) ?? true;
+            return true;
         }
 
         public static bool IsUnique(string itemId)
@@ -808,28 +1034,24 @@ namespace Arcadia
         public static bool IsUnique(Item item)
         {
             if (item.TradeLimit.HasValue)
-            // does this item have a specified trade limitation?
-            if (item.TradeLimit > 0)
-                return true;
-
-            if (item.GiftLimit.HasValue)
-            // does this item have a specified gift limitation?
-            if (item.GiftLimit > 0)
-                return true;
-
-            if (item.Usage?.Durability != null)
-            {
-                // can it be used more than once?
-                if (item.Usage.Durability > 1)
+                if (item.TradeLimit > 0)
                     return true;
 
-                // is this item left behind when the durability is broken?
-                if (!item.Usage.DeleteOnBreak)
-                    return true;
-            }
+            // is there any form of usage specified?
+            if (item.Usage == null)
+                return false;
 
-            //if (item.OnUse.Cooldown.HasValue)
-            //    return true;
+            // can it be used more than once?
+            if (item.Usage.Durability > 1)
+                return true;
+
+            // is this item left behind when the durability is broken?
+            if (item.Usage.Durability.HasValue && !item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                return true;
+
+            // does this item have a cooldown that is applied to the instance of an item?
+            if (item.Usage.Cooldown.HasValue && item.Usage.CooldownMode == CooldownMode.Instance)
+                return true;
 
             return false;
         }
@@ -844,7 +1066,6 @@ namespace Arcadia
 
         public static bool Exists(string itemId)
             => LItems.Any(x => x.Id == itemId);
-
 
         public static string GroupOf(string id)
         {
@@ -898,16 +1119,22 @@ namespace Arcadia
             if (!HasItem(user, item.Id))
                 return;
 
-            // This method only works for non-unique items.
             if (IsUnique(item))
             {
+                int available = user.Items.Count(x => x.Id == item.Id);
+
+                if (available < amount)
+                    amount = available;
+
                 for (int i = 0; i < amount; i++)
                 {
                     string uniqueId = GetBestUniqueId(user, item.Id);
 
+                    if (uniqueId == null)
+                        throw new Exception("Expected to find an item ID but returned null");
 
+                    TakeItem(user, item, uniqueId);
                 }
-                TakeItem(user, item, GetBestUniqueId(user, item.Id));
                 return;
             }
 
@@ -920,21 +1147,6 @@ namespace Arcadia
             {
                 user.Items.First(x => x.Id == item.Id).StackCount -= amount;
             }
-
-            /*
-            if (!HasItem(user, item.Id) && item.Tag.HasFlag(ItemTag.Palette))
-            {
-                PaletteType type = PaletteOf(item.Id);
-
-                // If the specified palette could not be resolved.
-                if (type == PaletteType.Default)
-                    return;
-
-                if (type == user.Card.Palette.Primary)
-                    user.Card.Palette = PaletteType.Default; // If the palette was taken away, set to default palette.
-
-            }
-            */
         }
 
         internal static string NameFor(PaletteType palette, PaletteType? secondary = null)
@@ -1061,7 +1273,7 @@ namespace Arcadia
             }
             else
             {
-                ItemData selected = DataOf(user, item.Id);
+                ItemData selected = GetBestStack(user, item);
 
                 if (selected == null)
                 {
@@ -1071,9 +1283,6 @@ namespace Arcadia
                 {
                     selected.StackCount += amount;
                 }
-
-
-                //user.Items.First(x => x.Id == item.Id).StackCount += amount;
             }
         }
 
@@ -1091,19 +1300,12 @@ namespace Arcadia
             var data = new UniqueItemData
             {
                 Durability = item.Usage?.Durability,
-                TradeCount = null,
-                GiftCount = null,
-                ExpiresOn = null,
-                LastUsed = null
+                ExpiresOn = ((item.Usage?.ExpiryTrigger ?? 0) == ExpiryTrigger.Own && (item.Usage?.Expiry.HasValue ?? false)) ? DateTime.UtcNow.Add(item.Usage.Expiry.Value) : (DateTime?) null
             };
 
             // No need to initialize if the item cannot be traded
             if (item.TradeLimit.HasValue && item.TradeLimit > 0)
                 data.TradeCount = 0;
-
-            // No need to initialize if the item cannot be gifted
-            if (item.GiftLimit.HasValue && item.GiftLimit > 0)
-                data.GiftCount = 0;
 
             return data;
         }
@@ -1126,14 +1328,14 @@ namespace Arcadia
         public static bool HasItemWhen(ArcadeUser user, Item item, Func<ItemData, bool> criterion)
             => HasItem(user, item) && user.Items.Any(criterion);
 
-        public static UniqueItemData Peek(ArcadeUser user, string uniqueId)
-            => user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Data;
+        public static ItemData Peek(ArcadeUser user, string uniqueId)
+            => user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId);
 
         public static ItemData DataOf(ArcadeUser user, string itemId, string uniqueId = null)
         {
-            return user.Items.FirstOrDefault(x => !string.IsNullOrWhiteSpace(uniqueId)
+            return user.Items.FirstOrDefault(x => (!string.IsNullOrWhiteSpace(uniqueId)
                 ? x.Data?.Id == uniqueId
-                : x.Id == itemId);
+                : x.Id == itemId) && x.Seal == null);
         }
 
         public static ItemData DataOf(ArcadeUser user, Item item, string uniqueId = null)
@@ -1142,112 +1344,156 @@ namespace Arcadia
         public static ItemTag GetTag(string itemId)
             => GetItem(itemId)?.Tag ?? 0;
 
-        public static UsageResult UseItem(ArcadeUser user, string itemId, string uniqueId = null)
-            => UseItem(user, GetItem(itemId), uniqueId);
-
-        public static UsageResult UseItem(ArcadeUser user, Item item, string uniqueId = null)
+        public static UsageResult UseItem(ArcadeUser user, ItemData data, string input = null)
         {
             var isBroken = false;
+            Item item = GetItem(data.Id);
 
-            UsageResult result = new UsageResult(false);
-
-            // if there is no available action.
+            // If a usage isn't specified
             if (item.Usage == null)
-                return result;
+                return UsageResult.FromError("This item is not usable.");
 
-            // if the user doesn't even have an item.
-            if (!HasItem(user, item))
-                return result;
-
-            // otherwise, check if the user can use the item
-            if (IsUnique(item))
+            // If the item is sealed
+            if (data.Seal != null)
             {
-                // If a unique ID wasn't specified, get the unique ID of the one closest to being broken.
-                uniqueId ??= GetBestUniqueId(user, item);
-
-                // There isn't an available item to use in this case.
-                if (string.IsNullOrWhiteSpace(uniqueId))
-                    return result;
-
-                var data = Peek(user, uniqueId);
-
-                if (!CanUse(user, item, data))
+                // If the item has requirements to unlock
+                if (Check.NotNullOrEmpty(data.Seal.ToUnlock))
                 {
-                    return result;
+                    foreach ((string id, VarProgress progress) in data.Seal.ToUnlock)
+                        if (progress.Current < progress.Required)
+                            return UsageResult.FromError("You have not met all of the criteria needed to open this seal.");
                 }
 
-                // first, check if the item will be deleted on use
-                if (item.Usage.Durability.HasValue)
+                ItemData stack = GetBestStack(user, item);
+
+                if (stack != null && !IsUnique(item))
                 {
-                    if (item.Usage.DeleteOnBreak)
+                    stack.StackCount += data.StackCount;
+                    user.Items.Remove(data);
+                }
+                else
+                {
+                    data.Seal = null;
+                }
+
+                return UsageResult.FromSuccess($"You have released the seal and found a {NameOf(data.Id)}");
+            }
+
+            // If the item has unique properties
+            if (data.Data != null)
+            {
+                // If the item has a cooldown
+                TimeSpan? remainder = GetCooldownRemainder(user, item.Id, data.Data.Id);
+
+                if (remainder.HasValue)
+                    return UsageResult.FromError(
+                        $"This item is on cooldown and can be used in {Format.Counter(remainder.Value.TotalSeconds)}.");
+
+                // If the item has expired
+                if (data.Data.ExpiresOn.HasValue)
+                    if (DateTime.UtcNow >= data.Data.ExpiresOn.Value)
+                        return UsageResult.FromError("This item has expired and cannot be used.");
+
+                // If the item is broken
+                if (data.Data.Durability <= 0)
+                {
+                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
                     {
-                        // if it's going to be deleted on use, remove it
-                        if (data.Durability - 1 <= 0)
-                            TakeItem(user, item, uniqueId);
+                        user.Items.Remove(data);
+                        return UsageResult.FromError("This item is broken and will be removed.");
                     }
 
-                    if (data.Durability > 0)
-                        data.Durability--; // remove 1 from the durability.
+                    return UsageResult.FromError("This item is broken and cannot be used.");
+                }
+            }
 
-                    if (data.Durability == 0)
+            // Attempt to use the item
+            UsageResult result = item.Usage.Action(new UsageContext(user, input, data));
+
+            // If the item failed on use, return its result
+            if (!result.IsSuccess)
+                return result;
+
+            // Apply durability effect
+            if (item.Usage.Durability.HasValue)
+            {
+                if (data.Data != null)
+                {
+                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                    {
+                        // if it's going to be deleted on use, remove it
+                        if (data.Data.Durability - 1 <= 0)
+                            TakeItem(user, item, data.Data.Id);
+                    }
+
+                    if (data.Data.Durability > 0)
+                        data.Data.Durability--; // remove 1 from the durability.
+
+                    if (data.Data.Durability <= 0)
                         isBroken = true;
                 }
-            }
-            else
-            {
-                if (!CanUse(user, item))
-                    return result;
-
-                if (item.Usage.Durability == 1)
+                else
                 {
-                    if (item.Usage.DeleteOnBreak)
-                        TakeItem(user, item);
+                    if (item.Usage.Durability == 1)
+                    {
+                        if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                        {
+                            data.StackCount -= 1;
 
-                    isBroken = true;
+                            if (data.StackCount <= 0)
+                                user.Items.Remove(data);
+                        }
+
+                        isBroken = true;
+                    }
                 }
             }
 
+            // Apply item cooldowns
             if (item.Usage.Cooldown.HasValue)
             {
-                if (item.Usage.CooldownCategory == CooldownCategory.Instance)
+                if (item.Usage.CooldownMode == CooldownMode.Instance)
                 {
-                    if (!IsUnique(item))
+                    if (data.Data == null)
                         throw new Exception("Expected an item to be unique");
 
-                    if (!HasItem(user, item, uniqueId))
-                        throw new Exception("Expected to find a unique item but does not exist");
-
-                    DataOf(user, item, uniqueId).Data.LastUsed = DateTime.UtcNow;
+                    data.Data.LastUsed = DateTime.UtcNow;
                 }
-                else if (item.Usage.CooldownCategory == CooldownCategory.Group)
+                else if (item.Usage.CooldownMode == CooldownMode.Group)
                 {
                     user.SetVar($"{item.GroupId}:last_used", DateTime.UtcNow.Ticks);
                 }
-                else
+                else if (item.Usage.CooldownMode == CooldownMode.Item)
                 {
                     // finally, if all of the checks pass, use up the item.
                     user.SetVar(GetCooldownId(item.Id), DateTime.UtcNow.Ticks);
                 }
+                else
+                {
+                    user.SetVar("cooldown:item", DateTime.UtcNow.Ticks);
+                }
             }
 
-            // As the final step, invoke the action defined on the item.
-            // If the usage wasn't successful, don't update the item.
-            // That way, the criteria can be merged with the usage
-            result = item.Usage.Action(user);
-
-            // If the item broke, invoke that action too.
-            if (isBroken)
+            // Apply break mechanics
+            if (isBroken && item.GroupId != ItemGroups.Booster)
             {
                 // Only invoke breaking if the group is not a booster
-                // This is because boosters reference this method when used up
-                if (item.GroupId != ItemGroups.Booster)
-                    item.Usage.OnBreak?.Invoke(user);
-
+                // This is because boosters reference this method when they are used up
+                item.Usage.OnBreak?.Invoke(user);
                 user.AddToVar(Stats.ItemsUsed);
             }
 
             return result;
         }
+
+        public static UsageResult UseItem(ArcadeUser user, Item item, string uniqueId, string input = null)
+            => UseItem(user, DataOf(user, item.Id, uniqueId), input);
+
+        public static UsageResult UseItem(ArcadeUser user, string itemId, string uniqueId, string input)
+            => UseItem(user, DataOf(user, itemId, uniqueId), input);
+
+        public static UsageResult UseItem(ArcadeUser user, string dataId, string input = null)
+            => UseItem(user, GetItemData(user, dataId), input);
 
         private static string GetBestUniqueId(ArcadeUser user, string itemId)
             => GetBestUniqueId(user, GetItem(itemId));
@@ -1261,10 +1507,10 @@ namespace Arcadia
                 throw new ArgumentException("The specified item is not unique.");
 
             // Slim down to all matching item entries of the same item
-            var matching = user.Items.Where(x => x.Id == item.Id && !x.Data.Locked);
+            var matching = user.Items.Where(x => x.Id == item.Id && !x.Locked);
 
             if (user.Items.All(x => x.Id != item.Id))
-                return "";
+                return null;
 
             if (item.Usage?.Durability != null)
             {

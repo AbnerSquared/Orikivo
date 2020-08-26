@@ -3,7 +3,7 @@
 namespace Arcadia
 {
     [Flags]
-    public enum ItemDeleteMode
+    public enum DeleteMode
     {
         Break = 1, // this item is deleted when broken (durability = 0)
         Expire = 2, // this item is deleted when expired (ExpiresOn < DateTime.UtcNow)

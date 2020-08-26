@@ -8,12 +8,12 @@ namespace Arcadia
         public RequireVarAttribute(string varId, VarMatch match, long value)
         {
             VarId = varId;
-            Match = match;
+            Matcher = match;
             Value = value;
         }
 
         public string VarId { get; }
-        public VarMatch Match { get; }
+        public VarMatch Matcher { get; }
         public long Value { get; }
     }
 }

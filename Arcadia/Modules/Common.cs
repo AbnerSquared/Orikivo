@@ -352,7 +352,7 @@ namespace Arcadia.Modules
 
         [Command("gift")]
         [Summary("Attempts to gift an **Item** to the specified user.")]
-        public async Task GiftAsync(SocketUser user, Item item)
+        public async Task GiftAsync(SocketUser user, string dataId)
         {
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
@@ -362,22 +362,18 @@ namespace Arcadia.Modules
                 return;
             }
 
-            /*
-            // Check if the item exists, similar to use.
-            if (!ItemHelper.Exists(itemId))
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
-                return;
-            }*/
+            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
-            if (!ItemHelper.HasItem(Context.Account, item))
+            if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
                 return;
             }
 
+            Item item = ItemHelper.GetItem(data.Id);
+
             // Next, check if the item can be gifted.
-            if (!ItemHelper.CanGift(item, ItemHelper.DataOf(Context.Account, item)?.Data))
+            if (!ItemHelper.CanGift(data.Id, data))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
                 return;
@@ -386,58 +382,37 @@ namespace Arcadia.Modules
             // Otherwise, Take the item away from the invoker
             // If the item has a limited gift count, add one to the gift counter and give it to the user.
 
-            ItemHelper.TakeItem(Context.Account, item);
+            Context.Account.Items.Remove(data);
 
-            // Give the item to the user.
-            ItemHelper.GiveItem(account, item);
+            if (data.Seal != null)
+                data.Seal.SenderId = Context.Account.Id;
 
-            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{item.GetName()}**.");
-
-            if (item.GiftLimit.HasValue)
+            if (item.TradeLimit.HasValue)
             {
-                bool hasGiftCounter = ItemHelper.DataOf(account, item)?.Data?.GiftCount.HasValue ?? false;
+                bool hasGiftCounter = data.Data?.TradeCount.HasValue ?? false;
 
                 if (hasGiftCounter)
-                    ItemHelper.DataOf(account, item).Data.GiftCount++;
+                    ItemHelper.DataOf(account, item).Data.TradeCount++;
             }
 
+            account.Items.Add(data);
+            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{ItemHelper.NameOf(data.Id)}**.");
             Context.Account.AddToVar(Stats.ItemsGifted);
         }
 
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
-        public async Task UseItemAsync(string id)
+        public async Task UseItemAsync(string dataId, [Remainder]string input = null)
         {
-            // TODO: Handle the using of unique items.
+            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
-            if (!ItemHelper.Exists(id))
+            if (data == null)
             {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```I couldn't find any items with the specified ID.```");
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
                 return;
             }
 
-            if (!ItemHelper.HasItem(Context.Account, id))
-            {
-                await Context.Channel.SendMessageAsync("> You do not own this item.");
-                return;
-            }
-
-            if (!ItemHelper.CanUse(Context.Account, id))
-            {
-                TimeSpan? rem = ItemHelper.GetCooldownRemainder(Context.Account, id);
-                if (rem.HasValue)
-                {
-                    await Context.Channel.SendMessageAsync($"> You can use **{ItemHelper.NameOf(id)}** in {Format.Counter(rem.Value.TotalSeconds)}.");
-                }
-                else
-                {
-                    await Context.Channel.SendMessageAsync(Format.Warning($"You are unable to use **{ItemHelper.NameOf(id)}**."));
-                }
-
-                return;
-            }
-
-            UsageResult result = ItemHelper.UseItem(Context.Account, id);
+            UsageResult result = ItemHelper.UseItem(Context.Account, data, input);
 
             if (result.Message != null)
             {
@@ -445,7 +420,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(id)}**."));
+            await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(data.Id)}**."));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -453,6 +428,11 @@ namespace Arcadia.Modules
         [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
         public async Task InspectAsync(Item item)
         {
+            CatalogStatus status = ItemHelper.GetCatalogStatus(Context.Account, item);
+
+            if (status == CatalogStatus.Unknown && Context.Account.Items.Exists(x => x.Id == item.Id))
+                ItemHelper.SetCatalogStatus(Context.Account, item, CatalogStatus.Known);
+
             await Context.Channel.SendMessageAsync(Catalog.ViewItem(item, ItemHelper.GetCatalogStatus(Context.Account, item)));
         }
 

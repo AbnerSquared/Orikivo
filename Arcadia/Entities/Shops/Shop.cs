@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Arcadia
+﻿namespace Arcadia
 {
     /// <summary>
     /// Represents a market from which items can be purchased from.
@@ -25,6 +23,7 @@ namespace Arcadia
 
         public ItemTag SellTags { get; set; }
 
+        public int? MaxAllowedPurchases { get; set; }
         public int SellDeduction { get; set; } = 50;
     }
 }

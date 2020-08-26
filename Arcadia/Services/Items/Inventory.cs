@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using Orikivo;
 
 namespace Arcadia
@@ -85,16 +86,20 @@ namespace Arcadia
         private static string WriteItemRow(int index, string id, ItemData data)
         {
             Item item = ItemHelper.GetItem(id);
+
+            string visibleId = data.Seal != null ? data.TempId : id;
+            string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : item.GetName()) ?? "Unknown Item";
+
             var summary = new StringBuilder();
 
             summary.Append($"> **Slot {index}:** ");
 
-            summary.Append($"`{id}`");
+            summary.Append($"`{visibleId}`");
 
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
                 summary.Append($"/`{data.Data.Id}`");
 
-            summary.Append($" • **{item.GetName()}**");
+            summary.Append($" • **{name}**");
 
             if (data.Count > 1)
             {
@@ -110,14 +115,18 @@ namespace Arcadia
             Item item = ItemHelper.GetItem(id);
             var summary = new StringBuilder();
 
+            string visibleId = data.Seal != null ? data.TempId : id;
+            string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : item.GetName()) ?? "Unknown Item";
+
+
             summary.Append($"> **Slot {index}:** ");
 
-            summary.Append($"`{id}`");
+            summary.Append($"`{visibleId}`");
 
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
                 summary.Append($"/`{data.Data.Id}`");
 
-            summary.Append($" • **{item.GetName()}**");
+            summary.Append($" • **{name}**");
 
             if (isPrivate && showTooltips)
                 summary.Append($" ({WriteCapacity(item.Size)})");
@@ -156,6 +165,11 @@ namespace Arcadia
             return inventory.ToString();
         }
 
+        private static long GetInventorySize(ArcadeUser user)
+        {
+            return user.Items.Sum(x => ItemHelper.SizeOf(x.Id) * x.Count);
+        }
+
         public static string Write(ArcadeUser user, bool isPrivate = true)
         {
             // set the default capacity if unspecified
@@ -163,7 +177,7 @@ namespace Arcadia
             var inventory = new StringBuilder();
 
             if (isPrivate)
-                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity)));
+                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user)));
             else
                 inventory.AppendLine($"{Locale.GetHeader(Headers.Inventory, group: user.Username)}\n");
 
