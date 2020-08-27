@@ -170,7 +170,7 @@ namespace Arcadia.Services
             if (!Check.NotNull(recipeName))
                 recipeName = "Unknown Item";
 
-            text.AppendLine($"\n> `{ItemHelper.GetRecipeId(recipe)}`")
+            text.AppendLine($"\n> `{ItemHelper.GetBaseRecipeId(recipe)}`")
                 .Append($"> {(ItemHelper.CanCraft(user, recipe) ? "📑" : "📄")} **Recipe: {recipeName}**");
 
             return text.ToString();

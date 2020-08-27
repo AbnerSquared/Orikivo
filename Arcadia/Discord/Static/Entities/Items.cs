@@ -12,5 +12,6 @@
         internal static readonly string PaletteGlossyGreen = "p_glgr";
         internal static readonly string PaletteGlossyWumpite = "p_glwu";
         internal static readonly string AutomatonGimi = "au_gimi";
+        internal static readonly string ComponentSmearKit = "c_sk";
     }
 }

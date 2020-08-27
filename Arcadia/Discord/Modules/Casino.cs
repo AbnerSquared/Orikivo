@@ -4,6 +4,7 @@ using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
+using Orikivo.Framework;
 
 namespace Arcadia.Modules
 {
@@ -11,6 +12,16 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>
     {
+        [Command("castingtest")]
+        public async Task TestAsync()
+        {
+            Func<ArcadeUser, object, string> criteria = (u, r) => "SUCCESS";
+            ReplyWriter w = criteria.Invoke;
+
+            string result = w(Context.Account, null);
+            Logger.Debug(result);
+        }
+
         [Command("gimi")]
         [RequireUser]
         [Summary("An activity that randomly offers a reward value (if you're lucky enough).")]
@@ -52,11 +63,11 @@ namespace Arcadia.Modules
 
             TimeSpan duration = TimeSpan.FromSeconds(times - 1);
 
-            Discord.IUserMessage reference = await Context.Channel.SendMessageAsync($"> Gathering results in {Orikivo.Format.Counter(duration.TotalSeconds)}...");
+            Discord.IUserMessage reference = await Context.Channel.SendMessageAsync($"> Gathering results in {Format.Counter(duration.TotalSeconds)}...");
+            var gimi = new Gimi(true);
 
             for (int i = 0; i < times; i++)
             {
-                var gimi = new Gimi();
                 GimiResult innerResult = gimi.Next();
 
                 // this should be easier on the mem

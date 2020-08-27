@@ -40,6 +40,19 @@ namespace Arcadia
             return id.ToString();
         }
 
+        public static string GetBaseRecipeId(Recipe recipe)
+        {
+            if (recipe.Components.Count == 0)
+                throw new Exception("Expected at least one recipe component");
+
+            var id = new StringBuilder();
+
+            id.Append($"{recipe.Result.ItemId}/");
+            id.AppendJoin('.', recipe.Components.Select(GetComponentId));
+
+            return id.ToString();
+        }
+
         private static string GetComponentId(RecipeComponent component)
             => $"{component.ItemId}{(component.Amount > 1 ? $"#{component.Amount}" : "")}";
 
@@ -183,16 +196,8 @@ namespace Arcadia
                 Components = new List<RecipeComponent>
                 {
                     new RecipeComponent(Items.PaletteGlass, 1),
-                    new RecipeComponent(Items.PaletteGammaGreen, 1)
-                },
-                Result = new RecipeComponent(Items.PaletteGlossyGreen, 1)
-            },
-            new Recipe
-            {
-                Components = new List<RecipeComponent>
-                {
-                    new RecipeComponent(Items.PaletteGlass, 1),
-                    new RecipeComponent(Items.PaletteWumpite, 1)
+                    new RecipeComponent(Items.PaletteWumpite, 1),
+                    new RecipeComponent(Items.ComponentSmearKit, 1)
                 },
                 Result = new RecipeComponent(Items.PaletteGlossyWumpite, 1)
             }
@@ -313,6 +318,14 @@ namespace Arcadia
         {
             new ItemGroup
             {
+                ShortId = "c",
+                Id = "component",
+                Name = "Component",
+                Prefix = "Component: ",
+                Summary = "Helpful building blocks for the creation of new items."
+            },
+            new ItemGroup
+            {
                 Id = "$",
                 Name = "Internal",
                 Summary = "Items that do not exist as an actual obtainable item."
@@ -369,10 +382,10 @@ namespace Arcadia
 
         public static Recipe GetRecipe(string id)
         {
-            if (LRecipes.Count(x => GetRecipeId(x) == id) > 1)
+            if (LRecipes.Count(x => CompareId(GetRecipeId(x), id)) > 1)
                 throw new ArgumentException("There are more than one recipes with the specified ID.");
 
-            return LRecipes.FirstOrDefault(x => GetRecipeId(x) == id);
+            return LRecipes.FirstOrDefault(x => CompareId(GetRecipeId(x), id));
         }
 
         public static RecipeStatus GetRecipeStatus(ArcadeUser user, Recipe recipe)
@@ -420,7 +433,10 @@ namespace Arcadia
         }
 
         public static bool RecipeExists(string id)
-            => Check.NotNull(id) && LRecipes.Any(x => GetRecipeId(x) == id);
+            => Check.NotNull(id) && LRecipes.Any(x => CompareId(GetRecipeId(x), id));
+
+        private static bool CompareId(string id, string input)
+            => id == input || id[7..] == input;
 
         public static bool CanCraft(ArcadeUser user, string recipeId)
             => CanCraft(user, GetRecipe(recipeId));
@@ -557,6 +573,36 @@ namespace Arcadia
                 },
                 new Item
                 {
+                    Id = "c_sk",
+                    GroupId = ItemGroups.Component,
+                    Name = "Smear Kit",
+                    Summary = "Often used to create a hybrid of your favorite colors.",
+                    Quotes = new List<string>
+                    {
+                        "It lays open, showing two slots for card palettes."
+                    },
+                    Rarity = ItemRarity.Uncommon,
+                    Tag = ItemTag.Ingredient,
+                    Value = 750,
+                    Size = 250
+                },
+                new Item
+                {
+                    Id = "c_bk",
+                    GroupId = ItemGroups.Component,
+                    Name = "Blend Kit",
+                    Summary = "Used to give way to a brand new color from two existing ones.",
+                    Quotes = new List<string>
+                    {
+                        "It lays open, showing two slots for card palettes."
+                    },
+                    Rarity = ItemRarity.Uncommon,
+                    Tag = ItemTag.Ingredient,
+                    Value = 750,
+                    Size = 250
+                },
+                new Item
+                {
                     Id = "au_gimi",
                     Name = "Gimi",
                     Summary = "Gives you the ability to execute the Gimi command a specified number of times. Please note that you are required to wait a second on each execution.",
@@ -571,9 +617,7 @@ namespace Arcadia
                     DeniedHandles = ItemDeny.Buy | ItemDeny.Sell,
                     TradeLimit = 0,
                     Size = 1000,
-                    OwnLimit = 1,
-                    MarketCriteria = null,
-                    ToOwn = null
+                    OwnLimit = 1
                 },
                 new Item
                 {
@@ -728,7 +772,6 @@ namespace Arcadia
                 {
                     Id = "p_gg",
                     Name = "Gamma Green",
-                    Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It glows with a shade of green similar to uranium."
@@ -750,7 +793,6 @@ namespace Arcadia
                 {
                     Id = "p_cr",
                     Name = "Crimson",
-                    Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It thrives in a neon glow of a reddish-purple hue."
@@ -772,7 +814,6 @@ namespace Arcadia
                 {
                     Id = "p_wu",
                     Name = "Wumpite",
-                    Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "Crafted with the shades of a Wumpus."
@@ -794,7 +835,6 @@ namespace Arcadia
                 {
                     Id = "p_gl",
                     Name = "Glass",
-                    Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It refracts a mixture of light blue to white light."
@@ -814,32 +854,8 @@ namespace Arcadia
                 },
                 new Item
                 {
-                    Id = Items.PaletteGlossyGreen,
-                    Name = "Glossy Green",
-                    Summary = "A palette that can be equipped on a card.",
-                    Quotes = new List<string>
-                    {
-                        "It refracts a mixture of light that glows a bright green."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
-                    Value = 3000,
-                    Size = 150,
-                    TradeLimit = 0,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.GammaGreen, PaletteType.Glass))),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 5
-                },
-                new Item
-                {
                     Id = Items.PaletteGlossyWumpite,
                     Name = "Glossy Wumpite",
-                    Summary = "A palette that can be equipped on a card.",
                     Quotes = new List<string>
                     {
                         "It refracts a mixture of light that absorbs the color of a Wumpus."
@@ -857,6 +873,40 @@ namespace Arcadia
                         DeleteMode = DeleteMode.Break
                     },
                     OwnLimit = 5
+                },
+                new Item
+                {
+                    Id = "p_go",
+                    GroupId = ItemGroups.Palette,
+                    Name = "Gold",
+                    Quotes = new List<string>
+                    {
+                        "It gleams a golden radiant of hope."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
+                    Value = 5000,
+                    Size = 200,
+                    TradeLimit = 0,
+                    Rarity = ItemRarity.Myth,
+                    OwnLimit = 2
+                },
+                new Item
+                {
+                    Id = "p_em",
+                    GroupId = ItemGroups.Palette,
+                    Name = "Ember",
+                    Quotes = new List<string>
+                    {
+                        "It flickers like a fireplace in the nighttime."
+                    },
+                    Tag = ItemTag.Palette | ItemTag.Decorator,
+                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
+                    Value = 7500,
+                    Size = 350,
+                    TradeLimit = 0,
+                    Rarity = ItemRarity.Myth,
+                    OwnLimit = 2
                 }
             };
 

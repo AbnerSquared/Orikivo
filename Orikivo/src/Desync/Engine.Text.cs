@@ -86,7 +86,6 @@ namespace Orikivo.Desync
                     throw new Exception("The specified Husk is currently at an invalid location.");
             }
         }
-        
         /* You are currently travelling to **(32, 32)** [55%]
          
             [55%] => the % of completion that you have on your travels
