@@ -7,33 +7,29 @@ namespace Orikivo
     public static class DiscordConfig
     {
         public static DiscordSocketConfig DefaultSocketConfig
-        {
-            get
+            => new DiscordSocketConfig
             {
-                return new DiscordSocketConfig
-                {
-                    AlwaysDownloadUsers = true,
-                    LogLevel = LogSeverity.Info,
-                    MessageCacheSize = 100,
-                    LargeThreshold = 250,
-                    RateLimitPrecision = RateLimitPrecision.Millisecond,
-                    //GatewayIntents = GatewayIntents.DirectMessages | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessageReactions
-                };
-            }
-        }
+                AlwaysDownloadUsers = true,
+                LogLevel = LogSeverity.Info,
+                MessageCacheSize = 100,
+                LargeThreshold = 250,
+                RateLimitPrecision = RateLimitPrecision.Millisecond
+                /*
+                    GatewayIntents =  GatewayIntents.Guilds
+                                     | GatewayIntents.GuildMessages
+                                     | GatewayIntents.GuildMessageReactions
+                                     | GatewayIntents.DirectMessages
+                                     | GatewayIntents.DirectMessageReactions
+                                     */
+            };
 
         public static CommandServiceConfig DefaultCommandConfig
-        {
-            get
+            => new CommandServiceConfig
             {
-                return new CommandServiceConfig
-                {
-                    CaseSensitiveCommands = false,
-                    DefaultRunMode = RunMode.Async,
-                    LogLevel = LogSeverity.Info,
-                    ThrowOnError = true
-                };
-            }
-        }
+                CaseSensitiveCommands = false,
+                DefaultRunMode = RunMode.Async,
+                LogLevel = LogSeverity.Info,
+                ThrowOnError = true
+            };
     }
 }
