@@ -23,6 +23,42 @@ namespace Arcadia.Modules
             Logger.Debug(result);
         }*/
 
+        [RequireUser]
+        [Command("roulette")]
+        [Summary("A Casino classic. Choose your style of bet (with a temporary cap of 1,0000) and go wild.")]
+        public async Task RouletteAsync(RouletteBetMode mode, long wager)
+        {
+            if (wager < 0)
+            {
+                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                return;
+            }
+
+            if (wager == 0)
+            {
+                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
+                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                return;
+            }
+
+            if (wager > Context.Account.ChipBalance)
+            {
+                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
+                return;
+            }
+
+            if (wager > Roulette.MaxWager)
+            {
+                await Context.Channel.SendMessageAsync($"> ⚠️ The maximum wager for **Roulette** is {Icons.Chips} **{Roulette.MaxWager:##,0}**.");
+                return;
+            }
+
+            RouletteResult result = Roulette.Next(Context.Account, mode, wager);
+            Message message = result.ApplyAndDisplay(Context.Account);
+
+            await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
+        }
+
         [Command("gimi")]
         [RequireUser]
         [Summary("An activity that randomly offers a reward value (if you're lucky enough).")]

@@ -13,4 +13,8 @@
     <Folder Include="Discord\Multiplayer\Games\Chess\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
+  </ItemGroup>
+
 </Project>

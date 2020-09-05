@@ -141,7 +141,7 @@ namespace Arcadia
             => _cardGenKey = KeyBuilder.Generate(6);
 
         public long GetVar(string id)
-            => Stats.ContainsKey(id) ? Stats[id] : 0;
+            => Var.GetValue(this, id);
 
         internal void SetQuestProgress(string id)
         {

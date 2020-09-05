@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
     <ProjectReference Include="..\Orikivo.Text\Orikivo.Text.csproj" />
   </ItemGroup>

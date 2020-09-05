@@ -53,10 +53,10 @@ namespace Arcadia
                     .AddTypeReader<Recipe>(new RecipeTypeReader())
                     .AddTypeReader<Quest>(new QuestTypeReader())
                     .AddTypeReader<Shop>(new ShopTypeReader())
-                    .AddEnumTypeReader<Graphics.CardDeny>()
-                    .AddEnumTypeReader<Graphics.Casing>()
-                    .AddEnumTypeReader<Graphics.FontType>()
-                    .AddEnumTypeReader<Graphics.PaletteType>()
+                    .AddEnumTypeReader<CardDeny>()
+                    .AddEnumTypeReader<Casing>()
+                    .AddEnumTypeReader<FontType>()
+                    .AddEnumTypeReader<PaletteType>()
                     .AddEnumTypeReader<BorderAllow>()
                     .AddEnumTypeReader<ImageScale>()
                     .AddEnumTypeReader<CardComponent>()
@@ -64,7 +64,8 @@ namespace Arcadia
                     .AddEnumTypeReader<BorderEdge>()
                     .AddEnumTypeReader<LeaderboardQuery>()
                     .AddEnumTypeReader<LeaderboardSort>()
-                    .AddEnumTypeReader<TickWinMethod>();
+                    .AddEnumTypeReader<TickWinMethod>()
+                    .AddEnumTypeReader<RouletteBetMode>();
 
                 builder
                     .AddModule<Core>()

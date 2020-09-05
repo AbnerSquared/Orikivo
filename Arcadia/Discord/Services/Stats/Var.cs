@@ -31,6 +31,27 @@ namespace Arcadia
         {
             new Var
             {
+                Id = "items:total_discovered",
+                Summary = "This represents all of your seen and known items discovered.",
+                Type = VarType.Stat,
+                ValueGetter = u => u.Stats.Count(x => x.Key.StartsWith("catalog:") && x.Value > 0)
+            },
+            new Var
+            {
+                Id = GimiStats.TimesLost,
+                Summary = "This represents all of the times you have lost in **Gimi**.",
+                Type = VarType.Stat,
+                ValueGetter = u => Difference(u, GimiStats.TimesWon, GimiStats.TimesPlayed)
+            },
+            new Var
+            {
+                Id = TickStats.TimesLost,
+                Summary = "This represents all of the times you have lost in **Doubler**.",
+                Type = VarType.Stat,
+                ValueGetter = u => Difference(u, TickStats.TimesWon, TickStats.TimesPlayed)
+            },
+            new Var
+            {
                 Id = TickStats.CurrentLossStreak,
                 Summary = "Increases the chance of winning by 1% for every 3 losses in **Doubler**."
             },
@@ -79,6 +100,13 @@ namespace Arcadia
 
         public static readonly List<VarGroup> Groups = new List<VarGroup>
         {
+            new VarGroup
+            {
+                Id = "items",
+                Name = "Items",
+                Summary = "This is a collection of statistics used to track the usage of items.",
+                Type = VarType.Stat
+            },
             new VarGroup
             {
                 Id = "var",
@@ -147,6 +175,38 @@ namespace Arcadia
             }
         };
 
+        public static long GetValue(ArcadeUser user, string id)
+        {
+            return GetDefiner(id)?.ValueGetter?.Invoke(user) ?? (user.Stats.TryGetValue(id, out long value) ? value : 0);
+        }
+
+        public static void SetValue(ArcadeUser user, string id, long value)
+        {
+            if (value == 0)
+            {
+                user.Stats.Remove(id);
+                user.SetQuestProgress(id);
+                return;
+            }
+
+            if (!user.Stats.TryAdd(id, value))
+                user.Stats[id] = value;
+
+            string upperId = GetUpperId(id);
+            if (!string.IsNullOrWhiteSpace(upperId))
+                SetIfGreater(user, upperId, id);
+        }
+
+        public static string GetUpperId(string id)
+        {
+            return GetDefiner(id)?.UpperId;
+        }
+
+        public static int Count(ArcadeUser user, VarType type)
+        {
+            return user.Stats.Count(x => TypeOf(x.Key) == type);
+        }
+
         public static int Count(ArcadeUser user)
         {
             return user.Stats.Count;
@@ -163,7 +223,7 @@ namespace Arcadia
 
             return GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id))
                    ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
-                   ?? WriteDefault(user.GetVar(id), type);
+                   ?? WriteDefault(GetValue(user, id), type);
         }
 
         public static string ViewDetails(ArcadeUser user, string id, in IEnumerable<ArcadeUser> users = null)
@@ -173,47 +233,27 @@ namespace Arcadia
 
             var details = new StringBuilder();
 
-            VarType type = TypeOf(id);
+            string name = WriteName(id);
+            string value = WriteValue(user, id);
+            string header = string.IsNullOrWhiteSpace(name) ? $"• `{id}`" : $"`{id}`\n• **{name}**";
 
-            string name = GetDefiner(id)?.Name ?? Humanize(id);
-            string value = GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id))
-                           ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
-                           ?? WriteDefault(user.GetVar(id), type);
-
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                details.AppendLine($"`{id}`");
-                details.AppendLine($"• **{name}** = {value}");
-            }
-            else
-            {
-                details.AppendLine($"• `{id}` = {value}");
-            }
+            details.AppendLine($"{header} = {value}");
 
             string summary = GetDefiner(id)?.Summary;
 
             if (!string.IsNullOrWhiteSpace(summary))
-            {
                 details.AppendLine($"> {summary}");
-            }
+
+            VarType type = TypeOf(id);
 
             if ((users?.Any() ?? false) && type == VarType.Stat)
-            {
-                details.AppendLine($"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**");
-            }
-
+                details.AppendLine(WriteLeaderboardRank(users, user, id));
 
             return details.ToString();
         }
 
-        public static string ViewGroupDetails(ArcadeUser user, string groupId)
-        {
-            VarGroup group = Groups.FirstOrDefault(x => x.Id == groupId);
-
-            var details = new StringBuilder();
-
-            return details.ToString();
-        }
+        private static string WriteLeaderboardRank(in IEnumerable<ArcadeUser> users, ArcadeUser user, string id)
+            => $"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**";
 
         public static VarGroup GetGroupDefiner(string groupId)
             => Groups.FirstOrDefault(x => x.Id == groupId);
@@ -241,17 +281,12 @@ namespace Arcadia
             return GetKey(id) == key;
         }
 
-        public static long Get(ArcadeUser user, string id)
-        {
-            return user.GetVar(id);
-        }
-
-        public static void AddTo(ArcadeUser user, string id, long amount = 1)
+        public static void AddToValue(ArcadeUser user, string id, long amount = 1)
         {
             user.AddToVar(id, amount);
         }
 
-        public static void Set(ArcadeUser user, string id, DateTime time)
+        public static void SetValue(ArcadeUser user, string id, DateTime time)
         {
             user.SetVar(id, time.Ticks);
         }
@@ -259,83 +294,110 @@ namespace Arcadia
         public static long GetOrSet(ArcadeUser user, string id, long defaultValue)
         {
             SetIfEmpty(user, id, defaultValue);
-            return user.GetVar(id);
+            return GetValue(user, id);
         }
 
         public static void SetIfEmpty(ArcadeUser user, string id, long value)
         {
-            if (user.GetVar(id) == 0)
+            if (GetValue(user, id) == 0)
                 user.SetVar(id, value);
         }
 
         public static void SetIfGreater(ArcadeUser user, string a, string b)
         {
-            if (user.GetVar(b) > user.GetVar(a))
+            if (GetValue(user, b) > GetValue(user, a))
                 user.SetVar(a, user.GetVar(b));
         }
 
         public static void SetIfGreater(ArcadeUser user, string a, long b)
         {
-            if (b > user.GetVar(a))
+            if (b > GetValue(user, a))
                 user.SetVar(a, b);
         }
 
         public static void SetIfLesser(ArcadeUser user, string a, string b)
         {
-            if (user.GetVar(b) < user.GetVar(a))
+            if (GetValue(user, b) < GetValue(user, a))
                 user.SetVar(a, user.GetVar(b));
         }
 
         public static void SetIfLesser(ArcadeUser user, string a, long b)
         {
-            if (b < user.GetVar(a))
+            if (b < GetValue(user, a))
                 user.SetVar(a, b);
         }
 
         public static void Swap(ArcadeUser user, string a, string b)
         {
-            user.SetVar(a, user.GetVar(b), out long previous);
+            user.SetVar(a, GetValue(user, b), out long previous);
             user.SetVar(b, previous);
         }
 
         public static long Sum(ArcadeUser user, string a, string b)
         {
-            return user.GetVar(a) + user.GetVar(b);
+            return GetValue(user, a) + GetValue(user, b);
         }
 
         public static long Difference(ArcadeUser user, string a, string b)
         {
-            return Math.Abs(user.GetVar(b) - user.GetVar(a));
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Math.Abs(GetValue(user, b) - GetValue(user, a));
         }
 
         public static ArcadeUser GetLesser(ArcadeUser a, ArcadeUser b, string id)
         {
-            if (a.GetVar(id) == b.GetVar(id))
-                return null;
+            if (a == null)
+                throw new ArgumentNullException(nameof(a));
 
-            return a.GetVar(id) < b.GetVar(id) ? a : b;
+            if (b == null)
+                throw new ArgumentNullException(nameof(b));
+
+            long u = GetValue(a, id);
+            long v = GetValue(b, id);
+
+            return u == v ? null : u < v ? a : b;
         }
 
         public static ArcadeUser GetGreater(ArcadeUser a, ArcadeUser b, string id)
         {
-            if (a.GetVar(id) == b.GetVar(id))
-                return null;
+            if (a == null)
+                throw new ArgumentNullException(nameof(a));
 
-            return a.GetVar(id) > b.GetVar(id) ? a : b;
+            if (b == null)
+                throw new ArgumentNullException(nameof(b));
+
+            long u = GetValue(a, id);
+            long v = GetValue(b, id);
+
+            return u == v ? null : u > v ? a : b;
         }
 
         public static long Difference(ArcadeUser a, ArcadeUser b, string id)
         {
-            return Math.Abs(b.GetVar(id) - a.GetVar(id));
+            if (a == null)
+                throw new ArgumentNullException(nameof(a));
+
+            if (b == null)
+                throw new ArgumentNullException(nameof(b));
+
+            return Math.Abs(GetValue(b, id) - GetValue(a, id));
         }
 
         public static long Sum(ArcadeUser user, string a, string b, params string[] rest)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
             return Sum(user, a, b) + rest.Sum(user.GetVar);
         }
 
         public static string Min(ArcadeUser user, string a, string b)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
             if (string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b))
                 return "";
 
@@ -345,10 +407,10 @@ namespace Arcadia
             if (string.IsNullOrWhiteSpace(b))
                 return a;
 
-            if (user.GetVar(a) == user.GetVar(b))
-                return "";
+            long u = GetValue(user, a);
+            long v = GetValue(user, b);
 
-            return user.GetVar(a) < user.GetVar(b) ? a : b;
+            return u == v ? "" : u < v ? a : b;
         }
 
         public static string Min(ArcadeUser user, string a, string b, params string[] rest)
@@ -372,10 +434,10 @@ namespace Arcadia
             if (string.IsNullOrWhiteSpace(b))
                 return a;
 
-            if (user.GetVar(a) == user.GetVar(b))
-                return "";
+            long u = GetValue(user, a);
+            long v = GetValue(user, b);
 
-            return user.GetVar(a) > user.GetVar(b) ? a : b;
+            return u == v ? "" : u > v ? a : b;
         }
 
         public static string Max(ArcadeUser user, string a, string b, params string[] rest)
@@ -417,33 +479,32 @@ namespace Arcadia
 
         public static bool MeetsCriterion(ArcadeUser user, VarCriterion criterion)
         {
-            return user.GetVar(criterion.Id) >= criterion.ExpectedValue;
+            return GetValue(user, criterion.Id) >= criterion.ExpectedValue;
         }
 
         public static string Humanize(string id)
         {
             if (!IsValid(id))
-                return "";
-                // throw new ArgumentException("Invalid ID specified");
+                return ""; // throw new ArgumentException("Invalid ID specified");
 
-            var text = new StringBuilder();
+            string key = GetKey(id);
+            return $"{HumanizeGroup(id)}{Separator} {HumanizePartial(key)}";
+        }
+
+        private static string HumanizeGroup(string id)
+        {
             string group = GetGroup(id);
 
             if (IsTemplate(id) && GetTemplateType(id) != TemplateType.Any)
             {
-                text.Append(ItemHelper.Exists(group) ? ItemHelper.NameOf(group) : $"`{group}`");
+                return GetTemplateType(id) switch
+                {
+                    TemplateType.Item => ItemHelper.Exists(group) ? ItemHelper.NameOf(group) : $"`{group}`",
+                    _ => HumanizePartial(group)
+                };
             }
-            else
-            {
-                text.Append(HumanizePartial(group));
-            }
 
-            text.Append($"{Separator} ");
-
-            string key = GetKey(id);
-            text.Append(HumanizePartial(key));
-
-            return text.ToString();
+            return HumanizePartial(group);
         }
 
         private static string HumanizePartial(string input)
@@ -451,7 +512,6 @@ namespace Arcadia
             var reader = new StringReader(input);
             var text = new StringBuilder();
 
-            int i = 0;
             bool upper = true;
             while (reader.CanRead())
             {
@@ -471,8 +531,6 @@ namespace Arcadia
 
                     text.Append(v);
                 }
-
-                i++;
             }
 
             return text.ToString();
@@ -735,6 +793,9 @@ namespace Arcadia
                 throw new ArgumentException("Could not validate the specified upper ID to a Var.");
 
             Id = id;
+            Type = type;
+            DefaultValue = defaultValue;
+            UpperId = upperId;
         }
 
         public string Id { get; private set; }
@@ -746,6 +807,8 @@ namespace Arcadia
         public string UpperId { get; private set; }
 
         public string Summary { get; internal set; }
+
+        public Func<ArcadeUser, long> ValueGetter { get; internal set; }
 
         public Func<long, string> ValueWriter { get; internal set; }
 
