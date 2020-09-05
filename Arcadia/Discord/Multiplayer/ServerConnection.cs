@@ -155,9 +155,13 @@ namespace Arcadia.Multiplayer
                 return;
             }
 
-            DisplayContent content = State == GameState.Playing
-                ? Server?.GetBroadcast(Frequency)?.Content
-                : Server?.GetBroadcast(State)?.Content;
+            DisplayContent content =
+                State switch
+                {
+                    GameState.Watching => Server?.GetSpectatorBroadcast()?.Content,
+                    GameState.Playing => Server?.GetBroadcast(Frequency)?.Content,
+                    _ => Server?.GetBroadcast(State)?.Content
+                };
 
             string text = Check.NotNull(ContentOverride?.ToString())
                 ? ContentOverride?.ToString()
@@ -183,6 +187,12 @@ namespace Arcadia.Multiplayer
 
             if (RefreshCounter > 0 && CurrentMessageCounter >= RefreshCounter)
             {
+                if (State == GameState.Watching)
+                {
+                    string panel = $"> **{Server?.Name ?? "Unknown Server"}**\n> You are currently spectating the active session.\n{(Check.NotNull(text) ? text : "Unable to load the spectator panel.")}";
+                    text = panel;
+                }
+
                 Message = await Message.ReplaceAsync(text, deleteLastMessage: DeleteOnRefresh);
                 MessageId = Message.Id;
                 LastRefreshed = DateTime.UtcNow;

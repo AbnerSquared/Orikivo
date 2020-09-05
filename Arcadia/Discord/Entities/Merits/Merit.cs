@@ -11,13 +11,17 @@ namespace Arcadia
     {
         public string Id { get; set; }
 
+        public string Icon { get; set; }
+
         public string Name { get; set; }
 
         public Sprite Image { get; set; }
 
         public string Quote { get; set; }
+        // The quote to display if the merit is currently locked
+        public string LockQuote { get; set; }
 
-        public MeritGroup Group { get; set; } = MeritGroup.Generic;
+        public MeritGroup Group { get; set; } = MeritGroup.Common;
 
         public MeritRank Rank { get; set; }
 

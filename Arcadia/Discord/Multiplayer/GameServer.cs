@@ -9,6 +9,14 @@ using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
+    [Flags]
+    public enum ServerDeny
+    {
+        Spectate = 1,
+        Chat = 2,
+        Invite = 4
+    }
+
     public class GameServer
     {
         private readonly GameManager _manager;
@@ -152,6 +160,7 @@ namespace Arcadia.Multiplayer
             Broadcasts = DisplayBroadcast.GetReservedBroadcasts();
             Connections = new List<ServerConnection>();
             Invites = new List<ServerInvite>();
+            DeniedActions = properties.DeniedActions;
             _players = new List<Player>
             {
                 new Player(this, host)
@@ -177,6 +186,44 @@ namespace Arcadia.Multiplayer
         public Privacy Privacy { get; private set; }
 
         public ulong HostId { get; private set; }
+
+        public ServerDeny DeniedActions { get; private set; }
+
+        public bool AllowSpectators
+        {
+            get => !DeniedActions.HasFlag(ServerDeny.Spectate);
+            set
+            {
+                if (value)
+                    DeniedActions &= ~ServerDeny.Spectate;
+                else
+                    DeniedActions |= ServerDeny.Spectate;
+            }
+        }
+
+        public bool AllowChat
+        {
+            get => !DeniedActions.HasFlag(ServerDeny.Chat);
+            set
+            {
+                if (value)
+                    DeniedActions &= ~ServerDeny.Chat;
+                else
+                    DeniedActions |= ServerDeny.Chat;
+            }
+        }
+
+        public bool AllowInvites
+        {
+            get => !DeniedActions.HasFlag(ServerDeny.Invite);
+            set
+            {
+                if (value)
+                    DeniedActions &= ~ServerDeny.Invite;
+                else
+                    DeniedActions |= ServerDeny.Invite;
+            }
+        }
 
         public Player Host => GetPlayer(HostId);
 
@@ -331,6 +378,37 @@ namespace Arcadia.Multiplayer
 
             await UpdateAsync();
             return true;
+        }
+
+        public async Task<bool> ToggleSpectateAsync()
+        {
+            if (Session != null)
+            {
+                AddConsoleText($"[Console] Spectator toggle cannot be set while a game session is active.");
+                return false;
+            }
+
+            AllowSpectators = !AllowSpectators;
+            AddConsoleText($"[Console] Server spectating is now {(AllowSpectators ? "enabled" : "disabled")}.");
+
+            await UpdateAsync();
+            return true;
+        }
+
+        public async Task ToggleChatAsync()
+        {
+            AllowChat = !AllowChat;
+            AddConsoleText($"[Console] Server chat is now {(AllowInvites ? "enabled" : "disabled")}.");
+
+            await UpdateAsync();
+        }
+
+        public async Task ToggleInviteAsync()
+        {
+            AllowInvites = !AllowInvites;
+            AddConsoleText($"[Console] Server invites are now {(AllowInvites ? "enabled" : "disabled")}.");
+
+            await UpdateAsync();
         }
 
         public async Task<bool> UpdateGameAsync(string gameId)
@@ -585,6 +663,17 @@ namespace Arcadia.Multiplayer
 
             foreach (ServerConnection connection in Connections)
                 connection.Group = group;
+        }
+
+        public DisplayBroadcast GetSpectatorBroadcast()
+        {
+            if (Session == null)
+                return null;
+
+            if (!Session.CanSpectate || Session.SpectateFrequency == 0)
+                return null;
+
+            return GetBroadcast(Session.SpectateFrequency);
         }
 
         public IEnumerable<ServerConnection> GetGroup(string group)

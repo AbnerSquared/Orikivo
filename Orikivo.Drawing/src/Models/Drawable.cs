@@ -155,9 +155,9 @@ namespace Orikivo.Drawing
 
             result = Properties.ColorHandling switch
             {
-                DrawableColorHandling.Ignore => result,
-                DrawableColorHandling.Force => ImageHelper.ForcePalette(result, Palette),
-                DrawableColorHandling.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
+                DrawablePaletteHandling.Ignore => result,
+                DrawablePaletteHandling.Force => ImageHelper.ForcePalette(result, Palette),
+                DrawablePaletteHandling.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
                 _ => result
             };
 

@@ -4,7 +4,7 @@
     {
         Default = 0,
         Hidden = 1,
-        Generic = 2,
+        Common = 2,
         Casino = 4
     }
 }

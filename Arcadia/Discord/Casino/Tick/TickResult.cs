@@ -74,7 +74,7 @@ namespace Arcadia.Casino
             }
 
             if (IsSuccess)
-                user.ChipBalance += ItemHelper.BoostValue(user, Reward, BoosterType.Chips);
+                user.ChipBalance += ItemHelper.BoostValue(user, Reward, BoostType.Chips);
 
             string header = $"**{type} 🧩 {value:##,0}**";
 

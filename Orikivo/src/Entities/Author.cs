@@ -26,7 +26,7 @@ namespace Orikivo
         /// <summary>
         /// Initializes a new <see cref="Author"/> from a specified <see cref="IUser"/>.
         /// </summary>
-        public Author(IUser user) : this(user.ToString())
+        public Author(IUser user) : this(user.Username)
         {
             Id = user.Id;
         }
@@ -42,5 +42,14 @@ namespace Orikivo
         /// </summary>
         [JsonProperty("id")]
         public ulong? Id { get; }
+
+        /// <summary>
+        /// Returns a string that represents this <see cref="Author"/>.
+        /// </summary>
+        /// <param name="fallback">The fallback name to use if the name is unspecified.</param>
+        public string ToString(string fallback)
+        {
+            return string.IsNullOrWhiteSpace(Name) ? fallback ?? "Unknown Author" : Name;
+        }
     }
 }

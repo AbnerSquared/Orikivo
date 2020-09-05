@@ -7,22 +7,6 @@ using Orikivo.Drawing;
 
 namespace Arcadia
 {
-    public enum ShopStatus
-    {
-        Unknown = 0,
-        Seen = 1,
-        Known = 2,
-        Perfect = 3
-    }
-
-    [Flags]
-    public enum ShopMode
-    {
-        Buy = 1,
-        Sell = 2,
-        Any = Buy | Sell
-    }
-
     public static class ShopHelper
     {
         public static readonly List<Vendor> Vendors =
@@ -34,6 +18,53 @@ namespace Arcadia
         public static readonly List<Shop> Shops =
             new List<Shop>
             {
+                new Shop
+                {
+                    Id = "tinker_tent",
+                    Name = "Tinker's Tent",
+                    Quote = "Purchase components and crafting materials here.",
+                    Allow = ShopAllow.Buy,
+                    SellDeduction = 60,
+                    SellTags = ItemTag.Ingredient | ItemTag.Tool,
+                    Catalog = new CatalogGenerator
+                    {
+                        Size = 2,
+                        MaxDiscountsAllowed = 0,
+                        MaxSpecialsAllowed = 1,
+                        Entries = new List<CatalogEntry>
+                        {
+                            new CatalogEntry
+                            {
+                                ItemId = Items.ToolGiftWrap,
+                                Weight = 20
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.ComponentSmearKit,
+                                Weight = 8,
+                                IsSpecial = true
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.ComponentBlendKit,
+                                Weight = 2,
+                                IsSpecial = true
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.ComponentNeonKit,
+                                Weight = 4,
+                                IsSpecial = true
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.ComponentDimmerKit,
+                                Weight = 4,
+                                IsSpecial = true
+                            }
+                        }
+                    }
+                },
                 new Shop
                 {
                     Id = "boost_blight",
@@ -52,7 +83,12 @@ namespace Arcadia
                             new CatalogEntry
                             {
                                 ItemId = Items.BoosterDebtBlocker,
-                                Weight = 1
+                                Weight = 10
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.BoosterOriteBooster,
+                                Weight = 5
                             }
                         }
                     }
@@ -66,16 +102,16 @@ namespace Arcadia
                     {
                         Size = 2,
                         MaxDiscountsAllowed = 1,
-                        MaxSpecialsAllowed = 0,
+                        MaxSpecialsAllowed = 1,
                         Entries = new List<CatalogEntry>
                         {
                             new CatalogEntry
                             {
                                 ItemId = Items.PaletteGammaGreen,
-                                Weight = 99,
+                                Weight = 59,
                                 MinDiscount = 5,
                                 MaxDiscount = 10,
-                                DiscountChance = 0.5f
+                                DiscountChance = 0.4f
                             },
                             new CatalogEntry
                             {
@@ -83,15 +119,17 @@ namespace Arcadia
                                 Weight = 15,
                                 MinDiscount = 1,
                                 MaxDiscount = 5,
-                                DiscountChance = 0.3f
+                                DiscountChance = 0.3f,
+                                MaxAllowed = 1,
+                                IsSpecial = true
                             },
                             new CatalogEntry
                             {
                                 ItemId = Items.PaletteCrimson,
-                                Weight = 35,
+                                Weight = 75,
                                 MinDiscount = 5,
                                 MaxDiscount = 10,
-                                DiscountChance = 0.4f
+                                DiscountChance = 0.5f
                             },
                             new CatalogEntry
                             {
@@ -99,6 +137,18 @@ namespace Arcadia
                                 Weight = 2,
                                 MaxAllowed = 1,
                                 IsSpecial = true
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.PaletteLemon,
+                                Weight = 4,
+                                MaxAllowed = 1
+                            },
+                            new CatalogEntry
+                            {
+                                ItemId = Items.PaletteOceanic,
+                                Weight = 6,
+                                MaxAllowed = 1
                             }
                         }
                     },
@@ -202,14 +252,14 @@ namespace Arcadia
         }
 
         // This writes the catalog info
-        public static string WriteCatalog(ItemCatalog catalog)
+        public static string WriteCatalog(CatalogGenerator generator, ItemCatalog catalog)
         {
             var info = new StringBuilder();
 
             foreach ((string itemId, int amount) in catalog.ItemIds)
             {
                 int discountUpper = catalog.Discounts.ContainsKey(itemId) ? catalog.Discounts[itemId] : 0;
-                info.AppendLine(WriteCatalogEntry(ItemHelper.GetItem(itemId), amount, discountUpper));
+                info.AppendLine(WriteCatalogEntry(ItemHelper.GetItem(itemId), amount, generator.Entries.Any(x => x.ItemId == itemId && x.IsSpecial), discountUpper));
             }
 
             return info.ToString();
@@ -288,21 +338,21 @@ namespace Arcadia
             return cost.ToString();
         }
 
-        private static string WriteCatalogEntry(Item item, int amount, int discountUpper = 0)
+        private static string WriteCatalogEntry(Item item, int amount, bool isSpecial, int discountUpper = 0)
         {
             var entry = new StringBuilder();
 
             // (isSpecial)
             //    entry.AppendLine("> 🍀 This item is special.");
 
-            entry.Append($"\n> `{item.Id}` ");
+            entry.Append($"\n> {(isSpecial ? "🍀 " : "")}`{item.Id}` ");
 
             string icon = item.GetIcon();
 
             if (!string.IsNullOrWhiteSpace(icon))
                 entry.Append($"{icon} ");
 
-            entry.Append($"**{item.GetName()}**");
+            entry.Append($"**{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())}** ({item.Rarity})");
 
             if (amount > 1)
                 entry.Append($" (x**{amount:##,0}**)");
@@ -312,7 +362,8 @@ namespace Arcadia
             if (Check.NotNullOrEmpty(item.Quotes))
                 entry.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            entry.Append($"> {WriteItemValue(item, discountUpper, ShopMode.Buy, true)} • *{item.Rarity}*");
+            // 🍀 Rare
+            entry.Append($"> {WriteItemValue(item, discountUpper, ShopMode.Buy, true)} • {Inventory.WriteCapacity(item.Size)}");
             return entry.ToString();
         }
 

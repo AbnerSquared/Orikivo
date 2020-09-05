@@ -1,17 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using Orikivo;
 
 namespace Arcadia
 {
+    public enum OfferType
+    {
+        Inbound = 1,
+        Outbound = 2
+    }
+
     public class TradeOffer
     {
-        public TradeOffer(ulong userId)
+
+        public static TradeOffer CloneAsOutbound(TradeOffer offer)
         {
-            UserId = userId;
-            CreatedAt = DateTime.UtcNow;
+            return new TradeOffer(offer);
         }
 
-        public ulong UserId { get; }
+        private TradeOffer(TradeOffer offer, OfferType type = OfferType.Outbound)
+        {
+            Id = offer.Id;
+            CreatedAt = offer.CreatedAt;
+            Author = offer.Author;
+            Target = offer.Target;
+            ItemIds = offer.ItemIds;
+            RequestedItemIds = offer.RequestedItemIds;
+            Type = type;
+        }
+
+        public TradeOffer(Discord.IUser user, Discord.IUser target)
+        {
+            Author = new Author(user);
+            Target = new Author(target);
+            CreatedAt = DateTime.UtcNow;
+            Id = KeyBuilder.Generate(5);
+        }
+
+        public string Id { get; }
+        public OfferType Type { get; internal set; } = OfferType.Inbound;
+        public Author Author { get; }
+        public Author Target { get; }
         public DateTime CreatedAt { get; }
         public Dictionary<string, int> ItemIds { get; internal set; } = new Dictionary<string, int>();
         public Dictionary<string, int> RequestedItemIds { get; internal set; } = new Dictionary<string, int>();

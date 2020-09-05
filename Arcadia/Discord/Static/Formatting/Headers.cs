@@ -3,6 +3,8 @@
     internal static class Headers
     {
         internal static readonly string Browser = "server_browser";
+        internal static readonly string UserBrowser = "user_browser";
+        internal static readonly string GuildBrowser = "guild_browser";
         internal static readonly string Inventory = "inventory";
         internal static readonly string Booster = "booster";
         internal static readonly string Stat = "stat";

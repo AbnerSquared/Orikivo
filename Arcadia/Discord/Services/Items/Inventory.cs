@@ -1,9 +1,84 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
 {
+    public static class Profile
+    {
+        public static string View(ArcadeUser user, ArcadeContext ctx)
+        {
+            var details = new StringBuilder();
+
+            details.AppendLine($"> **{user.Username}**");
+            details.AppendLine($"> Joined: **{Format.Date(user.CreatedAt, '.')}**\n");
+
+
+            if (user.Merits.Count > 0)
+            {
+                Merit recentMerit = MeritHelper.GetMerit(user.Merits.OrderByDescending(x => x.Value.AchievedAt).First().Key);
+
+                details.AppendLine($"> **Last Unlocked Merit**");
+                details.AppendLine($"> {(Check.NotNull(recentMerit.Icon) ? recentMerit.Icon : "•")} **{recentMerit.Name}** (**{recentMerit.Value}**m)");
+            }
+
+            if (user.Balance > 0 || user.Debt > 0 || user.ChipBalance > 0)
+            {
+                details.AppendLine("\n> **Wallet**");
+
+                if (user.Balance > 0 || user.Debt > 0)
+                {
+                    string icon = user.Balance > 0 ? Icons.Balance : Icons.Debt;
+                    long value = user.Balance > 0 ? user.Balance : user.Debt;
+                    string id = user.Balance > 0 ? Vars.Balance : Vars.Debt;
+                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, id);
+                    string pos = "";
+                    if (position < 4)
+                        pos = $" (#**{position:##,0}** global)";
+
+                    details.AppendLine($"> {icon} **{value:##,0}**{pos}");
+                }
+
+                if (user.ChipBalance > 0)
+                {
+                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, Vars.Chips);
+                    string pos = "";
+                    if (position < 4)
+                        pos = $" (#**{position:##,0}** global)";
+                    details.AppendLine($"> {Icons.Chips} **{user.ChipBalance:##,0}**{pos}");
+                }
+
+                if (user.Items.Count > 0)
+                {
+                    details.AppendLine($"\n> **Inventory**");
+                    details.AppendLine($"> **{user.Items.Count}** used {Format.TryPluralize("slot", user.Items.Count)}");
+                }
+
+                var chosen = new List<string>();
+                string stat = StatHelper.GetRandomStat(user, chosen);
+
+                while (!string.IsNullOrWhiteSpace(stat))
+                {
+                    if (chosen.Count >= 3) // The amount of random stats to show
+                        break;
+
+                    if (chosen.Count == 0)
+                        details.AppendLine($"\n> **Random Statistics**");
+
+                    details.AppendLine($"> **{Var.WriteName(stat)}**: {Var.WriteValue(user, stat)}");
+
+                    chosen.Add(stat);
+                    stat = StatHelper.GetRandomStat(user, chosen);
+                }
+            }
+
+            return details.ToString();
+        }
+
+    }
     public class Inventory
     {
         private static string GetHeader(long capacity, bool showTooltips = true)
@@ -88,18 +163,19 @@ namespace Arcadia
             Item item = ItemHelper.GetItem(id);
 
             string visibleId = data.Seal != null ? data.TempId : id;
-            string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : item.GetName()) ?? "Unknown Item";
+            string icon = item.GetIcon();
+            string name = Check.NotNull(icon) ? item.Name : item.GetName();
 
             var summary = new StringBuilder();
 
-            summary.Append($"> **Slot {index}:** ");
+            summary.Append($"> ");
 
             summary.Append($"`{visibleId}`");
 
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
                 summary.Append($"/`{data.Data.Id}`");
 
-            summary.Append($" • **{name}**");
+            summary.Append($" {(Check.NotNull(icon) ? icon : "•")} **{name}**");
 
             if (data.Count > 1)
             {
@@ -116,7 +192,8 @@ namespace Arcadia
             var summary = new StringBuilder();
 
             string visibleId = data.Seal != null ? data.TempId : id;
-            string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : item.GetName()) ?? "Unknown Item";
+            string icon = data.Seal != null ? ItemHelper.IconOf(data.Seal.ReferenceId) : item.GetIcon();
+            string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : (Check.NotNull(icon) ? item.Name : item.GetName())) ?? "Unknown Item";
 
 
             summary.Append($"> **Slot {index}:** ");
@@ -126,7 +203,7 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(data.Data?.Id))
                 summary.Append($"/`{data.Data.Id}`");
 
-            summary.Append($" • **{name}**");
+            summary.Append($" {(Check.NotNull(icon) ? icon : "•")} **{name}**");
 
             if (isPrivate && showTooltips)
                 summary.Append($" ({WriteCapacity(item.Size)})");
@@ -150,15 +227,9 @@ namespace Arcadia
             }
 
             int i = 0;
-            foreach (ItemData data in user.Items)
+            foreach (ItemData data in user.Items.Where(x => x.Seal == null && ((ItemHelper.GetTag(x.Id) & shop.SellTags) != 0)))
             {
-                ItemTag tag = ItemHelper.GetTag(data.Id);
-
-                // Ignore if this cannot be sold.
-                if ((tag & shop.SellTags) == 0) // if both tags don't have any matching tags, ignore this entry
-                    continue;
-
-                inventory.AppendLine($"\n{WriteItemRow(i + 1, data.Id, data)}");
+                inventory.AppendLine($"{WriteItemRow(i + 1, data.Id, data)}");
                 i++;
             }
 
@@ -179,7 +250,7 @@ namespace Arcadia
             if (isPrivate)
                 inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user)));
             else
-                inventory.AppendLine($"{Locale.GetHeader(Headers.Inventory, group: user.Username)}\n");
+                inventory.AppendLine($"{Locale.GetHeaderTitle(Headers.Inventory, group: user.Username)}\n");
 
 
             int i = 0;
@@ -194,7 +265,7 @@ namespace Arcadia
                 if (isPrivate)
                     inventory.AppendLine("> *Your inventory is empty.*");
                 else
-                    inventory.AppendLine("> *This inventory does not contain any tradable items.*");
+                    inventory.AppendLine("> *This inventory does not contain any visible items.*");
             }
 
             return inventory.ToString();

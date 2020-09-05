@@ -42,9 +42,9 @@ namespace Arcadia
         {
             var info = new StringBuilder();
             info.AppendLine("> **Chip Conversion**");
-            info.AppendLine($"> {Icons.Balance} **1** ≈ {Icons.Chips} **{MoneyConvert.GetChips(1)}**");
-            info.AppendLine($"> {Icons.Balance} **10** ≈ {Icons.Chips} **{MoneyConvert.GetChips(10)}**");
-            info.AppendLine($"> {Icons.Balance} **100** ≈ {Icons.Chips} **{MoneyConvert.GetChips(100)}**");
+            info.AppendLine($"> {Icons.Balance} **1** ≈ {Icons.Chips} **{MoneyConvert.ToChips(1)}**");
+            info.AppendLine($"> {Icons.Balance} **10** ≈ {Icons.Chips} **{MoneyConvert.ToChips(10)}**");
+            info.AppendLine($"> {Icons.Balance} **100** ≈ {Icons.Chips} **{MoneyConvert.ToChips(100)}**");
             info.AppendLine("\nSpecify an amount to convert your **Orite** into **Chips**, for use at the **Casino**.");
             return info.ToString();
         }

@@ -62,6 +62,25 @@ namespace Arcadia.Services
             };
         }
 
+        public static int GetPosition(in IEnumerable<ArcadeUser> users, ArcadeUser user, string statId)
+        {
+            if (users.All(x => x.Id != user.Id))
+                throw new Exception("Expected to find user in user collection");
+
+            IOrderedEnumerable<ArcadeUser> sorted = users.OrderByDescending(x => x.GetVar(statId));
+
+            int position = 0;
+            foreach (ArcadeUser account in sorted)
+            {
+                if (account.Id == user.Id)
+                    break;
+
+                position++;
+            }
+
+            return position + 1;
+        }
+
         private static string GetUserTitle(LeaderboardQuery flag)
         {
             return flag switch

@@ -1,7 +1,27 @@
-﻿namespace Arcadia.Multiplayer
+﻿using System.Text;
+using Orikivo;
+
+namespace Arcadia.Multiplayer
 {
     public class ServerInvite
     {
+        public static string Write(ServerInvite invite, GameServer server)
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine($"> 🎲 You have been invited to join a server!");
+
+            invite.Header = $"> `{server.Id}` • **{server.Name}**";
+            info.AppendLine($"> `{server.Id}` • **{server.Name}**");
+
+
+
+            if (Check.NotNull(invite.Description))
+                info.AppendLine($"> *\"{invite.Description}\"*");
+
+            return info.ToString();
+        }
+
         public ServerInvite(ulong userId, string description)
         {
             UserId = userId;
@@ -13,5 +33,7 @@
 
         // What does the invite say?
         public string Description { get; }
+
+        internal string Header { get; set; }
     }
 }

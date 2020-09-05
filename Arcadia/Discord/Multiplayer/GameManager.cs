@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Net;
 using Orikivo.Framework;
 using Format = Orikivo.Format;
 
@@ -155,8 +156,27 @@ namespace Arcadia.Multiplayer
                 return;
             }
 
-            await server.AddPlayerAsync(user);
-            await server.AddConnectionAsync(channel);
+            switch (server.Privacy)
+            {
+                case Privacy.Public:
+                case Privacy.Unlisted:
+                    await server.AddPlayerAsync(user);
+                    await server.AddConnectionAsync(channel);
+                    break;
+
+                case Privacy.Local:
+                    if (server.Connections.All(x => x.ChannelId != channel.Id))
+                    {
+                        await channel.SendMessageAsync(Format.Warning("You can only join this server from where it was initialized."));
+                        break;
+                    }
+
+                    await server.AddPlayerAsync(user);
+                    break;
+
+                default:
+                    throw new Exception("Unknown privacy state");
+            }
         }
 
         public static GameDetails DetailsOf(string gameId)
@@ -480,6 +500,7 @@ namespace Arcadia.Multiplayer
 
             // Extract only the content of the message
             string ctx = message.Content;
+            var reader = new StringReader(ctx);
 
             // Check if the session exists
             if (server.Session != null)
@@ -685,12 +706,174 @@ namespace Arcadia.Multiplayer
                             break;
                         }
 
+                        if (ctx.StartsWith("say"))
+                        {
+                            if (player == null)
+                                break;
+
+                            if (!server.AllowChat)
+                                break;
+
+                            if (DateTime.UtcNow - player.LastSpoke < TimeSpan.FromSeconds(10))
+                                break;
+
+                            reader.Skip(3);
+                            reader.SkipWhiteSpace();
+
+                            string content = reader.GetRemaining();
+
+                            if (!Check.NotNull(content))
+                                break;
+
+                            if (content.Length > 48)
+                                content = content.Substring(0, 48);
+
+                            if (Format.IsSensitive(content))
+                                break;
+
+                            AddConsoleText(server, $"[{user.Username}] {content}");
+                            player.LastSpoke = DateTime.UtcNow;
+                            break;
+                        }
+
+                        if (ctx.StartsWith("me"))
+                        {
+                            if (player == null)
+                                break;
+
+                            if (!server.AllowChat)
+                                break;
+
+                            if (DateTime.UtcNow - player.LastSpoke < TimeSpan.FromSeconds(10))
+                                break;
+
+                            reader.Skip(2);
+                            reader.SkipWhiteSpace();
+
+                            string content = reader.GetRemaining();
+
+                            if (!Check.NotNull(content))
+                                break;
+
+                            if (content.Length > 48)
+                                content = content.Substring(0, 48);
+
+                            if (Format.IsSensitive(content))
+                                break;
+
+                            AddConsoleText(server, $"{user.Username} {content}");
+                            player.LastSpoke = DateTime.UtcNow;
+                            break;
+                        }
+
+                        if (ctx.StartsWith("invite"))
+                        {
+                            if (player == null)
+                                break;
+
+                            if (!server.AllowInvites)
+                                break;
+
+                            if (DateTime.UtcNow - player.LastInviteSent < TimeSpan.FromSeconds(15))
+                                break;
+
+                            reader.Skip(6);
+                            reader.SkipWhiteSpace();
+
+                            if (!ulong.TryParse(reader.GetRemaining(), out ulong targetId))
+                                break;
+
+                            Logger.Debug($"parse success {reader.GetRemaining()}");
+                            allowUpdate = true;
+
+                            if (server.Invites.Any(x => x.UserId == targetId))
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] The specified user already has an active invitation.");
+                                break;
+                            }
+
+                            IUser target = _client.GetUser(targetId);
+
+                            if (target == null)
+                            {
+                                AddConsoleText(server, $"[Console] Unable to find the specified user.");
+                                break;
+                            }
+
+                            var invite = new ServerInvite(targetId, null);
+                            server.Invites.Add(invite);
+                            AddConsoleText(server, $"[Console] Sent a server invite to {target.Username}.");
+                            player.LastInviteSent = DateTime.UtcNow;
+
+                            try
+                            {
+                                await target.SendMessageAsync(ServerInvite.Write(invite, server)).ConfigureAwait(false);
+                            }
+                            catch (HttpException error)
+                            {
+                                if (error.DiscordCode.GetValueOrDefault(0) != 50007)
+                                    throw;
+
+                                Logger.Debug($"[{Format.Time(DateTime.UtcNow)}] Unable to send message to user {target.Id} as their direct message channel is disabled");
+                            }
+
+                            break;
+                        }
+
+                        // [HOST, PLAYER] kick <player>
+                        if (ctx.StartsWith("kick"))
+                        {
+                            // If they are already in the server
+                            if (player == null)
+                                break;
+
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may kick other players.");
+                                break;
+                            }
+
+                            reader.Skip(4);
+                            reader.SkipWhiteSpace();
+
+                            string toKick = reader.GetRemaining();
+
+                            if (!Check.NotNull(toKick))
+                            {
+                                AddConsoleText(server, $"[Console] A player must be specified.");
+                            }
+
+                            if (ulong.TryParse(toKick, out ulong kickId))
+                            {
+                                if (server.Players.All(x => x.User.Id != kickId))
+                                {
+                                    AddConsoleText(server, $"[Console] Unable to find the specified player.");
+                                    break;
+                                }
+                            }
+
+                            if (server.Players.All(x => x.User.Username != toKick))
+                            {
+                                AddConsoleText(server, $"[Console] Unable to find the specified player.");
+                                break;
+                            }
+
+                            if (server.Players.Count(x => x.User.Username == toKick) > 1)
+                            {
+                                AddConsoleText(server, $"[Console] There is more than one player with the specified username.");
+                                break;
+                            }
+
+                            Player target = server.Players.First(x => x.User.Username == toKick);
+                            // TODO: Implement reasons
+
+                            await server.RemovePlayerAsync(target.User.Id);
+                        }
+
                         break;
 
                     // This represents the configuration panel
                     case GameState.Editing:
-                        var reader = new StringReader(ctx);
-
                         // join
                         if (ctx == "join")
                         {
@@ -780,6 +963,76 @@ namespace Arcadia.Multiplayer
                             break;
                         }
 
+                        if (ctx == "togglespectate")
+                        {
+                            allowUpdate = !await server.ToggleSpectateAsync();
+                            break;
+                        }
+
+                        if (ctx == "togglechat")
+                        {
+                            allowUpdate = false;
+                            await server.ToggleChatAsync();
+                            break;
+                        }
+
+                        if (ctx == "toggleinvite")
+                        {
+                            allowUpdate = false;
+                            await server.ToggleInviteAsync();
+                            break;
+                        }
+
+                        // [HOST, PLAYER] kick <player>
+                        if (ctx.StartsWith("kick"))
+                        {
+                            // If they are already in the server
+                            if (player == null)
+                                break;
+
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may kick other players.");
+                                break;
+                            }
+
+                            reader.Skip(4);
+                            reader.SkipWhiteSpace();
+
+                            string toKick = reader.GetRemaining();
+
+                            if (!Check.NotNull(toKick))
+                            {
+                                AddConsoleText(server, $"[Console] A player must be specified.");
+                            }
+
+                            if (ulong.TryParse(toKick, out ulong kickId))
+                            {
+                                if (server.Players.All(x => x.User.Id != kickId))
+                                {
+                                    AddConsoleText(server, $"[Console] Unable to find the specified player.");
+                                    break;
+                                }
+                            }
+
+                            if (server.Players.All(x => x.User.Username != toKick))
+                            {
+                                AddConsoleText(server, $"[Console] Unable to find the specified player.");
+                                break;
+                            }
+
+                            if (server.Players.Count(x => x.User.Username == toKick) > 1)
+                            {
+                                AddConsoleText(server, $"[Console] There is more than one player with the specified username.");
+                                break;
+                            }
+
+                            Player target = server.Players.First(x => x.User.Username == toKick);
+                            // TODO: Implement reasons
+
+                            allowUpdate = !await server.RemovePlayerAsync(target.User.Id);
+                        }
+
                         // [HOST, PLAYER] title <value>
                         if (ctx.StartsWith("name"))
                         {
@@ -794,7 +1047,7 @@ namespace Arcadia.Multiplayer
                                 break;
                             }
 
-                            reader.Skip(5);
+                            reader.Skip(4);
                             reader.SkipWhiteSpace();
 
                             // Limit title length to 42 (32 for username limit, with an additional 10 characters)
@@ -1054,6 +1307,7 @@ namespace Arcadia.Multiplayer
 
                 if (connection.MessageId == message.Id)
                 {
+                    Logger.Debug("Connection bind was deleted");
                     connection.IsDeleted = true;
                     await connection.RefreshAsync();
                 }

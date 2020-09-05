@@ -102,16 +102,16 @@ namespace Orikivo
         public bool IsClosed => State == ReportState.Closed;
 
         [JsonIgnore]
-        public bool CanEdit => EditedAt.HasValue ? (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength : true;
+        public bool CanEdit => !EditedAt.HasValue || (DateTime.UtcNow - EditedAt.Value).TotalSeconds >= CooldownLength;
 
         [JsonIgnore]
         public bool HasImage => Check.NotNull(ImageUrl);
 
         [JsonIgnore]
-        public int Upvotes => Votes.Where(x => x.Vote == VoteType.Upvote).Count();
+        public int Upvotes => Votes.Count(x => x.Vote == VoteType.Upvote);
 
         [JsonIgnore]
-        public int Downvotes => Votes.Where(x => x.Vote == VoteType.Downvote).Count();
+        public int Downvotes => Votes.Count(x => x.Vote == VoteType.Downvote);
 
         public void Close(string reason = null)
         {
@@ -127,7 +127,7 @@ namespace Orikivo
             if (IsClosed)
                 throw new Exception("The report specified has already been closed.");
 
-            if (!Votes.Any(x => x.UserId == userId))
+            if (Votes.All(x => x.UserId != userId))
             {
                 Votes.Add(new VoteInfo(userId, vote));
                 return;
@@ -150,17 +150,20 @@ namespace Orikivo
                 throw new Exception("The report specified has already been closed.");
 
             bool edited = false;
-            ReportBody old = new ReportBody(Title, Content, ImageUrl);
+            var old = new ReportBody(Title, Content, ImageUrl);
+
             if (Check.NotNull(title))
             {
                 Title = title;
                 edited = true;
             }
+
             if (Check.NotNull(content))
             {
                 Content = content;
                 edited = true;
             }
+
             if (Check.NotNull(imageUrl))
             {
                 ImageUrl = imageUrl;
@@ -186,7 +189,7 @@ namespace Orikivo
             }
             sb.AppendLine($"**{Title}** #{Id}");
             sb.Append($"{(IsClosed ? "📕 **Closed**" : "📖 **Open**")}");
-            if (Tag.GetActiveFlags().Count() > 0)
+            if (Tag.GetActiveFlags().Any())
                 sb.Append($" • {string.Join(' ', Tag.GetActiveFlags().Select(x => $"**#**{x.ToString()}"))}");
             sb.AppendLine();
             sb.AppendLine(Content);

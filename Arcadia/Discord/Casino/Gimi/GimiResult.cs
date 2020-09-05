@@ -1,4 +1,5 @@
-﻿using Orikivo.Drawing;
+﻿using System;
+using Orikivo.Drawing;
 using Orikivo;
 
 namespace Arcadia.Casino
@@ -42,7 +43,10 @@ namespace Arcadia.Casino
 
                 if (Flag == GimiResultFlag.Gold)
                 {
-                    ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
+                    if (RandomProvider.Instance.Next(0, 1001) == 1000)
+                        ItemHelper.GiveItem(user, Items.PaletteGold);
+
+                    ItemHelper.GiveItem(user, Items.PocketLawyer);
                     user.AddToVar(GimiStats.TimesGold);
                     user.AddToVar(GimiStats.CurrentGoldStreak);
 
@@ -130,7 +134,11 @@ namespace Arcadia.Casino
                     type = "+";
                     color = GammaPalette.Glass[Gamma.Max];
 
-                    ItemHelper.GiveItem(user, ItemHelper.GetItem(Items.PocketLawyer));
+                    // Try to give a gold palette
+                    if (RandomProvider.Instance.Next(0, 1001) == 1000)
+                        ItemHelper.GiveItem(user, Items.PaletteGold);
+
+                    ItemHelper.GiveItem(user, Items.PocketLawyer);
                     user.AddToVar(GimiStats.TimesGold);
                     user.AddToVar(GimiStats.CurrentGoldStreak);
 

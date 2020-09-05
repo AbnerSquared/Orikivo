@@ -18,7 +18,6 @@ using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using Match = System.Text.RegularExpressions.Match;
 using Color = System.Drawing.Color;
 using Orikivo.Drawing.Animating;
-using Orikivo.Drawing.Graphics3D;
 using Discord.WebSocket;
 using Orikivo.Canary;
 using Orikivo.Framework;
@@ -340,72 +339,6 @@ namespace Orikivo.Modules
             await gifStream.DisposeAsync();
 
             await Context.Channel.SendFileAsync(path);
-        }
-
-        private Rasterizer GetRasterizer(RasterizerType type)
-        {
-            return type switch
-            {
-                RasterizerType.Wireframe => new WireframeRasterizer(),
-                RasterizerType.Solid => new SolidRasterizer(),
-                _ => new SolidRasterizer()
-            };
-        }
-
-        [Command("drawcube")]
-        [Summary("Draws a cube with the specified parameters.")]
-        public async Task DrawCubeWireAsync(float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f, float rotX = 0.0f, float rotY = 0.0f, float rotZ = 0.0f,
-            float fov = 90.0f, int width = 128, int height = 128, RasterizerType rasterizer = RasterizerType.Wireframe)
-        {
-            string path = $"../tmp/STATIC_MESH_{KeyBuilder.Generate(8)}.png";
-
-            MeshRenderer renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
-                GammaPalette.GammaGreen, GetRasterizer(rasterizer));
-
-            Grid<Color> frame = renderer.Render(Mesh.Cube,
-                new Vector3(posX, posY, posZ),
-                new Vector3(rotX, rotY, rotZ));
-
-            await Context.Channel.SendImageAsync(ImageHelper.CreateRgbBitmap(frame.Values), path);
-        }
-
-        [Command("animatecube")]
-        [Summary("Animates a cube mesh in a 3D environment with the specified parameters.")]
-        public async Task AnimCubeAsync(
-            [Summary("The amount of frames the animation is drawn for.")]long ticks,
-            [Summary("The initial X offset of the mesh.")]float offsetX = 0.0f,
-            [Summary("The initial Y offset of the mesh.")]float offsetY = 0.0f,
-            [Summary("The initial Z offset of the mesh.")]float offsetZ = 0.0f,
-            [Summary("The X rotation velocity of the mesh.")]float rotX = 0.0f,
-            [Summary("The Y rotation velocity of the mesh.")]float rotY = 0.0f,
-            [Summary("The Z rotation velocity of the mesh.")]float rotZ = 0.0f,
-            [Summary("The X velocity of the mesh.")]float velocityX = 0.0f,
-            [Summary("The Y velocity of the mesh.")]float velocityY = 0.0f,
-            [Summary("The Z velocity of the mesh.")]float velocityZ = 0.0f,
-            [Summary("The amount of frames per second the animation is drawn at.")]int fps = 60,
-            [Summary("The field of view for the viewport (in degrees).")]float fov = 90.0f,
-            [Summary("The width of the viewport.")]int width = 128,
-            [Summary("The height of the viewport.")]int height = 128,
-            [Summary("The rasterizer that is used when drawing the mesh.")] RasterizerType rasterizer = RasterizerType.Wireframe)
-        {
-            try
-            {
-                string path = $"../tmp/MESH_{KeyBuilder.Generate(8)}.gif";
-
-                var renderer = new MeshRenderer(width, height, fov, 0.1f, 1000.0f,
-                    GammaPalette.GammaGreen, GetRasterizer(rasterizer));
-
-                List<Grid<Color>> frames = renderer.Animate(ticks, new Model(Mesh.Cube),
-                    new Vector3(offsetX, offsetY, offsetZ),
-                    new Vector3(rotX, rotY, rotZ),
-                    new Vector3(velocityX, velocityY, velocityZ));
-
-                await SendGifAsync(path, frames, 1000 / fps);
-            }
-            catch (Exception e)
-            {
-                await Context.Channel.CatchAsync(e);
-            }
         }
 
         private async Task SendGifAsync(string path, List<Grid<Color>> rawFrames, int delay = 100, int? loop = null)

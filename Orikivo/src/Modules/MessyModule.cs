@@ -160,7 +160,7 @@ namespace Orikivo.Modules
                 {
                     Merit merit = Engine.GetMerit(id);
 
-                    await Context.Channel.SendMessageAsync(merit.ClaimAndDisplay(Context.Account));
+                    await Context.Channel.SendMessageAsync(MeritHandler.ClaimAndDisplay(Context.Account, merit));
                 }
             }
         }

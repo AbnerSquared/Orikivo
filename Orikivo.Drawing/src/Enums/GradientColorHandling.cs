@@ -3,7 +3,6 @@
     public enum GradientColorHandling
     {
         Blend = 1, // blends the in-between colors together
-        Snap = 2, // goes to the closest color
-        Dither = 3 // blends the two colors differences as pixels
+        Snap = 2 // goes to the closest color
     }
 }

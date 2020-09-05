@@ -6,6 +6,8 @@ namespace Arcadia
     {
         internal ItemUsage() { }
 
+        public string Example { get; set; }
+
         public int? Durability { get; set; }
 
         public TimeSpan? Cooldown { get; set; }

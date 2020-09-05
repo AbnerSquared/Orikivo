@@ -57,7 +57,9 @@ namespace Arcadia.Multiplayer
         // This is the frequency at which the spectators can watch the game from
         // This is the group for spectators
         // Whatever is changed for this group, is applied to this game
-        public string SpectatorGroup { get; set; }
+        public int SpectateFrequency { get; set; }
+
+        public bool CanSpectate { get; set; }
 
         // this is used to handle the current state of a session
         public SessionState State { get; set; } = SessionState.Continue;
@@ -221,7 +223,9 @@ namespace Arcadia.Multiplayer
             }*/
 
             if (action.UpdateOnExecute)
+            {
                 Server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
 
         internal bool MeetsCriterion(string ruleId)

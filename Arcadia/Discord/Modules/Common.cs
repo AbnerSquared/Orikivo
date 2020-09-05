@@ -7,21 +7,95 @@ using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Services;
 using Arcadia.Graphics;
+using Orikivo.Drawing;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
     // - Card Customization
 
+    // TODO: Transfer everything to CommonService
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        [RequireUser]
+        [Command("offer")]
+        [Summary("Send a trade offer to the specified user.")]
+        public async Task SendOfferAsync(SocketUser user, [Remainder]string input)
+        {
+            Context.TryGetUser(user.Id, out ArcadeUser account);
+
+            if (await CatchEmptyAccountAsync(account))
+                return;
+
+            if (!Check.NotNull(input))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You must specify your offer contents."));
+                return;
+            }
+
+            if (!TradeHelper.TryParseOffer(Context.User, user, input, out TradeOffer offer))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("An error has occurred while trying to parse the specified trade offer."));
+                return;
+            }
+
+            string result = TradeHelper.SendOffer(Context.Account, account, offer);
+            await Context.Channel.SendMessageAsync(result);
+        }
+
+        [RequireUser]
+        [Command("acceptoffer")]
+        [Summary("Accepts the specified trade offer.")]
+        public async Task AcceptOfferAsync(string offerId)
+        {
+            if (Context.Account.Offers.All(x => x.Id != offerId))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
+                return;
+            }
+
+            TradeOffer offer = Context.Account.Offers.First(x => x.Id == offerId);
+
+            if (!offer.Author.Id.HasValue)
+                throw new Exception("Expected author ID to be specified in trade offer");
+
+            if (!Context.TryGetUser(offer.Author.Id.Value, out ArcadeUser account))
+                throw new Exception("Expected user account to exist from the specified offer");
+
+            string result = TradeHelper.AcceptOffer(Context.Account, account, offer);
+            await Context.Channel.SendMessageAsync(result);
+        }
+
+        [RequireUser]
+        [Command("declineoffer"), Alias("canceloffer")]
+        [Summary("Declines or cancels the specified trade offer.")]
+        public async Task DeclineOfferAsync(string offerId)
+        {
+            if (Context.Account.Offers.All(x => x.Id != offerId))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
+                return;
+            }
+
+            TradeOffer offer = Context.Account.Offers.First(x => x.Id == offerId);
+
+            if (!offer.Author.Id.HasValue)
+                throw new Exception("Expected author ID to be specified in trade offer");
+
+            if (!Context.TryGetUser(offer.Author.Id.Value, out ArcadeUser account))
+                throw new Exception("Expected user account to exist from the specified offer");
+
+            string result = TradeHelper.DeclineOffer(Context.Account, account, offer);
+            await Context.Channel.SendMessageAsync(result);
+        }
+
         [Command("offers")]
         [Summary("View all of the possible trade offers requested to you.")]
         public async Task ViewOffersAsync()
         {
-            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account));
+            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account, Context));
         }
 
         [Command("guides")]
@@ -30,6 +104,14 @@ namespace Arcadia.Modules
         {
             page--;
             await Context.Channel.SendMessageAsync(GuideHelper.View(page));
+        }
+
+        [Command("guide")]
+        [Summary("Read and view the contents of the specified guide.")]
+        public async Task ReadGuideAsync(string id, int page = 1)
+        {
+            page--;
+            await Context.Channel.SendMessageAsync(GuideHelper.ViewGuide(id, page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -173,7 +255,7 @@ namespace Arcadia.Modules
         [Command("stat")]
         public async Task ViewStatAsync(string id)
         {
-            await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id));
+            await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
         }
 
         [RequireUser]
@@ -303,6 +385,20 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Catalog.View(Context.Account, query, page));
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("catalogsearch")]
+        [Summary("Search through your item catalog to find a specific item.")]
+        public async Task CatalogSearchAsync([Remainder] string input)
+        {
+            if (!Check.NotNull(input))
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You must specify a reference for the catalog to use."));
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Catalog.Search(Context.Account, input));
+        }
+
         [Command("trade")]
         [Summary("Attempts to start a trade with the specified user.")]
         public async Task TradeAsync(SocketUser user)
@@ -370,6 +466,12 @@ namespace Arcadia.Modules
                 return;
             }
 
+            if (account.Id == Context.Account.Id)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You can't send a gift to yourself."));
+                return;
+            }
+
             Item item = ItemHelper.GetItem(data.Id);
 
             // Next, check if the item can be gifted.
@@ -396,7 +498,7 @@ namespace Arcadia.Modules
             }
 
             account.Items.Add(data);
-            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** a **{ItemHelper.NameOf(data.Id)}**.");
+            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
             Context.Account.AddToVar(Stats.ItemsGifted);
         }
 
@@ -424,9 +526,9 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("inspect")]
+        [Command("item")]
         [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
-        public async Task InspectAsync(Item item)
+        public async Task ViewItemAsync(Item item)
         {
             CatalogStatus status = ItemHelper.GetCatalogStatus(Context.Account, item);
 
@@ -434,6 +536,48 @@ namespace Arcadia.Modules
                 ItemHelper.SetCatalogStatus(Context.Account, item, CatalogStatus.Known);
 
             await Context.Channel.SendMessageAsync(Catalog.ViewItem(item, ItemHelper.GetCatalogStatus(Context.Account, item)));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("inspectat")]
+        [Summary("Inspect at specific **Item** slot in your inventory.")]
+        public async Task ViewInventorySlotAsync(int slot)
+        {
+            if (Context.Account.Items.Count == 0)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You do not have any items in your inventory."));
+                return;
+            }
+
+            slot--;
+
+            Math.Clamp(slot, 0, Context.Account.Items.Count - 1);
+
+            ItemData data = Context.Account.Items[slot];
+
+            await Context.Channel.SendMessageAsync(Catalog.InspectItem(Context, Context.Account, data, slot));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("inspect")]
+        [Summary("Inspect a specific **Item** in your inventory using a data reference.")]
+        public async Task InspectInInventoryAsync(string dataId)
+        {
+            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
+            int slot = Context.Account.Items.IndexOf(data);
+
+            if (data == null)
+            {
+                if (ItemHelper.Exists(dataId))
+                {
+                    await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
+                }
+
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                return;
+            }
+
+            await Context.Channel.SendMessageAsync(Catalog.InspectItem(Context, Context.Account, data, slot));
         }
 
         // This gets a person's backpack.
@@ -488,21 +632,6 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(result);
         }
 
-        [Command("localboard"), Alias("toplocal"), Priority(1)]
-        [Summary("View the local pioneers of a specific category.")]
-        public async Task GetLocalboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default,
-            LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
-        {
-            if (flag == LeaderboardQuery.Custom)
-                flag = LeaderboardQuery.Default;
-
-            var board = new Leaderboard(flag, sort);
-            // Keep note that this may return null by mistake
-            string result = board.Write(Context.Data.Users.Values.Values.Where(x => Context.Guild.GetUser(x.Id) != null), page);
-
-            await Context.Channel.SendMessageAsync(result);
-        }
-
         // TODO: Implement enum value listings
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
@@ -518,7 +647,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("balance"), Alias("money", "bal")]
+        [Command("balance"), Alias("money", "bal", "chips", "tokens", "debt")]
         [Summary("Returns a current wallet state.")]
         public async Task GetMoneyAsync(SocketUser user = null)
         {
@@ -585,6 +714,80 @@ namespace Arcadia.Modules
 
                 p.Palette = account.Card.Palette.Primary;
                 p.PaletteOverride = account.Card.Palette.Build();
+                p.Trim = false;
+                p.Casing = Casing.Upper;
+
+                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
+
+                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.CatchAsync(ex);
+            }
+        }
+
+        [RequireUser]
+        //[Command("cardt")]
+        public async Task GetCardTestAsync(PaletteType primary, SocketUser user = null)
+        {
+            user ??= Context.User;
+            Context.TryGetUser(user.Id, out ArcadeUser account);
+
+            if (await CatchEmptyAccountAsync(account))
+                return;
+
+            try
+            {
+                using var graphics = new GraphicsService();
+                var d = new CardDetails(account, user);
+                var p = CardProperties.Default;
+
+                p.PaletteOverride = GraphicsService.GetPalette(primary);
+                p.Trim = false;
+                p.Casing = Casing.Upper;
+
+                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
+
+                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.CatchAsync(ex);
+            }
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("profile"), Alias("account", "acc", "pf", "user")]
+        [Summary("View a profile.")]
+        public async Task ViewProfileAsync(SocketUser user = null)
+        {
+            user ??= Context.User;
+            Context.TryGetUser(user.Id, out ArcadeUser account);
+
+            if (await CatchEmptyAccountAsync(account))
+                return;
+
+            await Context.Channel.SendMessageAsync(Profile.View(account, Context));
+        }
+
+        //[RequireUser]
+        //[Command("cardt")]
+        public async Task GetCardTestAsync(PaletteType primary, PaletteType secondary, SocketUser user = null)
+        {
+            user ??= Context.User;
+            Context.TryGetUser(user.Id, out ArcadeUser account);
+
+            if (await CatchEmptyAccountAsync(account))
+                return;
+
+            try
+            {
+                using var graphics = new GraphicsService();
+                var d = new CardDetails(account, user);
+                var p = CardProperties.Default;
+
+                p.PaletteOverride = GammaPalette.Smear(GraphicsService.GetPalette(primary), GraphicsService.GetPalette(secondary));
                 p.Trim = false;
                 p.Casing = Casing.Upper;
 

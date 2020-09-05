@@ -2,8 +2,9 @@
 using System;
 using Discord;
 using MongoDB.Bson.Serialization.Attributes;
+using Orikivo.Desync;
 
-namespace Orikivo.Desync
+namespace Orikivo
 {
     /// <summary>
     /// Represents a generic user account.

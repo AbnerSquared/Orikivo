@@ -156,6 +156,12 @@ namespace Arcadia.Graphics
                 PaletteType.Glass => GammaPalette.Glass,
                 PaletteType.Default => GammaPalette.Default,
                 PaletteType.Wumpite => GammaPalette.Wumpite,
+                PaletteType.Lemon => GammaPalette.Lemon,
+                PaletteType.Amber => GammaPalette.Amber,
+                PaletteType.Taffy => GammaPalette.Bubblegum,
+                PaletteType.Oceanic => GammaPalette.Oceanic,
+                PaletteType.Polarity => GammaPalette.Polarity,
+                PaletteType.Chocolate => GammaPalette.Chocolate,
                 _ => GammaPalette.Default
             };
 
@@ -298,7 +304,7 @@ namespace Arcadia.Graphics
                 //card.AddLayer(DrawImage(ref cursor, ImageHelper.GetHttpImage(details.AvatarUrl), palette, imageProperties));
                 var avatar = new BitmapLayer
                 {
-                    Source = ImageHelper.ForcePalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
+                    Source = ImageHelper.ForceLumenPalette(ImageHelper.GetHttpImage(details.AvatarUrl), palette),
                     Offset = cursor
                 };
                 avatar.Properties.Padding = new Padding(right: 2);
@@ -306,7 +312,7 @@ namespace Arcadia.Graphics
                 cursor.X += avatar.Source.Width + avatar.Properties.Padding.Width;
                 card.AddLayer(avatar);
             }
-           
+
             // USERNAME
             if (!properties.Deny.HasFlag(CardDeny.Username))
             {

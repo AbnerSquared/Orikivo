@@ -17,6 +17,15 @@ namespace Arcadia.Modules
             _games = games;
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("invites")]
+        [Summary("View all of your current server invites.")]
+        public async Task ViewInvitesAsync(int page = 1)
+        {
+            page--;
+            await Context.Channel.SendMessageAsync(ServerBrowser.ViewInvites(Context.Account, _games, page));
+        }
+
         [Command("servers")]
         [Summary("View all currently open game servers.")]
         public async Task ViewServersAsync(int page = 1) // use the page to view through multiple servers, if there is too many to show on one page
@@ -30,6 +39,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(ServerBrowser.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
         }
 
+        [RequireUser]
         [Command("hostserver")]
         [Summary("Host a new game server.")]
         public async Task HostServerAsync([Name("game_id")]string gameId = null)

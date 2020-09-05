@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
@@ -28,6 +29,11 @@ namespace Arcadia
 
         public static readonly List<Var> Definers = new List<Var>
         {
+            new Var
+            {
+                Id = TickStats.CurrentLossStreak,
+                Summary = "Increases the chance of winning by 1% for every 3 losses in **Doubler**."
+            },
             new Var
             {
                 Id = Stats.LastAssignedQuest,
@@ -146,7 +152,21 @@ namespace Arcadia
             return user.Stats.Count;
         }
 
-        public static string ViewDetails(ArcadeUser user, string id)
+        public static string WriteName(string id)
+        {
+            return GetDefiner(id)?.Name ?? Humanize(id);
+        }
+
+        public static string WriteValue(ArcadeUser user, string id)
+        {
+            VarType type = TypeOf(id);
+
+            return GetDefiner(id)?.ValueWriter?.Invoke(user.GetVar(id))
+                   ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
+                   ?? WriteDefault(user.GetVar(id), type);
+        }
+
+        public static string ViewDetails(ArcadeUser user, string id, in IEnumerable<ArcadeUser> users = null)
         {
             if (!user.Stats.ContainsKey(id))
                 return $"> {Icons.Warning} Unknown stat specified.";
@@ -176,6 +196,12 @@ namespace Arcadia
             {
                 details.AppendLine($"> {summary}");
             }
+
+            if ((users?.Any() ?? false) && type == VarType.Stat)
+            {
+                details.AppendLine($"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**");
+            }
+
 
             return details.ToString();
         }

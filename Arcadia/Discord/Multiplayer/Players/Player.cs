@@ -37,6 +37,13 @@ namespace Arcadia.Multiplayer
         public bool Playing { get; internal set; }
 
         /// <summary>
+        /// Represents the <see cref="DateTime"/> at which this <see cref="Player"/> has last spoken.
+        /// </summary>
+        public DateTime LastSpoke { get; internal set; }
+
+        public DateTime LastInviteSent { get; internal set; }
+
+        /// <summary>
         /// Represents the <see cref="GameServer"/> that this <see cref="Player"/> is currently in.
         /// </summary>
         public GameServer Server { get; }

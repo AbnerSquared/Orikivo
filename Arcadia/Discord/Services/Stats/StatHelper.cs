@@ -13,28 +13,6 @@ namespace Arcadia
 
     public static class StatHelper
     {
-        public static readonly Dictionary<string, Descriptor> Descriptions = new Dictionary<string, Descriptor>
-        {
-            [TickStats.CurrentLossStreak] = new Descriptor
-            {
-                Summary = "Increases the chance of winning by 1% for every 3 losses in **Doubler**."
-            }
-        };
-
-        public static string SummaryOf(string id)
-        {
-            if (Descriptions.ContainsKey(id))
-            {
-                if (Check.NotNull(Descriptions[id]?.Summary))
-                {
-                    return Descriptions[id].Summary;
-                }
-            }
-
-            return null;
-        }
-
-
         public static long Sum(ArcadeUser user, string a, string b)
             => user.GetVar(a) + user.GetVar(b);
 
@@ -66,6 +44,14 @@ namespace Arcadia
         private static int GetPageCount(ArcadeUser user, int pageSize)
             => (int) Math.Ceiling(GetVisibleStats(user).Count() / (double) pageSize);
         // 35 / 25 => 1.23
+
+        public static string GetRandomStat(ArcadeUser user, IEnumerable<string> chosen)
+            => Randomizer.ChooseOrDefault(user.Stats.Keys.Where(x =>
+                user.GetVar(x) != 0
+                && !x.EqualsAny(Vars.Balance, Vars.Debt, Vars.Chips, Vars.Tokens)
+                && Var.TypeOf(x) == VarType.Stat
+                && !ItemHelper.Exists(Var.GetGroup(x))
+                && (Check.NotNullOrEmpty(chosen) ? !chosen.Contains(x) : true)));
 
         public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 25)
         {
@@ -126,7 +112,7 @@ namespace Arcadia
             if (pageCount + 1 > 1)
             {
                 if (pageCount + 1 > 1)
-                    counter = $"(Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)";
+                    counter = $"(Page **{page + 1:##,0}**/{pageCount + 1:##,0})";
             }
 
 

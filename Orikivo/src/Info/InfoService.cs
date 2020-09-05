@@ -87,7 +87,7 @@ namespace Orikivo
         public InfoService(CommandService commands, InfoFormatter formatter = null) // , InfoFormatter formatter = null
         {
             _commands = commands;
-            Guides = formatter?.OnLoadGuides() ?? DefaultGuides;
+            Guides = formatter?.OnLoadGuides();
             _formatter = formatter; // ?? InfoFormatter.Default;
         }
 
@@ -96,7 +96,7 @@ namespace Orikivo
             _commands = commands;
             _reports = global.Reports;
             _formatter = formatter; // ?? InfoFormatter.Default;
-            Guides = DefaultGuides;
+            Guides = formatter?.OnLoadGuides();
         }
 
         internal void SetFormatter(InfoFormatter formatter)
@@ -119,8 +119,14 @@ namespace Orikivo
             // Husk system
             if (user?.Husk != null)
             {
-                bool canMove = Engine.CanMove(user, user.Husk);
-                bool canAct = Engine.CanAct(user);
+                bool canMove = Engine.CanMove(user.Husk, out string notification);
+
+                if (!string.IsNullOrWhiteSpace(notification))
+                    user.Notifier.Append(notification);
+
+                Husk husk = user.Husk;
+                bool canAct = Engine.CanAct(ref husk, user.Brain);
+                user.Husk = husk;
                 panel.AppendLine();
                 panel.AppendLine("**Actions**");
                 panel.Append("• ");
@@ -148,7 +154,7 @@ namespace Orikivo
 
                     if (precondition != null)
                     {
-                        if (!precondition.Judge(user))
+                        if (!precondition.Judge(user.Brain, user.Stats))
                             continue;
                     }
 
@@ -196,7 +202,7 @@ namespace Orikivo
                 panel.AppendLine("> Use `help <name>` to learn more about a command, module, or action.");
 
             // TODO: Handle report status icon management
-            if (Guides.Count() > 0)
+            if (Guides?.Any() ?? false)
             {
                 panel.AppendLine();
                 panel.AppendLine("**Guides**");
@@ -205,7 +211,7 @@ namespace Orikivo
                     panel.AppendLine($"> {guide.Tooltip}");
             }
 
-            if (Modules.Count() > 0)
+            if (Modules.Any())
             {
                 panel.AppendLine();
                 panel.AppendLine("**Categories**");
@@ -259,9 +265,9 @@ namespace Orikivo
                 }
             }
 
-            if (user != null && drawActions)
-                if (user.Husk != null)
-                    panel.Append(GetActions(user));
+            //if (user != null && drawActions)
+             //   if (user.Husk != null)
+             //       panel.Append(GetActions(user));
 
             return panel.ToString();
         }
@@ -271,20 +277,23 @@ namespace Orikivo
             if (!Check.NotNull(content))
                 return GetMenu(user, drawActions);
 
-            // TODO: Clean up chapter parsing (Regex).
-            bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));
-            bool hasIndex = isGuideName && content.Split(' ').Count() == 2;
-
-            if (isGuideName)
+            if (Check.NotNullOrEmpty(Guides))
             {
-                if (hasIndex)
-                {
-                    if (int.TryParse(content.Split(' ')[1], out int index))
-                        return Guides.First(x => content.ToLower().StartsWith(x.Id)).GetChapter(index);
-                }
-                else if (Guides.Any(x => x.Id == content.ToLower()))
-                    return Guides.First(x => x.Id == content.ToLower()).GetChapter(1);
+                // TODO: Clean up chapter parsing (Regex).
+                bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));
+                bool hasIndex = isGuideName && content.Split(' ').Count() == 2;
 
+                if (isGuideName)
+                {
+                    if (hasIndex)
+                    {
+                        if (int.TryParse(content.Split(' ')[1], out int index))
+                            return Guides.First(x => content.ToLower().StartsWith(x.Id)).GetChapter(index);
+                    }
+                    else if (Guides.Any(x => x.Id == content.ToLower()))
+                        return Guides.First(x => x.Id == content.ToLower()).GetChapter(1);
+
+                }
             }
 
             ContextNode ctx = Search(content);
@@ -451,8 +460,8 @@ namespace Orikivo
             if (!Check.NotNullOrEmpty(values))
                 throw new ValueNotFoundException($"No matches were found when searching for a value of the name '{name}'.");
 
-            if (values.Where(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)).Count() > 0)
-                return values.Where(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)).First();
+            if (values.Any(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)))
+                return values.First(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group));
 
             return values.First();
         }

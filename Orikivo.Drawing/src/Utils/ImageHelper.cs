@@ -14,6 +14,19 @@ namespace Orikivo.Drawing
 {
     public static class ImageHelper
     {
+        public static float GetImageRatio(ImageRatio ratio)
+        {
+            return ratio switch
+            {
+                ImageRatio.Square => 1.0f,
+                ImageRatio.Tall => 0.5f,
+                ImageRatio.Wide => 2.0f,
+                ImageRatio.Rectangle => 4.0f / 3.0f,
+                ImageRatio.Widescreen => 16.0f / 9.0f,
+                _ => 1.0f
+            };
+        }
+
         internal static Bitmap Fill(Bitmap bmp, Color color)
         {
             using (Graphics graphics = Graphics.FromImage(bmp))
@@ -881,6 +894,99 @@ namespace Orikivo.Drawing
                     {
                         var color = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
                         Color match = ImmutableColor.ClosestMatch(color, colors);
+
+                        row[x + 2] = match.R;
+                        row[x + 1] = match.G;
+                        row[x] = match.B;
+                    }
+                });
+
+                bmp.UnlockBits(source);
+            }
+
+            return bmp;
+        }
+
+        public static int GetUniqueColorCount(Bitmap image)
+            => GetUniqueColors(image).Count;
+
+        public static List<Color> GetUniqueColors(Bitmap image)
+        {
+            var pixels = new List<Color>(image.Width * image.Height);
+            unsafe
+            {
+                var area = new Rectangle(0, 0, image.Width, image.Height);
+                BitmapData source = image.LockBits(area, ImageLockMode.ReadOnly, image.PixelFormat);
+                int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
+                int sourceWidth = source.Width * bitsPerPixel;
+                int sourceHeight = source.Height;
+                var ptr = (byte*)source.Scan0;
+
+                Parallel.For(0, sourceHeight, y =>
+                {
+                    byte* row = ptr + y * source.Stride;
+
+                    for (int x = 0; x < sourceWidth; x += bitsPerPixel)
+                    {
+                        Color pixel = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
+                        pixels.Add(pixel);
+                    }
+                });
+
+                image.UnlockBits(source);
+            }
+
+            var unique = new List<Color>();
+
+            foreach (Color pixel in pixels)
+            {
+                if (!unique.Contains(pixel))
+                    unique.Add(pixel);
+            }
+
+            return unique;
+        }
+
+        public static int GetLumenColorCount(Bitmap image, GammaPalette colors)
+        {
+            List<Color> unique = GetUniqueColors(image);
+
+            var lumenColors = new List<int>();
+
+            foreach (Color color in unique)
+            {
+                int match = ImmutableColor.ClosestBrightnessAt(color, colors.Values);
+
+                if (!lumenColors.Contains(match))
+                    lumenColors.Add(match);
+            }
+
+            Console.WriteLine(string.Join(" ", lumenColors));
+
+            return lumenColors.Count;
+        }
+
+        public static Bitmap ForceLumenPalette(Bitmap bmp, GammaPalette colors)
+        {
+            Console.WriteLine(GetUniqueColorCount(bmp));
+            Console.WriteLine(GetLumenColorCount(bmp, colors));
+            unsafe
+            {
+                var area = new Rectangle(0, 0, bmp.Width, bmp.Height);
+                BitmapData source = bmp.LockBits(area, ImageLockMode.ReadWrite, bmp.PixelFormat);
+                int bitsPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+                int sourceWidth = source.Width * bitsPerPixel;
+                int sourceHeight = source.Height;
+                var ptr = (byte*)source.Scan0;
+
+                Parallel.For(0, sourceHeight, y =>
+                {
+                    byte* row = ptr + y * source.Stride;
+
+                    for (int x = 0; x < sourceWidth; x += bitsPerPixel)
+                    {
+                        var color = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
+                        Color match = ImmutableColor.ClosestLumen(color, colors.Values);
 
                         row[x + 2] = match.R;
                         row[x + 1] = match.G;

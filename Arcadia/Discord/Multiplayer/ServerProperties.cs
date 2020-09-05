@@ -15,7 +15,8 @@ namespace Arcadia.Multiplayer
         {
             GameId = "Trivia",
             Privacy = Privacy.Public,
-            Name = "New Game Server"
+            Name = "New Game Server",
+            DeniedActions = ServerDeny.Chat | ServerDeny.Invite
         };
 
         public static ServerProperties GetDefault(string hostName)
@@ -36,5 +37,7 @@ namespace Arcadia.Multiplayer
         public string GameId { get; set; }
 
         public Privacy Privacy { get; set; }
+
+        public ServerDeny DeniedActions { get; set; }
     }
 }

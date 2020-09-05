@@ -6,6 +6,45 @@ using Orikivo;
 
 namespace Arcadia
 {
+    public class Icon
+    {
+        // The base custom icon to use
+        public string Value { get; set; }
+        // The icon the use in case the custom emojis are not allowed
+        public string Fallback { get; set; }
+
+        public List<string> Aliases { get; set; } = new List<string>();
+
+        public static implicit operator Icon(string value)
+            => new Icon
+            {
+                Fallback = value
+            };
+
+        public string ToString(bool useCustomIcons)
+            => useCustomIcons ? Value ?? Fallback : Fallback;
+
+        public override string ToString()
+            => Value ?? Fallback ?? "EMPTY_ICON";
+
+        public bool Equals(string value)
+        {
+            if (!string.IsNullOrWhiteSpace(Value))
+            {
+                if (Value == value)
+                    return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Fallback) && Fallback == value)
+                return true;
+
+            if (Aliases.Contains(value))
+                return true;
+
+            return false;
+        }
+    }
+
     public static class MeritHelper
     {
         public static readonly List<Merit> Merits =
@@ -13,9 +52,32 @@ namespace Arcadia
             {
                 new Merit
                 {
-                    Id = "generic:tinkerer",
+                    Id = "common:prisma_infusion",
+                    Icon = "🌈",
+                    Name = "Prisma Infusion",
+                    Group = MeritGroup.Common,
+                    Rank = MeritRank.Diamond,
+                    Value = 500,
+                    Quote = "You have collected every single color available.",
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "common:color_theory",
+                    Icon = "🍸",
+                    Name = "Color Theory",
+                    Group = MeritGroup.Common,
+                    Rank = MeritRank.Silver,
+                    Value = 25,
+                    Quote = "You have created a new color from other colors.",
+                    Hidden = true
+                },
+                new Merit
+                {
+                    Id = "common:tinkerer",
+                    Icon = "🔨",
                     Name = "Tinkerer",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "You have crafted an item for the first time.",
@@ -23,9 +85,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:trade_beginner",
+                    Id = "common:trade_beginner",
+                    Icon = "🔂",
                     Name = "Trading Beginner",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "You have traded with another user for the first time.",
@@ -33,9 +96,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:bronze_heart",
+                    Id = "common:bronze_heart",
+                    Icon = "🤎",
                     Name = "Bronze Heart",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "You were a kind soul and gave someone else an item of your own.",
@@ -43,9 +107,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:silver_heart",
+                    Id = "common:silver_heart",
+                    Icon = "🤍",
                     Name = "Silver Heart",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Silver,
                     Value = 25,
                     Quote = "You have been a good person and gifted over 50 items to plenty of people.",
@@ -53,9 +118,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:golden_heart",
+                    Id = "common:golden_heart",
+                    Icon = "💛",
                     Name = "Golden Heart",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Gold,
                     Value = 50,
                     Quote = "You have given over 100 items to plenty of people.",
@@ -64,9 +130,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:ignition",
+                    Id = "common:ignition",
+                    Icon = "🕯️",
                     Name = "Ignition",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 5,
                     Quote = "You have equipped your first booster.",
@@ -74,9 +141,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:progress_pioneer",
+                    Id = "common:progress_pioneer",
+                    Icon = "🚂",
                     Name = "Progression Pioneer",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Diamond,
                     Value = 100,
                     Quote = "You were there at the start, leading the path to what exists now.",
@@ -148,6 +216,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:gimi_clover",
+                    Icon = "☘️",
                     Name = "Clover of Gimi",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
@@ -159,6 +228,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:gimi_curse",
+                    Icon = "🧿",
                     Name = "Curse of Gimi",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
@@ -170,6 +240,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:tick_clover",
+                    Icon = "☘️",
                     Name = "Clover of Doubler",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
@@ -181,6 +252,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:tick_exact_clover",
+                    Icon = "🏵️",
                     Name = "Golden Clover of Doubler",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
@@ -227,6 +299,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:gimi_maniac",
+                    Icon = "⚗️",
                     Name = "Gimi Maniac",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Diamond,
@@ -244,9 +317,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:weekly_worker",
+                    Id = "common:weekly_worker",
+                    Icon = "✨",
                     Name = "Weekly Worker",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 7,
                     Quote = "You've stopped by for 7 days, making your name known.",
@@ -254,9 +328,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:monthly_advocate",
+                    Id = "common:monthly_advocate",
+                    Icon = "⭐",
                     Name = "Monthly Advocate",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Gold,
                     Value = 30,
                     Quote = "30 days have passed, and you have yet to miss a single one.",
@@ -264,9 +339,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:daily_automaton",
+                    Id = "common:daily_automaton",
+                    Icon = "💫",
                     Name = "Daily Automaton",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Platinum,
                     Value = 100,
                     Quote = "You're still here. Even after 100 days.",
@@ -275,9 +351,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:perfect_attendance",
+                    Id = "common:perfect_attendance",
+                    Icon = "🌟",
                     Name = "Perfect Attendance",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Diamond,
                     Value = 365,
                     Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
@@ -286,9 +363,10 @@ namespace Arcadia
                 },
                 new Merit
                 {
-                    Id = "generic:escaping_trouble",
+                    Id = "common:escaping_trouble",
+                    Icon = "☎️",
                     Name = "Escaping Trouble",
-                    Group = MeritGroup.Generic,
+                    Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
                     Value = 10,
                     Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
@@ -418,12 +496,12 @@ namespace Arcadia
                     info.Append("🔓 ");
                 }
             }
-
-            info.AppendLine($"**{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
+            // 🎖️
+            info.AppendLine($"{(Check.NotNull(merit.Icon) ? $"{merit.Icon} " : "")}**{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
 
             if (Check.NotNull(merit.Quote))
             {
-                info.Append($"> {(merit.Hidden ? "||": "")}*\"{merit.Quote}\"*{(merit.Hidden ? "||" : "")}");
+                info.Append($"> {(merit.Hidden ? "||": "")}*\"{(Check.NotNull(merit.LockQuote) && !HasMerit(user, merit.Id) ? merit.LockQuote : merit.Quote)}\"*{(merit.Hidden ? "||" : "")}");
             }
 
             return info.ToString();
@@ -484,7 +562,7 @@ namespace Arcadia
 
             if (flag == MeritQuery.Default)
             {
-                foreach (MeritGroup g in MeritGroup.Generic.GetValues())
+                foreach (MeritGroup g in MeritGroup.Common.GetValues())
                 {
                     info.AppendLine($"> `{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
                 }
@@ -541,7 +619,7 @@ namespace Arcadia
         {
             return flag switch
             {
-                MeritQuery.Generic => m => m.Group == MeritGroup.Generic && (!m.Hidden || HasMerit(user, m.Id)),
+                MeritQuery.Common => m => m.Group == MeritGroup.Common && (!m.Hidden || HasMerit(user, m.Id)),
                 MeritQuery.Casino => m => m.Group == MeritGroup.Casino && (!m.Hidden || HasMerit(user, m.Id)),
                 MeritQuery.Hidden => m => m.Hidden,
                 _ => throw new NotSupportedException("Unknown merit flag type")
@@ -554,7 +632,7 @@ namespace Arcadia
             {
                 MeritQuery.Default => "View the directory of major accomplishments.",
                 MeritQuery.Hidden => "*These are accomplishments that triumph over everything done before.*",
-                MeritQuery.Generic => "*These are common accomplishments for beginners to tackle.*",
+                MeritQuery.Common => "*These are common accomplishments for beginners to tackle.*",
                 MeritQuery.Casino => "*These are accomplishments given to the lucky.*",
                 _ => "INVALID_FLAG"
             };
@@ -584,9 +662,27 @@ namespace Arcadia
         public static bool IsEligible(ArcadeUser user, Merit merit)
         {
             if (merit.Criteria == null)
-                return !HasMerit(user, merit.Id);
+                return false;
 
             return merit.Criteria(user) && !HasMerit(user, merit.Id);
+        }
+
+        internal static void Unlock(ArcadeUser user, string meritId)
+            => Unlock(user, GetMerit(meritId));
+
+        internal static void Unlock(ArcadeUser user, Merit merit)
+        {
+            if (HasMerit(user, merit))
+                return;
+
+            if (merit.Criteria != null)
+            {
+                if (!merit.Criteria(user))
+                    return;
+            }
+
+            user.Merits.Add(merit.Id, merit.GetData());
+            user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
         }
 
         public static void TryUnlock(ArcadeUser user, string meritId)

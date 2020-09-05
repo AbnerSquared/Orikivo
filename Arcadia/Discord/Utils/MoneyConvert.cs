@@ -9,23 +9,18 @@ namespace Arcadia
         public const double ChipToMoney = 0.67;
         public const double TokenToMoney = 5;
 
-        public static long GetChips(long money)
+        public static long ToChips(long money)
             => (long)Math.Ceiling(money * MoneyToChip);
 
-        public static long GetChipMoney(long chips)
+        public static long ChipsToMoney(long chips)
             => (long)Math.Ceiling(chips * ChipToMoney);
 
-        public static long GetTokenMoney(long tokens)
+        public static long TokensToMoney(long tokens)
             => (long) Math.Ceiling(tokens * TokenToMoney);
-
-        private static int ClampDiscount(int discount)
-        {
-            return discount < 0 ? 0 : discount > 100 ? 100 : discount;
-        }
 
         public static long GetCost(long cost, int discount)
         {
-            discount = ClampDiscount(discount);
+            discount = Math.Clamp(discount, 0, 100);
 
             if (discount == 0)
                 return cost;
@@ -33,9 +28,5 @@ namespace Arcadia
             float d = RangeF.Convert(0, 100, 0, 1, discount);
             return (long) MathF.Floor(cost * (1 - d));
         }
-
-        // Tokens are received from voting
-        // Due to their rarity, 1 Token is worth 5 Money
-
     }
 }

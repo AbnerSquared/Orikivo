@@ -14,12 +14,6 @@
         /// <summary>
         /// Marks a <see cref="FontFace"/> as Unicode supported.
         /// </summary>
-        UnicodeSupported = 2,
-
-        // https://en.wikipedia.org/wiki/Subscript_and_superscript#/media/File:Sub_super_num_dem.svg
-        /// <summary>
-        /// Marks a <see cref="FontFace"/> to support subscript and superscript text.
-        /// </summary>
-        SubscriptSupported = 3
+        UnicodeSupported = 2
     }
 }

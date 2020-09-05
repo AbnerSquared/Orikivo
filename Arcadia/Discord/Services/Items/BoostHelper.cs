@@ -12,13 +12,13 @@ namespace Arcadia.Modules
 
             current.AppendLine($"> **Current Rates**");
 
-            foreach (BoosterType type in EnumUtils.GetValues<BoosterType>())
+            foreach (BoostType type in EnumUtils.GetValues<BoostType>())
                 current.AppendLine($"> {WriteCurrentRate(user, type)}");
 
             return current.ToString();
         }
 
-        public static string WriteCurrentRate(ArcadeUser user, BoosterType type)
+        public static string WriteCurrentRate(ArcadeUser user, BoostType type)
         {
             float rate = ItemHelper.GetBoostMultiplier(user, type);
             return $"{Icons.IconOf(type)} {Format.Percent(rate)}";
@@ -33,7 +33,7 @@ namespace Arcadia.Modules
             info.AppendLine(WriteCurrentRates(user));
 
             int i = 0;
-            foreach (BoosterData booster in user.Boosters)
+            foreach (BoostData booster in user.Boosters)
             {
                 if (i > 0)
                     info.AppendLine();
@@ -46,7 +46,7 @@ namespace Arcadia.Modules
             return info.ToString();
         }
 
-        public static bool IsNegative(float rate, BoosterType type)
+        public static bool IsNegative(float rate, BoostType type)
         {
             //if (type == BoosterType.Debt)
             //    return rate > 0;
@@ -54,14 +54,14 @@ namespace Arcadia.Modules
             return rate < 0;
         }
 
-        private static string WriteDefaultName(BoosterData booster)
+        private static string WriteDefaultName(BoostData booster)
         {
             string prefix = IsNegative(booster.Rate, booster.Type) ? "Inhibitor: " : "Booster: ";
 
             return $"{prefix}{booster.Type}";
         }
 
-        public static string WriteName(BoosterData booster)
+        public static string WriteName(BoostData booster)
         {
             if (Check.NotNull(booster.ParentId))
                 return ItemHelper.GetItem(booster.ParentId)?.Name ?? WriteDefaultName(booster);
@@ -69,12 +69,12 @@ namespace Arcadia.Modules
             return WriteDefaultName(booster);
         }
 
-        public static string WriteEffect(BoosterData booster)
+        public static string WriteEffect(BoostData booster)
         {
             return $"{Icons.IconOf(booster.Type)} {Format.Percent(booster.Rate)}";
         }
 
-        public static string WriteEntry(BoosterData booster)
+        public static string WriteEntry(BoostData booster)
         {
             var info = new StringBuilder();
 

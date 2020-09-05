@@ -12,6 +12,7 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>
     {
+        /*
         [Command("castingtest")]
         public async Task TestAsync()
         {
@@ -20,7 +21,7 @@ namespace Arcadia.Modules
 
             string result = w(Context.Account, null);
             Logger.Debug(result);
-        }
+        }*/
 
         [Command("gimi")]
         [RequireUser]
@@ -115,8 +116,9 @@ namespace Arcadia.Modules
             var tick = new Tick(expectedTick, method);
 
             TickResult result = tick.Next(wager);
+            Message message = result.ApplyAndDisplay(Context.Account);
 
-            await Context.Channel.SendMessageAsync(Context.Account, result.ApplyAndDisplay(Context.Account));
+            await Context.Channel.SendMessageAsync(Context.Account, message);
         }
 
         // TODO: Implement a proper cashing out system.
@@ -154,7 +156,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            var chips = MoneyConvert.GetChips(amount);
+            var chips = MoneyConvert.ToChips(amount);
 
             Context.Account.Take(amount, false);
             Context.Account.ChipBalance += chips;

@@ -100,7 +100,7 @@ namespace Arcadia
 
             if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
             {
-                body.Append(ShopHelper.WriteCatalog(catalog));
+                body.Append(ShopHelper.WriteCatalog(shop.Catalog, catalog));
 
                 // TODO: Instead of updating the entire catalog for the user, update based on how many items are visible on that page, so that each page has to been seen to know about the item
                 if (!HasUpdatedCatalog)
@@ -159,7 +159,7 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(icon))
                 notice.Append($"{icon} ");
 
-            notice.Append($"{item.GetName()} ... ");
+            notice.Append($"{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())} ... ");
             long costSum = amount > 1 ? cost * amount : cost;
             notice.Append($"{Icons.IconOf(item.Currency)} **{costSum:##,0}**\n\n");
 
@@ -205,7 +205,7 @@ namespace Arcadia
                 CanClearNotice = false;
             }
 
-            await MessageReference.ModifyAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride));
+            await MessageReference.ModifyAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
         }
 
         public override async Task<ActionResult> InvokeAsync(SocketMessage message)
@@ -387,7 +387,7 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
-                if ((item.Tag & Shop.SellTags) != 0)
+                if ((item.Tag & Shop.SellTags) == 0)
                 {
                     await UpdateAsync("Sorry, but I don't buy that here.");
                     return ActionResult.Continue;

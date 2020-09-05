@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
 
@@ -16,47 +17,18 @@ namespace Arcadia
         }
     }
 
-    public sealed class MeritTypeReader : TypeReader
+    public sealed class ArcadeUserTypeReader : TypeReader
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
         {
-            if (MeritHelper.Exists(input))
-                return Task.FromResult(TypeReaderResult.FromSuccess(MeritHelper.GetMerit(input)));
+            if (!(ctx is ArcadeContext context))
+                return Task.FromResult(TypeReaderResult.FromError(CommandError.Unsuccessful, "Invalid command context specified"));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Merit with the specified ID."));
-        }
-    }
+            if (ulong.TryParse(input, out ulong uId))
+                if (context.Data.Users.Values.ContainsKey(uId))
+                    return Task.FromResult(TypeReaderResult.FromSuccess(context.Data.Users.Values[uId]));
 
-    public sealed class RecipeTypeReader : TypeReader
-    {
-        public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
-        {
-            if (ItemHelper.RecipeExists(input))
-                return Task.FromResult(TypeReaderResult.FromSuccess(ItemHelper.GetRecipe(input)));
-
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Recipe with the specified ID."));
-        }
-    }
-
-    public sealed class QuestTypeReader : TypeReader
-    {
-        public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
-        {
-            if (QuestHelper.Exists(input))
-                return Task.FromResult(TypeReaderResult.FromSuccess(QuestHelper.GetQuest(input)));
-
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Quest with the specified ID."));
-        }
-    }
-
-    public sealed class ShopTypeReader : TypeReader
-    {
-        public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
-        {
-            if (ShopHelper.Exists(input))
-                return Task.FromResult(TypeReaderResult.FromSuccess(ShopHelper.GetShop(input)));
-
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Shop with the specified ID."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find the specified account."));
         }
     }
 }

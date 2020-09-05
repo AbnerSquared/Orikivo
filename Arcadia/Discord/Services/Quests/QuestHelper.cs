@@ -7,6 +7,12 @@ using Orikivo.Drawing;
 
 namespace Arcadia
 {
+    public static class WolfStats
+    {
+        public static readonly string TimesPlayed = "werewolf:times_played";
+        public static readonly string TimesWon = "werewolf:times_won";
+    }
+
     public static class QuestHelper
     {
         public static readonly long DefaultQuestCapacity = 1;
@@ -14,6 +20,43 @@ namespace Arcadia
         public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(4);
         public static readonly List<Quest> Quests = new List<Quest>
         {
+            new Quest
+            {
+                Id = "quest:weekly_attendance",
+                Name = "Weekly Attendance",
+                Summary = "Ensure your status for a week.",
+                Difficulty = QuestDifficulty.Normal,
+                Criteria = new List<VarCriterion>
+                {
+                    new VarCriterion(Stats.DailyStreak, 7)
+                },
+                Type = QuestType.User,
+                Reward = new Reward
+                {
+                    Money = 100,
+                    Exp = 20
+                }
+            },
+            /*
+            new Quest
+            {
+                Id = "quest:new_dusk", // New Moon // Full Moon // Honoring Kent
+                Name = "New Dusk",
+                Summary = "The night falls, giving way to new dangers.",
+                Difficulty = QuestDifficulty.Easy,
+                Criteria = new List<VarCriterion>
+                {
+                    new VarCriterion(WolfStats.TimesPlayed, 3),
+                    new VarCriterion(WolfStats.TimesWon, 1)
+                },
+                Type = QuestType.User,
+                Reward = new Reward
+                {
+                    Money = 25,
+                    Exp = 5
+                }
+            },
+            */
             new Quest
             {
                 Id = "quest:casino_field_day",
@@ -36,7 +79,7 @@ namespace Arcadia
             {
                 Id = "quest:trivial_pursuit",
                 Name = "Trivial Pursuit",
-                Summary = "Test your brain power and push through!",
+                Summary = "Test your brain power and push through.",
                 Difficulty = QuestDifficulty.Easy,
                 Criteria = new List<VarCriterion>
                 {

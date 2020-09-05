@@ -2,7 +2,7 @@
 
 namespace Orikivo.Drawing
 {
-    public struct RangeF
+    public readonly struct RangeF
     {
         public static readonly RangeF Percent = new RangeF(0.00f, 1.00f);
         public static readonly RangeF Normal = new RangeF(-1.00f, 1.00f);

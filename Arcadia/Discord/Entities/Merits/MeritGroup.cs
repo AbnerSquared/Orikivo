@@ -5,7 +5,7 @@
     /// </summary>
     public enum MeritGroup
     {
-        Generic = 1,
+        Common = 1,
         Casino = 2
     }
 }

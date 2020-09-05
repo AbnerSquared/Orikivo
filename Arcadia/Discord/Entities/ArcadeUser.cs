@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
 using Discord;
+using Orikivo;
 
 namespace Arcadia
 {
@@ -20,7 +21,7 @@ namespace Arcadia
             Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
-            Boosters = new List<BoosterData>();
+            Boosters = new List<BoostData>();
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig
@@ -35,7 +36,7 @@ namespace Arcadia
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<BoosterData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card,
+            Dictionary<string, MeritData> merits, List<BoostData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
         {
@@ -43,7 +44,7 @@ namespace Arcadia
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
-            Boosters = boosters ?? new List<BoosterData>();
+            Boosters = boosters ?? new List<BoostData>();
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig
@@ -54,20 +55,6 @@ namespace Arcadia
             };
             CatalogHistory = catalogHistory ?? new Dictionary<string, CatalogHistory>();
         }
-        /*
-
-        [JsonProperty("balance")]
-        public long Balance { get; internal set; }
-
-        [JsonProperty("tokens")]
-        public long TokenBalance { get; internal set; }
-
-        [JsonProperty("chips")]
-        public long ChipBalance { get; internal set; }
-
-        [JsonProperty("debt")]
-        public long Debt { get; internal set; }
-        */
 
         [JsonIgnore]
         public long Balance
@@ -113,7 +100,7 @@ namespace Arcadia
         public Dictionary<string, MeritData> Merits { get; }
 
         [JsonProperty("boosters")]
-        public List<BoosterData> Boosters { get; }
+        public List<BoostData> Boosters { get; }
 
         [JsonProperty("quests")]
         public List<QuestData> Quests { get; }
@@ -145,6 +132,13 @@ namespace Arcadia
 
         [JsonIgnore]
         public bool CanTrade { get; set; } = true;
+
+        private string _cardGenKey;
+        [JsonIgnore]
+        public string CardGenKey => _cardGenKey ??= KeyBuilder.Generate(6);
+
+        internal void RegenCardKey()
+            => _cardGenKey = KeyBuilder.Generate(6);
 
         public long GetVar(string id)
             => Stats.ContainsKey(id) ? Stats[id] : 0;
@@ -217,7 +211,7 @@ namespace Arcadia
         public void Give(long value, bool canBoost = true)
         {
             if (canBoost)
-                value = ItemHelper.BoostValue(this, value, BoosterType.Money);
+                value = ItemHelper.BoostValue(this, value, BoostType.Money);
 
             if (Debt >= value)
             {
@@ -237,7 +231,7 @@ namespace Arcadia
 
         public void Give(long value, out long actual, bool canBoost = true)
         {
-            actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Money) : value;
+            actual = canBoost ? ItemHelper.BoostValue(this, value, BoostType.Money) : value;
 
             if (Debt >= actual)
             {
@@ -258,7 +252,7 @@ namespace Arcadia
         public void Take(long value, bool canBoost = true)
         {
             if (canBoost)
-                value = ItemHelper.BoostValue(this, value, BoosterType.Debt);
+                value = ItemHelper.BoostValue(this, value, BoostType.Debt);
 
             if (Balance >= value)
             {
@@ -278,7 +272,7 @@ namespace Arcadia
 
         public void Take(long value, out long actual, bool canBoost = true)
         {
-            actual = canBoost ? ItemHelper.BoostValue(this, value, BoosterType.Debt) : value;
+            actual = canBoost ? ItemHelper.BoostValue(this, value, BoostType.Debt) : value;
 
             if (Balance >= actual)
             {

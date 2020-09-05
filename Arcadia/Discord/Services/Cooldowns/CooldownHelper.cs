@@ -110,7 +110,7 @@ namespace Arcadia
 
                 if (since < duration)
                 {
-                    row = $"> • **{name}:** {Format.Countdown(duration - since)} until reset";
+                    row = $"> • **{name}:** **{Format.Countdown(duration - since)}** until reset";
                     return true;
                 }
             }

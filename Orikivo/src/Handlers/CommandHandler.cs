@@ -157,7 +157,10 @@ namespace Orikivo
 
             if (ctx.Account?.Husk != null)
             {
-                Engine.CanMove(ctx.Account, ctx.Account.Husk);
+                Engine.CanMove(ctx.Husk, out string notification);
+
+                if (string.IsNullOrWhiteSpace(notification))
+                    ctx.Account.Notifier.Append(notification);
             }
 
             bool notified = ctx.Account?.Notifier.LastNotified.HasValue ?? false;
@@ -215,7 +218,7 @@ namespace Orikivo
         {
             // Check the stats for any possible merits
             var merits = Engine.Merits
-                .Where(x => x.Value.Criteria.Invoke(user) && !user.HasMerit(x.Key));
+                .Where(x => x.Value.Criteria.Invoke(user.Husk, user.Brain) && !user.HasMerit(x.Key));
 
             if (merits.Count() > 0)
             {

@@ -10,8 +10,10 @@ namespace Arcadia.Multiplayer
         // what is the name of this game?
         public string Name { get; set; }
 
+        public string Icon { get; set; }
+
         // What is the icon that this game uses?
-        public Sprite Icon { get; set; }
+        public Sprite Image { get; set; }
 
         // what is this game about?
         public string Summary { get; set; }

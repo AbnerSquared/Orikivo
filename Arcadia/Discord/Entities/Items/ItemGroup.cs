@@ -10,7 +10,7 @@ namespace Arcadia
         // This is the ID of the group
         public string Id { get; set; }
 
-        public string Icon { get; set; }
+        public Icon Icon { get; set; }
 
         public string Name { get; set; }
 

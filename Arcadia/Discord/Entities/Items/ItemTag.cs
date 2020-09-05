@@ -13,6 +13,7 @@ namespace Arcadia
         Decorator = 32,
         Automaton = 64,
         Booster = 128,
-        Ingredient = 256
+        Ingredient = 256,
+        Pass = 512
     }
 }

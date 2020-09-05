@@ -416,6 +416,7 @@ namespace Arcadia.Multiplayer.Games
             // Set all of the currently connected channels to the specified frequency and group them
             server.SetStateFrequency(GameState.Playing, WolfChannel.Main);
             server.GroupAll("primary");
+            session.SpectateFrequency = WolfChannel.Main;
 
             DisplayContent main = server.GetBroadcast(WolfChannel.Main).Content;
 
@@ -681,7 +682,7 @@ namespace Arcadia.Multiplayer.Games
         private static void Start(GameContext ctx)
         {
             // If the game configuration supports night zero, handle it here.
-
+            ctx.Session.CanSpectate = true;
             // Write the initial texts
             ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Append(WolfFormat.WriteStartText());
 

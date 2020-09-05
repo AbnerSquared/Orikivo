@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia.Services
 {
@@ -21,7 +22,7 @@ namespace Arcadia.Services
                 return info.ToString();
             }
 
-            foreach (ItemGroup group in ItemHelper.Groups)
+            foreach (ItemGroup group in Assets.Groups)
             {
                 int known = ItemHelper.GetKnownCount(user, group.Id);
                 int seen = ItemHelper.GetSeenCount(user, group.Id);
@@ -57,9 +58,9 @@ namespace Arcadia.Services
             var info = new StringBuilder();
 
             info.AppendLine("> 🗃️ **Catalog: All**");
-            info.AppendLine("> Use `inspect <item_id>` to learn more about an item entry.");
+            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
 
-            var entries = ItemHelper.LItems
+            var entries = Assets.Items
                 .Where(x => ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 
@@ -87,6 +88,29 @@ namespace Arcadia.Services
             return info.ToString();
         }
 
+        public static string Search(ArcadeUser user, string input, int page = 0)
+        {
+            IEnumerable<Item> results = ItemHelper.Search(input).Where(x => ItemHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown);
+
+            if (!results.Any())
+                return Format.Warning("Unable to find any matching results.");
+
+            var info = new StringBuilder();
+
+            info.AppendLine($"> 🗃️ **Catalog Search** (**{results.Count():##,0}** {Format.TryPluralize("result", results.Count())} found)");
+            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
+
+            foreach (Item item in Paginate.GroupAt(results, page, _pageSize))
+            {
+                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+                string icon = item.GetIcon() ?? "•";
+
+                info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
+            }
+
+            return info.ToString();
+        }
+
         public static string View(ArcadeUser user, string query, int page = 0)
         {
             if (!Check.NotNull(query))
@@ -107,7 +131,7 @@ namespace Arcadia.Services
 
             ItemGroup group = ItemHelper.GetGroup(query);
 
-            var entries = ItemHelper.LItems
+            var entries = Assets.Items
                 .Where(x => x.GroupId == query && ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 
@@ -117,10 +141,10 @@ namespace Arcadia.Services
             int offset = page * _pageSize;
             int i = 0;
 
-            string baseIcon = group.Icon ?? "🗃️";
+            string baseIcon = group.Icon.Fallback ?? "🗃️";
             string extra = pageCount > 1 ? $" (Page **{page:##,0}**/{pageCount:##,0})" : "";
             info.AppendLine($"> {baseIcon} **Catalog: {group.Name}**{extra}");
-            info.AppendLine("> Use `inspect <item_id>` to learn more about an item entry.");
+            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
 
             foreach (Item item in entries.Skip(offset))
             {
@@ -226,6 +250,102 @@ namespace Arcadia.Services
             return $"`{itemId}` {icon} **{name}**{counter}";
         }
 
+        public static string InspectItem(ArcadeContext ctx, ArcadeUser user, ItemData data, int index)
+        {
+            var details = new StringBuilder();
+
+            Item item = ItemHelper.GetItem(data.Id);
+
+            bool isUnique = data.Data != null;
+
+            string refId = isUnique || data.Seal != null ? $" (`{(isUnique ? $"{data.Data.Id}" : $"{data.TempId}")}`)" : "";
+
+            details.AppendLine($"> {Icons.Inventory} **Inventory: Slot {index + 1}**{refId}");
+
+            if (data.Seal == null)
+            {
+                details.AppendLine($"> {GetDisplayName(item)} ({item.Rarity})");
+
+                if (Check.NotNullOrEmpty(item.Quotes))
+                    details.AppendLine($"> *\"{item.GetQuote()}*\"");
+            }
+            else
+            {
+                string sealIcon = ItemHelper.IconOf(data.Seal.ReferenceId);
+                details.AppendLine($"> {(Check.NotNull(sealIcon) ? $"{sealIcon} " : "")}**{ItemHelper.NameOf(data.Seal.ReferenceId)}**");
+            }
+
+            if (data.Seal?.SenderId != null)
+            {
+                ctx.TryGetUser(data.Seal.SenderId.Value, out ArcadeUser sender);
+
+                string senderName = sender?.Username ?? "Unknown User";
+                details.AppendLine($"> 🧾 **From**: **{senderName}**");
+            }
+
+            details.AppendLine("\n> **Details**");
+
+            if (!isUnique)
+                details.AppendLine($"• **Stack Count**: **{data.Count:##,0}**");
+
+            details.AppendLine($"📏 **Size**: {Inventory.WriteCapacity(item.Size * data.Count)}");
+
+            if (!ItemHelper.CanTrade(data))
+                details.AppendLine($"📫 **Untradable**");
+            else if (item.TradeLimit.HasValue && isUnique)
+            {
+                int remainder = item.TradeLimit.Value - data.Data.TradeCount ?? 0;
+                details.AppendLine($"📫 **{remainder}** {Format.TryPluralize("trade", remainder)} remaining");
+            }
+
+            if (data.Seal != null)
+                return details.ToString();
+
+            if (item.Usage != null)
+            {
+                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteMode.Break)
+                    details.AppendLine($"🥪 **Consumable**");
+                else if (item.Usage.Durability.HasValue && isUnique)
+                    details.AppendLine($"❤️ **Durability**: {item.Usage.Durability.Value - data.Data.Durability ?? 0}");
+            }
+
+            if (isUnique && data.Data.ExpiresOn.HasValue)
+            {
+                if (DateTime.UtcNow - data.Data.ExpiresOn.Value >= TimeSpan.Zero)
+                    details.AppendLine("💀 **Expired**");
+                else
+                    details.AppendLine($"💀 Expires in {Format.LongCounter(data.Data.ExpiresOn.Value - DateTime.UtcNow)}");
+            }
+
+            if (isUnique)
+            {
+                TimeSpan? remainder = ItemHelper.GetCooldownRemainder(user, data.Id, data.Data.Id);
+                if (remainder.HasValue)
+                    details.AppendLine($"🕘 Usable in {Format.LongCounter(remainder.Value)}");
+            }
+
+            if (isUnique && (data.Data.Properties.Count > 0 || Check.NotNull(data.Data.Name)))
+            {
+                details.AppendLine("\n> **Properties**");
+
+                if (Check.NotNull(data.Data.Name))
+                    details.AppendLine($"🉐 **Name Tag**: **{data.Data.Name}**");
+
+                foreach ((string id, long value) in data.Data.Properties)
+                    details.AppendLine($"• `{id}`: **{value:##,0}**");
+            }
+
+            return details.ToString();
+        }
+
+        public static string GetDisplayName(Item item)
+        {
+            string icon = item.GetIcon();
+            string name = Check.NotNull(icon) ? item.Name : item.GetName();
+
+            return $"{(Check.NotNull(icon) ? icon : "•")} **{name}**";
+        }
+
         public static string ViewItem(Item item, CatalogStatus status = CatalogStatus.Known)
         {
             // You are not authorized to view this item.
@@ -328,15 +448,20 @@ namespace Arcadia.Services
                 if (item.Usage.Action != null)
                     details.AppendLine("🔹 **Usable**");
 
-
-                string removeOn = "";
-
-                if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
-                    removeOn = " - Removed on break";
-
-                if (item.Usage.Durability.HasValue)
+                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteMode.Break)
+                    details.AppendLine($"🥪 **Consumable**");
+                else
                 {
-                    details.AppendLine($"❤️ **Durability: {item.Usage.Durability.Value:##,0}**{removeOn}");
+                    string removeOn = "";
+
+
+                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                        removeOn = " - Removed on break";
+
+                    if (item.Usage.Durability.HasValue)
+                    {
+                        details.AppendLine($"❤️ **Durability: {item.Usage.Durability.Value:##,0}**{removeOn}");
+                    }
                 }
 
                 if (item.Usage.Expiry.HasValue)

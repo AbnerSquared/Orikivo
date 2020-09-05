@@ -68,6 +68,9 @@ namespace Arcadia
 
         public string GetSummary()
         {
+            if (Check.NotNull(Summary))
+                return Summary;
+
             if (ItemHelper.TryGetGroup(GroupId, out ItemGroup group))
                 return group.Summary;
 
@@ -76,8 +79,11 @@ namespace Arcadia
 
         public string GetIcon()
         {
+            if (Check.NotNull(Icon))
+                return Icon;
+
             if (ItemHelper.TryGetGroup(GroupId, out ItemGroup group))
-                return group.Icon;
+                return group.Icon.ToString();
 
             return Icon ?? "";
         }

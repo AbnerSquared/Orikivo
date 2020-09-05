@@ -9,7 +9,7 @@ namespace Orikivo.Drawing
     /// <summary>
     /// Represents an immutable color object that supports multi-tone grouping and conversion formulas.
     /// </summary>
-    public struct ImmutableColor
+    public readonly struct ImmutableColor
     {
         public static readonly ImmutableColor Default = new ImmutableColor(0xFFFFFF);
         public static readonly ImmutableColor NeonRed = new ImmutableColor(0xF8427D);
@@ -157,6 +157,9 @@ namespace Orikivo.Drawing
             return new ImmutableColor(rgb, rgb, rgb);
         }
 
+        public static float GetBrightness(ImmutableColor value)
+            => MathF.Floor(R_LUMINANCE * value.R + G_LUMINANCE * value.G + B_LUMINANCE * value.B);
+
         // Keep the opacity of the initial alpha
         public static ImmutableColor Blend(ImmutableColor background, ImmutableColor foreground, float strength)
         {
@@ -209,9 +212,9 @@ namespace Orikivo.Drawing
             return new ImmutableColor(r, g, b);
         }
 
-        private static byte GetAverage(IEnumerable<int> values)
+        private static byte GetAverage(in IEnumerable<int> values)
         {
-            if (values.Count() == 0)
+            if (!values.Any())
                 throw new ArgumentException("There must at least be one specified value in order to get an average.");
 
             if (values.Count() == 1)
@@ -318,6 +321,62 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
+        /// Returns the closest matching <see cref="ImmutableColor"/> for the specified value from an array of <see cref="ImmutableColor"/> values.
+        /// </summary>
+        public static ImmutableColor ClosestLumen(ImmutableColor value, ImmutableColor[] colors)
+        {
+            return colors[ClosestBrightnessAt(value, colors)];
+        }
+
+        public static int ClosestBrightnessAt(ImmutableColor value, ImmutableColor[] colors)
+        {
+            int index = (int) Math.Floor(GetBrightness(value) / (255 / (double) colors.Length));
+
+            if (index == colors.Length)
+                return colors.Length - 1;
+
+            return index;
+        }
+
+        public static ImmutableColor GetDarkestColor(ImmutableColor[] values)
+        {
+            float darkest = 0;
+            int index = 0;
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                float brightness = GetBrightness(values[i]);
+
+                if (brightness >= darkest)
+                    continue;
+
+                index = i;
+                darkest = brightness;
+            }
+
+            return values[index];
+        }
+
+        public static ImmutableColor GetBrightestColor(ImmutableColor[] values)
+        {
+            float brightest = 0;
+            int index = 0;
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                float brightness = GetBrightness(values[i]);
+
+                if (brightness <= brightest)
+                    continue;
+
+                index = i;
+                brightest = brightness;
+            }
+
+            return values[index];
+        }
+
+        /// <summary>
         /// Returns the index of the closest matching index of the specified <see cref="ImmutableColor"/> from a <see cref="GammaPalette"/>.
         /// </summary>
         public static int ClosestMatchAt(ImmutableColor value, GammaPalette colors)
@@ -402,7 +461,7 @@ namespace Orikivo.Drawing
             => unchecked((uint)(r << R_SHIFT | g << G_SHIFT | b << B_SHIFT)) & 0xffffff;
 
         /// <summary>
-        /// Returns this <see cref="ImmutableColor"/> as a hexidecimal-formatted <see cref="string"/>.
+        /// Returns a string that represents the hexadecimal format of this <see cref="ImmutableColor"/>.
         /// </summary>
         public override string ToString()
             => A < 255 ? string.Format("#{0:X8}", Value) : string.Format("#{0:X6}", MakeRgb(R, G, B));

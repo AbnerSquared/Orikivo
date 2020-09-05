@@ -369,8 +369,9 @@ namespace Arcadia
 
         private static string WriteItem(string itemId, int amount)
         {
+            Item item = ItemHelper.GetItem(itemId);
             string icon = ItemHelper.IconOf(itemId);
-            string name = ItemHelper.NameOf(itemId);
+            string name = Check.NotNull(icon) ? item.Name : item.GetName();
             return $"{(Check.NotNull(icon) ? $"{icon} " : "• ")}{name}{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}";
         }
 

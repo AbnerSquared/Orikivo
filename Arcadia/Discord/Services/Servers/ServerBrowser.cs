@@ -7,9 +7,37 @@ using Orikivo.Text.Pagination;
 
 namespace Arcadia.Modules
 {
+    public static class UserBrowser
+    {
+
+    }
     public static class ServerBrowser
     {
         public static readonly int DefaultPageSize = 6;
+
+        public static string ViewInvites(ArcadeUser user, GameManager games, int page = 0)
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine($"> 🎲 **Server Invites**");
+            info.AppendLine($"> Come and join the party!");
+
+            if (games.Servers.Values.Count(x => x.Invites.Any(i => i.UserId == user.Id)) == 0)
+            {
+                info.AppendLine("\nYou have no pending invitations.");
+                return info.ToString();
+            }
+
+            IEnumerable<ServerInvite> invites = games.Servers.Values
+                .Where(x => x.Invites.Any(i => i.UserId == user.Id))
+                .Select(x => x.Invites.Where(i => i.UserId == user.Id))
+                .SelectMany(x => x);
+
+            foreach (ServerInvite invite in Paginate.GroupAt(invites, page, 10))
+                info.AppendLine($"{invite.Header}"); // {(Check.NotNull(invite.Description) ? $"\n> *\"{invite.Description}\"*" : "")}
+
+            return info.ToString();
+        }
 
         public static string View(in IEnumerable<GameServer> servers, int page = 0, int pageSize = 6)
         {

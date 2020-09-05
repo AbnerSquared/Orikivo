@@ -36,6 +36,16 @@ namespace Arcadia
             {
                 Title = "Recipes",
                 Icon = "📒"
+            },
+            [Headers.UserBrowser] = new Header
+            {
+                Title = "User Browser",
+                Subtitle = "Search for a specific user."
+            },
+            [Headers.GuildBrowser] = new Header
+            {
+                Title = "Guild Browser",
+                Subtitle = "Search for a specific guild."
             }
         };
 

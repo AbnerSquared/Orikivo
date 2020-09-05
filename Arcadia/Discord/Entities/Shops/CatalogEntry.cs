@@ -15,6 +15,10 @@
 
         public float DiscountChance { get; set; }
 
+        // The rate that this item is sold at in comparison
+        // due to its rarity
+        public float InflationRate { get; set; }
+
         public bool IsSpecial { get; set; }
 
         public int Weight { get; set; }
