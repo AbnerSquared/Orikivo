@@ -43,10 +43,10 @@ namespace Orikivo
     public class DeckProperties
     {
         public int Size { get; }
+
         // How many 52-card decks should be included?
         public int DeckCount { get; }
-        public CardSuit AllowedSuits { get; }
-        public CardRank AllowedRanks { get; }
+        public bool AllowJokers { get; }
     }
 
     public class CardDeck

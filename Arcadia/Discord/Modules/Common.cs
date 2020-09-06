@@ -369,6 +369,14 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("vote")]
+        public async Task VoteAsync()
+        {
+            VoteResultFlag result = Vote.Next(Context.Account);
+            await Context.Channel.SendMessageAsync(Vote.ApplyAndDisplay(Context.Account, result));
+        }
+
+        [RequireUser]
         [Command("daily")]
         public async Task GetDailyAsync()
         {
