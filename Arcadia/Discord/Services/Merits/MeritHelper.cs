@@ -385,22 +385,25 @@ namespace Arcadia
         public static string Write(Merit merit, ArcadeUser user = null)
         {
             var info = new StringBuilder();
+            bool allowTooltips = user?.Config?.Tooltips ?? true;
 
             if (merit.Criteria == null)
-            {
                 info.AppendLine(Format.Warning("This is an exclusive merit."));
+
+            if (allowTooltips)
+            {
+                var tooltips = new List<string>();
+
+                if (user != null && CanClaim(user, merit))
+                    tooltips.Add("Type `claim {merit.Id}` to claim this merit.");
+
+                if (merit.Hidden)
+                    tooltips.Add("This merit is excluded from completion progress.");
+
+                info.AppendLine(GetTooltips(tooltips));
             }
 
-            if (user != null && CanClaim(user, merit))
-            {
-                info.AppendLine($"> 🛠️ Type `claim {merit.Id}` to claim this merit.");
-            }
-            else if (merit.Hidden && (user?.Config?.Tooltips ?? false))
-            {
-                info.AppendLine($"> 🛠️ This merit does not count for total completion.");
-            }
-
-            if (merit.Criteria == null || (merit.Hidden && (user?.Config?.Tooltips ?? false)))
+            if (merit.Criteria == null || (allowTooltips && (merit.Hidden || user != null && CanClaim(user, merit))))
                 info.AppendLine();
 
             string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
@@ -422,37 +425,29 @@ namespace Arcadia
             }
 
             if (user != null)
-            {
                 if (HasMerit(user, merit.Id))
-                {
                     info.AppendLine($"> Unlocked: {Format.FullTime(user.Merits[merit.Id].AchievedAt, '.')}");
-                }
-            }
 
             info.AppendLine($"> Rank: **{merit.Rank.ToString()}**");
 
             if (merit.Reward != null)
             {
                 info.AppendLine();
-                info.Append($"> 🎁 **{Format.TryPluralize("Reward", merit.Reward.ItemIds.Count + (merit.Reward.Money > 0 ? 1 : 0) + (merit.Reward.Exp > 0 ? 1 : 0))}**");
+                info.Append($"> 🎁 **{Format.TryPluralize("Reward", merit.Reward.Count)}**");
 
                 if (user != null)
                 {
-                    if (HasMerit(user, merit.Id))
-                    {
-                        if (user?.Merits[merit.Id]?.IsClaimed == true)
-                        {
-                            info.Append(" (Claimed)");
-                        }
-                    }
+                    if (HasMerit(user, merit.Id) && user?.Merits[merit.Id]?.IsClaimed == true)
+                        info.Append(" (Claimed)");
                 }
 
                 info.AppendLine();
 
                 if (merit.Reward.Money > 0)
-                {
-                    info.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
-                }
+                    info.AppendLine($"> {Icons.Balance} **{merit.Reward.Money:##,0}**");
+
+                if (merit.Reward.Exp > 0)
+                    info.AppendLine($"> {Icons.Exp} **{merit.Reward.Exp:##,0}**");
 
                 if (merit.Reward.ItemIds != null)
                 {
@@ -466,7 +461,7 @@ namespace Arcadia
 
         public static string WriteRow(Merit merit, ArcadeUser user = null)
         {
-            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon} " : "•");
+            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
             var info = new StringBuilder();
 
             info.AppendLine($"> `{merit.Id}`");
@@ -510,9 +505,6 @@ namespace Arcadia
             bool allowTooltips = (user?.Config?.Tooltips ?? true);
             var info = new StringBuilder();
 
-            if (query != MeritQuery.Default)
-                info.Append(GetNotice(query));
-
             if (query == MeritQuery.Default)
             {
                 info.AppendLine($"{Locale.GetHeader(Headers.Merits, $"(**{GetScore(user)}**m)", GetSummary(query))}\n");
@@ -541,6 +533,9 @@ namespace Arcadia
                     var tooltips = new List<string>();
 
                     tooltips.Add("Type `merit <id>` to view more details about a specific merit.");
+
+                    if (query == MeritQuery.Hidden)
+                        tooltips.Add("All merits in this category are excluded from completion progress.");
 
                     if (merits.Any(x => HasMerit(user, x)))
                         tooltips.Add("Unlocked merits are marked with a `*`.");
@@ -600,21 +595,13 @@ namespace Arcadia
             };
         }
 
-        private static string GetNotice(MeritQuery flag)
-        {
-            return flag switch
-            {
-                MeritQuery.Hidden => "> 🛠️ These merits do not account for total completion.\n\n",
-                _ => ""
-            };
-        }
 
         public static void TryGiveMerits(ArcadeUser user)
         {
             foreach (Merit merit in Merits.Where(x => IsEligible(user, x)))
             {
                 user.Merits.Add(merit.Id, merit.GetData());
-                user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
+                user.Notifier.Append($"Merit unlocked: **{merit.Name}** (**{merit.Score}**m)");
             }
         }
 

@@ -20,6 +20,21 @@ namespace Arcadia
         public long Money { get; set; }
         public long Exp { get; set; }
 
+        public int Count => GetCount();
+
+        private int GetCount()
+        {
+            int count = ItemIds?.Count ?? 0;
+
+            if (Money > 0)
+                count++;
+
+            if (Exp > 0)
+                count++;
+
+            return count;
+        }
+
         public void Apply(ArcadeUser user)
         {
             if (Money > 0)

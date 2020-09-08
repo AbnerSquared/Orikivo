@@ -29,6 +29,64 @@ namespace Orikivo
             return $"{icon} **{value:##,0}**";
         }
 
+        public static string Tooltip(string tooltip)
+        {
+            return $"> 🛠️ {tooltip}";
+        }
+
+        public static string Tooltip(in IEnumerable<string> tooltips)
+        {
+            if (!Check.NotNullOrEmpty(tooltips))
+                return "";
+
+            if (tooltips.Count() == 1)
+                return Tooltip(tooltips.First());
+
+            var result = new StringBuilder();
+
+            result
+                .AppendLine("> 🛠️ **Tips**")
+                .AppendJoin("\n", tooltips.Select(x => $"• {x}"));
+
+            return result.ToString();
+        }
+
+
+        public static string Notice(string notification)
+        {
+            return $"> 🔔 {notification}";
+        }
+
+        public static string Notice(in IEnumerable<string> notifications, int maxAllowed = 3)
+        {
+            if (!Check.NotNullOrEmpty(notifications))
+                return "";
+
+            if (notifications.Count() == 1)
+                return Notice(notifications.First());
+
+            var result = new StringBuilder();
+
+            result.Append("> 🔔 **Notifications**");
+
+            int i = 0;
+            foreach (string notice in notifications)
+            {
+                if (i >= maxAllowed)
+                    break;
+
+                result.AppendLine($"• {notice}");
+                i++;
+            }
+
+            int remainder = notifications.Count() - i;
+
+            if (remainder > 0)
+                result.Append($"• and **{remainder:##,0}** more...");
+
+            return result.ToString();
+        }
+
         // TODO: Use Discord.Net's version of Quote(text)
         public static string Quote(string text)
         {
@@ -108,9 +166,6 @@ namespace Orikivo
 
             return header.ToString();
         }
-
-        public static string Tooltip(string text)
-            => $"> 🛠️ {text}";
 
         public static string Warning(string text)
             => $"> ⚠️ {text}";
