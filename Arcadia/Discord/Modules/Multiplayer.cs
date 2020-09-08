@@ -33,7 +33,7 @@ namespace Arcadia.Modules
         {
             if (!_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0).Any())
             {
-                await Context.Channel.WarnAsync("There aren't any public game servers to show.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("There aren't any public game servers to show.")).ConfigureAwait(false);
                 return;
             }
 
@@ -47,13 +47,13 @@ namespace Arcadia.Modules
         {
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.WarnAsync("You are already in a server.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedChannels.ContainsKey(Context.Channel.Id))
             {
-                await Context.Channel.WarnAsync("This channel is already dedicated to a server.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("This channel is already dedicated to a server.")).ConfigureAwait(false);
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace Arcadia.Modules
             {
                 if (!GameManager.Games.ContainsKey(gameId))
                 {
-                    await Context.Channel.WarnAsync("Unable to initialize a server for the specified game mode.").ConfigureAwait(false);
+                    await Context.Channel.SendMessageAsync(Format.Warning("Unable to initialize a server for the specified game mode.")).ConfigureAwait(false);
                     return;
                 }
             }
@@ -81,7 +81,7 @@ namespace Arcadia.Modules
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.WarnAsync("You are already in a server.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
                 return;
             }
 
@@ -94,13 +94,13 @@ namespace Arcadia.Modules
         {
             if (_games.Servers.Count == 0)
             {
-                await Context.Channel.WarnAsync("Unable to find any available servers.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("Unable to find any available servers.")).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.WarnAsync("You are already in a server.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
                 return;
             }
 
@@ -113,13 +113,13 @@ namespace Arcadia.Modules
         {
             if (_games.Servers.Count == 0)
             {
-                await Context.Channel.WarnAsync("Unable to find any available servers.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("Unable to find any available servers.")).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.WarnAsync("You are already in a server.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace Arcadia.Modules
             {
                 if (!GameManager.Games.ContainsKey(gameId))
                 {
-                    await Context.Channel.WarnAsync("An invalid game mode was specified.").ConfigureAwait(false);
+                    await Context.Channel.SendMessageAsync(Format.Warning("An invalid game mode was specified.")).ConfigureAwait(false);
                     return;
                 }
             }
@@ -161,7 +161,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.WarnAsync("Unable to find the specified server.").ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
         }
 
         [Command("destroysession")]
@@ -183,11 +183,11 @@ namespace Arcadia.Modules
                     return;
                 }
 
-                await Context.Channel.WarnAsync($"The server #`{serverId}` does not have an existing session to destroy.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning($"The server #`{serverId}` does not have an existing session to destroy.")).ConfigureAwait(false);
                 return;
             }
 
-            await Context.Channel.WarnAsync("Unable to find the specified server.").ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
         }
     }
 }

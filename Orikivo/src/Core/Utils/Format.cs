@@ -1,5 +1,4 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +6,6 @@ using System.Text;
 
 namespace Orikivo
 {
-    
-
     /// <summary>
     /// A utility class that handles string formatting.
     /// </summary>
@@ -21,12 +18,36 @@ namespace Orikivo
         public static bool IsSensitive(string text)
             => text.ContainsAny("\\", "*", "_", "~", "`", "|", ">");
 
+        public static string Sanitize(string text)
+        {
+            return text.Escape(SensitiveCharacters);
+        }
+
         public static string Number(long value, string icon = null)
         {
             if (string.IsNullOrWhiteSpace(icon))
                 return $"**{value:##,0}**";
 
             return $"{icon} **{value:##,0}**";
+        }
+
+        public static string Section(string title, string content)
+        {
+            return $"> **{title}**\n{content}";
+        }
+
+        public static string List(in IEnumerable<string> elements, string bullet = "", string header = null)
+        {
+            bullet = Check.NotNull(bullet) ? bullet : "•";
+            var result = new StringBuilder();
+
+            if (Check.NotNull(header))
+                result.AppendLine($"> **{header}**");
+
+            foreach (string element in elements)
+                result.AppendLine($"{bullet} {element}");
+
+            return result.ToString();
         }
 
         public static string Tooltip(string tooltip)
@@ -151,15 +172,14 @@ namespace Orikivo
         public static string Trim(string value, int limit)
             => value.Length > limit ? $"{value[..limit]}..." : value;
 
-        public static string Header(string text, string icon = null, string description = null)
+        public static string Header(string title, string icon = null, string description = null)
         {
             var header = new StringBuilder("> ");
-
 
             if (Check.NotNull(icon))
                 header.Append(icon);
 
-            header.Append(Bold(text));
+            header.Append(Bold(title));
 
             if (Check.NotNull(description))
                 header.Append($"\n> {description}");
@@ -169,8 +189,6 @@ namespace Orikivo
 
         public static string Warning(string text)
             => $"> ⚠️ {text}";
-
-
 
         private static readonly Dictionary<char, char> SuperscriptMap = new Dictionary<char, char>
         {
@@ -272,72 +290,6 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        private const string CLOCK_1 = "🕐";
-        private const string CLOCK_2 = "🕑";
-        private const string CLOCK_3 = "🕒";
-        private const string CLOCK_4 = "🕓";
-        private const string CLOCK_5 = "🕔";
-        private const string CLOCK_6 = "🕕";
-        private const string CLOCK_7 = "🕖";
-        private const string CLOCK_8 = "🕗";
-        private const string CLOCK_9 = "🕘";
-        private const string CLOCK_10 = "🕙";
-        private const string CLOCK_11 = "🕚";
-        private const string CLOCK_12 = "🕛";
-
-        public static string GetHourEmote(int hour)
-        {
-            switch (hour)
-            {
-                case 11:
-                case 23:
-                    return CLOCK_11;
-
-                case 10:
-                case 22:
-                    return CLOCK_10;
-
-                case 9:
-                case 21:
-                    return CLOCK_9;
-
-                case 8:
-                case 20:
-                    return CLOCK_8;
-
-                case 7:
-                case 19:
-                    return CLOCK_7;
-
-                case 6:
-                case 18:
-                    return CLOCK_6;
-
-                case 5:
-                case 17:
-                    return CLOCK_5;
-
-                case 4:
-                case 16:
-                    return CLOCK_4;
-
-                case 3:
-                case 15:
-                    return CLOCK_3;
-
-                case 2:
-                case 14:
-                    return CLOCK_2;
-
-                case 1:
-                case 13:
-                    return CLOCK_1;
-
-                default:
-                    return CLOCK_12;
-            }
-        }
-
         public static string LongCounter(TimeSpan remaining, bool useMarkdown = true)
         {
             double milliseconds = remaining.TotalMilliseconds;
@@ -381,8 +333,8 @@ namespace Orikivo
                     break;
             }
 
-            string markdown = useMarkdown ? "**" : "";
-            return $"{markdown}{upper:##,0.##}{markdown}{GetCounterSuffix(i)}";
+            string value = $"{upper:##,0.##}";
+            return $"{(useMarkdown ? Bold(value) : value)}{GetCounterSuffix(i)}";
         }
 
         public static string RawCounter(double milliseconds)
@@ -500,11 +452,11 @@ namespace Orikivo
             if (!isEmbedded)
             {
                 if (Check.NotNull(reaction))
-                    result.AppendLine(Bold(reaction));
+                    result.AppendLine($"> {Bold(reaction)}");
             }
 
             if (Check.NotNull(title))
-                result.Append(title);
+                result.Append($"> {title}");
 
             if (Check.NotNull(reason))
                 result.Append($"```{reason}```");
@@ -563,7 +515,10 @@ namespace Orikivo
             if (count == 0 || count == 1)
                 return word;
 
-            return Pluralize(word);
+            Casing casing = GetCasing(word);
+            string result = Pluralize(word);
+
+            return SetCasing(result, casing);
         }
 
         private static Casing GetCasing(string input)
@@ -629,7 +584,7 @@ namespace Orikivo
                 return UniquePlurals[input];
 
             // if the specified word is shorter than 3 letters, just return it with an s.
-            if (input.Length < 3 || input.EndsWith("nth")) // substitute; not official formatting
+            if (input.Length < 3 || input.EndsWith("nth", StringComparison.Ordinal)) // substitute; not official formatting
                 return word + "s";
 
             // regular nouns => word + s
@@ -653,39 +608,39 @@ namespace Orikivo
                 return word[..^suffix.Length] + "ves";
             }
 
-            if (input.EndsWith("y"))
+            if (input.EndsWith("y", StringComparison.Ordinal))
             {
                 // ^2 == word.Length - 2
                 if (IsConsonant(input[^2]))
                     return word[..^1] + "ies";
             }
 
-            if (input.EndsWith("o"))
+            if (input.EndsWith("o", StringComparison.Ordinal))
             {
                 // this is where implementing exceptions for specific words come into play.
                 return word + "es";
             }
 
             // radius => radii
-            if (input.EndsWith("us"))
+            if (input.EndsWith("us", StringComparison.Ordinal))
                 // word[0..^2] == word.Substring(0, word.Length - 2)
                 // this is selecting the range of characters FROM 0 TO word.Length - 2
                 return word[..^2] + "i";
 
             // criterion => criteria
-            if (input.EndsWith("on"))
+            if (input.EndsWith("on", StringComparison.Ordinal))
                 return word[..^2] + "a";
 
             // axis => axes
-            if (input.EndsWith("is"))
+            if (input.EndsWith("is", StringComparison.Ordinal))
                 return word[..^2] + "es";
 
             // datum => data
-            if (input.EndsWith("um"))
+            if (input.EndsWith("um", StringComparison.Ordinal))
                 return word[..^2] + "a";
 
             // this might not be right, but it's worth a shot
-            if (input.EndsWith("ies"))
+            if (input.EndsWith("ies", StringComparison.Ordinal))
                 return word;
 
             return word + "s";

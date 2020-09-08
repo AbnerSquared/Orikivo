@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     // REF: Discord.Net.Utils.AsyncEvent.cs
-    public static class AsyncExtensions
+    public static class AsyncEventExtensions
     {
         public static async Task InvokeAsync(
             this AsyncEvent<Func<Task>> handler)

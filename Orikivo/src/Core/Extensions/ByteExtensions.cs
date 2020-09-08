@@ -2,16 +2,17 @@
 
 namespace Orikivo
 {
-    // refer to Discord.Net.Utils
     internal static class ByteExtensions
     {
         /// <summary>
-        /// Returns the bit at the specified index of a <see cref="byte"/>.
+        /// Returns the bit at the specified index of this <see cref="byte"/>.
         /// </summary>
-        /// <param name="bitIndex">The index of the bit to search for (zero-based).</param>
         public static bool GetBit(this byte b, int bitIndex)
             => (b & (1 << bitIndex)) != 0;
 
+        /// <summary>
+        /// Sets the value of a bit at the specified index of this <see cref="byte"/>.
+        /// </summary>
         public static byte SetBit(this byte b, int bitIndex, bool bit)
         {
             bool[] bits = GetBits(b);
@@ -21,6 +22,9 @@ namespace Orikivo
             return ToByte(bits);
         }
 
+        /// <summary>
+        /// Returns an array containing all of the bits in this <see cref="byte"/>.
+        /// </summary>
         public static bool[] GetBits(this byte b)
         {
             bool[] bits = new bool[8];
@@ -31,6 +35,9 @@ namespace Orikivo
             return bits;
         }
 
+        /// <summary>
+        /// Returns a new <see cref="byte"/> from a specified collection of bits.
+        /// </summary>
         public static byte ToByte(this bool[] bits)
         {
             if (bits.Length != 8)

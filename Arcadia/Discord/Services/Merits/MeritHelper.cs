@@ -336,20 +336,6 @@ namespace Arcadia
                 } // TODO: Create automatic item stat tracking
             };
 
-        public static string GetTooltip(string tooltip)
-            => $"> 🛠️ {tooltip}";
-
-        public static string GetTooltips(in IEnumerable<string> tooltips)
-        {
-            if (!Check.NotNullOrEmpty(tooltips))
-                return "";
-
-            if (tooltips.Count() == 1)
-                return GetTooltip(tooltips.First());
-
-            return $"> 🛠️ **Tips**\n{string.Join("\n", tooltips.Select(x => $"• {x}"))}";
-        }
-
         public static Merit GetMerit(string id)
         {
             IEnumerable<Merit> merits = Merits.Where(x => x.Id == id);
@@ -400,7 +386,7 @@ namespace Arcadia
                 if (merit.Hidden)
                     tooltips.Add("This merit is excluded from completion progress.");
 
-                info.AppendLine(GetTooltips(tooltips));
+                info.AppendLine(Format.Tooltip(tooltips));
             }
 
             if (merit.Criteria == null || (allowTooltips && (merit.Hidden || user != null && CanClaim(user, merit))))
@@ -540,7 +526,7 @@ namespace Arcadia
                     if (merits.Any(x => HasMerit(user, x)))
                         tooltips.Add("Unlocked merits are marked with a `*`.");
 
-                    info.AppendLine(GetTooltips(tooltips));
+                    info.AppendLine(Format.Tooltip(tooltips));
                     info.AppendLine();
                 }
 

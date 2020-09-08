@@ -1,6 +1,6 @@
 ﻿namespace Orikivo
 {
-    public enum OriError
+    public enum CommonError
     {
         MissingUserAccount = 1
     }

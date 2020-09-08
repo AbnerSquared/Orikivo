@@ -679,6 +679,19 @@ namespace Arcadia.Modules
             // await Context.Channel.SendMessageAsync(values.ToString());
         }
 
+        [Command("throw")]
+        public async Task ThrowAsync(StackTraceMode traceMode = StackTraceMode.Full)
+        {
+            try
+            {
+                throw new Exception("This is a dummy exception.");
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.CatchAsync(ex, traceMode);
+            }
+        }
+
         [RequireUser]
         [Command("clearpalette")]
         [Summary("Remove your currently equipped palette, if any.")]
@@ -688,7 +701,7 @@ namespace Arcadia.Modules
 
             if (!ItemHelper.RemovePalette(Context.Account))
             {
-                await Context.Channel.WarnAsync("You don't have a palette currently equipped.");
+                await Context.Channel.SendMessageAsync(Format.Warning("You don't have a palette currently equipped."));
                 return;
             }
 

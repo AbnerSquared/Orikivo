@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Collections;
+using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
 using Orikivo.Framework;
@@ -65,6 +66,7 @@ namespace Arcadia
                     .AddEnumTypeReader<LeaderboardQuery>()
                     .AddEnumTypeReader<LeaderboardSort>()
                     .AddEnumTypeReader<TickWinMethod>()
+                    .AddEnumTypeReader<StackTraceMode>()
                     .AddEnumTypeReader<RouletteBetMode>();
 
                 builder

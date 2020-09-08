@@ -1,153 +1,79 @@
 ﻿using Discord;
-using Discord.WebSocket;
-using Orikivo.Drawing.Encoding;
-using Orikivo.Desync;
 using System;
-using System.Drawing;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Discord.Net;
+using Orikivo.Drawing;
+using Image = System.Drawing.Image;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Orikivo
 {
     public static class ChannelExtensions
     {
+        public static readonly Dictionary<CommonError, MessageBuilder> ErrorPresets = new Dictionary<CommonError, MessageBuilder>();
+
+        /// <summary>
+        /// Sends a message to this message channel.
+        /// </summary>
+        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
+            Embed embed,
+            string text = null,
+            bool isTTS = false,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            return await channel.SendMessageAsync(text, isTTS, embed, options, allowedMentions);
+        }
+
+        /// <summary>
+        /// Sends a message to this message channel.
+        /// </summary>
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
             MessageContent content,
-            RequestOptions options = null)
-        {
-            return await channel.SendMessageAsync(content.Content, content.IsTTS, content.Embed.Build(), options);
-        }
-
-        public static async Task ModifyAsync(this IUserMessage message,
-            string text = null,
-            Embed embed = null,
-            RequestOptions options = null)
-        {
-            await message.ModifyAsync(delegate (MessageProperties x)
-            {
-                x.Content = !string.IsNullOrWhiteSpace(text) ? text : x.Content;
-                x.Embed = embed ?? x.Embed;
-                }, options);
-        }
-
-        public static async Task<IUserMessage> ReplaceAsync(this IUserMessage message,
-            MemoryStream gif, 
-            string path,
-            string text = null,
-            bool isTTS = false,
-            Embed embed = null,
-            bool deleteLastMessage = false,
             RequestOptions options = null,
-            bool isSpoiler = false)
+            AllowedMentions allowedMentions = null)
         {
-            IUserMessage next = await message.Channel.SendGifAsync(gif,
-                path, 
-                Check.NotNull(text) ? text : message.Content,
-                isTTS,
-                embed ?? message.GetRichEmbed()?.Build(),
-                options: options,
-                isSpoiler: isSpoiler);
-
-            if (deleteLastMessage)
-                await message.DeleteAsync();
-
-            return next;
+            return await channel.SendMessageAsync(content.Content, content.IsTTS, content.Embed.Build(), options, allowedMentions);
         }
 
-        public static async Task<IUserMessage> ReplaceAsync(this IUserMessage message,
-            System.Drawing.Image image,
-            string path,
-            string text = null,
-            bool isTTS = false,
-            Embed embed = null,
-            bool deleteLastMessage = false,
+        /// <summary>
+        /// Sends a message object to this message channel.
+        /// </summary>
+        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
+            Message message,
             RequestOptions options = null,
-            bool isSpoiler = false)
+            AllowedMentions allowedMentions = null)
         {
-            IUserMessage next = await message.Channel.SendImageAsync(image,
-                path,
-                !string.IsNullOrWhiteSpace(text) ? text : message.Content,
-                isTTS,
-                embed ?? message.GetRichEmbed()?.Build(),
-                options: options,
-                isSpoiler: isSpoiler);
+            if (Check.NotNull(message.AttachmentUrl))
+                return await channel.SendFileAsync(message.AttachmentUrl, message.Text, message.IsTTS, message.Embed, options, message.IsSpoiler, allowedMentions);
 
-            if (deleteLastMessage)
-                await message.DeleteAsync();
-
-            return next;
+            return await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options, allowedMentions);
         }
 
-        public static async Task<IUserMessage> ReplaceAsync(this IUserMessage message,
-            string text = null,
-            bool isTTS = false,
-            Embed embed = null,
-            string filePath = null,
-            bool deleteLastMessage = false,
-            RequestOptions options = null,
-            bool isSpoiler = false)
-        {
-            IUserMessage next;
-
-            if (!string.IsNullOrWhiteSpace(filePath))
-            {
-                next = await message.Channel.SendFileAsync(filePath,
-                    !string.IsNullOrWhiteSpace(text) ? text : message.Content,
-                    isTTS,
-                    embed ?? message.GetRichEmbed()?.Build(),
-                    options,
-                    isSpoiler);
-            }
-            else
-            {
-                next = await message.Channel.SendMessageAsync(
-                    !string.IsNullOrWhiteSpace(text) ? text : message.Content,
-                    isTTS,
-                    embed ?? message.GetRichEmbed()?.Build(),
-                    options);
-            }
-
-            if (deleteLastMessage)
-                await message.DeleteAsync();
-
-            return next;
-        }
-
-        public static async Task<bool> TryDeleteAsync(this IMessage message, RequestOptions options = null)
-        {
-            try
-            {
-                await message.DeleteAsync(options);
-                return true;
-            }
-            catch (HttpException)
-            {
-                return false;
-            }
-        }
-
-        // TODO: Use the base Notifier class instead to give it the ability to be generic
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
             BaseUser user,
             string text = null,
             bool isTTS = false,
             Embed embed = null,
-            RequestOptions options = null)
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
         {
             var content = new StringBuilder();
 
             if (user.Notifier.CanNotify)
             {
-                content.AppendLine(user.Notifier.Notify());
+                text ??= string.Empty;
+                content.AppendLine(user.Notifier.Notify(2000 - text.Length));
                 user.Notifier.LastNotified = DateTime.UtcNow;
             }
 
             if (!string.IsNullOrWhiteSpace(text))
                 content.Append(text);
 
-            return await channel.SendMessageAsync(content.ToString(), isTTS, embed, options);
+            return await channel.SendMessageAsync(content.ToString(), isTTS, embed, options, allowedMentions);
         }
 
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
@@ -155,48 +81,63 @@ namespace Orikivo
             Message message,
             RequestOptions options = null)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+
             var content = new StringBuilder();
 
             if (user.Notifier.CanNotify)
             {
-                content.AppendLine(user.Notifier.Notify());
+                content.AppendLine(user.Notifier.Notify(2000 - (message.Text?.Length ?? 0)));
                 user.Notifier.LastNotified = DateTime.UtcNow;
             }
 
             if (!string.IsNullOrWhiteSpace(message.Text))
                 content.Append(message.Text);
 
-            if (Check.NotNull(message.AttachmentUrl))
+            if (!string.IsNullOrWhiteSpace(message.AttachmentUrl))
                 return await channel.SendFileAsync(message.AttachmentUrl, content.ToString(), message.IsTTS, message.Embed, options, message.IsSpoiler);
-            else
-                return await channel.SendMessageAsync(content.ToString(), message.IsTTS, message.Embed, options);
+
+            return await channel.SendMessageAsync(content.ToString(), message.IsTTS, message.Embed, options);
         }
 
         /// <summary>
-        /// Attempts to warn a user about a cooldown that is currently preventing command execution.
+        /// Sends an attachment to this message channel.
         /// </summary>
-        public static async Task WarnCooldownAsync(this IMessageChannel channel,
-            User user,
-            CooldownData cooldown,
-            RequestOptions options = null)
-            => await MessageUtils.WarnCooldownAsync(channel, user, cooldown, options);
+        public static async Task<IUserMessage> SendAttachmentAsync(this IMessageChannel channel,
+            IAttachment attachment,
+            string text = null,
+            bool isTTS = false,
+            Embed embed = null,
+            RequestOptions options = null,
+            bool isSpoiler = false,
+            AllowedMentions allowedMentions = null)
+        {
+            return await channel.SendFileAsync(attachment.Url, text, isTTS, embed, options, isSpoiler, allowedMentions);
+        }
 
         /// <summary>
-        /// Sends an image to the specified channel and disposes of it.
+        /// Sends an image to this message channel and disposes of it.
         /// </summary>
         public static async Task<IUserMessage> SendImageAsync(this IMessageChannel channel,
-            System.Drawing.Image image,
+            Image image,
             string path,
             string text = null,
             bool isTTS = false,
             Embed embed = null,
             GraphicsFormat format = GraphicsFormat.Png,
             RequestOptions options = null,
-            bool isSpoiler = false)
-            => await MessageUtils.SendImageAsync(channel, image, path, text, isTTS, embed, format, options, isSpoiler);
+            bool isSpoiler = false,
+            AllowedMentions allowedMentions = null)
+        {
+            using (image)
+                ImageHelper.Save(image, path, GetImageFormat(format));
+
+            return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler, allowedMentions);
+        }
 
         /// <summary>
-        /// Sends a GIF to the specified channel and disposes of it from a specified <see cref="MemoryStream"/>.
+        /// Sends a GIF to this message channel and disposes of it.
         /// </summary>
         public static async Task<IUserMessage> SendGifAsync(this IMessageChannel channel,
             MemoryStream gif,
@@ -204,59 +145,147 @@ namespace Orikivo
             string text = null,
             bool isTTS = false,
             Embed embed = null,
-            Quality quality = Quality.Bpp8,
             RequestOptions options = null,
-            bool isSpoiler = false)
-            => await MessageUtils.SendGifAsync(channel, gif, path, text, isTTS, embed, quality, options, isSpoiler);
+            bool isSpoiler = false,
+            AllowedMentions allowedMentions = null)
+        {
+            using (Image img = Image.FromStream(gif))
+                img.Save(path, GetImageFormat(GraphicsFormat.Gif));
+
+            await gif.DisposeAsync();
+            return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler, allowedMentions);
+        }
 
         /// <summary>
-        /// Attempts to warn a user about a global cooldown preventing any command execution.
-        /// </summary>
-        public static async Task WarnCooldownAsync(this ISocketMessageChannel channel,
-            User user,
-            DateTime globalExpires,
-            RequestOptions options = null)
-            => await MessageUtils.WarnCooldownAsync(channel, user, globalExpires, options);
-
-        // TODO: Create custom error embed presets and default to this if there isn't one set.
-        /// <summary>
-        /// Sends a manual error message to the specified channel.
+        /// Sends an error message to the specified channel.
         /// </summary>
         public static async Task<IUserMessage> ThrowAsync(this IMessageChannel channel,
             string error,
-            RequestOptions options = null)
-            => await MessageUtils.ThrowAsync(channel, error, options);
-
-        public static async Task<IUserMessage> ThrowAsync(this IMessageChannel channel,
-            OriError error,
-            RequestOptions options = null)
-            => await MessageUtils.ThrowAsync(channel, error, options);
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            return await channel.SendMessageAsync(Format.Error("Oops!", "An error has occurred.", error), options: options, allowedMentions: allowedMentions);
+        }
 
         /// <summary>
-        /// Catches an <see cref="Exception"/> and sends its information to the specified channel.
+        /// Sends an error message preset to this message channel, if a preset is defined.
+        /// </summary>
+        public static async Task<IUserMessage> ThrowAsync(this IMessageChannel channel,
+            CommonError error,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            if (!ErrorPresets.ContainsKey(error))
+                return await ThrowAsync(channel, error.ToString(), options);
+
+            return await SendMessageAsync(channel, ErrorPresets[error].Build(), options, allowedMentions);
+        }
+
+        /// <summary>
+        /// Catches an <see cref="Exception"/> and sends its information to this message channel.
         /// </summary>
         public static async Task<IUserMessage> CatchAsync(this IMessageChannel channel,
             Exception ex,
-            RequestOptions options = null)
-            => await MessageUtils.CatchAsync(channel, ex, options);
+            StackTraceMode stackTraceMode = StackTraceMode.Simple,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            var error = new StringBuilder();
 
-        public static async Task<IUserMessage> WarnAsync(this IMessageChannel channel,
-            string warning,
-            RequestOptions options = null)
-            => await channel.SendMessageAsync(Format.Warning(warning), options: options);
+            error.AppendLine("> **Yikes!**");
+            error.AppendLine("> An exception has been thrown.");
+
+            if (ex == null)
+                return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
+
+            if (!string.IsNullOrWhiteSpace(ex.Message))
+            {
+                error.AppendLine("```");
+                error.AppendLine(ex.Message);
+                error.Append("```");
+            }
+
+            if (string.IsNullOrWhiteSpace(ex.StackTrace) || stackTraceMode == StackTraceMode.None)
+                return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
+
+            error.AppendLine();
+            error.Append(GetStackTrace(ex.StackTrace, stackTraceMode, error.Length));
+
+            return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
+        }
 
         /// <summary>
-        /// Sends a custom message object to the specified channel.
-        /// </summary>
-        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
-            Message message,
-            RequestOptions options = null)
-            => await MessageUtils.SendMessageAsync(channel, message, options);
-
-        /// <summary>
-        /// Gets the URL bound to a voice channel to allow users to participate in screen sharing.
+        /// Gets the URL bound to this voice channel to allow users to participate in screen sharing.
         /// </summary>
         public static string GetUrl(this IVoiceChannel channel)
-            => Format.GetVoiceChannelUrl(channel.GuildId, channel.Id);
+        {
+            return Format.GetVoiceChannelUrl(channel.GuildId, channel.Id);
+        }
+
+        private static string GetStackTrace(string stackTrace, StackTraceMode traceMode, int messageLength)
+        {
+            if (traceMode == StackTraceMode.None || string.IsNullOrWhiteSpace(stackTrace))
+                return null;
+
+            var result = new StringBuilder();
+            result.AppendLine($"> **Stack Trace**");
+
+            switch (traceMode)
+            {
+                case StackTraceMode.Simple:
+                    if (!StackTracePath.TryParse(stackTrace, out List<StackTracePath> paths))
+                        return null;
+
+                    StackTracePath path = paths.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Path)) ?? paths.First();
+
+                    if (path.Method.Length + messageLength + 7 >= 2000)
+                        break;
+
+                    result.AppendLine($"• at `{path.Method}`");
+
+                    if (string.IsNullOrWhiteSpace(path.Path))
+                        break;
+
+                    string marker = path.LineIndex.HasValue ? $" (Line **{path.LineIndex.Value:##,0}**)" : "";
+
+                    if (marker.Length + path.Path.Length + messageLength + 7 >= 2000)
+                        break;
+
+                    result.AppendLine($"• in `{path.Path}`{marker}");
+
+                    break;
+
+                default:
+                    string[] errorPaths = stackTrace.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (errorPaths.Length == 0 || messageLength + result.Length + errorPaths[0].Length + 8 >= 2000)
+                        break;
+
+                    result.AppendLine("```bf");
+
+                    foreach (string errorPath in errorPaths)
+                    {
+                        if (messageLength + result.Length + errorPath.Length + 3 >= 2000)
+                            break;
+
+                        result.AppendLine(errorPath);
+                    }
+
+                    result.Append("```");
+
+                    break;
+            }
+
+            return result.ToString();
+        }
+
+        private static ImageFormat GetImageFormat(GraphicsFormat format)
+        {
+            return format switch
+            {
+                GraphicsFormat.Gif => ImageFormat.Gif,
+                _ => ImageFormat.Png
+            };
+        }
     }
 }

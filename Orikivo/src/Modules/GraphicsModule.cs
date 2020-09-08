@@ -110,7 +110,7 @@ namespace Orikivo.Modules
 
             MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(delay));
 
-            await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif", quality: Quality.Bpp8);
+            await Context.Channel.SendGifAsync(animation, "../tmp/timeline_anim2.gif");
         }
 
         [Command("drawgradient")]

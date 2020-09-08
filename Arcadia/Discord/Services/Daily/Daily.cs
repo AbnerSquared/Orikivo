@@ -66,7 +66,7 @@ namespace Arcadia.Services
                     content = "You are on cooldown.";
                     color = GammaPalette.Amber[Gamma.Max];
                     header = Format.Countdown(rem);
-                    icon = Format.GetHourEmote(time.Hour);
+                    icon = Icons.GetClock(time.Hour);
                     break;
 
                 case VoteResultFlag.Reset:
@@ -153,7 +153,7 @@ namespace Arcadia.Services
 
                     color = ImmutableColor.NeonRed;
                     header = Format.Countdown(rem);
-                    icon = Format.GetHourEmote(time.Hour);
+                    icon = Icons.GetClock(time.Hour);
                     break;
 
                 case DailyResultFlag.Reset:

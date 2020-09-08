@@ -36,20 +36,6 @@ namespace Orikivo
             return array;
         }
 
-        // TODO: Implement recursive flattening.
-        /// <summary>
-        /// Returns a new <see cref="List{T}"/> in which all of the inner lists are merged together.
-        /// </summary>
-        public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> set)
-        {
-            var result = new List<T>();
-
-            foreach (IEnumerable<T> list in set)
-                result.AddRange(list);
-
-            return result;
-        }
-
         /// <summary>
         /// Adds the elements of the specified collection to the end of the <see cref="List{T}"/>.
         /// </summary>
@@ -94,18 +80,30 @@ namespace Orikivo
             => enumerable.Where(x => predicate.Invoke(x.Key, x.Value));
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate.
+        /// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
         /// </summary>
-        public static IEnumerable<KeyValuePair<TKey, TValue>> Where<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TKey, TValue, int, bool> predicate)
+        public static IEnumerable<KeyValuePair<TKey, TValue>> Where<TKey, TValue>(this IDictionary<TKey, TValue> enumerable, Func<TKey, TValue, int, bool> predicate)
             => enumerable.Where((x, i) => predicate.Invoke(x.Key, x.Value, i));
 
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> enumerable)
-            => enumerable.ToDictionary(x => x.Key, x => x.Value);
+            => new Dictionary<TKey, TValue>(enumerable);
+
+        /// <summary>
+        /// Adds a sequence of key value pairs to the specified dictionary or sets the value of an existing entry using the result of the specified function if the key already exists.
+        /// </summary>
+        public static void AddOrApply<TKey, TValue>(this Dictionary<TKey, TValue> a, Dictionary<TKey, TValue> b, Func<TValue, TValue, TValue> invoker)
+        {
+            foreach ((TKey key, TValue value) in b)
+            {
+                if (!a.TryAdd(key, value))
+                    a[key] = invoker(a[key], value);
+            }
+        }
 
         /// <summary>
         /// Adds a sequence of key value pairs to the specified dictionary or adds to the existing value if the specified key already exists.
         /// </summary>
-        public static void AddOrSum<TKey>(this Dictionary<TKey, long> a, Dictionary<TKey, long> b)
+        public static void AddOrConcat<TKey>(this Dictionary<TKey, long> a, Dictionary<TKey, long> b)
         {
             foreach ((TKey key, long value) in b)
             {
@@ -117,7 +115,7 @@ namespace Orikivo
         /// <summary>
         /// Adds a sequence of key value pairs to the specified dictionary or adds to the existing value if the specified key already exists.
         /// </summary>
-        public static void AddOrSum<TKey>(this Dictionary<TKey, int> a, Dictionary<TKey, int> b)
+        public static void AddOrConcat<TKey>(this Dictionary<TKey, int> a, Dictionary<TKey, int> b)
         {
             foreach ((TKey key, int value) in b)
             {

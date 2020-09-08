@@ -270,7 +270,7 @@ namespace Arcadia
 
                 sum.Money += reward.Money;
                 sum.Exp += reward.Exp;
-                sum.ItemIds.AddOrSum(reward.ItemIds);
+                sum.ItemIds.AddOrConcat(reward.ItemIds);
             }
 
             return sum;

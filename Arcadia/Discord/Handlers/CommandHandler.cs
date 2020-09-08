@@ -280,7 +280,7 @@ namespace Arcadia
             {
                 if (ctx.Account.GlobalCooldown.HasValue)
                 {
-                    if (!ctx.Account.GlobalCooldown.IsExpired())
+                    if (!(DateTime.UtcNow - ctx.Account.GlobalCooldown >= TimeSpan.Zero))
                     {
                         if (!ctx.Account.HasBeenNoticed)
                         {
