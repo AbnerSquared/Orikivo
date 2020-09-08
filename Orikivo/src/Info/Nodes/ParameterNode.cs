@@ -1,9 +1,11 @@
 ﻿using Discord;
-using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using ParameterInfo = Discord.Commands.ParameterInfo;
 
 namespace Orikivo
 {
@@ -27,7 +29,8 @@ namespace Orikivo
 
             Command = command.ToString();
             OverloadIndex = parameter.Command.Priority;
-            OverloadCount = 1; // for now...
+            OverloadCount = parameter.Command.Module.Commands.Count(x => x.Name == parameter.Command.Name); // for now...
+            CommandId = GetId(parameter.Command, OverloadCount > 1);
             DefaultValue = parameter.DefaultValue;
             ValueType = parameter.Type;
             Tag = GetTagValue(parameter);
@@ -44,13 +47,14 @@ namespace Orikivo
             if (parameter.IsRemainder)
                 tag |= ParameterTag.Trailing;
 
-            if (parameter.Type.EqualsAny(typeof(IMentionable)))
+            if (parameter.Type.IsEquivalentTo(typeof(IMentionable)))
                 tag |= ParameterTag.Mentionable;
 
             return tag;
         }
 
         public string Command { get; protected set; }
+        public string CommandId { get; protected set; }
 
         public int OverloadIndex { get; protected set; }
 
@@ -98,56 +102,27 @@ namespace Orikivo
             {
                 var format = new StringBuilder();
 
-                format.Append(Format.Bold(Name));
-
-
-                format.Append('[');
-                format.Append(Command);
-
-                if (OverloadCount > 1)
-                    format.Append(Format.Subscript($" +{OverloadIndex}"));
-
-                format.Append(']');
+                format.Append($"{Format.Bold(Format.HumanizeType(ValueType))} {Name}");
 
                 if (DefaultValue != null)
                 {
-                    format.Append(" = ");
-                    format.Append(Format.Italics((DefaultValue ?? "null").ToString())); // allow strings that specify the name.
+                    format.Append($" = {DefaultValue}");
                 }
 
                 format.AppendLine();
 
                 // summary
                 if (Check.NotNull(Summary))
-                {
-                    format.Append("⇛ ");
-                    format.Append(Summary);
-                    format.AppendLine();
-                }
+                    format.AppendLine($"⇛ {Summary}");
 
-                // tags
-                if (Tag != 0)
-                {
-                    format.Append(Format.Bold("#"));
-                    format.Append(' ');
-                    format.AppendJoin(", ", EnumUtils.GetValues<ParameterTag>()
-                        .Where(t => Tag.HasFlag(t))
-                        .Select(t => $"`{t.ToString()}`"));
-                    format.AppendLine();
-                }
+                format.AppendLine();
 
                 // info
                 if (ValueType != null)
                 {
-                    format.Append("> ");
-                    format.Append("typeof ");
-                    format.Append(Format.Bold(Format.HumanizeType(ValueType)));
-                    format.AppendLine();
-
-                    // If unwanted, simply just revert
                     if (ValueType.IsEnum)
                     {
-                        format.AppendLine("```cs");
+                        format.AppendLine($"> **Values**{(ValueType.GetCustomAttribute<FlagsAttribute>() != null ? " (Flags)" : "")}\n```cs");
 
                         var names = ValueType.GetEnumNames();
                         var values = ValueType.GetEnumValues();
@@ -155,8 +130,6 @@ namespace Orikivo
                         for(int i = 0; i < names.Length; i++)
                         {
                             object enumValue = values.GetValue(i);
-
-
                             format.AppendLine($"{names[i]} = {Convert.ToInt16(enumValue)}");
                         }
 
@@ -164,11 +137,24 @@ namespace Orikivo
                     }
                 }
 
-                // parsing examples
-                if (Check.NotNull(ParseExamples))
+                format.AppendLine($"> **Command**: `{CommandId}`");
+
+                // tags
+                if (Tag != 0)
                 {
-                    format.Append("> ");
-                    format.Append("**Example**: ");
+                    format.Append("> **Tags**: ");
+                    //format.Append(Format.Bold("#"));
+                    //format.Append(' ');
+                    format.AppendJoin(", ", EnumUtils.GetValues<ParameterTag>()
+                        .Where(t => Tag.HasFlag(t))
+                        .Select(t => $"`{t.ToString()}`"));
+                    format.AppendLine();
+                }
+
+                // parsing examples
+                if (Check.NotNullOrEmpty(ParseExamples))
+                {
+                    format.Append($"> **{Format.TryPluralize("Example", ParseExamples.Count())}**: ");
                     format.AppendJoin(", ", ParseExamples.Select(x => $"`{x}`"));
                     format.AppendLine();
                 }

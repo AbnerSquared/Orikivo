@@ -7,15 +7,6 @@ using System.Text;
 
 namespace Orikivo
 {
-    public class OptionNode
-    {
-        public string Name { get; protected set; }
-
-        public List<string> Aliases { get; protected set; }
-
-        public Type ValueType { get; protected set; }
-    }
-
     public class OverloadNode : ContextNode
     {
         public OverloadNode(CommandInfo command) : base(command, true)
@@ -36,6 +27,7 @@ namespace Orikivo
         public int Index { get; protected set; }
         public int Count { get; protected set; } // the amount of total overloads existing
 
+        internal string Example { get; set; }
         public TimeSpan? Cooldown { get; protected set; }
         public AccessLevel? Access { get; protected set; }
         public GuildPermission? Permissions { get; protected set; }
@@ -142,39 +134,7 @@ namespace Orikivo
                 }
 
                 if (Check.NotNull(Name))
-                {
-                    // name
-                    if (Aliases.Count > 1)
-                    {
-                        format.Append('[');
-                        // initial name
-                        format.Append(Discord.Format.Bold(Name));
-                        format.Append(", ");
-
-
-                        // extra aliases AFTER main name
-
-
-                        if (Check.NotNull(Group))
-                        {
-                            format.AppendJoin(", ", Aliases.Select(x => x.Substring(Group.Length + 1)).Where(x => x != Name).OrderBy(x => x.Length));
-                        }
-                        else
-                        {
-                            //format.Append(Format.Bold(Name));
-                            //format.Append(", ");
-
-                            format.AppendJoin(", ", Aliases.Where(x => x != Name)
-                                .OrderBy(x => x.Length));
-                        }
-
-                        format.Append(']');
-                    }
-                    else
-                    {
-                        format.Append(Discord.Format.Bold(Name));
-                    }
-                }
+                    format.Append(Discord.Format.Bold(Name));
 
                 // parameters
                 format.Append('(');
@@ -200,41 +160,30 @@ namespace Orikivo
                 // summary
 
                 if (Check.NotNull(Summary))
+                    format.AppendLine($"⇛ {Summary}");
+
+                format.AppendLine();
+
+                if (Aliases.Count > 1)
                 {
-                    format.Append("⇛ ");
-                    format.Append(Summary);
+                    format.Append("> **Aliases**: ");
+                    format.AppendJoin(", ",
+                        (Check.NotNull(Group) ? Aliases.Select(x => x.Substring(Group.Length + 1)) : Aliases)
+                        .Where(x => x != Name)
+                        .OrderByDescending(x => x.Length)
+                        .Select(x => $"`{x}`"));
                     format.AppendLine();
                 }
 
-                // all attributes that the overload might have.
-
-                // access
                 if (Access.HasValue)
-                {
-                    format.Append("> ");
-                    format.Append("**Access**: ");
-                    format.Append($"**{Access.Value.ToString()}**");
-                    format.AppendLine();
-                }
+                    format.AppendLine($"> **Access**: **{Access.Value.ToString()}**");
 
-                // cooldowns
                 if (Cooldown.HasValue)
-                {
-                    format.Append("> ");
-                    format.Append("**Cooldown**: ");
-                    format.Append(Format.Counter(Cooldown.Value.TotalSeconds));
-                    format.AppendLine();
-                }
+                    format.AppendLine($"> **Cooldown**: {Format.LongCounter(Cooldown.Value)}");
 
-                // permissions
-                /*
-                // id
-                if (Check.NotNull(Id))
-                {
-                    format.AppendLine();
-                    format.Append($"**ID**: `{Id}`");
-                }
-                */
+                if (Check.NotNull(Example))
+                    format.Append($"> **Example**: `{Example}`");
+
                 return format.ToString();
             }
         }

@@ -1,9 +1,10 @@
-﻿namespace Orikivo.Canary
+﻿namespace Orikivo
 {
     public enum Casing
     {
         Upper = 1,
         Lower = 2,
-        Any = 4
+        Pascal = 4,
+        Any = 8
     }
 }

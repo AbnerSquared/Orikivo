@@ -1,4 +1,5 @@
-﻿using Orikivo;
+﻿using System;
+using Orikivo;
 
 namespace Arcadia
 {
@@ -7,6 +8,15 @@ namespace Arcadia
     /// </summary>
     public class UsageResult
     {
+        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, string message = null, CooldownMode? mode = null)
+        {
+            return new UsageResult(message, true)
+            {
+                Cooldown = cooldown,
+                CooldownMode = mode
+            };
+        }
+
         public static UsageResult FromSuccess(string message = null)
         {
             return new UsageResult(message, true);
@@ -42,5 +52,8 @@ namespace Arcadia
         public Message Message { get; }
 
         public bool IsSuccess { get; }
+
+        public TimeSpan? Cooldown { get; internal set; }
+        public CooldownMode? CooldownMode { get; internal set; }
     }
 }

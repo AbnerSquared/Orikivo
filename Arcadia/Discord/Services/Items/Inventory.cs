@@ -22,7 +22,7 @@ namespace Arcadia
                 Merit recentMerit = MeritHelper.GetMerit(user.Merits.OrderByDescending(x => x.Value.AchievedAt).First().Key);
 
                 details.AppendLine($"> **Last Unlocked Merit**");
-                details.AppendLine($"> {(Check.NotNull(recentMerit.Icon) ? recentMerit.Icon : "•")} **{recentMerit.Name}** (**{recentMerit.Value}**m)");
+                details.AppendLine($"> {(Check.NotNull(recentMerit.Icon) ? recentMerit.Icon : "•")} **{recentMerit.Name}** (**{recentMerit.Score}**m)");
             }
 
             if (user.Balance > 0 || user.Debt > 0 || user.ChipBalance > 0)

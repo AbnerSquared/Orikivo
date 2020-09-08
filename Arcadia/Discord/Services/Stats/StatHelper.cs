@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
@@ -70,22 +71,19 @@ namespace Arcadia
             }
 
             var stats = GetGroupStats(user, group.Id).ToList();
-            int pageCount = (int)Math.Ceiling(stats.Count / (double)pageSize) - 1;
-            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+            int pageCount = Paginate.GetPageCount(stats.Count, pageSize);
+            page = Paginate.ClampIndex(page, pageCount);
 
             string counter = null;
 
-            if (pageCount + 1 > 1)
-            {
-                if (pageCount + 1 > 1)
-                    counter = $" (Page **{page + 1:##,0}**/**{pageCount + 1:##,0}**)";
-            }
+            if (pageCount > 1)
+                counter = $" ({Format.PageCount(page + 1, pageCount)})";
 
             result.AppendLine($"> **Stats: {group.Name}**{counter}");
 
-            int offset = page * pageSize;
             int i = 0;
-            foreach ((string id, long value) in stats.Skip(offset))
+
+            foreach ((string id, long value) in Paginate.GroupAt(stats, page, pageSize))
             {
                 if (i >= pageSize)
                     break;

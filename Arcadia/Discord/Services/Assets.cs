@@ -390,6 +390,12 @@ namespace Arcadia
                     TradeLimit = 0,
                     BypassCriteriaOnTrade = true,
                     Size = 100,
+                    ResearchTiers = new Dictionary<int, string>
+                    {
+                        [1] = "Research memo",
+                        [2] = $"Removal of {Format.Number(750, Icons.Debt)} requirement to use",
+                        [3] = $"New usage ability (`use su_pl recover`): **25**% chance of recovering previously lost funds (**4** day cooldown if successful)"
+                    },
                     Usage = new ItemUsage
                     {
                         Durability = 1,
@@ -397,7 +403,25 @@ namespace Arcadia
                         DeleteMode = DeleteMode.Break,
                         Action = delegate (UsageContext ctx)
                         {
-                            if (ctx.User.Debt < 500)
+                            if (ctx.Input.ToLower() == "recover")
+                            {
+                                if (ItemHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
+                                    return UsageResult.FromError("> You have yet to understand the concept of recovery.");
+
+                                if (ctx.User.LastFundsLost <= 0)
+                                    return UsageResult.FromError("> There was nothing to recover.");
+
+                                if (RandomProvider.Instance.Next(0, 100) <= 25)
+                                {
+                                    return UsageResult.FromSuccessCooldown(TimeSpan.FromDays(4),
+                                        "> Your funds have been recovered from the abyss.",
+                                        CooldownMode.Item);
+                                }
+
+                                return UsageResult.FromSuccess("> After several attempted hours of recovery, your funds fade into the darkness.");
+                            }
+
+                            if (ctx.User.Debt < 750 && ItemHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 2)
                                 return UsageResult.FromError("> You called for help, but the request remains unanswered. You aren't seen as in need of assistance.");
 
                             ctx.User.Debt = 0;

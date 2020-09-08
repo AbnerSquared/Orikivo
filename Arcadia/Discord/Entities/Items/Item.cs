@@ -21,7 +21,11 @@ namespace Arcadia
 
         public string Summary { get; set; }
 
+        public string Memo { get; set; }
+
         public List<string> Quotes { get; set; }
+
+        public Dictionary<int, string> ResearchTiers { get; set; }
 
         public ItemTag Tag { get; set; }
 

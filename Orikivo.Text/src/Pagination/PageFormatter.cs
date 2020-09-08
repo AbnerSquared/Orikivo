@@ -16,6 +16,8 @@ namespace Orikivo.Text.Pagination
             set => _elementFormatter = value;
         }
 
+        public string DefaultElement { get; set; }
+
         public int? CharacterLimit { get; set; }
     }
 }

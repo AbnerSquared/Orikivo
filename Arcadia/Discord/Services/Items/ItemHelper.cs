@@ -193,6 +193,14 @@ namespace Arcadia
         public static CatalogStatus GetCatalogStatus(ArcadeUser user, Item item)
             => GetCatalogStatus(user, item.Id);
 
+        public static long GetResearchTier(ArcadeUser user, Item item)
+            => GetResearchTier(user, item.Id);
+
+        public static long GetResearchTier(ArcadeUser user, string itemId)
+        {
+            return Math.Max(0, user.GetVar(GetCatalogId(itemId)) - 2);
+        }
+
         public static void SetCatalogStatus(ArcadeUser user, string itemId, CatalogStatus status)
         {
             if (GroupOf(itemId) == ItemGroups.Internal)

@@ -133,6 +133,8 @@ namespace Arcadia
         [JsonIgnore]
         public bool CanTrade { get; set; } = true;
 
+        [JsonIgnore] public long LastFundsLost { get; set; } = 0;
+
         private string _cardGenKey;
         [JsonIgnore]
         public string CardGenKey => _cardGenKey ??= KeyBuilder.Generate(6);

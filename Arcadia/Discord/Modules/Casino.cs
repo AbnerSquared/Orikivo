@@ -8,6 +8,7 @@ using Orikivo.Framework;
 
 namespace Arcadia.Modules
 {
+    [Icon("🎰")]
     [Name("Casino")]
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>

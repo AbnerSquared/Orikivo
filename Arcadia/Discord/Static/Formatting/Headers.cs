@@ -9,5 +9,6 @@
         internal static readonly string Booster = "booster";
         internal static readonly string Stat = "stat";
         internal static readonly string Recipe = "recipe";
+        internal static readonly string Merits = "merits";
     }
 }

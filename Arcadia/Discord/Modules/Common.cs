@@ -5,9 +5,11 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
 using Orikivo.Drawing;
+using Casing = Arcadia.Graphics.Casing;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -232,16 +234,9 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("claim")]
         [Summary("Attempt to claim the specified merit.")]
-        public async Task ClaimAsync(Merit merit)
+        public async Task ClaimAsync(string meritId = null)
         {
-            /*
-            if (!MeritHelper.Exists(meritId))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
-                return;
-            }*/
-
-            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, merit));
+            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
         }
 
         [RequireUser]
@@ -305,14 +300,6 @@ namespace Arcadia.Modules
             {
                 await Context.Channel.CatchAsync(e);
             }
-        }
-
-        [RequireUser]
-        [Command("claimall")]
-        [Summary("Attempt to claim all available merits.")]
-        public async Task ClaimAllAsync()
-        {
-            await Context.Channel.SendMessageAsync(MeritHelper.ClaimAll(Context.Account));
         }
 
         [RequireUser]
@@ -603,26 +590,26 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Inventory.Write(account, account.Id == Context.Account.Id));
         }
 
-        [Command("statsof"), Priority(1)]
+        [Command("statsof")]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetGroupStatsAsync(string query, int page = 0)
+        public async Task GetGroupStatsAsync(string query, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, page));
+            await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, --page));
         }
 
         [Command("stats"), Priority(1)]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetStatsAsync(SocketUser user, int page = 0)
+        public async Task GetStatsAsync(SocketUser user, int page = 1)
         {
             Context.TryGetUser(user.Id, out ArcadeUser account);
 
             if (await CatchEmptyAccountAsync(account))
                 return;
 
-            await Context.Channel.SendMessageAsync(StatHelper.Write(account, false, page));
+            await Context.Channel.SendMessageAsync(StatHelper.Write(account, false, --page));
         }
 
-        [Command("stats"), Priority(1)]
+        [Command("stats"), Priority(0)]
         [RequireUser(AccountHandling.ReadOnly)]
         public async Task GetStatsAsync(int page = 1)
         {
@@ -664,20 +651,32 @@ namespace Arcadia.Modules
 
             if (await CatchEmptyAccountAsync(account))
                 return;
-
+            /*
             var values = new StringBuilder();
-            if (user != null)
-            {
-                if (user != Context.User)
-                    values.AppendLine($"**Wallet - {account.Username}**");
-            }
 
             values.AppendLine($"**Balance**: 💸 **{account.Balance:##,0}**");
             values.AppendLine($"**Chips**: 🧩 **{account.ChipBalance:##,0}**");
             values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance:##,0}**");
             values.AppendLine($"**Debt**: 📃 **{account.Debt:##,0}**");
+            */
 
-            await Context.Channel.SendMessageAsync(values.ToString());
+            string fmt = "**Balance**: {0:O}\n**Chips**: {1:C}\n**Tokens**: {2:T}\n**Debt**: {3:D}";
+
+            if (user != null)
+            {
+                if (user != Context.User)
+                    fmt = $"**Wallet - {account.Username}**\n" + fmt; //values.AppendLine();
+            }
+
+            await Context.Channel.SendMessageAsync(string.Format(
+                new CurrencyFormatter(),
+                fmt,
+                account.Balance,
+                account.ChipBalance,
+                account.TokenBalance,
+                account.Debt));
+
+            // await Context.Channel.SendMessageAsync(values.ToString());
         }
 
         [RequireUser]
@@ -722,36 +721,6 @@ namespace Arcadia.Modules
 
                 p.Palette = account.Card.Palette.Primary;
                 p.PaletteOverride = account.Card.Palette.Build();
-                p.Trim = false;
-                p.Casing = Casing.Upper;
-
-                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
-
-                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex);
-            }
-        }
-
-        [RequireUser]
-        //[Command("cardt")]
-        public async Task GetCardTestAsync(PaletteType primary, SocketUser user = null)
-        {
-            user ??= Context.User;
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            try
-            {
-                using var graphics = new GraphicsService();
-                var d = new CardDetails(account, user);
-                var p = CardProperties.Default;
-
-                p.PaletteOverride = GraphicsService.GetPalette(primary);
                 p.Trim = false;
                 p.Casing = Casing.Upper;
 

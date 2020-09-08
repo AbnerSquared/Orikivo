@@ -45,6 +45,9 @@ namespace Orikivo
             Overloads.First();
 
         public override InfoType Type => InfoType.Command;
+
+        internal string Example { get; set; }
+
         protected override string Formatting
         {
             get
@@ -58,7 +61,7 @@ namespace Orikivo
                     {
                         if (!Check.NotNull(Name))
                         {
-                            format.Append(Discord.Format.Bold(Group));
+                            format.Append($"**{Group}**");
 
                         }
                         else
@@ -69,7 +72,7 @@ namespace Orikivo
                     }
                     // Name
                     if (Check.NotNull(Name))
-                        format.Append(Discord.Format.Bold(Name));
+                        format.Append($"**{Name}**");
 
                     format.AppendLine();
 
@@ -81,8 +84,11 @@ namespace Orikivo
                         format.AppendLine();
                     }
                     // Write overloads
-                    format.AppendJoin("\n", Overloads.OrderBy(o => o.Index).Select(o => $"> {o.Syntax}"));
-                    format.AppendLine();
+                    if (Overloads.Count > 1)
+                    {
+                        format.AppendJoin("\n", Overloads.OrderBy(o => o.Index).Select(o => $"> {o.Syntax}"));
+                        format.AppendLine();
+                    }
 
                     /*
                     // Write ID (DEBUG)

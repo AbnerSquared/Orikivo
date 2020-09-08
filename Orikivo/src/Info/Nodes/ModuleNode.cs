@@ -13,7 +13,8 @@ namespace Orikivo
         public ModuleNode(ModuleInfo module) : base(module)
         {
             Group = module.Group;
-            Subtitle = module.Attributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Content;
+            Icon = module.Attributes.FirstOrDefault<IconAttribute>()?.Icon;
+            Subtitle = module.Attributes.FirstOrDefault<DescriptionAttribute>()?.Content;
 
             Submodules = module.Submodules.Select(s => new ModuleNode(s)).ToList();
 
@@ -30,9 +31,10 @@ namespace Orikivo
         }
 
         public string Group { get; protected set; }
+        public string Icon { get; protected set; }
         public string Subtitle { get; protected set; }
         public int CommandCount => Submodules.Sum(x => x.CommandCount) + Commands.Count;
-        public int InnerCount => CommandCount + Submodules.Where(x => x.IsGroup).Count();
+        public int InnerCount => CommandCount + Submodules.Count(x => x.IsGroup);
         public bool IsGroup => Check.NotNull(Group);
         public List<ModuleNode> Submodules { get; protected set; }
         public List<CommandNode> Commands { get; protected set; }
@@ -94,7 +96,8 @@ namespace Orikivo
                 }
                 else // MODULE FORMATTING
                 {
-                    format.Append($"**{Name}**");
+                    format.Append(Check.NotNull(Icon) ? Icon : "•");
+                    format.Append($" **{Name}**");
 
                     if (Check.NotNull(Summary))
                     {
@@ -105,11 +108,11 @@ namespace Orikivo
 
                     if (Commands.Count > 0)
                     {
-                        format.AppendLine("**Commands**");
+                        format.AppendLine($"**Commands** ({InnerCount:##,0})");
 
                         format.Append($"> ");
 
-                        List<string> values = new List<string>();
+                        var values = new List<string>();
 
                         foreach (ModuleNode group in Submodules.Where(x => x.IsGroup))
                             values.Add($"`{group.Group}`**\\***");

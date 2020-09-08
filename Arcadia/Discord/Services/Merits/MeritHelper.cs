@@ -3,48 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
-    public class Icon
-    {
-        // The base custom icon to use
-        public string Value { get; set; }
-        // The icon the use in case the custom emojis are not allowed
-        public string Fallback { get; set; }
-
-        public List<string> Aliases { get; set; } = new List<string>();
-
-        public static implicit operator Icon(string value)
-            => new Icon
-            {
-                Fallback = value
-            };
-
-        public string ToString(bool useCustomIcons)
-            => useCustomIcons ? Value ?? Fallback : Fallback;
-
-        public override string ToString()
-            => Value ?? Fallback ?? "EMPTY_ICON";
-
-        public bool Equals(string value)
-        {
-            if (!string.IsNullOrWhiteSpace(Value))
-            {
-                if (Value == value)
-                    return true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(Fallback) && Fallback == value)
-                return true;
-
-            if (Aliases.Contains(value))
-                return true;
-
-            return false;
-        }
-    }
-
     public static class MeritHelper
     {
         public static readonly List<Merit> Merits =
@@ -57,7 +19,7 @@ namespace Arcadia
                     Name = "Prisma Infusion",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Diamond,
-                    Value = 500,
+                    Score = 500,
                     Quote = "You have collected every single color available.",
                     Hidden = true
                 },
@@ -68,7 +30,7 @@ namespace Arcadia
                     Name = "Color Theory",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Silver,
-                    Value = 25,
+                    Score = 25,
                     Quote = "You have created a new color from other colors.",
                     Hidden = true
                 },
@@ -79,7 +41,7 @@ namespace Arcadia
                     Name = "Tinkerer",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "You have crafted an item for the first time.",
                     Criteria = user => user.GetVar(Stats.TimesCrafted) > 0
                 },
@@ -90,7 +52,7 @@ namespace Arcadia
                     Name = "Trading Beginner",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "You have traded with another user for the first time.",
                     Criteria = user => user.GetVar(Stats.TimesTraded) > 0
                 },
@@ -101,7 +63,7 @@ namespace Arcadia
                     Name = "Bronze Heart",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "You were a kind soul and gave someone else an item of your own.",
                     Criteria = user => user.GetVar(Stats.ItemsGifted) > 0
                 },
@@ -112,7 +74,7 @@ namespace Arcadia
                     Name = "Silver Heart",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Silver,
-                    Value = 25,
+                    Score = 25,
                     Quote = "You have been a good person and gifted over 50 items to plenty of people.",
                     Criteria = user => user.GetVar(Stats.ItemsGifted) > 50
                 },
@@ -123,7 +85,7 @@ namespace Arcadia
                     Name = "Golden Heart",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Gold,
-                    Value = 50,
+                    Score = 50,
                     Quote = "You have given over 100 items to plenty of people.",
                     Criteria = user => user.GetVar(Stats.ItemsGifted) > 100,
                     Hidden = true
@@ -135,19 +97,19 @@ namespace Arcadia
                     Name = "Ignition",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "You have equipped your first booster.",
                     Criteria = user => user.Boosters.Count > 0
                 },
                 new Merit
                 {
                     Id = "common:progress_pioneer",
-                    Icon = "🚂",
+                    Icon = "🚝",
                     Name = "Progression Pioneer",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Diamond,
-                    Value = 100,
-                    Quote = "You were there at the start, leading the path to what exists now.",
+                    Score = 100,
+                    Quote = "You were there at the start, carving the path to the future.",
                     Hidden = true
                 },
                 new Merit
@@ -156,7 +118,7 @@ namespace Arcadia
                     Name = "Liquidation",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "Your requests have been met with gold.",
                     Criteria = user => user.GetVar(GimiStats.TimesGold) > 0
                 },
@@ -166,7 +128,7 @@ namespace Arcadia
                     Name = "Deprivation",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 5,
+                    Score = 5,
                     Quote = "Your greed has led you to perish under the moonlight.",
                     Criteria = user => user.GetVar(GimiStats.TimesCursed) > 0
                 },
@@ -176,7 +138,7 @@ namespace Arcadia
                     Name = "Golden Touch",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
-                    Value = 50,
+                    Score = 50,
                     Quote = "Midas must have gifted you with his abilities.",
                     Criteria = user => user.GetVar(GimiStats.LongestGold) >= 2,
                     Hidden = true
@@ -187,7 +149,7 @@ namespace Arcadia
                     Name = "Pandora's Box",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
-                    Value = 50,
+                    Score = 50,
                     Quote = "Your ruthless requests released the worst of this world.",
                     Criteria = user => user.GetVar(GimiStats.LongestCurse) >= 2,
                     Hidden = true
@@ -198,7 +160,7 @@ namespace Arcadia
                     Name = "Lucky Guesses",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Silver,
-                    Value = 25,
+                    Score = 25,
                     Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
                     Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 3,
                     Hidden = true
@@ -209,7 +171,7 @@ namespace Arcadia
                     Name = "Gimi Beginner",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "You have requested funds 100 times.",
                     Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 100
                 },
@@ -220,7 +182,7 @@ namespace Arcadia
                     Name = "Clover of Gimi",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "You have won over 20 times in a row in Gimi.",
                     Criteria = user => user.GetVar(GimiStats.LongestWin) >= 20,
                     Hidden = true
@@ -232,7 +194,7 @@ namespace Arcadia
                     Name = "Curse of Gimi",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "You have lost over 20 times in a row in Gimi.",
                     Criteria = user => user.GetVar(GimiStats.LongestLoss) >= 20,
                     Hidden = true
@@ -244,7 +206,7 @@ namespace Arcadia
                     Name = "Clover of Doubler",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "You have won over 20 times in a row in Doubler.",
                     Criteria = user => user.GetVar(TickStats.LongestWin) >= 20,
                     Hidden = true
@@ -256,7 +218,7 @@ namespace Arcadia
                     Name = "Golden Clover of Doubler",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
-                    Value = 50,
+                    Score = 50,
                     Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
                     Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 20,
                     Hidden = true
@@ -267,7 +229,7 @@ namespace Arcadia
                     Name = "Doubler Beginner",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "You have attempted to double your chips 100 times.",
                     Criteria = user => user.GetVar(TickStats.TimesPlayed) >= 100
                 },
@@ -277,7 +239,7 @@ namespace Arcadia
                     Name = "Gimi Advocate",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Silver,
-                    Value = 25,
+                    Score = 25,
                     Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
                     Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 1000
                 },
@@ -287,7 +249,7 @@ namespace Arcadia
                     Name = "Gimi Expert",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Gold,
-                    Value = 50,
+                    Score = 50,
                     Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
                     Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 5000,
                     Hidden = true,
@@ -303,7 +265,7 @@ namespace Arcadia
                     Name = "Gimi Maniac",
                     Group = MeritGroup.Casino,
                     Rank = MeritRank.Diamond,
-                    Value = 250,
+                    Score = 250,
                     Quote = "No matter what anyone said, you kept going 10,000 times over.",
                     Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 10000,
                     Hidden = true,
@@ -322,7 +284,7 @@ namespace Arcadia
                     Name = "Weekly Worker",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 7,
+                    Score = 7,
                     Quote = "You've stopped by for 7 days, making your name known.",
                     Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 7
                 },
@@ -333,7 +295,7 @@ namespace Arcadia
                     Name = "Monthly Advocate",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Gold,
-                    Value = 30,
+                    Score = 30,
                     Quote = "30 days have passed, and you have yet to miss a single one.",
                     Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 30
                 },
@@ -344,7 +306,7 @@ namespace Arcadia
                     Name = "Daily Automaton",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Platinum,
-                    Value = 100,
+                    Score = 100,
                     Quote = "You're still here. Even after 100 days.",
                     Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 100,
                     Hidden = true
@@ -356,7 +318,7 @@ namespace Arcadia
                     Name = "Perfect Attendance",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Diamond,
-                    Value = 365,
+                    Score = 365,
                     Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
                     Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 365,
                     Hidden = true
@@ -368,11 +330,25 @@ namespace Arcadia
                     Name = "Escaping Trouble",
                     Group = MeritGroup.Common,
                     Rank = MeritRank.Bronze,
-                    Value = 10,
+                    Score = 10,
                     Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
                     Criteria = user => user.GetVar($"{Items.PocketLawyer}:times_used") >= 1
                 } // TODO: Create automatic item stat tracking
             };
+
+        public static string GetTooltip(string tooltip)
+            => $"> 🛠️ {tooltip}";
+
+        public static string GetTooltips(in IEnumerable<string> tooltips)
+        {
+            if (!Check.NotNullOrEmpty(tooltips))
+                return "";
+
+            if (tooltips.Count() == 1)
+                return GetTooltip(tooltips.First());
+
+            return $"> 🛠️ **Tips**\n{string.Join("\n", tooltips.Select(x => $"• {x}"))}";
+        }
 
         public static Merit GetMerit(string id)
         {
@@ -400,7 +376,7 @@ namespace Arcadia
             {
                 Merit merit = GetMerit(id);
 
-                score += merit.Value;
+                score += merit.Score;
             }
 
             return score;
@@ -415,16 +391,20 @@ namespace Arcadia
                 info.AppendLine(Format.Warning("This is an exclusive merit."));
             }
 
-            if (user != null)
+            if (user != null && CanClaim(user, merit))
             {
-                if (HasMerit(user, merit.Id))
-                {
-                    info.AppendLine($"> 🏆 **Achieved: {Format.FullTime(user.Merits[merit.Id].AchievedAt)}**\n");
-                }
+                info.AppendLine($"> 🛠️ Type `claim {merit.Id}` to claim this merit.");
+            }
+            else if (merit.Hidden && (user?.Config?.Tooltips ?? false))
+            {
+                info.AppendLine($"> 🛠️ This merit does not count for total completion.");
             }
 
-            info.AppendLine($"> `{merit.Id}`");
-            info.AppendLine($"> **{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
+            if (merit.Criteria == null || (merit.Hidden && (user?.Config?.Tooltips ?? false)))
+                info.AppendLine();
+
+            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
+            info.AppendLine($"> {icon} **{merit.Name}** (**{merit.Score:##,0}**m)");
 
             if (Check.NotNull(merit.Quote))
             {
@@ -433,7 +413,7 @@ namespace Arcadia
                 if (merit.Hidden)
                     info.Append("||");
 
-                info.Append(merit.Quote);
+                info.Append($"\"{merit.Quote}\"");
 
                 if (merit.Hidden)
                     info.Append("||");
@@ -441,10 +421,20 @@ namespace Arcadia
                 info.AppendLine();
             }
 
+            if (user != null)
+            {
+                if (HasMerit(user, merit.Id))
+                {
+                    info.AppendLine($"> Unlocked: {Format.FullTime(user.Merits[merit.Id].AchievedAt, '.')}");
+                }
+            }
+
+            info.AppendLine($"> Rank: **{merit.Rank.ToString()}**");
+
             if (merit.Reward != null)
             {
                 info.AppendLine();
-                info.Append("> **Rewards**");
+                info.Append($"> 🎁 **{Format.TryPluralize("Reward", merit.Reward.ItemIds.Count + (merit.Reward.Money > 0 ? 1 : 0) + (merit.Reward.Exp > 0 ? 1 : 0))}**");
 
                 if (user != null)
                 {
@@ -452,7 +442,7 @@ namespace Arcadia
                     {
                         if (user?.Merits[merit.Id]?.IsClaimed == true)
                         {
-                            info.Append(" (Claimed!)");
+                            info.Append(" (Claimed)");
                         }
                     }
                 }
@@ -461,16 +451,13 @@ namespace Arcadia
 
                 if (merit.Reward.Money > 0)
                 {
-                    info.AppendLine($"> • 💸 **{merit.Reward.Money:##,0}**");
+                    info.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
                 }
 
                 if (merit.Reward.ItemIds != null)
                 {
                     foreach ((string itemId, int amount) in merit.Reward.ItemIds)
-                    {
-                        info.AppendLine(
-                            $"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
-                    }
+                        info.AppendLine($"> {WriteItem(itemId, amount)}");
                 }
             }
 
@@ -479,30 +466,11 @@ namespace Arcadia
 
         public static string WriteRow(Merit merit, ArcadeUser user = null)
         {
+            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon} " : "•");
             var info = new StringBuilder();
 
-            if (merit.Criteria == null)
-            {
-                info.AppendLine(Format.Warning("This is an exclusive merit."));
-            }
-
             info.AppendLine($"> `{merit.Id}`");
-            info.Append("> ");
-
-            if (user != null)
-            {
-                if (HasMerit(user, merit.Id))
-                {
-                    info.Append("🔓 ");
-                }
-            }
-            // 🎖️
-            info.AppendLine($"{(Check.NotNull(merit.Icon) ? $"{merit.Icon} " : "")}**{merit.Name}** • *{merit.Rank.ToString()}* (**{merit.Value:##,0}**m)");
-
-            if (Check.NotNull(merit.Quote))
-            {
-                info.Append($"> {(merit.Hidden ? "||": "")}*\"{(Check.NotNull(merit.LockQuote) && !HasMerit(user, merit.Id) ? merit.LockQuote : merit.Quote)}\"*{(merit.Hidden ? "||" : "")}");
-            }
+            info.AppendLine($"> {icon} **{merit.Name}**{(user != null && HasMerit(user, merit) ? "\\*": "")} (**{merit.Score:##,0}**m)");
 
             return info.ToString();
         }
@@ -537,64 +505,58 @@ namespace Arcadia
             return progress.ToString();
         }
 
-        public static string View(ArcadeUser user, MeritQuery flag = MeritQuery.Default, int page = 0, int pageSize = 5)
+        public static string View(ArcadeUser user, MeritQuery query = MeritQuery.Default, int page = 0, int pageSize = 5)
         {
+            bool allowTooltips = (user?.Config?.Tooltips ?? true);
             var info = new StringBuilder();
 
-            if (flag != MeritQuery.Default)
+            if (query != MeritQuery.Default)
+                info.Append(GetNotice(query));
+
+            if (query == MeritQuery.Default)
             {
-                info.Append(GetNotice(flag));
-            }
+                info.AppendLine($"{Locale.GetHeader(Headers.Merits, $"(**{GetScore(user)}**m)", GetSummary(query))}\n");
 
-            info.Append("> 🏆 **Merits");
-
-            if (flag != MeritQuery.Default)
-                info.Append($": {flag.ToString()}");
-
-            info.Append("**");
-
-            if (flag == MeritQuery.Default)
-                info.Append($" (**{GetScore(user)}**m)");
-
-            info.AppendLine();
-
-            info.AppendLine($"> {GetSummary(flag)}\n");
-
-            if (flag == MeritQuery.Default)
-            {
                 foreach (MeritGroup g in MeritGroup.Common.GetValues())
-                {
                     info.AppendLine($"> `{g.ToString().ToLower()}` • **{g.ToString()}**\n> {GetProgress(user, g)}\n");
-                }
 
                 if (GetCountOf(user, MeritQuery.Hidden) != 0)
                     info.AppendLine($"> `{MeritQuery.Hidden.ToString().ToLower()}` • **{MeritQuery.Hidden.ToString()}**\n> {GetProgress(user, MeritQuery.Hidden)}\n");
             }
             else
             {
-                List<Merit> merits = Merits.Where(GetInvokerFor(flag, user)).OrderBy(x => x.Name).ToList();
-                int pageCount = (int)Math.Ceiling(merits.Count / (double)pageSize) - 1;
-                page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+                List<Merit> merits = Merits
+                       .Where(GetInvokerFor(query, user))
+                       .Where(x => HasMerit(user, x) || !x.Hidden)
+                       .OrderBy(x => x.Name).ToList();
 
-                int offset = page * pageSize;
-                int i = 0;
-                foreach (Merit merit in merits.Skip(offset))
+                int pageCount = Paginate.GetPageCount(merits.Count, pageSize);
+                string counter = pageCount > 1 ? $"({Format.PageCount(page + 1, pageCount)})" : null;
+                string header = Locale.GetHeader(Headers.Merits, counter, group: query.ToString());
+
+                IEnumerable<Merit> group = Paginate.GroupAt(merits, page, pageSize);
+
+                if (allowTooltips)
                 {
-                    if (i >= pageSize)
-                        break;
+                    var tooltips = new List<string>();
 
-                    if (!HasMerit(user, merit.Id) && merit.Hidden)
-                        continue;
+                    tooltips.Add("Type `merit <id>` to view more details about a specific merit.");
 
+                    if (merits.Any(x => HasMerit(user, x)))
+                        tooltips.Add("Unlocked merits are marked with a `*`.");
 
-                    info.AppendLine($"{WriteRow(merit, user)}\n");
-                    i++;
+                    info.AppendLine(GetTooltips(tooltips));
+                    info.AppendLine();
                 }
 
-                if (i == 0)
-                {
-                    info.AppendLine("> *Could not find any achievements for this query.*");
-                }
+                info.AppendLine(header);
+                info.AppendLine();
+
+                foreach (Merit merit in Paginate.GroupAt(merits, page, pageSize))
+                    info.AppendLine($"{WriteRow(merit, user)}");
+
+                if (merits.Count == 0)
+                    info.AppendLine("> *This category does not contain any merits.*");
             }
 
             return info.ToString();
@@ -642,7 +604,7 @@ namespace Arcadia
         {
             return flag switch
             {
-                MeritQuery.Hidden => "> 🔧 These merits do not account for total completion.\n\n",
+                MeritQuery.Hidden => "> 🛠️ These merits do not account for total completion.\n\n",
                 _ => ""
             };
         }
@@ -682,7 +644,7 @@ namespace Arcadia
             }
 
             user.Merits.Add(merit.Id, merit.GetData());
-            user.Notifier.Append($"Merit unlocked: **{merit.Name}**");
+            user.Notifier.Append($"Merit unlocked: **{merit.Name}** (**{merit.Score}**m)");
         }
 
         public static void TryUnlock(ArcadeUser user, string meritId)
@@ -716,16 +678,19 @@ namespace Arcadia
         public static bool CanClaimAny(ArcadeUser user)
             => Merits.Any(x => CanClaim(user, x.Id));
 
+        public static IEnumerable<Merit> GetClaimable(ArcadeUser user)
+            => Merits.Where(x => CanClaim(user, x.Id));
+
         // attempts to claim all available merits
         public static string ClaimAll(ArcadeUser user)
         {
             if (!CanClaimAny(user))
-                return $"> ⚠️ You don't have any merits that can be claimed.";
+                return "> ⚠️ You don't have any merits that can be claimed.";
 
             long money = 0;
             var items = new Dictionary<string, int>();
+            IEnumerable<Merit> toClaim = Merits.Where(x => CanClaim(user, x.Id)).ToList();
 
-            IEnumerable<Merit> toClaim = Merits.Where(x => CanClaim(user, x.Id));
             foreach (Merit merit in toClaim)
             {
                 money += merit.Reward.Money;
@@ -751,7 +716,7 @@ namespace Arcadia
 
             foreach ((string itemId, int amount) in items)
             {
-                result.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                result.AppendLine($"> {WriteItem(itemId, amount)}");
                 ItemHelper.GiveItem(user, itemId, amount);
             }
 
@@ -759,7 +724,36 @@ namespace Arcadia
         }
 
         public static string Claim(ArcadeUser user, string meritId)
-            => Claim(user, GetMerit(meritId));
+        {
+            if (!Check.NotNull(meritId))
+            {
+                var claimable = GetClaimable(user);
+
+                if (!Check.NotNullOrEmpty(claimable))
+                    return Format.Warning("You don't have any merits you can claim.");
+
+                var result = new StringBuilder();
+
+                if (user.Config.Tooltips)
+                {
+                    result.AppendLine("> 🛠️ Type `claim all` to claim all available merits.");
+                    result.AppendLine();
+                }
+
+                result.AppendLine($"> **Claimable Merits**\n");
+                result.AppendJoin("\n", GetClaimable(user).Select(x => WriteRow(x, user)));
+
+                return result.ToString();
+            }
+
+            if (meritId.Equals("all", StringComparison.OrdinalIgnoreCase))
+                return ClaimAll(user);
+
+            if (!Exists(meritId) || (!HasMerit(user, meritId) && GetMerit(meritId).Hidden))
+                return Format.Warning("An unknown merit was specified.");
+
+            return Claim(user, GetMerit(meritId));
+        }
 
         // attempts to claim the specified merit.
         public static string Claim(ArcadeUser user, Merit merit)
@@ -785,12 +779,20 @@ namespace Arcadia
 
             foreach ((string itemId, int amount) in merit.Reward.ItemIds)
             {
-                result.AppendLine($"> • **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                result.AppendLine($"> {WriteItem(itemId, amount)}");
                 ItemHelper.GiveItem(user, itemId, amount);
             }
 
             user.Merits[merit.Id].IsClaimed = true;
             return result.ToString();
+        }
+
+        private static string WriteItem(string itemId, int amount)
+        {
+            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
+            string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
+            return $"`{itemId}` {icon} **{name}**{counter}";
         }
     }
 }

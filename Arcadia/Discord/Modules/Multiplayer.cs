@@ -6,6 +6,7 @@ using Arcadia.Multiplayer;
 
 namespace Arcadia.Modules
 {
+    [Icon("⚔️")]
     [Name("Multiplayer")]
     [Summary("Come play with others.")]
     public class Multiplayer : OriModuleBase<ArcadeContext>

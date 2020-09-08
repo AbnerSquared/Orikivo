@@ -23,8 +23,8 @@ namespace Orikivo
         }
 
         public static ImmutableColor GetColorByReport(int reportCount)
-            => reportCount >= InfoService.CRITICAL_THRESHOLD ?
-            new ImmutableColor(0xE75A70) : reportCount >= InfoService.YIELD_THRESHOLD ?
+            => reportCount >= InfoService.CriticalThreshold ?
+            new ImmutableColor(0xE75A70) : reportCount >= InfoService.YieldThreshold ?
             new ImmutableColor(0xFFAC33) : new ImmutableColor(0x55ACEE);
 
         // TODO: actually give this a reason to exist.

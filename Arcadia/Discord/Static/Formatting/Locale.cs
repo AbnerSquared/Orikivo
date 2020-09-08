@@ -46,6 +46,11 @@ namespace Arcadia
             {
                 Title = "Guild Browser",
                 Subtitle = "Search for a specific guild."
+            },
+            [Headers.Merits] = new Header
+            {
+                //Icon = "🏆",
+                Title = "Merits"
             }
         };
 

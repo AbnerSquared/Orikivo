@@ -8,47 +8,35 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using MongoDB.Driver;
 using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
+    [Icon("💽")]
     [Name("Core")]
-    [Summary("Defines all core commands.")]
+    [Summary("Contains all root commands for Orikivo Arcade.")]
     public class Core : OriModuleBase<ArcadeContext>
     {
         private readonly InfoService _info;
-        private readonly MongoClient _mongo;
 
-        public Core(InfoService info, MongoClient mongo)
+        public Core(InfoService info)
         {
             _info = info;
-            _mongo = mongo;
         }
 
-        //[Command("mongotest")]
-        public async Task MongoTestAsync()
+        [DoNotNotify]
+        [Command("about"), Priority(0)]
+        public async Task AboutAsync()
         {
-            if (Context.User.Id != OriGlobal.DevId)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Only the developer may execute this command."));
-                return;
-            }
 
-            try
-            {
-                IMongoDatabase db = _mongo.GetDatabase("arcadia");
+        }
 
-                var testObjects = db.GetCollection<TestMongoObject>("test");
-                var value = new TestMongoObject("test_id", "default_text");
-                testObjects.InsertOne(value);
-                Console.WriteLine(testObjects.Find(x => x.Id == "test_id"));
-            }
-            catch(Exception e)
-            {
-                await Context.Channel.CatchAsync(e);
-            }
+        [DoNotNotify]
+        [Command("about"), Priority(1)]
+        public async Task SearchAboutAsync(string input)
+        {
+
         }
 
         [DoNotNotify]
@@ -88,9 +76,7 @@ namespace Arcadia.Modules
         {
             try
             {
-                //_info.SetGuild(Context.Server);
-                await Context.Channel.SendMessageAsync(_info.GetPanel(context)); // Context.Account
-                //_info.ClearGuildInfo();
+                await Context.Channel.SendMessageAsync(_info.GetPanel(context, prefix: Context.GetPrefix())); // Context.Account
             }
             catch (Exception ex)
             {

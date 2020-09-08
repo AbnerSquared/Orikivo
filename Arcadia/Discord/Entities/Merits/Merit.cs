@@ -25,7 +25,7 @@ namespace Arcadia
 
         public MeritRank Rank { get; set; }
 
-        public long Value { get; set; }
+        public long Score { get; set; }
 
         public bool Hidden { get; set; }
 

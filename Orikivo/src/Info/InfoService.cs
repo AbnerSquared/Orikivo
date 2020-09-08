@@ -16,11 +16,15 @@ namespace Orikivo
         private const int MAX_COMMAND_DISPLAY = 3;
 
         // TODO: Separate IconHandler, which can manage fallback emojis and custom emojis
-        public const int YIELD_THRESHOLD = 1;
-        public const int CRITICAL_THRESHOLD = 10;
-        public const string STABLE_EMOJI = "\uD83D\uDD39"; // :small_blue_diamond:
-        public const string YIELD_EMOJI = "\uD83D\uDD38"; // :small_orange_diamond:
-        public const string CRITICAL_EMOJI = "\uD83D\uDD3A"; // :small_red_triangle:
+        public const int YieldThreshold = 1;
+        public const int CriticalThreshold = 10;
+        public const string StableEmoji = "\uD83D\uDD39"; // :small_blue_diamond:
+        public const string YieldEmoji = "\uD83D\uDD38"; // :small_orange_diamond:
+        public const string CriticalEmoji = "\uD83D\uDD3A"; // :small_red_triangle:
+
+        public static readonly string DefaultExample = "value";
+        public static readonly string MentionExample = "@Orikivo Arcade#8156";
+        public static readonly string TrailingExample = "this is all one value";
 
         private readonly CommandService _commands;
         private readonly InfoFormatter _formatter;
@@ -106,9 +110,9 @@ namespace Orikivo
 
         // BASE
         public static string GetSeverityIcon(int reportCount)
-            => reportCount >= CRITICAL_THRESHOLD ?
-            CRITICAL_EMOJI : reportCount >= YIELD_THRESHOLD ?
-            YIELD_EMOJI : STABLE_EMOJI;
+            => reportCount >= CriticalThreshold ?
+            CriticalEmoji : reportCount >= YieldThreshold ?
+            YieldEmoji : StableEmoji;
 
         public static string GetSeverityIcon(ContextNode node)
             => GetSeverityIcon(node.Reports.Count(x => x.State == ReportState.Open));
@@ -199,7 +203,7 @@ namespace Orikivo
             panel.AppendLine("> **Help Menu**");
 
             if (showTooltips)
-                panel.AppendLine("> Use `help <name>` to learn more about a command, module, or action.");
+                panel.AppendLine("> 🛠️ Use `help <name>` to learn more about a command or category.");
 
             // TODO: Handle report status icon management
             if (Guides?.Any() ?? false)
@@ -219,6 +223,9 @@ namespace Orikivo
                 foreach(ModuleNode module in GetBaseModules().Select(x => new ModuleNode(x)))
                 {
                     panel.Append("> ");
+
+                    if (Check.NotNull(module.Icon))
+                        panel.Append($"{module.Icon} ");
 
                     if (showReportStatus)
                     {
@@ -272,7 +279,34 @@ namespace Orikivo
             return panel.ToString();
         }
 
-        public string GetPanel(string content = null, User user = null, bool drawActions = true)
+        private static void SetExample(OverloadNode command, string prefix)
+        {
+            var result = new StringBuilder();
+
+            result.Append(prefix);
+            result.Append(command.Name);
+
+            if (command.Parameters.Count > 0)
+            {
+                result.Append(' ');
+                result.AppendJoin(" ", command.Parameters.Select(GetExampleArg));
+            }
+
+            command.Example = result.ToString();
+        }
+
+        private static string GetExampleArg(ParameterNode parameter)
+        {
+            if (parameter.Tag.HasFlag(ParameterTag.Mentionable))
+                return MentionExample;
+
+            if (parameter.Tag.HasFlag(ParameterTag.Trailing))
+                return TrailingExample;
+
+            return DefaultExample;
+        }
+
+        public string GetPanel(string content = null, User user = null, bool drawActions = true, string prefix = "[")
         {
             if (!Check.NotNull(content))
                 return GetMenu(user, drawActions);
@@ -296,26 +330,51 @@ namespace Orikivo
                 }
             }
 
-            ContextNode ctx = Search(content);
+            ContextNode ctx = Search(content, out string error);
 
-            StringBuilder panel = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(error))
+                return error;
 
-            if (user?.Config?.Tooltips ?? false)
+            bool allowTooltips = user?.Config?.Tooltips ?? true;
+            var panel = new StringBuilder();
+
+            if (allowTooltips)
             {
+                /*
+                string tooltip = ctx switch
+                {
+                    CommandNode c => $"> Use `help {ctx.Name}+<index>` to learn more about a specific command method.",
+                    ModuleNode m when ctx.Type == InfoType.Group => $"> Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.",
+                    _ => ""
+                };*/
+
                 if (ctx.Type == InfoType.Command)
                 {
                     if ((ctx as CommandNode).Overloads.Count > 1)
-                        panel.AppendLine($"> Use `help {ctx.Name}+<index>` to learn more about a specific command method.");
+                        panel.AppendLine($"> 🛠️ Use `help {ctx.Name}+<index>` to learn more about a specific command overload.\n");
                 }
                 else if (ctx.Type == InfoType.Group)
                 {
-                    panel.AppendLine($"> Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.");
+                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.\n");
+                }
+                else if (ctx.Type == InfoType.Module)
+                {
+                    panel.AppendLine("> 🛠️ Use `help <command>` to learn more about a specific command.\n");
                 }
             }
 
+            if (ctx is OverloadNode overload)
+            {
+                if (allowTooltips && overload.Parameters.Count > 0)
+                {
+                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter for the command.\n");
+                }
+
+                SetExample(overload, prefix);
+                ctx = overload;
+            }
+
             panel.Append(ctx.ToString());
-
-
             return panel.ToString();
         }
 
@@ -400,6 +459,127 @@ namespace Orikivo
             };
         }
 
+        public ContextNode Search(string content, out string error)
+        {
+            InfoContext ctx = InfoContext.Parse(content);
+
+            var type = InfoType.Unknown;
+
+            if (!ctx.IsSuccess)
+            {
+                error = $"> **Oh.**\n> The specified input could not be parsed.\n```{ctx.ErrorReason}```";
+                return null;
+            }
+
+            // Get the initial location of the parent to peek
+            ModuleInfo module = GetInnerModule(ctx, out error);
+
+            if (!string.IsNullOrWhiteSpace(error))
+                return null;
+
+            ModuleInfo group = GetInnerGroup(ctx, out error, module);
+
+            if (!string.IsNullOrWhiteSpace(error))
+                return null;
+
+            IEnumerable<CommandInfo> commands = null;
+            ParameterInfo parameter = null;
+
+            // If a type wasn't initialized, find the closest matching value
+            InfoMatch bestMatch = ctx.Type.HasValue ? null : GetValue(ctx.Root, out error, group ?? module);
+
+            if (!string.IsNullOrWhiteSpace(error))
+                return null;
+
+            type = ctx.Type.GetValueOrDefault(bestMatch?.Type ?? type);
+
+            switch (type)
+            {
+                case InfoType.Module:
+                    module = GetModule(ctx.Root, out error, group ?? module);
+
+                    if (!string.IsNullOrWhiteSpace(error))
+                        return null;
+
+                    break;
+
+                case InfoType.Group:
+                    group = GetGroup(ctx.Root, out error, group ?? module);
+
+                    if (!string.IsNullOrWhiteSpace(error))
+                        return null;
+
+                    break;
+
+                case InfoType.Command:
+                    commands = GetCommands(ctx.Root, group ?? module);
+                    break;
+            }
+
+            if (type == InfoType.Command)
+            {
+                if (!Check.NotNullOrEmpty(commands))
+                {
+                    error = $"> **Oops!**\n> I could not find the command for the specified input.";
+                    return null;
+                }
+
+                // If a priority was specified, slim the search down to that specific command
+                if (ctx.HasPriority)
+                {
+                    commands = commands.Where(x => x.Priority == ctx.Priority);
+
+                    if (!Check.NotNullOrEmpty(commands))
+                    {
+                        error = $"> **Oops!**\n> I could not find a matching command for the specified priority.";
+                        return null;
+                    }
+
+                    if (commands.Count() > 1)
+                        throw new MultiMatchException("The priority for the specified command exists in more than one instance.");
+
+                    type = InfoType.Overload;
+                }
+                else if (commands.Count() == 1)
+                {
+                    type = InfoType.Overload;
+                }
+
+                // If a parameter was specified, attempt to find the best match possible
+                if (Check.NotNull(ctx.Parameter))
+                {
+                    IEnumerable<ParameterInfo> parameters = new List<ParameterInfo>();
+                    commands.ForEach(x => parameters = parameters.Concat(GetParameters(x, ctx.Parameter)));
+
+                    if (!Check.NotNullOrEmpty(parameters))
+                    {
+                        error = $"> **Oops!**\n> I could not find a matching parameter for {(ctx.HasPriority ? "the specified command" : "any of the specified commands")}.";
+                        return null;
+                    }
+
+                    if (parameters.Count() > 1)
+                    {
+                        error = $"> **Huh?**\n> There were several matching parameters for the specified input:\n{string.Join("\n", parameters.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                        return null;
+                    }
+
+                    parameter = parameters.First();
+                    type = InfoType.Parameter;
+                }
+            }
+
+            // Return the node value based on the finalized type that was found or given
+            return type switch
+            {
+                InfoType.Module => new ModuleNode(module),
+                InfoType.Group => new ModuleNode(group),
+                InfoType.Overload => new OverloadNode(commands.First()),
+                InfoType.Command => new CommandNode(commands),
+                InfoType.Parameter => new ParameterNode(parameter),
+                _ => throw new ValueNotFoundException("A ContextNode value could not be created with the given context.")
+            };
+        }
+
         public List<string> GetAliases(string content)
         {
             try
@@ -466,6 +646,33 @@ namespace Orikivo
             return values.First();
         }
 
+        public InfoMatch GetValue(string name, out string error, ModuleInfo parent = null)
+        {
+            error = null;
+            IEnumerable<InfoMatch> values = GetMatchingValues(parent, name);
+
+            if (!Check.NotNullOrEmpty(values))
+            {
+                error = $"> **Oops!**\n> I could not find a matching value for the specified input.";
+                return null;
+            }
+
+            if (values.Any(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)))
+            {
+                if (values.Count(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)) > 1)
+                {
+                    error = $"> **Huh?**\n> There were multiple results for the specified input:\n{string.Join("\n", values.Select(x => $"• `{x.Id}`").OrderBy(x => x[3..]))}";
+                    return null;
+                }
+
+                return values.First(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group));
+            }
+
+            return values.First();
+        }
+
+
+
         // MODULES
         public ModuleInfo GetInnerModule(InfoContext ctx)
         {
@@ -474,6 +681,25 @@ namespace Orikivo
             if (!Check.NotNullOrEmpty(ctx.Modules))
                 foreach (string name in ctx.Modules)
                     module = GetModule(name, module);
+
+            return module;
+        }
+
+        public ModuleInfo GetInnerModule(InfoContext ctx, out string error)
+        {
+            error = null;
+            ModuleInfo module = null;
+
+            if (!Check.NotNullOrEmpty(ctx.Modules))
+            {
+                foreach (string name in ctx.Modules)
+                {
+                    module = GetModule(name, out error, module);
+
+                    if (!string.IsNullOrWhiteSpace(error))
+                        return null;
+                }
+            }
 
             return module;
         }
@@ -487,6 +713,26 @@ namespace Orikivo
 
             if (modules.Count() > 1) // Add support for ambiguity.
                 throw new MultiMatchException($"Multiple results were given when searching for a module of the name '{name}'.");
+
+            return modules.First();
+        }
+
+        public ModuleInfo GetModule(string name, out string error, ModuleInfo parent = null)
+        {
+            error = null;
+            IEnumerable<ModuleInfo> modules = GetModules(parent, name);
+
+            if (!Check.NotNullOrEmpty(modules))
+            {
+                error = $"> **Oops!**\n> I could not find a module for the specified input.";
+                return null;
+            }
+
+            if (modules.Count() > 1)
+            {
+                error = $"> **Huh?**\n> There were several matching modules for the specified input:\n{string.Join("\n", modules.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                return null;
+            }
 
             return modules.First();
         }
@@ -520,12 +766,8 @@ namespace Orikivo
             return modules;
         }
 
-
         // GUIDES
         public IEnumerable<GuideNode> Guides { get; private set; }
-
-        public GuideNode GetGuide(string name)
-            => Guides.First(x => x.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
         // GROUPS
         public ModuleInfo GetInnerGroup(InfoContext ctx, ModuleInfo parent = null)
@@ -535,7 +777,24 @@ namespace Orikivo
             if (!Check.NotNullOrEmpty(ctx.Groups))
                 foreach (string name in ctx.Groups)
                     group = GetGroup(name, group ?? parent);
-            
+
+            return group;
+        }
+
+        public ModuleInfo GetInnerGroup(InfoContext ctx, out string error, ModuleInfo parent = null)
+        {
+            error = null;
+            ModuleInfo group = null;
+
+            if (!Check.NotNullOrEmpty(ctx.Groups))
+                foreach (string name in ctx.Groups)
+                {
+                    group = GetGroup(name, out error, group ?? parent);
+
+                    if (!string.IsNullOrWhiteSpace(error))
+                        return null;
+                }
+
             return group;
         }
 
@@ -548,6 +807,26 @@ namespace Orikivo
 
             if (groups.Count() > 1) // Add support for ambiguity.
                 throw new MultiMatchException($"Multiple results were given when searching for a group of the name '{name}'.");
+
+            return groups.First();
+        }
+
+        public ModuleInfo GetGroup(string name, out string error, ModuleInfo parent = null)
+        {
+            error = null;
+            IEnumerable<ModuleInfo> groups = GetGroups(parent, name);
+
+            if (!Check.NotNullOrEmpty(groups))
+            {
+                error = $"> **Oops!**\n> I could not find a module for the specified input.";
+                return null;
+            }
+
+            if (groups.Count() > 1)
+            {
+                error = $"> **Huh?**\n> There were several matching groups for the specified input:\n{string.Join("\n", groups.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                return null;
+            }
 
             return groups.First();
         }

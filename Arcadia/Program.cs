@@ -54,7 +54,7 @@ namespace Arcadia
                     .AddTypeReader<Quest>(new QuestTypeReader())
                     .AddTypeReader<Shop>(new ShopTypeReader())
                     .AddEnumTypeReader<CardDeny>()
-                    .AddEnumTypeReader<Casing>()
+                    .AddEnumTypeReader<Arcadia.Graphics.Casing>()
                     .AddEnumTypeReader<FontType>()
                     .AddEnumTypeReader<PaletteType>()
                     .AddEnumTypeReader<BorderAllow>()

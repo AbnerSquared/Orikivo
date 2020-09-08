@@ -21,6 +21,14 @@ namespace Orikivo
         public static bool IsSensitive(string text)
             => text.ContainsAny("\\", "*", "_", "~", "`", "|", ">");
 
+        public static string Number(long value, string icon = null)
+        {
+            if (string.IsNullOrWhiteSpace(icon))
+                return $"**{value:##,0}**";
+
+            return $"{icon} **{value:##,0}**";
+        }
+
         // TODO: Use Discord.Net's version of Quote(text)
         public static string Quote(string text)
         {
@@ -29,6 +37,9 @@ namespace Orikivo
 
             return $"> {text}";
         }
+
+        public static string PageCount(int current, int count)
+            => $"Page **{current:##,0}** of **{count:##,0}**";
 
         public static string BlockQuote(string text)
         {
@@ -189,8 +200,8 @@ namespace Orikivo
         public static string Date(DateTime date, char separator = '/')
             => date.ToString($"M{separator}d{separator}yyyy");
 
-        public static string FullTime(DateTime time, char separator = '/')
-            => time.ToString($"M{separator}d{separator}yyyy @ HH:mm tt");
+        public static string FullTime(DateTime time, char separator = '/', bool use24Hour = true, bool useMarkdown = true)
+            => time.ToString($"{(useMarkdown ? "**" : "")}M{separator}d{separator}yyyy{(useMarkdown ? "**" : "")} @ {(useMarkdown ? "**" : "")}{(use24Hour ? "hh:mm" : "HH:mm tt")}{(useMarkdown ? "**" : "")}");
 
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");
@@ -391,7 +402,7 @@ namespace Orikivo
                 result.Append(text[pre]);
                 pre++;
             }
-            
+
             return result.ToString();
         }
 
@@ -420,14 +431,11 @@ namespace Orikivo
 
         public static string Separate(long l)
             => l.ToString(GROUP_FORMATTING);
-        
         public static string Separate(int i)
             => i.ToString(GROUP_FORMATTING);
 
         public static string Separate(ulong u)
             => u.ToString(GROUP_FORMATTING);
-
-        
 
         public static string Error(string reaction = null, string title = null, string reason = null, string stackTrace = null, bool isEmbedded = false)
         {
@@ -492,7 +500,6 @@ namespace Orikivo
             return unique;
         }
 
-        // TODO: Implement all noun forms based on the end of the word
         public static string TryPluralize(string word, int count)
         {
             if (string.IsNullOrWhiteSpace(word))
@@ -504,83 +511,126 @@ namespace Orikivo
             return Pluralize(word);
         }
 
+        private static Casing GetCasing(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                throw new ArgumentNullException(nameof(input));
+
+            if (input.ToUpper() == input)
+                return Casing.Upper;
+
+            if (input.ToLower() == input)
+                return Casing.Lower;
+
+            if (input.Length > 1 && char.IsUpper(input[0]) && input[1..].ToLower() == input[1..])
+                return Casing.Pascal;
+
+            return Casing.Any;
+        }
+
+        private static string SetCasing(string input, Casing casing)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            return casing switch
+            {
+                Casing.Upper => input.ToUpper(),
+                Casing.Lower => input.ToLower(),
+                Casing.Pascal => $"{char.ToUpper(input[0])}{input[1..].ToLower()}",
+                _ => input
+            };
+        }
+
+        public static string Plural(string word, bool isFormal = false)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+                return word;
+
+            Casing casing = GetCasing(word);
+            string result = Pluralize(word, isFormal);
+
+            return SetCasing(result, casing);
+        }
+
         // TODO: Handle upper case words
         private static string Pluralize(string word, bool isFormal = false)
         {
-
             // no point in trying if the word doesn't exist.
             if (string.IsNullOrWhiteSpace(word))
                 return word;
 
+            string input = word.ToLower();
+
             // this is where special exception case words are handled
             // all words here are ignored if specified
-            if (word.EqualsAny("sheep", "fish", "moose", "swine", "buffalo", "shrimp", "trout"))
+            if (input.EqualsAny("sheep", "fish", "moose", "swine", "buffalo", "shrimp", "trout"))
                 return word;
 
             // likewise, this one is a bit harder to specify
             // for now, we can just use a dictionary look-up
             // try to make a method for pluralization in relation to -oot -ooth -an, etc.
-            if (UniquePlurals.ContainsKey(word))
-                return UniquePlurals[word];
+            if (UniquePlurals.ContainsKey(input))
+                return UniquePlurals[input];
 
             // if the specified word is shorter than 3 letters, just return it with an s.
-            if (word.Length < 3 || word.EndsWith("nth")) // substitute; not official formatting
+            if (input.Length < 3 || input.EndsWith("nth")) // substitute; not official formatting
                 return word + "s";
 
             // regular nouns => word + s
             // if singular noun ends in -s, -ss, -sh, -ch, -x, -z => word + es
-            if (word.EndsWithAny("s", "ss", "sh", "ch", "x", "z"))
+            if (input.EndsWithAny("s", "ss", "sh", "ch", "x", "z"))
             {
                 // index => indices (IF FORMAL)
-                if (word.EndsWithAny("ex", "ix"))
+                if (input.EndsWithAny("ex", "ix"))
                     if (isFormal)
-                        return word[0..^2] + "ices";
+                        return word[..^2] + "ices";
 
                 // in some cases, singular nouns ending in -s or -z require doubling the -s/-z before adding -es
-                if (word.EndsWithAny("s", "z"))
+                if (input.EndsWithAny("s", "z"))
                     return word + word.Last() + "es";
 
                 return word + "es";
             }
 
-            if (word.EndsWithAny(out string suffix, "f", "fe"))
+            if (input.EndsWithAny(out string suffix, "f", "fe"))
             {
                 return word[..^suffix.Length] + "ves";
             }
 
-            if (word.EndsWith("y"))
+            if (input.EndsWith("y"))
             {
                 // ^2 == word.Length - 2
-                if (IsConsonant(word[^2]))
+                if (IsConsonant(input[^2]))
                     return word[..^1] + "ies";
             }
 
-            if (word.EndsWith("o"))
+            if (input.EndsWith("o"))
             {
                 // this is where implementing exceptions for specific words come into play.
                 return word + "es";
             }
 
             // radius => radii
-            if (word.EndsWith("us"))
+            if (input.EndsWith("us"))
                 // word[0..^2] == word.Substring(0, word.Length - 2)
                 // this is selecting the range of characters FROM 0 TO word.Length - 2
                 return word[..^2] + "i";
 
             // criterion => criteria
-            if (word.EndsWith("on"))
+            if (input.EndsWith("on"))
                 return word[..^2] + "a";
 
             // axis => axes
-            if (word.EndsWith("is"))
+            if (input.EndsWith("is"))
                 return word[..^2] + "es";
 
             // datum => data
-            if (word.EndsWith("um"))
+            if (input.EndsWith("um"))
                 return word[..^2] + "a";
 
             // this might not be right, but it's worth a shot
-            if (word.EndsWith("ies"))
+            if (input.EndsWith("ies"))
                 return word;
 
             return word + "s";

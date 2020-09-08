@@ -80,5 +80,8 @@ namespace Arcadia
 
         public bool TryGetGuild(ulong id, out BaseGuild server)
             => Data.Guilds.TryGet(id, out server);
+
+        public string GetPrefix()
+            => Account?.Config.Prefix ?? Server?.Config.Prefix ?? OriGlobal.DEFAULT_PREFIX;
     }
 }
