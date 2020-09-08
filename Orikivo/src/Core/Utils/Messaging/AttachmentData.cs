@@ -6,7 +6,7 @@ namespace Orikivo
 {
     public class AttachmentData
     {
-        public AttachmentData(Attachment attachment, string name)
+        public AttachmentData(IAttachment attachment, string name)
         {
             Name = name;
             Extension = EnumUtils.GetUrlExtension(attachment.Filename) ?? ExtensionType.Empty;
@@ -16,16 +16,16 @@ namespace Orikivo
         public string Name { get; }
 
         public string Url { get; }
-        
+
         public ExtensionType Extension { get; }
 
         public async Task<OriWebResult> GetContentAsync()
         {
-            if (!string.IsNullOrWhiteSpace(Url))
-                using (var client = new OriWebClient())
-                    return await client.RequestAsync(Url);
+            if (string.IsNullOrWhiteSpace(Url))
+                return null;
 
-            return null;
+            using var client = new OriWebClient();
+            return await client.RequestAsync(Url);
         }
     }
 }

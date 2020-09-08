@@ -1,6 +1,5 @@
 ﻿using Discord;
 using System.Text;
-using Orikivo.Desync;
 
 namespace Orikivo
 {

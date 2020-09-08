@@ -216,7 +216,7 @@ namespace Orikivo.Desync
 
         public static string Parse(string content, EventContext context)
         {
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
             bool marker = false;
             string id = "";
             foreach (char c in content)

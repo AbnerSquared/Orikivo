@@ -1,8 +1,6 @@
 ﻿using Discord;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Orikivo
@@ -12,11 +10,6 @@ namespace Orikivo
     /// </summary>
     public static class OriRegex
     {
-        /// <summary>
-        /// Gets the <see cref="Regex"/> pattern that is used to parse stats (unused).
-        /// </summary>
-        public static readonly string StatParsePattern = @"^(\w+):(\w+)$";
-
         /// <summary>
         /// Gets the <see cref="Regex"/> pattern that is used to parse an <see cref="Emote"/>.
         /// </summary>
@@ -31,20 +24,16 @@ namespace Orikivo
         /// <summary>
         /// Attempts to capture emotes from a specified <see cref="string"/>.
         /// </summary>
-        /// <param name="emotes">A collection of captured emotes.</param>
         public static bool TryCaptureEmotes(string content, out List<Emote> emotes)
         {
             emotes = new List<Emote>();
-            MatchCollection matches = new Regex(EmoteParsePattern).Matches(content);
 
-            foreach (Match match in matches)
-                if (match.Success)
-                    emotes.Add(Emote.Parse(match.Value));
+            emotes.AddRange(new Regex(EmoteParsePattern)
+                .Matches(content)
+                .Where(x => x.Success)
+                .Select(x => Emote.Parse(x.Value)));
 
-            if (emotes.Count == 0)
-                return false;
-
-            return true;
+            return emotes.Count != 0;
         }
 
         /// <summary>
@@ -52,11 +41,12 @@ namespace Orikivo
         /// </summary>
         public static List<Emote> CaptureEmotes(string content)
         {
-            List<Emote> emotes = new List<Emote>();
+            var emotes = new List<Emote>();
 
-            foreach (Match match in new Regex(EmoteParsePattern).Matches(content))
-                if (match.Success)
-                    emotes.Add(Emote.Parse(match.Value));
+            emotes.AddRange(new Regex(EmoteParsePattern)
+                .Matches(content)
+                .Where(x => x.Success)
+                .Select(x => Emote.Parse(x.Value)));
 
             return emotes;
         }

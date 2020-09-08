@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
-    internal delegate bool ParseDelegate<T>(string input, out T value);
-
     // TODO: Implement string being null (ex. if someone types "null", you set the string to null)
     /// <summary>
     /// Represents a parser for <see cref="Type"/> values.
@@ -16,8 +14,7 @@ namespace Orikivo
         /// <summary>
         /// Represents the collection of custom parsers that are bound to a <see cref="Type"/>.
         /// </summary>
-        public static Dictionary<Type, CustomTypeParser> Parsers
-            => new Dictionary<Type, CustomTypeParser>
+        public static readonly Dictionary<Type, CustomTypeParser> Parsers = new Dictionary<Type, CustomTypeParser>
             {
                 //[typeof(GammaColor)] = new GammaColorTypeParser()
             };

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Orikivo.Framework;
 
 namespace Orikivo
 {
@@ -20,7 +20,7 @@ namespace Orikivo
                 return true;
 
             if (!string.IsNullOrWhiteSpace(name))
-                    Console.WriteLine($"[CHECK] String '{name}' is either null, empty, or only consists of whitespace.");
+                Logger.Debug($"[CHECK] String '{name}' is either null, empty, or only consists of whitespace.");
 
             return false;
         }
@@ -52,9 +52,9 @@ namespace Orikivo
 
             if (source.Any())
                 return true;
-            
+
             if (!string.IsNullOrWhiteSpace(name))
-                Console.WriteLine($"[CHECK] Enumerable '{name}' does not exist or contain any elements.");
+                Logger.Debug($"[CHECK] Enumerable '{name}' does not exist or contain any elements.");
 
             return false;
             }
@@ -69,8 +69,8 @@ namespace Orikivo
             if (obj != null)
                 return true;
 
-            if (!string.IsNullOrWhiteSpace(name)) 
-                Console.WriteLine($"[CHECK] Object '{name}' does not exist.");
+            if (!string.IsNullOrWhiteSpace(name))
+                Logger.Debug($"[CHECK] Object '{name}' does not exist.");
 
             return false;
         }
