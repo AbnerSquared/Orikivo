@@ -679,19 +679,6 @@ namespace Arcadia.Modules
             // await Context.Channel.SendMessageAsync(values.ToString());
         }
 
-        [Command("throw")]
-        public async Task ThrowAsync(StackTraceMode traceMode = StackTraceMode.Full)
-        {
-            try
-            {
-                throw new Exception("This is a dummy exception.");
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex, traceMode);
-            }
-        }
-
         [RequireUser]
         [Command("clearpalette")]
         [Summary("Remove your currently equipped palette, if any.")]
