@@ -10,11 +10,14 @@ namespace Orikivo
             => new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
-                LogLevel = LogSeverity.Info,
+                LogLevel = LogSeverity.Verbose,
                 MessageCacheSize = 100,
                 LargeThreshold = 250,
                 RateLimitPrecision = RateLimitPrecision.Millisecond,
                 GatewayIntents = GatewayIntents.Guilds
+                // Create a UserTypeReader that directly attempts to load a user
+                // Caching users is disabled with this intent.
+                                     | GatewayIntents.GuildMembers
                                      | GatewayIntents.GuildMessages
                                      | GatewayIntents.GuildMessageReactions
                                      | GatewayIntents.DirectMessages

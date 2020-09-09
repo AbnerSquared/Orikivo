@@ -639,12 +639,12 @@ namespace Arcadia.Modules
             }
 
             if (account.Debt > 0)
-                result.AppendLine(account.Debt.ToString("D", provider));
+                result.AppendLine(string.Format(provider, "{0:D}", account.Debt));
             else if (account.Balance > 0)
-                result.AppendLine(account.Debt.ToString("O", provider));
+                result.AppendLine(string.Format(provider, "{0:O}", account.Balance));
 
-            result.AppendLine(account.ChipBalance.ToString("C", provider));
-            result.AppendLine(account.TokenBalance.ToString("T", provider));
+            result.AppendLine(string.Format(provider, "{0:C}", account.ChipBalance));
+            result.AppendLine(string.Format(provider, "{0:T}", account.TokenBalance));
 
             await Context.Channel.SendMessageAsync(result.ToString());
         }

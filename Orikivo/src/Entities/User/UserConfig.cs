@@ -51,6 +51,11 @@ namespace Orikivo.Desync
                 long sum = Convert.ToInt64(e);
                 bool useFlags = type.GetCustomAttribute<FlagsAttribute>() != null;
 
+                if (sum == type.GetEnumValues().Cast<Enum>().Select(Convert.ToInt64).Sum())
+                {
+                    return $"{sum} (All)";
+                }
+
                 // if (!useFlags && !Enum.GetNames(type).Contains(e.ToString()))
                 //    return $"{sum}{(sum == 0 ? " (None)" : "")}";
 

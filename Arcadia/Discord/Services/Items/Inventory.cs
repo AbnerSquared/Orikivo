@@ -14,16 +14,7 @@ namespace Arcadia
             var details = new StringBuilder();
 
             details.AppendLine($"> **{user.Username}**");
-            details.AppendLine($"> Joined: **{Format.Date(user.CreatedAt, '.')}**\n");
-
-
-            if (user.Merits.Count > 0)
-            {
-                Merit recentMerit = MeritHelper.GetMerit(user.Merits.OrderByDescending(x => x.Value.AchievedAt).First().Key);
-
-                details.AppendLine($"> **Last Unlocked Merit**");
-                details.AppendLine($"> {(Check.NotNull(recentMerit.Icon) ? recentMerit.Icon : "•")} **{recentMerit.Name}** (**{recentMerit.Score}**m)");
-            }
+            details.AppendLine($"> Joined: **{Format.Date(user.CreatedAt, '.')}**");
 
             if (user.Balance > 0 || user.Debt > 0 || user.ChipBalance > 0)
             {

@@ -89,6 +89,8 @@ namespace Arcadia
             _provider = provider;
             _client.MessageReceived += ReadInputAsync;
             _service.CommandExecuted += OnExecutedAsync;
+            _client.Log += Logger.LogAsync;
+            _service.Log += Logger.LogAsync;
             _info = info;
             _games = games;
         }
@@ -336,7 +338,9 @@ namespace Arcadia
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
             // TODO: Make the specific context exchangeable.
-            var ctx = context as ArcadeContext;
+
+            if (!(context is ArcadeContext ctx))
+                throw new Exception("Invalid context provided.");
 
             // Attempt to set a global cooldown on the account that executed this command
 
@@ -346,7 +350,7 @@ namespace Arcadia
                 if (result is ExecuteResult execute)
                 {
                     if (!result.IsSuccess)
-                        await context.Channel.CatchAsync((execute).Exception);
+                        await context.Channel.CatchAsync((execute).Exception, ctx?.Account?.Config?.ErrorHandling ?? StackTraceMode.Simple);
                 }
                 else
                 {

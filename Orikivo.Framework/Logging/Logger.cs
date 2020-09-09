@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 
 namespace Orikivo.Framework
 {
@@ -35,6 +36,11 @@ namespace Orikivo.Framework
         {
             WriteLine(value);
             WriteToFile(value.Content);
+        }
+
+        public static async Task LogAsync(LogMessage log)
+        {
+            WriteLine(log.ToString(null, true, true));
         }
 
         public static void Log(string content)

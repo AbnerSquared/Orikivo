@@ -385,7 +385,7 @@ namespace Arcadia
                 var tooltips = new List<string>();
 
                 if (user != null && CanClaim(user, merit))
-                    tooltips.Add("Type `claim {merit.Id}` to claim this merit.");
+                    tooltips.Add($"Type `claim {merit.Id}` to claim this merit.");
 
                 if (merit.Hidden)
                     tooltips.Add("This merit is excluded from completion progress.");

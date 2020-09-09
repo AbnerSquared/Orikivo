@@ -25,11 +25,11 @@ namespace Arcadia.Modules
             _info = info;
         }
 
-        //[DoNotNotify]
-        //[Command("about"), Priority(0)]
+        [DoNotNotify]
+        [Command("about"), Priority(0)]
         public async Task AboutAsync()
         {
-
+            await Context.Channel.SendMessageAsync(About.View());
         }
 
         //[DoNotNotify]
