@@ -7,6 +7,26 @@ namespace Orikivo
 {
     public static class EnumUtils
     {
+        public static List<Enum> GetFlags(object value)
+        {
+            if (value == null || !(value is Enum e))
+                return null;
+
+            Type enumType = value.GetType();
+
+            if (!enumType.IsEnum)
+                return null;
+
+            return enumType
+                .GetEnumValues()
+                .Cast<Enum>()
+                .Where(x => e.HasFlag(x))
+                .ToList();
+        }
+
+        public static List<Enum> GetValues(Type enumType)
+            => Enum.GetValues(enumType).Cast<Enum>().ToList();
+
         public static List<TEnum> GetValues<TEnum>()
             where TEnum : Enum
             => typeof(TEnum).GetEnumValues().Cast<TEnum>().ToList();

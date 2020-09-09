@@ -196,7 +196,6 @@ namespace Orikivo
 
         private string GetMenu(User user = null, bool drawActions = true)
         {
-            bool showReportStatus = user?.Config?.Debug ?? false;
             bool showTooltips = user?.Config?.Tooltips ?? true;
 
             StringBuilder panel = new StringBuilder();
@@ -226,11 +225,6 @@ namespace Orikivo
 
                     if (Check.NotNull(module.Icon))
                         panel.Append($"{module.Icon} ");
-
-                    if (showReportStatus)
-                    {
-                        panel.Append(GetSeverityIcon(module));
-                    }
 
                     panel.Append($"**{module.Name}**");
 
@@ -367,7 +361,7 @@ namespace Orikivo
             {
                 if (allowTooltips && overload.Parameters.Count > 0)
                 {
-                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter for the command.\n");
+                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
                 }
 
                 SetExample(overload, prefix);

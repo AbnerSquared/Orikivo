@@ -189,8 +189,8 @@ namespace Orikivo
             }
             sb.AppendLine($"**{Title}** #{Id}");
             sb.Append($"{(IsClosed ? "📕 **Closed**" : "📖 **Open**")}");
-            if (Tag.GetActiveFlags().Any())
-                sb.Append($" • {string.Join(' ', Tag.GetActiveFlags().Select(x => $"**#**{x.ToString()}"))}");
+            if (Tag.GetFlags().Any())
+                sb.Append($" • {string.Join(' ', Tag.GetFlags().Select(x => $"**#**{x.ToString()}"))}");
             sb.AppendLine();
             sb.AppendLine(Content);
             sb.AppendLine($"`{Author.Name}` **@** `{(EditedAt ?? CreatedAt).ToString("MM/dd/yyyy hh:mm:sstt")}`");

@@ -21,7 +21,7 @@ namespace Arcadia
         // The quote to display if the merit is currently locked
         public string LockQuote { get; set; }
 
-        public MeritGroup Group { get; set; } = MeritGroup.Common;
+        public MeritTag Tag { get; set; }
 
         public MeritRank Rank { get; set; }
 

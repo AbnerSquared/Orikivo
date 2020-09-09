@@ -104,16 +104,14 @@ namespace Arcadia.Modules
         [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
         public async Task ViewGuidesAsync(int page = 1)
         {
-            page--;
-            await Context.Channel.SendMessageAsync(GuideHelper.View(page));
+            await Context.Channel.SendMessageAsync(GuideHelper.View(--page));
         }
 
         [Command("guide")]
         [Summary("Read and view the contents of the specified guide.")]
         public async Task ReadGuideAsync(string id, int page = 1)
         {
-            page--;
-            await Context.Channel.SendMessageAsync(GuideHelper.ViewGuide(id, page));
+            await Context.Channel.SendMessageAsync(GuideHelper.ViewGuide(id, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -196,7 +194,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("boosters")]
+        [Command("boosters"), Alias("rates")]
         [Summary("View all of your currently equipped boosters.")]
         public async Task ViewBoostersAsync()
         {
@@ -208,16 +206,9 @@ namespace Arcadia.Modules
         [Summary("View the details of a merit.")]
         public async Task ViewMeritAsync(Merit merit)
         {
-            /*
-            if (!MeritHelper.Exists(meritId))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find any merits with that ID."));
-                return;
-            }*/
-
             if (!MeritHelper.HasMerit(Context.Account, merit) && merit.Hidden)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You aren't authorized to view this merit."));
+                await Context.Channel.SendMessageAsync(Format.Warning("You are not authorized to view this merit."));
                 return;
             }
 
@@ -258,18 +249,9 @@ namespace Arcadia.Modules
         [Command("shop")]
         public async Task ShopAsync(Shop shop)
         {
-            // Ignore initialization of another shop if a shop handle is already open
             if (!Context.Account.CanShop)
                 return;
-            /*
-            if (!ShopHelper.Exists(shopId))
-            {
-                await Context.Channel.WarnAsync("Could not find a shop with the specified ID.");
-                return;
-            }
-            */
 
-            //Shop shop = ShopHelper.GetShop(shopId);
             var handle = new ShopHandler(Context, shop);
 
             await HandleShopAsync(handle);
@@ -304,11 +286,10 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("merits")]
-        [Summary("View the directory of accomplishments.")]
-        public async Task ViewMeritsAsync(MeritQuery flag = MeritQuery.Default, int page = 1)
+        [Summary("Search and view all of your known merits.")]
+        public async Task ViewMeritsAsync(string query = null, int page = 1)
         {
-            page--;
-            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, flag, page));
+            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, query, --page));
         }
 
         // NOTE: QUESTS
@@ -349,7 +330,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("complete")]
-        [Summary("Claim the rewards from all of your completed objectives")]
+        [Summary("Claim the rewards from all of your completed objectives.")]
         public async Task CompleteQuestsAsync()
         {
             await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
@@ -447,11 +428,8 @@ namespace Arcadia.Modules
         {
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
-            if (account == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+            if (await CatchEmptyAccountAsync(account))
                 return;
-            }
 
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
@@ -618,11 +596,10 @@ namespace Arcadia.Modules
 
         [Command("leaderboard"), Alias("top"), Priority(0)]
         [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
-        public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
+        public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
         {
             var board = new Leaderboard(statId, sort);
-
-            string result = board.Write(Context.Data.Users.Values.Values, page);
+            string result = board.Write(Context.Data.Users.Values.Values, --page);
 
             await Context.Channel.SendMessageAsync(result);
         }
@@ -630,20 +607,20 @@ namespace Arcadia.Modules
         // TODO: Implement enum value listings
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
-        public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 0)
+        public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
         {
             if (flag == LeaderboardQuery.Custom)
                 flag = LeaderboardQuery.Default;
 
             var board = new Leaderboard(flag, sort);
-            string result = board.Write(Context.Data.Users.Values.Values, page);
+            string result = board.Write(Context.Data.Users.Values.Values, --page);
 
             await Context.Channel.SendMessageAsync(result);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("balance"), Alias("money", "bal", "chips", "tokens", "debt")]
-        [Summary("Returns a current wallet state.")]
+        [Summary("Returns a display showing all of the values in a wallet.")]
         public async Task GetMoneyAsync(SocketUser user = null)
         {
             user ??= Context.User;
@@ -651,32 +628,25 @@ namespace Arcadia.Modules
 
             if (await CatchEmptyAccountAsync(account))
                 return;
-            /*
-            var values = new StringBuilder();
 
-            values.AppendLine($"**Balance**: 💸 **{account.Balance:##,0}**");
-            values.AppendLine($"**Chips**: 🧩 **{account.ChipBalance:##,0}**");
-            values.AppendLine($"**Tokens**: 🏷️ **{account.TokenBalance:##,0}**");
-            values.AppendLine($"**Debt**: 📃 **{account.Debt:##,0}**");
-            */
-
-            string fmt = "**Balance**: {0:O}\n**Chips**: {1:C}\n**Tokens**: {2:T}\n**Debt**: {3:D}";
+            var provider = new CurrencyFormatter();
+            var result = new StringBuilder();
 
             if (user != null)
             {
                 if (user != Context.User)
-                    fmt = $"**Wallet - {account.Username}**\n" + fmt; //values.AppendLine();
+                    result.AppendLine($"> **Wallet: {account.Username}**");
             }
 
-            await Context.Channel.SendMessageAsync(string.Format(
-                new CurrencyFormatter(),
-                fmt,
-                account.Balance,
-                account.ChipBalance,
-                account.TokenBalance,
-                account.Debt));
+            if (account.Debt > 0)
+                result.AppendLine(account.Debt.ToString("D", provider));
+            else if (account.Balance > 0)
+                result.AppendLine(account.Debt.ToString("O", provider));
 
-            // await Context.Channel.SendMessageAsync(values.ToString());
+            result.AppendLine(account.ChipBalance.ToString("C", provider));
+            result.AppendLine(account.TokenBalance.ToString("T", provider));
+
+            await Context.Channel.SendMessageAsync(result.ToString());
         }
 
         [RequireUser]
@@ -748,41 +718,11 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Profile.View(account, Context));
         }
 
-        //[RequireUser]
-        //[Command("cardt")]
-        public async Task GetCardTestAsync(PaletteType primary, PaletteType secondary, SocketUser user = null)
-        {
-            user ??= Context.User;
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            try
-            {
-                using var graphics = new GraphicsService();
-                var d = new CardDetails(account, user);
-                var p = CardProperties.Default;
-
-                p.PaletteOverride = GammaPalette.Smear(GraphicsService.GetPalette(primary), GraphicsService.GetPalette(secondary));
-                p.Trim = false;
-                p.Casing = Casing.Upper;
-
-                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
-
-                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex);
-            }
-        }
-
         private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
         {
             if (reference == null)
             {
-                await Context.Channel.SendMessageAsync("> **Oops!**\n> I ran into an issue.\n```The specified user does not seem to have an account.```");
+                await Context.Channel.SendMessageAsync("> **Odd.**\n> The user you seek does not exist in this world.");
                 return true;
             }
 

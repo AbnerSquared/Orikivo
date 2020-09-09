@@ -9,6 +9,23 @@ namespace Orikivo
     public static class StringExtensions
     {
         /// <summary>
+        /// Sets the specified casing rule for this current instance.
+        /// </summary>
+        public static string ToString(this string str, Casing casing)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+                return str;
+
+            return casing switch
+            {
+                Casing.Upper => str.ToUpper(),
+                Casing.Lower => str.ToLower(),
+                Casing.Pascal => str.Length >= 2 ? $"{char.ToUpper(str[0])}{str[1..].ToLower()}" : str.Length == 1 ? str.ToUpper() : str,
+                _ => str
+            };
+        }
+
+        /// <summary>
         /// Determines whether the beginning of this string instance matches any of the specified strings.
         /// </summary>
         public static bool StartsWithAny(this string str, params string[] anyOf)

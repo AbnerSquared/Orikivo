@@ -3,39 +3,17 @@
 namespace Orikivo.Desync
 {
     /// <summary>
-    /// Defines what a <see cref="Notifier"/> ignores.
+    /// Defines what a <see cref="Notifier"/> is allowed to store.
     /// </summary>
     [Flags]
-    public enum NotifyDeny
+    public enum NotifyAllow
     {
-        /// <summary>
-        /// Disables all notifications related to experience.
-        /// </summary>
-        Level = 1,
-
-        /// <summary>
-        /// Disables all notifications related to mail.
-        /// </summary>
-        Mail = 2,
-
-        /// <summary>
-        /// Disables all notifications related to errors.
-        /// </summary>
-        Error = 4,
-
-        /// <summary>
-        /// Disables all notifications related to a <see cref="Desync.Merit"/>.
-        /// </summary>
-        Merit = 8,
-
-        /// <summary>
-        /// Disables all notifications related to travel.
-        /// </summary>
-        Travel = 16,
-
-        /// <summary>
-        /// Disables all notifications values.
-        /// </summary>
-        All = Level | Mail | Error | Merit | Travel
+        Merit = 1,
+        Cooldown = 2,
+        OfferAccepted = 4,
+        OfferInbound = 8,
+        GiftInbound = 16,
+        Invite = 32,
+        Level = 64
     }
 }

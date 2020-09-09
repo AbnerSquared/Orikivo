@@ -226,7 +226,7 @@ namespace Orikivo
                 {
                     user.Merits.Add(id, merit.GetData());
 
-                    if (user.Config.Notifier.HasFlag(NotifyDeny.Merit))
+                    if (!user.Config.Notifier.HasFlag(NotifyAllow.Merit))
                         break;
 
                     user.Notifier.Append($"Merit unlocked: **{merit.Name}**");

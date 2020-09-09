@@ -391,7 +391,7 @@ namespace Arcadia
 
             if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
             {
-                MeritHelper.TryGiveMerits(ctx.Account);
+                MeritHelper.UnlockAvailable(ctx.Account);
 
                 Logger.Debug("User updated. Now saving...");
                 ctx.Data.Users.TrySave(ctx.Account);

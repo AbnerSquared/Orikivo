@@ -24,12 +24,16 @@ namespace Arcadia.Formatters
                 return HandleOtherFormats(format, arg);
             }
 
-            return argFmt.ToUpper() switch
+            return argFmt switch
             {
-                "O" => $"{Icons.Balance} **{value:##,0}**",
-                "C" => $"{Icons.Chips} **{value:##,0}**",
-                "T" => $"{Icons.Tokens} **{value:##,0}**",
-                "D" => $"{Icons.Debt} **{value:##,0}**",
+                "o" => $"{Icons.Balance} **{value:##,0}**",
+                "O" => $"**Balance**: {Icons.Balance} **{value:##,0}**",
+                "c" => $"{Icons.Chips} **{value:##,0}**",
+                "C" => $"**Chips**: {Icons.Chips} **{value:##,0}**",
+                "t" => $"{Icons.Tokens} **{value:##,0}**",
+                "T" => $"**Tokens**: {Icons.Tokens} **{value:##,0}**",
+                "d" => $"{Icons.Debt} **{value:##,0}**",
+                "D" => $"**Debt**: {Icons.Debt} **{value:##,0}**",
                 _ => HandleOtherFormats(format, arg)
             };
         }

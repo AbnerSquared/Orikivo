@@ -52,7 +52,7 @@ namespace Orikivo
             if (type.HasFlag(ExtensionType.Any | ExtensionType.Empty))
                 return null;
 
-            foreach (ExtensionType activeType in type.GetActiveFlags())
+            foreach (ExtensionType activeType in type.GetFlags())
                 extensions.Add('.' + activeType.ToString().ToLower());
 
             return extensions;

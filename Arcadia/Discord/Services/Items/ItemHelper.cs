@@ -72,7 +72,7 @@ namespace Arcadia
             if (item.Rarity.ToString().Equals(input, StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            if (item.Tag.GetActiveFlags().Any(x => x.ToString().Equals(input, StringComparison.OrdinalIgnoreCase)))
+            if (item.Tag.GetFlags().Any(x => x.ToString().Equals(input, StringComparison.OrdinalIgnoreCase)))
                 return true;
 
             if (input.Equals("ingredient", StringComparison.OrdinalIgnoreCase))

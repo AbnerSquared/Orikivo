@@ -10,7 +10,7 @@ namespace Orikivo
             where TEnum : Enum
             => typeof(TEnum).GetEnumValues().Cast<TEnum>().ToList();
 
-        public static IEnumerable<TEnum> GetActiveFlags<TEnum>(this TEnum @enum)
+        public static IEnumerable<TEnum> GetFlags<TEnum>(this TEnum @enum)
             where TEnum : Enum
         {
             foreach (TEnum flag in GetValues(@enum))

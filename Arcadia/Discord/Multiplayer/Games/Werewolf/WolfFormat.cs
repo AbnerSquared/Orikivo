@@ -339,7 +339,7 @@ namespace Arcadia.Multiplayer.Games
         {
             var feastInfo = new StringBuilder();
 
-            foreach (WerewolfAbility ability in player.ValueOf<WerewolfRole>(WolfVars.Role).Ability.GetActiveFlags())
+            foreach (WerewolfAbility ability in player.ValueOf<WerewolfRole>(WolfVars.Role).Ability.GetFlags())
             {
                 // Filter out non-feast and self
                 IEnumerable<PlayerData> partners = session

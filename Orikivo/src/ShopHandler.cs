@@ -284,7 +284,7 @@ namespace Orikivo
                 details.AppendLine($"> *\"{Randomizer.Choose(item.Quotes)}\"*");
 
             details.Append("**#**");
-            details.AppendJoin(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString()}`"));
+            details.AppendJoin(", ", item.Tag.GetFlags().Select(x => $"`{x.ToString()}`"));
 
             if (Check.NotNull(item.Summary))
             {

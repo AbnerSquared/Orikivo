@@ -373,7 +373,7 @@ namespace Arcadia.Services
             if (item.Tag != 0)
             {
                 details.Append($"**#** ");
-                details.AppendJoin(", ", item.Tag.GetActiveFlags().Select(x => $"`{x.ToString().ToLower()}`"));
+                details.AppendJoin(", ", item.Tag.GetFlags().Select(x => $"`{x.ToString().ToLower()}`"));
                 details.AppendLine();
             }
 

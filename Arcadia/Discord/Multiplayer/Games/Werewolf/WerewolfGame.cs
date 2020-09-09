@@ -46,7 +46,7 @@ namespace Arcadia.Multiplayer.Games
             List<WerewolfRole> availableRoles = WerewolfRole.GetPack(WerewolfRolePack.Custom);
 
             // Remove all of the specified denied roles from the list of available roles
-            foreach (WerewolfRoleDeny deny in roleDeny.GetActiveFlags())
+            foreach (WerewolfRoleDeny deny in roleDeny.GetFlags())
                 availableRoles.RemoveAll(x => x.Id.Equals(deny.ToString(), StringComparison.OrdinalIgnoreCase));
 
             // Initialize the new list of available roles
@@ -664,7 +664,7 @@ namespace Arcadia.Multiplayer.Games
             var handled = ctx.Session.ValueOf<WerewolfAbility>(WolfVars.HandledAbilities);
 
             // Get the active abilities, and exclude the already handled abilities
-            foreach (WerewolfAbility ability in (GetActiveAbilities(ctx.Session) & ~handled).GetActiveFlags())
+            foreach (WerewolfAbility ability in (GetActiveAbilities(ctx.Session) & ~handled).GetFlags())
             {
                 // Ignore the empty ability
                 if (ability == WerewolfAbility.None)

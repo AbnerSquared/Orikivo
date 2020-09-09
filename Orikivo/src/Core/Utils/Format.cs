@@ -279,7 +279,7 @@ namespace Orikivo
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");
 
-        public static string Percent(float rate)
+        public static string Percent(double rate)
         {
             return $"**{rate * 100:##,0}**%";
         }
