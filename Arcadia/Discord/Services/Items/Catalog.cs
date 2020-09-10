@@ -53,39 +53,57 @@ namespace Arcadia.Services
 
         private static readonly int _pageSize = 8;
 
+        private static string GetTooltip()
+            => "Use `item <item_id>` to view more details about an item.";
+
+        private static TextList GetGroupSection(string groupId, ArcadeUser user)
+        {
+            var result = new TextList();
+
+            if (!ItemHelper.GroupExists(groupId))
+                throw new Exception("An invalid item group was specified");
+
+            ItemGroup group = ItemHelper.GetGroup(groupId);
+
+            List<Item> entries = Assets.Items
+                .Where(x => x.GroupId == groupId && ItemHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown)
+                .ToList();
+
+            result.Icon = group.Icon?.ToString() ?? "•";
+            result.Title = $"**{Format.Plural(group.Name)}** (**{entries.Count}** discovered)";
+            result.Values = entries
+                .OrderBy(x => x.Name)
+                .Select(x => GetItemElement(x, ItemHelper.GetCatalogStatus(user, x)))
+                .ToList();
+
+            return result;
+        }
+
+        private static string GetItemElement(Item item, CatalogStatus status)
+            => $"{GetStatusIcon(status)} `{item.Id}` **{item.Name}**";
+
         private static string ViewAll(ArcadeUser user, int page = 0)
         {
-            var info = new StringBuilder();
+            var result = new TextBody();
+            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
+            result.Header.Group = "All";
+            result.Tooltips.Add(GetTooltip());
 
-            info.AppendLine("> 🗃️ **Catalog: All**");
-            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
+            List<TextSection> groups = GetVisibleGroups(user).ToList();
+            int pageCount = Paginate.GetPageCount(groups.Count, 3);
 
-            var entries = Assets.Items
-                .Where(x => ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
-                .OrderBy(x => x.GetName()).ToList();
+            if (pageCount > 1)
+                result.Header.Extra = $"({Format.PageCount(Paginate.ClampIndex(page, pageCount) + 1, pageCount)})";
 
-            int pageCount = (int) Math.Ceiling(entries.Count / (double) _pageSize) - 1;
-            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+            result.Sections = Paginate.GroupAt(groups.OrderBy(x => x.Title[2..]), page, 3).ToList();
+            return result.Build(user.Config.Tooltips);
+        }
 
-            int offset = page * _pageSize;
-            int i = 0;
-            foreach (Item item in entries.Skip(offset))
-            {
-                if (i >= _pageSize)
-                    break;
-
-                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
-
-                if (status == CatalogStatus.Unknown)
-                    continue;
-
-                string icon = item.GetIcon() ?? "•";
-
-                info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
-                i++;
-            }
-
-            return info.ToString();
+        private static IEnumerable<TextSection> GetVisibleGroups(ArcadeUser user)
+        {
+            return Assets.Groups
+                .Where(x => ItemHelper.GetVisibleCount(user, x.Id) > 0)
+                .Select(x => GetGroupSection(x.Id, user) as TextSection);
         }
 
         public static string Search(ArcadeUser user, string input, int page = 0)
@@ -240,12 +258,7 @@ namespace Arcadia.Services
 
             string name = ItemHelper.NameOf(itemId);
 
-            string counter = "";
-
-            if (amount > 1)
-            {
-                counter = $" (x**{amount:##,0}**)";
-            }
+            string counter = Format.ObjectCount(amount, false);
 
             return $"`{itemId}` {icon} **{name}**{counter}";
         }

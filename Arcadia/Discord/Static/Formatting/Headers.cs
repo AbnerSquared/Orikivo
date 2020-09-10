@@ -10,5 +10,6 @@
         internal static readonly string Stat = "stat";
         internal static readonly string Recipe = "recipe";
         internal static readonly string Merits = "merits";
+        internal static readonly string Catalog = "catalog";
     }
 }

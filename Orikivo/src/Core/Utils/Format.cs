@@ -42,10 +42,9 @@ namespace Orikivo
             var result = new StringBuilder();
 
             if (Check.NotNull(header))
-                result.AppendLine($"> **{header}**");
+                result.Append($"> **{header}**");
 
-            foreach (string element in elements)
-                result.AppendLine($"{bullet} {element}");
+            result.AppendJoin("\n", elements.Select(x => $"{bullet} {x}"));
 
             return result.ToString();
         }
@@ -117,8 +116,26 @@ namespace Orikivo
             return $"> {text}";
         }
 
-        public static string PageCount(int current, int count)
-            => $"Page **{current:##,0}** of **{count:##,0}**";
+        public static string ObjectCount(int count, bool showOnSingle = true)
+        {
+            if (!showOnSingle && count <= 1)
+                return "";
+
+            return $"(x**{count:##,0}**)";
+        }
+
+        public static string PageCount(int current, int count, string format = null, bool showOnSingle = true)
+        {
+            if (!showOnSingle && count <= 1)
+                return "";
+
+            string counter = $"Page **{current:##,0}** of **{count:##,0}**";
+
+            if (!string.IsNullOrWhiteSpace(format))
+                return !format.Contains("{0}") ? format : string.Format(format, counter);
+
+            return counter;
+        }
 
         public static string BlockQuote(string text)
         {
@@ -172,14 +189,16 @@ namespace Orikivo
         public static string Trim(string value, int limit)
             => value.Length > limit ? $"{value[..limit]}..." : value;
 
-        public static string Header(string title, string icon = null, string description = null)
+        public static string Header(string title, string icon = null, string description = null, bool useMarkdown = true)
         {
             var header = new StringBuilder("> ");
 
             if (Check.NotNull(icon))
                 header.Append(icon);
 
-            header.Append(Bold(title));
+            string headerTitle = useMarkdown ? Bold(title) : title;
+            header.Append($" {headerTitle}");
+
 
             if (Check.NotNull(description))
                 header.Append($"\n> {description}");
@@ -628,7 +647,7 @@ namespace Orikivo
                 return word[..^2] + "i";
 
             // criterion => criteria
-            if (input.EndsWith("on", StringComparison.Ordinal))
+            if (input.EndsWithAny(StringComparison.Ordinal, "ion", "ton"))
                 return word[..^2] + "a";
 
             // axis => axes

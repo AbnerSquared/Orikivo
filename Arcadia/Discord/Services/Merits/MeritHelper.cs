@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using Orikivo;
@@ -10,341 +9,14 @@ namespace Arcadia
 {
     public static class MeritHelper
     {
-        public static readonly List<Merit> Merits =
-            new List<Merit>
-            {
-                new Merit
-                {
-                    Id = "common:prisma_infusion",
-                    Icon = "🌈",
-                    Name = "Prisma Infusion",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 500,
-                    Quote = "You have collected every single color available.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:color_theory",
-                    Icon = "🍸",
-                    Name = "Color Theory",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "You have created a new color from other colors.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:tinkerer",
-                    Icon = "🔨",
-                    Name = "Tinkerer",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have crafted an item for the first time.",
-                    Criteria = user => user.GetVar(Stats.TimesCrafted) > 0
-                },
-                new Merit
-                {
-                    Id = "common:trade_beginner",
-                    Icon = "🔂",
-                    Name = "Trading Beginner",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have traded with another user for the first time.",
-                    Criteria = user => user.GetVar(Stats.TimesTraded) > 0
-                },
-                new Merit
-                {
-                    Id = "common:bronze_heart",
-                    Icon = "🤎",
-                    Name = "Bronze Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You were a kind soul and gave someone else an item of your own.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 0
-                },
-                new Merit
-                {
-                    Id = "common:silver_heart",
-                    Icon = "🤍",
-                    Name = "Silver Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "You have been a good person and gifted over 50 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 50
-                },
-                new Merit
-                {
-                    Id = "common:golden_heart",
-                    Icon = "💛",
-                    Name = "Golden Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "You have given over 100 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 100,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:ignition",
-                    Icon = "🕯️",
-                    Name = "Ignition",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have equipped your first booster.",
-                    Criteria = user => user.Boosters.Count > 0
-                },
-                new Merit
-                {
-                    Id = "common:progress_pioneer",
-                    Icon = "🚝",
-                    Name = "Progression Pioneer",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 100,
-                    Quote = "You were there at the start, carving the path to the future.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:liquidation",
-                    Name = "Liquidation",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "Your requests have been met with gold.",
-                    Criteria = user => user.GetVar(GimiStats.TimesGold) > 0
-                },
-                new Merit
-                {
-                    Id = "casino:deprivation",
-                    Name = "Deprivation",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "Your greed has led you to perish under the moonlight.",
-                    Criteria = user => user.GetVar(GimiStats.TimesCursed) > 0
-                },
-                new Merit
-                {
-                    Id = "casino:golden_touch",
-                    Name = "Golden Touch",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "Midas must have gifted you with his abilities.",
-                    Criteria = user => user.GetVar(GimiStats.LongestGold) >= 2,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:pandoras_box",
-                    Name = "Pandora's Box",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "Your ruthless requests released the worst of this world.",
-                    Criteria = user => user.GetVar(GimiStats.LongestCurse) >= 2,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:lucky_guesses",
-                    Name = "Lucky Guesses",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
-                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 3,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_beginner",
-                    Name = "Gimi Beginner",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have requested funds 100 times.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 100
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_clover",
-                    Icon = "☘️",
-                    Name = "Clover of Gimi",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have won over 20 times in a row in Gimi.",
-                    Criteria = user => user.GetVar(GimiStats.LongestWin) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_curse",
-                    Icon = "🧿",
-                    Name = "Curse of Gimi",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have lost over 20 times in a row in Gimi.",
-                    Criteria = user => user.GetVar(GimiStats.LongestLoss) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_clover",
-                    Icon = "☘️",
-                    Name = "Clover of Doubler",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have won over 20 times in a row in Doubler.",
-                    Criteria = user => user.GetVar(TickStats.LongestWin) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_exact_clover",
-                    Icon = "🏵️",
-                    Name = "Golden Clover of Doubler",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
-                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_beginner",
-                    Name = "Doubler Beginner",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have attempted to double your chips 100 times.",
-                    Criteria = user => user.GetVar(TickStats.TimesPlayed) >= 100
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_advocate",
-                    Name = "Gimi Advocate",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 1000
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_expert",
-                    Name = "Gimi Expert",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 5000,
-                    Hidden = true,
-                    Reward = new Reward
-                    {
-                        Money = 100
-                    }
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_maniac",
-                    Icon = "⚗️",
-                    Name = "Gimi Maniac",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Diamond,
-                    Score = 250,
-                    Quote = "No matter what anyone said, you kept going 10,000 times over.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 10000,
-                    Hidden = true,
-                    Reward = new Reward
-                    {
-                        ItemIds = new Dictionary<string, int>
-                        {
-                            [Items.AutomatonGimi] = 1
-                        }
-                    }
-                },
-                new Merit
-                {
-                    Id = "common:weekly_worker",
-                    Icon = "✨",
-                    Name = "Weekly Worker",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 7,
-                    Quote = "You've stopped by for 7 days, making your name known.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 7
-                },
-                new Merit
-                {
-                    Id = "common:monthly_advocate",
-                    Icon = "⭐",
-                    Name = "Monthly Advocate",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 30,
-                    Quote = "30 days have passed, and you have yet to miss a single one.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 30
-                },
-                new Merit
-                {
-                    Id = "common:daily_automaton",
-                    Icon = "💫",
-                    Name = "Daily Automaton",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Platinum,
-                    Score = 100,
-                    Quote = "You're still here. Even after 100 days.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 100,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:perfect_attendance",
-                    Icon = "🌟",
-                    Name = "Perfect Attendance",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 365,
-                    Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 365,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:escaping_trouble",
-                    Icon = "☎️",
-                    Name = "Escaping Trouble",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
-                    Criteria = user => user.GetVar($"{Items.PocketLawyer}:times_used") >= 1
-                } // TODO: Create automatic item stat tracking
-            };
-
         public static Merit GetMerit(string id)
         {
-            IEnumerable<Merit> merits = Merits.Where(x => x.Id == id);
+            IEnumerable<Merit> merits = Assets.Merits.Where(x => x.Id == id);
 
             if (merits.Count() > 1)
                 throw new ArgumentException("There were more than one Merits of the specified ID.");
 
-            return Merits.FirstOrDefault(x => x.Id == id);
+            return Assets.Merits.FirstOrDefault(x => x.Id == id);
         }
 
         public static bool HasMerit(ArcadeUser user, Merit merit)
@@ -354,7 +26,7 @@ namespace Arcadia
             => user.Merits.ContainsKey(id);
 
         public static bool Exists(string id)
-            => Merits.Any(x => x.Id == id);
+            => Assets.Merits.Any(x => x.Id == id);
 
         public static string NameOf(string meritId)
             => GetMerit(meritId)?.Name;
@@ -478,7 +150,7 @@ namespace Arcadia
         {
             MeritTag tag = 0;
 
-            foreach (Merit merit in Merits)
+            foreach (Merit merit in Assets.Merits)
                 tag |= merit.Tag;
 
             return tag;
@@ -537,7 +209,7 @@ namespace Arcadia
                 };
             }
 
-            return Merits.Where(x => CanView(user, x) && (comparer?.Invoke(x) ?? false));
+            return Assets.Merits.Where(x => CanView(user, x) && (comparer?.Invoke(x) ?? false));
         }
 
         private static string GetSummary(string query)
@@ -614,7 +286,7 @@ namespace Arcadia
 
         public static void UnlockAvailable(ArcadeUser user)
         {
-            foreach (Merit merit in Merits.Where(x => CanUnlock(user, x)))
+            foreach (Merit merit in Assets.Merits.Where(x => CanUnlock(user, x)))
             {
                 user.Merits.Add(merit.Id, merit.GetData());
                 user.Notifier.Append(WriteUnlockNotice(merit));
@@ -653,10 +325,10 @@ namespace Arcadia
             => $"Merit unlocked: **{merit.Name}** (**{merit.Score}**m)";
 
         public static IEnumerable<Merit> GetClaimable(ArcadeUser user)
-            => Merits.Where(x => CanClaim(user, x.Id));
+            => Assets.Merits.Where(x => CanClaim(user, x.Id));
 
         public static bool CanClaim(ArcadeUser user)
-            => Merits.Any(x => CanClaim(user, x.Id));
+            => Assets.Merits.Any(x => CanClaim(user, x.Id));
 
         public static string Claim(ArcadeUser user, string input)
         {
@@ -728,7 +400,7 @@ namespace Arcadia
 
             long money = 0;
             var items = new Dictionary<string, int>();
-            IEnumerable<Merit> toClaim = Merits.Where(x => CanClaim(user, x.Id)).ToList();
+            IEnumerable<Merit> toClaim = Assets.Merits.Where(x => CanClaim(user, x.Id)).ToList();
 
             foreach (Merit merit in toClaim)
             {

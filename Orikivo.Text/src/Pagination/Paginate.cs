@@ -20,6 +20,31 @@ namespace Orikivo.Text.Pagination
             return (int) Math.Ceiling(collectionSize / (double) size);
         }
 
+        public static int GetSplitCount(IEnumerable<string> collection, int characterLimit, int baseLength = 0)
+        {
+            if (baseLength < 0)
+                baseLength = 0;
+
+            int length = baseLength;
+            int count = 0;
+
+            foreach (string value in collection)
+            {
+                int valueLength = value?.Length ?? 0;
+
+                if (length + valueLength > characterLimit)
+                {
+                    length = baseLength + valueLength;
+                    count++;
+                    continue;
+                }
+
+                length += valueLength;
+            }
+
+            return count;
+        }
+
         public static int CountAtPage(int collectionSize, int pageSize, int page)
         {
             int offset = GetElementOffset(collectionSize, pageSize, page);
@@ -99,33 +124,12 @@ namespace Orikivo.Text.Pagination
             separator = string.IsNullOrWhiteSpace(separator) ? "\n" : separator;
             elementFormatter = string.IsNullOrWhiteSpace(elementFormatter) ? "{0}" : elementFormatter;
 
-            int i = 0;
             int length = formatter.Length - 3;
 
-            foreach (T element in elements)
-            {
-                if (i > 0)
-                    result.Append(separator);
+            string WriteElement(T x)
+                => x != null ? string.Format(elementFormatter, x) : onEmptyElement;
 
-                string value = onEmptyElement;
-
-                if (element != null)
-                    value = string.Format(elementFormatter, element);
-
-                if (string.IsNullOrWhiteSpace(value))
-                    continue;
-
-                if (characterLimit.HasValue)
-                {
-                    length += value.Length;
-
-                    if (characterLimit - length <= 0)
-                        break;
-                }
-
-                result.Append(value);
-                i++;
-            }
+            WriteElements(ref result, ref length, elements.Select(WriteElement), separator, characterLimit);
 
             return string.Format(formatter, result);
         }
@@ -147,35 +151,34 @@ namespace Orikivo.Text.Pagination
             separator = string.IsNullOrWhiteSpace(separator) ? "\n" : separator;
             selector ??= e => e.ToString();
 
-            int i = 0;
             int length = formatter.Length - 3;
 
-            foreach (T element in elements)
+            string WriteElement(T x)
             {
-                if (i > 0)
-                    result.Append(separator);
-
-                string value = onEmptyElement;
-
-                if (element != null)
-                    value = selector(element);
-
-                if (string.IsNullOrWhiteSpace(value))
-                    continue;
-
-                if (characterLimit.HasValue)
-                {
-                    length += value.Length;
-
-                    if (characterLimit - length <= 0)
-                        break;
-                }
-
-                result.Append(value);
-                i++;
+                return x != null ? selector(x) : onEmptyElement;
             }
 
+            WriteElements(ref result, ref length, elements.Select(WriteElement), separator, characterLimit);
             return string.Format(formatter, result);
+        }
+
+        private static void WriteElements(ref StringBuilder writer, ref int length, in IEnumerable<string> sections, string separator, int? characterLimit = null)
+        {
+            int i = 0;
+
+            foreach (string section in sections.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                length += section.Length;
+
+                if (characterLimit.HasValue && characterLimit - length <= 0)
+                    return;
+
+                if (i > 0)
+                    writer.Append(separator);
+
+                writer.Append(section);
+                i++;
+            }
         }
     }
 }

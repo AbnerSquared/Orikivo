@@ -1,75 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Arcadia.Services;
 using Orikivo;
+using Orikivo.Desync;
 
 namespace Arcadia
 {
-    public static class Profile
-    {
-        public static string View(ArcadeUser user, ArcadeContext ctx)
-        {
-            var details = new StringBuilder();
-
-            details.AppendLine($"> **{user.Username}**");
-            details.AppendLine($"> Joined: **{Format.Date(user.CreatedAt, '.')}**");
-
-            if (user.Balance > 0 || user.Debt > 0 || user.ChipBalance > 0)
-            {
-                details.AppendLine("\n> **Wallet**");
-
-                if (user.Balance > 0 || user.Debt > 0)
-                {
-                    string icon = user.Balance > 0 ? Icons.Balance : Icons.Debt;
-                    long value = user.Balance > 0 ? user.Balance : user.Debt;
-                    string id = user.Balance > 0 ? Vars.Balance : Vars.Debt;
-                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, id);
-                    string pos = "";
-                    if (position < 4)
-                        pos = $" (#**{position:##,0}** global)";
-
-                    details.AppendLine($"> {icon} **{value:##,0}**{pos}");
-                }
-
-                if (user.ChipBalance > 0)
-                {
-                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, Vars.Chips);
-                    string pos = "";
-                    if (position < 4)
-                        pos = $" (#**{position:##,0}** global)";
-                    details.AppendLine($"> {Icons.Chips} **{user.ChipBalance:##,0}**{pos}");
-                }
-
-                if (user.Items.Count > 0)
-                {
-                    details.AppendLine($"\n> **Inventory**");
-                    details.AppendLine($"> **{user.Items.Count}** used {Format.TryPluralize("slot", user.Items.Count)}");
-                }
-
-                var chosen = new List<string>();
-                string stat = StatHelper.GetRandomStat(user, chosen);
-
-                while (!string.IsNullOrWhiteSpace(stat))
-                {
-                    if (chosen.Count >= 3) // The amount of random stats to show
-                        break;
-
-                    if (chosen.Count == 0)
-                        details.AppendLine($"\n> **Random Statistics**");
-
-                    details.AppendLine($"> **{Var.WriteName(stat)}**: {Var.WriteValue(user, stat)}");
-
-                    chosen.Add(stat);
-                    stat = StatHelper.GetRandomStat(user, chosen);
-                }
-            }
-
-            return details.ToString();
-        }
-
-    }
     public class Inventory
     {
         private static string GetHeader(long capacity, bool showTooltips = true)
@@ -86,45 +22,35 @@ namespace Arcadia
 
         public static string WriteCapacity(long capacity)
         {
-            return $"**{GetCapacity(capacity)} {GetSuffix(capacity)}**";
+            StorageSize suffix = GetSuffix(capacity);
+            return $"**{GetCapacity(capacity)} {((int)suffix >= 5 ? "" : suffix.ToString())}**";
         }
 
         // TODO: The capacity determination could be cleaned up.
         private static string GetCapacity(long capacity)
         {
-            string suffix = GetSuffix(capacity);
+            StorageSize suffix = GetSuffix(capacity);
 
             return suffix switch
             {
-                "B" => $"{capacity}",
-                "KB" => $"{capacity / (double) 1000}",
-                "MB" => $"{capacity / (double) 1000000}",
-                "GB" => $"{capacity / (double) 1000000000}",
-                "TB" => $"{capacity / (double) 1000000000000}",
-                _ => "∞"
+                _ when (int) suffix >= 5 => "∞",
+                _ when suffix >= 0 => $"{capacity / ((double) 1000 * (int) suffix)}",
+                _ => throw new ArgumentOutOfRangeException(nameof(suffix), "The specified suffix is out of range")
             };
         }
 
-        private static string GetSuffix(long capacity)
+        private static StorageSize GetSuffix(long capacity)
         {
             int len = capacity.ToString().Length;
 
-            if (len < 4)
-                return "B";
+            int count = (int) Math.Floor((len - 1) / (double) 3);
+            // 4 7 10 13 16
+            // 1 3  7 10 13
+            // 3 6  9 12 15
+            if (count > 5)
+                return StorageSize.Infinity;
 
-            if (len < 7)
-                return "KB";
-
-            if (len < 10)
-                return "MB";
-
-            if (len < 13)
-                return "GB";
-
-            if (len < 16)
-                return "TB";
-
-            return "PB";
+            return (StorageSize)(count);
         }
 
         private static string WriteItemRow(int index, string id, ItemData data, int deduction)

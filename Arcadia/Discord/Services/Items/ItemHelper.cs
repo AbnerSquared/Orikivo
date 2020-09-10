@@ -151,6 +151,22 @@ namespace Arcadia
                             x.Value == (long) CatalogStatus.Known);
         }
 
+        public static int GetVisibleCount(ArcadeUser user)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:") &&
+                            x.Value >= (long)CatalogStatus.Seen);
+        }
+
+        public static int GetVisibleCount(ArcadeUser user, string itemGroup)
+        {
+            return user.Stats
+                .Count(x =>
+                x.Key.StartsWith("catalog:")
+                && GroupOf(Var.GetKey(x.Key)) == itemGroup
+                && x.Value >= (long)CatalogStatus.Seen);
+        }
+
         public static int GetSeenCount(ArcadeUser user)
         {
             return user.Stats
