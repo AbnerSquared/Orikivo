@@ -21,5 +21,11 @@ namespace Arcadia
         public string Summary { get; set; }
 
         public Dictionary<string, long> Attributes { get; set; }
+
+        public Dictionary<int, string> ResearchTiers { get; set; }
+
+        // If this item group supports global researching
+        // This can be handled by catalog_group:item_group: research_tier
+        public bool CanResearch { get; set; }
     }
 }

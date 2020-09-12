@@ -127,6 +127,7 @@ namespace Arcadia
                 && (!x.MaxAllowed.HasValue || counters.GetValueOrDefault(x.ItemId, 0) >= x.MaxAllowed)).ToArray();
         }
 
+        // TODO: Handle reading shop tiers and cost scales
         private CatalogEntry GetNextEntry(int specials, IReadOnlyDictionary<string, int> counters)
         {
             CatalogEntry[] entries = GetAvailableEntries(specials, counters);

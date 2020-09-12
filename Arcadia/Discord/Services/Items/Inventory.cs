@@ -30,11 +30,15 @@ namespace Arcadia
         private static string GetCapacity(long capacity)
         {
             StorageSize suffix = GetSuffix(capacity);
+            double dividend = ((double)1000 * ((int)suffix));
+
+            if ((int)suffix == 0)
+                dividend = 1;
 
             return suffix switch
             {
-                _ when (int) suffix >= 5 => "∞",
-                _ when suffix >= 0 => $"{capacity / ((double) 1000 * (int) suffix)}",
+                _ when suffix >= StorageSize.Infinity => "∞",
+                _ when suffix >= StorageSize.B  => $"{capacity / dividend}",
                 _ => throw new ArgumentOutOfRangeException(nameof(suffix), "The specified suffix is out of range")
             };
         }
@@ -43,7 +47,12 @@ namespace Arcadia
         {
             int len = capacity.ToString().Length;
 
+            //if (len - 1 <= 3)
+            //    return StorageSize.B;
+
             int count = (int) Math.Floor((len - 1) / (double) 3);
+
+
             // 4 7 10 13 16
             // 1 3  7 10 13
             // 3 6  9 12 15

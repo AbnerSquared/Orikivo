@@ -265,6 +265,9 @@ namespace Arcadia
                         await UpdateAsync();
                         return ActionResult.Continue;
 
+                        // Handle unlocking new shops
+                        // by having the vendor talk about it
+                        // "Hey. Word is, there's another shop out there that sells color palettes on an entirely different level."
                     case "leave":
                     case "back":
                         Notice = null;
@@ -312,14 +315,7 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
-                int amount = 0;
-
-                if (string.IsNullOrWhiteSpace(arg))
-                    amount = 1;
-                else if (arg == "all")
-                    amount = Catalog.ItemIds[item.Id];
-                else if (int.TryParse(arg, out amount)) // item!
-                    amount = Math.Clamp(amount, 0, Catalog.ItemIds[item.Id]);
+                int amount = ParseAmount(arg, item);
 
                 if (amount < 1)
                 {
@@ -361,12 +357,11 @@ namespace Arcadia
             {
                 switch (command)
                 {
-                    // back
                     case "back":
                         State = ShopState.Menu;
                         await UpdateAsync();
                         return ActionResult.Continue;
-                    // leave
+
                     case "leave":
                         State = ShopState.Exit;
                         await UpdateAsync();
@@ -387,20 +382,13 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
-                if ((item.Tag & Shop.SellTags) == 0)
+                if (!CanSell(item))
                 {
                     await UpdateAsync("Sorry, but I don't buy that here.");
                     return ActionResult.Continue;
                 }
 
-                int amount = 0;
-
-                if (string.IsNullOrWhiteSpace(arg))
-                    amount = 1;
-                else if (arg == "all")
-                    amount = ItemHelper.GetOwnedAmount(User, item);
-                else if (int.TryParse(arg, out amount)) // item!
-                    amount = Math.Clamp(amount, 0, ItemHelper.GetOwnedAmount(User, item));
+                int amount = ParseAmount(arg, item);
 
                 if (amount < 1)
                 {
@@ -414,13 +402,11 @@ namespace Arcadia
                     return ActionResult.Continue;
                 }
 
-                // Otherwise, if the item can be sold:
-
                 // Take the item from the user
                 ItemHelper.TakeItem(User, item, amount);
+                long worth = GetWorth(item, amount);
 
-                // Give the money to the user (with applied deductions
-                Give(GetSellValue(item, amount), item.Currency);
+                Give(worth, item.Currency);
 
                 State = ShopState.Sell;
                 await UpdateAsync();
@@ -429,6 +415,22 @@ namespace Arcadia
 
             // Otherwise, wait for the next input
             return ActionResult.Continue;
+        }
+
+        private bool CanSell(Item item)
+            => (item.Tag & Shop.SellTags) != 0;
+
+        private int ParseAmount(string input, Item item)
+        {
+            int ownCount = ItemHelper.GetOwnedAmount(User, item);
+
+            if (input.Equals("all", StringComparison.OrdinalIgnoreCase))
+                return ownCount;
+
+            if (string.IsNullOrWhiteSpace(input) || !int.TryParse(input, out int amount))
+                return 1;
+
+            return Math.Clamp(amount, 0, ownCount);
         }
 
         private void RemoveFromInventory(Item item, int amount)
@@ -462,28 +464,33 @@ namespace Arcadia
             }
         }
 
-        private long GetSellValue(Item item, int amount)
+        private long GetWorth(Item item, int amount)
         {
-            long value = Shop.SellDeduction > 0 ? (long) Math.Floor(item.Value * (1 - Shop.SellDeduction / (float)100)) : item.Value;
+            long value = Shop.SellDeduction > 0
+                ? GetWorth(item.Value, Shop.SellDeduction)
+                : item.Value;
+
             return value * amount;
         }
 
+        private long GetWorth(long value, int deduction)
+            => (long)Math.Floor(value * (1 - deduction / (double)100));
+
         private bool CanBuy(Item item, int amount)
         {
-            return CanTake(GetCost(item, amount), item.Currency);
+            long cost = GetCost(item, amount);
+            return CanTake(cost, item.Currency);
         }
 
         private long GetCost(Item item, int amount)
         {
             long cost = ShopHelper.CostOf(item, Catalog);
-
             return cost * amount;
         }
 
         private bool CanTake(long value, CurrencyType currency)
         {
             long balance = GetBalance(currency);
-
             return balance - value >= 0;
         }
 
@@ -504,16 +511,16 @@ namespace Arcadia
 
         private void Give(long value, CurrencyType currency)
         {
-            if (currency == CurrencyType.Money)
+            if (currency.HasFlag(CurrencyType.Money))
                 User.Give(value, false);
-            else if (currency == CurrencyType.Chips)
+            else if (currency.HasFlag(CurrencyType.Chips))
                 User.ChipBalance += value;
-            else if (currency == CurrencyType.Tokens)
+            else if (currency.HasFlag(CurrencyType.Tokens))
                 User.TokenBalance += value;
-            else if (currency == CurrencyType.Debt)
+            else if (currency.HasFlag(CurrencyType.Debt))
                 User.Take(value, false);
-
-            throw new Exception("Unknown currency");
+            else
+                throw new Exception("Unknown currency");
         }
 
         private long GetBalance(CurrencyType currency)

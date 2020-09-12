@@ -26,7 +26,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("roulette")]
-        [Summary("A Casino classic. Choose your style of bet (with a temporary cap of 1,0000) and go wild.")]
+        [Summary("A Casino classic. Choose your style of bet and go wild.")]
         public async Task RouletteAsync(RouletteBetMode mode, long wager)
         {
             if (wager < 0)

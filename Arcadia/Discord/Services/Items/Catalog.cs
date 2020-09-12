@@ -197,6 +197,7 @@ namespace Arcadia.Services
                 return recipes.ToString();
             }
 
+            // Group recipes by: Var.GetKey(id).StartsWith(itemId)
             foreach (Recipe recipe in known)
                 recipes.AppendLine(WriteRecipeText(user, recipe));
 
@@ -218,6 +219,8 @@ namespace Arcadia.Services
             return text.ToString();
         }
 
+        // Group all recipes with the same result ID
+        // Paginate all variations
         public static string ViewRecipeInfo(ArcadeUser user, Recipe recipe)
         {
             var info = new StringBuilder();
@@ -420,6 +423,7 @@ namespace Arcadia.Services
             if (ItemHelper.IsUnique(item))
                 details.AppendLine("🔸 **Unique**");
 
+            // Instead of reading flags, check to see if any shops that the USER can see has a chance of being able to buy this
             if (item.CanBuy)
                 details.AppendLine("🛍️ **Buyable**");
 

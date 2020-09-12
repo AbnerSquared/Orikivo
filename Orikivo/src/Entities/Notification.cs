@@ -14,7 +14,7 @@ namespace Orikivo
         /// <param name="content">The content to display for this <see cref="Notification"/>.</param>
         public Notification(string content)
         {
-            if (!string.IsNullOrWhiteSpace(content))
+            if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("The specified content cannot be null or consist of only whitespace characters", nameof(content));
 
             Content = content;

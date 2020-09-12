@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Desync;
 using Orikivo.Text.Pagination;
 
 namespace Arcadia
@@ -286,10 +287,13 @@ namespace Arcadia
 
         public static void UnlockAvailable(ArcadeUser user)
         {
+            bool canNotify = user.Config.Notifier.HasFlag(NotifyAllow.Merit);
             foreach (Merit merit in Assets.Merits.Where(x => CanUnlock(user, x)))
             {
                 user.Merits.Add(merit.Id, merit.GetData());
-                user.Notifier.Append(WriteUnlockNotice(merit));
+
+                if (canNotify)
+                    user.Notifier.Append(WriteUnlockNotice(merit));
             }
         }
 
@@ -309,8 +313,11 @@ namespace Arcadia
             if (!CanUnlock(user, merit))
                 return;
 
+            bool canNotify = user.Config.Notifier.HasFlag(NotifyAllow.Merit);
             user.Merits.Add(merit.Id, merit.GetData());
-            user.Notifier.Append(WriteUnlockNotice(merit));
+
+            if (canNotify)
+                user.Notifier.Append(WriteUnlockNotice(merit));
         }
 
         public static bool CanClaim(ArcadeUser user, string meritId)

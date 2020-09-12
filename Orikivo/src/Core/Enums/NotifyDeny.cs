@@ -14,6 +14,8 @@ namespace Orikivo.Desync
         OfferInbound = 8,
         GiftInbound = 16,
         Invite = 32,
-        Level = 64
+        Level = 64,
+        Research = 128,
+        Daily = 256
     }
 }

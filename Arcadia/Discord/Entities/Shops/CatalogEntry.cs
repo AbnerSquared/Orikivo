@@ -17,7 +17,13 @@
 
         // The rate that this item is sold at in comparison
         // due to its rarity
-        public float InflationRate { get; set; }
+        public float CostScale { get; set; }
+
+        // The minimum tier you need to be for this shop to show this entry
+        public int RequiredTier { get; set; } = 1;
+
+        // If true, this entry is excluded where the user is not at the specified shop tier
+        public bool ForceAtTier { get; set; }
 
         public bool IsSpecial { get; set; }
 

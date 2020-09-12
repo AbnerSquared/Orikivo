@@ -22,6 +22,50 @@ namespace Arcadia.Modules
     public class Common : OriModuleBase<ArcadeContext>
     {
         [RequireUser]
+        [Command("memos")]
+        [Summary("View a full summary of discovered entries.")]
+        public async Task ViewMemosAsync(int page = 1)
+        {
+            string result = Research.ViewMemos(Context.Account, --page);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
+        [Command("memo")]
+        [Summary("View a full summary of discovered entries.")]
+        public async Task ViewMemoAsync(Item item)
+        {
+            string result = Research.ViewMemo(Context.Account, item);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
+        [Command("researchinfo")]
+        [Summary("View details about the research progress of an item.")]
+        public async Task ReadResearchAsync(Item item)
+        {
+            string result = Research.ViewResearch(Context.Account, item);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
+        [Command("research"), Priority(0)]
+        [Summary("View the current progress of your research.")]
+        public async Task ViewResearchAsync()
+        {
+            string result = Research.ViewProgress(Context.Account);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
+        [Command("research"), Priority(1)]
+        public async Task ResearchAsync(Item item)
+        {
+            string result = Research.ResearchItem(Context.Account, item);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
         [Command("offer")]
         [Summary("Send a trade offer to the specified user.")]
         public async Task SendOfferAsync(SocketUser user, [Remainder]string input)

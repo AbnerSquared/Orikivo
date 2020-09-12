@@ -195,7 +195,7 @@ namespace Arcadia.Modules
                     }
                     else if (!Enum.TryParse(type, $"{type.GetEnumValues().Cast<Enum>().Select(Convert.ToInt64).Sum()}", out object e))
                     {
-                        panel.AppendLine("> An error occurred while attempted to activate all flags.");
+                        panel.AppendLine("> An error occurred while attempting to activate all flags.");
                     }
                     else
                     {

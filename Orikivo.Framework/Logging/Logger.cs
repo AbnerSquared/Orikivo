@@ -14,6 +14,8 @@ namespace Orikivo.Framework
         private static ConsoleColor? _foregroundColor;
         private static ConsoleColor? _backgroundColor;
 
+        private static StringBuilder _pool = new StringBuilder();
+
         public static string LogDirectory { get; set; }
 
         public static bool DebugAllowed { get; set; }
@@ -47,6 +49,23 @@ namespace Orikivo.Framework
         {
             WriteLine(content);
             WriteToFile(content);
+        }
+
+        public static void DebugToPool(string value, bool showTimestamp = true)
+        {
+            if (DebugAllowed)
+            {
+                if (showTimestamp)
+                    _pool.Append($"[{DateTime.UtcNow:HH:mm:ss}] ");
+
+                _pool.AppendLine(value);
+            }
+        }
+
+        public static void PushAndClearPool()
+        {
+            WriteLine(_pool.ToString());
+            _pool.Clear();
         }
 
         public static void Debug(ConsoleString value, bool showTimestamp = true)

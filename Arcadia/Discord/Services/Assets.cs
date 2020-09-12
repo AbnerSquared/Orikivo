@@ -717,9 +717,10 @@ namespace Arcadia
                     TradeLimit = 0,
                     BypassCriteriaOnTrade = true,
                     Size = 100,
+                    MemoId = 1,
+                    Memo = "This is a placeholder memo.",
                     ResearchTiers = new Dictionary<int, string>
                     {
-                        [1] = "Research memo",
                         [2] = $"Removal of {Format.Number(750, Icons.Debt)} requirement to use",
                         [3] = $"New usage ability (`use su_pl recover`): **25**% chance of recovering previously lost funds (**4** day cooldown if successful)"
                     },

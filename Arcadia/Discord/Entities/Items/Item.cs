@@ -13,6 +13,8 @@ namespace Arcadia
 
         public string Id { get; set; }
 
+        public int MemoId { get; set; }
+
         public string GroupId { get; set; }
 
         public string Name { get; set; }
@@ -87,7 +89,7 @@ namespace Arcadia
                 return Icon;
 
             if (ItemHelper.TryGetGroup(GroupId, out ItemGroup group))
-                return group.Icon.ToString();
+                return group.Icon?.ToString() ?? "";
 
             return Icon ?? "";
         }

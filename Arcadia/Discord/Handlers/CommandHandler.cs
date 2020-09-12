@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
-using Orikivo.Desync;
 using Orikivo.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,68 +9,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Multiplayer;
+using Arcadia.Services;
 using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia
 {
-    // This needs to handle reading commands
-    public static class CommandDetails
-    {
-        public static string WriteTick()
-        {
-            var info = new StringBuilder();
-            info.AppendLine($"> 🎰 **Casino**");
-            info.AppendLine("> Double Machine\n");
-
-            info.AppendLine($"This machine offers high risk with high reward, allowing you to gain a massive amount of {Icons.Chips} **Chips** in only a single run.\n");
-            info.AppendLine($"> **Step 1: Generation**");
-            info.AppendLine("In this phase, the machine rolls a tick chance. As long as the generated tick is below the current **Chance**, the machine reduces the **Chance** by **1**%, and continues generating ticks. Once the generated tick fails, the machine is stopped, returning the **Actual**.");
-            info.AppendLine("\n> **Step 2: Calculation**");
-            info.AppendLine("Once the **Actual** is found, it compares it with your **Method** to see if your **Guess** was successful.");
-            info.AppendLine("\nIf your **Method** is exact:\n- If the **Actual** is equal to the **Guess**, your result is marked as **Exact**, otherwise it's marked as a **Loss**.");
-            info.AppendLine("\nOtherwise, if your **Method** is below:\n- If the **Actual** is greater than or equal to the **Guess**, your result is marked as a **Win** (**Exact** if the **Actual** is equal to the **Guess**).");
-            info.AppendLine("\n> **Step 3: Reward**");
-            info.AppendLine($"If you were given a **Loss**, this returns a reward of {Icons.Chips} **0**.");
-            info.AppendLine($"\nOtherwise, if you were given a **Win** or **Exact**, you are given a reward of:\n- {Icons.Chips} `floor(Bet * (2 ^ Actual) * (Method == Exact ? 1.5 : 1))`");
-
-            return info.ToString();
-        }
-
-        public static string WriteGetChips()
-        {
-            var info = new StringBuilder();
-            info.AppendLine("> **Chip Conversion**");
-            info.AppendLine($"> {Icons.Balance} **1** ≈ {Icons.Chips} **{MoneyConvert.ToChips(1)}**");
-            info.AppendLine($"> {Icons.Balance} **10** ≈ {Icons.Chips} **{MoneyConvert.ToChips(10)}**");
-            info.AppendLine($"> {Icons.Balance} **100** ≈ {Icons.Chips} **{MoneyConvert.ToChips(100)}**");
-            info.AppendLine("\nSpecify an amount to convert your **Orite** into **Chips**, for use at the **Casino**.");
-            return info.ToString();
-        }
-
-        public static string WriteGimi()
-        {
-            var info = new StringBuilder();
-            info.AppendLine($"> 🎰 **Casino**");
-            info.AppendLine("> Gimi\n");
-            info.AppendLine($"This is a built-in machine that provides {Icons.Balance} **Orite** or {Icons.Debt} **Debt** at random.\n");
-
-            info.AppendLine($"> **Step 1: Generation**");
-            info.AppendLine("In this phase, a **Seed** is rolled based on your **Risk** (default is **50**%) to determine your win state. If the **Seed** that was rolled landed within the range specified by your **Win Direction** (default is **Above**), you are given a **Win**. Otherwise, your result is a **Loss**.");
-            info.AppendLine($"\nThe **Seed** is then checked for a match in the collection of specified golden slots. If a match was successful, your result is set to **Gold**. If a match failed, your result is left alone unless your **Seed** is 1 off of the **Gold**, which sets your result to **Curse**.");
-            info.AppendLine($"\n> **Step 2: Reward**");
-            info.AppendLine($"If your result was **Gold**, you are given {Icons.Balance} **50** and a **Pocket Lawyer**.\nIf your result was **Curse**, you are given {Icons.Debt} **200**.\nOtherwise, you are given a random amount of {Icons.Balance} **Orite** ({Icons.Debt} **Debt** if **Loss**) based on your **Risk**.");
-            return info.ToString();
-        }
-
-    }
-
     public class CommandHandler
     {
         public static readonly TimeSpan GlobalCooldown = TimeSpan.FromSeconds(2);
-
-        // Use a shorter cooldown if the command notice cooldown was too large
         public static readonly TimeSpan CommandNoticeCooldown = TimeSpan.FromSeconds(0.75);
+        // CooldownTickDuration = TimeSpan.FromSeconds(3); // Go down a level every 3 seconds
+        // CooldownRatelimiter = 3 times in 2 seconds => level up
 
         private readonly CommandService _service;
         private readonly DiscordSocketClient _client;
@@ -108,9 +57,11 @@ namespace Arcadia
             if (_games.ReservedUsers.ContainsKey(arg.Author.Id))
                 return;
 
-            // Set up initial values
-            SocketUserMessage source = arg as SocketUserMessage;
-            ArcadeContext ctx = new ArcadeContext(_client, _container, source);
+            // Ignore system messages
+            if (!(arg is SocketUserMessage source))
+                return;
+
+            var ctx = new ArcadeContext(_client, _container, source);
             bool deleteInput = false;
             bool prefixFound = false;
             string input = null;
@@ -131,6 +82,7 @@ namespace Arcadia
                 deleteInput = true;
             }
 
+            // Move this functionality to [about <input>
             if (source.HasStringPrefix(GetPrefix(ctx) + "?]", ref i))
             {
                 string inner = source.Content[(GetPrefix(ctx) + "?]").Length..].ToLower();
@@ -213,7 +165,7 @@ namespace Arcadia
                     preconditionResults[match] = await match.Command.CheckPreconditionsAsync(ctx, _provider);
                 }
 
-                var successfulPreconditions = preconditionResults
+                KeyValuePair<CommandMatch, PreconditionResult>[] successfulPreconditions = preconditionResults
                     .Where(x => x.Value.IsSuccess)
                     .ToArray();
 
@@ -221,23 +173,10 @@ namespace Arcadia
                 {
                     var parseResultsDict = new Dictionary<CommandMatch, ParseResult>();
 
-                    foreach (var pair in successfulPreconditions)
+                    foreach ((CommandMatch key, PreconditionResult value) in successfulPreconditions)
                     {
-                        var parseResult = await pair.Key.ParseAsync(ctx, searchResult, pair.Value, _provider).ConfigureAwait(false);
-
-                        /*
-                        if (parseResult.Error == CommandError.MultipleMatches)
-                        {
-                            IReadOnlyList<TypeReaderValue> argList, paramList;
-
-                            argList = parseResult.ArgValues.Select(x => x.Values.OrderByDescending(y => y.Score).First()).ToImmutableArray();
-                            paramList = parseResult.ParamValues.Select(x => x.Values.OrderByDescending(y => y.Score).First()).ToImmutableArray();
-                            parseResult = ParseResult.FromSuccess(argList, paramList);
-
-                            break;
-                        }*/
-
-                        parseResultsDict[pair.Key] = parseResult;
+                        ParseResult parseResult = await key.ParseAsync(ctx, searchResult, value, _provider).ConfigureAwait(false);
+                        parseResultsDict[key] = parseResult;
                     }
 
                     float CalculateScore(CommandMatch match, ParseResult parseResult)
@@ -246,14 +185,16 @@ namespace Arcadia
 
                         if (match.Command.Parameters.Count > 0)
                         {
-                            var argValuesSum = parseResult.ArgValues?.Sum(x => x.Values.OrderByDescending(y => y.Score).FirstOrDefault().Score) ?? 0;
-                            var paramValuesSum = parseResult.ParamValues?.Sum(x => x.Values.OrderByDescending(y => y.Score).FirstOrDefault().Score) ?? 0;
+                            float argValuesSum = parseResult.ArgValues?
+                                .Sum(x => x.Values.OrderByDescending(y => y.Score).FirstOrDefault().Score) ?? 0;
+                            float paramValuesSum = parseResult.ParamValues?
+                                .Sum(x => x.Values.OrderByDescending(y => y.Score).FirstOrDefault().Score) ?? 0;
 
                             argValuesScore = argValuesSum / match.Command.Parameters.Count;
                             paramValuesScore = paramValuesSum / match.Command.Parameters.Count;
                         }
 
-                        var totalArgsScore = (argValuesScore + paramValuesScore) / 2;
+                        float totalArgsScore = (argValuesScore + paramValuesScore) / 2;
                         return match.Command.Priority + totalArgsScore * 0.99f;
                     }
 
@@ -276,8 +217,6 @@ namespace Arcadia
 
         public async Task ExecuteAsync(ArcadeContext ctx, int argPos, string input = null)
         {
-
-
             if (ctx.Account != null)
             {
                 if (ctx.Account.GlobalCooldown.HasValue)
@@ -320,11 +259,6 @@ namespace Arcadia
                     }
                 }
             }
-
-            // TODO: Handle option parsing for commands
-
-            // TODO: It might be required to create a custom parser and execution service separate from CommandService in order to properly
-            // allow specific parsing methods
 
             if (ctx.Account != null)
                 ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(GlobalCooldown);
@@ -392,15 +326,13 @@ namespace Arcadia
             // Check if the user was updated or doesn't exist to save
             var requireUser = command.Preconditions.FirstOrDefault<RequireUserAttribute>();
 
-
-            if (requireUser?.Handling.EqualsAny(AccountHandling.ReadWrite, AccountHandling.WriteOnly) ?? false)
+            if (requireUser != null && requireUser.Handling != AccountHandling.ReadOnly)
             {
                 MeritHelper.UnlockAvailable(ctx.Account);
+                Research.TryCompleteResearch(ctx.Account);
 
                 Logger.Debug("User updated. Now saving...");
                 ctx.Data.Users.TrySave(ctx.Account);
-
-
             }
             else if (!JsonHandler.JsonExists<ArcadeUser>(ctx.User.Id))
             {
@@ -429,14 +361,6 @@ namespace Arcadia
 
             if (requireGlobal != null)
                 ctx.Data.SaveGlobalData();
-            // For now, just save global data until a workaround is found
-            // JsonHandler.Save(ctx.Container.Global, "global.json");
         }
-    }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public class RequireDataAttribute : Attribute
-    {
-
     }
 }
