@@ -3,6 +3,17 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
+    public class ComponentFont
+    {
+        [JsonConstructor]
+        public ComponentFont(FontType font)
+        {
+            Font = font;
+        }
+
+        [JsonProperty("font")]
+        public FontType Font { get; internal set; }
+    }
     /// <summary>
     /// Represents a customized <see cref="GammaPalette"/>.
     /// </summary>

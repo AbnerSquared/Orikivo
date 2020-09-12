@@ -3,6 +3,10 @@
     public static class Items
     {
         // ROY G BIV
+        public static readonly string FontDelta = "cf_de";
+        public static readonly string FontOrikos = "cf_or";
+        public static readonly string FontFoxtrot = "cf_ft";
+        public static readonly string FontMonori = "cf_mo";
 
         // Other
         public static readonly string PalettePolarity = "p_po";

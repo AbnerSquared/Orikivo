@@ -677,10 +677,19 @@ namespace Arcadia
             return Assets.Items.FirstOrDefault(x => x.Id == id);
         }
 
-        
+        public static string NameFor(FontType font)
+            => GetItem(IdFor(font))?.Name;
 
         public static string NameFor(PaletteType palette, PaletteType? secondary = null)
-            => GetItem(IdFor(palette, secondary)).Name;
+            => GetItem(IdFor(palette, secondary))?.Name;
+
+        public static string IdFor(FontType font)
+        {
+            return font switch
+            {
+                FontType.Delton => Items.FontDelta,
+            };
+        }
 
         public static string IdFor(PaletteType palette, PaletteType? secondary = null)
         {

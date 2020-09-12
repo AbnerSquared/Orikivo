@@ -33,7 +33,7 @@ namespace Arcadia
         [ReadOnly]
         [JsonProperty("font")]
         [Description("Defines the **Font** used for your the name on your **Card**.")]
-        public FontType Font { get; internal set; } = FontType.Foxtrot;
+        public FontType Font { get; internal set; } = FontType.Orikos;
 
         public string Display()
         {

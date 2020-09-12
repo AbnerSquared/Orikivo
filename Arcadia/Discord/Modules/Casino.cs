@@ -13,17 +13,6 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>
     {
-        /*
-        [Command("castingtest")]
-        public async Task TestAsync()
-        {
-            Func<ArcadeUser, object, string> criteria = (u, r) => "SUCCESS";
-            ReplyWriter w = criteria.Invoke;
-
-            string result = w(Context.Account, null);
-            Logger.Debug(result);
-        }*/
-
         [RequireUser]
         [Command("roulette")]
         [Summary("A Casino classic. Choose your style of bet and go wild.")]
@@ -152,7 +141,7 @@ namespace Arcadia.Modules
 
             var tick = new Tick(expectedTick, method);
 
-            TickResult result = tick.Next(wager);
+            TickResult result = tick.Next(wager, Context.Account.GetVar(TickStats.CurrentLossStreak));
             Message message = result.ApplyAndDisplay(Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, message);

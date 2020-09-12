@@ -21,6 +21,14 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+        /*
+        [Command("peekshop")]
+        [Summary("View what a shop has for sale before entering.")]
+        public async Task PeekShopAsync(Shop shop)
+        {
+            context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
+        }*/
+
         [RequireUser]
         [Command("memos")]
         [Summary("View a full summary of discovered entries.")]
@@ -732,7 +740,7 @@ namespace Arcadia.Modules
                 using var graphics = new GraphicsService();
                 var d = new CardDetails(account, user);
                 var p = CardProperties.Default;
-
+                p.Font = account.Card.Font;
                 p.Palette = account.Card.Palette.Primary;
                 p.PaletteOverride = account.Card.Palette.Build();
                 p.Trim = false;

@@ -1050,13 +1050,60 @@ namespace Arcadia
                 },
                 new Item
                 {
-                    Id = "cf_ft",
+                    Id = Arcadia.Items.FontFoxtrot,
                     Name = "Foxtrot",
                     Quotes = new List<string>
                     {
                         "It represents a strongly typed font face with a clean design."
                     },
-                    Tag = ItemTag.Font | ItemTag.Decorator
+                    Tag = ItemTag.Font | ItemTag.Decorator,
+                    Usage = new ItemUsage
+                    {
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Foxtrot))
+                    }
+                },
+                new Item
+                {
+                    Id = Arcadia.Items.FontMonori,
+                    Name = "Monori",
+                    Quotes = new List<string>
+                    {
+                        "It resists the automation of auto-width characters.",
+                        "It translates at the speed of sound when left near a docking port."
+                    },
+                    Tag = ItemTag.Font | ItemTag.Decorator,
+                    Usage = new ItemUsage
+                    {
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Monori))
+                    }
+                },
+                new Item
+                {
+                    Id = Arcadia.Items.FontOrikos,
+                    Name = "Orikos",
+                    Quotes = new List<string>
+                    {
+                        "A system default that holds up to this day."
+                    },
+                    Tag = ItemTag.Font | ItemTag.Decorator,
+                    Usage = new ItemUsage
+                    {
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Orikos))
+                    }
+                },
+                new Item
+                {
+                    Id = Arcadia.Items.FontDelta,
+                    Name = "Delta",
+                    Quotes = new List<string>
+                    {
+                        "It showcases a sharp range of tiny characters."
+                    },
+                    Tag = ItemTag.Font | ItemTag.Decorator,
+                    Usage = new ItemUsage
+                    {
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delton))
+                    }
                 }
             };
 
@@ -1065,6 +1112,7 @@ namespace Arcadia
             new ItemGroup
             {
                 ShortId = "c",
+                Icon = "🍬",
                 Id = "component",
                 Name = "Component",
                 Prefix = "Component: ",
@@ -1137,6 +1185,19 @@ namespace Arcadia
             }
         };
 
+        private static string SetOrSwapFont(ArcadeUser user, FontType font)
+        {
+            if (user.Card.Font == font)
+                return Format.Warning($"You already have **{ItemHelper.NameFor(font)}** equipped on your **Card Font**.");
+
+            ItemHelper.GiveItem(user, ItemHelper.IdFor(user.Card.Font));
+            ItemHelper.TakeItem(user, ItemHelper.IdFor(font));
+            string result = $"> 📟 Swapped out **{ItemHelper.NameFor(user.Card.Font)}** with **{ItemHelper.NameFor(font)}** for your **Card Font**.";
+
+            user.Card.Font = font;
+            return result;
+        }
+
         private static string SetOrSwapPalette(ArcadeUser user, ComponentPalette palette)
         {
             if (user.Card.Palette == palette)
@@ -1146,7 +1207,7 @@ namespace Arcadia
             if (user.Card.Palette.Primary != PaletteType.Default)
             {
                 ItemHelper.GiveItem(user, ItemHelper.IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
-                result = $"📟 Swapped out **{ItemHelper.NameFor(user.Card.Palette.Primary)}** with **{ItemHelper.NameFor(palette.Primary, palette.Secondary)}** for your **Card Palette**.";
+                result = $"📟 Swapped out **{ItemHelper.NameFor(user.Card.Palette.Primary, user.Card.Palette.Secondary)}** with **{ItemHelper.NameFor(palette.Primary, palette.Secondary)}** for your **Card Palette**.";
             }
 
             ItemHelper.TakeItem(user, ItemHelper.IdFor(palette.Primary, palette.Secondary));

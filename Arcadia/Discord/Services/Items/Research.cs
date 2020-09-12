@@ -286,7 +286,7 @@ namespace Arcadia.Services
             if (ItemHelper.GetOwnedAmount(user, item) < itemCount)
                 return Format.Warning($"You need **{itemCount}** more {Format.TryPluralize("instance", (int)itemCount)} to further progress research for **{item.Name}**.");
 
-            user.SetVar(GetResearchId(item.Id), GetResearchTime(item, nextTier).Ticks);
+            user.SetVar(GetResearchId(item.Id), DateTime.UtcNow.Add(GetResearchTime(item, nextTier)).Ticks);
             details.AppendLine($"> 🔬 You have started research on **{item.Name}** (Tier **{nextTier}**).");
 
             return details.ToString();

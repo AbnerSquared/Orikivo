@@ -38,8 +38,8 @@ namespace Arcadia.Casino
                 int chanceBonus = (int) Math.Floor(lossStreak / (double)3);
                 chance += chanceBonus;
 
-                if (chance > 100)
-                    chance = 100;
+                if (chance > 70)
+                    chance = 70;
             }
 
             while (alive)
