@@ -7,10 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Orikivo\Orikivo.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Discord\Multiplayer\Games\Chess\" />
+    <ProjectReference Include="..\..\api\OpenTDB\OpenTDB.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,6 +9,7 @@ using Arcadia.Casino;
 using Arcadia.Graphics;
 using Arcadia.Modules;
 using Arcadia.Multiplayer;
+using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
 using MongoDB.Driver;
 using Orikivo;
@@ -67,6 +68,7 @@ namespace Arcadia
                     .AddEnumTypeReader<LeaderboardSort>()
                     .AddEnumTypeReader<TickWinMethod>()
                     .AddEnumTypeReader<StackTraceMode>()
+                    .AddEnumTypeReader<ChessOwner>()
                     .AddEnumTypeReader<RouletteBetMode>();
 
                 builder

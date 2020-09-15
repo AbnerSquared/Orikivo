@@ -23,8 +23,6 @@ namespace Arcadia.Casino
         {
             Risk = 50;
             Earn = 20;
-            GoldSlot = 999;
-            CurseSlot = 0;
             Direction = true;
             RiskOverload = 0;
             EarnExpander = 0;
@@ -48,13 +46,10 @@ namespace Arcadia.Casino
 
         public int MaxEarn { get; }
 
-        private int GoldSlot { get; }
-
-        private int CurseSlot { get; }
-
         private bool Direction { get; }
 
         public List<int> GoldSlots { get; private set; }
+
         public List<int> CurseSlots { get; private set; }
 
         private int GetMaxSeed()
@@ -154,7 +149,7 @@ namespace Arcadia.Casino
                 reward = (int)Math.Truncate(rawReturn / (double)RndLength);
             }
 
-            Logger.Debug($"Seed: {seed} ({flag})\nReward: {reward}");
+            Logger.Debug($"Gimi: {seed} ({flag}), {reward}");
             return new GimiResult(reward, flag, Risk);
         }
     }

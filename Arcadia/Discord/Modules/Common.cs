@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
+using Arcadia.Multiplayer.Games;
 using Orikivo.Drawing;
 using Casing = Arcadia.Graphics.Casing;
 
@@ -296,6 +297,38 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
         }
 
+        //[Command("drawboard")]
+        public async Task DrawMovesAsync(ChessOwner perspective)
+        {
+            ChessBoard board = ChessBoard.GetDefault();
+
+            await Context.Channel.SendMessageAsync(board.DrawBoard(perspective));
+        }
+
+        //[Command("drawboard")]
+        public async Task DrawMovesAsync(int whitePieceCount, int blackPieceCount, ChessOwner perspective)
+        {
+            ChessBoard board = ChessBoard.GetRandom(whitePieceCount, blackPieceCount);
+
+            await Context.Channel.SendMessageAsync(board.DrawBoard(perspective));
+        }
+
+        //[Command("drawmoves")]
+        public async Task DrawPieceMovesAsync(ChessOwner perspective)
+        {
+            ChessBoard board = ChessBoard.GetDefault();
+
+            await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
+        }
+
+        //[Command("drawmoves")]
+        public async Task DrawPieceMovesAsync(int whitePieceCount, int blackPieceCount, ChessOwner perspective)
+        {
+            ChessBoard board = ChessBoard.GetRandom(whitePieceCount, blackPieceCount);
+
+            await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
+        }
+
         [RequireUser]
         [RequireData]
         [Command("shop")]
@@ -320,7 +353,7 @@ namespace Arcadia.Modules
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(30),
-                    Action = shop
+                    Session = shop
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -457,7 +490,7 @@ namespace Arcadia.Modules
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20),
-                    Action = handler
+                    Session = handler
                 };
 
                 bool Filter(SocketMessage message, int index)

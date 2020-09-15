@@ -202,7 +202,8 @@ namespace Arcadia.Multiplayer
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Server.DestroyCurrentSession();
+                Server.DestroyCurrentSession($"An exception was thrown while executing an action.");
+                Server.UpdateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                 return;
             }
 

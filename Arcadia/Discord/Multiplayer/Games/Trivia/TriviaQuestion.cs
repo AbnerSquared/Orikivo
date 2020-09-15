@@ -5,7 +5,7 @@ namespace Arcadia.Multiplayer.Games
 {
     public class TriviaQuestion
     {
-        private static int GetQuestionValue(TriviaDifficulty difficulty)
+        internal static int GetQuestionValue(TriviaDifficulty difficulty)
         {
             return difficulty switch
             {
@@ -27,6 +27,15 @@ namespace Arcadia.Multiplayer.Games
             Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
         }
 
+        public TriviaQuestion(string question, string topic, TriviaDifficulty difficulty, string correctAnswer, params string[] rest)
+        {
+            Question = question;
+            Value = GetQuestionValue(difficulty);
+            TopicOverride = topic;
+            Difficulty = difficulty;
+            Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
+        }
+
         public TriviaQuestion(string question, int value, TriviaTopic topic, TriviaDifficulty difficulty, string correctAnswer, params string[] rest)
         {
             Question = question;
@@ -36,8 +45,18 @@ namespace Arcadia.Multiplayer.Games
             Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
         }
 
+        public TriviaQuestion(string question, int value, string topic, TriviaDifficulty difficulty, string correctAnswer, params string[] rest)
+        {
+            Question = question;
+            Value = value;
+            TopicOverride = topic;
+            Difficulty = difficulty;
+            Answers = rest.Prepend(correctAnswer).Select((x, i) => new TriviaAnswer(x, i == 0)).ToList();
+        }
+
         // the topic of this question
         public TriviaTopic Topic { get; set; }
+        public string TopicOverride { get; set; }
 
         // what is the question to display
         public string Question { get; set; }

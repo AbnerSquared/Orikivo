@@ -243,7 +243,7 @@ namespace Orikivo.Modules
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20),
-                    Action = action
+                    Session = action
                 };
 
                 bool Filter(SocketMessage message, int index)

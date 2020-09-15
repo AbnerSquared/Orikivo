@@ -503,7 +503,7 @@ namespace Orikivo.Modules
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(30),
-                    Action = shop
+                    Session = shop
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -528,7 +528,7 @@ namespace Orikivo.Modules
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20),
-                    Action = handler
+                    Session = handler
                 };
 
                 bool Filter(SocketMessage message, int index)

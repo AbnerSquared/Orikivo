@@ -10,7 +10,7 @@ using Format = Orikivo.Format;
 namespace Arcadia.Multiplayer
 {
     [Flags]
-    public enum ServerDeny
+    public enum ServerAllow
     {
         Spectate = 1,
         Chat = 2,
@@ -27,17 +27,17 @@ namespace Arcadia.Multiplayer
             GameDetails gameDetails = GameManager.DetailsOf(GameId);
 
             string gameName = GameId;
-            string playerCounter = $"{Players.Count:##,0} {Format.TryPluralize("player", Players.Count)}";
+            string playerCounter = $"**{Players.Count:##,0}** {Format.TryPluralize("player", Players.Count)}";
 
             if (gameDetails != null)
             {
                 gameName = gameDetails.Name;
-                playerCounter = $"{Players.Count:##,0}/{gameDetails.PlayerLimit:##,0} {Format.TryPluralize("player", gameDetails.PlayerLimit)}";
+                playerCounter = $"**{Players.Count:##,0}**/**{gameDetails.PlayerLimit:##,0}** {Format.TryPluralize("player", gameDetails.PlayerLimit)}";
             }
 
             GetBroadcast(GameState.Waiting).Content
                 .GetComponent(LobbyVars.Header)
-                .Draw(Name, Id, gameName, playerCounter);
+                .Draw(Name, Id, Format.Title(gameName, gameDetails?.Icon), playerCounter);
         }
 
         private void AddConsoleText(string text, bool draw = true)
@@ -57,7 +57,7 @@ namespace Arcadia.Multiplayer
 
         private void DrawConfig()
         {
-            GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, GameId);
+            GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, GameId, AllowSpectators, AllowInvites, AllowChat);
         }
 
         private void DrawGameConfig()
@@ -75,7 +75,7 @@ namespace Arcadia.Multiplayer
 
             editing["game_config"].Active = true;
             editing["game_config"].Draw(
-                Options.Select(x => $"**{x.Name}**: `{x.Value}`"),
+                Options.Select(x => $"{x.Name}: **{x.Value}**"),
                 GameManager.DetailsOf(GameId).Name);
         }
 
@@ -160,7 +160,7 @@ namespace Arcadia.Multiplayer
             Broadcasts = DisplayBroadcast.GetReservedBroadcasts();
             Connections = new List<ServerConnection>();
             Invites = new List<ServerInvite>();
-            DeniedActions = properties.DeniedActions;
+            AllowedActions = properties.AllowedActions;
             _players = new List<Player>
             {
                 new Player(this, host)
@@ -187,41 +187,41 @@ namespace Arcadia.Multiplayer
 
         public ulong HostId { get; private set; }
 
-        public ServerDeny DeniedActions { get; private set; }
+        public ServerAllow AllowedActions { get; private set; }
 
         public bool AllowSpectators
         {
-            get => !DeniedActions.HasFlag(ServerDeny.Spectate);
+            get => AllowedActions.HasFlag(ServerAllow.Spectate);
             set
             {
                 if (value)
-                    DeniedActions &= ~ServerDeny.Spectate;
+                    AllowedActions |= ServerAllow.Spectate;
                 else
-                    DeniedActions |= ServerDeny.Spectate;
+                    AllowedActions &= ~ServerAllow.Spectate;
             }
         }
 
         public bool AllowChat
         {
-            get => !DeniedActions.HasFlag(ServerDeny.Chat);
+            get => AllowedActions.HasFlag(ServerAllow.Chat);
             set
             {
                 if (value)
-                    DeniedActions &= ~ServerDeny.Chat;
+                    AllowedActions |= ServerAllow.Chat;
                 else
-                    DeniedActions |= ServerDeny.Chat;
+                    AllowedActions &= ~ServerAllow.Chat;
             }
         }
 
         public bool AllowInvites
         {
-            get => !DeniedActions.HasFlag(ServerDeny.Invite);
+            get => AllowedActions.HasFlag(ServerAllow.Invite);
             set
             {
                 if (value)
-                    DeniedActions &= ~ServerDeny.Invite;
+                    AllowedActions |= ServerAllow.Invite;
                 else
-                    DeniedActions |= ServerDeny.Invite;
+                    AllowedActions &= ~ServerAllow.Invite;
             }
         }
 
@@ -398,7 +398,7 @@ namespace Arcadia.Multiplayer
         public async Task ToggleChatAsync()
         {
             AllowChat = !AllowChat;
-            AddConsoleText($"[Console] Server chat is now {(AllowInvites ? "enabled" : "disabled")}.");
+            AddConsoleText($"[Console] Server chat is now {(AllowChat ? "enabled" : "disabled")}.");
 
             await UpdateAsync();
         }
@@ -783,7 +783,7 @@ namespace Arcadia.Multiplayer
         }
 
         // this ends the current session a server has active
-        public void DestroyCurrentSession()
+        public void DestroyCurrentSession(string reason = null)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -810,7 +810,7 @@ namespace Arcadia.Multiplayer
             Session.DisposeQueue();
             Session = null;
 
-            AddConsoleText("[Console] The current session has ended.");
+            AddConsoleText($"[Console] {reason ?? "The current session has ended."}");
         }
 
         public async Task UpdateAsync()

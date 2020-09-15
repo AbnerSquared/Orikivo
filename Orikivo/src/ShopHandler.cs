@@ -13,7 +13,7 @@ using Orikivo.Canary;
 
 namespace Orikivo
 {
-    public class ShopHandler : MatchAction
+    public class ShopHandler : MatchSession
     {
         public ShopHandler(DesyncContext context, Market market, PaletteType palette)
         {

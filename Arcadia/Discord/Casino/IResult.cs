@@ -2,11 +2,6 @@
 
 namespace Arcadia.Casino
 {
-    public interface ICasinoHandle
-    {
-        ICasinoResult Execute();
-    }
-
     public interface IResult
     {
         // > ICON

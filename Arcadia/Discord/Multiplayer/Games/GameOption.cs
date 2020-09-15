@@ -7,7 +7,7 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class GameOption : GameProperty
     {
-        public static GameOption Create<T>(string id, string name, T defaultValue, string summary = "")
+        public static GameOption Create<T>(string id, string name, T defaultValue, string summary = "", Func<object, bool> validation = null)
         {
             return new GameOption
             {
@@ -16,7 +16,8 @@ namespace Arcadia.Multiplayer
                 Summary = summary,
                 Value = defaultValue,
                 DefaultValue = defaultValue,
-                ValueType = typeof(T)
+                ValueType = typeof(T),
+                Validation = validation
             };
         }
 

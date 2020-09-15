@@ -11,26 +11,27 @@ namespace Arcadia
     {
         public static void SetCooldown(ArcadeUser user, string id, TimeSpan duration)
         {
-            // if a cooldown already exists, add on to it.
-            if (user.InternalCooldowns.ContainsKey(id))
-            {
+            if (!user.InternalCooldowns.TryAdd(id, DateTime.UtcNow.Add(duration)))
                 user.InternalCooldowns[id] = user.InternalCooldowns[id].Add(duration);
-            }
-            else
-            {
-                user.InternalCooldowns[id] = DateTime.UtcNow.Add(duration);
-            }
         }
 
         public static bool CanExecute(ArcadeUser user, string id)
         {
-            if (user.InternalCooldowns.ContainsKey(id))
-            {
-                return (DateTime.UtcNow - user.InternalCooldowns[id]) > TimeSpan.Zero;
-            }
-
-            return true;
+            return !user.InternalCooldowns.ContainsKey(id) || IsExpired(user.InternalCooldowns[id]);
         }
+
+        public static bool TryRemove(ArcadeUser user, string id)
+        {
+            return CanExecute(user, id) && user.InternalCooldowns.Remove(id);
+        }
+
+        public static bool IsExpired(DateTime expiry)
+        {
+            return DateTime.UtcNow - expiry >= TimeSpan.Zero;
+        }
+
+        public static bool IsExpired(DateTime startedAt, TimeSpan duration)
+            => IsExpired(startedAt.Add(duration));
 
         public static string ViewAllTimers(ArcadeUser user)
         {
@@ -98,6 +99,7 @@ namespace Arcadia
             if (TryWriteCooldown(user, "Objective Skip", Stats.LastSkippedQuest, QuestHelper.SkipCooldown, out string skip))
                 cooldowns.Add(skip);
 
+            // Include research in cooldowns
             return cooldowns;
         }
 

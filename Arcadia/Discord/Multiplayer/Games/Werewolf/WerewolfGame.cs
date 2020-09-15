@@ -18,11 +18,12 @@ namespace Arcadia.Multiplayer.Games
     {
         public WerewolfGame()
         {
-            Id = "Werewolf";
+            Id = "werewolf";
 
             Details = new GameDetails
             {
                 Name = "Werewolf",
+                Icon = "🐺",
                 Summary = "Figure out the werewolves and save the village.",
                 RequiredPlayers = 3,
                 PlayerLimit = 16
@@ -1380,7 +1381,8 @@ namespace Arcadia.Multiplayer.Games
             switch (current)
             {
                 case WerewolfAbility.Peek:
-                    WerewolfPeekData peek = session.ValueOf<List<WerewolfPeekData>>(WolfVars.Peeks).FirstOrDefault(x => x.UserId == target.Source.User.Id);
+                    WerewolfPeekData peek = session.ValueOf<List<WerewolfPeekData>>(WolfVars.Peeks)
+                        .FirstOrDefault(x => x.UserId == target.Source.User.Id);
 
                     if (peek == null)
                         throw new Exception("Expected peek data for target but returned null");

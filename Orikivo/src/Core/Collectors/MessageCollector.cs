@@ -12,28 +12,33 @@ namespace Orikivo
     {
         private readonly BaseSocketClient _client;
 
-        // THIS CAN BE USED TO SET UP ROUGH Func<T> VALUES
-        public delegate bool FilterDelegate(SocketMessage message, int index);
-        public delegate bool CollectionDelegate(SocketMessage message, FilterCollection matches, int index);
-
-        public event CollectionDelegate MessageFiltered;
         /// <summary>
-        /// Constructs a new <see cref="MessageCollector"/> with the specified <see cref="BaseSocketClient"/>.
+        /// Initializes a new <see cref="MessageCollector"/> with the specified <see cref="BaseSocketClient"/>.
         /// </summary>
-        /// <param name="client">The <see cref="BaseSocketClient"/> that will be used to read inbound messages.</param>
+        /// <param name="client">The <see cref="BaseSocketClient"/> that will be referenced to read inbound messages.</param>
         public MessageCollector(BaseSocketClient client)
         {
             _client = client;
         }
 
-        // Elapsed time is only updated on the end of a message collector
         /// <summary>
-        /// Represents the amount time that passed during a handled process (only updated at the end of each handling).
+        /// Represents the amount of time that passed during a handled process (only updated at the end of each handling).
         /// </summary>
         public TimeSpan? ElapsedTime { get; private set; }
 
+        /// <summary>
+        /// Starts a message handler session for this <see cref="MessageCollector"/>.
+        /// </summary>
+        /// <param name="filter">The filter that will be used to compare messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task MatchAsync(MessageFilter filter, MatchOptions options = null)
             => await MatchAsync(filter.Judge, options);
+
+        /// <summary>
+        /// Starts a message handler session for this <see cref="MessageCollector"/>.
+        /// </summary>
+        /// <param name="filter">The filter that will be used to compare messages.</param>
+        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
         public async Task MatchAsync(FilterDelegate filter, MatchOptions options = null)
         {
             options ??= MatchOptions.Default;
@@ -41,7 +46,7 @@ namespace Orikivo
             var timer = new AsyncTimer(options.Timeout);
             var complete = new TaskCompletionSource<bool>();
 
-            await options.Action.OnStartAsync();
+            await options.Session.OnStartAsync();
 
             int index = 0;
             async Task HandleAsync(SocketMessage arg)
@@ -51,7 +56,7 @@ namespace Orikivo
 
                 if (filterSuccess)
                 {
-                    ActionResult result = (await options.Action.InvokeAsync(arg));
+                    ActionResult result = await options.Session.InvokeAsync(arg);
 
                     switch (result)
                     {
@@ -87,7 +92,7 @@ namespace Orikivo
             ElapsedTime = timer.ElapsedTime;
 
             if (timer.Elapsed)
-                await options.Action.OnTimeoutAsync(match?.Message);
+                await options.Session.OnTimeoutAsync(match?.Message);
 
             Console.WriteLine("Match handled.");
         }
@@ -164,11 +169,9 @@ namespace Orikivo
         public async Task<FilterCollection> CollectAsync(CollectionDelegate filter, CollectionOptions options = null)
         {
             options ??= CollectionOptions.Default;
-            FilterCollection matches = new FilterCollection();
-
-            AsyncTimer timer = new AsyncTimer(options.Timeout);
-
-            TaskCompletionSource<bool> complete = new TaskCompletionSource<bool>();
+            var matches = new FilterCollection();
+            var timer = new AsyncTimer(options.Timeout);
+            var complete = new TaskCompletionSource<bool>();
 
             int index = 0;
             async Task HandleAsync(SocketMessage arg)
@@ -183,12 +186,11 @@ namespace Orikivo
                 if (isSuccess && options.ResetTimeoutOnMatch)
                     timer.Reset();
 
-                if (options.Capacity.HasValue)
-                    if (matches.Count == options.Capacity.Value)
-                    {
-                        timer.Stop();
-                        complete.SetResult(true);
-                    }
+                if (options.Capacity.HasValue && matches.Count == options.Capacity.Value)
+                {
+                    timer.Stop();
+                    complete.SetResult(true);
+                }
 
                 index++;
             }

@@ -19,10 +19,10 @@ namespace Arcadia.Casino
             => index == 0;
 
         public static bool IsRed(int index)
-            => index != 0 && (index % 2 == 1);
+            => index != 0 && index % 2 == 1;
 
         public static bool IsBlack(int index)
-            => index != 0 && (index % 2 == 0);
+            => index != 0 && index % 2 == 0;
 
         public static RoulettePocketColor GetColor(int index)
         {
@@ -35,7 +35,6 @@ namespace Arcadia.Casino
             if (IsGreen(index))
                 return RoulettePocketColor.Green;
 
-            Logger.Debug($"{index}");
             throw new Exception("Unknown slot color");
         }
 

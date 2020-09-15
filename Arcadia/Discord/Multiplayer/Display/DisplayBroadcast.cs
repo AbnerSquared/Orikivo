@@ -50,7 +50,7 @@ namespace Arcadia.Multiplayer
                     {
                         new Component("header", 0)
                         {
-                            Formatter = new ComponentFormatter("**{0}** #{1}\n*{2}* ({3})", true)
+                            Formatter = new ComponentFormatter("> `{1}` **{0}**\n> {2} ({3})", true)
                         },
                         new ComponentGroup("console", 1, 6)
                         {
@@ -67,16 +67,16 @@ namespace Arcadia.Multiplayer
                     {
                         new ComponentGroup("console", 0, 4)
                         {
-                            Formatter = new ComponentFormatter("**{1}: Config**\n```\n{0}\n```", "• {0}", "\n"),
+                            Formatter = new ComponentFormatter("> Editing **{1}**\n```\n{0}\n```", "• {0}", "\n"),
                             Values = new[] { "", "", "", "" }
                         },
                         new Component("config", 1)
                         {
-                            Formatter = new ComponentFormatter("**Config**\n> **Title**: `{0}`\n> **Privacy**: `{1}`\n> **Game**: `{2}`", true)
+                            Formatter = new ComponentFormatter("> **Settings**\n• Name: **{0}**\n• Privacy: **{1}**\n• Game Mode: **{2}**\n• Spectator Panel: **{3}**\n• Server Invites: **{4}**\n• Chat: **{5}**", true)
                         },
                         new ComponentGroup("game_config", 2, 0, false)
                         {
-                            Formatter = new ComponentFormatter("\n**{1}: Config**\n{0}", "> {0}", "\n", true, true)
+                            Formatter = new ComponentFormatter("\n> **{1} Ruleset**\n{0}", "• {0}", "\n", true, true)
                         }
                     }
                 }

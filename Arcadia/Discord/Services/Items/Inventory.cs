@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Text;
 using Orikivo;
-using Orikivo.Desync;
 
 namespace Arcadia
 {
     public class Inventory
     {
+        // TODO: Add pagination and group counter icon support
         private static string GetHeader(long capacity, bool showTooltips = true)
         {
-            var header = new StringBuilder(Locale.GetHeader(Headers.Inventory));
+            var header = new StringBuilder(Locale.GetHeaderTitle(Headers.Inventory));
 
             if (showTooltips)
                 header.Append($"\n> You have {WriteCapacity(capacity)} available.");
@@ -26,7 +26,6 @@ namespace Arcadia
             return $"**{GetCapacity(capacity)} {((int)suffix >= 5 ? "" : suffix.ToString())}**";
         }
 
-        // TODO: The capacity determination could be cleaned up.
         private static string GetCapacity(long capacity)
         {
             StorageSize suffix = GetSuffix(capacity);

@@ -38,9 +38,24 @@ namespace Arcadia.Multiplayer
         // This should be moved elsewhere?
         internal static Dictionary<string, GameBase> Games => new Dictionary<string, GameBase>
         {
-            ["Trivia"] = new TriviaGame(),
-            ["Werewolf"] = new WerewolfGame()
+            ["trivia"] = new TriviaGame(),
+            ["werewolf"] = new WerewolfGame(),
+            ["chess"] = new ChessGame()
         };
+
+        public static string ViewGames()
+        {
+            var result = new StringBuilder();
+
+            result.AppendLine($"> **Games**");
+
+            foreach ((string gameId, GameBase game) in Games)
+            {
+                result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+            }
+
+            return result.ToString();
+        }
 
         public static GameBase GetGame(string gameId)
         {
@@ -191,17 +206,17 @@ namespace Arcadia.Multiplayer
         {
             GameDetails details = DetailsOf(server.GameId);
 
-            string playerCounter = $"{server.Players.Count:##,0} {Format.TryPluralize("player", server.Players.Count)}";
+            string playerCounter = $"**{server.Players.Count:##,0}** {Format.TryPluralize("player", server.Players.Count)}";
 
             if (details != null)
             {
-                playerCounter = $"{server.Players.Count:##,0}/{details.PlayerLimit:##,0} {Format.TryPluralize("player", details.PlayerLimit)}";
+                playerCounter = $"**{server.Players.Count:##,0}**/**{details.PlayerLimit:##,0}** {Format.TryPluralize("player", details.PlayerLimit)}";
             }
 
             server
                 .GetBroadcast(GameState.Waiting)
                 .GetComponent(LobbyVars.Header)
-                .Draw(server.Name, server.Id, server.GameId, playerCounter);
+                .Draw(server.Name, server.Id, Format.Title(details?.Name ?? server.GameId, details?.Icon), playerCounter);
         }
 
         // this starts a new base game server
@@ -378,7 +393,7 @@ namespace Arcadia.Multiplayer
         {
             server.GetBroadcast(GameState.Editing)
                 .Content.GetComponent("config")
-                .Draw(server.Name, server.Privacy, server.GameId);
+                .Draw(server.Name, server.Privacy, server.GameId, server.AllowSpectators, server.AllowInvites, server.AllowChat);
         }
 
         private static void RefreshGameConfig(GameServer server)
@@ -396,7 +411,7 @@ namespace Arcadia.Multiplayer
 
             editing["game_config"].Active = true;
             editing["game_config"].Draw(
-                server.Options.Select(x => $"**{x.Name}**: `{x.Value}`"),
+                server.Options.Select(x => $"{x.Name}: **{x.Value}**"),
                 DetailsOf(server.GameId).Name);
         }
 
@@ -965,12 +980,34 @@ namespace Arcadia.Multiplayer
 
                         if (ctx == "togglespectate")
                         {
+                            // if they are already in the server
+                            if (player == null)
+                                break;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
+                                break;
+                            }
+
                             allowUpdate = !await server.ToggleSpectateAsync();
                             break;
                         }
 
                         if (ctx == "togglechat")
                         {
+                            // if they are already in the server
+                            if (player == null)
+                                break;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
+                                break;
+                            }
+
                             allowUpdate = false;
                             await server.ToggleChatAsync();
                             break;
@@ -978,6 +1015,17 @@ namespace Arcadia.Multiplayer
 
                         if (ctx == "toggleinvite")
                         {
+                            // if they are already in the server
+                            if (player == null)
+                                break;
+
+                            // if they are not the host
+                            if (!player.Host)
+                            {
+                                AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
+                                break;
+                            }
+
                             allowUpdate = false;
                             await server.ToggleInviteAsync();
                             break;
@@ -1244,6 +1292,9 @@ namespace Arcadia.Multiplayer
             {
                 allowUpdate = false;
             }
+
+            if (server.Destroyed)
+                return;
 
             // If the bot is allowed to delete messages in this server connection
             if (connection.DeleteMessages && server.GetPlayer(user.Id) != null)

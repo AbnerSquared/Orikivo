@@ -49,18 +49,28 @@ namespace Arcadia.Multiplayer
             // name parameters
             if (text.StartsWith(Name, CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
             {
+                Logger.Debug($"Reading input: \"{text}\"");
                 result.IsSuccess = true;
                 result.Input = this;
 
-                var reader = new StringReader(input.Text);
+                var reader = new StringReader(text);
                 reader.Skip(Name.Length);
                 reader.SkipWhiteSpace();
 
                 while (reader.CanRead())
                 {
                     // TODO: Handle required arguments here.
-                    string arg = reader.ReadString();
-                    result.Args.Add(arg);
+                    string arg = reader.ReadUnquotedString();
+                    reader.SkipWhiteSpace();
+                    Logger.Debug($"Parsing argument: \"{arg}\"");
+
+                    if (!string.IsNullOrWhiteSpace(arg))
+                        result.Args.Add(arg);
+                    else
+                    {
+                        result.IsSuccess = false;
+                        break;
+                    }
                 }
             }
             else

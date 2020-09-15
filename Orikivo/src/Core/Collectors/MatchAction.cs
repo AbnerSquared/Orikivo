@@ -5,17 +5,19 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents the barebones structure of a handler for a <see cref="FilterMatch"/>.
+    /// Represents a generic message session handler for a <see cref="FilterMatch"/>.
     /// </summary>
-    public abstract class MatchAction
+    public abstract class MatchSession
     {
         /// <summary>
-        /// Represents the method that is invoked whenever a <see cref="MessageCollector"/> starts filtering messages.
+        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> starts filtering messages.
         /// </summary>
         public virtual async Task OnStartAsync() { }
+
         /// <summary>
-        /// Represents the method that is invoked whenever a <see cref="MessageCollector"/> receives a successful <see cref="FilterMatch"/>.
+        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> receives a successful <see cref="FilterMatch"/>.
         /// </summary>
+        /// <returns>An <see cref="ActionResult"/> that determines what the <see cref="MessageCollector"/> should proceed with.</returns>
         public abstract Task<ActionResult> InvokeAsync(SocketMessage message);
 
         /// <summary>
@@ -24,9 +26,8 @@ namespace Orikivo
         public abstract Task OnTimeoutAsync(SocketMessage message);
 
         /// <summary>
-        /// Represents the method that is invoked whenever a <see cref="MessageCollector"/> is cancelled.
+        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> is cancelled.
         /// </summary>
-        /// <returns></returns>
         public virtual async Task OnCancelAsync() { }
     }
 }

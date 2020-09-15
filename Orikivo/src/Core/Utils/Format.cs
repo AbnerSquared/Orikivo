@@ -206,6 +206,9 @@ namespace Orikivo
             return header.ToString();
         }
 
+        public static string Title(string title, string icon = null)
+            => $"{(!string.IsNullOrWhiteSpace(icon) ?  $"{icon} " : "")}**{title}**";
+
         public static string Warning(string text)
             => $"> ⚠️ {text}";
 

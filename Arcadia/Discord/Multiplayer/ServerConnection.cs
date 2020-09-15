@@ -55,6 +55,7 @@ namespace Arcadia.Multiplayer
                 BlockInput = properties.BlockInput,
                 ContentOverride = properties.ContentOverride,
                 Inputs = properties.Inputs,
+                Channel = channel,
                 ChannelId = channel.Id,
                 MessageId = message.Id,
                 Message = message,

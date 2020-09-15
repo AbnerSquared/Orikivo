@@ -3,15 +3,19 @@
 namespace Orikivo
 {
     /// <summary>
-    /// Represents the advanced configuration for a <see cref="MessageCollector"/>.
+    /// Represents advanced configuration for a <see cref="MessageCollector"/>.
     /// </summary>
     public class MatchOptions
     {
         /// <summary>
         /// Gets the default <see cref="MatchOptions"/>.
         /// </summary>
-        public static MatchOptions Default => new MatchOptions { ResetTimeoutOnAttempt = false, Timeout = TimeSpan.FromSeconds(10) };
-        
+        public static readonly MatchOptions Default = new MatchOptions
+        {
+            ResetTimeoutOnAttempt = false,
+            Timeout = TimeSpan.FromSeconds(10)
+        };
+
         /// <summary>
         /// The amount of time that is allowed to pass before the <see cref="MessageCollector"/> closes.
         /// </summary>
@@ -23,8 +27,8 @@ namespace Orikivo
         public bool ResetTimeoutOnAttempt { get; set; }
 
         /// <summary>
-        /// The action that will be applied on each <see cref="FilterMatch"/> when an attempt is successful.
+        /// Gets or sets a message session handler that will handle all successful <see cref="FilterMatch"/> results.
         /// </summary>
-        public MatchAction Action { get; set; }
+        public MatchSession Session { get; set; }
     }
 }

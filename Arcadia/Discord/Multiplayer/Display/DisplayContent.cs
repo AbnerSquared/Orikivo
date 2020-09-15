@@ -59,6 +59,14 @@ namespace Arcadia.Multiplayer
             return this.FirstOrDefault(x => x.Id == id);
         }
 
+        public Component GetValue(string id)
+        {
+            if (GetComponent(id) is Component group)
+                return group;
+
+            throw new InvalidCastException("Unable to cast IComponent as Component");
+        }
+
         public ComponentGroup GetGroup(string id)
         {
             if (GetComponent(id) is ComponentGroup group)
