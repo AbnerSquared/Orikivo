@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenTDB;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -23,25 +24,99 @@ namespace Arcadia.Multiplayer.Games
         internal static readonly string Difficulty = "difficulty";
         internal static readonly string QuestionCount = "questioncount";
         internal static readonly string QuestionDuration = "questionduration";
+        internal static readonly string UseOpenTDB = "useopentdb";
     }
 
     public class TriviaGame : GameBase
     {
         public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
         {
-            new TriviaQuestion("2+2=", TriviaTopic.Math, TriviaDifficulty.Easy, "4", "3", "fish", "dude i can't math why are you doing this", "answer"),
-            new TriviaQuestion("4*2=", TriviaTopic.Math, TriviaDifficulty.Easy, "8", "42", "6", "2", "2.000001", "Int32.MinValue"),
-            new TriviaQuestion("sqrt(4)=", TriviaTopic.Math, TriviaDifficulty.Easy, "2", "3", "ezpz", "[4]", "4^2"),
-            new TriviaQuestion("log(32)=", TriviaTopic.Math, TriviaDifficulty.Medium, "1.50514997832", "1.504", "2", "4", "128 planks"),
-            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?", TriviaTopic.Gaming, TriviaDifficulty.Easy, "175", "80", "181", "210", "174", "177", "176", "205")
+            /*
+             new TriviaQuestion("",
+                "", TriviaDifficulty.Medium, "",
+                "", "", "", ""),
+             */
+
+            new TriviaQuestion("`2 + 2` = ?", 4,
+                "Mathematics: Addition", TriviaDifficulty.Easy, "4",
+                "3", "fish", "22", "dude i can't math why are you doing this", "answer"),
+
+            new TriviaQuestion("`4 * 2` = ?", 8,
+                "Mathematics: Multiplication", TriviaDifficulty.Easy, "`8`",
+                "`42`", "`6`", "`2`", "`2.000001`", "`Int32.MinValue`"),
+
+            new TriviaQuestion("`sqrt(4)` = ?",
+                "Mathematics: Roots", TriviaDifficulty.Easy, "2",
+                "3", "ezpz", "[4]", "4^2"),
+
+            new TriviaQuestion("`log(32)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "1.5051",
+                "1.5043", "2.0243", "4.0001", "128 planks"),
+
+            new TriviaQuestion("What is the inverse function to `log_b(x)`?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`x = b^y`",
+                "`ln(b)`", "`ln(e)`", "`Undefined`", "`log_x(b)`"),
+
+            new TriviaQuestion("`log_b(x^y)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`y * log_b(x)`",
+                "`1/log_x(y)`", "`e^(x^y)`", "`b^(x+y)`", "`log_x(y)`"),
+
+            new TriviaQuestion("`log_b(0)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Easy, "`Undefined`",
+                "`ln(1)`", "`e`", "`b`", "`Does Not Exist`"),
+
+            new TriviaQuestion("`log_b(x * y)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`log_b(x) + log_b(y)`",
+                "`log(ln(b))`", "`log(x) + log(y)`", "`log_{x / y}(b)`"),
+
+            new TriviaQuestion("`log_b(x / y)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`log_b(x) - log_b(y)`",
+                "`log_{x - y}(b)`", "`log(x) + log(y)`", "`log(x) - log(y)`"),
+
+            new TriviaQuestion("`log_b(b)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`1`",
+                "`b * log(1)`", "`0`", "`Undefined`", "`?`"),
+
+            new TriviaQuestion("`log_b(1)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`0`",
+                "`Number`", "`log(b)`", "`ln(e)`", "`e`"),
+
+            new TriviaQuestion("`log_e(x)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Easy, "`ln(x)`",
+                "`0`", "`1`", "`Undefined`", "`ln(1)`", "`log_b(x * e)`"),
+
+            new TriviaQuestion("What is the derivative of `f(x) = log_b(x)`?",
+                "Mathematics: Derivatives", TriviaDifficulty.Medium, "`f'(x) = 1 / (x * ln(b))`",
+                "`f'(x) = x * log(b)`", "`f'(x) = Undefined`", "`f'(x) = x * (log_b(x)`", "`f'(x) = 1`"),
+
+            new TriviaQuestion("What is the symbolic representation of Euler's number?",
+                "Mathematics: Constants", TriviaDifficulty.Easy, "e",
+                "π", "K", "E", "ln"),
+
+            new TriviaQuestion("What is the approximate value of Euler's number?",
+                "Mathematics: Constants", TriviaDifficulty.Medium, "`2.7182`",
+                "`2.7192`", "`3.1415`", "`2.7281`", "`2.8172`"),
+
+            new TriviaQuestion("What is the literal value of Euler's number?",
+                "Mathematics: Constants", TriviaDifficulty.Hard, "`lim_{x => ∞}(1 + (1 / x))^x`",
+                "`2.7182`", "`3.1415`", "`lim_{x => -∞}(1 - x)^x`", "`lim_{x => ∞}(1 - (1 / x))^x`"),
+
+            new TriviaQuestion("`log(x) / log(b)` = ?",
+                "Mathematics: Logarithms", TriviaDifficulty.Medium, "`log_b(x)`",
+                "`log(x/b)`", "`log_x(b)`", "`log(b) - log(x)`", "`log(log(log(b) + x))`"),
+
+            new TriviaQuestion("In the game *Celeste*, how many strawberries do you have to collect in order to unlock the achievement **Impress Your Friends**?",
+                TriviaTopic.Gaming, TriviaDifficulty.Easy, "175",
+                "80", "181", "210", "174", "177", "176", "205")
         };
 
         public TriviaGame()
         {
-            Id = "Trivia";
+            Id = "trivia";
             Details = new GameDetails
             {
                 Name = "Trivia",
+                Icon = "📰",
                 Summary = "Answer questions against the clock!",
                 PlayerLimit = 16,
                 RequiredPlayers = 1
@@ -52,7 +127,8 @@ namespace Arcadia.Multiplayer.Games
                 GameOption.Create("topics", "Topics", TriviaTopic.Any),
                 GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any),
                 GameOption.Create("questioncount", "Question Count", 5),
-                GameOption.Create("questionduration", "Question Duration", 15d)
+                GameOption.Create("questionduration", "Question Duration", 15d),
+                GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API.")
             };
         }
 
@@ -158,7 +234,7 @@ namespace Arcadia.Multiplayer.Games
 
             // select only 3 random answers and shuffle with the correct answer in there
             CurrentAnswers = Randomizer.Shuffle(Randomizer
-                .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), 3)
+                .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), Math.Min(3, CurrentQuestion.Answers.Count(x => !x.IsCorrect)))
                 .Append(CurrentQuestion.Answers.First(x => x.IsCorrect)));
 
             content
@@ -168,7 +244,7 @@ namespace Arcadia.Multiplayer.Games
             content
                 .GetComponent("footer")
                 .Draw(CurrentQuestion.Difficulty.ToString(),
-                    CurrentQuestion.Topic.ToString(),
+                    string.IsNullOrWhiteSpace(CurrentQuestion.TopicOverride) ? CurrentQuestion.Topic.ToString() : CurrentQuestion.TopicOverride,
                     $"{CurrentQuestion.Value} {Format.TryPluralize("Point", CurrentQuestion.Value)}");
 
             ctx.Session.QueueAction(TimeSpan.FromSeconds(ctx.Session.GetConfigValue<double>("questionduration")), "get_question_result");
@@ -512,7 +588,7 @@ namespace Arcadia.Multiplayer.Games
 
                             data.SetValue("has_answered", true);
                             data.SetValue("is_correct", answerSelected.IsCorrect);
-                            
+
                             if (answerSelected.IsCorrect)
                             {
                                 data.AddToValue("streak", 1);
@@ -675,15 +751,56 @@ namespace Arcadia.Multiplayer.Games
         {
             Options = server.Options;
 
-            // generate the question pool
-            QuestionPool = GenerateQuestions(
-                session.GetConfigValue<int>(TriviaConfig.QuestionCount),
-                session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty),
-                session.GetConfigValue<TriviaTopic>(TriviaConfig.Topics)
-                ).ToList();
+            int questionCount = session.GetConfigValue<int>(TriviaConfig.QuestionCount);
+
+            if (session.GetConfigValue<bool>(TriviaConfig.UseOpenTDB))
+            {
+                using (var tdb = new TdbClient())
+                {
+                    List<OpenTDB.TriviaQuestion> questions = await tdb.GetQuestionsAsync(questionCount);
+
+                    if (questions == null)
+                        throw new Exception("An error has occurred while retrieving questions.");
+
+                    QuestionPool = questions.Select(ConvertTdbQuestion).ToList();
+                }
+            }
+            else
+            {
+                // generate the question pool
+                QuestionPool = GenerateQuestions(
+                    session.GetConfigValue<int>(TriviaConfig.QuestionCount),
+                    session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty),
+                    session.GetConfigValue<TriviaTopic>(TriviaConfig.Topics)
+                    ).ToList();
+            }
 
             // once all of that is ready, invoke action try_get_next_questions
             session.InvokeAction(TriviaVars.TryGetNextQuestion, true);
+        }
+
+        private static TriviaQuestion ConvertTdbQuestion(OpenTDB.TriviaQuestion question)
+        {
+            var result = new TriviaQuestion();
+
+            result.Question = question.Question;
+
+            if (Enum.TryParse(question.Difficulty.ToString(), true, out TriviaDifficulty difficulty))
+                result.Difficulty = difficulty;
+            else
+                result.Difficulty = TriviaDifficulty.Easy;
+
+            result.Value = TriviaQuestion.GetQuestionValue(result.Difficulty);
+            result.Answers = new List<TriviaAnswer>
+            {
+                new TriviaAnswer(question.Answer, true)
+            };
+
+            result.Answers.AddRange(question.IncorrectAnswers.Select(x => new TriviaAnswer(x)));
+
+            result.TopicOverride = question.Category;
+
+            return result;
         }
 
         public override SessionResult OnSessionFinish(GameSession session)
@@ -734,7 +851,6 @@ namespace Arcadia.Multiplayer.Games
 
         internal IEnumerable<TriviaQuestion> GenerateQuestions(int questionCount, TriviaDifficulty difficultyRange, TriviaTopic topic)
         {
-            var questions = new List<TriviaQuestion>();
             var availableQuestions = FilterQuestions(difficultyRange, topic);
 
             return Randomizer.ChooseMany(availableQuestions, questionCount);
