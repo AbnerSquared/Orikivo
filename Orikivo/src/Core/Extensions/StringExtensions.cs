@@ -499,9 +499,9 @@ namespace Orikivo
         /// <summary>
         /// Returns a new string in which all occurrences of the specified strings in this current instance are escaped.
         /// </summary>
-        public static string Escape(this string s, params char[] args)
+        public static string Escape(this string s, params char[] escapeChars)
         {
-            args.ForEach(c => s = s.Replace(c.ToString(), c.Escape()));
+            escapeChars.ForEach(c => s = s.Replace(c.ToString(), c.Escape()));
             return s;
         }
 

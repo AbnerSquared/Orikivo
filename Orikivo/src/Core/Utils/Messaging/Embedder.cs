@@ -31,7 +31,6 @@ namespace Orikivo
 
         public DateTime? Timestamp { get; set; }
 
-        // TODO: Maybe
-        public List<Discord.EmbedFieldBuilder> Fields { get; set; }
+        public List<string> Sections { get; set; }
     }
 }

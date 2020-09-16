@@ -12,7 +12,7 @@
         /// </summary>
         /// <param name="len">The length of the key to generate.</param>
         public static string Generate(int len)
-            => Randomizer.GetChars(_alphanumeric, len); // OLD_MAX_LENGTH => 256
+            => Randomizer.GetChars(_alphanumeric, len);
 
         /// <summary>
         /// Generates a specified amount of keys at a specified length.
@@ -21,7 +21,7 @@
         /// <param name="amount">The total amount of keys that will be generated.</param>
         public static string[] GenerateMany(int len, int amount)
         {
-            string[] keys = new string[amount];
+            var keys = new string[amount];
 
             for (int i = 0; i < amount; i++)
                 keys[i] = Generate(len);

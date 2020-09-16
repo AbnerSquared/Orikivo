@@ -7,9 +7,10 @@ namespace Orikivo
     /// Represents a temporary serialized <see cref="System.IO.Stream"/>.
     /// </summary>
     /// <typeparam name="TStream"></typeparam>
-    public class Temporary<TStream> : IDisposable where TStream : Stream
+    public class Temporary<TStream> : IDisposable
+        where TStream : Stream
     {
-        private string _tmpPath;
+        private readonly string _tmpPath;
 
         public Temporary(TStream stream)
         {
@@ -18,12 +19,10 @@ namespace Orikivo
         }
 
         private TStream _stream;
+
         public TStream Stream
         {
-            get
-            {
-                return _stream;
-            }
+            get => _stream;
             set
             {
                 _stream = value;
@@ -38,10 +37,9 @@ namespace Orikivo
             if (_disposed)
                 throw new ObjectDisposedException(nameof(_tmpPath));
 
-            MemoryStream memory = new MemoryStream();
-
-            using (FileStream stream = File.OpenRead(_tmpPath))
-                stream.CopyTo(memory);
+            var memory = new MemoryStream();
+            using FileStream stream = File.OpenRead(_tmpPath);
+            stream.CopyTo(memory);
 
             return memory;
         }
@@ -51,15 +49,13 @@ namespace Orikivo
             if (_disposed)
                 throw new ObjectDisposedException(nameof(_tmpPath));
 
-            using (FileStream writer = new FileStream(_tmpPath, FileMode.Open, FileAccess.Write))
-            {
-                BufferReader<TStream> buffer = new BufferReader<TStream>(_stream, 1024);
+            using var writer = new FileStream(_tmpPath, FileMode.Open, FileAccess.Write);
+            var buffer = new BufferReader<TStream>(_stream, 1024);
 
-                while (buffer.RemainingBytes > 0)
-                {
-                    int readBytes = buffer.Next();
-                    writer.Write(buffer.Value, 0, readBytes);
-                }
+            while (buffer.RemainingBytes > 0)
+            {
+                int readBytes = buffer.Next();
+                writer.Write(buffer.Value, 0, readBytes);
             }
         }
 
@@ -72,8 +68,9 @@ namespace Orikivo
                 File.Delete(_tmpPath);
 
             Stream.Dispose();
+            _disposed = true;
         }
 
-        private bool _disposed = false;
+        private bool _disposed;
     }
 }

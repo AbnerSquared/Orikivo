@@ -23,7 +23,9 @@ namespace Orikivo.Text.Pagination
         public static int GetSplitCount(IEnumerable<string> collection, int characterLimit, int baseLength = 0)
         {
             if (baseLength < 0)
+            {
                 baseLength = 0;
+            }
 
             int length = baseLength;
             int count = 0;
@@ -65,7 +67,9 @@ namespace Orikivo.Text.Pagination
         public static IEnumerable<T> GroupAt<T>(in IEnumerable<T> set, int page, int groupSize)
         {
             if (!set?.Any() ?? true)
+            {
                 return set;
+            }
 
             int pageCount = GetPageCount(set.Count(), groupSize);
             page = ClampIndex(page, pageCount);
@@ -119,18 +123,20 @@ namespace Orikivo.Text.Pagination
             formatter = string.IsNullOrWhiteSpace(formatter) ? "{0}" : formatter;
 
             if (!formatter.Contains("{0}"))
+            {
                 return formatter;
+            }
 
             separator = string.IsNullOrWhiteSpace(separator) ? "\n" : separator;
             elementFormatter = string.IsNullOrWhiteSpace(elementFormatter) ? "{0}" : elementFormatter;
-
             int length = formatter.Length - 3;
 
             string WriteElement(T x)
-                => x != null ? string.Format(elementFormatter, x) : onEmptyElement;
+            {
+                return x != null ? string.Format(elementFormatter, x) : onEmptyElement;
+            }
 
             WriteElements(ref result, ref length, elements.Select(WriteElement), separator, characterLimit);
-
             return string.Format(formatter, result);
         }
 
@@ -142,15 +148,15 @@ namespace Orikivo.Text.Pagination
             int? characterLimit = null)
         {
             var result = new StringBuilder();
-
             formatter = string.IsNullOrWhiteSpace(formatter) ? "{0}" : formatter;
 
             if (!formatter.Contains("{0}"))
+            {
                 return formatter;
+            }
 
             separator = string.IsNullOrWhiteSpace(separator) ? "\n" : separator;
             selector ??= e => e.ToString();
-
             int length = formatter.Length - 3;
 
             string WriteElement(T x)
@@ -171,10 +177,14 @@ namespace Orikivo.Text.Pagination
                 length += section.Length;
 
                 if (characterLimit.HasValue && characterLimit - length <= 0)
+                {
                     return;
+                }
 
                 if (i > 0)
+                {
                     writer.Append(separator);
+                }
 
                 writer.Append(section);
                 i++;

@@ -18,7 +18,9 @@ namespace Orikivo
         }
 
         public BaseGuild Server { get; }
+
         public SocketGuild Guild { get; }
+
         public SocketGuildUser User { get; }
 
         public DateTime ReceivedAt { get; }

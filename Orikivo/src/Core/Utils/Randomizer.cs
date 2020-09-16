@@ -22,7 +22,7 @@ namespace Orikivo
             T[] sourceArray = args.ToArray();
             int len = sourceArray.Length;
             int[] randInts = GenerateNumbers(len - 1, len, false);
-            T[] newArray = new T[len];
+            var newArray = new T[len];
 
             for (int i = 0; i < len; i++)
                 newArray[i] = sourceArray[randInts[i]];
@@ -77,7 +77,7 @@ namespace Orikivo
         {
             if (!Check.NotNull(args))
                 throw new NullReferenceException("The arguments specified cannot be null.");
-            
+
             int j = RandomProvider.Instance.Next(args.Count);
             T obj = args.ElementAt(j);
             args.RemoveAt(j);
@@ -217,7 +217,7 @@ namespace Orikivo
         public static string GetChars(string branch, int len)
         {
             len = len < 1 ? 1 : len;
-            char[] tree = new char[len];
+            var tree = new char[len];
 
             for (int i = 0; i < tree.Length; i++)
                 tree[i] = branch[RandomProvider.Instance.Next(branch.Length)];
@@ -245,7 +245,7 @@ namespace Orikivo
         {
             len = len < 1 ? 1 : len;
             List<int> bag = Int32Utils.Increment(lowerBound, upperBound).ToList();
-            int[] mix = new int[len];
+            var mix = new int[len];
 
             for (int i = 0; i < len; i++)
             {

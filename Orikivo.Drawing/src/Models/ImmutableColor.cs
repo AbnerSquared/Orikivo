@@ -1,11 +1,14 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 
 namespace Orikivo.Drawing
 {
+    internal static class ImmutableColorFactory
+    {
+    }
+
     /// <summary>
     /// Represents an immutable color object that supports multi-tone grouping and conversion formulas.
     /// </summary>
@@ -63,8 +66,7 @@ namespace Orikivo.Drawing
         public static ImmutableColor FromHex(string hex)
         {
             hex = hex.TrimStart('#');
-
-            string format = "0x{0}";
+            const string format = "0x{0}";
 
             byte r = byte.Parse(string.Format(format, hex[0] + hex[1]));
             byte g = byte.Parse(string.Format(format, hex[2] + hex[3]));
@@ -389,7 +391,7 @@ namespace Orikivo.Drawing
             => ClosestMatch(value, colors.Values);
 
         /// <summary>
-        /// Constructs a new <see cref="ImmutableColor"/> from a raw RGBA value.
+        /// Initializes a new <see cref="ImmutableColor"/> from a raw RGBA value.
         /// </summary>
         [JsonConstructor]
         internal ImmutableColor(long rgba)
@@ -398,7 +400,7 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Constructs a new <see cref="ImmutableColor"/> from a raw RGB value.
+        /// Initializes a new <see cref="ImmutableColor"/> from a raw RGB value.
         /// </summary>
         public ImmutableColor(uint rgb)
         {
@@ -455,21 +457,21 @@ namespace Orikivo.Drawing
             => MakeArgb((byte)(rgb >> R_SHIFT), (byte)(rgb >> G_SHIFT), (byte)(rgb >> B_SHIFT), a);
 
         private static long MakeArgb(byte r, byte g, byte b, byte a)
-            => (long) unchecked((uint)(r << R_SHIFT | g << G_SHIFT | b << B_SHIFT | a << A_SHIFT)) & 0xffffffff;
+            => (long) unchecked((uint)((r << R_SHIFT) | (g << G_SHIFT) | (b << B_SHIFT) | (a << A_SHIFT))) & 0xffffffff;
 
         private static uint MakeRgb(byte r, byte g, byte b)
-            => unchecked((uint)(r << R_SHIFT | g << G_SHIFT | b << B_SHIFT)) & 0xffffff;
+            => unchecked((uint)((r << R_SHIFT) | (g << G_SHIFT) | (b << B_SHIFT))) & 0xffffff;
 
         /// <summary>
         /// Returns a string that represents the hexadecimal format of this <see cref="ImmutableColor"/>.
         /// </summary>
         public override string ToString()
-            => A < 255 ? string.Format("#{0:X8}", Value) : string.Format("#{0:X6}", MakeRgb(R, G, B));
+            => A < 255 ? $"#{Value:X8}" : $"#{MakeRgb(R, G, B):X6}";
 
-        public static implicit operator Color(ImmutableColor c)
-            => Color.FromArgb((int)c.Value);
+        public static implicit operator System.Drawing.Color(ImmutableColor c)
+            => System.Drawing.Color.FromArgb((int)c.Value);
 
-        public static implicit operator ImmutableColor(Color c)
+        public static implicit operator ImmutableColor(System.Drawing.Color c)
             => new ImmutableColor((uint)c.ToArgb());
     }
 }

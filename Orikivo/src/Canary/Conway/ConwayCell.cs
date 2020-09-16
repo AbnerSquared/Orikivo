@@ -39,7 +39,7 @@
         public long LastActiveTick { get; set; } = 0;
 
         public bool Initialized { get; private set; } = false;
-        
+
         public void Toggle()
             => Active = !Active;
     }
