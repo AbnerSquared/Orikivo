@@ -22,6 +22,8 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
+
+
         /*
         [Command("peekshop")]
         [Summary("View what a shop has for sale before entering.")]
@@ -319,6 +321,13 @@ namespace Arcadia.Modules
             ChessBoard board = ChessBoard.GetDefault();
 
             await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
+        }
+
+        //[Command("drawenpmoves")]
+        public async Task DrawEnPassantAsync(ChessOwner perspective)
+        {
+            ChessBoard board = ChessBoard.GetEnPassant();
+            await Context.Channel.SendMessageAsync(board.DrawMoves(board.GetPiece(3, 3), perspective));
         }
 
         //[Command("drawmoves")]

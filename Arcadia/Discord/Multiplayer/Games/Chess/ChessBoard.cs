@@ -7,11 +7,59 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer.Games
 {
+    public enum ChessDirection
+    {
+        North = 1,
+        Northeast = 2,
+        East = 3,
+        Southeast = 4,
+        South = 5,
+        Southwest = 6,
+        West = 7,
+        Northwest = 8
+    }
+
     public class ChessBoard
     {
+        public ChessBoard()
+        {
+            StartedAt = DateTime.UtcNow;
+        }
+
         public static readonly string EmptyTile = "•";
         public static readonly int Min = 0;
         public static readonly int Max = 7;
+
+        public static ChessBoard GetEnPassant()
+        {
+            return new ChessBoard
+            {
+                Pieces = new List<ChessPiece>()
+                {
+                    new ChessPiece
+                    {
+                        Owner = ChessOwner.White,
+                        Piece = ChessRank.Pawn,
+                        Rank = 3,
+                        File = 3
+                    },
+                    new ChessPiece
+                    {
+                        Owner = ChessOwner.Black,
+                        Piece = ChessRank.Pawn,
+                        Rank = 4,
+                        File = 3
+                    }
+                },
+                LastMove = new ChessMove(DateTime.UtcNow, new ChessPiece
+                {
+                    Owner = ChessOwner.Black,
+                    Piece = ChessRank.Pawn,
+                    Rank = 4,
+                    File = 1
+                }, new Coordinate(4, 3), 0)
+            };
+        }
 
         public static ChessBoard GetDefault()
         {
@@ -310,7 +358,7 @@ namespace Arcadia.Multiplayer.Games
             return r;
         }
 
-        public string DrawBoard(ChessOwner perspective)
+        public string DrawBoard(ChessOwner perspective, ChessIconFormat format = ChessIconFormat.Text)
         {
             var text = new StringBuilder();
             text.AppendLine("```");
@@ -326,7 +374,7 @@ namespace Arcadia.Multiplayer.Games
                 {
                     ChessPiece piece = GetPiece(row, column);
                     string tile = piece == null ? EmptyTile
-                        : ChessPiece.GetString(piece.Piece, piece.Owner != perspective);
+                        : ChessPiece.GetString(piece.Piece, piece.Owner, format);
                     text.Append($" {tile}");
                 }
 
@@ -337,7 +385,7 @@ namespace Arcadia.Multiplayer.Games
             return text.ToString();
         }
 
-        public string DrawMoves(ChessPiece focus, ChessOwner perspective)
+        public string DrawMoves(ChessPiece focus, ChessOwner perspective, ChessIconFormat format = ChessIconFormat.Text)
         {
             List<Coordinate> moves = GetMoves(focus);
             var text = new StringBuilder();
@@ -358,7 +406,7 @@ namespace Arcadia.Multiplayer.Games
                         : EmptyTile
                         : moves.Contains(new Coordinate(row, column)) && piece.Rank == row && piece.File == column
                             ? "x"
-                            : ChessPiece.GetString(piece.Piece, piece.Owner != perspective);
+                            : ChessPiece.GetString(piece.Piece, perspective, format);
                     text.Append($" {tile}");
                 }
 
@@ -378,13 +426,18 @@ namespace Arcadia.Multiplayer.Games
 
         public bool IsInCheck(ChessOwner player)
         {
-            ChessPiece king = GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King);
+            if (GetPieces(player).All(x => x.Piece != ChessRank.King))
+                return false;
 
-            if (king == null)
-                throw new Exception("Expected a king piece");
+            ChessPiece king = GetKing(player);
 
             ChessOwner enemy = player == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
             return GetPossibleMoves(enemy).Any(x => x.X == king.Rank && x.Y == king.File);
+        }
+
+        public ChessPiece GetKing(ChessOwner player)
+        {
+            return GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King) ?? throw new Exception("Expected a king piece");
         }
 
         public bool IsCheckmate(ChessOwner player)
@@ -392,10 +445,153 @@ namespace Arcadia.Multiplayer.Games
             if (!IsInCheck(player))
                 return false;
 
-            ChessPiece king = GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King);
+            ChessPiece king = GetKing(player);
 
-            ChessOwner enemy = player == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
-            return GetPossibleMoves(enemy).Any(x => x.X == king.Rank && x.Y == king.File);
+            bool canMoveKing = GetDefaultMoves(king).Count > 0;
+            var blockers = GetBlockerPieces(king);
+            var attackers = GetAttackerPieces(king);
+
+            if (blockers.Count > 0)
+            {
+                attackers.RemoveAll(attacker => GetBlockableTiles(attacker, king).Any(c => blockers.Any(blocker => GetDefaultMoves(blocker).Contains(c))));
+            }
+
+            // Checkmate occurs if all attackers cannot be blocked or killed
+            return !canMoveKing && attackers.Count > 0;
+        }
+
+        public List<ChessPiece> GetAttackerPieces(ChessPiece piece)
+        {
+            ChessOwner enemy = piece.Owner == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
+            return GetPieces(enemy).Where(x => GetBaseMoves(x).Any(c => c.X == piece.Rank && c.Y == piece.File)).ToList();
+        }
+
+        public List<Coordinate> GetAttackerTiles(ChessPiece piece)
+        {
+            return GetAttackerPieces(piece).Select(x => new Coordinate(x.Rank, x.File)).ToList();
+        }
+
+        public List<ChessPiece> GetBlockerPieces(ChessPiece piece)
+        {
+            List<Coordinate> blockable = GetBlockableTiles(piece);
+            return GetPieces(piece.Owner).Where(x => GetBaseMoves(x).Any(c => blockable.Contains(c))).ToList();
+        }
+
+        private List<Coordinate> GetBlockableTiles(ChessPiece piece)
+        {
+            List<ChessPiece> attackers = GetAttackerPieces(piece);
+            return attackers.SelectMany(x => GetBlockableTiles(x, piece)).ToList();
+        }
+
+        private List<Coordinate> GetBlockableTiles(ChessPiece attacker, ChessPiece target)
+        {
+            var tiles = new List<Coordinate>();
+
+            if (attacker.Piece.EqualsAny(ChessRank.Pawn, ChessRank.Knight, ChessRank.King))
+                return tiles;
+
+            ChessDirection direction = GetAttackDirection(attacker, target);
+            Move(ref tiles, direction, attacker.Rank, attacker.File, false);
+
+            return tiles;
+        }
+
+        private void Move(ref List<Coordinate> moves, ChessDirection direction, int x, int y, bool includeTarget = true)
+        {
+            switch (direction)
+            {
+                case ChessDirection.Northwest:
+                    MoveNorthWest(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.North:
+                    MoveNorth(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.Northeast:
+                    MoveNorthEast(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.East:
+                    MoveEast(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.Southeast:
+                    MoveSouthEast(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.South:
+                    MoveSouth(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.Southwest:
+                    MoveSouthWest(ref moves, x, y, includeTarget);
+                    break;
+
+                case ChessDirection.West:
+                    MoveWest(ref moves, x, y, includeTarget);
+                    break;
+            }
+        }
+
+        private ChessDirection GetAttackDirection(ChessPiece attacker, ChessPiece target)
+        {
+            if (attacker.Piece.EqualsAny(ChessRank.King, ChessRank.Pawn, ChessRank.Knight))
+                return 0;
+
+            int xDiff = attacker.Rank - target.Rank;
+            int yDiff = attacker.File - target.File;
+
+            return GetDirection(xDiff, yDiff);
+
+        }
+
+        private ChessDirection GetDirection(int x, int y)
+        {
+            if (x != 0 && y != 0 && Math.Abs(x) - Math.Abs(y) != 0)
+                return 0;
+
+            if (x > 0)
+            {
+                if (y > 0)
+                    return ChessDirection.Northwest;
+
+                if (y < 0)
+                    return ChessDirection.Southwest;
+
+                return ChessDirection.West;
+            }
+
+            if (x < 0)
+            {
+                if (y > 0)
+                    return ChessDirection.Northeast;
+
+                if (y < 0)
+                    return ChessDirection.Southeast;
+
+                return ChessDirection.East;
+            }
+
+            if (y > 0)
+                return ChessDirection.North;
+
+            if (y < 0)
+                return ChessDirection.South;
+
+            return 0;
+        }
+
+
+        private List<ChessPiece> GetDefenderPieces(ChessPiece piece)
+        {
+            List<ChessPiece> attackers = GetAttackerPieces(piece);
+
+            return GetPieces(piece.Owner)
+                .Where(x => GetBaseMoves(x)
+                    .Any(c => attackers
+                        .Any(a => a.Rank == c.X && a.File == c.Y)))
+                .ToList();
         }
 
         public ChessPiece GetPiece(int rank, int file)
@@ -416,11 +612,86 @@ namespace Arcadia.Multiplayer.Games
             return Pieces.Where(x => x.Owner == owner).Select(x => new Coordinate(x.Rank, x.File)).ToList();
         }
 
+        private void AddPawnTiles(ref List<Coordinate> moves, ChessPiece piece)
+        {
+            bool isFlipped = piece.Owner == ChessOwner.Black;
+
+            if (piece.File < Max && piece.File > Min)
+            {
+                ChessPiece front = GetPiece(piece.Rank, isFlipped ? piece.File + 1 : piece.File - 1);
+
+                if (front != null)
+                    moves.RemoveAll(x => x.X == front.Rank && x.Y == front.File);
+            }
+
+            if (piece.Rank < Max)
+            {
+                ChessPiece left = GetPiece(piece.Rank - 1, isFlipped ? piece.File + 1 : piece.File - 1);
+
+                if (left != null && left.Owner != piece.Owner)
+                    moves.Add(new Coordinate(left.Rank, left.File));
+            }
+
+            if (piece.Rank > Min)
+            {
+                ChessPiece right = GetPiece(piece.Rank + 1, isFlipped ? piece.File + 1 : piece.File - 1);
+
+                if (right != null && right.Owner != piece.Owner)
+                    moves.Add(new Coordinate(right.Rank, right.File));
+            }
+
+            // en passant
+            if (LastMove != null && LastMove.Piece == ChessRank.Pawn && LastMove.Player != piece.Owner)
+            {
+                int fromY = (LastMove.Player == ChessOwner.Black) ? 1 : 6;
+                int toY = (LastMove.Player == ChessOwner.Black) ? 3 : 4;
+                Console.WriteLine($"{LastMove.Piece} ({LastMove.Rank}, {LastMove.File} [{fromY}] => {LastMove.To.X}, {LastMove.To.Y} [{toY}])");
+
+                if (LastMove.File == fromY && LastMove.To.Y == toY)
+                {
+                    // Left
+                    if (piece.Rank - LastMove.Rank == 1)
+                    {
+                        int x = piece.Rank - 1;
+                        int y = isFlipped ? piece.File + 1 : piece.File - 1;
+
+                        moves.Add(new Coordinate(x, y));
+                    }
+                    else if (piece.Rank - LastMove.Rank == -1)
+                    {
+                        int x = piece.Rank + 1;
+                        int y = isFlipped ? piece.File + 1 : piece.File - 1;
+
+                        moves.Add(new Coordinate(x, y));
+                    }
+                }
+            }
+        }
+
+        private List<Coordinate> GetRequiredMoves(ChessPiece piece)
+        {
+            ChessPiece king = GetKing(piece.Owner);
+
+            List<Coordinate> available = GetBlockableTiles(king);
+            List<Coordinate> attackable = GetAttackerTiles(king);
+            List<Coordinate> moves = GetDefaultMoves(piece);
+
+            moves.RemoveAll(x => !available.Contains(x) && !attackable.Contains(x));
+
+            Console.WriteLine($"Available required moves for {piece.Owner} {piece.Piece}:\n{string.Join("\n", moves)}");
+            return moves;
+        }
+
         public List<Coordinate> GetMoves(ChessPiece piece)
         {
-            //if (IsInCheck(piece.Owner))
-            //    return GetSafeMoves(piece.Owner);
+            if (IsInCheck(piece.Owner) && piece.Piece != ChessRank.King)
+                return GetRequiredMoves(piece);
 
+            return GetDefaultMoves(piece);
+        }
+
+        private List<Coordinate> GetDefaultMoves(ChessPiece piece)
+        {
             var moves = GetBaseMoves(piece.Owner, piece.Piece, piece.Rank, piece.File)
                 .Where(x => !GetUsedTiles(piece.Owner).Contains(x)).ToList();
 
@@ -428,32 +699,7 @@ namespace Arcadia.Multiplayer.Games
                 RemoveDangerMoves(ref moves, piece.Owner);
 
             if (piece.Piece == ChessRank.Pawn)
-            {
-                bool isFlipped = piece.Owner == ChessOwner.Black;
-
-                if (piece.File < Max && piece.File > Min)
-                {
-                    ChessPiece front = GetPiece(piece.Rank, isFlipped ? piece.File + 1 : piece.File - 1);
-
-                    if (front != null)
-                        moves.RemoveAll(x => x.X == front.Rank && x.Y == front.File);
-                }
-                if (piece.Rank < Max)
-                {
-                    ChessPiece left = GetPiece(piece.Rank - 1, isFlipped ? piece.File + 1 : piece.File - 1);
-
-                    if (left != null && left.Owner != piece.Owner)
-                        moves.Add(new Coordinate(left.Rank, left.File));
-                }
-
-                if (piece.Rank > Min)
-                {
-                    ChessPiece right = GetPiece(piece.Rank + 1, isFlipped ? piece.File + 1 : piece.File - 1);
-
-                    if (right != null && right.Owner != piece.Owner)
-                        moves.Add(new Coordinate(right.Rank, right.File));
-                }
-            }
+                AddPawnTiles(ref moves, piece);
             // remove all moves where: a piece owned by the current owner is in a specified coordinate
             // remove all moves where: an enemy piece is already blocking
             Console.WriteLine($"Moves available for {piece.Owner.ToString()} {piece.Piece.ToString()}:\n{string.Join("\n", moves.Select(x => $"- {GetPosition(x.X, x.Y)}"))}");
@@ -466,37 +712,13 @@ namespace Arcadia.Multiplayer.Games
             moves.RemoveAll(GetPossibleMoves(enemy).Contains);
         }
 
-        private List<Coordinate> GetSafeMoves(ChessOwner player)
-        {
-            return null;
-        }
-
-        private List<ChessPiece> GetProtectPieces(ref List<ChessPiece> dangerPieces, ChessOwner player)
-        {
-            ChessPiece king = GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King);
-
-            if (king == null)
-                throw new Exception("Expected a king piece");
-
-            return null;
-        }
-
-        private List<ChessPiece> GetCheckPieces(ChessOwner player)
-        {
-            ChessOwner enemy = player == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
-            ChessPiece king = GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King);
-
-            if (king == null)
-                throw new Exception("Expected a king piece");
-
-            return GetPieces(enemy)
-                .Where(x => GetBaseMoves(x.Owner, x.Piece, x.Rank, x.File).Contains(new Coordinate(king.Rank, king.File))).ToList();
-        }
-
         private List<Coordinate> GetPossibleMoves(ChessOwner player)
         {
-            return GetPieces(player).SelectMany(p => GetBaseMoves(p.Owner, p.Piece, p.Rank, p.File)).ToList();
+            return GetPieces(player).SelectMany(GetBaseMoves).ToList();
         }
+
+        public List<Coordinate> GetBaseMoves(ChessPiece piece)
+            => GetBaseMoves(piece.Owner, piece.Piece, piece.Rank, piece.File);
 
         // 0 to 7
         // file = y
@@ -538,28 +760,28 @@ namespace Arcadia.Multiplayer.Games
                     break;
 
                 case ChessRank.Rook:
-                    MoveWest(ref moves, rank, file, owner);
-                    MoveEast(ref moves, rank, file, owner);
-                    MoveNorth(ref moves, rank, file, owner);
-                    MoveSouth(ref moves, rank, file, owner);
+                    MoveWest(ref moves, rank, file);
+                    MoveEast(ref moves, rank, file);
+                    MoveNorth(ref moves, rank, file);
+                    MoveSouth(ref moves, rank, file);
                     break;
 
                 case ChessRank.Bishop:
-                    MoveNorthWest(ref moves, rank, file, owner);
-                    MoveNorthEast(ref moves, rank, file, owner);
-                    MoveSouthWest(ref moves, rank, file, owner);
-                    MoveSouthEast(ref moves, rank, file, owner);
+                    MoveNorthWest(ref moves, rank, file);
+                    MoveNorthEast(ref moves, rank, file);
+                    MoveSouthWest(ref moves, rank, file);
+                    MoveSouthEast(ref moves, rank, file);
                     break;
 
                 case ChessRank.Queen:
-                    MoveWest(ref moves, rank, file, owner);
-                    MoveEast(ref moves, rank, file, owner);
-                    MoveNorth(ref moves, rank, file, owner);
-                    MoveSouth(ref moves, rank, file, owner);
-                    MoveNorthWest(ref moves, rank, file, owner);
-                    MoveNorthEast(ref moves, rank, file, owner);
-                    MoveSouthWest(ref moves, rank, file, owner);
-                    MoveSouthEast(ref moves, rank, file, owner);
+                    MoveWest(ref moves, rank, file);
+                    MoveEast(ref moves, rank, file);
+                    MoveNorth(ref moves, rank, file);
+                    MoveSouth(ref moves, rank, file);
+                    MoveNorthWest(ref moves, rank, file);
+                    MoveNorthEast(ref moves, rank, file);
+                    MoveSouthWest(ref moves, rank, file);
+                    MoveSouthEast(ref moves, rank, file);
                     break;
 
                 case ChessRank.Pawn:
@@ -589,7 +811,7 @@ namespace Arcadia.Multiplayer.Games
         private static bool Exclude(int x, int y)
             => x <= Max && x >= Min && y <= Max && y >= Min;
 
-        private void MoveWest(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveWest(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.Rank < x && p.File == y)
@@ -597,13 +819,15 @@ namespace Arcadia.Multiplayer.Games
                 .FirstOrDefault();
 
             int nearest = piece?.Rank ?? Min;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+                nearest++;
 
             while (x > nearest)
                 moves.Add(new Coordinate(--x, y));
         }
 
-        private void MoveNorth(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveNorth(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.File < y && p.Rank == x)
@@ -611,13 +835,15 @@ namespace Arcadia.Multiplayer.Games
                 .FirstOrDefault();
 
             int nearest = piece?.File ?? Min;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+                nearest++;
 
             while (y > nearest)
                 moves.Add(new Coordinate(x, --y));
         }
 
-        private void MoveSouth(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveSouth(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.Rank == x && p.File > y)
@@ -625,13 +851,15 @@ namespace Arcadia.Multiplayer.Games
                 .FirstOrDefault();
 
             int nearest = piece?.File ?? Max;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+                nearest--;
 
             while (y < nearest)
                 moves.Add(new Coordinate(x, ++y));
         }
 
-        private void MoveEast(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveEast(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.Rank > x && p.File == y)
@@ -639,13 +867,15 @@ namespace Arcadia.Multiplayer.Games
                 .FirstOrDefault();
 
             int nearest = piece?.Rank ?? Max;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+                nearest--;
 
             while (x < nearest)
                 moves.Add(new Coordinate(++x, y));
         }
 
-        private void MoveNorthWest(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveNorthWest(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => x - p.Rank > 0
@@ -656,13 +886,18 @@ namespace Arcadia.Multiplayer.Games
 
             int nearestX = piece?.Rank ?? Min;
             int nearestY = piece?.File ?? Min;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+            {
+                nearestX++;
+                nearestY++;
+            }
 
             while (x > nearestX && y > nearestY)
                 moves.Add(new Coordinate(--x, --y));
         }
 
-        private void MoveSouthWest(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveSouthWest(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => x - p.Rank > 0
@@ -673,13 +908,18 @@ namespace Arcadia.Multiplayer.Games
 
             int nearestX = piece?.Rank ?? Min;
             int nearestY = piece?.File ?? Max;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+            {
+                nearestX++;
+                nearestY--;
+            }
 
             while (x > nearestX && y < nearestY)
                 moves.Add(new Coordinate(--x, ++y));
         }
 
-        private void MoveNorthEast(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveNorthEast(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.Rank - x > 0
@@ -690,13 +930,18 @@ namespace Arcadia.Multiplayer.Games
 
             int nearestX = piece?.Rank ?? Max;
             int nearestY = piece?.File ?? Min;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+            {
+                nearestX--;
+                nearestY++;
+            }
 
             while (x < nearestX && y > nearestY)
                 moves.Add(new Coordinate(++x, --y));
         }
 
-        private void MoveSouthEast(ref List<Coordinate> moves, int x, int y, ChessOwner player)
+        private void MoveSouthEast(ref List<Coordinate> moves, int x, int y, bool includeTarget = true)
         {
             ChessPiece piece = Pieces
                 .Where(p => p.Rank - x > 0
@@ -707,11 +952,166 @@ namespace Arcadia.Multiplayer.Games
 
             int nearestX = piece?.Rank ?? Max;
             int nearestY = piece?.File ?? Max;
-            bool isEnemy = piece?.Owner != player;
+
+            if (!includeTarget && piece != null)
+            {
+                nearestX--;
+                nearestY--;
+            }
 
             while (x < nearestX && y < nearestY)
                 moves.Add(new Coordinate(++x, ++y));
         }
+
+
+
+        private Coordinate PeekWest(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.Rank < x && p.File == y)
+                .OrderBy(p => p.Rank - x)
+                .FirstOrDefault();
+
+            int nearest = piece?.Rank ?? Min;
+
+            while (x > nearest)
+                --x;
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekNorth(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.File < y && p.Rank == x)
+                .OrderBy(p => y - p.File)
+                .FirstOrDefault();
+
+            int nearest = piece?.File ?? Min;
+
+            while (y > nearest)
+                --y;
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekSouth(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.Rank == x && p.File > y)
+                .OrderBy(p => p.File - y)
+                .FirstOrDefault();
+
+            int nearest = piece?.File ?? Max;
+
+            while (y < nearest)
+                ++y;
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekEast(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.Rank > x && p.File == y)
+                .OrderBy(p => x - p.Rank)
+                .FirstOrDefault();
+
+            int nearest = piece?.Rank ?? Max;
+
+            while (x < nearest)
+                ++x;
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekNorthWest(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => x - p.Rank > 0
+                            && y - p.File > 0
+                            && x - p.Rank == y - p.File)
+                .OrderBy(p => x - p.Rank)
+                .FirstOrDefault();
+
+            int nearestX = piece?.Rank ?? Min;
+            int nearestY = piece?.File ?? Min;
+
+            while (x > nearestX && y > nearestY)
+            {
+                --x;
+                --y;
+            }
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekSouthWest(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => x - p.Rank > 0
+                            && p.File - y > 0
+                            && x - p.Rank == p.File - y)
+                .OrderBy(p => x - p.Rank)
+                .FirstOrDefault();
+
+            int nearestX = piece?.Rank ?? Min;
+            int nearestY = piece?.File ?? Max;
+
+            while (x > nearestX && y < nearestY)
+            {
+                --x;
+                ++y;
+            }
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekNorthEast(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.Rank - x > 0
+                            && y - p.File > 0
+                            && p.Rank - x == y - p.File)
+                .OrderBy(p => p.Rank - x)
+                .FirstOrDefault();
+
+            int nearestX = piece?.Rank ?? Max;
+            int nearestY = piece?.File ?? Min;
+
+            while (x < nearestX && y > nearestY)
+            {
+                ++x;
+                --y;
+            }
+
+            return new Coordinate(x, y);
+        }
+
+        private Coordinate PeekSouthEast(int x, int y)
+        {
+            ChessPiece piece = Pieces
+                .Where(p => p.Rank - x > 0
+                            && p.File - y > 0
+                            && p.Rank - x == p.File - y)
+                .OrderBy(p => p.Rank - x)
+                .FirstOrDefault();
+
+            int nearestX = piece?.Rank ?? Max;
+            int nearestY = piece?.File ?? Max;
+
+            while (x < nearestX && y < nearestY)
+            {
+                ++x;
+                ++y;
+            }
+
+            return new Coordinate(x, y);
+        }
+
+        public DateTime StartedAt { get; }
+
+        public ChessMove LastMove { get; set; }
 
         public List<ChessPiece> Pieces { get; set; }
 
@@ -722,8 +1122,64 @@ namespace Arcadia.Multiplayer.Games
             if (focus == null)
                 return;
 
-            focus.Rank = tile.X;
-            focus.File = tile.Y;
+            if (LastMove != null)
+            {
+                Console.WriteLine($"{LastMove.Piece} ({LastMove.Rank}, {LastMove.File} => {LastMove.To.X}, {LastMove.To.Y})");
+            }
+
+            if (LastMove != null
+                && LastMove.Piece == ChessRank.Pawn
+                && LastMove.Player != focus.Owner
+                && LastMove.File == ((LastMove.Player == ChessOwner.Black) ? 1 : 6)
+                && LastMove.To.Y == ((LastMove.Player == ChessOwner.Black) ? 3 : 4)
+                && focus.Piece == ChessRank.Pawn
+                && tile.X == LastMove.To.X
+                && 1 == (LastMove.Player == ChessOwner.Black
+                    ? LastMove.To.Y - ((LastMove.Player == ChessOwner.Black) ? 2 : 5)
+                    : ((LastMove.Player == ChessOwner.Black) ? 2 : 5) - LastMove.To.Y))
+            {
+                ChessPiece target = GetPiece(LastMove.To.X, LastMove.To.Y);
+
+                if (target == null)
+                    throw new Exception("Expected pawn at specified tile");
+
+                Pieces.Remove(target);
+
+                ChessOwner enemy = focus.Owner == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
+                ChessMoveAction action = 0;
+
+                if (IsCheckmate(enemy))
+                    action |= ChessMoveAction.Checkmate;
+                else if (IsInCheck(enemy))
+                    action |= ChessMoveAction.Check;
+
+                LastMove = new ChessMove(StartedAt, focus, tile, action | ChessMoveAction.EnPassant);
+                focus.Rank = tile.X;
+                focus.File = tile.Y;
+            }
+            else
+            {
+                ChessPiece target = GetPiece(tile.X, tile.Y);
+
+                ChessOwner enemy = focus.Owner == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
+
+                ChessMoveAction action = 0;
+
+                if (IsCheckmate(enemy))
+                    action |= ChessMoveAction.Checkmate;
+                else if (IsInCheck(enemy))
+                    action |= ChessMoveAction.Check;
+
+                if (target != null)
+                {
+                    Pieces.Remove(target);
+                    action |= ChessMoveAction.Capture;
+                }
+
+                LastMove = new ChessMove(StartedAt, focus, tile, action);
+                focus.Rank = tile.X;
+                focus.File = tile.Y;
+            }
         }
     }
 }

@@ -49,20 +49,28 @@ namespace Arcadia.Multiplayer.Games
             return false;
         }
 
-            public static string GetString(ChessRank rank, bool isEnemy = false)
+            public static string GetString(ChessRank rank, ChessOwner player, ChessIconFormat format = ChessIconFormat.Text)
         {
+            bool isBlack = player == ChessOwner.Black;
+            bool isEmote = format == ChessIconFormat.Emote;
             string text = rank switch
             {
+                ChessRank.Pawn when isEmote => isBlack ? "♙" : "♟",
                 ChessRank.Pawn => "P",
+                ChessRank.Knight when isEmote => isBlack ? "♘" : "♞",
                 ChessRank.Knight => "N",
+                ChessRank.Bishop when isEmote => isBlack ? "♗" : "♝",
                 ChessRank.Bishop => "B",
+                ChessRank.Rook when isEmote => isBlack ? "♖" : "♜",
                 ChessRank.Rook => "R",
+                ChessRank.Queen when isEmote => isBlack ? "♕" : "♛",
                 ChessRank.Queen => "Q",
+                ChessRank.King when isEmote => isBlack ? "♔" : "♚",
                 ChessRank.King => "K",
                 _ => throw new ArgumentException("Unknown rank")
             };
 
-            if (isEnemy)
+            if (isBlack && !isEmote)
                 text = text.ToLower();
 
             return text;

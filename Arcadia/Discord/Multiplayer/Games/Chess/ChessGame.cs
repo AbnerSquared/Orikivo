@@ -12,7 +12,7 @@ namespace Arcadia.Multiplayer.Games
     {
         Active = 1,
         Win = 2,
-        Lose = 3,
+        Checkmate = 3,
         Draw = 4,
         Resign = 5,
         Timeout = 6
@@ -135,7 +135,7 @@ namespace Arcadia.Multiplayer.Games
                 {
                     Content = new DisplayContent
                     {
-                        new Component(ChessChannel.Header, 0, new ComponentFormatter("> {0}'s Turn")),
+                        new Component(ChessChannel.Header, 0, new ComponentFormatter("> Current Player: **{0}** ({1})")),
                         new Component(ChessChannel.Board, 1)
                     },
                     Inputs = new List<IInput>
@@ -179,9 +179,9 @@ namespace Arcadia.Multiplayer.Games
                 ctx.Session.ValueOf<ChessBoard>(ChessVars.Board).DrawBoard(
                     ctx.Session.GetConfigValue<bool>(ChessConfig.RotateBoard)
                     ? ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor)
-                    : ChessOwner.White));
+                    : ChessOwner.White, ctx.Session.GetConfigValue<ChessIconFormat>(ChessConfig.PieceFormat)));
 
-            main[ChessChannel.Header].Draw();
+            main[ChessChannel.Header].Draw(current.ValueOf<ChessOwner>(ChessVars.Color));
             main[ChessChannel.Board].Draw();
 
             // In 3 minutes, close the game due to timeout.
@@ -227,7 +227,9 @@ namespace Arcadia.Multiplayer.Games
 
             Logger.Debug($"Parsed piece: \"{piece.Owner} {piece.Piece} {piece.Rank} {piece.File}\"");
 
-            if (piece.Owner != ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor))
+            ChessOwner color = ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor);
+
+            if (piece.Owner != color)
                 return;
 
             if (args[1].Length != 2 || !int.TryParse(args[1][1].ToString(), out int y))
@@ -245,7 +247,7 @@ namespace Arcadia.Multiplayer.Games
             ChessPiece target = board.GetPiece(tile.X, tile.Y);
             if (target != null)
             {
-                if (target.Owner == ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor))
+                if (target.Owner == color)
                     return;
 
                 ctx.Session.ValueOf<ChessBoard>(ChessVars.Board).Pieces.Remove(target);
@@ -255,7 +257,14 @@ namespace Arcadia.Multiplayer.Games
 
             ctx.Session.ValueOf<ChessBoard>(ChessVars.Board).MovePiece(piece, tile);
 
-            DisplayContent main = ctx.Server.GetBroadcast(ChessChannel.Main).Content;
+            if (board.IsCheckmate(Flip(color)))
+            {
+                ctx.Session.SetValue(ChessVars.GameState, ChessState.Checkmate);
+                ctx.Session.SetValue(ChessVars.Winner, color);
+                ctx.Session.InvokeAction(ChessVars.GetResults, true);
+                return;
+            }
+
             ctx.Session.InvokeAction(ChessVars.SwapCurrentPlayer, true);
         }
 
@@ -316,6 +325,8 @@ namespace Arcadia.Multiplayer.Games
 
         private int GetColumn(char c)
         {
+            c = char.ToLower(c);
+
             if (c < 'a' || c > 'a' + 7)
                 throw new Exception("Given column index is out of range");
 

@@ -2,7 +2,7 @@
 {
     public enum ChessIconFormat
     {
-        Emoji = 1,
+        Emote = 1,
         Text = 2
     }
 }
