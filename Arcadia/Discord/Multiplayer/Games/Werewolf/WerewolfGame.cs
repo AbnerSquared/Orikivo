@@ -24,18 +24,18 @@ namespace Arcadia.Multiplayer.Games
             {
                 Name = "Werewolf",
                 Icon = "🐺",
-                Summary = "Figure out the werewolves and save the village.",
+                Summary = "Seek out the werewolves and save the village.",
                 RequiredPlayers = 3,
                 PlayerLimit = 16
             };
 
             Options = new List<GameOption>
             {
-                GameOption.Create(WolfConfig.RevealRolesOnDeath, "Reveal roles on death", false),
-                GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WerewolfRoleDeny.None),
-                GameOption.Create(WolfConfig.RandomizeNames, "Randomize names", false),
-                GameOption.Create(WolfConfig.SharedPeeking, "Shared peeking", false),
-                GameOption.Create(WolfConfig.RevealPartners, "Reveal partners", false)
+                GameOption.Create(WolfConfig.RevealRolesOnDeath, "Reveal roles on death", true, "Determines if a player's role is revealed when they die."),
+                GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WerewolfRoleDeny.None, "Specifies a set of roles to exclude from the game (unimplemented)."),
+                GameOption.Create(WolfConfig.RandomizeNames, "Randomize names", false, "Toggles the randomization of names to hide the actual name of each player."),
+                GameOption.Create(WolfConfig.SharedPeeking, "Shared peeking", false, "Determines if seers share the same peeking mechanic."),
+                GameOption.Create(WolfConfig.RevealPartners, "Reveal partners", true, "Determines if all of your partners are revealed to you when the game first starts.")
             };
         }
 
@@ -506,7 +506,7 @@ namespace Arcadia.Multiplayer.Games
                         },
                         new Component("reveal", 2)
                         {
-                            Formatter = new ComponentFormatter("> They were a **{0}**.{1}", true)
+                            Formatter = new ComponentFormatter("> {0}{1}", true)
                         }
                     }
                 },
@@ -541,7 +541,7 @@ namespace Arcadia.Multiplayer.Games
                         {
                             Formatter = new ComponentFormatter("```{0}```", true)
                         },
-                        new ComponentGroup("facts", 2, 1)
+                        new ComponentGroup("facts", 2, 1, false)
                         {
                             Formatter = new ComponentFormatter("{0}","• {0}", "\n"),
                             Values = new[] { "This is a random fact placeholder." }
@@ -578,8 +578,16 @@ namespace Arcadia.Multiplayer.Games
             // Write to the main channel the information about who died
             death["header"].Draw(player.Source.User.Username);
             death["summary"].Draw(WolfFormat.WriteDeathText(kill.Method));
-            death["reveal"].Draw(player.ValueOf<WerewolfRole>(WolfVars.Role).Name, extraText);
+            if (Check.NotNull(extraText) && !ctx.Session.GetConfigValue<bool>(WolfConfig.RevealRolesOnDeath))
+            {
+                death["reveal"].Active = false;
+            }
+            else
+            {
+                death["reveal"].Draw(ctx.Session.GetConfigValue<bool>(WolfConfig.RevealRolesOnDeath) ? $"They were a **{player.ValueOf<WerewolfRole>(WolfVars.Role).Name}**." : "", extraText);
+            }
 
+            // $"They were a **{player.ValueOf<WerewolfRole>(WolfVars.Role).Name}**."
             // Check winning conditions
             if (WolfGreaterEqualsVillager(ctx.Session))
             {

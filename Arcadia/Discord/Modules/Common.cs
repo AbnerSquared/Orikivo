@@ -22,8 +22,6 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : OriModuleBase<ArcadeContext>
     {
-
-
         /*
         [Command("peekshop")]
         [Summary("View what a shop has for sale before entering.")]
@@ -299,35 +297,11 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
         }
 
-        //[Command("drawboard")]
-        public async Task DrawMovesAsync(ChessOwner perspective)
+        [RequireUser]
+        [Command("level"), Alias("exp", "ascent", "lv", "xp")]
+        public async Task ViewLevelAsync()
         {
-            ChessBoard board = ChessBoard.GetDefault();
-
-            await Context.Channel.SendMessageAsync(board.DrawBoard(perspective));
-        }
-
-        //[Command("drawboard")]
-        public async Task DrawMovesAsync(int whitePieceCount, int blackPieceCount, ChessOwner perspective)
-        {
-            ChessBoard board = ChessBoard.GetRandom(whitePieceCount, blackPieceCount);
-
-            await Context.Channel.SendMessageAsync(board.DrawBoard(perspective));
-        }
-
-        //[Command("drawmoves")]
-        public async Task DrawPieceMovesAsync(ChessOwner perspective)
-        {
-            ChessBoard board = ChessBoard.GetDefault();
-
-            await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
-        }
-
-        //[Command("drawenpmoves")]
-        public async Task DrawEnPassantAsync(ChessOwner perspective)
-        {
-            ChessBoard board = ChessBoard.GetEnPassant();
-            await Context.Channel.SendMessageAsync(board.DrawMoves(board.GetPiece(3, 3), perspective));
+            await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
         }
 
         //[Command("drawmoves")]
@@ -569,6 +543,25 @@ namespace Arcadia.Modules
             Context.Account.AddToVar(Stats.ItemsGifted);
         }
 
+        [RequireUser]
+        [Command("sell")]
+        [Summary("Sells the specified **Item** to the shop of choice")]
+        public async Task SellItemAsync(string dataId, Shop shop)
+        {
+            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
+
+            if (data == null)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                return;
+            }
+
+            string result = ShopHelper.Sell(shop, data, Context.Account);
+
+            await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
         public async Task UseItemAsync(string dataId, [Remainder]string input = null)

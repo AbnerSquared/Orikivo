@@ -119,6 +119,8 @@ namespace Arcadia.Multiplayer
 
         internal bool IsDeleted { get; set; }
 
+        private string Content { get; set; }
+
         public List<IInput> GetAvailableInputs()
         {
             DisplayBroadcast broadcast = State == GameState.Playing
@@ -183,6 +185,7 @@ namespace Arcadia.Multiplayer
             if (DateTime.UtcNow - LastRefreshed < RefreshRate)
             {
                 Logger.Debug("Refresh called too quickly");
+                Content = text; // Store/preserve the existing content;
                 return;
             }
 

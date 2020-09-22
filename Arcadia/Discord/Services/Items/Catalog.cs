@@ -114,9 +114,8 @@ namespace Arcadia.Services
                 return Format.Warning("Unable to find any matching results.");
 
             var info = new StringBuilder();
-
+            info.AppendLine($"{GetTooltip()}\n");
             info.AppendLine($"> 🗃️ **Catalog Search** (**{results.Count():##,0}** {Format.TryPluralize("result", results.Count())} found)");
-            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
 
             foreach (Item item in Paginate.GroupAt(results, page, _pageSize))
             {
@@ -140,9 +139,11 @@ namespace Arcadia.Services
             if (!ItemHelper.GroupExists(query))
                 return Format.Warning("Unable to find the specified group query.");
 
+            int owned = ItemHelper.GetKnownCount(user, query);
+            int seen = ItemHelper.GetSeenCount(user, query);
+
             // You are not authorized to view this group query.
-            if (ItemHelper.GetKnownCount(user, query) == 0
-                && ItemHelper.GetSeenCount(user, query) == 0)
+            if (owned == 0 && seen == 0)
                 return Format.Warning("Unknown group query specified.");
 
             var info = new StringBuilder();
@@ -160,9 +161,24 @@ namespace Arcadia.Services
             int i = 0;
 
             string baseIcon = group.Icon.Fallback ?? "🗃️";
-            string extra = pageCount > 1 ? $" (Page **{page:##,0}**/{pageCount:##,0})" : "";
+            string extra = pageCount > 1 ? $" ({Format.PageCount(page, pageCount)})" : "";
             info.AppendLine($"> {baseIcon} **Catalog: {group.Name}**{extra}");
-            info.AppendLine("> Use `item <item_id>` to learn more about an item entry.");
+
+            info.Append("> Discovery: ");
+
+            if (owned > 0 && seen > 0)
+            {
+                info.Append($"**{owned:##,0}** owned (**{seen:##,0}** seen)");
+            }
+            else
+            {
+                int counter = owned > 0 ? owned : seen;
+                string counterName = owned > 0 ? "owned" : "seen";
+
+                info.Append($"**{counter:##,0}** {counterName}");
+            }
+
+            info.AppendLine();
 
             foreach (Item item in entries.Skip(offset))
             {
@@ -401,19 +417,19 @@ namespace Arcadia.Services
                 details.AppendLine();
 
             details.AppendLine("> **Details**");
-            details.AppendLine($"**ID:** `{item.Id}`");
+            details.AppendLine($"ID: `{item.Id}`");
 
             if (Check.NotNull(item.GroupId))
-                details.AppendLine($"**Group:** `{ItemHelper.GetGroup(item.GroupId).Name}`");
+                details.AppendLine($"Group: **{ItemHelper.GetGroup(item.GroupId).Name}** ({ItemHelper.GetGroup(item.GroupId).Rarity.ToString()})");
 
             details.AppendLine("\n> **Marketing**");
-            details.AppendLine($"**Rarity:** {item.Rarity.ToString()}");
+            details.AppendLine($"Rarity: **{item.Rarity.ToString()}** (Relative)");
 
             if (item.Value > 0)
-                details.AppendLine($"**Value:** {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
+                details.AppendLine($"Value: {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
 
             if (item.Size > 0)
-                details.AppendLine($"**Storage Size:** {Inventory.WriteCapacity(item.Size)}");
+                details.AppendLine($"Storage Size: {Inventory.WriteCapacity(item.Size)}");
 
             if (!ItemHelper.HasAttributes(item))
                 return details.ToString();

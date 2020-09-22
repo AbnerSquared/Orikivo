@@ -7,16 +7,8 @@ using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
-    public enum StatQuery
-    {
-        Default = 1
-    }
-
     public static class StatHelper
     {
-        public static long Sum(ArcadeUser user, string a, string b)
-            => user.GetVar(a) + user.GetVar(b);
-
         public static DateTime AsTime(ArcadeUser user, string statId)
             => new DateTime(user.GetVar(statId));
 
@@ -34,6 +26,7 @@ namespace Arcadia
                 x.Value != 0
                 && Var.TypeOf(x.Key) == VarType.Stat
                 && !ItemHelper.Exists(Var.GetGroup(x.Key))
+                && !ShopHelper.Exists(Var.GetGroup(x.Key))
                 ).OrderBy(x => x.Key);
 
         private static IEnumerable<KeyValuePair<string, long>> GetGroupStats(ArcadeUser user, string group)
@@ -52,6 +45,7 @@ namespace Arcadia
                 && !x.EqualsAny(Vars.Balance, Vars.Debt, Vars.Chips, Vars.Tokens)
                 && Var.TypeOf(x) == VarType.Stat
                 && !ItemHelper.Exists(Var.GetGroup(x))
+                && !ShopHelper.Exists(Var.GetGroup(x))
                 && (Check.NotNullOrEmpty(chosen) ? !chosen.Contains(x) : true)));
 
         public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 25)

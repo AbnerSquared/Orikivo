@@ -79,6 +79,18 @@ namespace Arcadia.Multiplayer
                             Formatter = new ComponentFormatter("\n> **{1} Ruleset**\n{0}", "• {0}", "\n", true, true)
                         }
                     }
+                },
+                new DisplayBroadcast
+                {
+                    Frequency = WatchingFrequency,
+                    State = GameState.Watching,
+                    Content = new DisplayContent
+                    {
+                        new Component("panel", 0)
+                        {
+                            Formatter = new ComponentFormatter("> You are currently spectating.\n{0}")
+                        }
+                    }
                 }
             };
         }

@@ -12,6 +12,8 @@ namespace Arcadia
 
         public Icon Icon { get; set; }
 
+        public ItemRarity Rarity { get; set; }
+
         public string Name { get; set; }
 
         // This is applied to the name before the name of the item

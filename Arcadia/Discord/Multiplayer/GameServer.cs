@@ -57,7 +57,9 @@ namespace Arcadia.Multiplayer
 
         private void DrawConfig()
         {
-            GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, GameId, AllowSpectators, AllowInvites, AllowChat);
+            GameDetails details = GameManager.DetailsOf(GameId);
+            string gameName = Check.NotNull(details?.Name) ? details?.Name : GameId;
+            GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, gameName, AllowSpectators, AllowInvites, AllowChat);
         }
 
         private void DrawGameConfig()

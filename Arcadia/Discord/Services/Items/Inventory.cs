@@ -1,22 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
     public class Inventory
     {
+        private static readonly int _rowSize = 10;
         // TODO: Add pagination and group counter icon support
-        private static string GetHeader(long capacity, bool showTooltips = true)
+        private static string GetHeader(long capacity, int pageCount = 1, int page = 0)
         {
-            var header = new StringBuilder(Locale.GetHeaderTitle(Headers.Inventory));
+            page = page < 0 ? 0 : page > pageCount - 1 ? pageCount - 1 : page;
+            string extra = pageCount > 1 ? $" (Page **{page:##,0}** of **{pageCount:##,0}**)" : "";
+            var header = new StringBuilder(Locale.GetHeaderTitle(Headers.Inventory, extra));
 
-            if (showTooltips)
-                header.Append($"\n> You have {WriteCapacity(capacity)} available.");
-
-            header.Append("\n");
-
+            header.Append($"\n> You have {WriteCapacity(capacity)} available.");
             return header.ToString();
         }
 
@@ -166,20 +167,51 @@ namespace Arcadia
             return user.Items.Sum(x => ItemHelper.SizeOf(x.Id) * x.Count);
         }
 
-        public static string Write(ArcadeUser user, bool isPrivate = true)
+        public static string Write(ArcadeUser user, bool isPrivate = true, int page = 0)
         {
             // set the default capacity if unspecified
             Var.SetIfEmpty(user, Vars.Capacity, 4000);
             var inventory = new StringBuilder();
 
-            if (isPrivate)
-                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user)));
-            else
-                inventory.AppendLine($"{Locale.GetHeaderTitle(Headers.Inventory, group: user.Username)}\n");
+            List<ItemData> items = isPrivate ? user.Items : user.Items.Where(x => x.Seal == null).ToList();
 
+            int pageCount = Paginate.GetPageCount(items.Count, _rowSize);
+
+            if (isPrivate)
+            {
+                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user)));
+            }
+            else
+            {
+                page = page < 0 ? 0 : page > pageCount - 1 ? pageCount - 1 : page;
+                string extra = pageCount > 1 ? $" (Page **{page:##,0}** of **{pageCount:##,0}**)" : null;
+                inventory.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, extra, user.Username));
+            }
+
+            if (pageCount > 1)
+            {
+                int c = 0;
+                foreach (string counter in items
+                    .Where(x => x.Seal == null && ItemHelper.GroupOf(x.Id) != null)
+                    .Select(x => ItemHelper.GetGroup(ItemHelper.GroupOf(x.Id)))
+                    .Where(x => x.Icon != null)
+                    .Select(g => $"{g.Icon.ToString()} **x{items.Count(x => x.Seal == null && ItemHelper.GroupOf(x.Id) == g.Id):##,0}**"))
+                {
+                    if (c % 4 == 0)
+                        inventory.Append("\n> ");
+                    else
+                        inventory.Append(" ");
+
+                    inventory.Append(counter);
+                    c++;
+                }
+            }
 
             int i = 0;
-            foreach (ItemData data in user.Items)
+
+
+
+            foreach (ItemData data in Paginate.GroupAt(items, page, _rowSize))
             {
                 inventory.AppendLine(WriteItem(i + 1, data.Id, data, isPrivate));
                 i++;

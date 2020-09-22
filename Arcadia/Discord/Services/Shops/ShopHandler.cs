@@ -20,6 +20,15 @@ namespace Arcadia
             Catalog = context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
             List<Vendor> possibleVendors = ShopHelper.GetVendors(ShopHelper.GetUniqueTags(Catalog)).ToList();
             Vendor = Check.NotNullOrEmpty(possibleVendors) ? Randomizer.Choose(possibleVendors) : null;
+
+            if (!context.Account.CatalogHistory.ContainsKey(shop.Id))
+                context.Account.CatalogHistory[shop.Id] = new CatalogHistory();
+
+            if (!context.Account.CatalogHistory[shop.Id].HasVisited)
+            {
+                context.Account.CatalogHistory[shop.Id].HasVisited = true;
+                context.Account.AddToVar(ShopHelper.GetVisitId(shop.Id));
+            }
         }
 
         public ArcadeContext Context { get; }
@@ -45,12 +54,22 @@ namespace Arcadia
             {
                 ShopState.Enter => Vendor.EnterGeneric,
                 ShopState.Buy => Vendor.BuyGeneric,
+                ShopState.BuyDeny => Vendor.BuyDenyGeneric,
+                ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
+                ShopState.BuyFail => Vendor.BuyFailGeneric,
+                ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
+                ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
+                ShopState.SellInvalid => Vendor.SellInvalidGeneric,
+                ShopState.BuyInvalid => Vendor.BuyInvalidGeneric,
                 ShopState.ViewBuy => Vendor.ViewBuyGeneric,
                 ShopState.Sell => Vendor.SellGeneric,
                 ShopState.ViewSell => Vendor.ViewSellGeneric,
+                ShopState.SellDeny => Vendor.SellDenyGeneric,
+                ShopState.SellEmpty => Vendor.SellEmptyGeneric,
                 ShopState.Exit => Vendor.ExitGeneric,
                 ShopState.Timeout => Vendor.TimeoutGeneric,
                 ShopState.Menu => Vendor.MenuGeneric,
+                ShopState.BuyRemainder => Arcadia.Vendor.BuyRemainderGeneric,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
         }
@@ -62,11 +81,21 @@ namespace Arcadia
                 ShopState.Enter => vendor?.OnEnter,
                 ShopState.Buy => vendor?.OnBuy,
                 ShopState.ViewBuy => vendor?.OnViewBuy,
+                ShopState.BuyDeny => vendor?.OnBuyDeny,
+                ShopState.BuyEmpty => vendor?.OnBuyEmpty,
+                ShopState.BuyFail => vendor?.OnBuyFail,
+                ShopState.SellNotAllowed => vendor?.OnSellNotAllowed,
+                ShopState.SellNotOwned => vendor?.OnSellNotOwned,
+                ShopState.SellInvalid => vendor?.OnSellInvalid,
+                ShopState.BuyInvalid => vendor?.OnBuyInvalid,
                 ShopState.Sell => vendor?.OnSell,
                 ShopState.ViewSell => vendor?.OnViewSell,
+                ShopState.SellDeny => vendor?.OnSellDeny,
+                ShopState.SellEmpty => vendor?.OnSellEmpty,
                 ShopState.Exit => vendor?.OnExit,
                 ShopState.Timeout => vendor?.OnTimeout,
                 ShopState.Menu => vendor?.OnMenu,
+                ShopState.BuyRemainder => vendor?.OnBuyRemainder,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
 
@@ -126,25 +155,14 @@ namespace Arcadia
             return body.ToString();
         }
 
-        // TODO: Add these responses to vendors by default
-        private static readonly string OnTryBuy = "I don't sell items.";
-        private static readonly string OnBuyEmpty = "I don't have anything else I can offer you.";
-        private static readonly string OnBuyFail = "You can't afford to pay for all of this.";
-        private static readonly string OnTrySell = "I don't buy items.";
-        private static readonly string OnSellEmpty = "You don't have anything I can buy from you.";
-
         public static string WriteActionBar(ShopState state)
         {
-            return state switch
+            if (state.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty, ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
             {
-                ShopState.Enter => "`buy` `sell` `leave`",
-                ShopState.Menu => "`buy` `sell` `leave`",
-                ShopState.ViewBuy => "`<item_id>` `back` `leave`",
-                ShopState.Buy => "`<item_id>` `back` `leave`",
-                ShopState.ViewSell => "`<item_id>` `back` `leave`",
-                ShopState.Sell => "`<item_id>` `back` `leave`",
-                _ => "UNHANDLED_STATE"
-            };
+                return "`buy` `sell` `leave`";
+            }
+
+            return "`<item_id>` `back` `leave`";
         }
 
         public static string WriteBuyNotice(Item item, int amount, long cost)
@@ -229,16 +247,18 @@ namespace Arcadia
             }
 
             // If the current state is ENTER | MENU
-            if (State.EqualsAny(ShopState.Enter, ShopState.Menu))
+            if (State.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty, ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
             {
                 switch (command)
                 {
                     case "buy" when !Shop.Buy:
-                        await UpdateAsync(OnTryBuy);
+                        State = ShopState.BuyDeny;
+                        await UpdateAsync();
                         return ActionResult.Continue;
 
                     case "buy" when Catalog.ItemIds.Count == 0:
-                        await UpdateAsync(OnBuyEmpty);
+                        State = ShopState.BuyEmpty;
+                        await UpdateAsync();
                         return ActionResult.Continue;
 
                     case "buy":
@@ -247,17 +267,20 @@ namespace Arcadia
                         return ActionResult.Continue;
 
                     case "sell" when !Shop.Sell:
-                        await UpdateAsync(OnTrySell);
+                        State = ShopState.SellDeny;
+                        await UpdateAsync();
                         return ActionResult.Continue;
 
                     case "sell" when User.Items.Count == 0:
-                        await UpdateAsync(OnSellEmpty);
+                        State = ShopState.SellEmpty;
+                        await UpdateAsync();
                         return ActionResult.Continue;
 
                     case "sell":
                         if (User.Items.Count(x => (ItemHelper.GetTag(x.Id) & Shop.SellTags) != 0) == 0)
                         {
-                            await UpdateAsync("You don't have any items I can buy from you.");
+                            State = ShopState.SellEmpty;
+                            await UpdateAsync();
                             return ActionResult.Continue;
                         }
 
@@ -276,13 +299,12 @@ namespace Arcadia
                         return ActionResult.Success;
 
                     default:
-                        Console.WriteLine("No valid command entered, returning...");
                         return ActionResult.Continue;
                 }
             }
 
             // If the current state is VIEW_BUY
-            if (State.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
+            if (State.EqualsAny(ShopState.ViewBuy, ShopState.Buy, ShopState.BuyFail, ShopState.BuyInvalid))
             {
                 switch (command)
                 {
@@ -310,8 +332,9 @@ namespace Arcadia
 
                 if (item == null)
                 {
+                    State = ShopState.BuyInvalid;
                     // Write a notice
-                    await UpdateAsync("I'm not sure what you're trying to buy.");
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
@@ -319,13 +342,14 @@ namespace Arcadia
 
                 if (amount < 1)
                 {
-                    await UpdateAsync("How many? I don't think I heard that correctly.");
+                    await UpdateAsync("I don't think I heard that correctly. How many did you want to purchase?");
                     return ActionResult.Continue;
                 }
 
                 if (!CanBuy(item, amount))
                 {
-                    await UpdateAsync(OnBuyFail);
+                    State = ShopState.BuyFail;
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
@@ -343,8 +367,8 @@ namespace Arcadia
 
                 if (Catalog.ItemIds.Count == 0)
                 {
-                    State = ShopState.Menu;
-                    await UpdateAsync("You've bought everything in stock. Thank you.");
+                    State = ShopState.BuyRemainder;
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
@@ -353,7 +377,7 @@ namespace Arcadia
                 return ActionResult.Continue;
             }
 
-            if (State.EqualsAny(ShopState.ViewSell, ShopState.Sell))
+            if (State.EqualsAny(ShopState.ViewSell, ShopState.Sell, ShopState.SellInvalid, ShopState.SellNotAllowed, ShopState.SellNotOwned))
             {
                 switch (command)
                 {
@@ -377,14 +401,16 @@ namespace Arcadia
 
                 if (item == null)
                 {
+                    State = ShopState.SellInvalid;
                     // Write a notice
-                    await UpdateAsync("I'm not sure what you're trying to sell to me.");
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
                 if (!CanSell(item))
                 {
-                    await UpdateAsync("Sorry, but I don't buy that here.");
+                    State = ShopState.SellNotAllowed;
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
@@ -392,13 +418,14 @@ namespace Arcadia
 
                 if (amount < 1)
                 {
-                    await UpdateAsync("How many? I don't think I heard that correctly.");
+                    await UpdateAsync("I don't think I heard that correctly. How many did you want to sell?");
                     return ActionResult.Continue;
                 }
 
                 if (ItemHelper.GetOwnedAmount(User, item) == 0)
                 {
-                    await UpdateAsync("You don't have this item in your inventory.");
+                    State = ShopState.SellNotOwned;
+                    await UpdateAsync();
                     return ActionResult.Continue;
                 }
 
@@ -442,6 +469,9 @@ namespace Arcadia
 
             if (!User.CatalogHistory[Shop.Id].SoldIds.TryAdd(item.Id, amount))
                 User.CatalogHistory[Shop.Id].SoldIds[item.Id] += amount;
+
+            User.AddToVar(Stats.ItemsSold, amount);
+            User.AddToVar(ShopHelper.GetTotalSoldId(Shop.Id), amount);
         }
 
         private void RemoveFromCatalog(Item item, int amount)
@@ -462,6 +492,9 @@ namespace Arcadia
                 if (Catalog.Discounts.ContainsKey(item.Id))
                     Catalog.Discounts.Remove(item.Id);
             }
+
+            User.AddToVar(Stats.ItemsBought, amount);
+            User.AddToVar(ShopHelper.GetTotalBoughtId(Shop.Id), amount);
         }
 
         private long GetWorth(Item item, int amount)

@@ -456,6 +456,7 @@ namespace Arcadia
                 new Item
                 {
                     Id = "t_nt",
+                    GroupId = ItemGroups.Tool,
                     Icon = "🉐",
                     Name = "Name Tag",
                     Rarity = ItemRarity.Uncommon,
@@ -466,6 +467,7 @@ namespace Arcadia
                 new Item
                 {
                     Id = "t_gc",
+                    GroupId = ItemGroups.Tool,
                     Icon = "🧺",
                     Name = "Gift Catapult",
                     Summary = "Randomly gifts an account with the specified item.",
@@ -1114,6 +1116,7 @@ namespace Arcadia
                 ShortId = "c",
                 Icon = "🍬",
                 Id = "component",
+                Rarity = ItemRarity.Uncommon,
                 Name = "Component",
                 Prefix = "Component: ",
                 Summary = "Helpful building blocks for the creation of new items."
@@ -1136,6 +1139,7 @@ namespace Arcadia
                 Icon = Icons.Booster,
                 Name = "Booster",
                 Prefix = "Booster: ",
+                Rarity = ItemRarity.Common,
                 Summary = "Modifies the multiplier for a specified form of income."
             },
             new ItemGroup
@@ -1151,6 +1155,7 @@ namespace Arcadia
                 },
                 Name = "Palette",
                 Prefix = "Card Palette: ",
+                Rarity = ItemRarity.Uncommon,
                 Summary = "Modifies the color scheme that is displayed on a card."
             },
             new ItemGroup
@@ -1159,6 +1164,7 @@ namespace Arcadia
                 Icon = Icons.Palette,
                 Name = "Font",
                 Prefix = "Card Font: ",
+                Rarity = ItemRarity.Rare,
                 Summary = "Modifies the text font that is displayed on a card."
             },
             new ItemGroup
@@ -1166,14 +1172,16 @@ namespace Arcadia
                 Id = "summon",
                 Icon = Icons.Summon,
                 Name = "Summon",
-                Prefix = "Summon: "
+                Prefix = "Summon: ",
+                Rarity = ItemRarity.Rare
             },
             new ItemGroup
             {
                 Id = "access_pass",
                 Name = "Access Pass",
                 Prefix = "Access Pass: ",
-                Summary = "Provides access to undisclosed entries."
+                Summary = "Provides access to undisclosed entries.",
+                Rarity = ItemRarity.Desolate
             },
             new ItemGroup
             {
@@ -1181,7 +1189,9 @@ namespace Arcadia
                 Icon = "⚙️",
                 Name = "Automaton",
                 Prefix = "Automaton: ",
-                Summary = "Grants the ability to automate specific actions."
+                Summary = "Grants the ability to automate specific actions.",
+                Rarity = ItemRarity.Desolate,
+                CanResearch = false
             }
         };
 

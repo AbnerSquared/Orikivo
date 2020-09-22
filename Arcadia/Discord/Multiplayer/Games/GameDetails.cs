@@ -1,4 +1,5 @@
-﻿using Orikivo.Drawing;
+﻿using System.Collections.Generic;
+using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer
 {
@@ -25,5 +26,7 @@ namespace Arcadia.Multiplayer
         public int PlayerLimit { get; set; } = 16;
 
         public bool CanSpectate { get; set; }
+
+        public List<string> LoadingTips { get; set; }
     }
 }

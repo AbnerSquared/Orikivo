@@ -12,7 +12,16 @@ namespace Arcadia
         public static readonly List<Vendor> Vendors =
             new List<Vendor>
             {
-                //Name = "V3-NDR"
+                new Vendor
+                {
+                    Name = "V3-NDR",
+                    PreferredTag = ItemTag.Palette,
+                    OnEnter = new []
+                    {
+                        "Welcome.",
+                        "What can I do for you on this fine hour?"
+                    }
+                }
             };
 
         public static readonly List<Shop> Shops =
@@ -158,6 +167,15 @@ namespace Arcadia
                 }
             };
 
+        internal static string GetTotalSoldId(string shopId)
+            => $"{shopId}:items_sold";
+
+        internal static string GetVisitId(string shopId)
+            => $"{shopId}:total_unique_visits";
+
+        internal static string GetTotalBoughtId(string shopId)
+            => $"{shopId}:items_bought";
+
         public static bool Exists(string shopId)
             => Shops.Any(x => x.Id == shopId);
 
@@ -175,6 +193,47 @@ namespace Arcadia
                 unique |= ItemHelper.GetTag(itemId);
 
             return unique;
+        }
+
+        public static bool CanSell(Shop shop, ItemData data)
+        {
+            Item item = ItemHelper.GetItem(data.Id);
+
+            if (item == null)
+                throw new Exception("Invalid data instance specified");
+
+            return (item.Tag & shop.SellTags) != 0;
+        }
+
+        public static string Sell(Shop shop, ItemData data, ArcadeUser user)
+        {
+            if (!CanSell(shop, data))
+            {
+                return Format.Warning($"**{shop.Name}** does not support selling this item.");
+            }
+
+            Item item = ItemHelper.GetItem(data.Id);
+            ItemHelper.TakeItem(user, data);
+
+            long value = shop.SellDeduction > 0
+                ? (long)Math.Floor(item.Value * (1 - shop.SellDeduction / (double)100))
+                : item.Value;
+
+            if (item.Currency.HasFlag(CurrencyType.Money))
+                user.Give(value, false);
+            else if (item.Currency.HasFlag(CurrencyType.Chips))
+                user.ChipBalance += value;
+            else if (item.Currency.HasFlag(CurrencyType.Tokens))
+                user.TokenBalance += value;
+            else if (item.Currency.HasFlag(CurrencyType.Debt))
+                user.Take(value, false);
+            else
+                throw new Exception("Unknown currency");
+
+            string icon = (Check.NotNull(item.GetIcon()) ? $"{item.GetIcon()} " : "");
+            string name = $"{icon}**{(Check.NotNull(icon) ? item.Name : item.GetName())}**";
+
+            return $"> You have received {Icons.IconOf(item.Currency)} **{value:##,0}** for {name}.";
         }
 
         public static Shop GetShop(string id)

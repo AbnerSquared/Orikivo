@@ -5,6 +5,7 @@
     {
         internal static readonly string Internal = "$";
         internal static readonly string Booster = "booster";
+        internal static readonly string Tool = "tool";
         internal static readonly string Component = "component";
         internal static readonly string Palette = "palette";
         internal static readonly string Font = "font";

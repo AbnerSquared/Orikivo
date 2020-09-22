@@ -754,10 +754,11 @@ namespace Arcadia
         public static ItemData DataOf(ArcadeUser user, Item item, string uniqueId = null)
             => DataOf(user, item.Id, uniqueId);
 
-        
-
         public static void TakeItem(ArcadeUser user, string itemId, int amount = 1)
             => TakeItem(user, GetItem(itemId), amount);
+
+        public static void TakeItem(ArcadeUser user, ItemData data, int amount = 1)
+            => TakeItem(user, GetItem(data.Id), amount);
 
         public static void TakeItem(ArcadeUser user, Item item, int amount = 1)
         {
@@ -794,10 +795,6 @@ namespace Arcadia
             }
         }
 
-        
-
-        
-
         public static void TakeItem(ArcadeUser user, Item item, string uniqueId)
         {
             if (!HasItem(user, item.Id))
@@ -814,8 +811,6 @@ namespace Arcadia
 
             user.Items.Remove(match);
         }
-
-        
 
         public static int GetOwnedAmount(ArcadeUser user, string itemId)
             => GetOwnedAmount(user, GetItem(itemId));

@@ -7,6 +7,13 @@ namespace Orikivo
     /// </summary>
     public class MessageContent
     {
+        public MessageContent(string content = null, bool isTTS = false, Embed embed = null)
+        {
+            Content = content;
+            IsTTS = isTTS;
+            Embed = embed?.ToEmbedBuilder();
+        }
+
         public string Content { get; set; }
 
         public bool IsTTS { get; set; }

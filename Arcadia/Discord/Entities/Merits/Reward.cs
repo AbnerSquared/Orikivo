@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using Arcadia.Services;
 using Orikivo;
+using Orikivo.Desync;
 
 namespace Arcadia
 {
@@ -11,14 +13,10 @@ namespace Arcadia
             Money = 0;
             Exp = 0;
         }
-        //public static IEnumerable<string> GetNames(Reward reward)
-        //{
-
-        //}
 
         public Dictionary<string, int> ItemIds { get; set; }
         public long Money { get; set; }
-        public long Exp { get; set; }
+        public ulong Exp { get; set; }
 
         public int Count => GetCount();
 
@@ -40,8 +38,20 @@ namespace Arcadia
             if (Money > 0)
                 user.Give(Money);
 
-            // if (Exp > 0)
-            //    user.Exp += Exp;
+            ulong oldExp = user.Exp;
+
+            if (Exp > 0)
+               user.Exp += Exp;
+
+            if (user.Config.Notifier.HasFlag(NotifyAllow.Level))
+            {
+                int oldLevel = ExpConvert.AsLevel(oldExp, user.Ascent);
+                int level = user.Level;
+                if (level > oldLevel)
+                {
+                    user.Notifier.Append($"Level up! ({LevelViewer.GetLevel(oldLevel, user.Ascent)} to {LevelViewer.GetLevel(level, user.Ascent)})");
+                }
+            }
 
             if (!Check.NotNullOrEmpty(ItemIds))
                 return;

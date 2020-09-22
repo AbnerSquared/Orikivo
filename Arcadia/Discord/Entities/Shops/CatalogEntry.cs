@@ -5,6 +5,15 @@
         public static readonly int DefaultMinDiscount = 1;
         public static readonly int DefaultMaxDiscount = 25;
 
+        public CatalogEntry() { }
+
+        public CatalogEntry(string itemId, int weight, int? maxAllowed = null)
+        {
+            ItemId = itemId;
+            Weight = weight;
+            MaxAllowed = maxAllowed;
+        }
+
         public string ItemId { get; set; }
 
         public int? MaxAllowed { get; set; }

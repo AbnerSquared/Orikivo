@@ -361,9 +361,9 @@ namespace Arcadia.Graphics
                 card.AddLayer(icon);
 
                 // COUNTER
-                int level = ExpConvert.AsLevel(details.Exp);
-                ulong currentExp = ExpConvert.AsExp(level);
-                ulong nextExp = ExpConvert.AsExp(level + 1);
+                int level = ExpConvert.AsLevel(details.Exp, details.Ascent);
+                ulong currentExp = ExpConvert.AsExp(level, details.Ascent);
+                ulong nextExp = ExpConvert.AsExp(level + 1, details.Ascent);
 
                 var counter = new BitmapLayer
                 {

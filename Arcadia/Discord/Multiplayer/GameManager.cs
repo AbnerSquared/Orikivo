@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.Net;
 using Orikivo.Framework;
+using Orikivo.Text.Pagination;
 using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
@@ -43,15 +44,86 @@ namespace Arcadia.Multiplayer
             ["chess"] = new ChessGame()
         };
 
-        public static string ViewGames()
+        public static string ViewGames(int page = 0, ArcadeUser user = null)
         {
             var result = new StringBuilder();
 
-            result.AppendLine($"> **Games**");
+            bool allowTooltips = user?.Config?.Tooltips ?? true;
 
-            foreach ((string gameId, GameBase game) in Games)
+            if (allowTooltips)
             {
-                result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+                result.AppendLine($"{Format.Tooltip("Type `game <game_id>` to learn more about a game.")}\n");
+            }
+
+
+            int pageCount = Paginate.GetPageCount(Games.Count, 5);
+            page = Paginate.ClampIndex(page, pageCount);
+
+            string extra = pageCount > 1 ? $" ({Format.PageCount(page + 1, pageCount)})" : "";
+
+
+            result.AppendLine($"> **Games**{extra}");
+
+            foreach (GameBase game in Paginate.GroupAt(Games.Values, page, 8))
+            {
+                string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase) ? "" : $"`{game.Id}` ";
+                result.AppendLine($"> {id}{Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+            }
+
+            return result.ToString();
+        }
+
+        public static string ViewGame(string gameId, int page = 0, ArcadeUser user = null)
+        {
+            bool allowTooltips = user?.Config?.Tooltips ?? true;
+
+            GameBase game = GetGame(gameId);
+
+            if (game == null)
+                return Format.Warning("An unknown game was specified.");
+
+            var result = new StringBuilder();
+
+            if (game.Details.CanSpectate)
+            {
+                result.AppendLine($"{Format.Warning("This game supports spectating.")}");
+            }
+
+            if (allowTooltips)
+            {
+                result.AppendLine($"{Format.Tooltip($"Type `hostserver {game.Id}` to host a server for this game.")}");
+            }
+
+            result.AppendLine();
+
+            result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+
+            if (Check.NotNull(game.Details.Summary))
+            {
+                result.AppendLine($"> {game.Details.Summary}");
+            }
+
+            result.AppendLine();
+
+            if (game.Options.Count > 0)
+            {
+                int pageCount = Paginate.GetPageCount(game.Options.Count, 5);
+                page = Paginate.ClampIndex(page, pageCount);
+
+                string extra = pageCount > 1 ? $" [{Format.PageCount(page + 1, pageCount)}]" : "";
+                string title = $"> **Ruleset** (**{game.Options.Count}** {Format.TryPluralize("rule", game.Options.Count)}){extra}\n";
+
+                result.Append(title);
+
+                foreach (GameOption option in Paginate.GroupAt(game.Options, page, 5))
+                {
+                    result.AppendLine($"\n> `{option.Id}`\n> **{option.Name}** = `{option.Value.ToString()}`");
+
+                    if (Check.NotNull(option.Summary))
+                    {
+                        result.AppendLine($"> {option.Summary}");
+                    }
+                }
             }
 
             return result.ToString();
@@ -391,9 +463,12 @@ namespace Arcadia.Multiplayer
         // Refreshes the server's configuration details
         private static void RefreshServerConfig(GameServer server)
         {
+            GameDetails details = DetailsOf(server.GameId);
+            string gameName = Check.NotNull(details?.Name) ? details?.Name : server.GameId;
+
             server.GetBroadcast(GameState.Editing)
                 .Content.GetComponent("config")
-                .Draw(server.Name, server.Privacy, server.GameId, server.AllowSpectators, server.AllowInvites, server.AllowChat);
+                .Draw(server.Name, server.Privacy, gameName, server.AllowSpectators, server.AllowInvites, server.AllowChat);
         }
 
         private static void RefreshGameConfig(GameServer server)
@@ -698,27 +773,36 @@ namespace Arcadia.Multiplayer
                                 break;
                             }
 
-                            // if they are the host, automatically start it.
-                            if (player.Host)
+                            if (!server.AllowSpectators)
                             {
-                                if (!server.Session.Game.Details.CanSpectate)
-                                {
-                                    buffer = "[Console] The current session does not support spectating.";
-                                }
-                                else
-                                {
-                                    buffer = $"[Console] The spectator control panel is currently in development. Unable to initialize.";
-                                }
-
+                                buffer = "[Console] Spectating is disabled on this server.";
                                 AddConsoleText(server, buffer);
                                 break;
                             }
 
-                            // TODO: start up a spectator vote session, and if > 67% of players agree, start spectating
-                            buffer =
-                                $"[Console] The spectator control panel is currently in development. Unable to initialize.";
-                            AddConsoleText(server, buffer);
+                            if (!server.Session.Game.Details.CanSpectate)
+                            {
+                                buffer = "[Console] The current session does not support spectating.";
+                                AddConsoleText(server, buffer);
+                                break;
+                            }
+
+                            // if they are the host, automatically start it.
+                            if (player.Host)
+                            {
+                                connection.State = GameState.Watching;
+                                connection.Frequency = 2;
+                                break;
+                            }
+
+                            connection.State = GameState.Watching;
+                            connection.Frequency = 2;
                             break;
+
+                            // TODO: start up a spectator vote session, and if > 67% of players agree, start spectating
+                            // buffer = $"[Console] Multiple spectator s";
+                            //AddConsoleText(server, buffer);
+                            //break;
                         }
 
                         if (ctx.StartsWith("say"))
@@ -1219,9 +1303,9 @@ namespace Arcadia.Multiplayer
                             // if they are the host, automatically call
 
                             // otherwise, begin calling the vote to switch over to spectator mode.
-
+                            connection.State = GameState.Waiting;
+                            connection.Frequency = 0;
                             break;
-                            //break;
                         }
 
                         break;
@@ -1300,16 +1384,35 @@ namespace Arcadia.Multiplayer
             if (connection.DeleteMessages && server.GetPlayer(user.Id) != null)
             {
                 Logger.Debug("Attempt delete message");
-                if (!await message.TryDeleteAsync())
+                try
                 {
-                    connection.DeleteMessages = false;
-                    Logger.Debug("Revoked delete permission");
+                    if (!await message.TryDeleteAsync(new RequestOptions
+                    {
+                        RetryMode = RetryMode.RetryTimeouts | RetryMode.Retry502
+                    }))
+                    {
+                        connection.DeleteMessages = false;
+                        Logger.Debug("Revoked delete permission");
+                    }
+                }
+                catch (RateLimitedException e)
+                {
+                    if (connection.RefreshCounter > 0)
+                    {
+                        connection.CurrentMessageCounter++;
+                        Logger.Debug($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
+                        if (connection.CurrentMessageCounter >= connection.RefreshCounter)
+                        {
+                            Logger.Debug("Replacing connection content");
+                            await connection.RefreshAsync();
+                        }
+                    }
                 }
             }
             else if (connection.RefreshCounter > 0) // If the refresh counter is greater than 0
             {
-                Logger.Debug($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
                 connection.CurrentMessageCounter++;
+                Logger.Debug($"{connection.CurrentMessageCounter}/{connection.RefreshCounter} refreshes called");
 
                 if (connection.CurrentMessageCounter >= connection.RefreshCounter)
                 {

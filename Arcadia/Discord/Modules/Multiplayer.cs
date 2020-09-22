@@ -190,12 +190,18 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
         }
 
-        [RequireUser]
         [Command("games")]
         [Summary("View the list of all available multiplayer games.")]
-        public async Task ViewGamesAsync()
+        public async Task ViewGamesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GameManager.ViewGames());
+            await Context.Channel.SendMessageAsync(GameManager.ViewGames(--page, Context.Account));
+        }
+
+        [Command("game")]
+        [Summary("View all of the proper details for the specified game.")]
+        public async Task ViewGameAsync(string gameId, int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(GameManager.ViewGame(gameId, --page, Context.Account));
         }
     }
 }

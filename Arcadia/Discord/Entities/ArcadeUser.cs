@@ -88,7 +88,7 @@ namespace Arcadia
         public ulong Exp { get; internal set; }
 
         [JsonIgnore]
-        public int Level => ExpConvert.AsLevel(Exp);
+        public int Level => ExpConvert.AsLevel(Exp, Ascent);
 
         [JsonProperty("ascent")]
         public int Ascent { get; internal set; }

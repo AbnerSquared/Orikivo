@@ -33,8 +33,8 @@ namespace Arcadia
                 Type = QuestType.User,
                 Reward = new Reward
                 {
-                    Money = 100,
-                    Exp = 20
+                    Money = 105,
+                    Exp = 500
                 }
             },
             /*
@@ -71,8 +71,8 @@ namespace Arcadia
                 Type = QuestType.User,
                 Reward = new Reward
                 {
-                    Money = 20,
-                    Exp = 5
+                    Money = 25,
+                    Exp = 50
                 }
             },
             new Quest
@@ -89,8 +89,8 @@ namespace Arcadia
                 Type = QuestType.User,
                 Reward = new Reward
                 {
-                    Money = 20,
-                    Exp = 5
+                    Money = 25,
+                    Exp = 50
                 }
             }
         };

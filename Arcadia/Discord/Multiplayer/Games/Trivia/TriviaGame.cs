@@ -119,16 +119,17 @@ namespace Arcadia.Multiplayer.Games
                 Icon = "📰",
                 Summary = "Answer questions against the clock!",
                 PlayerLimit = 16,
-                RequiredPlayers = 1
+                RequiredPlayers = 1,
+                CanSpectate = true
             };
 
             Options = new List<GameOption>
             {
-                GameOption.Create("topics", "Topics", TriviaTopic.Any),
-                GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any),
-                GameOption.Create("questioncount", "Question Count", 5),
-                GameOption.Create("questionduration", "Question Duration", 15d),
-                GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API.")
+                GameOption.Create("topics", "Topics", TriviaTopic.Any, "Determines the topics to filter for (only when **Use OpenTDB** is disabled)."),
+                GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any, "Determines the difficulty range to filter each question for."),
+                GameOption.Create("questioncount", "Question Count", 5, "Represents the total amount of questions to play in this session."),
+                GameOption.Create("questionduration", "Question Duration", 15d, "Determines how long a player has to answer each question."),
+                GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API, which allows for a wider range of unique questions. Disable if you wish to only answer custom-made questions.")
             };
         }
 
@@ -147,6 +148,7 @@ namespace Arcadia.Multiplayer.Games
             {
                 connection.Frequency = 11;
             }
+            ctx.Session.SpectateFrequency = 11;
 
             //session.CancelQueuedAction();
 
@@ -218,6 +220,7 @@ namespace Arcadia.Multiplayer.Games
             {
                 connection.Frequency = 10;
             }
+            ctx.Session.SpectateFrequency = 10;
 
             int currentQuestion = ctx.Session.ValueOf<int>("current_question");
             CurrentQuestion = QuestionPool[currentQuestion];
@@ -258,6 +261,7 @@ namespace Arcadia.Multiplayer.Games
             {
                 connection.Frequency = 12;
             }
+            ctx.Session.SpectateFrequency = 12;
 
             foreach (PlayerData data in ctx.Session.Players)
             {
@@ -757,7 +761,8 @@ namespace Arcadia.Multiplayer.Games
             {
                 using (var tdb = new TdbClient())
                 {
-                    List<OpenTDB.TriviaQuestion> questions = await tdb.GetQuestionsAsync(questionCount);
+                    TriviaDifficulty diff = session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty);
+                    List<OpenTDB.TriviaQuestion> questions = await tdb.GetQuestionsAsync(questionCount, null, diff == TriviaDifficulty.Any ? null : (Difficulty?)diff);
 
                     if (questions == null)
                         throw new Exception("An error has occurred while retrieving questions.");
@@ -775,6 +780,8 @@ namespace Arcadia.Multiplayer.Games
                     ).ToList();
             }
 
+            session.SpectateFrequency = 10;
+            session.CanSpectate = true;
             // once all of that is ready, invoke action try_get_next_questions
             session.InvokeAction(TriviaVars.TryGetNextQuestion, true);
         }
