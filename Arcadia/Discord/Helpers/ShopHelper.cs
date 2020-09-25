@@ -9,164 +9,6 @@ namespace Arcadia
 {
     public static class ShopHelper
     {
-        public static readonly List<Vendor> Vendors =
-            new List<Vendor>
-            {
-                new Vendor
-                {
-                    Name = "V3-NDR",
-                    PreferredTag = ItemTag.Palette,
-                    OnEnter = new []
-                    {
-                        "Welcome.",
-                        "What can I do for you on this fine hour?"
-                    }
-                }
-            };
-
-        public static readonly List<Shop> Shops =
-            new List<Shop>
-            {
-                new Shop
-                {
-                    Id = "tinker_tent",
-                    Name = "Tinker's Tent",
-                    Quote = "Purchase components and crafting materials here.",
-                    Allow = ShopAllow.Buy,
-                    SellDeduction = 60,
-                    SellTags = ItemTag.Ingredient | ItemTag.Tool,
-                    Catalog = new CatalogGenerator
-                    {
-                        Size = 2,
-                        MaxDiscountsAllowed = 0,
-                        MaxSpecialsAllowed = 1,
-                        Entries = new List<CatalogEntry>
-                        {
-                            new CatalogEntry
-                            {
-                                ItemId = Items.ToolGiftWrap,
-                                Weight = 20
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.ComponentSmearKit,
-                                Weight = 8,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.ComponentBlendKit,
-                                Weight = 2,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.ComponentNeonKit,
-                                Weight = 4,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.ComponentDimmerKit,
-                                Weight = 4,
-                                IsSpecial = true
-                            }
-                        }
-                    }
-                },
-                new Shop
-                {
-                    Id = "boost_blight",
-                    Name = "Booster's Blight",
-                    Quote = "Purchase an assortment of boosters here.",
-                    Allow = ShopAllow.All,
-                    SellDeduction = 50,
-                    SellTags = ItemTag.Booster,
-                    Catalog = new CatalogGenerator
-                    {
-                        Size = 1,
-                        MaxDiscountsAllowed = 0,
-                        MaxSpecialsAllowed = 0,
-                        Entries = new List<CatalogEntry>
-                        {
-                            new CatalogEntry
-                            {
-                                ItemId = Items.BoosterDebtBlocker,
-                                Weight = 10
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.BoosterOriteBooster,
-                                Weight = 5
-                            }
-                        }
-                    }
-                },
-                new Shop
-                {
-                    Id = "chrome_cove",
-                    Name = "Chromatic Cove",
-                    Quote = "The reliable place to purchase color palettes.", // The shop that collects colorful goods.
-                    Catalog = new CatalogGenerator
-                    {
-                        Size = 2,
-                        MaxDiscountsAllowed = 1,
-                        MaxSpecialsAllowed = 1,
-                        Entries = new List<CatalogEntry>
-                        {
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteGammaGreen,
-                                Weight = 59,
-                                MinDiscount = 5,
-                                MaxDiscount = 10,
-                                DiscountChance = 0.4f
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteWumpite,
-                                Weight = 15,
-                                MinDiscount = 1,
-                                MaxDiscount = 5,
-                                DiscountChance = 0.3f,
-                                MaxAllowed = 1,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteCrimson,
-                                Weight = 75,
-                                MinDiscount = 5,
-                                MaxDiscount = 10,
-                                DiscountChance = 0.5f
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteGlass,
-                                Weight = 2,
-                                MaxAllowed = 1,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteLemon,
-                                Weight = 4,
-                                MaxAllowed = 1
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Items.PaletteOceanic,
-                                Weight = 6,
-                                MaxAllowed = 1
-                            }
-                        }
-                    },
-                    Allow = ShopAllow.All,
-                    SellDeduction = 50,
-                    SellTags = ItemTag.Palette
-                }
-            };
-
         internal static string GetTotalSoldId(string shopId)
             => $"{shopId}:items_sold";
 
@@ -177,11 +19,11 @@ namespace Arcadia
             => $"{shopId}:items_bought";
 
         public static bool Exists(string shopId)
-            => Shops.Any(x => x.Id == shopId);
+            => Assets.Shops.Any(x => x.Id == shopId);
 
         public static IEnumerable<Vendor> GetVendors(ItemTag catalogTags)
         {
-            return Vendors.Where(x => (x.PreferredTag & catalogTags) != 0);
+            return Assets.Vendors.Where(x => (x.PreferredTag & catalogTags) != 0);
         }
 
         // sum together all unique tags
@@ -238,10 +80,10 @@ namespace Arcadia
 
         public static Shop GetShop(string id)
         {
-            if (Shops.Count(x => x.Id == id) > 1)
+            if (Assets.Shops.Count(x => x.Id == id) > 1)
                 throw new ArgumentException("There are more than one shops with the specified ID.");
 
-            return Shops.FirstOrDefault(x => x.Id == id);
+            return Assets.Shops.FirstOrDefault(x => x.Id == id);
         }
 
         public static ItemCatalog GenerateCatalog(string shopId)
@@ -292,7 +134,7 @@ namespace Arcadia
                 info.AppendLine($"Here are all of the available shops.");
 
 
-            foreach (Shop shop in Shops)
+            foreach (Shop shop in Assets.Shops)
             {
                 info.Append(WriteShopRow(shop));
             }

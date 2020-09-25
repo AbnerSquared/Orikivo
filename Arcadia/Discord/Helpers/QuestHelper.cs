@@ -12,82 +12,6 @@ namespace Arcadia
         public static readonly long DefaultQuestCapacity = 1;
         public static readonly TimeSpan AssignCooldown = TimeSpan.FromHours(24);
         public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(4);
-        public static readonly List<Quest> Quests = new List<Quest>
-        {
-            new Quest
-            {
-                Id = "quest:weekly_attendance",
-                Name = "Weekly Attendance",
-                Summary = "Ensure your status for a week.",
-                Difficulty = QuestDifficulty.Normal,
-                Criteria = new List<VarCriterion>
-                {
-                    new VarCriterion(Stats.DailyStreak, 7)
-                },
-                Type = QuestType.User,
-                Reward = new Reward
-                {
-                    Money = 105,
-                    Exp = 500
-                }
-            },
-            /*
-            new Quest
-            {
-                Id = "quest:new_dusk", // New Moon // Full Moon // Honoring Kent
-                Name = "New Dusk",
-                Summary = "The night falls, giving way to new dangers.",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
-                {
-                    new VarCriterion(WolfStats.TimesPlayed, 3),
-                    new VarCriterion(WolfStats.TimesWon, 1)
-                },
-                Type = QuestType.User,
-                Reward = new Reward
-                {
-                    Money = 25,
-                    Exp = 5
-                }
-            },
-            */
-            new Quest
-            {
-                Id = "quest:casino_field_day",
-                Name = "Casino Field Day",
-                Summary = "It's a wonderful day to gamble your happiness away!",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
-                {
-                    new VarCriterion(GimiStats.TimesPlayed, 25),
-                    new VarCriterion(TickStats.TimesPlayed, 25)
-                },
-                Type = QuestType.User,
-                Reward = new Reward
-                {
-                    Money = 25,
-                    Exp = 50
-                }
-            },
-            new Quest
-            {
-                Id = "quest:trivial_pursuit",
-                Name = "Trivial Pursuit",
-                Summary = "Test your brain power and push through.",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
-                {
-                    new VarCriterion(TriviaStats.TimesPlayed, 5),
-                    new VarCriterion(TriviaStats.TimesWon, 1)
-                },
-                Type = QuestType.User,
-                Reward = new Reward
-                {
-                    Money = 25,
-                    Exp = 50
-                }
-            }
-        };
 
         public static bool MeetsCriterion(string questId, string statId, long current)
             => MeetsCriterion(GetQuest(questId), statId, current);
@@ -127,13 +51,13 @@ namespace Arcadia
         }
 
         public static bool Exists(string questId)
-            => Quests.Any(x => x.Id == questId);
+            => Assets.Quests.Any(x => x.Id == questId);
 
         private static bool HasAnyAssignable(ArcadeUser user)
-            => Quests.Any(quest => quest.ToAssign == null || quest.ToAssign(user));
+            => Assets.Quests.Any(quest => quest.ToAssign == null || quest.ToAssign(user));
 
         private static IEnumerable<Quest> GetAssignable(ArcadeUser user)
-            => Quests.Where(quest => quest.ToAssign == null || quest.ToAssign(user));
+            => Assets.Quests.Where(quest => quest.ToAssign == null || quest.ToAssign(user));
 
         public static bool IsAssigned(ArcadeUser user, string questId)
             => Exists(questId) && user.Quests.Any(x => x.Id == questId);
@@ -214,7 +138,7 @@ namespace Arcadia
 
         public static Quest GetQuest(string questId)
         {
-            var quests = Quests.Where(x => x.Id == questId);
+            var quests = Assets.Quests.Where(x => x.Id == questId);
 
             if (quests.Count() > 1)
                 throw new ArgumentException("There is more than 1 quest with the exact same ID.");

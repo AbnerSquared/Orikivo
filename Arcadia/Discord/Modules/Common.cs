@@ -155,14 +155,14 @@ namespace Arcadia.Modules
         [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
         public async Task ViewGuidesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GuideHelper.View(--page));
+            await Context.Channel.SendMessageAsync(GuideViewer.View(--page));
         }
 
         [Command("guide")]
         [Summary("Read and view the contents of the specified guide.")]
         public async Task ReadGuideAsync(string id, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GuideHelper.ViewGuide(id, --page));
+            await Context.Channel.SendMessageAsync(GuideViewer.ViewGuide(id, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
