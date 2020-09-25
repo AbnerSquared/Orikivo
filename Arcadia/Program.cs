@@ -27,7 +27,7 @@ namespace Arcadia
 
                 var layout = new ConsoleLayout
                 {
-                    Title = $"Orikivo Arcade: {OriGlobal.ClientVersion}",
+                    Title = $"Orikivo Arcade: {ArcadeData.Version}",
                     BackgroundColor = null,
                     ForegroundColor = null,
                     CursorVisible = false
@@ -43,8 +43,7 @@ namespace Arcadia
                     .AddSingleton<ArcadeContainer>()
                     .AddSingleton<LogService>()
                     .AddSingleton<EventHandler>()
-                    .AddSingleton<CommandHandler>()
-                    .AddSingleton(new MongoClient());
+                    .AddSingleton<CommandHandler>();
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
@@ -55,8 +54,9 @@ namespace Arcadia
                     .AddTypeReader<Recipe>(new RecipeTypeReader())
                     .AddTypeReader<Quest>(new QuestTypeReader())
                     .AddTypeReader<Shop>(new ShopTypeReader())
+                    .AddTypeReader<ArcadeUser>(new ArcadeUserTypeReader())
                     .AddEnumTypeReader<CardDeny>()
-                    .AddEnumTypeReader<Arcadia.Graphics.Casing>()
+                    .AddEnumTypeReader<Casing>()
                     .AddEnumTypeReader<FontType>()
                     .AddEnumTypeReader<PaletteType>()
                     .AddEnumTypeReader<BorderAllow>()

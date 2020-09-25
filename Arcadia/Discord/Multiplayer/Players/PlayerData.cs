@@ -1,73 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace Arcadia.Multiplayer
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public class GamePropertyAttribute : Attribute
-    {
-        public GamePropertyAttribute(string id)
-        {
-            Id = id;
-        }
-
-        public string Id { get; internal set; }
-    }
-
-    public enum TriviaAnswerState
-    {
-        Pending = 1,
-        Correct = 2,
-        Incorrect = 3
-    }
-
-    public class TriviaPlayerData
-    {
-        [GameProperty("score")]
-        public int Score { get; internal set; }
-
-        [GameProperty("streak")]
-        public int Streak { get; internal set; }
-
-        [GameProperty("answer_state")]
-        public TriviaAnswerState AnswerState { get; internal set; }
-
-        [GameProperty("answer_position")]
-        public int AnswerPosition { get; internal set; }
-
-        public List<GameProperty> GetProperties(string id)
-        {
-            return
-                GetType()
-                .GetProperties()
-                .Where(x => x.GetCustomAttribute<GamePropertyAttribute>() != null)
-                .Select(x => GameProperty.Create(x.GetCustomAttribute<GamePropertyAttribute>().Id, x.GetValue(this), true))
-                .ToList();
-        }
-    }
-
-    public interface IPlayerData
-    {
-        Player Source { get; }
-
-        void SetValue(string id, object value);
-
-        void SetValue(string id, string fromId);
-
-        void AddToValue(string id, int value);
-
-        object ValueOf(string id);
-
-        T ValueOf<T>(string id);
-
-        void ResetProperty(string id);
-
-        void Reset();
-    }
-
     /// <summary>
     /// Represents the data of a <see cref="Player"/> from a <see cref="GameSession"/>.
     /// </summary>

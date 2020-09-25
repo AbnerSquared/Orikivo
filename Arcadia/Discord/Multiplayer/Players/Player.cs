@@ -1,6 +1,5 @@
 ﻿using Discord;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer
@@ -61,12 +60,5 @@ namespace Arcadia.Multiplayer
         {
             return Channel ??= await PlayerChannel.CreateAsync(User);
         }
-    }
-
-    public interface IPlayer
-    {
-        Player Source { get; }
-
-        List<GameProperty> GetProperties();
     }
 }

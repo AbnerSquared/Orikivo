@@ -29,7 +29,7 @@ namespace Arcadia.Modules
         [Command("about"), Priority(0)]
         public async Task AboutAsync()
         {
-            await Context.Channel.SendMessageAsync(About.View());
+            await Context.Channel.SendMessageAsync(AboutViewer.View());
         }
 
         //[DoNotNotify]

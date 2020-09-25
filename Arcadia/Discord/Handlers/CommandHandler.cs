@@ -91,7 +91,7 @@ namespace Arcadia
 
                 if (inner.EqualsAny("gimi"))
                 {
-                    await source.Channel.SendMessageAsync(CommandDetails.WriteGimi());
+                    await source.Channel.SendMessageAsync(CommandDetailsViewer.WriteGimi());
 
                     if (ctx.Account != null)
                         ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
@@ -101,7 +101,7 @@ namespace Arcadia
 
                 if (inner.EqualsAny("doubler", "double", "dbl"))
                 {
-                    await source.Channel.SendMessageAsync(CommandDetails.WriteTick());
+                    await source.Channel.SendMessageAsync(CommandDetailsViewer.WriteTick());
 
                     if (ctx.Account != null)
                         ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
@@ -111,7 +111,7 @@ namespace Arcadia
 
                 if (inner == "getchips")
                 {
-                    await source.Channel.SendMessageAsync(CommandDetails.WriteGetChips());
+                    await source.Channel.SendMessageAsync(CommandDetailsViewer.WriteGetChips());
 
                     if (ctx.Account != null)
                         ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
@@ -329,7 +329,7 @@ namespace Arcadia
             if (requireUser != null && requireUser.Handling != AccountHandling.ReadOnly)
             {
                 MeritHelper.UnlockAvailable(ctx.Account);
-                Research.TryCompleteResearch(ctx.Account);
+                ResearchHelper.TryCompleteResearch(ctx.Account);
 
                 Logger.Debug("User updated. Now saving...");
                 ctx.Data.Users.TrySave(ctx.Account);

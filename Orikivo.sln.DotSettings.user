@@ -15,6 +15,11 @@
     &lt;TestId&gt;xUnit::C6C702E8-4145-4930-977E-C00DC3D28E94::.NETCoreApp,Version=v3.1::Arcadia.Tests.UnitTest1.Test_ExpectValidVar&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6ff9c68b_002D5d5c_002D4979_002Dbff2_002D908e9a93c13a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test_ExpectEqualExp #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::C6C702E8-4145-4930-977E-C00DC3D28E94::.NETCoreApp,Version=v3.1::Arcadia.Tests.ExpTests.Test_ExpectEqualExp&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=94e90f5b_002Da0bb_002D4f4b_002D91b1_002Dcb171e6f64b0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test_ExpectEqualExp" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::C6C702E8-4145-4930-977E-C00DC3D28E94::.NETCoreApp,Version=v3.1::Arcadia.Tests.ExpTests.Test_ExpectEqualExp&lt;/TestId&gt;&#xD;

@@ -3,12 +3,6 @@ using Orikivo;
 
 namespace Arcadia.Casino
 {
-    public enum BlackjackResultFlag
-    {
-        Win = 1,
-        Lose = 2
-    }
-
     public class Blackjack
     {
         // Between 1-8 unique card decks are shuffled
@@ -31,15 +25,5 @@ namespace Arcadia.Casino
         // Double Down: Double the wager, take a card, end turn
         // Split: If two cards have the same value, separate them into 2 hands
         // Fold: Retire and lose 50% of the wager
-    }
-
-    public class BlackjackHandle
-    {
-        // Handle a unique session of blackjack here
-    }
-
-    public class BlackjackResult
-    {
-
     }
 }

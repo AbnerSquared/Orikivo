@@ -1,57 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Orikivo;
-using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
-    public class TextSection
-    {
-        public string Icon { get; set; }
-
-        public string Title { get; set; }
-
-        public virtual string Content { get; set; }
-
-        public string Build()
-        {
-            var result = new StringBuilder();
-
-            if (!string.IsNullOrWhiteSpace(Title))
-                result.AppendLine(Format.Header(Title, Icon, useMarkdown: false));
-
-            if (!string.IsNullOrWhiteSpace(Content))
-                result.AppendLine(Content);
-
-            return result.ToString();
-        }
-    }
-
-    public class TextList : TextSection
-    {
-        public string Bullet { get; set; }
-
-        public List<string> Values { get; set; } = new List<string>();
-
-        /// <inheritdoc />
-        public override string Content => Format.List(Values, Bullet);
-    }
-
-    public class TextBody
-    {
-        public List<string> Tooltips { get; set; } = new List<string>();
-
-        public Header Header { get; set; }
-
-        public List<TextSection> Sections { get; set; } = new List<TextSection>();
-
-        public string Build(bool allowTooltips = true)
-            => Locale.BuildMessage(this, allowTooltips);
-    }
-
     public static class Locale
     {
         public const int MaxMessageLength = 2000;

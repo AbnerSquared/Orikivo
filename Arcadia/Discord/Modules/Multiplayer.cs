@@ -24,7 +24,7 @@ namespace Arcadia.Modules
         public async Task ViewInvitesAsync(int page = 1)
         {
             page--;
-            await Context.Channel.SendMessageAsync(ServerBrowser.ViewInvites(Context.Account, _games, page));
+            await Context.Channel.SendMessageAsync(GameViewer.ViewInvites(Context.Account, _games, page));
         }
 
         [Command("servers")]
@@ -37,7 +37,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(ServerBrowser.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(GameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
         }
 
         [RequireUser]

@@ -9,14 +9,6 @@ using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
-    [Flags]
-    public enum ServerAllow
-    {
-        Spectate = 1,
-        Chat = 2,
-        Invite = 4
-    }
-
     public class GameServer
     {
         private readonly GameManager _manager;

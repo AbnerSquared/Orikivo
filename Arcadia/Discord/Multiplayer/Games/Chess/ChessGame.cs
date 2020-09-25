@@ -8,58 +8,6 @@ using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public enum ChessState
-    {
-        Active = 1,
-        Win = 2,
-        Checkmate = 3,
-        Draw = 4,
-        Resign = 5,
-        Timeout = 6
-    }
-
-    public enum ChessWinner
-    {
-        White = 1,
-        Black = 2,
-        None = 3
-    }
-
-    internal class ChessConfig
-    {
-        internal static readonly string RotateBoard = "rotateboard";
-        internal static readonly string StartingPlayer = "startingplayer";
-        internal static readonly string AllowEnPassant = "allowenpassant";
-        internal static readonly string PieceFormat = "pieceformat";
-    }
-
-    internal class ChessVars
-    {
-        internal static readonly string Color = "color";
-        internal static readonly string Board = "board";
-        internal static readonly string CurrentColor = "current_color";
-        internal static readonly string GameState = "game_state";
-        internal static readonly string Winner = "winner";
-        internal static readonly string SwapCurrentPlayer = "swap_current_player";
-        internal static readonly string GetResults = "get_results";
-    }
-
-    internal class ChessChannel
-    {
-        internal static readonly int Main = 31;
-        internal static readonly int Results = 32;
-        internal static readonly string Content = "content";
-        internal static readonly string Header = "header";
-        internal static readonly string Board = "board";
-    }
-
-    public enum ChessStartMode
-    {
-        Host = 1,
-        Participant = 2,
-        Random = 3
-    }
-
     public class ChessGame : GameBase
     {
         public ChessGame()

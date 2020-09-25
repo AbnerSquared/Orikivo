@@ -9,8 +9,6 @@ using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
 using Arcadia.Multiplayer.Games;
-using Orikivo.Drawing;
-using Casing = Arcadia.Graphics.Casing;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -35,7 +33,7 @@ namespace Arcadia.Modules
         [Summary("View a full summary of discovered entries.")]
         public async Task ViewMemosAsync(int page = 1)
         {
-            string result = Research.ViewMemos(Context.Account, --page);
+            string result = ResearchHelper.ViewMemos(Context.Account, --page);
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
@@ -44,7 +42,7 @@ namespace Arcadia.Modules
         [Summary("View a full summary of discovered entries.")]
         public async Task ViewMemoAsync(Item item)
         {
-            string result = Research.ViewMemo(Context.Account, item);
+            string result = ResearchHelper.ViewMemo(Context.Account, item);
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
@@ -53,7 +51,7 @@ namespace Arcadia.Modules
         [Summary("View details about the research progress of an item.")]
         public async Task ReadResearchAsync(Item item)
         {
-            string result = Research.ViewResearch(Context.Account, item);
+            string result = ResearchHelper.ViewResearch(Context.Account, item);
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
@@ -62,7 +60,7 @@ namespace Arcadia.Modules
         [Summary("View the current progress of your research.")]
         public async Task ViewResearchAsync()
         {
-            string result = Research.ViewProgress(Context.Account);
+            string result = ResearchHelper.ViewProgress(Context.Account);
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
@@ -70,7 +68,7 @@ namespace Arcadia.Modules
         [Command("research"), Priority(1)]
         public async Task ResearchAsync(Item item)
         {
-            string result = Research.ResearchItem(Context.Account, item);
+            string result = ResearchHelper.ResearchItem(Context.Account, item);
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
@@ -172,7 +170,7 @@ namespace Arcadia.Modules
         [Summary("View all of your currently known recipes.")]
         public async Task ViewRecipesAsync()
         {
-            await Context.Channel.SendMessageAsync(Catalog.ViewRecipes(Context.Account));
+            await Context.Channel.SendMessageAsync(RecipeViewer.View(Context.Account));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -187,7 +185,7 @@ namespace Arcadia.Modules
                 return;
             }*/
 
-            await Context.Channel.SendMessageAsync(Catalog.ViewRecipeInfo(Context.Account, recipe));
+            await Context.Channel.SendMessageAsync(RecipeViewer.ViewRecipeInfo(Context.Account, recipe));
         }
 
         [RequireUser]
@@ -211,7 +209,7 @@ namespace Arcadia.Modules
 
                 foreach ((string itemId, int amount) in ItemHelper.GetMissingFromRecipe(Context.Account, recipe))
                 {
-                    notice.AppendLine(Catalog.WriteRecipeComponent(itemId, amount));
+                    notice.AppendLine(RecipeViewer.WriteRecipeComponent(itemId, amount));
                 }
 
                 await Context.Channel.SendMessageAsync(notice.ToString());
@@ -251,7 +249,7 @@ namespace Arcadia.Modules
         [Summary("View all of your currently equipped boosters.")]
         public async Task ViewBoostersAsync()
         {
-            await Context.Channel.SendMessageAsync(BoostHelper.Write(Context.Account));
+            await Context.Channel.SendMessageAsync(BoostViewer.Write(Context.Account));
         }
 
         [RequireUser]
@@ -320,13 +318,13 @@ namespace Arcadia.Modules
             if (!Context.Account.CanShop)
                 return;
 
-            var handle = new ShopHandler(Context, shop);
+            var handle = new ShopSession(Context, shop);
 
             await HandleShopAsync(handle);
             Context.Account.CanShop = true;
         }
 
-        private async Task HandleShopAsync(ShopHandler shop)
+        private async Task HandleShopAsync(ShopSession shop)
         {
             try
             {
@@ -408,16 +406,16 @@ namespace Arcadia.Modules
         [Command("vote")]
         public async Task VoteAsync()
         {
-            VoteResultFlag result = Vote.Next(Context.Account);
-            await Context.Channel.SendMessageAsync(Vote.ApplyAndDisplay(Context.Account, result));
+            VoteResultFlag result = VoteService.Next(Context.Account);
+            await Context.Channel.SendMessageAsync(VoteService.ApplyAndDisplay(Context.Account, result));
         }
 
         [RequireUser]
         [Command("daily")]
         public async Task GetDailyAsync()
         {
-            DailyResultFlag result = Daily.Next(Context.Account);
-            await Context.Channel.SendMessageAsync(Daily.ApplyAndDisplay(Context.Account, result));
+            DailyResultFlag result = DailyService.Next(Context.Account);
+            await Context.Channel.SendMessageAsync(DailyService.ApplyAndDisplay(Context.Account, result));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -426,7 +424,7 @@ namespace Arcadia.Modules
         public async Task ViewCatalogAsync(string query = null, int page = 1)
         {
             page--;
-            await Context.Channel.SendMessageAsync(Catalog.View(Context.Account, query, page));
+            await Context.Channel.SendMessageAsync(CatalogViewer.View(Context.Account, query, page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -440,7 +438,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Catalog.Search(Context.Account, input));
+            await Context.Channel.SendMessageAsync(CatalogViewer.Search(Context.Account, input));
         }
 
         [Command("trade")]
@@ -457,14 +455,14 @@ namespace Arcadia.Modules
 
             Context.Account.CanTrade = false;
 
-            var handler = new TradeHandler(Context, account);
+            var handler = new TradeSession(Context, account);
 
             await HandleTradeAsync(handler);
             Context.Account.CanTrade = true;
             account.CanTrade = true;
         }
 
-        private async Task HandleTradeAsync(TradeHandler handler)
+        private async Task HandleTradeAsync(TradeSession handler)
         {
             try
             {
@@ -595,7 +593,7 @@ namespace Arcadia.Modules
             if (status == CatalogStatus.Unknown && Context.Account.Items.Exists(x => x.Id == item.Id))
                 ItemHelper.SetCatalogStatus(Context.Account, item, CatalogStatus.Known);
 
-            await Context.Channel.SendMessageAsync(Catalog.ViewItem(item, ItemHelper.GetCatalogStatus(Context.Account, item)));
+            await Context.Channel.SendMessageAsync(CatalogViewer.ViewItem(item, ItemHelper.GetCatalogStatus(Context.Account, item)));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -615,7 +613,7 @@ namespace Arcadia.Modules
 
             ItemData data = Context.Account.Items[slot];
 
-            await Context.Channel.SendMessageAsync(Catalog.InspectItem(Context, Context.Account, data, slot));
+            await Context.Channel.SendMessageAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -637,7 +635,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Catalog.InspectItem(Context, Context.Account, data, slot));
+            await Context.Channel.SendMessageAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot));
         }
 
         // This gets a person's backpack.
@@ -652,7 +650,7 @@ namespace Arcadia.Modules
             if (await CatchEmptyAccountAsync(account))
                 return;
 
-            await Context.Channel.SendMessageAsync(Inventory.Write(account, account.Id == Context.Account.Id));
+            await Context.Channel.SendMessageAsync(InventoryViewer.Write(account, account.Id == Context.Account.Id));
         }
 
         [Command("statsof")]
@@ -802,7 +800,7 @@ namespace Arcadia.Modules
             if (await CatchEmptyAccountAsync(account))
                 return;
 
-            await Context.Channel.SendMessageAsync(Profile.View(account, Context));
+            await Context.Channel.SendMessageAsync(ProfileViewer.View(account, Context));
         }
 
         private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)

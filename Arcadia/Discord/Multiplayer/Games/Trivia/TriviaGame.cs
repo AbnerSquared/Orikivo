@@ -7,26 +7,6 @@ using OpenTDB;
 
 namespace Arcadia.Multiplayer.Games
 {
-    internal static class TriviaVars
-    {
-        internal static readonly string TotalAnswered = "total_answered";
-        internal static readonly string GetQuestionResult = "get_question_result";
-        internal static readonly string TryGetQuestionResult = "try_get_question_result";
-        internal static readonly string TryGetNextQuestion = "try_get_next_question";
-        internal static readonly string GetNextQuestion = "get_next_question";
-        internal static readonly string GetResults = "get_results";
-        internal static readonly string TryRestart = "try_restart";
-    }
-
-    internal static class TriviaConfig
-    {
-        internal static readonly string Topics = "topics";
-        internal static readonly string Difficulty = "difficulty";
-        internal static readonly string QuestionCount = "questioncount";
-        internal static readonly string QuestionDuration = "questionduration";
-        internal static readonly string UseOpenTDB = "useopentdb";
-    }
-
     public class TriviaGame : GameBase
     {
         public static List<TriviaQuestion> Questions => new List<TriviaQuestion>

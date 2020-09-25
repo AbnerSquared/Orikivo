@@ -123,7 +123,7 @@ namespace Arcadia.Modules
             if (wager == 0)
             {
                 // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
-                await Context.Channel.SendMessageAsync(CommandDetails.WriteTick());
+                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteTick());
                 return;
             }
 
@@ -172,7 +172,7 @@ namespace Arcadia.Modules
             if (amount == 0)
             {
                 // $"> ⚠️ You need to specify a positive amount of **Orite** to convert.
-                await Context.Channel.SendMessageAsync(CommandDetails.WriteGetChips());
+                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteGetChips());
                 return;
             }
 

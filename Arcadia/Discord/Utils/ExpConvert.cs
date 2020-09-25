@@ -41,7 +41,7 @@ namespace Arcadia
                 expSum = 0;
                 while (exp > expSum)
                 {
-                    expSum += (ulong)level * LevelStartScale;
+                    expSum += (ulong)(level + 1) * LevelStartScale;
 
                     if (exp >= expSum)
                         level++;
