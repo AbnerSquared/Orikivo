@@ -59,7 +59,7 @@ namespace Arcadia.Modules
 
             if (Check.NotNull(gameId))
             {
-                if (!GameManager.Games.ContainsKey(gameId))
+                if (!_games.Games.ContainsKey(gameId))
                 {
                     await Context.Channel.SendMessageAsync(Format.Warning("Unable to initialize a server for the specified game mode.")).ConfigureAwait(false);
                     return;
@@ -125,7 +125,7 @@ namespace Arcadia.Modules
 
             if (Check.NotNull(gameId))
             {
-                if (!GameManager.Games.ContainsKey(gameId))
+                if (!_games.Games.ContainsKey(gameId))
                 {
                     await Context.Channel.SendMessageAsync(Format.Warning("An invalid game mode was specified.")).ConfigureAwait(false);
                     return;
@@ -194,14 +194,14 @@ namespace Arcadia.Modules
         [Summary("View the list of all available multiplayer games.")]
         public async Task ViewGamesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GameManager.ViewGames(--page, Context.Account));
+            await Context.Channel.SendMessageAsync(GameViewer.ViewGames(_games, --page, Context.Account));
         }
 
         [Command("game")]
         [Summary("View all of the proper details for the specified game.")]
         public async Task ViewGameAsync(string gameId, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GameManager.ViewGame(gameId, --page, Context.Account));
+            await Context.Channel.SendMessageAsync(GameViewer.ViewGame(_games.GetGame(gameId), --page, Context.Account));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
@@ -88,7 +89,15 @@ namespace Arcadia
                 client.Provider.GetRequiredService<EventHandler>();
                 client.Provider.GetRequiredService<CommandHandler>();
 
-                await client.StartAsync(cancelSource.Token);
+                client.Provider.GetRequiredService<GameManager>().DefaultGameId = "trivia";
+                client.Provider.GetRequiredService<GameManager>().Games = new Dictionary<string, GameBase>
+                {
+                    ["trivia"] = new TriviaGame(),
+                    ["werewolf"] = new WerewolfGame(),
+                    ["chess"] = new ChessGame()
+                };
+
+        await client.StartAsync(cancelSource.Token);
             }).GetAwaiter().GetResult();
         }
     }

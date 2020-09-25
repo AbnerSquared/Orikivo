@@ -16,7 +16,7 @@ namespace Arcadia.Multiplayer
 
         private void DrawHeader()
         {
-            GameDetails gameDetails = GameManager.DetailsOf(GameId);
+            GameDetails gameDetails = _manager.DetailsOf(GameId);
 
             string gameName = GameId;
             string playerCounter = $"**{Players.Count:##,0}** {Format.TryPluralize("player", Players.Count)}";
@@ -49,7 +49,7 @@ namespace Arcadia.Multiplayer
 
         private void DrawConfig()
         {
-            GameDetails details = GameManager.DetailsOf(GameId);
+            GameDetails details = _manager.DetailsOf(GameId);
             string gameName = Check.NotNull(details?.Name) ? details?.Name : GameId;
             GetBroadcast(GameState.Editing).Content["config"].Draw(Name, Privacy, gameName, AllowSpectators, AllowInvites, AllowChat);
         }
@@ -58,7 +58,7 @@ namespace Arcadia.Multiplayer
         {
             DisplayContent editing = GetBroadcast(GameState.Editing).Content;
 
-            if (!GameManager.Games.ContainsKey(GameId))
+            if (!_manager.Games.ContainsKey(GameId))
                 return;
 
             if (!Check.NotNullOrEmpty(Options))
@@ -70,7 +70,7 @@ namespace Arcadia.Multiplayer
             editing["game_config"].Active = true;
             editing["game_config"].Draw(
                 Options.Select(x => $"{x.Name}: **{x.Value}**"),
-                GameManager.DetailsOf(GameId).Name);
+                _manager.DetailsOf(GameId).Name);
         }
 
         private void DrawConsole()
@@ -81,12 +81,12 @@ namespace Arcadia.Multiplayer
 
         private void LoadGameConfig()
         {
-            if (string.IsNullOrWhiteSpace(GameId) || !GameManager.Games.ContainsKey(GameId))
+            if (string.IsNullOrWhiteSpace(GameId) || !_manager.Games.ContainsKey(GameId))
             {
                 return;
             }
 
-            GameBase game = GameManager.GetGame(GameId);
+            GameBase game = _manager.GetGame(GameId);
 
             if (game != null)
             {
@@ -98,12 +98,16 @@ namespace Arcadia.Multiplayer
             return;
         }
 
+        public GameDetails GetGameDetails()
+            => _manager.DetailsOf(GameId);
+
         /// <summary>
         /// Asynchronously creates a new <see cref="GameServer"/>.
         /// </summary>
         internal static async Task<GameServer> CreateAsync(GameManager manager, IUser user, IMessageChannel channel, ServerProperties properties = null)
         {
             properties ??= ServerProperties.GetDefault(user.Username);
+            properties.GameId = manager.DefaultGameId;
 
             if (manager.ReservedUsers.ContainsKey(user.Id))
                 throw new ReservedException(user.Id, EntityType.User);
@@ -166,7 +170,7 @@ namespace Arcadia.Multiplayer
 
         internal bool Destroyed { get; set; }
 
-        public bool IsFull => GameManager.Games.ContainsKey(GameId) && Players.Count >= GameManager.DetailsOf(GameId).PlayerLimit;
+        public bool IsFull => _manager.Games.ContainsKey(GameId) && Players.Count >= _manager.DetailsOf(GameId).PlayerLimit;
 
         /// <summary>
         /// Represents the unique identifier for this <see cref="GameServer"/>.
@@ -244,13 +248,13 @@ namespace Arcadia.Multiplayer
                 return true;
             }
 
-            if (!GameManager.Games.ContainsKey(GameId))
+            if (!_manager.Games.ContainsKey(GameId))
             {
                 AddConsoleText("[Console] Unable to find the specified game.");
                 return false;
             }
 
-            GameDetails details = GameManager.DetailsOf(GameId);
+            GameDetails details = _manager.DetailsOf(GameId);
 
             if (details == null)
             {
@@ -266,7 +270,7 @@ namespace Arcadia.Multiplayer
                 {
                     try
                     {
-                        await GameManager.GetGame(GameId).BuildAsync(this);
+                        await _manager.GetGame(GameId).BuildAsync(this);
                         return true;
                     }
                     catch (Exception e)
@@ -333,7 +337,7 @@ namespace Arcadia.Multiplayer
 
         public async Task<bool> SetOptionAsync(string id, string value)
         {
-            if (!GameManager.Games.ContainsKey(GameId))
+            if (!_manager.Games.ContainsKey(GameId))
             {
                 AddConsoleText("[Console] Unable to load the options for the specified game.");
                 return false;
@@ -410,7 +414,7 @@ namespace Arcadia.Multiplayer
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
 
-            if (string.IsNullOrWhiteSpace(gameId) || !GameManager.Games.ContainsKey(gameId))
+            if (string.IsNullOrWhiteSpace(gameId) || !_manager.Games.ContainsKey(gameId))
             {
                 AddConsoleText("[Console] An unknown game mode was specified.");
                 return false;

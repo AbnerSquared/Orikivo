@@ -13,7 +13,6 @@ namespace Arcadia.Multiplayer
 
         public static readonly ServerProperties Default = new ServerProperties
         {
-            GameId = "Trivia",
             Privacy = Privacy.Public,
             Name = "New Game Server",
             AllowedActions = ServerAllow.Chat | ServerAllow.Spectate

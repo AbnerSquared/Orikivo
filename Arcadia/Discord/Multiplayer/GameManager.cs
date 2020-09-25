@@ -36,107 +36,8 @@ namespace Arcadia.Multiplayer
             _client.MessageDeleted += OnMessageDeleted;
         }
 
-        // This should be moved elsewhere?
-        internal static Dictionary<string, GameBase> Games => new Dictionary<string, GameBase>
-        {
-            ["trivia"] = new TriviaGame(),
-            ["werewolf"] = new WerewolfGame(),
-            ["chess"] = new ChessGame()
-        };
-
-        public static string ViewGames(int page = 0, ArcadeUser user = null)
-        {
-            var result = new StringBuilder();
-
-            bool allowTooltips = user?.Config?.Tooltips ?? true;
-
-            if (allowTooltips)
-            {
-                result.AppendLine($"{Format.Tooltip("Type `game <game_id>` to learn more about a game.")}\n");
-            }
-
-
-            int pageCount = Paginate.GetPageCount(Games.Count, 5);
-            page = Paginate.ClampIndex(page, pageCount);
-
-            string extra = pageCount > 1 ? $" ({Format.PageCount(page + 1, pageCount)})" : "";
-
-
-            result.AppendLine($"> **Games**{extra}");
-
-            foreach (GameBase game in Paginate.GroupAt(Games.Values, page, 8))
-            {
-                string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase) ? "" : $"`{game.Id}` ";
-                result.AppendLine($"> {id}{Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
-            }
-
-            return result.ToString();
-        }
-
-        public static string ViewGame(string gameId, int page = 0, ArcadeUser user = null)
-        {
-            bool allowTooltips = user?.Config?.Tooltips ?? true;
-
-            GameBase game = GetGame(gameId);
-
-            if (game == null)
-                return Format.Warning("An unknown game was specified.");
-
-            var result = new StringBuilder();
-
-            if (game.Details.CanSpectate)
-            {
-                result.AppendLine($"{Format.Warning("This game supports spectating.")}");
-            }
-
-            if (allowTooltips)
-            {
-                result.AppendLine($"{Format.Tooltip($"Type `hostserver {game.Id}` to host a server for this game.")}");
-            }
-
-            result.AppendLine();
-
-            result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
-
-            if (Check.NotNull(game.Details.Summary))
-            {
-                result.AppendLine($"> {game.Details.Summary}");
-            }
-
-            result.AppendLine();
-
-            if (game.Options.Count > 0)
-            {
-                int pageCount = Paginate.GetPageCount(game.Options.Count, 5);
-                page = Paginate.ClampIndex(page, pageCount);
-
-                string extra = pageCount > 1 ? $" [{Format.PageCount(page + 1, pageCount)}]" : "";
-                string title = $"> **Ruleset** (**{game.Options.Count}** {Format.TryPluralize("rule", game.Options.Count)}){extra}\n";
-
-                result.Append(title);
-
-                foreach (GameOption option in Paginate.GroupAt(game.Options, page, 5))
-                {
-                    result.AppendLine($"\n> `{option.Id}`\n> **{option.Name}** = `{option.Value.ToString()}`");
-
-                    if (Check.NotNull(option.Summary))
-                    {
-                        result.AppendLine($"> {option.Summary}");
-                    }
-                }
-            }
-
-            return result.ToString();
-        }
-
-        public static GameBase GetGame(string gameId)
-        {
-            if (!Games.ContainsKey(gameId))
-                return null;
-
-            return Games[gameId];
-        }
-
+        public IReadOnlyDictionary<string, GameBase> Games { get; set; }
+        public string DefaultGameId { get; set; }
         public Dictionary<string, GameServer> Servers { get; }
 
         /// <summary>
@@ -266,12 +167,20 @@ namespace Arcadia.Multiplayer
             }
         }
 
-        public static GameDetails DetailsOf(string gameId)
+        public GameDetails DetailsOf(string gameId)
         {
             if (!Games.ContainsKey(gameId))
                 return null;
 
             return Games[gameId].Details;
+        }
+
+        public GameBase GetGame(string gameId)
+        {
+            if (!Games.ContainsKey(gameId))
+                return null;
+
+            return Games[gameId];
         }
 
         private void RefreshConsoleHeader(GameServer server)
@@ -461,7 +370,7 @@ namespace Arcadia.Multiplayer
         }
 
         // Refreshes the server's configuration details
-        private static void RefreshServerConfig(GameServer server)
+        private void RefreshServerConfig(GameServer server)
         {
             GameDetails details = DetailsOf(server.GameId);
             string gameName = Check.NotNull(details?.Name) ? details?.Name : server.GameId;
@@ -471,7 +380,7 @@ namespace Arcadia.Multiplayer
                 .Draw(server.Name, server.Privacy, gameName, server.AllowSpectators, server.AllowInvites, server.AllowChat);
         }
 
-        private static void RefreshGameConfig(GameServer server)
+        private void RefreshGameConfig(GameServer server)
         {
             DisplayContent editing = server.GetBroadcast(GameState.Editing).Content;
 
