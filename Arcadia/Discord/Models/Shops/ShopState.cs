@@ -19,6 +19,7 @@
         SellInvalid = 15,
         SellNotAllowed = 16,
         SellNotOwned = 17,
-        BuyRemainder = 18
+        BuyRemainder = 18,
+        BuyLimit = 19
     }
 }

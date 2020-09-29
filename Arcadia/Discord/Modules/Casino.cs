@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Text;
 using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
-using Orikivo.Framework;
+using Discord.WebSocket;
 
 namespace Arcadia.Modules
 {
@@ -13,6 +12,64 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>
     {
+        private async Task HandleBlackJackAsync(BlackJackSession session)
+        {
+            try
+            {
+                var collector = new MessageCollector(Context.Client);
+
+                var options = new MatchOptions
+                {
+                    ResetTimeoutOnAttempt = true,
+                    Timeout = TimeSpan.FromSeconds(30),
+                    Session = session
+                };
+
+                bool Filter(SocketMessage message, int index)
+                {
+                    return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
+                }
+
+                await collector.MatchAsync(Filter, options);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
+        }
+
+        [RequireUser]
+        [Command("blackjack")]
+        [Summary("A game of 21.")]
+        public async Task BlackJackAsync(Wager wager)
+        {
+            if (!Context.Account.CanGamble)
+                return;
+
+            if (wager.Value < 0)
+            {
+                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                return;
+            }
+
+            if (wager.Value == 0)
+            {
+                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
+                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                return;
+            }
+
+            if (wager.Value > Context.Account.ChipBalance)
+            {
+                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
+                return;
+            }
+
+            Context.Account.CanGamble = false;
+            await HandleBlackJackAsync(new BlackJackSession(Context, wager.Value));
+            Context.Account.CanGamble = true;
+        }
+
         [RequireUser]
         [Command("roulette")]
         [Summary("A Casino classic. Choose your style of bet and go wild.")]
@@ -184,7 +241,7 @@ namespace Arcadia.Modules
 
             var chips = MoneyConvert.ToChips(amount);
 
-            Context.Account.Take(amount, false);
+            Context.Account.Take(amount);
             Context.Account.ChipBalance += chips;
             await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips:##,0}**.");
 

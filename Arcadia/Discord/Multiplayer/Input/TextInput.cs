@@ -37,8 +37,6 @@ namespace Arcadia.Multiplayer
 
         public List<GameProperty> Args { get; set; }
 
-        IEnumerable<GameProperty> IInput.Args => Args;
-
         public InputResult TryParse(Input input)
         {
             var result = new InputResult();

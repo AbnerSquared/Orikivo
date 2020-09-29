@@ -20,7 +20,7 @@ namespace Arcadia.Modules
 
         public static string WriteCurrentRate(ArcadeUser user, BoostType type)
         {
-            float rate = ItemHelper.GetBoostMultiplier(user, type);
+            float rate = CurrencyHelper.GetBoostMultiplier(user, type);
             return $"{Icons.IconOf(type)} {Format.Percent(rate)}";
         }
 

@@ -17,8 +17,8 @@ namespace Orikivo
         /// <summary>
         /// Represents the method that is executed whenever a <see cref="MessageCollector"/> receives a successful <see cref="FilterMatch"/>.
         /// </summary>
-        /// <returns>An <see cref="ActionResult"/> that determines what the <see cref="MessageCollector"/> should proceed with.</returns>
-        public abstract Task<ActionResult> InvokeAsync(SocketMessage message);
+        /// <returns>An <see cref="MatchResult"/> that determines what the <see cref="MessageCollector"/> should proceed with.</returns>
+        public abstract Task<MatchResult> InvokeAsync(SocketMessage message);
 
         /// <summary>
         /// Represents the method that is invoked whenever a <see cref="MessageCollector"/> runs out of time.

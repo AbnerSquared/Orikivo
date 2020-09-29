@@ -214,7 +214,15 @@ namespace Arcadia
                 {
                     Id = "chrome_cove",
                     Name = "Chromatic Cove",
-                    Quote = "The reliable place to purchase color palettes.", // The shop that collects colorful goods.
+                    Quote = "The reliable place to purchase color palettes.",
+                    CriteriaTiers = new Dictionary<long, List<VarCriterion>>
+                    {
+                        [2] = new List<VarCriterion>
+                        {
+                            new VarCriterion(ShopHelper.GetVisitId("chrome_cove"), 10),
+                            new VarCriterion(ShopHelper.GetTotalBoughtId("chrome_cove"), 5)
+                        }
+                    },
                     Catalog = new CatalogGenerator
                     {
                         Size = 2,
@@ -225,7 +233,7 @@ namespace Arcadia
                             new CatalogEntry
                             {
                                 ItemId = Arcadia.Items.PaletteGammaGreen,
-                                Weight = 59,
+                                Weight = 60,
                                 MinDiscount = 5,
                                 MaxDiscount = 10,
                                 DiscountChance = 0.4f
@@ -238,6 +246,7 @@ namespace Arcadia
                                 MaxDiscount = 5,
                                 DiscountChance = 0.3f,
                                 MaxAllowed = 1,
+                                RequiredTier = 2,
                                 IsSpecial = true
                             },
                             new CatalogEntry
@@ -258,14 +267,16 @@ namespace Arcadia
                             new CatalogEntry
                             {
                                 ItemId = Arcadia.Items.PaletteLemon,
-                                Weight = 4,
-                                MaxAllowed = 1
+                                Weight = 8,
+                                MaxAllowed = 1,
+                                RequiredTier = 2
                             },
                             new CatalogEntry
                             {
                                 ItemId = Arcadia.Items.PaletteOceanic,
                                 Weight = 6,
-                                MaxAllowed = 1
+                                MaxAllowed = 1,
+                                RequiredTier = 2
                             }
                         }
                     },
@@ -280,6 +291,90 @@ namespace Arcadia
             {
                 new Merit
                 {
+                    Id = "currency:tidal_taxes",
+                    Icon = "🌊",
+                    Name = "Tidal Taxes",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Gold,
+                    Score = 100,
+                    LockQuote = "Drown in debt.",
+                    Quote = "You have asserted your side against currency, reaching over 10,000 in applied debt.",
+                    Criteria = user => user.Debt >= 10000
+                },
+                new Merit
+                {
+                    Id = "currency:raging_riches",
+                    Icon = "🔥",
+                    Name = "Raging Riches",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Gold,
+                    Score = 100,
+                    LockQuote = "Bathe in Orite.",
+                    Quote = "You have grown to love money, reaching over 10,000 in Orite.",
+                    Criteria = user => user.Balance >= 10000
+                },
+                new Merit
+                {
+                    Id = "currency:chip_collector",
+                    Icon = "💰",
+                    Name = "Chip Collector",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Gold,
+                    Score = 100,
+                    LockQuote = "The casino is calling to you.",
+                    Quote = "You have beaten the odds of the casino, reaching over 10,000 in gambling chips.",
+                    Criteria = user => user.ChipBalance >= 10000
+                },
+                new Merit
+                {
+                    Id = "exp:freshly_grown",
+                    Icon = "🌱",
+                    Name = "Freshly Grown",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Bronze,
+                    Score = 25,
+                    LockQuote = "Your level means nothing.",
+                    Quote = "You have escaped the depths, achieving your 10th firmware upgrade.",
+                    Criteria = user => user.Level >= 10
+                },
+                new Merit
+                {
+                    Id = "exp:rising_rookie",
+                    Icon = "🌾",
+                    Name = "Rising Rookie",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Silver,
+                    Score = 50,
+                    LockQuote = "Your level has not yet proved your worth.",
+                    Quote = "You have climbed up wild lands, reaching your 25th firmware upgrade.",
+                    Criteria = user => user.Level >= 25
+                },
+                new Merit
+                {
+                    Id = "exp:astral_advocate",
+                    Icon = "🎋",
+                    Name = "Astral Advocate",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Gold,
+                    Score = 100,
+                    LockQuote = "Your level status must reach for the clouds.",
+                    Quote = "You have reached what many consider the limit, reaching your 50th firmware upgrade.",
+                    Criteria = user => user.Level >= 50
+                },
+                new Merit
+                {
+                    Id = "exp:space_veteran",
+                    Icon = "🌸",
+                    Name = "Celestial Veteran",
+                    Tag = MeritTag.Common,
+                    Rank = MeritRank.Platinum,
+                    Score = 250,
+                    LockQuote = "Your level status must reach for the stars.",
+                    Quote = "You have reached the stars, achieving your 100th firmware upgrade.",
+                    Criteria = user => user.Level >= 100
+                },
+                new Merit
+                {
                     Id = "common:prisma_infusion",
                     Icon = "🌈",
                     Name = "Prisma Infusion",
@@ -292,6 +387,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "common:color_theory",
+                    Icon = "🟧",
                     Name = "Color Theory",
                     Tag = MeritTag.Common,
                     Rank = MeritRank.Silver,
@@ -303,12 +399,12 @@ namespace Arcadia
                 {
                     Id = "common:tinkerer",
                     Icon = "🔨",
-                    Name = "Tinkerer",
+                    Name = "Tinker Tot",
                     Tag = MeritTag.Common,
                     Rank = MeritRank.Bronze,
                     Score = 5,
                     Quote = "You have crafted an item for the first time.",
-                    Criteria = user => user.GetVar(Stats.TimesCrafted) > 0
+                    Criteria = user => user.GetVar(Stats.ItemsCrafted) > 0
                 },
                 new Merit
                 {
@@ -339,9 +435,9 @@ namespace Arcadia
                     Name = "Silver Heart",
                     Tag = MeritTag.Common,
                     Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "You have been a good person and gifted over 50 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 50
+                    Score = 50,
+                    Quote = "You have been a good person and gifted over 100 items to plenty of people.",
+                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 100
                 },
                 new Merit
                 {
@@ -351,8 +447,8 @@ namespace Arcadia
                     Tag = MeritTag.Common,
                     Rank = MeritRank.Gold,
                     Score = 50,
-                    Quote = "You have given over 100 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 100,
+                    Quote = "You have given over 500 items to plenty of people.",
+                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 500,
                     Hidden = true
                 },
                 new Merit
@@ -422,7 +518,7 @@ namespace Arcadia
                 new Merit
                 {
                     Id = "casino:lucky_guesses",
-                    Name = "Lucky Guesses",
+                    Name = "Lucky Lassie",
                     Tag = MeritTag.Casino,
                     Rank = MeritRank.Silver,
                     Score = 25,
@@ -747,10 +843,10 @@ namespace Arcadia
                     Id = Arcadia.Items.ComponentNeonKit,
                     GroupId = ItemGroups.Component,
                     Name = "Neon Kit",
-                    Summary = "A toolkit used to brighten the value of a color.",
+                    Summary = "A component used to brighten the value of a color.",
                     Quotes = new List<string>
                     {
-                        "It glows with a strong vibrant request for a color."
+                        "It cries with a strong vibrant call of chromacy."
                     },
                     Rarity = ItemRarity.Rare,
                     Tag = ItemTag.Ingredient,
@@ -762,7 +858,7 @@ namespace Arcadia
                     Id = Arcadia.Items.ComponentDimmerKit,
                     GroupId = ItemGroups.Component,
                     Name = "Dimmer Kit",
-                    Summary = "A toolkit used to darken the value of a color.",
+                    Summary = "A component used to darken the value of a color.",
                     Quotes = new List<string>
                     {
                         "It absorbs every color surrounding it."
@@ -987,7 +1083,7 @@ namespace Arcadia
                     BypassCriteriaOnTrade = true,
                     Size = 100,
                     MemoId = 1,
-                    Memo = "This is a placeholder memo.",
+                    Memo = "The pocket-sized lawyer is a hollow shell of what it once was. Before ORS conquered over all, Po Ket was just an average fellow, amazed by the wonders of financial advancement.",
                     ResearchTiers = new Dictionary<int, string>
                     {
                         [2] = $"Removal of {Format.Number(750, Icons.Debt)} requirement to use",
@@ -1005,11 +1101,12 @@ namespace Arcadia
                                 if (ItemHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
                                     return UsageResult.FromError("> You have yet to understand the concept of recovery.");
 
-                                if (ctx.User.LastFundsLost <= 0)
+                                if (ctx.User.LastFundsLost == null)
                                     return UsageResult.FromError("> There was nothing to recover.");
 
                                 if (RandomProvider.Instance.Next(0, 100) <= 25)
                                 {
+                                    ctx.User.Give(ctx.User.LastFundsLost.Value, ctx.User.LastFundsLost.Currency);
                                     return UsageResult.FromSuccessCooldown(TimeSpan.FromDays(4),
                                         "> Your funds have been recovered from the abyss.",
                                         CooldownMode.Item);
@@ -1371,7 +1468,7 @@ namespace Arcadia
                     Tag = ItemTag.Font | ItemTag.Decorator,
                     Usage = new ItemUsage
                     {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delton))
+                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
                     }
                 }
             };

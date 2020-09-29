@@ -27,6 +27,12 @@ namespace Arcadia.Multiplayer
 
         public bool CanSpectate { get; set; }
 
+        public bool RequireDirectMessages { get; set; }
+
+        public bool AllowSessionJoin { get; set; }
+
+        public bool AllowSessionLeave { get; set; }
+
         public List<string> LoadingTips { get; set; }
     }
 }

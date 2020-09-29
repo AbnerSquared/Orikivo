@@ -180,6 +180,17 @@ namespace Arcadia
             return GetDefiner(id)?.ValueGetter?.Invoke(user) ?? (user.Stats.TryGetValue(id, out long value) ? value : 0);
         }
 
+        public static void Add(ArcadeUser user, long amount, string id)
+        {
+            user.AddToVar(id, amount);
+        }
+
+        public static void Add(ArcadeUser user, long amount, params string[] ids)
+        {
+            foreach (string id in ids)
+                user.AddToVar(id, amount);
+        }
+
         public static void SetValue(ArcadeUser user, string id, long value)
         {
             if (value == 0)
@@ -325,6 +336,15 @@ namespace Arcadia
         {
             if (b < GetValue(user, a))
                 user.SetVar(a, b);
+        }
+
+        public static void Rename(ArcadeUser user, string a, string b)
+        {
+            if (user.Stats.ContainsKey(b))
+                throw new ArgumentException("The new name for the specified var already exists");
+
+            user.SetVar(a, 0, out long previous);
+            user.SetVar(b, previous);
         }
 
         public static void Swap(ArcadeUser user, string a, string b)

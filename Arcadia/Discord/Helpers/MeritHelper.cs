@@ -74,14 +74,19 @@ namespace Arcadia
             string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
             info.AppendLine($"> {icon} **{merit.Name}** (**{merit.Score:##,0}**m)");
 
-            if (Check.NotNull(merit.Quote))
+
+            string quote = !Check.NotNull(merit.LockQuote) || (user != null && HasMerit(user, merit.Id))
+                ? merit.Quote
+                : merit.LockQuote;
+
+            if (Check.NotNull(quote))
             {
                 info.Append("> ");
 
                 if (merit.Hidden)
                     info.Append("||");
 
-                info.Append($"\"{merit.Quote}\"");
+                info.Append($"\"{quote}\"");
 
                 if (merit.Hidden)
                     info.Append("||");
@@ -389,7 +394,7 @@ namespace Arcadia
             if (merit.Reward.Money > 0)
             {
                 result.AppendLine($"> 💸 **{merit.Reward.Money:##,0}**");
-                user.Give(merit.Reward.Money, false);
+                user.Give(merit.Reward.Money);
             }
 
             foreach ((string itemId, int amount) in merit.Reward.ItemIds)
@@ -431,7 +436,7 @@ namespace Arcadia
             if (money > 0)
             {
                 result.AppendLine($"> 💸 **{money:##,0}**");
-                user.Give(money, false);
+                user.Give(money);
             }
 
             foreach ((string itemId, int amount) in items)

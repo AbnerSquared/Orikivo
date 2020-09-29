@@ -7,18 +7,6 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public enum ChessDirection
-    {
-        North = 1,
-        Northeast = 2,
-        East = 3,
-        Southeast = 4,
-        South = 5,
-        Southwest = 6,
-        West = 7,
-        Northwest = 8
-    }
-
     public class ChessBoard
     {
         public ChessBoard()
@@ -29,37 +17,6 @@ namespace Arcadia.Multiplayer.Games
         public static readonly string EmptyTile = "•";
         public static readonly int Min = 0;
         public static readonly int Max = 7;
-
-        public static ChessBoard GetEnPassant()
-        {
-            return new ChessBoard
-            {
-                Pieces = new List<ChessPiece>()
-                {
-                    new ChessPiece
-                    {
-                        Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
-                        Rank = 3,
-                        File = 3
-                    },
-                    new ChessPiece
-                    {
-                        Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
-                        Rank = 4,
-                        File = 3
-                    }
-                },
-                LastMove = new ChessMove(DateTime.UtcNow, new ChessPiece
-                {
-                    Owner = ChessOwner.Black,
-                    Piece = ChessRank.Pawn,
-                    Rank = 4,
-                    File = 1
-                }, new Coordinate(4, 3), 0)
-            };
-        }
 
         public static ChessBoard GetDefault()
         {

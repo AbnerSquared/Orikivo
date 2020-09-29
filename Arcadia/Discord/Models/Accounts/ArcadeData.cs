@@ -66,7 +66,7 @@ namespace Arcadia
                 }
             }
 
-            Catalogs[shop.Id] = shop.Catalog.Generate();
+            Catalogs[shop.Id] = shop.Catalog.Generate(Var.GetOrSet(user, ShopHelper.GetTierId(shop.Id), 1));
 
             if (user != null && user.CatalogHistory.ContainsKey(shop.Id))
                 user.CatalogHistory[shop.Id].Clear();

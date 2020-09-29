@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
+using Orikivo;
 
 namespace Arcadia
 {
@@ -8,13 +9,33 @@ namespace Arcadia
     /// </summary>
     internal static class Stats
     {
+        private static readonly Dictionary<string, string[]> Replacements = new Dictionary<string, string[]>
+        {
+            ["generic:items_crafted"] = new []{ "generic:times_crafted" }
+        };
+
+        internal static void RenameIds(ArcadeUser user)
+        {
+            foreach((string name, string[] outdated) in Replacements)
+            {
+                List<string> possible = user.Stats.Keys
+                    .Select(x => x.ContainsAny(out string match, outdated) ? match : null)
+                    .Where(x => Check.NotNull(x))
+                    .ToList();
+
+                if (possible.Count != 1)
+                    continue;
+
+                Var.Rename(user, possible.First(), name);
+                return;
+            }
+        }
+
         internal static readonly string QuestCapacity = "var:quest_capacity";
         internal static readonly string TotalCompletedQuests = "quest:total_completed";
         internal static readonly string TotalAssignedQuests = "quest:total_assigned";
         internal static readonly string LastAssignedQuest = "quest:last_assigned";
         internal static readonly string LastSkippedQuest = "quest:last_skipped";
-
-        internal static readonly string TimesCrafted = "generic:times_crafted";
 
         internal static readonly string TotalMoney = "generic:total_money";
         internal static readonly string TotalChips = "generic:total_chips";
@@ -28,8 +49,9 @@ namespace Arcadia
 
         internal static readonly string TimesTraded = "generic:times_traded";
         internal static readonly string ItemsSold = "generic:items_sold";
-        internal static readonly string ItemsUsed = "generic:items_broken";
+        internal static readonly string ItemsBroken = "generic:items_broken";
         internal static readonly string ItemsGifted = "generic:items_gifted";
+        internal static readonly string ItemsCrafted = "generic:items_crafted";
         internal static readonly string ItemsBought = "generic:items_bought";
         internal static readonly string TimesUpgraded = "generic:times_upgraded";
         internal static readonly string BoostersUsed = "generic:boosters_used";

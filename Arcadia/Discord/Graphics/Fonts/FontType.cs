@@ -5,7 +5,7 @@
         Orikos = 1,
         Monori = 2,
         Minic = 4,
-        Delton = 8,
+        Delta = 8,
         Foxtrot = 16
     }
 }

@@ -2,12 +2,6 @@
 
 namespace Arcadia.Multiplayer
 {
-    public enum EntityType
-    {
-        User = 1,
-        Channel = 2
-    }
-
     public class ReservedException : Exception
     {
         public ReservedException(ulong entityId, EntityType type)

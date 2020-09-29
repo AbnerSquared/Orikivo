@@ -6,7 +6,7 @@ using Discord.WebSocket;
 
 namespace Arcadia
 {
-    public sealed class ArcadeUserTypeReader : TypeReader
+    public sealed class ArcadeUserTypeReader : UserTypeReader<SocketUser>
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
         {
@@ -22,7 +22,7 @@ namespace Arcadia
             if (match != null)
                 return Task.FromResult(TypeReaderResult.FromSuccess(match));
 
-            TypeReaderResult result = new UserTypeReader<SocketUser>().ReadAsync(ctx, input, provider).ConfigureAwait(false).GetAwaiter().GetResult();
+            TypeReaderResult result = base.ReadAsync(ctx, input, provider).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (result.IsSuccess && result.BestMatch is SocketUser best && context.TryGetUser(best.Id, out match))
                 return Task.FromResult(TypeReaderResult.FromSuccess(match));

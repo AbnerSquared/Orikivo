@@ -369,6 +369,7 @@ namespace Arcadia.Multiplayer
             }
         }
 
+        // It might be better to make the private methods used in the game server, and make then internal
         // Refreshes the server's configuration details
         private void RefreshServerConfig(GameServer server)
         {

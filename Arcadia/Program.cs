@@ -56,6 +56,7 @@ namespace Arcadia
                     .AddTypeReader<Quest>(new QuestTypeReader())
                     .AddTypeReader<Shop>(new ShopTypeReader())
                     .AddTypeReader<ArcadeUser>(new ArcadeUserTypeReader())
+                    .AddTypeReader<Wager>(new WagerTypeReader())
                     .AddEnumTypeReader<CardDeny>()
                     .AddEnumTypeReader<Casing>()
                     .AddEnumTypeReader<FontType>()

@@ -2,7 +2,13 @@
 {
     public class Wager
     {
-        public ulong UserId { get; }
+        public Wager(long value, CurrencyType currency = CurrencyType.Chips)
+        {
+            Value = value;
+            Currency = currency;
+        }
+
+        // public ulong UserId { get; }
 
         public long Value { get; }
 

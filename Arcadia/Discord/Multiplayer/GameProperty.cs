@@ -41,7 +41,7 @@ namespace Arcadia.Multiplayer
                 Id = id,
                 Value = defaultValue,
                 DefaultValue = defaultValue,
-                ValueType = enforceType ? defaultValue?.GetType() : null
+                ValueType = enforceType ? defaultValue.GetType() : null
             };
         }
 

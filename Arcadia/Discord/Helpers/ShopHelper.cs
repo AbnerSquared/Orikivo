@@ -18,8 +18,22 @@ namespace Arcadia
         internal static string GetTotalBoughtId(string shopId)
             => $"{shopId}:items_bought";
 
+        internal static string GetTierId(string shopId)
+            => $"{shopId}:tier";
+
         public static bool Exists(string shopId)
             => Assets.Shops.Any(x => x.Id == shopId);
+
+        public static CatalogHistory HistoryOf(ArcadeUser user, string shopId)
+        {
+            if (!Exists(shopId))
+                throw new Exception("The specified shop does not exist");
+
+            if (!user.CatalogHistory.ContainsKey(shopId))
+                user.CatalogHistory[shopId] = new CatalogHistory();
+
+            return user.CatalogHistory[shopId];
+        }
 
         public static IEnumerable<Vendor> GetVendors(ItemTag catalogTags)
         {
@@ -51,7 +65,7 @@ namespace Arcadia
         {
             if (!CanSell(shop, data))
             {
-                return Format.Warning($"**{shop.Name}** does not support selling this item.");
+                return Format.Warning($"**{shop.Name}** does not accept this item.");
             }
 
             Item item = ItemHelper.GetItem(data.Id);
@@ -61,17 +75,7 @@ namespace Arcadia
                 ? (long)Math.Floor(item.Value * (1 - shop.SellDeduction / (double)100))
                 : item.Value;
 
-            if (item.Currency.HasFlag(CurrencyType.Money))
-                user.Give(value, false);
-            else if (item.Currency.HasFlag(CurrencyType.Chips))
-                user.ChipBalance += value;
-            else if (item.Currency.HasFlag(CurrencyType.Tokens))
-                user.TokenBalance += value;
-            else if (item.Currency.HasFlag(CurrencyType.Debt))
-                user.Take(value, false);
-            else
-                throw new Exception("Unknown currency");
-
+            user.Give(value, item.Currency);
             string icon = (Check.NotNull(item.GetIcon()) ? $"{item.GetIcon()} " : "");
             string name = $"{icon}**{(Check.NotNull(icon) ? item.Name : item.GetName())}**";
 
@@ -127,17 +131,10 @@ namespace Arcadia
             info.AppendLine($"> 🛒 **Shops**");
 
             TimeSpan remainder = TimeSpan.FromDays(1) - DateTime.UtcNow.TimeOfDay;
-
-            if (remainder > TimeSpan.Zero)
-                info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
-            else
-                info.AppendLine($"Here are all of the available shops.");
-
+            info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
 
             foreach (Shop shop in Assets.Shops)
-            {
                 info.Append(WriteShopRow(shop));
-            }
 
             return info.ToString();
         }
@@ -168,10 +165,7 @@ namespace Arcadia
 
         public static string WriteItemCost(Item item)
         {
-            if (item.Value == 0)
-                return "**Unknown Cost**";
-
-            return $"{Icons.IconOf(item.Currency)} **{GetCost(item.Value, 0)}**";
+            return CurrencyHelper.WriteCost(GetCost(item.Value, 0), item.Currency);
         }
 
         public static string WriteDiscountRange(Item item, Shop shop)
@@ -193,18 +187,6 @@ namespace Arcadia
             info.Append($"**{entry.MaxDiscount ?? CatalogEntry.DefaultMaxDiscount}**% discount range");
 
             info.Append($", **{RangeF.Convert(0, 1, 0, 100, entry.DiscountChance):##,0.##}**% chance of discount)");
-
-            return info.ToString();
-        }
-
-        public static string WriteDeductionRange(Item item, Shop shop)
-        {
-            if (item == null || shop == null || shop.SellDeduction <= 0)
-                return "";
-
-            var info = new StringBuilder();
-
-            info.Append($"(**{shop.SellDeduction}**% base sell deduction)");
 
             return info.ToString();
         }
@@ -232,8 +214,7 @@ namespace Arcadia
 
             if (showDetails && discount > 0)
             {
-                cost.Append($" (**{discount}**% ");
-                cost.Append($"{(mode == ShopMode.Buy ? "discount" : "deduction")})");
+                cost.Append($" (**{discount}**% {(mode == ShopMode.Buy ? "discount" : "deduction")})");
             }
 
             return cost.ToString();
@@ -242,9 +223,6 @@ namespace Arcadia
         private static string WriteCatalogEntry(Item item, int amount, bool isSpecial, int discountUpper = 0)
         {
             var entry = new StringBuilder();
-
-            // (isSpecial)
-            //    entry.AppendLine("> 🍀 This item is special.");
 
             entry.Append($"\n> {(isSpecial ? "🍀 " : "")}`{item.Id}` ");
 
@@ -263,7 +241,6 @@ namespace Arcadia
             if (Check.NotNullOrEmpty(item.Quotes))
                 entry.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            // 🍀 Rare
             entry.Append($"> {WriteItemValue(item, discountUpper, ShopMode.Buy, true)} • {InventoryViewer.WriteCapacity(item.Size)}");
             return entry.ToString();
         }

@@ -21,7 +21,7 @@ namespace Arcadia
         public CatalogGenerator Catalog { get; set; }
 
         // What is needed for the user to reach the specified tiers?
-        public Dictionary<int, Func<ArcadeUser, bool>> ShopTiers { get; set; }
+        public Dictionary<long, List<VarCriterion>> CriteriaTiers { get; set; }
 
         public ShopAllow Allow { get; set; }
 
@@ -34,6 +34,7 @@ namespace Arcadia
         public ItemTag SellTags { get; set; }
 
         public int? MaxAllowedPurchases { get; set; }
+
         public int SellDeduction { get; set; } = 50;
 
         public Func<ArcadeUser, bool> ToVisit { get; set; }

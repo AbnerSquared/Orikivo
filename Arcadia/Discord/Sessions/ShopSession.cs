@@ -29,6 +29,21 @@ namespace Arcadia
                 context.Account.CatalogHistory[shop.Id].HasVisited = true;
                 context.Account.AddToVar(ShopHelper.GetVisitId(shop.Id));
             }
+
+            Var.SetIfEmpty(context.Account, ShopHelper.GetTierId(shop.Id), 1);
+
+            long tier = context.Account.GetVar(ShopHelper.GetTierId(shop.Id));
+
+            if (shop.CriteriaTiers.ContainsKey(tier + 1) && shop.CriteriaTiers[tier + 1].All(x => Var.MeetsCriterion(context.Account, x)))
+                context.Account.AddToVar(ShopHelper.GetTierId(shop.Id));
+        }
+
+        public CatalogHistory GetHistory()
+        {
+            if (!User.CatalogHistory.ContainsKey(Shop.Id))
+                User.CatalogHistory[Shop.Id] = new CatalogHistory();
+
+            return User.CatalogHistory[Shop.Id];
         }
 
         public ArcadeContext Context { get; }
@@ -45,9 +60,6 @@ namespace Arcadia
 
         private bool CanClearNotice { get; set; } = false;
 
-        public long CostOf(Item item)
-            => ShopHelper.CostOf(item, Catalog);
-
         private static string GetGenericReply(ShopState state)
         {
             return state switch
@@ -57,6 +69,7 @@ namespace Arcadia
                 ShopState.BuyDeny => Vendor.BuyDenyGeneric,
                 ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
                 ShopState.BuyFail => Vendor.BuyFailGeneric,
+                ShopState.BuyLimit => Vendor.BuyLimitGeneric,
                 ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
                 ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
                 ShopState.SellInvalid => Vendor.SellInvalidGeneric,
@@ -84,6 +97,7 @@ namespace Arcadia
                 ShopState.BuyDeny => vendor?.OnBuyDeny,
                 ShopState.BuyEmpty => vendor?.OnBuyEmpty,
                 ShopState.BuyFail => vendor?.OnBuyFail,
+                ShopState.BuyLimit => vendor?.OnBuyLimit,
                 ShopState.SellNotAllowed => vendor?.OnSellNotAllowed,
                 ShopState.SellNotOwned => vendor?.OnSellNotOwned,
                 ShopState.SellInvalid => vendor?.OnSellInvalid,
@@ -226,7 +240,7 @@ namespace Arcadia
             await MessageReference.ModifyAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
         }
 
-        public override async Task<ActionResult> InvokeAsync(SocketMessage message)
+        public override async Task<MatchResult> InvokeAsync(SocketMessage message)
         {
             var reader = new StringReader(message.Content);
 
@@ -247,46 +261,51 @@ namespace Arcadia
             }
 
             // If the current state is ENTER | MENU
-            if (State.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty, ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
+            if (State.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty, ShopState.BuyLimit, ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
             {
                 switch (command)
                 {
                     case "buy" when !Shop.Buy:
                         State = ShopState.BuyDeny;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                     case "buy" when Catalog.ItemIds.Count == 0:
                         State = ShopState.BuyEmpty;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
+
+                    case "buy" when Shop.MaxAllowedPurchases.HasValue && GetHistory().PurchasedIds.Values.Sum() >= Shop.MaxAllowedPurchases:
+                        State = ShopState.BuyLimit;
+                        await UpdateAsync();
+                        return MatchResult.Continue;
 
                     case "buy":
                         State = ShopState.ViewBuy;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                     case "sell" when !Shop.Sell:
                         State = ShopState.SellDeny;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                     case "sell" when User.Items.Count == 0:
                         State = ShopState.SellEmpty;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                     case "sell":
                         if (User.Items.Count(x => (ItemHelper.GetTag(x.Id) & Shop.SellTags) != 0) == 0)
                         {
                             State = ShopState.SellEmpty;
                             await UpdateAsync();
-                            return ActionResult.Continue;
+                            return MatchResult.Continue;
                         }
 
                         State = ShopState.ViewSell;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                         // Handle unlocking new shops
                         // by having the vendor talk about it
@@ -296,10 +315,10 @@ namespace Arcadia
                         Notice = null;
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return ActionResult.Success;
+                        return MatchResult.Success;
 
                     default:
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
                 }
             }
 
@@ -313,13 +332,13 @@ namespace Arcadia
                         Notice = null;
                         State = ShopState.Menu;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
                     // leave
                     case "leave":
                         Notice = null;
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return ActionResult.Success;
+                        return MatchResult.Success;
                 }
 
                 State = ShopState.ViewBuy;
@@ -328,14 +347,14 @@ namespace Arcadia
 
 
                 if (item == null && !ItemHelper.Exists(command))
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
 
                 if (item == null)
                 {
                     State = ShopState.BuyInvalid;
                     // Write a notice
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 int amount = ParseAmount(arg, item);
@@ -343,14 +362,14 @@ namespace Arcadia
                 if (amount < 1)
                 {
                     await UpdateAsync("I don't think I heard that correctly. How many did you want to purchase?");
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 if (!CanBuy(item, amount))
                 {
                     State = ShopState.BuyFail;
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 // Otherwise, if the item can be bought:
@@ -369,12 +388,12 @@ namespace Arcadia
                 {
                     State = ShopState.BuyRemainder;
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 State = ShopState.Buy;
                 await UpdateAsync();
-                return ActionResult.Continue;
+                return MatchResult.Continue;
             }
 
             if (State.EqualsAny(ShopState.ViewSell, ShopState.Sell, ShopState.SellInvalid, ShopState.SellNotAllowed, ShopState.SellNotOwned))
@@ -384,12 +403,12 @@ namespace Arcadia
                     case "back":
                         State = ShopState.Menu;
                         await UpdateAsync();
-                        return ActionResult.Continue;
+                        return MatchResult.Continue;
 
                     case "leave":
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return ActionResult.Success;
+                        return MatchResult.Success;
                 }
 
                 State = ShopState.ViewSell;
@@ -397,21 +416,21 @@ namespace Arcadia
                 Item item = GetItemFromInventory(command);
 
                 if (item == null && !ItemHelper.Exists(command))
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
 
                 if (item == null)
                 {
                     State = ShopState.SellInvalid;
                     // Write a notice
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 if (!CanSell(item))
                 {
                     State = ShopState.SellNotAllowed;
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 int amount = ParseAmount(arg, item);
@@ -419,29 +438,28 @@ namespace Arcadia
                 if (amount < 1)
                 {
                     await UpdateAsync("I don't think I heard that correctly. How many did you want to sell?");
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 if (ItemHelper.GetOwnedAmount(User, item) == 0)
                 {
                     State = ShopState.SellNotOwned;
                     await UpdateAsync();
-                    return ActionResult.Continue;
+                    return MatchResult.Continue;
                 }
 
                 // Take the item from the user
                 ItemHelper.TakeItem(User, item, amount);
                 long worth = GetWorth(item, amount);
-
-                Give(worth, item.Currency);
+                User.Give(worth, item.Currency);
 
                 State = ShopState.Sell;
                 await UpdateAsync();
-                return ActionResult.Continue;
+                return MatchResult.Continue;
             }
 
             // Otherwise, wait for the next input
-            return ActionResult.Continue;
+            return MatchResult.Continue;
         }
 
         private bool CanSell(Item item)
@@ -462,8 +480,7 @@ namespace Arcadia
 
         private void RemoveFromInventory(Item item, int amount)
         {
-            if (!User.CatalogHistory.ContainsKey(Shop.Id))
-                User.CatalogHistory[Shop.Id] = new CatalogHistory();
+            _ = GetHistory();
 
             ItemHelper.TakeItem(User, item, amount);
 
@@ -476,8 +493,7 @@ namespace Arcadia
 
         private void RemoveFromCatalog(Item item, int amount)
         {
-            if (!User.CatalogHistory.ContainsKey(Shop.Id))
-                User.CatalogHistory[Shop.Id] = new CatalogHistory();
+            _ = GetHistory();
 
             // Remove the purchased items from the catalog
             Catalog.ItemIds[item.Id] -= amount;
@@ -532,28 +548,7 @@ namespace Arcadia
             if (!CanTake(value, currency))
                 return;
 
-            if (currency == CurrencyType.Money)
-                User.Take(value, false);
-            else if (currency == CurrencyType.Chips)
-                User.ChipBalance -= value;
-            else if (currency == CurrencyType.Tokens)
-                User.TokenBalance -= value;
-            else if (currency == CurrencyType.Debt)
-                User.Give(value, false);
-        }
-
-        private void Give(long value, CurrencyType currency)
-        {
-            if (currency.HasFlag(CurrencyType.Money))
-                User.Give(value, false);
-            else if (currency.HasFlag(CurrencyType.Chips))
-                User.ChipBalance += value;
-            else if (currency.HasFlag(CurrencyType.Tokens))
-                User.TokenBalance += value;
-            else if (currency.HasFlag(CurrencyType.Debt))
-                User.Take(value, false);
-            else
-                throw new Exception("Unknown currency");
+            User.Take(value, currency);
         }
 
         private long GetBalance(CurrencyType currency)

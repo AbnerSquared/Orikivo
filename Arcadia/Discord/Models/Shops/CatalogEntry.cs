@@ -16,6 +16,9 @@
 
         public string ItemId { get; set; }
 
+        // Specifies the group that this entry is for. leave empty to ignore group checking
+        public string GroupId { get; set; }
+
         public int? MaxAllowed { get; set; }
 
         public int? MinDiscount { get; set; }

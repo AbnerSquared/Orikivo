@@ -143,7 +143,7 @@ namespace Arcadia.Graphics
                 FontType.Orikos => JsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json"),
                 FontType.Monori => JsonHandler.Load<FontFace>(@"../assets/fonts/monori.json"),
                 FontType.Minic => JsonHandler.Load<FontFace>(@"../assets/fonts/minic.json"),
-                FontType.Delton => JsonHandler.Load<FontFace>(@"../assets/fonts/delton.json"),
+                FontType.Delta => JsonHandler.Load<FontFace>(@"../assets/fonts/delton.json"),
                 FontType.Foxtrot => JsonHandler.Load<FontFace>(@"../assets/fonts/foxtrot.json"),
                 _ => JsonHandler.Load<FontFace>(@"../assets/fonts/orikos.json"),
             };
@@ -367,7 +367,7 @@ namespace Arcadia.Graphics
 
                 var counter = new BitmapLayer
                 {
-                    Source = DrawText(level.ToString(), GetFont(FontType.Delton), levelGamma, defaultProperties),
+                    Source = DrawText(level.ToString(), GetFont(FontType.Delta), levelGamma, defaultProperties),
                     Offset = cursor
                 };
                 counter.Properties.Padding = new Padding(right: 5, bottom: 1);
@@ -423,7 +423,7 @@ namespace Arcadia.Graphics
                 var moneyGamma = properties.Gamma[CardComponent.Money] ?? Gamma.Max;
 
                 // TODO: Dim color for debt
-                var counter = new BitmapLayer(DrawText(text, GetFont(FontType.Delton), moneyGamma, defaultProperties));
+                var counter = new BitmapLayer(DrawText(text, GetFont(FontType.Delta), moneyGamma, defaultProperties));
                 counter.Offset = cursor;
 
                 counter.Properties.Padding = new Padding(right: 1);

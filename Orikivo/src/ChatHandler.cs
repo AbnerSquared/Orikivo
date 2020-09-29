@@ -85,7 +85,7 @@ namespace Orikivo
                 MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox("Hello."));
         }
 
-        public override async Task<ActionResult> InvokeAsync(SocketMessage message)
+        public override async Task<MatchResult> InvokeAsync(SocketMessage message)
         {
             if (ResponseIds.Contains(message.Content))
             {
@@ -99,7 +99,7 @@ namespace Orikivo
                     case DialogType.End:
                         // TODO: Implement content separations, which are continued when the user types 'next' (loop.GetBestEntry(Npc))
                         await UpdateMessageAsync(loop.Tone, GetReplyBox(loop.GetAnyEntry().ToString(), false));
-                        return ActionResult.Success;
+                        return MatchResult.Success;
 
                     case DialogType.Answer:
                         ResponseIds = GetEntryIds();
@@ -110,7 +110,7 @@ namespace Orikivo
                         {
                             chat.AppendLine($"> **No responses available. Closing...**");
                             await UpdateMessageAsync(loop.Tone, chat.ToString());
-                            return ActionResult.Fail;
+                            return MatchResult.Fail;
                         }
 
                         ResponseIds = loop.ReplyIds;
@@ -121,14 +121,14 @@ namespace Orikivo
 
                 await UpdateMessageAsync(loop.Tone, chat.ToString());
 
-                return ActionResult.Continue;
+                return MatchResult.Continue;
             }
             else
             {
                 string old = MessageReference.Content;
 
                 await MessageReference.ModifyAsync($"> **Please input a correct response ID.**\n" + old);
-                return ActionResult.Continue;
+                return MatchResult.Continue;
             }
         }
 

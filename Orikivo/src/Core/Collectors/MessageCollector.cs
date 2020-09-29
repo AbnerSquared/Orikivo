@@ -56,19 +56,19 @@ namespace Orikivo
 
                 if (filterSuccess)
                 {
-                    ActionResult result = await options.Session.InvokeAsync(arg);
+                    MatchResult result = await options.Session.InvokeAsync(arg);
 
                     switch (result)
                     {
-                        case ActionResult.Fail:
+                        case MatchResult.Fail:
                             complete.SetResult(false);
                             break;
 
-                        case ActionResult.Success:
+                        case MatchResult.Success:
                             complete.SetResult(true);
                             break;
 
-                        case ActionResult.Continue:
+                        case MatchResult.Continue:
                         default:
                             break;
                     }

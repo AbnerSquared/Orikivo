@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
@@ -86,11 +87,8 @@ namespace Arcadia.Multiplayer
                 PreviousMessage = await Source.SendMessageAsync(text);
                 return PreviousMessage;
             }
-            catch (HttpException error)
+            catch (HttpException error) when (error.DiscordCode == 50007)
             {
-                if (error.DiscordCode.GetValueOrDefault(0) != 50007)
-                    throw;
-
                 Logger.Debug($"[{Format.Time(DateTime.UtcNow)}] Unable to send message to user {Recipient.Id} as their direct message channel is disabled");
                 Disabled = true;
                 return null;

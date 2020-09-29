@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Arcadia.Graphics;
-using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
@@ -13,22 +12,11 @@ namespace Arcadia
     {
         public static readonly DateTime UniqueIdOffset = new DateTime(2020, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc);
 
-        // Assets.Items.Any
-        // x => x.Id == itemId
         public static bool Exists(string itemId)
             => Assets.Items.Any(x => x.Id == itemId);
-
-        // Check.NotNull(id)
-        // Assets.Groups.Any
-        // x => x.Id == id
-        // Assets.Groups.Any
-        // x => x.Icon?.Equals(id) ?? false
         public static bool GroupExists(string id)
             => Check.NotNull(id) && (Assets.Groups.Any(x => x.Id == id) || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
 
-        // Check.NotNull(id)
-        // Assets.Recipes.Any
-        // x => CompareId(GetRecipeId(x), id)
         public static bool RecipeExists(string id)
             => Check.NotNull(id) && Assets.Recipes.Any(x => CompareRecipeId(GetRecipeId(x), id));
 
@@ -60,25 +48,10 @@ namespace Arcadia
             if (item.Id == input)
                 return true;
 
-            if (item.Name.Contains(input, StringComparison.OrdinalIgnoreCase))
+            ItemGroup group = GetGroup(item.GroupId);
+
+            if (group?.Id == input || (group?.Icon?.Equals(input) ?? false))
                 return true;
-
-            if (Check.NotNull(item.GroupId))
-            {
-                if (item.GroupId == input)
-                    return true;
-
-                var group = GetGroup(item.GroupId);
-
-                if (group.Name.Equals(input, StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                if (Check.NotNull(group.Prefix) && group.Prefix.Contains(input, StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                if (group.Icon?.Equals(input) ?? false)
-                    return true;
-            }
 
             if (item.Rarity.ToString().Equals(input, StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -86,28 +59,39 @@ namespace Arcadia
             if (item.Tag.GetFlags().Any(x => x.ToString().Equals(input, StringComparison.OrdinalIgnoreCase)))
                 return true;
 
-            if (input.Equals("ingredient", StringComparison.OrdinalIgnoreCase))
-                return IsIngredient(item);
+            if (Enum.TryParse(input, true, out ItemFilter filter))
+                return MeetsFilter(item, filter);
 
-            if (input.Equals("craftable", StringComparison.OrdinalIgnoreCase))
-                return CanCraft(item);
+            return item.Name.Contains(input, StringComparison.OrdinalIgnoreCase)
+                || (group?.Name?.Contains(input, StringComparison.OrdinalIgnoreCase)
+                ?? group?.Prefix?.Contains(input, StringComparison.OrdinalIgnoreCase)
+                ?? false);
+        }
 
-            if (input.Equals("sellable", StringComparison.OrdinalIgnoreCase))
-                return item.CanSell;
+        private static bool MeetsFilter(Item item, ItemFilter filter)
+        {
+            return filter switch
+            {
+                ItemFilter.Ingredient => IsIngredient(item),
+                ItemFilter.Craftable => CanCraft(item),
+                ItemFilter.Sellable => CanSell(item),
+                ItemFilter.Buyable => CanBuy(item),
+                ItemFilter.Usable => item.Usage != null,
+                ItemFilter.Tradable => CanTrade(item),
+                ItemFilter.Unique => IsUnique(item),
+                _ => false
+            };
+        }
 
-            if (input.Equals("buyable", StringComparison.OrdinalIgnoreCase))
-                return item.CanBuy;
+        // item.Value > 0
+        public static bool CanBuy(Item item)
+        {
+            return Assets.Shops.Any(x => x.Catalog.Entries.Any(c => c.ItemId == item.Id));
+        }
 
-            if (input.Equals("usable", StringComparison.OrdinalIgnoreCase))
-                return item.Usage != null;
-
-            if (input.Equals("tradable", StringComparison.OrdinalIgnoreCase))
-                return item.TradeLimit != 0;
-
-            if (input.Equals("unique", StringComparison.OrdinalIgnoreCase))
-                return IsUnique(item);
-
-            return false;
+        public static bool CanSell(Item item)
+        {
+            return item.Value > 0 && Assets.Shops.Any(s => s.Sell && (item.Tag & s.SellTags) != 0);
         }
 
 
@@ -276,30 +260,6 @@ namespace Arcadia
         }
 
         // This just reads the boost multiplier
-        public static float GetBoostMultiplier(ArcadeUser user, BoostType type)
-        {
-            float rate = 1f;
-            var toRemove = new List<BoostData>();
-            foreach (BoostData booster in user.Boosters)
-            {
-                if (!CanApplyBooster(booster))
-                    toRemove.Add(booster);
-
-                if (booster.Type != type)
-                    continue;
-
-                rate += booster.Rate;
-
-                if (booster.UsesLeft.HasValue)
-                {
-                    if (booster.UsesLeft <= 0)
-                        toRemove.Add(booster);
-                }
-            }
-
-            user.Boosters.RemoveAll(x => toRemove.Contains(x));
-            return rate < 0 ? 0 : rate;
-        }
 
         public static DateTime? GetLastUsed(ArcadeUser user, string itemId, string uniqueId = null)
         {
@@ -363,44 +323,7 @@ namespace Arcadia
         public static ItemTag GetTag(string itemId)
             => GetItem(itemId)?.Tag ?? 0;
 
-        public static long BoostValue(ArcadeUser user, long value, BoostType type, bool isNegative = false)
-        {
-            float rate = 1;
-
-            if (user.Boosters.Count == 0)
-                return value;
-
-            var toRemove = new List<BoostData>();
-            foreach (BoostData booster in user.Boosters)
-            {
-                if (!CanApplyBooster(booster))
-                    toRemove.Add(booster);
-
-                if (booster.Type != type)
-                    continue;
-
-                rate += booster.Rate;
-
-                if (booster.UsesLeft.HasValue)
-                {
-                    if (--booster.UsesLeft <= 0)
-                        toRemove.Add(booster);
-                }
-            }
-
-            foreach (BoostData booster in toRemove)
-            {
-                user.Boosters.Remove(booster);
-
-                if (Check.NotNull(booster.ParentId))
-                {
-                    Item parent = GetItem(booster.ParentId);
-                    parent?.Usage?.OnBreak?.Invoke(user);
-                }
-            }
-
-            return BoostConvert.GetValue(value, rate, isNegative);
-        }
+        
 
         
 
@@ -552,7 +475,7 @@ namespace Arcadia
 
             GiveItem(user, recipe.Result.ItemId, recipe.Result.Amount);
 
-            user.AddToVar(Stats.TimesCrafted);
+            user.AddToVar(Stats.ItemsCrafted);
             return true;
         }
 
@@ -687,7 +610,7 @@ namespace Arcadia
         {
             return font switch
             {
-                FontType.Delton => Items.FontDelta,
+                FontType.Delta => Items.FontDelta,
             };
         }
 
@@ -726,9 +649,6 @@ namespace Arcadia
 
             return item.GroupId;
         }
-
-        public static string DetailsOf(Item item)
-            => CatalogViewer.ViewItem(item);
 
         public static string IconOf(string itemId)
             => GetItem(itemId)?.GetIcon() ?? "";
@@ -824,30 +744,6 @@ namespace Arcadia
                 return user.Items.Count(x => x.Id == item.Id);
 
             return user.Items.First(x => x.Id == item.Id).Count;
-        }
-
-        
-
-        // this stores an item to the specified user.
-        
-
-        
-
-        public static bool CanApplyBooster(BoostData booster)
-        {
-            if (booster.ExpiresOn.HasValue)
-            {
-                if ((DateTime.UtcNow - booster.ExpiresOn.Value) > TimeSpan.Zero)
-                    return false;
-            }
-
-            if (booster.UsesLeft.HasValue)
-            {
-                if (booster.UsesLeft <= 0)
-                    return false;
-            }
-
-            return true;
         }
 
         public static bool CanStack(ItemData data)
@@ -1102,7 +998,7 @@ namespace Arcadia
                 // Only invoke breaking if the group is not a booster
                 // This is because boosters reference this method when they are used up
                 item.Usage.OnBreak?.Invoke(user);
-                user.AddToVar(Stats.ItemsUsed);
+                user.AddToVar(Stats.ItemsBroken);
             }
 
             return result;

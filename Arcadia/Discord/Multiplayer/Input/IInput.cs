@@ -22,7 +22,5 @@ namespace Arcadia.Multiplayer
         public bool UpdateOnExecute { get; set; }
 
         public bool RequirePlayer { get; set; }
-
-        public IEnumerable<GameProperty> Args { get; }
     }
 }

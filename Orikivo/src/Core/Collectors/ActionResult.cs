@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines what the <see cref="MessageCollector"/> continues with once an action is complete.
     /// </summary>
-    public enum ActionResult
+    public enum MatchResult
     {
         /// <summary>
         /// Closes the <see cref="MessageCollector"/> and marks the proceeding action as a success.

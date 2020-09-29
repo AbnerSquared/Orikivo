@@ -24,6 +24,7 @@ namespace Arcadia
         public static readonly string SellNotOwnedGeneric = "You don't have this item in your inventory.";
         public static readonly string SellNotAllowedGeneric = "Sorry, but I don't buy that here.";
         public static readonly string BuyRemainderGeneric = "Thank you for buying everything in stock.";
+        public static readonly string BuyLimitGeneric = "You have reached your purchase limit.";
 
         public string Name { get; set; }
 
@@ -43,6 +44,7 @@ namespace Arcadia
 
         public string[] OnBuyEmpty { get; set; }
         public string[] OnBuyInvalid { get; set; }
+        public string[] OnBuyLimit { get; set; }
 
         public string[] OnSell { get; set; }
         public string[] OnSellDeny { get; set; }

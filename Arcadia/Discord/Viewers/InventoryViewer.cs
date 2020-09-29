@@ -17,7 +17,7 @@ namespace Arcadia
             string extra = pageCount > 1 ? $" (Page **{page:##,0}** of **{pageCount:##,0}**)" : "";
             var header = new StringBuilder(Locale.GetHeaderTitle(Headers.Inventory, extra));
 
-            header.Append($"\n> You have {WriteCapacity(capacity)} available.");
+            header.Append($"\n> You have {WriteCapacity(capacity)} available.\n");
             return header.ToString();
         }
 
@@ -179,13 +179,14 @@ namespace Arcadia
 
             if (isPrivate)
             {
-                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user)));
+                inventory.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetInventorySize(user), pageCount, page));
             }
             else
             {
                 page = page < 0 ? 0 : page > pageCount - 1 ? pageCount - 1 : page;
                 string extra = pageCount > 1 ? $" (Page **{page:##,0}** of **{pageCount:##,0}**)" : null;
-                inventory.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, extra, user.Username));
+                inventory.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, extra, user.Username))
+                    .AppendLine();
             }
 
             if (pageCount > 1)

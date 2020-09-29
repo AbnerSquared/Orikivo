@@ -133,7 +133,10 @@ namespace Arcadia
         [JsonIgnore]
         public bool CanTrade { get; set; } = true;
 
-        [JsonIgnore] public long LastFundsLost { get; set; } = 0;
+        [JsonIgnore]
+        public bool CanGamble { get; set; } = true;
+
+        [JsonIgnore] public Wager LastFundsLost { get; set; }
 
         private string _cardGenKey;
         [JsonIgnore]
@@ -210,85 +213,84 @@ namespace Arcadia
             AddToVar(id, amount);
         }
 
-        public void Give(long value, bool canBoost = true)
+        public void Give(long value, CurrencyType currency = CurrencyType.Money)
         {
-            if (canBoost)
-                value = ItemHelper.BoostValue(this, value, BoostType.Money);
+            switch (currency)
+            {
+                case CurrencyType.Chips:
+                    ChipBalance += value;
+                    return;
 
-            if (Debt >= value)
-            {
-                Debt -= value;
-            }
-            else if (Debt > 0)
-            {
-                value -= Debt;
-                Debt = 0;
-                Balance += value;
-            }
-            else
-            {
-                Balance += value;
+                case CurrencyType.Tokens:
+                    TokenBalance += value;
+                    return;
+
+                case CurrencyType.Money:
+
+                    if (Debt >= value)
+                    {
+                        Debt -= value;
+                    }
+                    else if (Debt > 0)
+                    {
+                        Balance += value - Debt;
+                        Debt = 0;
+                    }
+                    else
+                    {
+                        Balance += value;
+                    }
+                    return;
+
+                case CurrencyType.Debt:
+                    Take(value, CurrencyType.Money);
+                    return;
+
+                default:
+                    throw new ArgumentException("Unknown currency type specified");
             }
         }
 
-        public void Give(long value, out long actual, bool canBoost = true)
+        public void Take(long value, CurrencyType currency = CurrencyType.Money)
         {
-            actual = canBoost ? ItemHelper.BoostValue(this, value, BoostType.Money) : value;
+            switch (currency)
+            {
+                case CurrencyType.Chips:
+                    if (value > ChipBalance)
+                        throw new Exception("Unable to take more than the currently specified chip balance");
 
-            if (Debt >= actual)
-            {
-                Debt -= actual;
-            }
-            else if (Debt > 0)
-            {
-                actual -= Debt;
-                Debt = 0;
-                Balance += actual;
-            }
-            else
-            {
-                Balance += actual;
-            }
-        }
+                    ChipBalance -= value;
+                    return;
 
-        public void Take(long value, bool canBoost = true)
-        {
-            if (canBoost)
-                value = ItemHelper.BoostValue(this, value, BoostType.Debt);
+                case CurrencyType.Tokens:
+                    if (value > TokenBalance)
+                        throw new Exception("Unable to take more than the currently specified token balance");
 
-            if (Balance >= value)
-            {
-                Balance -= value;
-            }
-            else if (Balance > 0)
-            {
-                value -= Balance;
-                Balance = 0;
-                Debt += value;
-            }
-            else
-            {
-                Debt += value;
-            }
-        }
+                    TokenBalance -= value;
+                    return;
 
-        public void Take(long value, out long actual, bool canBoost = true)
-        {
-            actual = canBoost ? ItemHelper.BoostValue(this, value, BoostType.Debt) : value;
+                case CurrencyType.Money:
+                    if (Balance >= value)
+                    {
+                        Balance -= value;
+                    }
+                    else if (Balance > 0)
+                    {
+                        Debt += value - Balance;
+                        Balance = 0;
+                    }
+                    else
+                    {
+                        Debt += value;
+                    }
+                    return;
 
-            if (Balance >= actual)
-            {
-                Balance -= actual;
-            }
-            else if (Balance > 0)
-            {
-                actual -= Balance;
-                Balance = 0;
-                Debt += actual;
-            }
-            else
-            {
-                Debt += actual;
+                case CurrencyType.Debt:
+                    Give(value, CurrencyType.Money);
+                    return;
+
+                default:
+                    throw new ArgumentException("Unknown currency type specified");
             }
         }
     }

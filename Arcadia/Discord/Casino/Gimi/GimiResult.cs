@@ -1,5 +1,4 @@
-﻿using System;
-using Orikivo.Drawing;
+﻿using Orikivo.Drawing;
 using Orikivo;
 
 namespace Arcadia.Casino
@@ -16,81 +15,72 @@ namespace Arcadia.Casino
         public CasinoMode Mode => CasinoMode.Gimi;
 
         public bool IsSuccess => Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold);
-        public GimiResultFlag Flag { get; }
-        public long Reward { get; }
-        public long ModifiedReward { get; private set; }
 
-        // UNUSED
-        public long Risk { get; } // the risk that was utilized
+        public GimiResultFlag Flag { get; }
+
+        public long Reward { get; private set; }
+
+        public long Risk { get; }
 
         public void Apply(ArcadeUser user)
         {
-            user.AddToVar(GimiStats.TimesPlayed);
+            Var.Add(user, 1, GimiStats.TimesPlayed);
 
-            if (Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold))
+            switch (Flag)
             {
-                user.SetVar(GimiStats.CurrentCurseStreak, 0);
-                user.SetVar(GimiStats.CurrentLossStreak, 0);
-                user.SetVar(GimiStats.CurrentLossAmount, 0);
+                case GimiResultFlag.Win:
+                case GimiResultFlag.Gold:
+                    Var.Clear(user, GimiStats.CurrentCurseStreak, GimiStats.CurrentLossStreak, GimiStats.CurrentLossAmount);
+                    Var.Add(user, 1, GimiStats.TimesWon, GimiStats.CurrentWinStreak);
+                    Var.Add(user, Reward, GimiStats.TotalWon, GimiStats.CurrentWinAmount);
+                    Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
+                    Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
-                if (Flag == GimiResultFlag.Win)
-                    user.SetVar(GimiStats.CurrentGoldStreak, 0);
+                    if (Flag == GimiResultFlag.Gold)
+                    {
+                        ItemHelper.GiveItem(user, Items.PocketLawyer);
 
-                user.AddToVar(GimiStats.TimesWon);
-                user.AddToVar(GimiStats.TotalWon, Reward);
-                user.AddToVar(GimiStats.CurrentWinStreak);
-                user.AddToVar(GimiStats.CurrentWinAmount, Reward);
+                        if (RandomProvider.Instance.Next(0, 1001) == 1000)
+                            ItemHelper.GiveItem(user, Items.PaletteGold);
 
-                if (Flag == GimiResultFlag.Gold)
-                {
-                    if (RandomProvider.Instance.Next(0, 1001) == 1000)
-                        ItemHelper.GiveItem(user, Items.PaletteGold);
+                        Var.Add(user, 1, GimiStats.TimesGold, GimiStats.CurrentGoldStreak);
+                        Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                    }
+                    else
+                    {
+                        Var.Clear(user, GimiStats.CurrentGoldStreak);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                    }
 
-                    ItemHelper.GiveItem(user, Items.PocketLawyer);
-                    user.AddToVar(GimiStats.TimesGold);
-                    user.AddToVar(GimiStats.CurrentGoldStreak);
+                    user.Give(Reward);
+                    break;
 
-                    Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
-                }
+                case GimiResultFlag.Lose:
+                case GimiResultFlag.Curse:
+                    Var.Clear(user, GimiStats.CurrentGoldStreak, GimiStats.CurrentWinStreak, GimiStats.CurrentWinAmount);
+                    Var.Add(user, 1, GimiStats.TimesLost, GimiStats.CurrentLossStreak);
+                    Var.Add(user, Reward, GimiStats.TotalLost, GimiStats.CurrentLossAmount);
+                    Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
+                    Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
 
-                Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
-                user.Give(Reward, out long actual, Flag != GimiResultFlag.Gold);
-                ModifiedReward = actual;
-            }
-            else if (Flag.EqualsAny(GimiResultFlag.Lose, GimiResultFlag.Curse))
-            {
-                // UPDATING STATS
-                user.SetVar(GimiStats.CurrentGoldStreak, 0);
-                user.SetVar(GimiStats.CurrentWinStreak, 0);
-                user.SetVar(GimiStats.CurrentWinAmount, 0);
+                    if (Flag == GimiResultFlag.Curse)
+                    {
+                        Var.Add(user, 1, GimiStats.TimesCursed, GimiStats.CurrentCurseStreak);
+                        Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                    }
+                    else
+                    {
+                        Var.Clear(user, GimiStats.CurrentCurseStreak);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                    }
 
-                if (Flag == GimiResultFlag.Lose)
-                    user.SetVar(GimiStats.CurrentCurseStreak, 0);
-
-                user.AddToVar(GimiStats.TimesLost);
-                user.AddToVar(GimiStats.TotalLost, Reward);
-                user.AddToVar(GimiStats.CurrentLossStreak);
-                user.AddToVar(GimiStats.CurrentLossAmount, Reward);
-
-                if (Flag == GimiResultFlag.Curse)
-                {
-                    user.AddToVar(GimiStats.TimesCursed);
-                    user.AddToVar(GimiStats.CurrentCurseStreak);
-                    Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
-                }
-
-                Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
-                user.Take(Reward, out long actual, Flag != GimiResultFlag.Curse);
-                ModifiedReward = actual;
+                    user.Take(Reward);
+                    break;
             }
         }
 
-        // Apply the GimiResult to the user that executed it.
         public Message ApplyAndDisplay(ArcadeUser user)
         {
-            // MESSAGE FRAMEWORK
             var builder = new MessageBuilder();
             var embedder = new Embedder();
 
@@ -100,148 +90,105 @@ namespace Arcadia.Casino
             long value = Reward;
             ImmutableColor color = ImmutableColor.GammaGreen;
 
-            //long current = user.GetStat(GimiStats.CurrentType);
+            Var.Add(user, 1, GimiStats.TimesPlayed);
 
-            user.AddToVar(GimiStats.TimesPlayed);
-
-            if (Flag.EqualsAny(GimiResultFlag.Win, GimiResultFlag.Gold))
+            switch (Flag)
             {
-                //if (current == 0)
-                //    current = (long)GimiResultFlag.Win;
+                case GimiResultFlag.Win:
+                case GimiResultFlag.Gold:
+                    Var.Clear(user, GimiStats.CurrentCurseStreak, GimiStats.CurrentLossStreak, GimiStats.CurrentLossAmount);
+                    Var.Add(user, 1, GimiStats.TimesWon, GimiStats.CurrentWinStreak);
+                    Var.Add(user, Reward, GimiStats.TotalWon, GimiStats.CurrentWinAmount);
+                    Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
+                    Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
 
-                // SETTING UP MESSAGE
-                icon = "💸";
-                type = "+";
-                color = ImmutableColor.GammaGreen;
+                    if (Flag == GimiResultFlag.Gold)
+                    {
+                        icon = "💎";
+                        type = "+";
+                        color = GammaPalette.Glass[Gamma.Max];
 
-                // UPDATING
-                Var.Clear(user,
-                    GimiStats.CurrentCurseStreak,
-                    GimiStats.CurrentLossStreak,
-                    GimiStats.CurrentLossAmount);
+                        ItemHelper.GiveItem(user, Items.PocketLawyer);
 
-                if (Flag == GimiResultFlag.Win)
-                    user.SetVar(GimiStats.CurrentGoldStreak, 0);
+                        if (RandomProvider.Instance.Next(0, 1001) == 1000)
+                            ItemHelper.GiveItem(user, Items.PaletteGold);
 
-                user.AddToVar(GimiStats.TimesWon);
-                user.AddToVar(GimiStats.TotalWon, Reward);
-                user.AddToVar(GimiStats.CurrentWinStreak);
-                user.AddToVar(GimiStats.CurrentWinAmount, Reward);
+                        Var.Add(user, 1, GimiStats.TimesGold, GimiStats.CurrentGoldStreak);
+                        Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                    }
+                    else
+                    {
+                        Var.Clear(user, GimiStats.CurrentGoldStreak);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                    }
+                    long debt = user.Debt;
+                    user.Give(Reward);
 
-                if (Flag == GimiResultFlag.Gold)
-                {
-                    icon = "💎";
-                    type = "+";
-                    color = GammaPalette.Glass[Gamma.Max];
-
-                    // Try to give a gold palette
-                    if (RandomProvider.Instance.Next(0, 1001) == 1000)
-                        ItemHelper.GiveItem(user, Items.PaletteGold);
-
-                    ItemHelper.GiveItem(user, Items.PocketLawyer);
-                    user.AddToVar(GimiStats.TimesGold);
-                    user.AddToVar(GimiStats.CurrentGoldStreak);
-
-                    Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
-                }
-
-                Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
-
-                long debt = user.Debt;
-                // UPDATING BALANCE
-                user.Give(Reward, out value, Flag != GimiResultFlag.Gold);
-                ModifiedReward = value;
-
-                // 3 > 9
-                if (debt > ModifiedReward) // if there's a reward, but the person is still in debt
-                {
-                    icon = "📃";
-                    type = "-";
-                    quote = Replies.Recover.Length > 0 ? (string)Randomizer.Choose(Replies.Recover) : Replies.RecoverGeneric;
-                }
-
-                // 3 > 0
-                // if there's still debt, but it was paid off, show the remainder as what they gained.
-                else if (debt > 0)
-                {
-                    // 9 - 3
-                    // = 9 - 2
-                    value = ModifiedReward;
-
-                    if (value == 0)
+                    if (debt > Reward)
+                    {
+                        icon = "📃";
+                        type = "-";
+                        quote = Replies.Recover.Length > 0 ? (string)Randomizer.Choose(Replies.Recover) : Replies.RecoverGeneric;
+                    }
+                    else if (debt > 0 && Reward - debt == 0)
                     {
                         icon = "📧";
                         type = "";
                         quote = Replies.EvenGeneric;
                     }
-                }
-            }
-            else if (Flag.EqualsAny(GimiResultFlag.Lose, GimiResultFlag.Curse))
-            {
-                icon = "💸";
-                type = "-";
-                color = ImmutableColor.NeonRed;
 
-                //if (current == 0)
-                //    current = (long)GimiResultFlag.Lose;
+                    break;
 
-                // UPDATING STATS
-                user.SetVar(GimiStats.CurrentGoldStreak, 0);
-                user.SetVar(GimiStats.CurrentWinStreak, 0);
-                user.SetVar(GimiStats.CurrentWinAmount, 0);
-
-                if (Flag == GimiResultFlag.Lose)
-                {
-                    user.SetVar(GimiStats.CurrentCurseStreak, 0);
-                }
-
-                user.AddToVar(GimiStats.TimesLost);
-                user.AddToVar(GimiStats.TotalLost, Reward);
-                user.AddToVar(GimiStats.CurrentLossStreak);
-                user.AddToVar(GimiStats.CurrentLossAmount, Reward);
-
-                if (Flag == GimiResultFlag.Curse)
-                {
-                    icon = "🌕";//"👁‍🗨";
+                case GimiResultFlag.Lose:
+                case GimiResultFlag.Curse:
                     type = "-";
-                    color = GammaPalette.Alconia[Gamma.Standard];
+                    color = ImmutableColor.NeonRed;
 
-                    user.AddToVar(GimiStats.TimesCursed);
-                    user.AddToVar(GimiStats.CurrentCurseStreak);
-                    Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
-                }
+                    Var.Clear(user, GimiStats.CurrentGoldStreak, GimiStats.CurrentWinStreak, GimiStats.CurrentWinAmount);
+                    Var.Add(user, 1, GimiStats.TimesLost, GimiStats.CurrentLossStreak);
+                    Var.Add(user, Reward, GimiStats.TotalLost, GimiStats.CurrentLossAmount);
+                    Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
+                    Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
 
-                Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
+                    if (Flag == GimiResultFlag.Curse)
+                    {
+                        icon = "🌕";
+                        type = "-";
+                        color = GammaPalette.Alconia[Gamma.Standard];
 
-                long balance = user.Balance;
-                // UPDATING BALANCE
-                user.Take(Reward, out value, Flag != GimiResultFlag.Curse);
-                ModifiedReward = value;
+                        Var.Add(user, 1, GimiStats.TimesCursed, GimiStats.CurrentCurseStreak);
+                        Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                    }
+                    else
+                    {
+                        Var.Clear(user, GimiStats.CurrentCurseStreak);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                    }
 
-                if (balance < ModifiedReward) // if there's a loss larger than the person's balance, show the remainder as debt (ONLY IF > THAN 0)
-                {
-                    icon = "📃";
-                    type = "+";
-                    value = ModifiedReward - balance;
-                    quote = Replies.Debt.Length > 0 ? (string)Randomizer.Choose(Replies.Debt) : Replies.DebtGeneric;
-                }
-                else if (balance > 0)
-                {
-                    // 9 - 3
+                    long balance = user.Balance;
+                    user.Take(Reward);
 
-                    if (ModifiedReward - balance == 0)
+                    if (balance < Reward)
+                    {
+                        icon = "📃";
+                        type = "+";
+                        value = Reward - balance;
+                        quote = Replies.Debt.Length > 0 ? (string)Randomizer.Choose(Replies.Debt) : Replies.DebtGeneric;
+                    }
+                    else if (balance > 0 && Reward - balance == 0)
                     {
                         icon = "📧";
-                        value = ModifiedReward - balance;
+                        value = Reward - balance;
                         type = "";
                         quote = Replies.EvenGeneric;
                     }
-                }
+                    break;
             }
 
-            string header = $"**{type} {icon} {value:##,0}**";
+            if (!string.IsNullOrWhiteSpace(type))
+                type += ' ';
+
+            string header = $"**{type}{icon} {value:##,0}**";
             string content = $"*\"{quote}\"*";
 
             embedder.Header = header;
