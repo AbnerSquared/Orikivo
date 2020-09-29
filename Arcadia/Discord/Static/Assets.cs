@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
+using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
@@ -1098,7 +1099,7 @@ namespace Arcadia
                         {
                             if (ctx.Input.ToLower() == "recover")
                             {
-                                if (ItemHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
+                                if (ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
                                     return UsageResult.FromError("> You have yet to understand the concept of recovery.");
 
                                 if (ctx.User.LastFundsLost == null)
@@ -1115,7 +1116,7 @@ namespace Arcadia
                                 return UsageResult.FromSuccess("> After several attempted hours of recovery, your funds fade into the darkness.");
                             }
 
-                            if (ctx.User.Debt < 750 && ItemHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 2)
+                            if (ctx.User.Debt < 750 && ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 2)
                                 return UsageResult.FromError("> You called for help, but the request remains unanswered. You aren't seen as in need of assistance.");
 
                             ctx.User.Debt = 0;
@@ -1495,6 +1496,7 @@ namespace Arcadia
             {
                 Id = "tool",
                 Name = "Tool",
+                Rarity = ItemRarity.Uncommon,
                 Summary = "Items that are used on other instances of items."
             },
             new ItemGroup

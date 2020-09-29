@@ -48,7 +48,7 @@ namespace Arcadia
                 && !ShopHelper.Exists(Var.GetGroup(x))
                 && (Check.NotNullOrEmpty(chosen) ? !chosen.Contains(x) : true)));
 
-        public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 25)
+        public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 15)
         {
             VarGroup group = Var.GetGroupDefiner(query);
 
@@ -96,16 +96,14 @@ namespace Arcadia
         {
             var result = new StringBuilder();
 
-            int pageCount = GetPageCount(user, pageSize) - 1;
-            IEnumerable<KeyValuePair<string, long>> stats = GetVisibleStats(user);
+            List<KeyValuePair<string, long>> stats = GetVisibleStats(user).ToList();
+            int pageCount = Paginate.GetPageCount(stats.Count, pageSize);
+            page = Paginate.ClampIndex(page, pageCount);
 
-            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
             string counter = null;
-            if (pageCount + 1 > 1)
-            {
-                if (pageCount + 1 > 1)
-                    counter = $"(Page **{page + 1:##,0}**/{pageCount + 1:##,0})";
-            }
+
+            if (pageCount > 1)
+                counter = $" ({Format.PageCount(page + 1, pageCount)})";
 
 
             result.AppendLine(Locale.GetHeader(Headers.Stat, counter, group: isSelf ? null : user.Username));

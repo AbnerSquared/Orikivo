@@ -16,7 +16,7 @@ namespace Arcadia.Services
             info.AppendLine("> 🗃️ **Catalog**");
             info.AppendLine("> Learn about all of the items you have discovered so far.");
 
-            if (!ItemHelper.CanViewCatalog(user))
+            if (!CatalogHelper.CanViewCatalog(user))
             {
                 info.AppendLine("You haven't seen any items yet. Get out there and explore!");
                 return info.ToString();
@@ -24,8 +24,8 @@ namespace Arcadia.Services
 
             foreach (ItemGroup group in Assets.Groups)
             {
-                int known = ItemHelper.GetKnownCount(user, group.Id);
-                int seen = ItemHelper.GetSeenCount(user, group.Id);
+                int known = CatalogHelper.GetKnownCount(user, group.Id);
+                int seen = CatalogHelper.GetSeenCount(user, group.Id);
 
                 if (known == 0 && seen == 0)
                     continue;
@@ -66,14 +66,14 @@ namespace Arcadia.Services
             ItemGroup group = ItemHelper.GetGroup(groupId);
 
             List<Item> entries = Assets.Items
-                .Where(x => x.GroupId == groupId && ItemHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown)
+                .Where(x => x.GroupId == groupId && CatalogHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown)
                 .ToList();
 
             result.Icon = group.Icon?.ToString() ?? "•";
             result.Title = $"**{Format.Plural(group.Name)}** (**{entries.Count}** discovered)";
             result.Values = entries
                 .OrderBy(x => x.Name)
-                .Select(x => GetItemElement(x, ItemHelper.GetCatalogStatus(user, x)))
+                .Select(x => GetItemElement(x, CatalogHelper.GetCatalogStatus(user, x)))
                 .ToList();
 
             return result;
@@ -102,24 +102,27 @@ namespace Arcadia.Services
         private static IEnumerable<TextSection> GetVisibleGroups(ArcadeUser user)
         {
             return Assets.Groups
-                .Where(x => ItemHelper.GetVisibleCount(user, x.Id) > 0)
+                .Where(x => CatalogHelper.GetVisibleCount(user, x.Id) > 0)
                 .Select(x => GetGroupSection(x.Id, user) as TextSection);
         }
 
         public static string Search(ArcadeUser user, string input, int page = 0)
         {
-            IEnumerable<Item> results = ItemHelper.Search(input).Where(x => ItemHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown);
+            List<Item> results = CatalogHelper
+                .Search(input)
+                .Where(x => CatalogHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown)
+                .ToList();
 
             if (!results.Any())
                 return Format.Warning("Unable to find any matching results.");
 
             var info = new StringBuilder();
             info.AppendLine($"{GetTooltip()}\n");
-            info.AppendLine($"> 🗃️ **Catalog Search** (**{results.Count():##,0}** {Format.TryPluralize("result", results.Count())} found)");
+            info.AppendLine($"> 🗃️ **Catalog Search** (**{results.Count:##,0}** {Format.TryPluralize("result", results.Count)} found)");
 
             foreach (Item item in Paginate.GroupAt(results, page, _pageSize))
             {
-                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+                CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
                 string icon = item.GetIcon() ?? "•";
 
                 info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
@@ -139,8 +142,8 @@ namespace Arcadia.Services
             if (!ItemHelper.GroupExists(query))
                 return Format.Warning("Unable to find the specified group query.");
 
-            int owned = ItemHelper.GetKnownCount(user, query);
-            int seen = ItemHelper.GetSeenCount(user, query);
+            int owned = CatalogHelper.GetKnownCount(user, query);
+            int seen = CatalogHelper.GetSeenCount(user, query);
 
             // You are not authorized to view this group query.
             if (owned == 0 && seen == 0)
@@ -151,7 +154,7 @@ namespace Arcadia.Services
             ItemGroup group = ItemHelper.GetGroup(query);
 
             var entries = Assets.Items
-                .Where(x => x.GroupId == query && ItemHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
+                .Where(x => x.GroupId == query && CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 
             int pageCount = (int)Math.Ceiling(entries.Count / (double)_pageSize) - 1;
@@ -185,7 +188,7 @@ namespace Arcadia.Services
                 if (i >= _pageSize)
                     break;
 
-                CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+                CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
 
                 if (status == CatalogStatus.Unknown)
                     continue;
@@ -348,7 +351,7 @@ namespace Arcadia.Services
             if (item.Size > 0)
                 details.AppendLine($"Storage Size: {InventoryViewer.WriteCapacity(item.Size)}");
 
-            if (!ItemHelper.HasAttributes(item))
+            if (!CatalogHelper.HasAttributes(item))
                 return details.ToString();
 
             details.AppendLine("\n> **Attributes**");
@@ -384,13 +387,13 @@ namespace Arcadia.Services
             if (ItemHelper.IsIngredient(item))
                 details.AppendLine("🧂 **Crafting Ingredient**");
 
-            if (ItemHelper.CanCraft(item))
+            if (CraftHelper.CanCraft(item))
                 details.AppendLine("📒 **Craftable**");
 
             if (item.OwnLimit.HasValue)
                 details.AppendLine($"📂 **Max Allowed: {item.OwnLimit.Value:##,0}**");
 
-            if (!ItemHelper.HasUsageAttributes(item))
+            if (!CatalogHelper.HasUsageAttributes(item))
                 return details.ToString();
 
             if (item.Usage != null)

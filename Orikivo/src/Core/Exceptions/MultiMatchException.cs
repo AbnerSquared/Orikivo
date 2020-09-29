@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents errors that occur when multiple matches from a search event was returned.
+    /// Represents errors that occur when multiple matches from a method were returned.
     /// </summary>
     public class MultiMatchException : Exception
     {

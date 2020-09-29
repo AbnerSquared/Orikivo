@@ -6,7 +6,7 @@ namespace Arcadia
 {
     public class ArcadeData
     {
-        public static readonly string Version = "0.8.0b";
+        public static readonly string Version = "0.8.1b";
         // Once a day
         public static readonly TimeSpan CatalogRefreshRate = TimeSpan.FromHours(24);
 

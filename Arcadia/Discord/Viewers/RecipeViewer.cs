@@ -9,11 +9,11 @@ namespace Arcadia.Services
     {
         public static string View(ArcadeUser user)
         {
-            ItemHelper.UpdateKnownRecipes(user);
+            CraftHelper.UpdateKnownRecipes(user);
             var recipes = new StringBuilder();
             recipes.AppendLine(Locale.GetHeader(Headers.Recipe));
 
-            IEnumerable<Recipe> known = ItemHelper.GetKnownRecipes(user).ToList();
+            IEnumerable<Recipe> known = CraftHelper.GetKnownRecipes(user).ToList();
 
             if (!Check.NotNullOrEmpty(known))
             {
@@ -37,8 +37,8 @@ namespace Arcadia.Services
             if (!Check.NotNull(recipeName))
                 recipeName = "Unknown Item";
 
-            text.AppendLine($"\n> `{ItemHelper.GetBaseRecipeId(recipe)}`")
-                .Append($"> {(ItemHelper.CanCraft(user, recipe) ? "📑" : "📄")} **Recipe: {recipeName}**");
+            text.AppendLine($"\n> `{CraftHelper.GetBaseRecipeId(recipe)}`")
+                .Append($"> {(CraftHelper.CanCraft(user, recipe) ? "📑" : "📄")} **Recipe: {recipeName}**");
 
             return text.ToString();
         }
@@ -50,13 +50,13 @@ namespace Arcadia.Services
             var info = new StringBuilder();
 
             string resultName = ItemHelper.GetItem(recipe.Result.ItemId)?.Name ?? "Unknown Item";
-            bool craft = ItemHelper.CanCraft(user, recipe);
+            bool craft = CraftHelper.CanCraft(user, recipe);
 
             if (craft)
             {
-                ItemHelper.SetRecipeStatus(user, recipe, RecipeStatus.Known);
+                CraftHelper.SetRecipeStatus(user, recipe, RecipeStatus.Known);
             }
-            else if (ItemHelper.GetRecipeStatus(user, recipe) == RecipeStatus.Unknown)
+            else if (CraftHelper.GetRecipeStatus(user, recipe) == RecipeStatus.Unknown)
                 return Format.Warning("Unknown recipe specified.");
 
 

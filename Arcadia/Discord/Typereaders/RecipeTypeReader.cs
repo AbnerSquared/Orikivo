@@ -8,8 +8,8 @@ namespace Arcadia
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
         {
-            if (ItemHelper.RecipeExists(input))
-                return Task.FromResult(TypeReaderResult.FromSuccess(ItemHelper.GetRecipe(input)));
+            if (CraftHelper.RecipeExists(input))
+                return Task.FromResult(TypeReaderResult.FromSuccess(CraftHelper.GetRecipe(input)));
 
             return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Recipe with the specified ID."));
         }

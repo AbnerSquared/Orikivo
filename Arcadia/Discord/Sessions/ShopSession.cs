@@ -150,7 +150,7 @@ namespace Arcadia
                 {
                     foreach ((string itemId, int amount) in catalog.ItemIds)
                     {
-                        ItemHelper.SetCatalogStatus(user, itemId, CatalogStatus.Seen);
+                        CatalogHelper.SetCatalogStatus(user, itemId, CatalogStatus.Seen);
                     }
 
                     HasUpdatedCatalog = true;

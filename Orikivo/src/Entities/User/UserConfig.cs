@@ -335,5 +335,10 @@ namespace Orikivo.Desync
             get => Flag.HasFlag(UserFlag.Tooltips);
             set => Flag = value ? Flag | UserFlag.Tooltips : Flag & ~UserFlag.Tooltips;
         }
+
+        public bool CanNotify(NotifyAllow notifier)
+        {
+            return Notifier.HasFlag(notifier);
+        }
     }
 }

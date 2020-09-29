@@ -3,7 +3,6 @@ using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
-using Discord.WebSocket;
 
 namespace Arcadia.Modules
 {
@@ -12,32 +11,6 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : OriModuleBase<ArcadeContext>
     {
-        private async Task HandleBlackJackAsync(BlackJackSession session)
-        {
-            try
-            {
-                var collector = new MessageCollector(Context.Client);
-
-                var options = new MatchOptions
-                {
-                    ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(30),
-                    Session = session
-                };
-
-                bool Filter(SocketMessage message, int index)
-                {
-                    return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
-                }
-
-                await collector.MatchAsync(Filter, options);
-            }
-            catch (Exception e)
-            {
-                await Context.Channel.CatchAsync(e);
-            }
-        }
-
         [RequireUser]
         [Command("blackjack")]
         [Summary("A game of 21.")]
@@ -66,7 +39,8 @@ namespace Arcadia.Modules
             }
 
             Context.Account.CanGamble = false;
-            await HandleBlackJackAsync(new BlackJackSession(Context, wager.Value));
+            var session = new BlackJackSession(Context, wager.Value);
+            await StartSessionAsync(session, TimeSpan.FromSeconds(15));
             Context.Account.CanGamble = true;
         }
 

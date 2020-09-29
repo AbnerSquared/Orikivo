@@ -1,6 +1,8 @@
-﻿using Discord;
+﻿using System;
+using Discord;
 using Discord.Commands;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 using Orikivo.Desync;
 
 namespace Orikivo
@@ -15,6 +17,32 @@ namespace Orikivo
 
         private IDMChannel GetOrCreateDMChannel(IUser user)
             => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        protected async Task StartSessionAsync(MatchSession session, TimeSpan? timeout = null)
+        {
+            try
+            {
+                var collector = new MessageCollector(Context.Client);
+
+                var options = new MatchOptions
+                {
+                    ResetTimeoutOnAttempt = true,
+                    Timeout = timeout ?? TimeSpan.FromSeconds(30),
+                    Session = session
+                };
+
+                bool Filter(SocketMessage message, int index)
+                {
+                    return message.Author.Id == Context.User.Id && message.Channel.Id == Context.Channel.Id;
+                }
+
+                await collector.MatchAsync(Filter, options);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.CatchAsync(e);
+            }
+        }
 
         /// <summary>
         /// Sends a direct message to the specified user.

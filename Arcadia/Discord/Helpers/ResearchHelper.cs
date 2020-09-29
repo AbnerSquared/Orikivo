@@ -7,8 +7,16 @@ using Orikivo.Desync;
 
 namespace Arcadia.Services
 {
-    public class ResearchHelper
+    public static class ResearchHelper
     {
+        public static long GetResearchTier(ArcadeUser user, Item item)
+            => GetResearchTier(user, item.Id);
+
+        public static long GetResearchTier(ArcadeUser user, string itemId)
+        {
+            return Math.Max(0, user.GetVar(CatalogHelper.GetCatalogId(itemId)) - 2);
+        }
+
         public static string ViewMemos(ArcadeUser user, int page = 0)
         {
             var details = new StringBuilder();
@@ -21,7 +29,7 @@ namespace Arcadia.Services
 
         public static string ViewMemo(ArcadeUser user, Item item)
         {
-            CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+            CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
 
             if (status == CatalogStatus.Unknown)
                 return Format.Warning("Unknown item.");
@@ -30,7 +38,7 @@ namespace Arcadia.Services
 
             details.AppendLine($"> 📋 **Memo: {item.Name}** (No. **{item.MemoId:000}**)");
 
-            if (ItemHelper.GetResearchTier(user, item) >= 1 && !string.IsNullOrWhiteSpace(item.Memo))
+            if (GetResearchTier(user, item) >= 1 && !string.IsNullOrWhiteSpace(item.Memo))
             {
                 details.Append($"```{item.Memo}```");
             }
@@ -112,14 +120,14 @@ namespace Arcadia.Services
 
         public static void CompleteResearch(ArcadeUser user, Item item)
         {
-            if (ItemHelper.GetCatalogStatus(user, item) < CatalogStatus.Known)
+            if (CatalogHelper.GetCatalogStatus(user, item) < CatalogStatus.Known)
                 throw new Exception("Expected researched item to be at least known");
 
-            user.AddToVar(ItemHelper.GetCatalogId(item.Id));
+            user.AddToVar(CatalogHelper.GetCatalogId(item.Id));
             user.SetVar(GetResearchId(item.Id), 0);
 
             if (user.Config.Notifier.HasFlag(NotifyAllow.Research))
-                user.Notifier.Append(WriteNotice(item.Name, ItemHelper.GetResearchTier(user, item)));
+                user.Notifier.Append(WriteNotice(item.Name, GetResearchTier(user, item)));
 
         }
 
@@ -133,7 +141,7 @@ namespace Arcadia.Services
 
             string itemId = Var.GetKey(id);
             Item item = ItemHelper.GetItem(itemId);
-            long tier = ItemHelper.GetResearchTier(user, itemId);
+            long tier = GetResearchTier(user, itemId);
             string name = item.Name;
             TimeSpan remainder = TimeSpan.FromTicks(ticks - DateTime.UtcNow.Ticks);
 
@@ -172,7 +180,7 @@ namespace Arcadia.Services
 
         public static bool CanResearch(ArcadeUser user, Item item)
         {
-            long tier = ItemHelper.GetResearchTier(user, item);
+            long tier = GetResearchTier(user, item);
             long maxTier = GetMaxResearchTier(item);
 
             return tier < maxTier;
@@ -192,12 +200,12 @@ namespace Arcadia.Services
         public static string ViewResearch(ArcadeUser user, Item item)
         {
             bool allowTooltips = user.Config.Tooltips;
-            CatalogStatus status = ItemHelper.GetCatalogStatus(user, item);
+            CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
 
             if (status == CatalogStatus.Unknown)
                 return Format.Warning("Unknown item.");
 
-            long tier = ItemHelper.GetResearchTier(user, item);
+            long tier = GetResearchTier(user, item);
 
             var details = new StringBuilder();
 
@@ -280,7 +288,7 @@ namespace Arcadia.Services
                 return Format.Warning("You are unable to research this item at the moment.");
             }
 
-            long nextTier = ItemHelper.GetResearchTier(user, item) + 1;
+            long nextTier = GetResearchTier(user, item) + 1;
             long itemCount = GetTierItemCount(nextTier);
 
             if (ItemHelper.GetOwnedAmount(user, item) < itemCount)

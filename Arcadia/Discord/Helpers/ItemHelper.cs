@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Arcadia.Graphics;
 using Orikivo;
 
@@ -15,73 +14,9 @@ namespace Arcadia
         public static bool Exists(string itemId)
             => Assets.Items.Any(x => x.Id == itemId);
         public static bool GroupExists(string id)
-            => Check.NotNull(id) && (Assets.Groups.Any(x => x.Id == id) || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
-
-        public static bool RecipeExists(string id)
-            => Check.NotNull(id) && Assets.Recipes.Any(x => CompareRecipeId(GetRecipeId(x), id));
-
-        // Scrap this.
-        public static string GetBaseRecipeId(Recipe recipe)
-        {
-            if (recipe.Components.Count == 0)
-                throw new Exception("Expected at least one recipe component");
-
-            var id = new StringBuilder();
-
-            id.Append($"{recipe.Result.ItemId}/");
-            id.AppendJoin('.', recipe.Components.Select(GetComponentId));
-
-            return id.ToString();
-        }
-
-        public static string GetRecipeId(Recipe recipe)
-            => $"recipe:{GetBaseRecipeId(recipe)}";
-
-        public static string GetCatalogId(string itemId)
-            => $"catalog:{itemId}";
-
-        public static IEnumerable<Item> Search(string input)
-            => Assets.Items.Where(x => MatchesAny(x, input));
-
-        private static bool MatchesAny(Item item, string input)
-        {
-            if (item.Id == input)
-                return true;
-
-            ItemGroup group = GetGroup(item.GroupId);
-
-            if (group?.Id == input || (group?.Icon?.Equals(input) ?? false))
-                return true;
-
-            if (item.Rarity.ToString().Equals(input, StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            if (item.Tag.GetFlags().Any(x => x.ToString().Equals(input, StringComparison.OrdinalIgnoreCase)))
-                return true;
-
-            if (Enum.TryParse(input, true, out ItemFilter filter))
-                return MeetsFilter(item, filter);
-
-            return item.Name.Contains(input, StringComparison.OrdinalIgnoreCase)
-                || (group?.Name?.Contains(input, StringComparison.OrdinalIgnoreCase)
-                ?? group?.Prefix?.Contains(input, StringComparison.OrdinalIgnoreCase)
-                ?? false);
-        }
-
-        private static bool MeetsFilter(Item item, ItemFilter filter)
-        {
-            return filter switch
-            {
-                ItemFilter.Ingredient => IsIngredient(item),
-                ItemFilter.Craftable => CanCraft(item),
-                ItemFilter.Sellable => CanSell(item),
-                ItemFilter.Buyable => CanBuy(item),
-                ItemFilter.Usable => item.Usage != null,
-                ItemFilter.Tradable => CanTrade(item),
-                ItemFilter.Unique => IsUnique(item),
-                _ => false
-            };
-        }
+            => Check.NotNull(id)
+            && (Assets.Groups.Any(x => x.Id == id)
+            || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
 
         // item.Value > 0
         public static bool CanBuy(Item item)
@@ -91,176 +26,11 @@ namespace Arcadia
 
         public static bool CanSell(Item item)
         {
-            return item.Value > 0 && Assets.Shops.Any(s => s.Sell && (item.Tag & s.SellTags) != 0);
-        }
-
-
-        public static IEnumerable<Item> GetSeenItems(ArcadeUser user)
-        {
-            return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Seen)
-                .Select(x => GetItem(Var.GetKey(x.Key)));
-        }
-
-        public static IEnumerable<Item> GetSeenItems(ArcadeUser user, string itemGroupId)
-        {
-            return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId &&
-                            x.Value == (long)CatalogStatus.Seen)
-                .Select(x => GetItem(Var.GetKey(x.Key)));
-        }
-
-        public static IEnumerable<Item> GetKnownItems(ArcadeUser user)
-        {
-            return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Known)
-                .Select(x => GetItem(Var.GetKey(x.Key)));
-        }
-
-        public static IEnumerable<Item> GetKnownItems(ArcadeUser user, string itemGroupId)
-        {
-            return user.Stats
-                .Where(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroupId &&
-                            x.Value == (long) CatalogStatus.Known)
-                .Select(x => GetItem(Var.GetKey(x.Key)));
-        }
-
-        public static bool CanViewCatalog(ArcadeUser user)
-        {
-            return user.Stats.Any(x =>
-                x.Key.StartsWith("catalog")
-                && (x.Value == (long) CatalogStatus.Seen
-                    || x.Value == (long) CatalogStatus.Known));
-        }
-
-        public static int GetKnownCount(ArcadeUser user)
-        {
-            return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Known);
-        }
-
-        public static int GetKnownCount(ArcadeUser user, string itemGroup)
-        {
-            return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup &&
-                            x.Value == (long) CatalogStatus.Known);
-        }
-
-        public static int GetVisibleCount(ArcadeUser user)
-        {
-            return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") &&
-                            x.Value >= (long)CatalogStatus.Seen);
-        }
-
-        public static int GetVisibleCount(ArcadeUser user, string itemGroup)
-        {
-            return user.Stats
-                .Count(x =>
-                x.Key.StartsWith("catalog:")
-                && GroupOf(Var.GetKey(x.Key)) == itemGroup
-                && x.Value >= (long)CatalogStatus.Seen);
-        }
-
-        public static int GetSeenCount(ArcadeUser user)
-        {
-            return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && x.Value == (long) CatalogStatus.Seen);
-        }
-
-        public static int GetSeenCount(ArcadeUser user, string itemGroup)
-        {
-            return user.Stats
-                .Count(x => x.Key.StartsWith("catalog:") && GroupOf(Var.GetKey(x.Key)) == itemGroup &&
-                            x.Value == (long) CatalogStatus.Seen);
-        }
-
-        public static Dictionary<string, int> GetMissingFromRecipe(ArcadeUser user, Recipe recipe)
-        {
-            if (recipe == null)
-                throw new Exception("Could not find a recipe with the specified ID");
-
-            var missing = new Dictionary<string, int>();
-
-            foreach ((string itemId, int amount) in recipe.Components)
-            {
-                int owned = GetOwnedAmount(user, itemId);
-
-                if (owned < amount)
-                    missing[itemId] = amount - owned;
-            }
-
-            return missing;
-        }
-
-        public static CatalogStatus GetCatalogStatus(ArcadeUser user, string itemId)
-        {
-            if (GroupOf(itemId) == ItemGroups.Internal)
-                return CatalogStatus.Unknown;
-
-            long raw = user.GetVar(GetCatalogId(itemId));
-
-            if (raw > (int)CatalogStatus.Known)
-                return CatalogStatus.Known;
-
-            return (CatalogStatus)raw;
-        }
-
-        public static CatalogStatus GetCatalogStatus(ArcadeUser user, Item item)
-            => GetCatalogStatus(user, item.Id);
-
-        public static long GetResearchTier(ArcadeUser user, Item item)
-            => GetResearchTier(user, item.Id);
-
-        public static long GetResearchTier(ArcadeUser user, string itemId)
-        {
-            return Math.Max(0, user.GetVar(GetCatalogId(itemId)) - 2);
-        }
-
-        public static void SetCatalogStatus(ArcadeUser user, string itemId, CatalogStatus status)
-        {
-            if (GroupOf(itemId) == ItemGroups.Internal)
-                return;
-
-            // If the user has already seen or known about this item, return;
-            if (GetCatalogStatus(user, itemId) >= status)
-                return;
-
-
-            user.SetVar(GetCatalogId(itemId), (long) status);
-        }
-
-        public static void SetCatalogStatus(ArcadeUser user, Item item, CatalogStatus status)
-            => SetCatalogStatus(user, item.Id, status);
-
-        public static bool HasAttributes(Item item)
-        {
-            return item.CanBuy
-                   || item.CanSell
-                   || item.BypassCriteriaOnTrade
-                   || item.OwnLimit.HasValue
-                   || (item.TradeLimit > 0 || !item.TradeLimit.HasValue)
-                   || IsUnique(item)
-                   || HasUsageAttributes(item);
-        }
-
-        public static bool HasUsageAttributes(Item item)
-        {
-            if (item.Usage == null)
-                return false;
-
-            return item.Usage.Durability.HasValue
-                   || item.Usage.Cooldown.HasValue
-                   || item.Usage.Expiry.HasValue;
-        }
-
-        public static IEnumerable<Recipe> GetKnownRecipes(ArcadeUser user)
-        {
-            return Assets.Recipes.Where(x => GetRecipeStatus(user, x) != RecipeStatus.Unknown);
+            return item.Value > 0
+                && Assets.Shops.Any(s => s.Sell && (item.Tag & s.SellTags) != 0);
         }
 
         // This just reads the boost multiplier
-
         public static DateTime? GetLastUsed(ArcadeUser user, string itemId, string uniqueId = null)
         {
             Item item = GetItem(itemId);
@@ -323,22 +93,6 @@ namespace Arcadia
         public static ItemTag GetTag(string itemId)
             => GetItem(itemId)?.Tag ?? 0;
 
-        
-
-        
-
-        
-
-        public static IEnumerable<Recipe> RecipesFor(string itemId)
-            => RecipesFor(GetItem(itemId));
-
-        public static IEnumerable<Recipe> RecipesFor(Item item)
-        {
-            return Assets.Recipes.Where(x => x.Result.ItemId == item.Id);
-        }
-
-        
-
         public static long CreateUniqueId()
             => (DateTime.UtcNow - UniqueIdOffset).Ticks;
 
@@ -353,19 +107,6 @@ namespace Arcadia
                 throw new ArgumentException("There are more than one groups with the specified ID.");
 
             return Assets.Groups.FirstOrDefault(x => x.Id == id);
-        }
-
-        public static Recipe GetRecipe(string id)
-        {
-            if (Assets.Recipes.Count(x => CompareRecipeId(GetRecipeId(x), id)) > 1)
-                throw new ArgumentException("There are more than one recipes with the specified ID.");
-
-            return Assets.Recipes.FirstOrDefault(x => CompareRecipeId(GetRecipeId(x), id));
-        }
-
-        public static RecipeStatus GetRecipeStatus(ArcadeUser user, Recipe recipe)
-        {
-            return (RecipeStatus) user.GetVar(GetRecipeId(recipe));
         }
 
         public static ItemData GetBestStack(ArcadeUser user, Item item)
@@ -393,45 +134,6 @@ namespace Arcadia
         public static ItemData GetFromInventory(ArcadeUser user, string itemId, string uniqueId)
             => user.Items.First(x => x.Id == itemId && x.Data != null && x.Data.Id == uniqueId);
 
-        public static void UpdateKnownRecipes(ArcadeUser user)
-        {
-            foreach (Recipe recipe in Assets.Recipes.Where(x => CanCraft(user, x)))
-                SetRecipeStatus(user, recipe, RecipeStatus.Known);
-        }
-
-        public static void UpdateRecipeStatus(ArcadeUser user, Recipe recipe)
-        {
-            if (CanCraft(user, recipe))
-                SetRecipeStatus(user, recipe, RecipeStatus.Known);
-        }
-
-    public static void SetRecipeStatus(ArcadeUser user, Recipe recipe, RecipeStatus status)
-        {
-            if (GetRecipeStatus(user, recipe) >= status)
-                return;
-
-            user.SetVar(GetRecipeId(recipe), (long) status);
-        }
-
-        public static bool KnowsRecipe(ArcadeUser user, string recipeId)
-            => KnowsRecipe(user, GetRecipe(recipeId));
-
-        public static bool KnowsRecipe(ArcadeUser user, Recipe recipe)
-        {
-            return user.GetVar(GetRecipeId(recipe)) == (long) RecipeStatus.Known;
-        }
-
-        public static bool TryGetRecipe(string id, out Recipe recipe)
-        {
-            recipe = null;
-
-            if (!RecipeExists(id))
-                return false;
-
-            recipe = GetRecipe(id);
-            return true;
-        }
-
         public static bool TryGetGroup(string id, out ItemGroup group)
         {
             group = null;
@@ -454,35 +156,6 @@ namespace Arcadia
             return true;
         }
 
-        
-
-        public static bool Craft(ArcadeUser user, string recipeId)
-            => Craft(user, GetRecipe(recipeId));
-
-        public static bool Craft(ArcadeUser user, Recipe recipe)
-        {
-            if (GetRecipeStatus(user, recipe) == RecipeStatus.Unknown)
-                return false;
-
-            if (!CanCraft(user, recipe))
-                return false;
-
-            if (recipe.Result == null)
-                throw new Exception("Expected recipe result but returned null");
-
-            foreach ((string itemId, int amount) in recipe.Components)
-                TakeItem(user, itemId, amount);
-
-            GiveItem(user, recipe.Result.ItemId, recipe.Result.Amount);
-
-            user.AddToVar(Stats.ItemsCrafted);
-            return true;
-        }
-
-        
-
-        
-
         public static ItemData SetInStack(ArcadeUser user, Item item, int amount = 1)
         {
             if (amount <= 0)
@@ -502,10 +175,6 @@ namespace Arcadia
 
             return best;
         }
-
-        
-
-        
 
         public static ItemData GetItemData(ArcadeUser user, string dataId)
         {
@@ -557,10 +226,6 @@ namespace Arcadia
             return true;
         }
 
-        
-
-        
-
         public static bool IsUnique(string itemId)
             => IsUnique(GetItem(itemId));
 
@@ -611,6 +276,7 @@ namespace Arcadia
             return font switch
             {
                 FontType.Delta => Items.FontDelta,
+                _ => null
             };
         }
 
@@ -749,26 +415,6 @@ namespace Arcadia
         public static bool CanStack(ItemData data)
             => (data.Seal == null) & (data.Data == null);
 
-        public static bool CanCraft(Item item)
-            => Assets.Recipes.Any(x => x.Result.ItemId == item.Id);
-
-        public static bool CanCraft(ArcadeUser user, string recipeId)
-            => CanCraft(user, GetRecipe(recipeId));
-
-        public static bool CanCraft(ArcadeUser user, Recipe recipe)
-        {
-            if (recipe == null)
-                throw new Exception("Could not find a recipe with the specified ID");
-
-            foreach ((string itemId, int amount) in recipe.Components)
-            {
-                if (!HasItem(user, itemId) || GetOwnedAmount(user, itemId) != amount)
-                    return false;
-            }
-
-            return true;
-        }
-
         public static bool CanGift(string itemId, ItemData data = null)
             => CanGift(GetItem(itemId), data);
 
@@ -859,8 +505,6 @@ namespace Arcadia
 
         public static bool HasItemWhen(ArcadeUser user, Item item, Func<ItemData, bool> criterion)
             => HasItem(user, item) && user.Items.Any(criterion);
-
-        
 
         public static UsageResult UseItem(ArcadeUser user, ItemData data, string input = null)
         {
@@ -1029,7 +673,7 @@ namespace Arcadia
             }
 
             AddItem(user, item.Id, amount);
-            SetCatalogStatus(user, item, CatalogStatus.Known);
+            CatalogHelper.SetCatalogStatus(user, item, CatalogStatus.Known);
             // If they somehow went over, this will fix that
             /*
             if (currentAmount > item.OwnLimit)
@@ -1110,12 +754,6 @@ namespace Arcadia
 
             return matching.First().Id;
         }
-
-        private static bool CompareRecipeId(string id, string input)
-            => id == input || id[7..] == input;
-
-        private static string GetComponentId(RecipeComponent component)
-            => $"{component.ItemId}{(component.Amount > 1 ? $"#{component.Amount}" : "")}";
 
         private static string GetCooldownId(string itemId)
             => $"{itemId}:last_used";
