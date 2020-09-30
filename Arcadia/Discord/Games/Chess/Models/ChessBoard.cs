@@ -405,8 +405,8 @@ namespace Arcadia.Multiplayer.Games
             ChessPiece king = GetKing(player);
 
             bool canMoveKing = GetDefaultMoves(king).Count > 0;
-            var blockers = GetBlockerPieces(king);
-            var attackers = GetAttackerPieces(king);
+            List<ChessPiece> blockers = GetBlockerPieces(king);
+            List<ChessPiece> attackers = GetAttackerPieces(king);
 
             if (blockers.Count > 0)
             {
@@ -500,7 +500,6 @@ namespace Arcadia.Multiplayer.Games
             int yDiff = attacker.File - target.File;
 
             return GetDirection(xDiff, yDiff);
-
         }
 
         private ChessDirection GetDirection(int x, int y)
@@ -538,7 +537,6 @@ namespace Arcadia.Multiplayer.Games
 
             return 0;
         }
-
 
         private List<ChessPiece> GetDefenderPieces(ChessPiece piece)
         {
@@ -920,8 +918,6 @@ namespace Arcadia.Multiplayer.Games
                 moves.Add(new Coordinate(++x, ++y));
         }
 
-
-
         private Coordinate PeekWest(int x, int y)
         {
             ChessPiece piece = Pieces
@@ -1091,9 +1087,9 @@ namespace Arcadia.Multiplayer.Games
                 && LastMove.To.Y == ((LastMove.Player == ChessOwner.Black) ? 3 : 4)
                 && focus.Piece == ChessRank.Pawn
                 && tile.X == LastMove.To.X
-                && 1 == (LastMove.Player == ChessOwner.Black
+                && (LastMove.Player == ChessOwner.Black
                     ? LastMove.To.Y - ((LastMove.Player == ChessOwner.Black) ? 2 : 5)
-                    : ((LastMove.Player == ChessOwner.Black) ? 2 : 5) - LastMove.To.Y))
+                    : ((LastMove.Player == ChessOwner.Black) ? 2 : 5) - LastMove.To.Y) == 1)
             {
                 ChessPiece target = GetPiece(LastMove.To.X, LastMove.To.Y);
 

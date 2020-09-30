@@ -35,9 +35,7 @@ namespace Arcadia.Modules
         //[DoNotNotify]
         //[Command("about"), Priority(1)]
         public async Task SearchAboutAsync(string input)
-        {
-
-        }
+            => throw new NotImplementedException();
 
         [DoNotNotify]
         [Command("changelog")]
@@ -70,13 +68,11 @@ namespace Arcadia.Modules
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo** has to offer.")]
         public async Task HelpAsync(
-            [Remainder]
-            [Summary("The **InfoContext** that defines your search.")]
-            string context = null)
+            [Remainder, Summary("The **InfoContext** that defines your search.")]string context = null)
         {
             try
             {
-                await Context.Channel.SendMessageAsync(_info.GetPanel(context, prefix: Context.GetPrefix())); // Context.Account
+                await Context.Channel.SendMessageAsync(_info.GetPanel(context, prefix: Context.GetPrefix()));
             }
             catch (Exception ex)
             {
@@ -117,7 +113,7 @@ namespace Arcadia.Modules
             }
 
             Type type = Context.Account.Config.GetOptionType(name);
-            ClampAttribute clamp = option.GetCustomAttribute<ClampAttribute>();
+            var clamp = option.GetCustomAttribute<ClampAttribute>();
             bool useFlags = type.GetCustomAttribute<FlagsAttribute>() != null;
 
             var panel = new StringBuilder();
@@ -207,30 +203,27 @@ namespace Arcadia.Modules
                 }
 
                 default:
-                {
                     if (TypeParser.TryParse(type, unparsed, out object result))
                     {
                         if (type.IsEnum)
                         {
-                                long flagValue = Convert.ToInt64(result);
-                                if (flagValue < 0)
+                            long flagValue = Convert.ToInt64(result);
+                            if (flagValue < 0)
+                            {
+                                panel.AppendLine("> Flags cannot be negative.");
+                                break;
+                            }
+
+                            long partialSum = EnumUtils.GetFlags(result).Select(Convert.ToInt64).Sum();
+
+                            if (flagValue > 0)
+                            {
+                                if (flagValue - partialSum > 0)
                                 {
-                                    panel.AppendLine("> Flags cannot be negative.");
+                                    panel.AppendLine("> The flag summation contains an invalid flag.");
                                     break;
                                 }
-
-                                long partialSum = EnumUtils.GetFlags(result).Select(Convert.ToInt64).Sum();
-
-
-                                if (flagValue > 0)
-                                {
-                                    if (flagValue - partialSum > 0)
-                                    {
-                                        panel.AppendLine("> The flag summation contains an invalid flag.");
-                                        break;
-                                    }
-                                }
-
+                            }
                         }
                         if (type == typeof(string) && result is string s)
                         {
@@ -244,8 +237,8 @@ namespace Arcadia.Modules
                             {
                                 if (s.Length > clamp.Max)
                                 {
-                                        panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                        break;
+                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
+                                    break;
                                 }
                             }
                         }
@@ -255,14 +248,14 @@ namespace Arcadia.Modules
                             {
                                 if (clamp.HasMin && (i < clamp.Min || i > clamp.Max))
                                 {
-                                        panel.AppendLine($"> The specified value is out of range (`{clamp.Min} to {clamp.Max}`).");
-                                        break;
+                                    panel.AppendLine($"> The specified value is out of range (`{clamp.Min} to {clamp.Max}`).");
+                                    break;
                                 }
 
                                 if (i > clamp.Max)
                                 {
-                                        panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                        break;
+                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
+                                    break;
                                 }
                             }
                         }
@@ -276,34 +269,31 @@ namespace Arcadia.Modules
 
                         if (type.IsEnum)
                         {
-                                panel.AppendLine();
+                            panel.AppendLine();
+                            List<string> names = type.GetEnumNames().ToList();
+                            List<long> values = type.GetEnumValues().Cast<object>().Select(Convert.ToInt64).ToList();
+                            List<string> groups = names.Join(values,
+                                a => names.IndexOf(a),
+                                b => values.IndexOf(b),
+                                (a, b) => $"{a} = {b}")
+                                .ToList();
 
-                                List<string> names = type.GetEnumNames().ToList();
-                                List<long> values = type.GetEnumValues().Cast<object>().Select(Convert.ToInt64).ToList();
-
-                                IEnumerable<string> groups = names.Join(values,
-                                    a => names.IndexOf(a),
-                                    b => values.IndexOf(b),
-                                    (a, b) => $"{a} = {b}");
-
-                                if (groups.Any())
-                                {
-                                    panel.AppendLine($"> **Values**\n```cs");
-                                    panel.AppendJoin(",\n", groups);
-                                    panel.AppendLine("```");
-                                }
+                            if (groups.Any())
+                            {
+                                panel.AppendLine($"> **Values**\n```cs");
+                                panel.AppendJoin(",\n", groups);
+                                panel.AppendLine("```");
+                            }
                         }
                     }
 
                     break;
-                }
             }
 
             await Context.Channel.SendMessageAsync(panel.ToString());
         }
 
         // TODO: Implement GuildConfig, and replace OriGuild with Guild.
-
         [DoNotNotify]
         [Command("version")]
         public async Task GetVersionAsync()

@@ -56,8 +56,6 @@ namespace Orikivo
 
             string prefix = "";
 
-            
-
             if (source.HasMentionPrefix(_client.CurrentUser, ref i))
             {
                 prefix = _client.CurrentUser.Mention;
@@ -67,7 +65,6 @@ namespace Orikivo
             }
 
             // Delete the message after executing the command
-
             if (!prefixFound)
                 i = 2;
 
@@ -88,7 +85,6 @@ namespace Orikivo
                 prefix = GetPrefix(ctx);
                 prefixFound = true;
             }
-            
 
             if (prefixFound)
             {
@@ -103,13 +99,9 @@ namespace Orikivo
         public async Task ExecuteAsync(DesyncContext ctx, int argPos)
         {
             // TODO: Handle global cooldowns
-
             // TODO: Handle command cooldowns
-
             // TODO: Handle custom guild command references
-
             // TODO: Handle option parsing for commands
-
             // TODO: It might be required to create a custom parser and execution service separate from CommandService in order to properly
             // allow specific parsing methods
             await _service.ExecuteAsync(ctx, argPos, _provider, MultiMatchHandling.Exception);
@@ -118,9 +110,7 @@ namespace Orikivo
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
             DesyncContext ctx = context as DesyncContext;
-
             // Attempt to set a global cooldown on the account that executed this command
-
             // If the command failed
             if (!result.IsSuccess)
             {
@@ -183,8 +173,6 @@ namespace Orikivo
 
                 Logger.Debug("User updated. Now saving...");
                 ctx.Container.TrySaveUser(ctx.Account);
-
-                
             }
             else if (!JsonHandler.JsonExists<User>(ctx.User.Id))
             {
