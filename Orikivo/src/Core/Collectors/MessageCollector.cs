@@ -166,7 +166,7 @@ namespace Orikivo
         /// </summary>
         /// <param name="filter">The raw filter that will be used when comparing messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task<FilterCollection> CollectAsync(CollectionDelegate filter, CollectionOptions options = null)
+        public async Task<FilterCollection> CollectAsync(FilterCollectionDelegate filter, CollectionOptions options = null)
         {
             options ??= CollectionOptions.Default;
             var matches = new FilterCollection();

@@ -24,7 +24,7 @@ namespace Arcadia.Modules
             // Statistics
 
             result.AppendLine("> **Web Portal**");
-            result.AppendLine("• **Website** (**Beta**): <https://abnersquared.github.io/Orikivo.Web/reIndex>");
+            result.AppendLine("• **Website** (**Beta**): <https://abnersquared.github.io/Orikivo.Web/>");
             result.AppendLine("• **Invite URL**: <https://abnersquared.github.io/Orikivo.Web/invites/arcadia>");
 
             // result.AppendLine();

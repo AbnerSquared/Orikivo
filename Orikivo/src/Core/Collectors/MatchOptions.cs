@@ -27,8 +27,8 @@ namespace Orikivo
         public bool ResetTimeoutOnAttempt { get; set; }
 
         /// <summary>
-        /// Gets or sets a message session handler that will handle all successful <see cref="FilterMatch"/> results.
+        /// Gets or sets a message session that will handle all successful <see cref="FilterMatch"/> results.
         /// </summary>
-        public MatchSession Session { get; set; }
+        public MessageSession Session { get; set; }
     }
 }

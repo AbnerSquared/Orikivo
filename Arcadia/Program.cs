@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
@@ -12,7 +11,6 @@ using Arcadia.Modules;
 using Arcadia.Multiplayer;
 using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
-using MongoDB.Driver;
 using Orikivo;
 
 namespace Arcadia

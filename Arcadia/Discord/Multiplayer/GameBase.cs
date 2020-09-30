@@ -5,6 +5,28 @@ using System.Threading.Tasks;
 namespace Arcadia.Multiplayer
 {
     /// <summary>
+    /// Represents a generic game structure.
+    /// </summary>
+    /// <typeparam name="TPlayer"></typeparam>
+    public abstract class GameBase<TPlayer> where TPlayer : IPlayerData
+    {
+        public string Id { get; protected set; } // What is the ID for this game?
+        public GameDetails Details { get; protected set; } // What are the details for this game?
+        public List<GameAction> Actions { get; protected set; } // What are the actions for this game?
+        public List<GameOption> Options { get; protected set; } // What are the options for this game?
+        public List<TPlayer> Players { get; protected set; } // The data for the players?
+
+        public abstract Task<List<TPlayer>> OnBuildPlayers(in IEnumerable<Player> players); // What to do to build players?
+        public abstract Task OnPlayerRemoved(TPlayer player); // What to do when a player leaves/is removed?
+        public abstract Task OnPlayerJoined(TPlayer player); // What to do when a player joins?
+        public abstract Task OnConnectionRemoved(ServerConnection connection); // What to do when a connection was removed?
+        public abstract Task OnConnectionCreated(ServerConnection connection); // What to do when a connection was created?
+        public abstract Task OnGameComplete(); // What to do when this game is complete
+        public abstract Task OnGameInterrupt();
+        public abstract Task OnGameStart();
+    }
+
+    /// <summary>
     /// Represents a generic structure for a game.
     /// </summary>
     public abstract class GameBase

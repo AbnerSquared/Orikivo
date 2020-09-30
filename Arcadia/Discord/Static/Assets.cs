@@ -912,7 +912,7 @@ namespace Arcadia
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Tool | ItemTag.Automaton,
                     Value = 100000,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell,
+                    AllowedHandles = ItemAllow.Clone | ItemAllow.Seal,
                     TradeLimit = 0,
                     Size = 1000,
                     OwnLimit = 1
@@ -1079,7 +1079,7 @@ namespace Arcadia
                     Rarity = ItemRarity.Myth,
                     Tag = ItemTag.Summon,
                     Value = 750,
-                    DeniedHandles = ItemDeny.Buy,
+                    AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Sell,
                     TradeLimit = 0,
                     BypassCriteriaOnTrade = true,
                     Size = 100,
@@ -1197,7 +1197,7 @@ namespace Arcadia
                         "It reminds you of a desolate atmosphere, now frozen over."
                     },
                     GroupId = ItemGroups.Palette,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 6000,
                     Size = 325,
@@ -1262,7 +1262,7 @@ namespace Arcadia
                     },
                     GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Value = 5000,
                     Size = 75,
                     BypassCriteriaOnTrade = true,
@@ -1304,7 +1304,7 @@ namespace Arcadia
                         "It coats itself in a swirl of flexible sugar."
                     },
                     GroupId = ItemGroups.Palette,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
                     Value = 3500,
                     Size = 150,
@@ -1327,7 +1327,7 @@ namespace Arcadia
                     },
                     GroupId = ItemGroups.Palette,
                     Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Value = 3500,
                     Size = 175,
                     TradeLimit = 0,
@@ -1349,7 +1349,7 @@ namespace Arcadia
                         "It gleams a golden radiant of hope."
                     },
                     Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal,
                     Value = 7500,
                     Size = 400,
                     TradeLimit = 0,
@@ -1366,7 +1366,7 @@ namespace Arcadia
                         "It preserves the life form of something hidden in the past."
                     },
                     Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Value = 5000,
                     Size = 300,
                     TradeLimit = 0,
@@ -1388,7 +1388,7 @@ namespace Arcadia
                         "It reminds you of a simpler time, where sweets meant everything."
                     },
                     Tag = ItemTag.Palette | ItemTag.Decorator,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
                     Value = 3000,
                     Size = 350,
                     TradeLimit = 0,
@@ -1410,7 +1410,7 @@ namespace Arcadia
                         "It absorbs the addiction of desperate gamblers."
                     },
                     Tag = ItemTag.Pass,
-                    DeniedHandles = ItemDeny.Buy | ItemDeny.Sell | ItemDeny.Clone,
+                    AllowedHandles = ItemAllow.Seal,
                     Rarity = ItemRarity.Desolate,
                     OwnLimit = 1,
                     TradeLimit = 0

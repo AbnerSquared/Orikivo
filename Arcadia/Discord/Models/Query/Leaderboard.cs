@@ -229,10 +229,10 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardQuery.Money => (long) user.Balance,
-                LeaderboardQuery.Debt => (long) user.Debt,
+                LeaderboardQuery.Money => user.Balance,
+                LeaderboardQuery.Debt => user.Debt,
                 LeaderboardQuery.Level => user.Ascent * 100 + user.Level,
-                LeaderboardQuery.Chips => (long) user.ChipBalance,
+                LeaderboardQuery.Chips => user.ChipBalance,
                 LeaderboardQuery.Merits => MeritHelper.GetScore(user),
                 LeaderboardQuery.Custom => user.GetVar(statId),
                 _ => 0

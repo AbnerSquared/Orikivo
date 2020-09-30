@@ -26,7 +26,7 @@ namespace Orikivo.Modules
 {
     [Name("Graphics")]
     [Summary("Provides methods that utilize the graphics engine.")]
-    public class GraphicsModule : OriModuleBase<DesyncContext>
+    public class GraphicsModule : BaseModule<DesyncContext>
     {
         private async Task SendImageAsync(Grid<Color> pixels, string name, int scale = 1)
         {

@@ -93,7 +93,7 @@ namespace Orikivo
         {
             bool isActive = _started;
             Stop();
-            
+
             if (isActive)
             {
                 Start();

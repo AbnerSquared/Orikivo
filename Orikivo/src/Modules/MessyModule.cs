@@ -21,7 +21,7 @@ namespace Orikivo.Modules
     // Since Messy is a testing module, this doesn't need services.
     [Name("Messy")]
     [Summary("Commands that are under the works. Functionality is not to be expected.")]
-    public class MessyModule : OriModuleBase<DesyncContext>
+    public class MessyModule : BaseModule<DesyncContext>
     {
         private readonly DiscordSocketClient _client;
         //private readonly GameManager _gameManager;

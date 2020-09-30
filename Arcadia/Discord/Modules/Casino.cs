@@ -9,7 +9,7 @@ namespace Arcadia.Modules
     [Icon("🎰")]
     [Name("Casino")]
     [Summary("Come and gamble your life away.")]
-    public class Casino : OriModuleBase<ArcadeContext>
+    public class Casino : BaseModule<ArcadeContext>
     {
         [RequireUser]
         [Command("blackjack")]
@@ -218,7 +218,6 @@ namespace Arcadia.Modules
             Context.Account.Take(amount);
             Context.Account.ChipBalance += chips;
             await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips:##,0}**.");
-
         }
     }
 }

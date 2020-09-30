@@ -20,27 +20,27 @@ namespace Orikivo
             Logger.Debug($"-- Restored {Values.Count} {Format.TryPluralize("entity", Values.Count)}. --");
         }
 
-        public TEntity GetOrAdd(TEntity value)
+        public TEntity GetOrAdd(TEntity entity)
         {
-            TEntity result = default(TEntity);
+            TEntity result = default;
 
-            if (value == null)
+            if (entity == null)
                 return result;
 
-            if (!Values.ContainsKey(value.Id))
-                Values.AddOrUpdate(value.Id, value, (key, value) => value);
+            if (!Values.ContainsKey(entity.Id))
+                Values.AddOrUpdate(entity.Id, entity, (key, value) => value);
 
-            Values.TryGetValue(value.Id, out result);
+            Values.TryGetValue(entity.Id, out result);
 
             return result;
         }
 
-        public void AddOrUpdate(ulong id, TEntity value)
+        public void AddOrUpdate(ulong id, TEntity entity)
         {
-            if (id != value.Id)
+            if (id != entity.Id)
                 throw new ArgumentException("The specified ID does not match to the specified value");
 
-            Values.AddOrUpdate(id, value, (key, value) => value);
+            Values.AddOrUpdate(id, entity, (key, value) => value);
         }
 
         public bool TryGet(ulong id, out TEntity entity)

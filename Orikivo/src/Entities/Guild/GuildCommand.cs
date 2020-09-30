@@ -19,7 +19,6 @@ namespace Orikivo
             Catch.NotNull(name, nameof(name), "The name for a custom command cannot be empty.");
             Author = new Author(user.Username, user.Id);
             Name = name;
-            
         }
 
         [JsonProperty("author")]

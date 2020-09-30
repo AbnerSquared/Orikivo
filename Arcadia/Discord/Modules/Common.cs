@@ -16,9 +16,10 @@ namespace Arcadia.Modules
     // - Card Customization
 
     // TODO: Transfer everything to CommonService
+    [Icon("🧮")]
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
-    public class Common : OriModuleBase<ArcadeContext>
+    public class Common : BaseModule<ArcadeContext>
     {
         /*
         [Command("peekshop")]

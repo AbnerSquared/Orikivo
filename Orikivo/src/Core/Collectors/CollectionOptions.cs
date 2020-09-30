@@ -10,8 +10,14 @@ namespace Orikivo
         /// <summary>
         /// Gets the default <see cref="CollectionOptions"/>.
         /// </summary>
-        public static CollectionOptions Default = new CollectionOptions { Capacity = null, IncludeFailedMatches = false, Timeout = TimeSpan.FromSeconds(30), ResetTimeoutOnMatch = false };
-        
+        public static readonly CollectionOptions Default = new CollectionOptions
+        {
+            Capacity = null,
+            IncludeFailedMatches = false,
+            Timeout = TimeSpan.FromSeconds(30),
+            ResetTimeoutOnMatch = false
+        };
+
         /// <summary>
         /// The amount of time that is allowed to pass without a new message before automatically closing.
         /// </summary>

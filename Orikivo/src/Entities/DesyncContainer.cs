@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Discord;
+using Orikivo.Framework;
 
 namespace Orikivo
 {
@@ -13,14 +14,13 @@ namespace Orikivo
 
         public DesyncContainer()
         {
-            Console.WriteLine("-- Now initializing JSON container services. --");
+            Logger.Debug("-- Now initializing JSON container services. --");
 
             Users = new JsonContainer<User>(@"..\data\users\");
-            
-            Console.WriteLine($"-- Restored {Users.Count} {Format.TryPluralize("user", Users.Count)}. --");
+            Logger.Debug($"-- Restored {Users.Count} {Format.TryPluralize("user", Users.Count)}. --");
 
             Guilds = new JsonContainer<BaseGuild>(@"..\data\guilds\");
-            Console.WriteLine($"-- Restored {Guilds.Count} {Format.TryPluralize("guild", Guilds.Count)}. --");
+            Logger.Debug($"-- Restored {Guilds.Count} {Format.TryPluralize("guild", Guilds.Count)}. --");
 
             Global = JsonHandler.Load<OriGlobal>("global.json") ?? new OriGlobal();
         }

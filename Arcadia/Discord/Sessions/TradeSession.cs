@@ -10,7 +10,7 @@ using Format = Orikivo.Format;
 namespace Arcadia
 {
     // TODO: Implement StringReader to parse input to be much more precise than direct string comparison
-    public class TradeSession : MatchSession
+    public class TradeSession : MessageSession
     {
         public TradeSession(ArcadeContext context, ArcadeUser participant)
         {

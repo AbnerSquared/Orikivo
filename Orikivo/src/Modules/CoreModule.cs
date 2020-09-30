@@ -10,7 +10,7 @@ namespace Orikivo.Modules
 {
     [Name("Core")]
     [Summary("Defines all core commands.")]
-    public class CoreModule : OriModuleBase<DesyncContext>
+    public class CoreModule : BaseModule<DesyncContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly InfoService _info;

@@ -4,7 +4,7 @@ using Orikivo;
 
 namespace Arcadia.Casino
 {
-    public abstract class BaseSession : MatchSession
+    public abstract class BaseSession : MessageSession
     {
         protected BaseSession(ArcadeContext context)
         {

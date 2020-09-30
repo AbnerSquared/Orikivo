@@ -8,7 +8,7 @@ namespace Orikivo.Modules
 {
     [Name("Digital")]
     [Summary("Commands that relate to the digital client.")]
-    public class DigitalModule : OriModuleBase<DesyncContext>
+    public class DigitalModule : BaseModule<DesyncContext>
     {
         [Command("merits")]
         [Summary("View a summary about your current **Merit** progression.")]

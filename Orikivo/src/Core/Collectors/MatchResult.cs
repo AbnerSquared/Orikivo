@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// Defines what the <see cref="MessageCollector"/> continues with once an action is complete.
+    /// Defines what a <see cref="MessageSession"/> proceeds with once a <see cref="FilterMatch"/> is handled.
     /// </summary>
     public enum MatchResult
     {

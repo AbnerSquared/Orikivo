@@ -289,7 +289,7 @@ namespace Arcadia
 
             var info = new StringBuilder();
 
-            info.AppendLine($"> **Objective: {quest.Name}** (Slot {index + 1})");
+            info.AppendLine($"> **Objective: {quest.Name}** • {quest.Difficulty.ToString()} (Slot {index + 1})");
             info.AppendLine($"> {GetProgress(slot)}\n");
 
             info.AppendLine("> **Tasks**");
@@ -381,7 +381,7 @@ namespace Arcadia
             foreach (QuestData data in user.Quests)
             {
                 Quest quest = GetQuest(data.Id);
-                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** • {quest.Difficulty.ToString()} ({GetProgress(data)})");
+                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** ({GetProgress(data)})");
 
                 if (Check.NotNull(quest.Summary))
                     result.AppendLine($"> {quest.Summary}");

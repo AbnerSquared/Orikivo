@@ -7,7 +7,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a generic message session handler for a <see cref="FilterMatch"/>.
     /// </summary>
-    public abstract class MatchSession
+    public abstract class MessageSession
     {
         /// <summary>
         /// Represents the method that is executed whenever a <see cref="MessageCollector"/> starts filtering messages.

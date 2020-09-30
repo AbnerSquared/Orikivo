@@ -7,8 +7,6 @@ namespace Arcadia
     public class ArcadeData
     {
         public static readonly string Version = "0.8.1b";
-        // Once a day
-        public static readonly TimeSpan CatalogRefreshRate = TimeSpan.FromHours(24);
 
         public ArcadeData()
         {
@@ -30,40 +28,37 @@ namespace Arcadia
 
         public ItemCatalog GetOrGenerateCatalog(Shop shop, ArcadeUser user = null)
         {
-            if (Catalogs.ContainsKey(shop.Id))
+            if (Catalogs.ContainsKey(shop.Id)
+                && DateTime.UtcNow.DayOfYear - Catalogs[shop.Id].GeneratedAt.DayOfYear == 0)
             {
-                // If the two days are exactly the same, keep the catalog
-                if (DateTime.UtcNow.DayOfYear - Catalogs[shop.Id].GeneratedAt.DayOfYear == 0)
+                var catalog = new ItemCatalog(Catalogs[shop.Id]);
+
+                if (user == null || !user.CatalogHistory.ContainsKey(shop.Id))
+                    return catalog;
+
+                var toRemoveIds = new List<string>();
+
+                foreach ((string itemId, int amount) in user.CatalogHistory[shop.Id].PurchasedIds)
                 {
-                    var catalog = new ItemCatalog(Catalogs[shop.Id]);
-
-                    if (user == null || !user.CatalogHistory.ContainsKey(shop.Id))
-                        return catalog;
-
-                    var toRemoveIds = new List<string>();
-
-                    foreach ((string itemId, int amount) in user.CatalogHistory[shop.Id].PurchasedIds)
+                    if (amount <= 0)
                     {
-                        if (amount <= 0)
-                        {
-                            toRemoveIds.Add(itemId);
-                            continue;
-                        }
-
-                        if (catalog.ItemIds.ContainsKey(itemId))
-                        {
-                            catalog.ItemIds[itemId] -= amount;
-
-                            if (catalog.ItemIds[itemId] <= 0)
-                                catalog.ItemIds.Remove(itemId);
-                        }
+                        toRemoveIds.Add(itemId);
+                        continue;
                     }
 
-                    foreach (string removeId in toRemoveIds)
-                        user.CatalogHistory[shop.Id].PurchasedIds.Remove(removeId);
+                    if (catalog.ItemIds.ContainsKey(itemId))
+                    {
+                        catalog.ItemIds[itemId] -= amount;
 
-                    return catalog;
+                        if (catalog.ItemIds[itemId] <= 0)
+                            catalog.ItemIds.Remove(itemId);
+                    }
                 }
+
+                foreach (string removeId in toRemoveIds)
+                    user.CatalogHistory[shop.Id].PurchasedIds.Remove(removeId);
+
+                return catalog;
             }
 
             Catalogs[shop.Id] = shop.Catalog.Generate(Var.GetOrSet(user, ShopHelper.GetTierId(shop.Id), 1));

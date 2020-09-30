@@ -4,7 +4,7 @@ using System;
 
 namespace Orikivo
 {
-    public class HuskInitializer : MatchSession
+    public class HuskInitializer : MessageSession
     {
         public override Task OnStartAsync()
         {

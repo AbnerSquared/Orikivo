@@ -37,13 +37,13 @@ namespace Arcadia
 
         public long Value { get; set; }
 
-        public ItemDeny DeniedHandles { get; set; }
+        public ItemAllow AllowedHandles { get; set; } = ItemAllow.All;
 
         public long Size { get; set; }
 
-        public bool CanSell => !DeniedHandles.HasFlag(ItemDeny.Sell);
+        public bool CanSell => AllowedHandles.HasFlag(ItemAllow.Sell);
 
-        public bool CanBuy => !DeniedHandles.HasFlag(ItemDeny.Buy);
+        public bool CanBuy => AllowedHandles.HasFlag(ItemAllow.Buy);
 
         public Func<ItemMarketAction, UniqueItemData, float> MarketCriteria { get; set; }
 

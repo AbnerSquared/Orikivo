@@ -10,7 +10,7 @@ using Format = Orikivo.Format;
 
 namespace Arcadia
 {
-    public class ShopSession : MatchSession
+    public class ShopSession : MessageSession
     {
         public ShopSession(ArcadeContext context, Shop shop)
         {

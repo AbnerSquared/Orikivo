@@ -7,7 +7,7 @@ using Orikivo.Desync;
 
 namespace Orikivo
 {
-    public abstract class OriModuleBase<T> : ModuleBase<T>
+    public abstract class BaseModule<T> : ModuleBase<T>
         where T : SocketCommandContext
     {
         protected override void BeforeExecute(CommandInfo command)
@@ -18,7 +18,7 @@ namespace Orikivo
         private IDMChannel GetOrCreateDMChannel(IUser user)
             => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-        protected async Task StartSessionAsync(MatchSession session, TimeSpan? timeout = null)
+        protected async Task StartSessionAsync(MessageSession session, TimeSpan? timeout = null)
         {
             try
             {

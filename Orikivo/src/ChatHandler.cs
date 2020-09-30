@@ -14,7 +14,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a custom dialogue session for an <see cref="Desync.Character"/>.
     /// </summary>
-    public class ChatHandler : MatchSession
+    public class ChatHandler : MessageSession
     {
         public ChatHandler(DesyncContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
         {

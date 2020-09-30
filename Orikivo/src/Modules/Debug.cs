@@ -9,13 +9,13 @@ namespace Orikivo.Modules
 {
     [Name("Debug")]
     [Summary("A collection of commands used to debug internal features.")]
-    public class Debug : OriModuleBase<DesyncContext>
+    public class Debug : BaseModule<DesyncContext>
     {
         public Debug() { }
 
         [Name("Graphics")]
         [Summary("Debugging commands that utilizes graphical input.")]
-        public class Graphics : OriModuleBase<DesyncContext>
+        public class Graphics : BaseModule<DesyncContext>
         {
             private readonly GraphicsService _graphics;
             public Graphics(GraphicsService graphics)
@@ -51,7 +51,7 @@ namespace Orikivo.Modules
 
         [Name("Filters")]
         [Summary("Debugging commands that focus on testing message filtering methods.")]
-        public class FilterModule : OriModuleBase<DesyncContext>
+        public class FilterModule : BaseModule<DesyncContext>
         {
 
         }
