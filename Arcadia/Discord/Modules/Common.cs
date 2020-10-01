@@ -625,6 +625,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, page: --page));
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("leaderboard"), Alias("top"), Priority(0)]
         [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
         public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
@@ -636,7 +637,7 @@ namespace Arcadia.Modules
         }
 
         // TODO: Implement enum value listings
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
         public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)

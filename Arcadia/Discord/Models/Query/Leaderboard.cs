@@ -174,7 +174,9 @@ namespace Arcadia.Services
 
             if (allowTooltips)
             {
-                leaderboard.AppendLine(Format.Tooltip("Type `leaderboard <category|stat>` to view the leaderboard for a specific query."));
+                leaderboard
+                    .AppendLine(Format.Tooltip("Type `leaderboard <category | stat>` to view a specific leaderboard."))
+                    .AppendLine();
             }
 
             leaderboard.AppendLine(GetHeader(Flag));
