@@ -172,7 +172,7 @@ namespace Arcadia.Services
             var leaderboard = new StringBuilder();
             bool allowTooltips = user.Config.Tooltips;
 
-            if (allowTooltips)
+            if (allowTooltips && Flag == LeaderboardQuery.Default)
             {
                 leaderboard
                     .AppendLine(Format.Tooltip("Type `leaderboard <category | stat>` to view a specific leaderboard."))
