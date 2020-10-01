@@ -630,12 +630,13 @@ namespace Arcadia.Modules
         public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
         {
             var board = new Leaderboard(statId, sort);
-            string result = board.Write(Context.Data.Users.Values.Values, --page);
+            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
 
             await Context.Channel.SendMessageAsync(result);
         }
 
         // TODO: Implement enum value listings
+        [RequireUser]
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
         public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
@@ -644,7 +645,7 @@ namespace Arcadia.Modules
                 flag = LeaderboardQuery.Default;
 
             var board = new Leaderboard(flag, sort);
-            string result = board.Write(Context.Data.Users.Values.Values, --page);
+            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
 
             await Context.Channel.SendMessageAsync(result);
         }
