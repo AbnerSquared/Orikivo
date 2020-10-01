@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Orikivo;
 
 namespace Arcadia.Services
 {
@@ -107,8 +108,8 @@ namespace Arcadia.Services
             };
         }
 
-        private static readonly string LeaderFormat = "> **{0}**: **{1}** {2} **{3}**";
-        private static readonly string LeaderBaseFormat = "> **{0}**: **{1}** {2} {3}";
+        private static readonly string LeaderFormat = "> {0}: **{1}** {2} **{3}**";
+        private static readonly string LeaderBaseFormat = "> {0}: **{1}** {2} {3}";
         private static readonly string UserFormat = "**{0}** ... {1} **{2}**";
         private static readonly string CustomBaseFormat = "**{0}** ... {1}";
         private static readonly string CustomFormat = "**{0}** ... **{1}**";
@@ -124,7 +125,7 @@ namespace Arcadia.Services
             {
                 if (GetValue(user, flag) == 0)
                 {
-                    return $"> **{title}**: **Nobody!**";
+                    return $"> {title}: **Nobody!**";
                 }
             }
 
@@ -166,9 +167,15 @@ namespace Arcadia.Services
             return level;
         }
 
-        public string Write(in IEnumerable<ArcadeUser> users, int page = 0)
+        public string Write(ArcadeUser user, in IEnumerable<ArcadeUser> users, int page = 0)
         {
             var leaderboard = new StringBuilder();
+            bool allowTooltips = user.Config.Tooltips;
+
+            if (allowTooltips)
+            {
+                leaderboard.AppendLine(Format.Tooltip("Type `leaderboard <category|stat>` to view the leaderboard for a specific query."));
+            }
 
             leaderboard.AppendLine(GetHeader(Flag));
 
@@ -193,6 +200,8 @@ namespace Arcadia.Services
 
             if (Flag == LeaderboardQuery.Default)
             {
+                leaderboard.AppendLine();
+                leaderboard.AppendLine("> **Categories**\n> `money` `chips` `debt` `merits` `exp`");
                 leaderboard.AppendLine();
                 leaderboard.AppendLine("**Leaders**");
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Money, GetLeader(users, LeaderboardQuery.Money, Sort)));
