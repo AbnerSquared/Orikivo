@@ -11,11 +11,13 @@ using Discord.Net;
 using Orikivo.Framework;
 using Orikivo.Text.Pagination;
 using Format = Orikivo.Format;
+using Orikivo.Text;
 
 namespace Arcadia.Multiplayer
 {
     public class GameManager
     {
+        public static readonly TimeSpan ServerIdleTimeout = TimeSpan.FromMinutes(5);
         private readonly DiscordSocketClient _client;
         private readonly ArcadeContainer _container;
 
@@ -34,6 +36,7 @@ namespace Arcadia.Multiplayer
 
             _client.MessageReceived += OnMessageReceived;
             _client.MessageDeleted += OnMessageDeleted;
+            _client.LatencyUpdated += HandleIdleServers;
         }
 
         public IReadOnlyDictionary<string, GameBase> Games { get; set; }
@@ -49,6 +52,14 @@ namespace Arcadia.Multiplayer
         /// Represents a collection of all users that are currently bound to a <see cref="GameServer"/>.
         /// </summary>
         internal Dictionary<ulong, string> ReservedUsers { get; }
+
+        private async Task HandleIdleServers(int previous, int current)
+        {
+            foreach (GameServer server in Servers.Values.Where(s => DateTime.UtcNow - s.LastUpdated >= ServerIdleTimeout))
+            {
+                await DestroyServerAsync(server).ConfigureAwait(false);
+            }
+        }
 
         public IEnumerable<GameServer> GetServersFor(ulong userId, ulong guildId = 0)
         {
@@ -201,7 +212,7 @@ namespace Arcadia.Multiplayer
         }
 
         // this starts a new base game server
-        public async Task CreateServerAsync(IUser user, IMessageChannel channel, string gameId = null)
+        public async Task CreateServerAsync(IUser user, IMessageChannel channel, string gameId = null, Privacy privacy = Privacy.Public)
         {
             if (user.IsBot)
                 return;
@@ -211,6 +222,7 @@ namespace Arcadia.Multiplayer
             if (!string.IsNullOrWhiteSpace(gameId) && Games.ContainsKey(gameId))
                 properties.GameId = gameId;
 
+            properties.Privacy = privacy;
             var server = await GameServer.CreateAsync(this, user, channel, properties);
 
             foreach (ServerConnection connection in server.Connections)

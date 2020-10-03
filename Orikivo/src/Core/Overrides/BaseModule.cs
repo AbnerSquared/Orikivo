@@ -24,7 +24,7 @@ namespace Orikivo
             {
                 var collector = new MessageCollector(Context.Client);
 
-                var options = new MatchOptions
+                var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = timeout ?? TimeSpan.FromSeconds(30),

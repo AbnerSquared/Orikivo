@@ -499,7 +499,7 @@ namespace Orikivo.Modules
             {
                 var collector = new MessageCollector(Context.Client);
 
-                var options = new MatchOptions
+                var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(30),
@@ -524,7 +524,7 @@ namespace Orikivo.Modules
             {
                 MessageCollector collector = new MessageCollector(Context.Client);
 
-                MatchOptions options = new MatchOptions
+                SessionOptions options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20),

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Arcadia.Services;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia
 {

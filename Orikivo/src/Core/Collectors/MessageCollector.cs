@@ -31,7 +31,7 @@ namespace Orikivo
         /// </summary>
         /// <param name="filter">The filter that will be used to compare messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task MatchAsync(MessageFilter filter, MatchOptions options = null)
+        public async Task MatchAsync(MessageFilter filter, SessionOptions options = null)
             => await MatchAsync(filter.Judge, options);
 
         /// <summary>
@@ -39,9 +39,9 @@ namespace Orikivo
         /// </summary>
         /// <param name="filter">The filter that will be used to compare messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task MatchAsync(FilterDelegate filter, MatchOptions options = null)
+        public async Task MatchAsync(FilterDelegate filter, SessionOptions options = null)
         {
-            options ??= MatchOptions.Default;
+            options ??= SessionOptions.Default;
             FilterMatch match = null;
             var timer = new AsyncTimer(options.Timeout);
             var complete = new TaskCompletionSource<bool>();

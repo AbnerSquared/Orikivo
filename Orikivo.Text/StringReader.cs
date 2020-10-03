@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Orikivo
+namespace Orikivo.Text
 {
     // NOTE: Bless you, Mojang
     // REF: https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/StringReader.java

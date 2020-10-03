@@ -42,7 +42,8 @@ namespace Arcadia
                     .AddSingleton<ArcadeContainer>()
                     .AddSingleton<LogService>()
                     .AddSingleton<EventHandler>()
-                    .AddSingleton<CommandHandler>();
+                    .AddSingleton<CommandHandler>()
+                    .AddSingleton<CasinoService>();
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
                 builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
@@ -69,6 +70,7 @@ namespace Arcadia
                     .AddEnumTypeReader<TickWinMethod>()
                     .AddEnumTypeReader<StackTraceMode>()
                     .AddEnumTypeReader<ChessOwner>()
+                    .AddEnumTypeReader<Privacy>()
                     .AddEnumTypeReader<RouletteBetMode>();
 
                 builder

@@ -11,37 +11,18 @@ namespace Arcadia.Modules
     [Summary("Come and gamble your life away.")]
     public class Casino : BaseModule<ArcadeContext>
     {
+        private readonly CasinoService _service;
+        public Casino(CasinoService service)
+        {
+            _service = service;
+        }
+
         [RequireUser]
         [Command("blackjack")]
         [Summary("A game of 21.")]
         public async Task BlackJackAsync(Wager wager)
         {
-            if (!Context.Account.CanGamble)
-                return;
-
-            if (wager.Value < 0)
-            {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
-                return;
-            }
-
-            if (wager.Value == 0)
-            {
-                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
-                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
-                return;
-            }
-
-            if (wager.Value > Context.Account.ChipBalance)
-            {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
-                return;
-            }
-
-            Context.Account.CanGamble = false;
-            var session = new BlackJackSession(Context, wager.Value);
-            await StartSessionAsync(session, TimeSpan.FromSeconds(15));
-            Context.Account.CanGamble = true;
+            await _service.RunBlackJackAsync(Context.Account, Context.Channel, wager).ConfigureAwait(false);
         }
 
         [RequireUser]

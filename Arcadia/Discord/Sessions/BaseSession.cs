@@ -1,19 +1,21 @@
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 using Orikivo;
 
 namespace Arcadia.Casino
 {
     public abstract class BaseSession : MessageSession
     {
-        protected BaseSession(ArcadeContext context)
+        protected BaseSession(ArcadeUser invoker, ISocketMessageChannel channel)
         {
-            Context = context;
+            Invoker = invoker;
+            Channel = channel;
         }
 
-        public ArcadeContext Context { get; }
+        public ArcadeUser Invoker { get; }
 
-        public ArcadeUser User => Context.Account;
+        public ISocketMessageChannel Channel { get; }
 
         protected IUserMessage Reference { get; set; }
     }

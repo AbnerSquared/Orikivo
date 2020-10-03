@@ -11,7 +11,7 @@ namespace Arcadia.Casino
 {
     public class BlackJackSession : BaseSession
     {
-        public BlackJackSession(ArcadeContext context, long wager) : base(context)
+        public BlackJackSession(ArcadeUser invoker, ISocketMessageChannel channel, long wager) : base(invoker, channel)
         {
             Deck = CardDeck.Create(new DeckProperties
             {
@@ -171,7 +171,7 @@ namespace Arcadia.Casino
             actionBar.AppendLine($"> **Actions**")
                 .Append("`hit` `stand`");
 
-            if (User.ChipBalance >= Wager * 2)
+            if (Invoker.ChipBalance >= Wager * 2)
                 actionBar.Append(" `double`");
 
             actionBar.Append(" `fold`");
@@ -286,7 +286,7 @@ namespace Arcadia.Casino
             Hand.Add(Deck.Take());
             Hand.Add(Deck.Take());
 
-            Reference = await Context.Channel.SendMessageAsync(DrawGameDisplay());
+            Reference = await Channel.SendMessageAsync(DrawGameDisplay());
         }
 
         /// <inheritdoc />
@@ -299,7 +299,7 @@ namespace Arcadia.Casino
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
-                    User.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
                     return MatchResult.Success;
                 }
@@ -315,22 +315,22 @@ namespace Arcadia.Casino
                 State = GetResult();
 
                 if (State == BlackJackState.Win)
-                    User.Give(Wager, CurrencyType.Chips);
+                    Invoker.Give(Wager, CurrencyType.Chips);
                 else
-                    User.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
                 return MatchResult.Success;
             }
 
-            if (input == "double" && User.ChipBalance >= Wager * 2)
+            if (input == "double" && Invoker.ChipBalance >= Wager * 2)
             {
                 Wager *= 2;
 
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
-                    User.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
                     return MatchResult.Success;
                 }
@@ -338,9 +338,9 @@ namespace Arcadia.Casino
                 State = GetResult();
 
                 if (State == BlackJackState.Win)
-                    User.Give(Wager, CurrencyType.Chips);
+                    Invoker.Give(Wager, CurrencyType.Chips);
                 else
-                    User.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
                 return MatchResult.Success;
@@ -351,7 +351,7 @@ namespace Arcadia.Casino
                 long partial = (long)Math.Floor(Wager / (double)2);
                 Wager = partial == 0 ? 1 : partial;
                 State = BlackJackState.Fold;
-                User.Take(Wager, CurrencyType.Chips);
+                Invoker.Take(Wager, CurrencyType.Chips);
                 await UpdateAsync();
                 return MatchResult.Success;
             }

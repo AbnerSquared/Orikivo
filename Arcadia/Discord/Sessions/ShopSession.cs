@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Orikivo;
+using Orikivo.Text;
 using Format = Orikivo.Format;
 
 namespace Arcadia
@@ -34,7 +35,7 @@ namespace Arcadia
 
             long tier = context.Account.GetVar(ShopHelper.GetTierId(shop.Id));
 
-            if (shop.CriteriaTiers.ContainsKey(tier + 1) && shop.CriteriaTiers[tier + 1].All(x => Var.MeetsCriterion(context.Account, x)))
+            if (Check.NotNullOrEmpty(shop.CriteriaTiers) && shop.CriteriaTiers.ContainsKey(tier + 1) && shop.CriteriaTiers[tier + 1].All(x => Var.MeetsCriterion(context.Account, x)))
                 context.Account.AddToVar(ShopHelper.GetTierId(shop.Id));
         }
 

@@ -239,7 +239,7 @@ namespace Orikivo.Modules
 
                 var action = new ChatHandler(Context, test, Engine.GetTree("test"));
 
-                var options = new MatchOptions
+                var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20),

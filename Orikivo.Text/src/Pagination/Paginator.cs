@@ -21,9 +21,12 @@ namespace Orikivo.Text.Pagination
 
         public int PageCount { get; }
 
+        // TODO: Implement PageFormatter to allow default usage of formatting to prevent repetition
+        public PageFormatter<T> Formatter { get; set; }
+
         public Page<T> PageAt(int index)
         {
-            return new Page<T>(Paginate.GetElementOffset(Elements.Count, PageSize, index),
+            return new Page<T>(Paginate.GetCollectionOffset(Elements.Count, PageSize, index),
                 Paginate.GroupAt(Elements, index, PageSize), _defaultValue);
         }
 

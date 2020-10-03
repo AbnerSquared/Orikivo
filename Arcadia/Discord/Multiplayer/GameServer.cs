@@ -164,7 +164,7 @@ namespace Arcadia.Multiplayer
                 new Player(this, host)
             };
             Destroyed = false;
-
+            LastUpdated = DateTime.UtcNow;
             LoadGameConfig();
         }
 
@@ -239,6 +239,8 @@ namespace Arcadia.Multiplayer
         public List<GameOption> Options { get; private set; }
 
         public GameSession Session { get; internal set; }
+
+        public DateTime LastUpdated { get; private set; }
 
         public async Task<bool> StartGameAsync()
         {
@@ -829,6 +831,8 @@ namespace Arcadia.Multiplayer
                     Logger.Debug($"Error thrown when refreshing connection\n{e.Message}\n{e.StackTrace}");
                 }
             }
+
+            LastUpdated = DateTime.UtcNow;
         }
     }
 }

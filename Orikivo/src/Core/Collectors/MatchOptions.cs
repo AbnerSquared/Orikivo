@@ -5,12 +5,12 @@ namespace Orikivo
     /// <summary>
     /// Represents advanced configuration for a <see cref="MessageCollector"/>.
     /// </summary>
-    public class MatchOptions
+    public class SessionOptions
     {
         /// <summary>
-        /// Gets the default <see cref="MatchOptions"/>.
+        /// Gets the default <see cref="SessionOptions"/>.
         /// </summary>
-        public static readonly MatchOptions Default = new MatchOptions
+        public static readonly SessionOptions Default = new SessionOptions
         {
             ResetTimeoutOnAttempt = false,
             Timeout = TimeSpan.FromSeconds(10)

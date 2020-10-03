@@ -5,19 +5,36 @@ using System.Text;
 
 namespace Orikivo.Text.Pagination
 {
+    public enum TextSplitOptions
+    {
+        Character = 1,
+        Word = 2,
+        Line = 3
+    }
+
+    public enum GroupSplitOptions
+    {
+        Character = 1,
+        Word = 2,
+        Row = 3,
+        Element = 4
+    }
+
     public static class Paginate
     {
-        public static int GetElementOffset(int collectionSize, int pageSize, int page)
+        // What is the offset length for this collection on the specified index?
+        public static int GetCollectionOffset(int collectionSize, int groupSize, int index)
         {
-            int pageCount = GetPageCount(collectionSize, pageSize);
-            page = ClampIndex(page, pageCount);
+            int pageCount = GetPageCount(collectionSize, groupSize);
+            index = ClampIndex(index, pageCount);
 
-            return pageSize * page;
+            return groupSize * index;
         }
 
-        public static int GetPageCount(int collectionSize, int size)
+        // How many groups are in this collection?
+        public static int GetPageCount(int collectionSize, int groupSize)
         {
-            return (int) Math.Ceiling(collectionSize / (double) size);
+            return (int) Math.Ceiling(collectionSize / (double) groupSize);
         }
 
         public static int GetSplitCount(IEnumerable<string> collection, int characterLimit, int baseLength = 0)
@@ -49,7 +66,7 @@ namespace Orikivo.Text.Pagination
 
         public static int CountAtPage(int collectionSize, int pageSize, int page)
         {
-            int offset = GetElementOffset(collectionSize, pageSize, page);
+            int offset = GetCollectionOffset(collectionSize, pageSize, page);
 
             return Clamp(0, pageSize, collectionSize - offset);
         }

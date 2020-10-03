@@ -43,7 +43,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("hostserver")]
         [Summary("Host a new game server.")]
-        public async Task HostServerAsync([Name("game_id")]string gameId = null)
+        public async Task HostServerAsync([Name("game_id")]string gameId = null, Privacy privacy = Privacy.Public)
         {
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
@@ -66,7 +66,7 @@ namespace Arcadia.Modules
                 }
             }
 
-            await _games.CreateServerAsync(Context.User, Context.Channel, gameId).ConfigureAwait(false);
+            await _games.CreateServerAsync(Context.User, Context.Channel, gameId, privacy).ConfigureAwait(false);
         }
 
         [Command("joinserver")]
