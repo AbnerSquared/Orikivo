@@ -7,7 +7,7 @@ namespace Arcadia
     {
         public const double MoneyToChip = 1 / ChipToMoney;
         public const double ChipToMoney = 0.67;
-        public const double TokenToMoney = 5;
+        public const double TokenToMoney = 10;
 
         public static long ToChips(long money)
             => (long)Math.Ceiling(money * MoneyToChip);

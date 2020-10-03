@@ -35,6 +35,15 @@ namespace Arcadia
             return info.ToString();
         }
 
+        public static string WriteCashOut()
+        {
+            var info = new StringBuilder();
+            info.AppendLine("> **Token Conversion Rate**");
+            info.AppendLine($"> {Icons.Tokens} **1** = {Icons.Balance} **{MoneyConvert.TokensToMoney(1):##,0}**");
+            info.AppendLine("\nSpecify an amount to convert your **Tokens** into **Orite**.");
+            return info.ToString();
+        }
+
         public static string WriteGimi()
         {
             var info = new StringBuilder();

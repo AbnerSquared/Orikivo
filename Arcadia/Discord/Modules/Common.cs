@@ -9,6 +9,8 @@ using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
 using Arcadia.Multiplayer.Games;
+using DiscordBoats;
+using Microsoft.Extensions.Configuration;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -21,6 +23,15 @@ namespace Arcadia.Modules
     [Summary("Generic commands that are commonly used.")]
     public class Common : BaseModule<ArcadeContext>
     {
+        private readonly DiscordSocketClient _client;
+        private readonly IConfigurationRoot _config;
+        
+        public Common(DiscordSocketClient client, IConfigurationRoot config)
+        {
+            _client = client;
+            _config = config;
+        }
+
         /*
         [Command("peekshop")]
         [Summary("View what a shop has for sale before entering.")]
@@ -379,8 +390,43 @@ namespace Arcadia.Modules
         [Command("vote")]
         public async Task VoteAsync()
         {
-            VoteResultFlag result = VoteService.Next(Context.Account);
+            if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
+                throw new Exception("Expected valid API token for Discord Boats");
+
+            using var boatClient = new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+            VoteResultFlag result = VoteService.Next(boatClient, Context.Account);
             await Context.Channel.SendMessageAsync(VoteService.ApplyAndDisplay(Context.Account, result));
+        }
+
+        [RequireUser]
+        [Command("cashout")]
+        [Summary("Cash out **Tokens** for **Orite**.")]
+        public async Task CashOutAsync(long amount = 0)
+        {
+            if (amount < 0)
+            {
+                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                return;
+            }
+
+            if (amount == 0)
+            {
+                // $"> ⚠️ You need to specify a positive amount of **Orite** to convert.
+                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteCashOut());
+                return;
+            }
+
+            if (amount > Context.Account.TokenBalance)
+            {
+                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Tokens** to convert this amount.");
+                return;
+            }
+
+            long money = MoneyConvert.TokensToMoney(amount);
+
+            Context.Account.Take(amount, CurrencyType.Tokens);
+            Context.Account.Give(money, CurrencyType.Money);
+            await Context.Channel.SendMessageAsync($"> You have traded in **{Icons.Tokens} {amount:##,0}** in exchange for **{Icons.Balance} {money:##,0}**.");
         }
 
         [RequireUser]

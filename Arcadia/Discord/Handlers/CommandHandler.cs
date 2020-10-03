@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Multiplayer;
 using Arcadia.Services;
+using DiscordBoats;
+using Microsoft.Extensions.Configuration;
 using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -28,20 +30,73 @@ namespace Arcadia
         private readonly IServiceProvider _provider;
         private readonly InfoService _info;
         private readonly GameManager _games;
+        private readonly IConfigurationRoot _config;
+
+        private readonly TimeSpan UpdateCooldown = TimeSpan.FromSeconds(10);
+        private DateTime LastGuildCountUpdate { get; set; }
 
         public CommandHandler(DiscordSocketClient client, CommandService service, ArcadeContainer container,
-            IServiceProvider provider, InfoService info, GameManager games)
+            IServiceProvider provider, InfoService info, GameManager games, IConfigurationRoot config)
         {
             _client = client;
             _service = service;
             _container = container;
             _provider = provider;
+            _config = config;
             _client.MessageReceived += ReadInputAsync;
             _service.CommandExecuted += OnExecutedAsync;
             _client.Log += Logger.LogAsync;
             _service.Log += Logger.LogAsync;
+            _client.GuildAvailable += SumGuildCount;
+            _client.JoinedGuild += UpdateGuildCount;
+            _client.LeftGuild += UpdateGuildCount;
+            _client.Ready += OnReady;
             _info = info;
             _games = games;
+        }
+
+        private BoatClient BoatClient { get; set; }
+
+        private int GuildCount { get; set; }
+
+        private async Task SumGuildCount(SocketGuild guild)
+        {
+            GuildCount++;
+        }
+
+        private async Task<int> GetGuildCountAsync()
+        {
+            if (GuildCount == 0)
+                return (await _client.Rest.GetGuildsAsync()).Count;
+
+            Logger.Debug($"Incremented: {GuildCount}");
+
+            return GuildCount;
+        }
+
+        private async Task OnReady()
+        {
+            BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+
+            if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
+                return;
+
+            int guildCount = await GetGuildCountAsync();
+
+            await BoatClient.UpdateGuildCountAsync(guildCount).ConfigureAwait(false);
+            LastGuildCountUpdate = DateTime.UtcNow;
+            Logger.Debug($"Posted guild count to Discord Boats ({guildCount:##,0})");
+        }
+
+        private async Task UpdateGuildCount(SocketGuild guild)
+        {
+            BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+
+            if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
+                return;
+
+            await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
+            LastGuildCountUpdate = DateTime.UtcNow;
         }
 
         public string GetPrefix(ArcadeContext ctx)

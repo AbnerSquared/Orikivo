@@ -1,6 +1,7 @@
 ﻿using System;
 using Orikivo;
 using Orikivo.Drawing;
+using DiscordBoats;
 
 namespace Arcadia.Services
 {
@@ -12,11 +13,9 @@ namespace Arcadia.Services
         public static readonly TimeSpan Cooldown = TimeSpan.FromHours(12);
         public static readonly TimeSpan Reset = TimeSpan.FromHours(48);
 
-        public static VoteResultFlag Next(ArcadeUser user)
+        public static VoteResultFlag Next(BoatClient boatClient, ArcadeUser user)
         {
-            return VoteResultFlag.Unavailable;
-            /*
-            long lastTicks = user.GetVar(Cooldowns.Vote);
+            long lastTicks = user.GetVar(CooldownVars.Vote);
             long streak = user.GetVar(Stats.VoteStreak);
 
             TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
@@ -27,16 +26,23 @@ namespace Arcadia.Services
                     return VoteResultFlag.Cooldown;
             }
 
-            if (sinceLast > Reset)
+            bool hasVoted = boatClient.HasVotedAsync(user.Id).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            if (!hasVoted)
+                return VoteResultFlag.Unavailable;
+
+            if (lastTicks > 0)
             {
-                return VoteResultFlag.Reset;
+                if (sinceLast > Reset)
+                {
+                    return VoteResultFlag.Reset;
+                }
             }
 
             if ((streak + 1) % BonusInterval == 0)
                 return VoteResultFlag.Bonus;
 
             return VoteResultFlag.Success;
-            */
         }
 
         public static Message ApplyAndDisplay(ArcadeUser user, VoteResultFlag flag)
@@ -50,7 +56,7 @@ namespace Arcadia.Services
             switch (flag)
             {
                 case VoteResultFlag.Cooldown:
-                    TimeSpan sinceLast = StatHelper.SinceLast(user, CooldownVars.Daily);
+                    TimeSpan sinceLast = StatHelper.SinceLast(user, CooldownVars.Vote);
                     TimeSpan rem = Cooldown - sinceLast;
                     DateTime time = DateTime.UtcNow.Add(rem);
 
@@ -63,7 +69,7 @@ namespace Arcadia.Services
                 case VoteResultFlag.Reset:
                     content = "Your streak has been reset.";
                     color = GammaPalette.NeonRed[Gamma.Max];
-                    user.SetVar(Stats.DailyStreak, 0);
+                    user.SetVar(Stats.VoteStreak, 0);
                     break;
 
                 case VoteResultFlag.Bonus:
@@ -73,13 +79,27 @@ namespace Arcadia.Services
                     reward += Bonus;
                     break;
 
+                case VoteResultFlag.Success:
+                    content = "Thank you for voting!";
+                    color = GammaPalette.Wumpite[Gamma.Max];
+                    break;
+
                 case VoteResultFlag.Unavailable:
-                    content = $"Voting is an upcoming mechanic from which you receive a {Icons.Tokens} **Token** on each vote (with **2** more on each 7 day streak)!\n{Icons.Tokens} **Tokens** can be cashed out, or saved to purchase upcoming special items that can only be bought with this currency!\nYou can vote every **12** hours, and your streak is cut short after **48**  hours.";
+                    content = $"Voting allows you to receive a **Token** on each vote you submit.\nYou are given an additional 2 **Tokens** on each 7 day streak.\n**Tokens** can be cashed out, or saved to purchase upcoming special items that can only be bought with this currency!\nYou can vote every **12** hours on any voting platform, and your streak is cut short after **48**  hours.\n\n> **Voting Portal**\n• [**Discord Boats**](https://discord.boats/bot/686093964029329413/vote)";
                     color = GammaPalette.Oceanic[Gamma.Max];
                     icon = Icons.Tokens;
                     header = $"Voting";
                     reward = 0;
                     break;
+            }
+
+            if (flag != VoteResultFlag.Cooldown && flag != VoteResultFlag.Unavailable)
+            {
+                user.SetVar(CooldownVars.Vote, DateTime.UtcNow.Ticks);
+                user.AddToVar(Stats.VoteStreak);
+                user.AddToVar(Stats.TimesVoted);
+                Var.SetIfGreater(user, Stats.LongestVoteStreak, Stats.VoteStreak);
+                user.Give(reward, CurrencyType.Tokens);
             }
 
             var message = new MessageBuilder();

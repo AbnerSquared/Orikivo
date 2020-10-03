@@ -23,12 +23,12 @@ namespace Arcadia.Services
             {
                 if (sinceLast < Cooldown)
                     return DailyResultFlag.Cooldown;
-            }
 
-            if (sinceLast > Reset)
-            {
-                if (streak > 1)
-                    return DailyResultFlag.Reset;
+                if (sinceLast > Reset)
+                {
+                    if (streak > 1)
+                        return DailyResultFlag.Reset;
+                }
             }
 
             if ((streak + 1) % BonusInterval == 0)
@@ -51,13 +51,13 @@ namespace Arcadia.Services
                     TimeSpan rem = Cooldown - sinceLast;
                     DateTime time = DateTime.UtcNow.Add(rem);
 
-                    color = ImmutableColor.NeonRed;
+                    color = GammaPalette.Amber[Gamma.Max];
                     header = Format.Countdown(rem);
                     icon = Icons.GetClock(time.Hour);
                     break;
 
                 case DailyResultFlag.Reset:
-                    color = GammaPalette.Default[Gamma.Max];
+                    color = GammaPalette.NeonRed[Gamma.Max];
                     user.SetVar(Stats.DailyStreak, 0);
                     break;
 

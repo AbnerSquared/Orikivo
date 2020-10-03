@@ -1,5 +1,4 @@
-﻿using Arcadia.Multiplayer.Games;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Orikivo;
 using System;
@@ -9,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.Net;
 using Orikivo.Framework;
-using Orikivo.Text.Pagination;
 using Format = Orikivo.Format;
 using Orikivo.Text;
 
@@ -1317,7 +1315,7 @@ namespace Arcadia.Multiplayer
                         Logger.Debug("Revoked delete permission");
                     }
                 }
-                catch (RateLimitedException e)
+                catch (RateLimitedException)
                 {
                     if (connection.RefreshCounter > 0)
                     {
