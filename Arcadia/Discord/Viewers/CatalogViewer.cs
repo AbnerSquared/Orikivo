@@ -84,6 +84,42 @@ namespace Arcadia.Services
 
         private static string ViewAll(ArcadeUser user, int page = 0)
         {
+            var info = new StringBuilder();
+
+            var result = new TextBody();
+            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
+            result.Header.Group = "All";
+            result.Tooltips.Add(GetTooltip());
+
+            var entries = Assets.Items
+                .Where(x => CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
+                .OrderBy(x => x.GetName()).ToList();
+
+            page = Paginate.ClampIndex(page, _pageSize);
+            int pageCount = Paginate.GetPageCount(entries.Count, _pageSize);
+
+            if (pageCount > 1)
+                result.Header.Extra = $"({Format.PageCount(Paginate.ClampIndex(page, pageCount) + 1, pageCount)})";
+
+            foreach (Item item in Paginate.GroupAt(entries, page, _pageSize))
+            {
+                CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
+
+                if (status == CatalogStatus.Unknown)
+                    continue;
+
+                string icon = item.GetIcon() ?? "•";
+
+                info.AppendLine($"> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
+            }
+
+            result.Sections.Add(new TextSection { Content = info.ToString() });
+
+            return result.Build(user.Config.Tooltips);
+        }
+
+        private static string ViewGroups(ArcadeUser user, int page = 0)
+        {
             var result = new TextBody();
             result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
             result.Header.Group = "All";
@@ -139,6 +175,9 @@ namespace Arcadia.Services
             if (query == "all")
                 return ViewAll(user, page);
 
+            if (query == "groups")
+                return ViewGroups(user, page);
+
             if (!ItemHelper.GroupExists(query))
                 return Format.Warning("Unable to find the specified group query.");
 
@@ -153,7 +192,7 @@ namespace Arcadia.Services
 
             ItemGroup group = ItemHelper.GetGroup(query);
 
-            var entries = Assets.Items
+            List<Item> entries = Assets.Items
                 .Where(x => x.GroupId == query && CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 

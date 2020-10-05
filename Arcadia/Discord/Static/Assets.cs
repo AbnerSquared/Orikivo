@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arcadia.Casino;
 using Arcadia.Graphics;
 using Arcadia.Services;
 using Orikivo;
@@ -81,6 +82,24 @@ namespace Arcadia
                 }
             },
             */
+            new Quest
+            {
+                Id = "quest:low_stakes",
+                Name = "Low Stakes",
+                Summary = "The Casino has some classics for you to participate in.",
+                Difficulty = QuestDifficulty.Easy,
+                Criteria = new List<VarCriterion>
+                {
+                    new VarCriterion(RouletteStats.TimesPlayed, 10),
+                    new VarCriterion(BlackJackStats.TimesPlayed, 10)
+                },
+                Type = QuestType.User,
+                Reward = new Reward
+                {
+                    Money = 20,
+                    Exp = 40
+                }
+            },
             new Quest
             {
                 Id = "quest:casino_field_day",

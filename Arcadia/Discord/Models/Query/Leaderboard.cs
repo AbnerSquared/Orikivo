@@ -203,14 +203,14 @@ namespace Arcadia.Services
             if (Flag == LeaderboardQuery.Default)
             {
                 leaderboard.AppendLine();
-                leaderboard.AppendLine("> **Categories**\n> `money` `chips` `debt` `merits` `exp`");
+                leaderboard.AppendLine("> **Categories**\n> `money` `chips` `debt` `merits` `level`");
                 leaderboard.AppendLine();
                 leaderboard.AppendLine("**Leaders**");
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Money, GetLeader(users, LeaderboardQuery.Money, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Debt, GetLeader(users, LeaderboardQuery.Debt, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Chips, GetLeader(users, LeaderboardQuery.Chips, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Merits, GetLeader(users, LeaderboardQuery.Merits, Sort)));
-                //leaderboard.Append(WriteLeader(LeaderboardFlag.Level, GetLeader(users, LeaderboardFlag.Level, Sort))); // Levels aren't implemented yet.
+                leaderboard.Append(WriteLeader(LeaderboardQuery.Level, GetLeader(users, LeaderboardQuery.Level, Sort))); // Levels aren't implemented yet.
             }
             else
             {

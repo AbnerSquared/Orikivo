@@ -63,5 +63,8 @@ namespace Arcadia
         internal static readonly string VoteStreak = "vote:current_streak";
         internal static readonly string LongestVoteStreak = "vote:longest_streak";
         internal static readonly string TimesVoted = "vote:times_used";
+
+        internal static readonly string MultiplayerDailyGameCount = "multiplayer:daily_game_count";
+        internal static readonly string MultiplayerGamesPlayed = "multiplayer:games_played";
     }
 }

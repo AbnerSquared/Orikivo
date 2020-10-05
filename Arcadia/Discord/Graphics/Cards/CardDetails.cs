@@ -12,13 +12,13 @@ namespace Arcadia.Graphics
         {
             Program = socket.Activity?.Name;
             Activity = socket.Activity?.Type;
-            //Ascent = user.Ascent;
+            Ascent = user.Ascent;
             Status = socket.Status;
             Name = user.Username;
             Balance = user.Balance;
             Debt = user.Debt;
             AvatarUrl = socket.GetAvatarUrl(ImageFormat.Png, 32);
-            //Exp = user.Exp;
+            Exp = user.Exp;
         }
 
         /// <summary>

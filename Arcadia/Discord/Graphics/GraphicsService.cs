@@ -347,7 +347,7 @@ namespace Arcadia.Graphics
             if (!properties.Deny.HasFlag(CardDeny.Level))
             {
                 var iconSheet = new Sheet(@"../assets/icons/levels.png", 6, 6);
-                
+
                 // ICON
                 var levelGamma = properties.Gamma[CardComponent.Level] ?? Gamma.Max;
                 var icon = new BitmapLayer

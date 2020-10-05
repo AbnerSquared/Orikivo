@@ -316,7 +316,7 @@ namespace Arcadia.Casino
 
                 if (State == BlackJackState.Win)
                     Invoker.Give(Wager, CurrencyType.Chips);
-                else
+                else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
@@ -339,7 +339,7 @@ namespace Arcadia.Casino
 
                 if (State == BlackJackState.Win)
                     Invoker.Give(Wager, CurrencyType.Chips);
-                else
+                else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();

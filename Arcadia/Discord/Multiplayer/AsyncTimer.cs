@@ -21,7 +21,7 @@ namespace Arcadia
 
             if (milliseconds.HasValue)
                 InternalTimer.Interval = milliseconds.Value;
-                
+
             InternalTimer.AutoReset = false;
             Timeout = null;
             TimeStarted = Signal = null;

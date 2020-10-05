@@ -93,7 +93,9 @@ namespace Orikivo
                 if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase)
                     || (aliases?.Aliases.Any(x => x == propertyName.ToLower()) ?? false)
                     || (id?.Id?.Equals(propertyName, StringComparison.OrdinalIgnoreCase) ?? false))
-                    if (property.PropertyType == value.GetType())
+                    if (property.PropertyType == value?.GetType()
+                        || (property.PropertyType == typeof(string) && value == null)
+                        || (property.PropertyType == typeof(Nullable) && value == null))
                     {
                         property.SetValue(@class, value);
                         return;

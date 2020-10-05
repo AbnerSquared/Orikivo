@@ -39,4 +39,27 @@ namespace Arcadia
             return PreconditionResult.FromSuccess();
         }
     }
+
+    /// <summary>
+    /// A precondition that marks a command to require the guild it was executed in to have an account.
+    /// </summary>
+    public class RequireGuildAttribute : PreconditionAttribute
+    {
+        public AccountHandling Handling { get; }
+
+        public RequireGuildAttribute(AccountHandling handling = AccountHandling.ReadWrite)
+        {
+            Handling = handling;
+        }
+
+        public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
+        {
+            if (!(context is ArcadeContext Context))
+                throw new Exception("Expected ArcadeContext");
+
+            Context.Server ??= Context.GetOrAddGuild(context.Guild);
+
+            return PreconditionResult.FromSuccess();
+        }
+    }
 }

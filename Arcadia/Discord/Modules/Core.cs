@@ -91,6 +91,226 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [DoNotNotify]
+        [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(0)]
+        [Summary("Returns all of the current guild's customized preferences.")]
+        public async Task GetGuildOptionsAsync()
+        {
+            await Context.Channel.SendMessageAsync(Context.Server.Config.Display());
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [DoNotNotify]
+        [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(1)]
+        [Summary("View more details for the specified option.")]
+        public async Task ViewGuildOptionAsync(string name)
+        {
+            await Context.Channel.SendMessageAsync(Context.Server.Config.ViewOption(name, Context.Account.Config.Tooltips));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [RequireGuild]
+        [DoNotNotify]
+        [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(2)]
+        [Summary("Updates the option to the specified value.")]
+        public async Task SetGuildOptionAsync(string name, string value)
+        {
+            if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != OriGlobal.DevId)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You do not have authority to update guild options."));
+                return;
+            }
+
+            PropertyInfo option = ClassHelper.GetProperty(Context.Server.Config, name);
+
+            if (option == null)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("Unknown option specified."));
+                return;
+            }
+
+            Type type = Context.Server.Config.GetOptionType(name);
+            var clamp = option.GetCustomAttribute<ClampAttribute>();
+            bool useFlags = type.GetCustomAttribute<FlagsAttribute>() != null;
+
+            var panel = new StringBuilder();
+            panel.AppendLine($"> **{Context.Server.Config.GetOptionName(name)}**");
+
+            switch (value)
+            {
+                case "--default":
+                    Context.Server.Config.SetOptionDefault(name);
+                    panel.AppendLine("> The specified option has been reset.");
+                    break;
+
+                case "--min":
+                    {
+                        if (type != typeof(int))
+                        {
+                            panel.AppendLine("> This method can only be used on a `Number` with a specified minimum range.");
+                        }
+                        else if (clamp == null || !clamp.HasMin)
+                        {
+                            panel.AppendLine("> This `Number` does not have a specified minimum range.");
+                        }
+                        else
+                        {
+                            Context.Server.Config.SetOption(name, clamp.Min);
+                            panel.AppendLine("> The specified option has been set to its lowest possible value.");
+                        }
+
+                        break;
+                    }
+
+                case "--max":
+                    {
+                        if (type != typeof(int))
+                        {
+                            panel.AppendLine("> This method can only be used on a `Number` with a specified maximum range.");
+                        }
+                        else if (clamp == null)
+                        {
+                            panel.AppendLine("> This `Number` does not have a specified maximum range.");
+                        }
+                        else
+                        {
+                            Context.Server.Config.SetOption(name, clamp.Max);
+                            panel.AppendLine("> The specified option has been set to its highest possible value.");
+                        }
+
+                        break;
+                    }
+
+                case "--none":
+                    {
+                        if (!type.IsEnum || !useFlags)
+                        {
+                            panel.AppendLine("> This method can only be used on a `Flag`.");
+                        }
+                        else if (!Enum.TryParse(type, "0", out object e))
+                        {
+                            panel.AppendLine("> An error occurred while attempted to clear all flags.");
+                        }
+                        else
+                        {
+                            Context.Server.Config.SetOption(name, e);
+                            panel.AppendLine("> Cleared all flags.");
+                        }
+
+                        break;
+                    }
+
+                case "--all":
+                    {
+                        if (!type.IsEnum || !useFlags)
+                        {
+                            panel.AppendLine("> This method can only be used on a `Flag`.");
+                        }
+                        else if (!Enum.TryParse(type, $"{type.GetEnumValues().Cast<Enum>().Select(Convert.ToInt64).Sum()}", out object e))
+                        {
+                            panel.AppendLine("> An error occurred while attempting to activate all flags.");
+                        }
+                        else
+                        {
+                            Context.Server.Config.SetOption(name, e);
+                            panel.AppendLine("> Activated all flags.");
+                        }
+
+                        break;
+                    }
+
+                default:
+                    if (TypeParser.TryParse(type, value, out object result))
+                    {
+                        if (type.IsEnum)
+                        {
+                            long flagValue = Convert.ToInt64(result);
+                            if (flagValue < 0)
+                            {
+                                panel.AppendLine("> Flags cannot be negative.");
+                                break;
+                            }
+
+                            long partialSum = EnumUtils.GetFlags(result).Select(Convert.ToInt64).Sum();
+
+                            if (flagValue > 0)
+                            {
+                                if (flagValue - partialSum > 0)
+                                {
+                                    panel.AppendLine("> The flag summation contains an invalid flag.");
+                                    break;
+                                }
+                            }
+                        }
+                        if (type == typeof(string) && result is string s)
+                        {
+                            if (s.Contains("\n"))
+                            {
+                                panel.AppendLine("> The specified value cannot contain any line breaks.");
+                                break;
+                            }
+
+                            if (clamp != null)
+                            {
+                                if (s.Length > clamp.Max)
+                                {
+                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
+                                    break;
+                                }
+                            }
+                        }
+                        if (type == typeof(int) && result is int i)
+                        {
+                            if (clamp != null)
+                            {
+                                if (clamp.HasMin && (i < clamp.Min || i > clamp.Max))
+                                {
+                                    panel.AppendLine($"> The specified value is out of range (`{clamp.Min} to {clamp.Max}`).");
+                                    break;
+                                }
+
+                                if (i > clamp.Max)
+                                {
+                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
+                                    break;
+                                }
+                            }
+                        }
+
+                        Context.Server.Config.SetOption(name, result);
+                        panel.Append($"> The specified value has been set to `{Context.Server.Config.WriteOptionValue(result)}`.");
+                    }
+                    else
+                    {
+                        panel.AppendLine("> The specified value could not be parsed.");
+
+                        if (type.IsEnum)
+                        {
+                            panel.AppendLine();
+                            List<string> names = type.GetEnumNames().ToList();
+                            List<long> values = type.GetEnumValues().Cast<object>().Select(Convert.ToInt64).ToList();
+                            List<string> groups = names.Join(values,
+                                a => names.IndexOf(a),
+                                b => values.IndexOf(b),
+                                (a, b) => $"{a} = {b}")
+                                .ToList();
+
+                            if (groups.Any())
+                            {
+                                panel.AppendLine($"> **Values**\n```cs");
+                                panel.AppendJoin(",\n", groups);
+                                panel.AppendLine("```");
+                            }
+                        }
+                    }
+
+                    break;
+            }
+
+            await Context.Channel.SendMessageAsync(panel.ToString());
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [DoNotNotify]
         [Command("options"), Alias("config", "cfg"), Priority(1)]
         [Summary("View more details for the specified option.")]
         public async Task ViewOptionAsync(string name)

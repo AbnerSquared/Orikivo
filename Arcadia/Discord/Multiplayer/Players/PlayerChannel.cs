@@ -89,7 +89,7 @@ namespace Arcadia.Multiplayer
             }
             catch (HttpException error) when (error.DiscordCode == 50007)
             {
-                Logger.Debug($"[{Format.Time(DateTime.UtcNow)}] Unable to send message to user {Recipient.Id} as their direct message channel is disabled");
+                Logger.Debug($"Unable to send message to user {Recipient.Id} as their direct message channel is disabled");
                 Disabled = true;
                 return null;
             }

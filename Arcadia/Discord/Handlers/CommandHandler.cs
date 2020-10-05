@@ -51,6 +51,7 @@ namespace Arcadia
             _client.JoinedGuild += UpdateGuildCount;
             _client.LeftGuild += UpdateGuildCount;
             _client.Ready += OnReady;
+            _client.Disconnected += ResetGuildCount;
             _info = info;
             _games = games;
         }
@@ -58,6 +59,11 @@ namespace Arcadia
         private BoatClient BoatClient { get; set; }
 
         private int GuildCount { get; set; }
+
+        private async Task ResetGuildCount(Exception error)
+        {
+            GuildCount = 0;
+        }
 
         private async Task SumGuildCount(SocketGuild guild)
         {
