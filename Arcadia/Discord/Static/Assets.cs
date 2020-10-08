@@ -9,6 +9,8 @@ using Orikivo.Text;
 
 namespace Arcadia
 {
+    // NOTE: Using this as a means to figure out what to unlock on Orikivo Arcade is frowned upon.
+    // Nonetheless, I can't stop you, so do what you will. :(
     public static class Assets
     {
         public static readonly List<Guide> Guides = new List<Guide>
