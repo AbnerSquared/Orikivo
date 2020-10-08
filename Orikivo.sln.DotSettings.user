@@ -10,6 +10,11 @@
     &lt;TestId&gt;xUnit::C6C702E8-4145-4930-977E-C00DC3D28E94::.NETCoreApp,Version=v3.1::Arcadia.Tests.UnitTest1.Test_ExpectValidVar&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ceb6da8e_002D129d_002D45b2_002Dbda8_002Dc18555c18932/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test_ExpectCorrectDayDifference" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::C6C702E8-4145-4930-977E-C00DC3D28E94::.NETCoreApp,Version=v3.1::Arcadia.Tests.CooldownTests.Test_ExpectCorrectDayDifference&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e66c7ac5_002D82b8_002D43ec_002Db6d8_002D0e5c79e8bc80/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test_ReturnValidSlot" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

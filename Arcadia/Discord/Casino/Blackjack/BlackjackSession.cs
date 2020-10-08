@@ -281,6 +281,7 @@ namespace Arcadia.Casino
 
         public override async Task OnStartAsync()
         {
+            Invoker.AddToVar(BlackJackStats.TimesPlayed);
             DealerHand.Add(Deck.Take());
             DealerHand.Add(Deck.Take());
             Hand.Add(Deck.Take());
@@ -315,7 +316,15 @@ namespace Arcadia.Casino
                 State = GetResult();
 
                 if (State == BlackJackState.Win)
+                {
+                    if (GetBestSum(Hand) == 21)
+                    {
+                        Invoker.AddToVar(BlackJackStats.TimesWonExact);
+                    }
+
+                    Invoker.AddToVar(BlackJackStats.TimesWon);
                     Invoker.Give(Wager, CurrencyType.Chips);
+                }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
@@ -338,7 +347,15 @@ namespace Arcadia.Casino
                 State = GetResult();
 
                 if (State == BlackJackState.Win)
+                {
+                    if (GetBestSum(Hand) == 21)
+                    {
+                        Invoker.AddToVar(BlackJackStats.TimesWonExact);
+                    }
+
+                    Invoker.AddToVar(BlackJackStats.TimesWon);
                     Invoker.Give(Wager, CurrencyType.Chips);
+                }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 

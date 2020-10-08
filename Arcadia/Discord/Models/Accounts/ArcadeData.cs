@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Arcadia.Multiplayer;
 using Newtonsoft.Json;
+using Orikivo;
 
 namespace Arcadia
 {
@@ -14,10 +16,12 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs)
+        internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs, string bonusGameId, DateTime bonusAssignedAt)
         {
             LogChannelId = logChannelId;
             Catalogs = catalogs ?? new Dictionary<string, ItemCatalog>();
+            BonusGameId = bonusGameId;
+            BonusAssignedAt = bonusAssignedAt;
         }
 
         [JsonProperty("log_channel_id")]
@@ -25,6 +29,23 @@ namespace Arcadia
 
         [JsonProperty("catalogs")]
         public Dictionary<string, ItemCatalog> Catalogs { get; }
+
+        [JsonProperty("bonus_game_id")]
+        public string BonusGameId { get; internal set; }
+
+        [JsonProperty("bonus_assigned_at")]
+        internal DateTime BonusAssignedAt { get; set; }
+
+        public string GetOrAssignBonusGame(GameManager games)
+        {
+            if (BonusAssignedAt == DateTime.MinValue || CooldownHelper.DaysSince(BonusAssignedAt) >= 7)
+            {
+                BonusGameId = Randomizer.Choose(games.Games.Keys);
+                BonusAssignedAt = DateTime.UtcNow;
+            }
+
+            return BonusGameId;
+        }
 
         public ItemCatalog GetOrGenerateCatalog(Shop shop, ArcadeUser user = null)
         {

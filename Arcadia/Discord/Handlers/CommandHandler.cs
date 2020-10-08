@@ -82,6 +82,9 @@ namespace Arcadia
 
         private async Task OnReady()
         {
+            if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
+                return;
+
             BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
 
             if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
@@ -96,6 +99,9 @@ namespace Arcadia
 
         private async Task UpdateGuildCount(SocketGuild guild)
         {
+            if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
+                return;
+
             BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
 
             if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)

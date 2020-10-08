@@ -12,17 +12,23 @@ namespace Arcadia.Modules
     {
         public static readonly int DefaultPageSize = 6;
 
-        public static string ViewGames(GameManager gameManager, int page = 0, ArcadeUser user = null)
+        public static string ViewGames(ArcadeData data, GameManager gameManager, int page = 0, ArcadeUser user = null)
         {
+            string bonusGameId = data.GetOrAssignBonusGame(gameManager);
             var result = new StringBuilder();
 
             bool allowTooltips = user?.Config?.Tooltips ?? true;
+
+            result.AppendLine($"{Format.Warning($"**{gameManager.GetGame(bonusGameId).Details.Name}** is currently providing bonus experience!")}");
 
             if (allowTooltips)
             {
                 result.AppendLine($"{Format.Tooltip("Type `game <game_id>` to learn more about a game.")}\n");
             }
-
+            else
+            {
+                result.AppendLine();
+            }
 
             int pageCount = Paginate.GetPageCount(gameManager.Games.Count, 5);
             page = Paginate.ClampIndex(page, pageCount);

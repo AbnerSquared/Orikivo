@@ -17,4 +17,15 @@ namespace Arcadia.Tests
             Assert.True(Var.IsValid("valid:var"));
         }
     }
+
+    public class CooldownTests
+    {
+        [Fact]
+        public void Test_ExpectCorrectDayDifference()
+        {
+            var previous = new DateTime(2020, 10, 5);
+            var current = new DateTime(2020, 10, 8);
+            Assert.True(CooldownHelper.DaysSince(previous, current) == 3);
+        }
+    }
 }

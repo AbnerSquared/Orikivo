@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Arcadia.Services;
@@ -13,6 +14,28 @@ namespace Arcadia
         {
             if (!user.InternalCooldowns.TryAdd(id, DateTime.UtcNow.Add(duration)))
                 user.InternalCooldowns[id] = user.InternalCooldowns[id].Add(duration);
+        }
+
+        public static int DaysSince(DateTime previous)
+            => DaysSince(previous, DateTime.UtcNow);
+
+        public static int DaysSince(DateTime previous, DateTime current)
+        {
+            bool isSameYear = current.Year == previous.Year;
+
+            if (isSameYear)
+                return Math.Abs(current.DayOfYear - previous.DayOfYear);
+
+            DateTime larger = current.Year > previous.Year ? current : previous;
+            DateTime smaller = current.Year < previous.Year ? current : previous;
+
+            int skipCount = 0;
+            for (int i = 1; i < (larger.Year - smaller.Year); i++)
+            {
+                skipCount += DateTime.IsLeapYear(smaller.Year + i) ? 366 : 365;
+            }
+
+            return Math.Abs((larger.DayOfYear + skipCount) - smaller.DayOfYear);
         }
 
         public static bool CanExecute(ArcadeUser user, string id)

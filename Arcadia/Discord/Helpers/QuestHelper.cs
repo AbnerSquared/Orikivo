@@ -9,7 +9,7 @@ namespace Arcadia
 {
     public static class QuestHelper
     {
-        public static readonly long DefaultQuestCapacity = 1;
+        public static readonly long DefaultQuestCapacity = 2;
         public static readonly TimeSpan AssignCooldown = TimeSpan.FromHours(24);
         public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(4);
 
