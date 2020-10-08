@@ -1,7 +1,10 @@
 # Orikivo
 [![CodeFactor](https://www.codefactor.io/repository/github/abnersquared/orikivo/badge/master?s=b3419a2cbac0938c11c04819f67815eb708833ba)](https://www.codefactor.io/repository/github/abnersquared/orikivo/overview/master)
 
-Orikivo is a Discord bot containing a wide range of helpful utilities, mechanics, and systems to incorporate a wide variety of fun things to do!
+Orikivo is a Discord bot library containing a wide range of helpful utilities, mechanics, and systems to incorporate a wide variety of fun things to do!
+
+> Invite **Orikivo Arcade** [here](https://discord.com/oauth2/authorize?client_id=686093964029329413&scope=bot&permissions=388160)!<br/>
+> View the most recent changelog [here](https://abnersquared.github.io/Orikivo.Web/changelogs/arcadia)!
 
 ## Contents
 - **Orikivo**: The primary and original library, containing all extensions and primary services used by most Discord bots in this area
