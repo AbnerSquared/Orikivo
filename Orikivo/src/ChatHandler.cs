@@ -6,6 +6,7 @@ using System.Text;
 using System.Linq;
 using Orikivo.Drawing;
 using Discord;
+using Discord.Addons.Collectors;
 using Orikivo.Canary;
 
 namespace Orikivo
@@ -85,7 +86,7 @@ namespace Orikivo
                 MessageReference = await Context.Channel.SendMessageAsync(GetReplyBox("Hello."));
         }
 
-        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
+        public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             if (ResponseIds.Contains(message.Content))
             {
@@ -99,7 +100,7 @@ namespace Orikivo
                     case DialogType.End:
                         // TODO: Implement content separations, which are continued when the user types 'next' (loop.GetBestEntry(Npc))
                         await UpdateMessageAsync(loop.Tone, GetReplyBox(loop.GetAnyEntry().ToString(), false));
-                        return SessionTaskResult.Success;
+                        return SessionResult.Success;
 
                     case DialogType.Answer:
                         ResponseIds = GetEntryIds();
@@ -110,7 +111,7 @@ namespace Orikivo
                         {
                             chat.AppendLine($"> **No responses available. Closing...**");
                             await UpdateMessageAsync(loop.Tone, chat.ToString());
-                            return SessionTaskResult.Fail;
+                            return SessionResult.Fail;
                         }
 
                         ResponseIds = loop.ReplyIds;
@@ -121,14 +122,14 @@ namespace Orikivo
 
                 await UpdateMessageAsync(loop.Tone, chat.ToString());
 
-                return SessionTaskResult.Continue;
+                return SessionResult.Continue;
             }
             else
             {
                 string old = MessageReference.Content;
 
                 await MessageReference.ModifyAsync($"> **Please input a correct response ID.**\n" + old);
-                return SessionTaskResult.Continue;
+                return SessionResult.Continue;
             }
         }
 

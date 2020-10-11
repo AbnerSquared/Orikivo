@@ -9,6 +9,7 @@ using System.Text;
 using System.Linq;
 using Orikivo.Drawing;
 using System;
+using Discord.Addons.Collectors;
 using Orikivo.Canary;
 
 namespace Orikivo
@@ -368,7 +369,7 @@ namespace Orikivo
             return result;
         }
 
-        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
+        public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             Trigger trigger = ParseMessage(message);
             await message.DeleteAsync();
@@ -383,7 +384,7 @@ namespace Orikivo
                     if (trigger.ArgCount != 1)
                     {
                         await UpdateAsync(MarketState.Buy, "You must specify a single item ID.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     string id = trigger.Args[0];
@@ -392,12 +393,12 @@ namespace Orikivo
                     {
                         Inspector = Engine.GetItem(id);
                         await UpdateAsync(MarketState.View);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
                     else
                     {
                         await UpdateAsync(MarketState.Buy, "This item could not be found.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
                 }
 
@@ -408,19 +409,19 @@ namespace Orikivo
                     if (count <= 0)
                     {
                         await UpdateAsync(MarketState.Buy, "It seems we've run out of this item, sorry.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     if (!CanAfford(toConfirm.Value))
                     {
                         await UpdateAsync(MarketState.Buy, "You can't afford this, sorry.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     if (!CanStore(toConfirm, count))
                     {
                         await UpdateAsync(MarketState.Buy, "You can't store anything else.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
 
@@ -429,7 +430,7 @@ namespace Orikivo
                         Confirm = toConfirm;
                         ConfirmMaxCount = count;
                         await UpdateAsync(MarketState.BuyConfirm);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     Last = new MarketHistory(new Dictionary<string, int> { [toConfirm.Id] = 1 }, toConfirm.Value);
@@ -439,7 +440,7 @@ namespace Orikivo
                     Last.ApplyBuy(Context.Husk, Context.Brain, ref balance, Market.Id);
                     await UpdateAsync(MarketState.BuyComplete);
                     Context.Account.Balance = balance;
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
 
                 }
                 // item_id
@@ -453,7 +454,7 @@ namespace Orikivo
                     if (trigger.ArgCount != 1)
                     {
                         await UpdateAsync(State, "You must specify a single item ID.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     string id = trigger.Args[0];
@@ -462,12 +463,12 @@ namespace Orikivo
                     {
                         Inspector = Engine.GetItem(id);
                         await UpdateAsync(MarketState.View);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
                     else
                     {
                         await UpdateAsync(MarketState.Sell, "This item could not be found.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
                 }
 
@@ -480,7 +481,7 @@ namespace Orikivo
                         Confirm = toConfirm;
                         ConfirmMaxCount = count;
                         await UpdateAsync(MarketState.SellConfirm);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     Last = new MarketHistory(new Dictionary<string, int> { [toConfirm.Id] = 1 }, GetItemValue(toConfirm));
@@ -488,7 +489,7 @@ namespace Orikivo
                     Last.ApplySell(Context.Husk, Context.Brain, ref balance);
                     Context.Account.Balance = balance;
                     await UpdateAsync(MarketState.SellComplete);
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
             }
 
@@ -504,7 +505,7 @@ namespace Orikivo
                     else
                         await UpdateAsync(MarketState.Buy);
 
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (trigger.Name == "sell")
@@ -512,17 +513,17 @@ namespace Orikivo
                     if (!Market.CanSellFrom)
                     {
                         await UpdateAsync(MarketState.Menu, "Sorry, but I don't buy items here.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
 
                     if (!CanSell())
                     {
                         await UpdateAsync(MarketState.Menu, "You don't have anything to sell.");
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
                     await UpdateAsync(MarketState.Sell);
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
             }
 
@@ -537,7 +538,7 @@ namespace Orikivo
                 {
                     Inspector = Confirm;
                     await UpdateAsync(MarketState.View);
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (trigger.Name == "all")
@@ -565,7 +566,7 @@ namespace Orikivo
                         Confirm = null;
                         ConfirmCount = 0;
                         ConfirmMaxCount = 0;
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     if (!CanStore(Confirm, ConfirmCount))
@@ -574,7 +575,7 @@ namespace Orikivo
                         Confirm = null;
                         ConfirmCount = 0;
                         ConfirmMaxCount = 0;
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     }
 
                     ulong balance = Context.Account.Balance;
@@ -584,7 +585,7 @@ namespace Orikivo
                     Confirm = null;
                     ConfirmCount = 0;
                     ConfirmMaxCount = 0;
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (trigger.Name == "back")
@@ -603,7 +604,7 @@ namespace Orikivo
                 {
                     Inspector = Confirm;
                     await UpdateAsync(MarketState.View);
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
                 if (trigger.Name == "all")
                 {
@@ -631,7 +632,7 @@ namespace Orikivo
                     Confirm = null;
                     ConfirmCount = 0;
                     ConfirmMaxCount = 0;
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                     // make history info
                 }
 
@@ -653,7 +654,7 @@ namespace Orikivo
                     Context.Account.Balance = balance;
                     await UpdateAsync(MarketState.SellRevert);
                     Last = null;
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                     // revert and delete history.
                 }
             }
@@ -665,21 +666,21 @@ namespace Orikivo
                 {
                     case MarketState.Menu:
                         await Initial.ModifyAsync(GetReply("See you next time."));
-                        return SessionTaskResult.Success;
+                        return SessionResult.Success;
 
                     case MarketState.View:
                         Inspector = null;
                         await UpdateAsync(LastState);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     default:
                         await UpdateAsync(MarketState.Menu);
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                 }
             }
 
             // on an invalid action
-            return SessionTaskResult.Continue;
+            return SessionResult.Continue;
         }
 
         private async Task UpdateAsync(MarketState state, string reply = null)

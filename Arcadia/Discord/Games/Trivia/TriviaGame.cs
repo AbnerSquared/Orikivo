@@ -790,9 +790,9 @@ namespace Arcadia.Multiplayer.Games
             return result;
         }
 
-        public override SessionResult OnSessionFinish(GameSession session)
+        public override GameResult OnSessionFinish(GameSession session)
         {
-            var result = new SessionResult();
+            var result = new GameResult();
             // because we don't have access to stats directly, we have to use stat update packets
             // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
             foreach (PlayerData player in session.Players)

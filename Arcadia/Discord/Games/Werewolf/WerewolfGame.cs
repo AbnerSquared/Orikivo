@@ -449,9 +449,9 @@ namespace Arcadia.Multiplayer.Games
             session.InvokeAction(WolfVars.Start, true);
         }
 
-        public override SessionResult OnSessionFinish(GameSession session)
+        public override GameResult OnSessionFinish(GameSession session)
         {
-            var result = new SessionResult();
+            var result = new GameResult();
 
             // For each player, update stats if they won, played, killed, and voted
 

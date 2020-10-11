@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using System.Threading.Tasks;
 using System;
+using Discord.Addons.Collectors;
 
 namespace Orikivo
 {
@@ -11,7 +12,7 @@ namespace Orikivo
             return base.OnStartAsync();
         }
 
-        public override Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
+        public override Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             throw new NotImplementedException();
         }

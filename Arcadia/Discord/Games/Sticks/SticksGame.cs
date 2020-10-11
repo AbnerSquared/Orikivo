@@ -80,7 +80,7 @@ namespace Arcadia.Multiplayer.Games
             throw new NotImplementedException();
         }
 
-        public override SessionResult OnSessionFinish(GameSession session)
+        public override GameResult OnSessionFinish(GameSession session)
         {
             return null;
         }

@@ -2,7 +2,7 @@
 
 namespace Arcadia.Multiplayer
 {
-    public class SessionResult
+    public class GameResult
     {
         public Dictionary<ulong, PlayerResult> UserIds { get; set; } = new Dictionary<ulong, PlayerResult>();
 

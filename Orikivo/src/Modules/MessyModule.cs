@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Discord.Addons.Collectors;
 using Discord.Addons.Linking;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 using SysColor = System.Drawing.Color;
@@ -239,7 +240,7 @@ namespace Orikivo.Modules
 
                 var action = new ChatHandler(Context, test, Engine.GetTree("test"));
 
-                var options = new SessionOptions
+                var options = new MatchOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(20)
@@ -372,7 +373,7 @@ namespace Orikivo.Modules
                 }, options);
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"The **MessageFilter** found **{c.Count}** successful {Format.TryPluralize("match", c.Count)}. ({Format.Counter(collector.ElapsedTime?.TotalSeconds ?? 0)})");
+            sb.Append($"The **MessageFilter** found **{c.Count}** successful {Format.TryPluralize("match", c.Count)}. ({Format.Counter(c.LastOrDefault()?.ElapsedTime.TotalSeconds ?? 0)})");
             if (c.Count > 0)
                 sb.Append(Discord.Format.Code($"{string.Join("\n", c.Select(x => $"[{x.Index}]: {x.Message.Content}"))}", "autohotkey"));
 

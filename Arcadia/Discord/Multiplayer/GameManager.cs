@@ -229,7 +229,7 @@ namespace Arcadia.Multiplayer
 
         internal void EndSession(GameSession session)
         {
-            SessionResult result = session.Game.OnSessionFinish(session);
+            GameResult result = session.Game.OnSessionFinish(session);
             result.Apply(_container);
         }
 

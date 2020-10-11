@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Commands;
 using System.Threading.Tasks;
+using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo.Desync;
 
@@ -24,7 +25,7 @@ namespace Orikivo
             {
                 var collector = new MessageCollector(Context.Client);
 
-                var options = new SessionOptions
+                var options = new MatchOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = timeout ?? TimeSpan.FromSeconds(30)

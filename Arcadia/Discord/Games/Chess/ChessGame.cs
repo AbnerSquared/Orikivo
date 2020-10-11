@@ -292,9 +292,9 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override SessionResult OnSessionFinish(GameSession session)
+        public override GameResult OnSessionFinish(GameSession session)
         {
-            var result = new SessionResult();
+            var result = new GameResult();
             return result;
         }
     }

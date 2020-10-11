@@ -91,7 +91,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents the method used to safely end a <see cref="GameSession"/>.
         /// </summary>
-        public abstract SessionResult OnSessionFinish(GameSession session);
+        public abstract GameResult OnSessionFinish(GameSession session);
 
         // TODO: Implement usage of OnPlayerRemoved in games to handle random disconnects
         public virtual void OnPlayerRemoved(Player player)
