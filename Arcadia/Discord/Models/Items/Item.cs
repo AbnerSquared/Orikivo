@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Arcadia.Models;
 using Orikivo;
 
 namespace Arcadia
@@ -7,7 +8,7 @@ namespace Arcadia
     /// <summary>
     /// Represents a generic interactive object.
     /// </summary>
-    public class Item
+    public class Item : IModel<string>
     {
         public static readonly int MaxNameLength = 32;
 

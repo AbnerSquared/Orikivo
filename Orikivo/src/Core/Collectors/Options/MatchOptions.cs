@@ -2,9 +2,9 @@
 
 namespace Orikivo
 {
-    public class FilterOptions
+    public class MatchOptions
     {
-        public static readonly FilterOptions Default = new FilterOptions
+        public static readonly MatchOptions Default = new MatchOptions
         {
             ResetTimeoutOnAttempt = false,
             MaxAttempts = null,

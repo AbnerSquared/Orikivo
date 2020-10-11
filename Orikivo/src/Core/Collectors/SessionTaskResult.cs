@@ -1,9 +1,9 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// Defines what a <see cref="MessageSession"/> proceeds with once a <see cref="FilterMatch"/> is handled.
+    /// Defines what a <see cref="MessageSession"/> proceeds with once a <see cref="MessageMatch"/> is handled.
     /// </summary>
-    public enum MatchResult
+    public enum SessionTaskResult
     {
         /// <summary>
         /// Closes the <see cref="MessageCollector"/> and marks the proceeding action as a success.

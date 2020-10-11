@@ -5,20 +5,20 @@ using System.Timers;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents an asynchronous <see cref="Timer"/>.
+    /// Represents an asynchronous timer.
     /// </summary>
     public class AsyncTimer
     {
-        private bool _started = false;
+        private bool _started;
 
         public AsyncTimer(TimeSpan? duration)
         {
             InternalTimer = new Timer
             {
-                Enabled = false
+                Enabled = false,
+                AutoReset = false
             };
 
-            InternalTimer.AutoReset = false;
             Timeout = duration;
             TimeStarted = Signal = null;
             CompletionSource = new TaskCompletionSource<bool>();
@@ -26,16 +26,15 @@ namespace Orikivo
             Elapsed = false;
         }
 
-        private Timer InternalTimer { get; }
-
-        private DateTime? TimeStarted { get; set; }
-        private DateTime? Signal { get; set; }
-
         public bool Elapsed { get; private set; }
 
-        public TimeSpan ElapsedTime => TimeStarted.HasValue ?
-            DateTime.UtcNow - TimeStarted.Value : Signal.HasValue ?
-            Signal.Value - TimeStarted.Value : TimeSpan.Zero;
+        public TimeSpan ElapsedTime => TimeStarted.HasValue
+            ? Signal.HasValue
+                ? Signal.Value - TimeStarted.Value
+                : DateTime.UtcNow - TimeStarted.Value
+            : Signal.HasValue
+                ? DateTime.UtcNow - Signal.Value
+                : TimeSpan.Zero;
 
         public TaskCompletionSource<bool> CompletionSource { get; private set; }
 
@@ -57,36 +56,34 @@ namespace Orikivo
             }
         }
 
-        private void OnElapse(object obj, ElapsedEventArgs e)
-        {
-            Signal = e.SignalTime;
-            InternalTimer.Stop();
-            _started = false;
-            Elapsed = true;
-            CompletionSource.SetResult(true);
-        }
+        private Timer InternalTimer { get; }
+
+        private DateTime? TimeStarted { get; set; }
+
+        private DateTime? Signal { get; set; }
 
         public void Start()
         {
-            if (!_started)
-            {
-                TimeStarted = DateTime.UtcNow;
-                Signal = null;
-                InternalTimer.Start();
-                _started = true;
-                Elapsed = false;
-            }
+            if (_started)
+                return;
+
+            TimeStarted = DateTime.UtcNow;
+            Signal = null;
+            InternalTimer.Start();
+            CompletionSource = new TaskCompletionSource<bool>();
+            _started = true;
+            Elapsed = false;
         }
 
         public void Stop()
         {
-            if (_started)
-            {
-                InternalTimer.Stop();
-                Signal = DateTime.UtcNow;
-                _started = false;
-                Elapsed = false;
-            }
+            if (!_started)
+                return;
+
+            InternalTimer.Stop();
+            Signal = DateTime.UtcNow;
+            _started = false;
+            Elapsed = false;
         }
 
         public void Reset()
@@ -98,6 +95,15 @@ namespace Orikivo
             {
                 Start();
             }
+        }
+
+        private void OnElapse(object obj, ElapsedEventArgs e)
+        {
+            Signal = e.SignalTime;
+            InternalTimer.Stop();
+            _started = false;
+            Elapsed = true;
+            CompletionSource.SetResult(true);
         }
     }
 }

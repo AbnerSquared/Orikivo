@@ -27,48 +27,44 @@ namespace Orikivo
         public TimeSpan? ElapsedTime { get; private set; }
 
         /// <summary>
-        /// Starts a message handler session for this <see cref="MessageCollector"/>.
+        /// Starts an asynchronous <see cref="MessageSession"/> for this <see cref="MessageCollector"/>.
         /// </summary>
+        /// <param name="session">The <see cref="MessageSession"/> that will be used for this <see cref="MessageCollector"/>.</param>
         /// <param name="filter">The filter that will be used to compare messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task MatchAsync(MessageFilter filter, SessionOptions options = null)
-            => await MatchAsync(filter.Judge, options);
-
-        /// <summary>
-        /// Starts a message handler session for this <see cref="MessageCollector"/>.
-        /// </summary>
-        /// <param name="filter">The filter that will be used to compare messages.</param>
-        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task MatchAsync(FilterDelegate filter, SessionOptions options = null)
+        public async Task RunSessionAsync(MessageSession session, FilterDelegate filter, SessionOptions options = null)
         {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session), "The specified MessageSession cannot be null");
+
             options ??= SessionOptions.Default;
-            FilterMatch match = null;
+            MessageMatch match = null;
             var timer = new AsyncTimer(options.Timeout);
             var complete = new TaskCompletionSource<bool>();
 
-            await options.Session.OnStartAsync();
+            await session.OnStartAsync();
 
             int index = 0;
             async Task HandleAsync(SocketMessage arg)
             {
                 bool filterSuccess = filter.Invoke(arg, index);
-                match = new FilterMatch(arg, index, filterSuccess);
+                match = new MessageMatch(arg, index, filterSuccess);
 
                 if (filterSuccess)
                 {
-                    MatchResult result = await options.Session.InvokeAsync(arg);
+                    SessionTaskResult result = await session.OnMessageReceivedAsync(arg);
 
                     switch (result)
                     {
-                        case MatchResult.Fail:
+                        case SessionTaskResult.Fail:
                             complete.SetResult(false);
                             break;
 
-                        case MatchResult.Success:
+                        case SessionTaskResult.Success:
                             complete.SetResult(true);
                             break;
 
-                        case MatchResult.Continue:
+                        case SessionTaskResult.Continue:
                         default:
                             break;
                     }
@@ -85,53 +81,43 @@ namespace Orikivo
             if (options.Timeout.HasValue)
                 timer.Start();
 
-            Task<bool> possible = await Task.WhenAny(timer.CompletionSource.Task, complete.Task);
-
+            await Task.WhenAny(timer.CompletionSource.Task, complete.Task);
 
             _client.MessageReceived -= HandleAsync;
             ElapsedTime = timer.ElapsedTime;
 
             if (timer.Elapsed)
-                await options.Session.OnTimeoutAsync(match?.Message);
+                await session.OnTimeoutAsync(match?.Message);
 
             Console.WriteLine("Match handled.");
         }
 
         /// <summary>
-        /// Tells the <see cref="MessageCollector"/> to attempt to match a single message.
-        /// </summary>
-        /// <param name="filter">The filter that will be used to compare messages.</param>
-        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task<FilterMatch> TryFilterAsync(MessageFilter filter, FilterOptions options = null)
-            => await TryFilterAsync(filter.Judge, options);
-
-        /// <summary>
-        /// Tells the <see cref="MessageCollector"/> to attempt to match a single message.
+        /// Tells the <see cref="MessageCollector"/> to asynchronously attempt to match a single message.
         /// </summary>
         /// <param name="filter">The raw filter that will be used to compare messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task<FilterMatch> TryFilterAsync(FilterDelegate filter, FilterOptions options = null)
+        public async Task<MessageMatch> MatchSingleAsync(FilterDelegate filter, MatchOptions options = null)
         {
-            options ??= FilterOptions.Default;
-            FilterMatch match = null;
+            options ??= MatchOptions.Default;
+            MessageMatch match = null;
 
-            AsyncTimer timer = new AsyncTimer(options.Timeout);
-            TaskCompletionSource<bool> complete = new TaskCompletionSource<bool>();
+            var timer = new AsyncTimer(options.Timeout);
+            var complete = new TaskCompletionSource<bool>();
 
             int attempts = 0;
             async Task HandleAsync(SocketMessage arg)
             {
                 bool isSuccess = filter.Invoke(arg, attempts);
-                match = new FilterMatch(arg, attempts, isSuccess);
+                match = new MessageMatch(arg, attempts, isSuccess);
 
                 if (isSuccess)
                 {
                     complete.SetResult(true);
                 }
-                else if (options.MaxAttempts.HasValue)
+                else if (options.MaxAttempts.HasValue && attempts == options.MaxAttempts.Value)
                 {
-                    if (attempts == options.MaxAttempts.Value)
-                        complete.SetResult(false);
+                    complete.SetResult(false);
                 }
 
                 if (options.ResetTimeoutOnAttempt)
@@ -154,22 +140,14 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Tells the <see cref="MessageCollector"/> to begin collecting messages.
-        /// </summary>
-        /// <param name="filter">The filter that will be used when comparing messages.</param>
-        /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task<FilterCollection> CollectAsync(MessageFilter filter, CollectionOptions options = null)
-            => await CollectAsync(filter.JudgeMany, options);
-
-        /// <summary>
-        /// Tells the <see cref="MessageCollector"/> to begin collecting messages.
+        /// Tells the <see cref="MessageCollector"/> to begin collecting messages asynchronously.
         /// </summary>
         /// <param name="filter">The raw filter that will be used when comparing messages.</param>
         /// <param name="options">The options that will be used to set up the <see cref="MessageCollector"/>.</param>
-        public async Task<FilterCollection> CollectAsync(FilterCollectionDelegate filter, CollectionOptions options = null)
+        public async Task<MessageMatchCollection> CollectAsync(FilterCollectionDelegate filter, CollectionOptions options = null)
         {
             options ??= CollectionOptions.Default;
-            var matches = new FilterCollection();
+            var matches = new MessageMatchCollection();
             var timer = new AsyncTimer(options.Timeout);
             var complete = new TaskCompletionSource<bool>();
 
@@ -178,10 +156,8 @@ namespace Orikivo
             {
                 bool isSuccess = filter.Invoke(arg, matches, index);
 
-                if (options.IncludeFailedMatches)
-                    matches.Add(new FilterMatch(arg, index, isSuccess));
-                else if (isSuccess)
-                    matches.Add(new FilterMatch(arg, index, isSuccess));
+                if (isSuccess || options.IncludeFailedMatches)
+                    matches.Add(new MessageMatch(arg, index, isSuccess));
 
                 if (isSuccess && options.ResetTimeoutOnMatch)
                     timer.Reset();

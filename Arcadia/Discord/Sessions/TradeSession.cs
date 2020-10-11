@@ -200,7 +200,7 @@ namespace Arcadia
         }
 
         // This is only invoked if the ID is either the Host or the Participant.
-        public override async Task<MatchResult> InvokeAsync(SocketMessage message)
+        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
         {
             // gets the account that executed this.
             var account = GetAccount(message.Author.Id);
@@ -213,14 +213,14 @@ namespace Arcadia
             {
                 await SetStateAsync(TradeState.Cancel);
                 await UpdateMessageAsync(WriteOnCancel(account));
-                return MatchResult.Success;
+                return SessionTaskResult.Success;
             }
 
             // If the current invoker is not the current speaker, ignore their inputs
             if (CurrentId.HasValue)
             {
                 if (CurrentId.Value != account.Id)
-                    return MatchResult.Continue;
+                    return SessionTaskResult.Continue;
             }
 
             switch (State)
@@ -232,7 +232,7 @@ namespace Arcadia
                         // If the user accepted the trade invitation, go to the base trade menu.
                         await SetStateAsync(TradeState.Menu, $"> ☑️ **{Participant.Username}** has agreed to trade.");
                         Participant.CanTrade = false;
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     // DECLINE
@@ -240,7 +240,7 @@ namespace Arcadia
                     {
                         await SetStateAsync(TradeState.Cancel);
                         await UpdateMessageAsync(WriteOnCancel(account));
-                        return MatchResult.Success;
+                        return SessionTaskResult.Success;
                     }
                     break;
 
@@ -252,30 +252,30 @@ namespace Arcadia
                         if (IsOfferEmpty())
                         {
                             await SetStateAsync(TradeState.Menu, Format.Warning("There aren't any items specified!"));
-                            return MatchResult.Continue;
+                            return SessionTaskResult.Continue;
                         }
 
                         if (CanStartTrade())
                         {
                             Trade();
                             await SetStateAsync(TradeState.Success);
-                            return MatchResult.Success;
+                            return SessionTaskResult.Success;
                         }
 
                         MarkAsReady(account.Id);
                         await SetStateAsync(TradeState.Menu);
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     if (input == "inventory")
                     {
                         // If someone is already inspecting their backpack, ignore input.
                         if (CurrentId.HasValue)
-                            return MatchResult.Continue;
+                            return SessionTaskResult.Continue;
 
                         CurrentId = account.Id;
                         await SetStateAsync(TradeState.Inventory);
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
                     break;
 
@@ -285,7 +285,7 @@ namespace Arcadia
                     {
                         CurrentId = null;
                         await SetStateAsync(TradeState.Menu);
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     // TODO: Handle unique item ID when trading.
@@ -294,7 +294,7 @@ namespace Arcadia
                     if (!ItemHelper.HasItem(account, input))
                     {
                         await SetStateAsync(TradeState.Inventory, Format.Warning("An invalid item ID was specified."));
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     // If the specified item was already selected, remove it from their trade.
@@ -304,7 +304,7 @@ namespace Arcadia
                         await SetStateAsync(TradeState.Inventory, "> 📤 Removed the specified item from your offer.");
                         HostReady = false;
                         ParticipantReady = false;
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     ItemData selectedItem = ItemHelper.DataOf(account, input);
@@ -312,17 +312,17 @@ namespace Arcadia
                     if (!ItemHelper.CanTrade(input, selectedItem))
                     {
                         await SetStateAsync(TradeState.Inventory, Format.Warning("This item is unavailable for trading."));
-                        return MatchResult.Continue;
+                        return SessionTaskResult.Continue;
                     }
 
                     AddItemToCurrent(input);
                     await SetStateAsync(TradeState.Inventory, "> 📥 Added the specified item to your offer.");
                     HostReady = false;
                     ParticipantReady = false;
-                    return MatchResult.Continue;
+                    return SessionTaskResult.Continue;
             }
 
-            return MatchResult.Continue;
+            return SessionTaskResult.Continue;
         }
 
         private bool IsOfferEmpty()

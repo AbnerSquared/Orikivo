@@ -9,17 +9,17 @@ namespace Arcadia
     public class MeritData
     {
         [JsonConstructor]
-        internal MeritData(DateTime achievedAt, bool? isClaimed = null)
+        internal MeritData(DateTime unlockedAt, bool? isClaimed = null)
         {
-            AchievedAt = achievedAt;
+            UnlockedAt = unlockedAt;
             IsClaimed = isClaimed;
         }
 
         /// <summary>
-        /// Gets the <see cref="DateTime"/> at which the <see cref="Merit"/> was achieved.
+        /// Gets the <see cref="DateTime"/> at which the <see cref="Merit"/> was unlocked.
         /// </summary>
         [JsonProperty("achieved_at")]
-        public DateTime AchievedAt { get; }
+        public DateTime UnlockedAt { get; }
 
         /// <summary>
         /// Gets a <see cref="bool"/> that specifies if the <see cref="Merit"/> has been claimed. If unspecified, the <see cref="Merit"/> does not have a reward.

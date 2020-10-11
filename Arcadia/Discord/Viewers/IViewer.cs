@@ -2,7 +2,7 @@
 
 namespace Arcadia.Modules
 {
-    public interface IViewer <TModel> where TModel : IModel
+    public interface IViewer <in TModel> where TModel : IModel
     {
         // This is the 'main menu' of the viewer, mainly to show generalized information
         string ViewDefault();

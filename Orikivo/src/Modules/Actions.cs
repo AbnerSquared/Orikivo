@@ -502,8 +502,7 @@ namespace Orikivo.Modules
                 var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(30),
-                    Session = shop
+                    Timeout = TimeSpan.FromSeconds(30)
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -511,7 +510,7 @@ namespace Orikivo.Modules
                     return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
                 }
 
-                await collector.MatchAsync(Filter, options);
+                await collector.RunSessionAsync(shop, Filter, options);
             }
             catch (Exception e)
             {
@@ -527,8 +526,7 @@ namespace Orikivo.Modules
                 SessionOptions options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(20),
-                    Session = handler
+                    Timeout = TimeSpan.FromSeconds(20)
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -536,7 +534,7 @@ namespace Orikivo.Modules
                     return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
                 }
 
-                await collector.MatchAsync(Filter, options);
+                await collector.RunSessionAsync(handler, Filter, options);
 
                 Context.Brain.AddOrUpdateAffinity(handler.Affinity);
             }

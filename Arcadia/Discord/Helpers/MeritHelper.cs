@@ -110,7 +110,7 @@ namespace Arcadia
                 info.AppendLine(quote);
 
             if (hasUnlocked)
-                    info.AppendLine($"> Unlocked: {Format.FullTime(user.Merits[merit.Id].AchievedAt, '.')}");
+                    info.AppendLine($"> Unlocked: {Format.FullTime(user.Merits[merit.Id].UnlockedAt, '.')}");
 
             info.AppendLine($"> Rank: **{merit.Rank.ToString()}**");
 
@@ -158,7 +158,7 @@ namespace Arcadia
             if (user.Merits.Count == 0)
                 return null;
 
-            return GetMerit(user.Merits.OrderByDescending(x => x.Value.AchievedAt).First().Key);
+            return GetMerit(user.Merits.OrderByDescending(x => x.Value.UnlockedAt).First().Key);
         }
 
         private static string WriteLastUnlocked(ArcadeUser user)

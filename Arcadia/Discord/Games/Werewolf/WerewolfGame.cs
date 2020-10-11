@@ -275,9 +275,8 @@ namespace Arcadia.Multiplayer.Games
         private PlayerData CreatePlayer(Player player, WerewolfRole role, int index)
         {
             Logger.Debug("Creating player...");
-            var data = new PlayerData
+            var data = new PlayerData(player)
             {
-                Source = player,
                 Properties = new List<GameProperty>
                 {
                     // index: Used to keep track of the player as a unique indexer

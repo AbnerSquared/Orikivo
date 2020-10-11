@@ -12,7 +12,7 @@ namespace Orikivo
         /// </summary>
         public static readonly SessionOptions Default = new SessionOptions
         {
-            ResetTimeoutOnAttempt = false,
+            ResetTimeoutOnAttempt = true,
             Timeout = TimeSpan.FromSeconds(10)
         };
 
@@ -25,10 +25,5 @@ namespace Orikivo
         /// Determines if the <see cref="MessageCollector"/> should reset its timeout on any attempt.
         /// </summary>
         public bool ResetTimeoutOnAttempt { get; set; }
-
-        /// <summary>
-        /// Gets or sets a message session that will handle all successful <see cref="FilterMatch"/> results.
-        /// </summary>
-        public MessageSession Session { get; set; }
     }
 }

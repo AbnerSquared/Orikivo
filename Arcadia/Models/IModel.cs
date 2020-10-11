@@ -1,11 +1,15 @@
 ﻿namespace Arcadia.Models
 {
-    public interface IModel : IModel<string> { }
-
-    public interface IModel<out TId>
+    public interface IModel
     {
-        TId Id { get; }
-
+        object Id { get; }
         string Name { get; }
+    }
+
+    public interface IModel<out TId> : IModel
+    {
+        new TId Id { get; }
+
+        object IModel.Id => Id;
     }
 }

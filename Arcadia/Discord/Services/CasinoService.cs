@@ -45,8 +45,7 @@ namespace Arcadia.Modules
                 var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(15),
-                    Session = session
+                    Timeout = TimeSpan.FromSeconds(15)
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -54,7 +53,7 @@ namespace Arcadia.Modules
                     return message.Author.Id == invoker.Id && message.Channel.Id == channel.Id;
                 }
 
-                await _collector.MatchAsync(Filter, options);
+                await _collector.RunSessionAsync(session, Filter, options);
             }
             catch (Exception e)
             {

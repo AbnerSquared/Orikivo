@@ -242,8 +242,7 @@ namespace Orikivo.Modules
                 var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(20),
-                    Session = action
+                    Timeout = TimeSpan.FromSeconds(20)
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -251,7 +250,7 @@ namespace Orikivo.Modules
                     return (message.Author.Id == Context.User.Id) && (message.Channel.Id == Context.Channel.Id);
                 }
 
-                await collector.MatchAsync(Filter, options);
+                await collector.RunSessionAsync(action, Filter, options);
             }
             catch (Exception e)
             {
@@ -366,8 +365,8 @@ namespace Orikivo.Modules
             CollectionOptions options = new CollectionOptions { ResetTimeoutOnMatch = resetTimeoutOnMatch,
                 Timeout = TimeSpan.FromSeconds(timeoutSeconds), Capacity = capacity, IncludeFailedMatches = false };
 
-            FilterCollection c = await collector.CollectAsync(
-                delegate (SocketMessage msg, FilterCollection matches, int i)
+            MessageMatchCollection c = await collector.CollectAsync(
+                delegate (SocketMessage msg, MessageMatchCollection matches, int i)
                 {
                     return msg.Content.StartsWith("ok");
                 }, options);

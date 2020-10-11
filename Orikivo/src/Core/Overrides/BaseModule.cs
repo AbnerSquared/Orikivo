@@ -27,8 +27,7 @@ namespace Orikivo
                 var options = new SessionOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = timeout ?? TimeSpan.FromSeconds(30),
-                    Session = session
+                    Timeout = timeout ?? TimeSpan.FromSeconds(30)
                 };
 
                 bool Filter(SocketMessage message, int index)
@@ -36,7 +35,7 @@ namespace Orikivo
                     return message.Author.Id == Context.User.Id && message.Channel.Id == Context.Channel.Id;
                 }
 
-                await collector.MatchAsync(Filter, options);
+                await collector.RunSessionAsync(session, Filter, options);
             }
             catch (Exception e)
             {

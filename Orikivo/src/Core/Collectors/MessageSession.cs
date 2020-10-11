@@ -5,29 +5,31 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents a generic message session handler for a <see cref="FilterMatch"/>.
+    /// Represents a generic message session handler.
     /// </summary>
     public abstract class MessageSession
     {
         /// <summary>
-        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> starts filtering messages.
+        /// Represents the method that is executed whenever this <see cref="MessageSession"/> is initialized.
         /// </summary>
-        public virtual async Task OnStartAsync() { }
+        public virtual Task OnStartAsync()
+            => Task.CompletedTask;
 
         /// <summary>
-        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> receives a successful <see cref="FilterMatch"/>.
+        /// Represents the method that is executed whenever this <see cref="MessageSession"/> receives a message.
         /// </summary>
-        /// <returns>An <see cref="MatchResult"/> that determines what the <see cref="MessageCollector"/> should proceed with.</returns>
-        public abstract Task<MatchResult> InvokeAsync(SocketMessage message);
+        /// <returns>An <see cref="SessionTaskResult"/> that determines what the <see cref="MessageCollector"/> should proceed with.</returns>
+        public abstract Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message);
 
         /// <summary>
-        /// Represents the method that is invoked whenever a <see cref="MessageCollector"/> runs out of time.
+        /// Represents the method that is invoked whenever this <see cref="MessageSession"/> times out.
         /// </summary>
         public abstract Task OnTimeoutAsync(SocketMessage message);
 
         /// <summary>
-        /// Represents the method that is executed whenever a <see cref="MessageCollector"/> is cancelled.
+        /// Represents the method that is executed whenever this <see cref="MessageSession"/> is cancelled.
         /// </summary>
-        public virtual async Task OnCancelAsync() { }
+        public virtual Task OnCancelAsync()
+            => Task.CompletedTask;
     }
 }

@@ -11,7 +11,7 @@ namespace Orikivo
             return base.OnStartAsync();
         }
 
-        public override Task<MatchResult> InvokeAsync(SocketMessage message)
+        public override Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
         {
             throw new NotImplementedException();
         }

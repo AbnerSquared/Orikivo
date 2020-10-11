@@ -14,7 +14,7 @@ namespace Orikivo
         {
             Capacity = null,
             IncludeFailedMatches = false,
-            Timeout = TimeSpan.FromSeconds(30),
+            Timeout = TimeSpan.FromSeconds(15),
             ResetTimeoutOnMatch = false
         };
 
@@ -29,12 +29,12 @@ namespace Orikivo
         public bool ResetTimeoutOnMatch { get; set; } = false;
 
         /// <summary>
-        /// Determines the amount of successful matches it should reach before closing.
+        /// Determines the amount of matches it should store before closing.
         /// </summary>
         public int? Capacity { get; set; } = null;
 
         /// <summary>
-        /// Determines if failed matches should be included when both resetting the timeout and capacity.
+        /// Determines if failed matches should be included when both resetting the timeout and updating the capacity.
         /// </summary>
         public bool IncludeFailedMatches { get; set; } = false;
     }

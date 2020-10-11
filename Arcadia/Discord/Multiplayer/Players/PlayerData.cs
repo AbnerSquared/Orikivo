@@ -10,6 +10,13 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public class PlayerData
     {
+        public PlayerData() { }
+
+        public PlayerData(Player source)
+        {
+            Source = source;
+        }
+
         public Player Source { get; internal set; }
 
         public List<GameProperty> Properties { get; set; }

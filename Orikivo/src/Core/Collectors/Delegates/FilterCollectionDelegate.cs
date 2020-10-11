@@ -8,5 +8,5 @@ namespace Orikivo
     /// <param name="message">The message that was read.</param>
     /// <param name="matches">A collection of all previous matches.</param>
     /// <param name="index">The current counter of messages handled.</param>
-    public delegate bool FilterCollectionDelegate(SocketMessage message, FilterCollection matches, int index);
+    public delegate bool FilterCollectionDelegate(SocketMessage message, MessageMatchCollection matches, int index);
 }

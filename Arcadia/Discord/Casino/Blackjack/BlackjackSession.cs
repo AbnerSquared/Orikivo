@@ -291,7 +291,7 @@ namespace Arcadia.Casino
         }
 
         /// <inheritdoc />
-        public override async Task<MatchResult> InvokeAsync(SocketMessage message)
+        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
         {
             string input = message.Content;
 
@@ -302,12 +302,12 @@ namespace Arcadia.Casino
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
-                    return MatchResult.Success;
+                    return SessionTaskResult.Success;
                 }
                 else
                 {
                     await UpdateAsync();
-                    return MatchResult.Continue;
+                    return SessionTaskResult.Continue;
                 }
             }
 
@@ -329,7 +329,7 @@ namespace Arcadia.Casino
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
-                return MatchResult.Success;
+                return SessionTaskResult.Success;
             }
 
             if (input == "double" && Invoker.ChipBalance >= Wager * 2)
@@ -341,7 +341,7 @@ namespace Arcadia.Casino
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
-                    return MatchResult.Success;
+                    return SessionTaskResult.Success;
                 }
 
                 State = GetResult();
@@ -360,7 +360,7 @@ namespace Arcadia.Casino
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
-                return MatchResult.Success;
+                return SessionTaskResult.Success;
             }
 
             if (input == "fold")
@@ -370,10 +370,10 @@ namespace Arcadia.Casino
                 State = BlackJackState.Fold;
                 Invoker.Take(Wager, CurrencyType.Chips);
                 await UpdateAsync();
-                return MatchResult.Success;
+                return SessionTaskResult.Success;
             }
 
-            return MatchResult.Continue;
+            return SessionTaskResult.Continue;
         }
 
         private async Task UpdateAsync()
