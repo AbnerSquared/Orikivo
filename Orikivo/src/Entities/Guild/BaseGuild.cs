@@ -7,7 +7,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a generic guild account.
     /// </summary>
-    public class BaseGuild : IJsonEntity
+    public class BaseGuild : IJsonModel
     {
         public BaseGuild(IGuild guild)
         {
@@ -54,12 +54,12 @@ namespace Orikivo
         }
 
         public override bool Equals(object obj)
-            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
+            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonModel));
 
         public override int GetHashCode()
             => unchecked((int) Id);
 
-        public bool Equals(IJsonEntity obj)
+        public bool Equals(IJsonModel obj)
             => Id == obj?.Id;
     }
 }

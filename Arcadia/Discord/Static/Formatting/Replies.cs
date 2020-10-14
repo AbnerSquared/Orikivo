@@ -43,7 +43,7 @@ namespace Arcadia
             return GetGeneric(flag);
         }
 
-        public static string GetReply(TickResultFlag flag, ArcadeUser user = null, TickResult result = null)
+        public static string GetReply(DoublerResultFlag flag, ArcadeUser user = null, DoublerResult result = null)
         {
             IEnumerable<CasinoReply> replies = GetReplies(flag);
 
@@ -86,12 +86,12 @@ namespace Arcadia
                 _ => "INVALID_FLAG"
             };
 
-        private static string GetGeneric(TickResultFlag flag)
+        private static string GetGeneric(DoublerResultFlag flag)
             => flag switch
             {
-                TickResultFlag.Win => WinGeneric,
-                TickResultFlag.Exact => TickExactGeneric,
-                TickResultFlag.Lose => LoseGeneric,
+                DoublerResultFlag.Win => WinGeneric,
+                DoublerResultFlag.Exact => TickExactGeneric,
+                DoublerResultFlag.Lose => LoseGeneric,
                 _ => "INVALID_FLAG"
             };
 
@@ -105,12 +105,12 @@ namespace Arcadia
                 _ => null
             };
 
-        private static CasinoReply[] GetReplies(TickResultFlag flag)
+        private static CasinoReply[] GetReplies(DoublerResultFlag flag)
             => flag switch
             {
-                TickResultFlag.Win => TickWin,
-                TickResultFlag.Exact => TickExact,
-                TickResultFlag.Lose => TickLoss,
+                DoublerResultFlag.Win => TickWin,
+                DoublerResultFlag.Exact => TickExact,
+                DoublerResultFlag.Lose => TickLoss,
                 _ => null
             };
 
@@ -140,7 +140,7 @@ namespace Arcadia
             new CasinoReply
             {
                 Content = "Pocket Lawyer can't save you this time.",
-                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Items.PocketLawyer)?.Ticks > 0
+                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Ids.Items.PocketLawyer)?.Ticks > 0
             }
         };
 
@@ -223,11 +223,11 @@ namespace Arcadia
             "Nicely done!",
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult t
+                Criteria = (user, result) => result is DoublerResult t
                                              && t.Multiplier > 5,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
-                    if (!(result is TickResult t))
+                    if (!(result is DoublerResult t))
                         return "INVALID_RESULT_TYPE";
 
                     return $"You beat the odds, boosting your bet by an astonishing x**{t.Multiplier:##,0.#}**!";
@@ -235,10 +235,10 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult,
+                Criteria = (user, result) => result is DoublerResult,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
-                    if (!(result is TickResult t))
+                    if (!(result is DoublerResult t))
                         return "INVALID_RESULT_TYPE";
 
                     return $"The machine stopped at **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}.";
@@ -251,10 +251,10 @@ namespace Arcadia
             "Now that was a clean guess.",
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult,
+                Criteria = (user, result) => result is DoublerResult,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
-                    if (!(result is TickResult t))
+                    if (!(result is DoublerResult t))
                         return "INVALID_RESULT_TYPE";
 
                     return $"The machine stopped at exactly **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}. Good guessing!";
@@ -267,11 +267,11 @@ namespace Arcadia
             "Ouch. Sorry about that.",
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult tResult
+                Criteria = (user, result) => result is DoublerResult tResult
                                              && tResult.ActualTick > 0,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
-                    if (!(result is TickResult t))
+                    if (!(result is DoublerResult t))
                         return "INVALID_RESULT_TYPE";
 
                     return $"The machine stopped at **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}.";
@@ -279,12 +279,12 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Criteria = (user, result) => result is TickResult t
+                Criteria = (user, result) => result is DoublerResult t
                                              && t.ActualTick != 0
                                              && !(t.ActualTick - t.ExpectedTick).EqualsAny(t.ActualTick, 0),
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
-                    if (!(result is TickResult t))
+                    if (!(result is DoublerResult t))
                         return "INVALID_RESULT_TYPE";
 
                     int sign = Math.Sign(t.ActualTick - t.ExpectedTick);
@@ -299,13 +299,13 @@ namespace Arcadia
             new CasinoReply
             {
                 Content = "This machine has flat-lined at the start.",
-                Criteria = (user, result) => result is TickResult t
+                Criteria = (user, result) => result is DoublerResult t
                                              && t.ActualTick == 0
             },
             new CasinoReply
             {
                 Content = "You were off by a single tick.",
-                Criteria = (user, result) => result is TickResult t
+                Criteria = (user, result) => result is DoublerResult t
                                              && Math.Abs(t.ActualTick - t.ExpectedTick) == 1
             }
         };

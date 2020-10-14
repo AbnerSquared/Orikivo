@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Casino
 {
-    public enum TickResultFlag
+    public enum DoublerResultFlag
     {
         /// <summary>
         /// Represents a basic win.

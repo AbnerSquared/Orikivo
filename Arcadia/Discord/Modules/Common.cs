@@ -530,7 +530,7 @@ namespace Arcadia.Modules
 
             account.Items.Add(data);
             await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
-            Context.Account.AddToVar(Stats.ItemsGifted);
+            Context.Account.AddToVar(Stats.Common.ItemsGifted);
         }
 
         [RequireUser]

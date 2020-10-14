@@ -41,7 +41,7 @@ namespace Arcadia.Modules
         [Command("changelog")]
         public async Task ViewChangelogAsync()
         {
-            IChannel channel = Context.Client.GetChannel(Context.Data.Data.LogChannelId);
+            Discord.IChannel channel = Context.Client.GetChannel(Context.Data.Data.LogChannelId);
 
             if (channel is IMessageChannel mChannel)
             {

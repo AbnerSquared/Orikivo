@@ -275,7 +275,7 @@ namespace Arcadia
         {
             return font switch
             {
-                FontType.Delta => Items.FontDelta,
+                FontType.Delta => Ids.Items.FontDelta,
                 _ => null
             };
         }
@@ -284,15 +284,15 @@ namespace Arcadia
         {
             return palette switch
             {
-                PaletteType.GammaGreen => Items.PaletteGammaGreen,
+                PaletteType.GammaGreen => Ids.Items.PaletteGammaGreen,
 
-                PaletteType.Crimson => Items.PaletteCrimson,
+                PaletteType.Crimson => Ids.Items.PaletteCrimson,
 
-                PaletteType.Glass when secondary == PaletteType.Wumpite => Items.PaletteGlossyWumpite,
-                PaletteType.Glass => Items.PaletteGlass,
+                PaletteType.Glass when secondary == PaletteType.Wumpite => Ids.Items.PaletteGlossyWumpite,
+                PaletteType.Glass => Ids.Items.PaletteGlass,
 
-                PaletteType.Wumpite when secondary == PaletteType.Glass => Items.PaletteGlossyWumpite,
-                PaletteType.Wumpite => Items.PaletteWumpite,
+                PaletteType.Wumpite when secondary == PaletteType.Glass => Ids.Items.PaletteGlossyWumpite,
+                PaletteType.Wumpite => Ids.Items.PaletteWumpite,
                 _ => null
             };
         }
@@ -637,12 +637,12 @@ namespace Arcadia
             }
 
             // Apply break mechanics
-            if (isBroken && item.GroupId != ItemGroups.Booster)
+            if (isBroken && item.GroupId != Ids.Groups.Booster)
             {
                 // Only invoke breaking if the group is not a booster
                 // This is because boosters reference this method when they are used up
                 item.Usage.OnBreak?.Invoke(user);
-                user.AddToVar(Stats.ItemsBroken);
+                user.AddToVar(Stats.Common.ItemsBroken);
             }
 
             return result;

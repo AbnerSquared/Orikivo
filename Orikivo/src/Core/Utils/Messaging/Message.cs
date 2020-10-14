@@ -97,8 +97,11 @@ namespace Orikivo
         }
 
         public string Text { get; }
+
         public string AttachmentUrl { get; }
+
         public Embed Embed { get; }
+
         public bool IsTTS { get; }
 
         public bool IsSpoiler { get; }

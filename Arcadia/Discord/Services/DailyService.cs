@@ -15,7 +15,7 @@ namespace Arcadia.Services
         public static DailyResultFlag Next(ArcadeUser user)
         {
             long lastTicks = user.GetVar(CooldownVars.Daily);
-            long streak = user.GetVar(Stats.DailyStreak);
+            long streak = user.GetVar(Stats.Common.DailyStreak);
 
             TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
 
@@ -58,7 +58,7 @@ namespace Arcadia.Services
 
                 case DailyResultFlag.Reset:
                     color = GammaPalette.NeonRed[Gamma.Max];
-                    user.SetVar(Stats.DailyStreak, 0);
+                    user.SetVar(Stats.Common.DailyStreak, 0);
                     break;
 
                 case DailyResultFlag.Bonus:
@@ -71,9 +71,9 @@ namespace Arcadia.Services
             if (flag != DailyResultFlag.Cooldown)
             {
                 user.SetVar(CooldownVars.Daily, DateTime.UtcNow.Ticks);
-                user.AddToVar(Stats.DailyStreak);
-                user.AddToVar(Stats.TimesDaily);
-                Var.SetIfGreater(user, Stats.LongestDailyStreak, Stats.DailyStreak);
+                user.AddToVar(Stats.Common.DailyStreak);
+                user.AddToVar(Stats.Common.TimesDaily);
+                Var.SetIfGreater(user, Stats.Common.LongestDailyStreak, Stats.Common.DailyStreak);
                 user.Give(reward);
             }
 

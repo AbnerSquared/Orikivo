@@ -238,7 +238,7 @@ namespace Orikivo.Modules
                     }
                 };
 
-                var action = new ChatHandler(Context, test, Engine.GetTree("test"));
+                var action = new ChatSession(Context, test, Engine.GetTree("test"));
 
                 var options = new MatchOptions
                 {

@@ -13,11 +13,11 @@ namespace Orikivo
 {
 
     /// <summary>
-    /// Represents a custom dialogue session for an <see cref="Desync.Character"/>.
+    /// Represents a dialogue session for a <see cref="Character"/>.
     /// </summary>
-    public class ChatHandler : MessageSession
+    public class ChatSession : MessageSession
     {
-        public ChatHandler(DesyncContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
+        public ChatSession(DesyncContext context, Character npc, DialogTree pool, PaletteType palette = PaletteType.Glass)
         {
             Context = context;
             Npc = npc;
@@ -26,7 +26,6 @@ namespace Orikivo
         }
 
         public DesyncContext Context { get; }
-
 
         private Husk Husk => Context.Account.Husk;
 

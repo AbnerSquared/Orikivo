@@ -1,11 +1,12 @@
 ﻿using Orikivo.Framework;
 using System;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace Orikivo
 {
-    public class JsonContainer<TEntity>
-        where TEntity : IJsonEntity
+    public class JsonContainer<TEntity> // : IDataContainer<IJsonModel>
+        where TEntity : IJsonModel
     {
         private readonly string _directory;
 

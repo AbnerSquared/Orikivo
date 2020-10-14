@@ -78,7 +78,7 @@ namespace Arcadia.Modules
         [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
         public async Task AutoGimiAsync(int times)
         {
-            if (!ItemHelper.HasItem(Context.Account, Items.AutomatonGimi))
+            if (!ItemHelper.HasItem(Context.Account, Ids.Items.AutomatonGimi))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("You are missing the **Automaton: Gimi** component in order to execute this method."));
                 return;
@@ -124,7 +124,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("doubler"), Alias("double", "dbl")]
         [Summary("A **Casino** activity that allows you to attempt to make an astonishing return.")]
-        public async Task DoublerAsync(long wager = 0, int expectedTick = 1, TickWinMethod method = TickWinMethod.Below)
+        public async Task DoublerAsync(long wager = 0, int expectedTick = 1, DoublerWinMethod method = DoublerWinMethod.Below)
         {
             if (wager < 0)
             {
@@ -151,9 +151,9 @@ namespace Arcadia.Modules
                 return;
             }
 
-            var tick = new Tick(expectedTick, method);
+            var tick = new Doubler(expectedTick, method);
 
-            TickResult result = tick.Next(wager, Context.Account.GetVar(TickStats.CurrentLossStreak));
+            DoublerResult result = tick.Next(wager, Context.Account.GetVar(Stats.Doubler.CurrentLossStreak));
             Message message = result.ApplyAndDisplay(Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, message);

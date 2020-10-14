@@ -27,32 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="legacy\**" />
-    <Compile Remove="Overhaul\**" />
-    <Compile Remove="src\Entities\discord\**" />
-    <Compile Remove="src\lobby\**" />
-    <Compile Remove="source\**" />
-    <Compile Remove="Systems\**" />
-    <EmbeddedResource Remove="legacy\**" />
-    <EmbeddedResource Remove="Overhaul\**" />
-    <EmbeddedResource Remove="src\Entities\discord\**" />
-    <EmbeddedResource Remove="src\lobby\**" />
-    <EmbeddedResource Remove="source\**" />
-    <EmbeddedResource Remove="Systems\**" />
-    <None Remove="legacy\**" />
-    <None Remove="Overhaul\**" />
-    <None Remove="src\Entities\discord\**" />
-    <None Remove="src\lobby\**" />
-    <None Remove="source\**" />
-    <None Remove="Systems\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="libsodium.dll" />
-    <None Remove="opus.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Discord.Addons.Linking" Version="1.0.0" />
     <PackageReference Include="Discord.Addons.Collectors" Version="1.0.0" />
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20200718.1" />

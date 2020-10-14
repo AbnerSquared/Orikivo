@@ -67,7 +67,7 @@ namespace Arcadia
                     .AddEnumTypeReader<BorderEdge>()
                     .AddEnumTypeReader<LeaderboardQuery>()
                     .AddEnumTypeReader<LeaderboardSort>()
-                    .AddEnumTypeReader<TickWinMethod>()
+                    .AddEnumTypeReader<DoublerWinMethod>()
                     .AddEnumTypeReader<StackTraceMode>()
                     .AddEnumTypeReader<ChessOwner>()
                     .AddEnumTypeReader<Privacy>()

@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Casino
 {
-    public enum TickWinMethod
+    public enum DoublerWinMethod
     {
         Exact = 1,
         Below = 2

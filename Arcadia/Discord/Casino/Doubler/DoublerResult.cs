@@ -4,9 +4,9 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Casino
 {
-    public class TickResult : ICasinoResult
+    public class DoublerResult : ICasinoResult
     {
-        public TickResult(long wager, long reward, TickResultFlag flag, int expectedTick, int actualTick, float multiplier)
+        public DoublerResult(long wager, long reward, DoublerResultFlag flag, int expectedTick, int actualTick, float multiplier)
         {
             Wager = wager;
             Reward = reward;
@@ -28,9 +28,9 @@ namespace Arcadia.Casino
 
         public long Reward { get; }
 
-        public bool IsSuccess => Flag.EqualsAny(TickResultFlag.Win, TickResultFlag.Exact);
+        public bool IsSuccess => Flag.EqualsAny(DoublerResultFlag.Win, DoublerResultFlag.Exact);
 
-        public TickResultFlag Flag { get; }
+        public DoublerResultFlag Flag { get; }
 
         public Message ApplyAndDisplay(ArcadeUser user)
         {
@@ -38,35 +38,35 @@ namespace Arcadia.Casino
             string type = IsSuccess ? "+" : "-";
             long value = IsSuccess ? Reward : Wager;
 
-            user.AddToVar(TickStats.TotalBet, Wager);
-            user.AddToVar(TickStats.TimesPlayed);
+            user.AddToVar(Stats.Doubler.TotalBet, Wager);
+            user.AddToVar(Stats.Doubler.TimesPlayed);
 
             user.ChipBalance -= Wager;
 
             switch (Flag)
             {
-                case TickResultFlag.Exact:
-                case TickResultFlag.Win:
-                    user.SetVar(TickStats.CurrentLossStreak, 0);
+                case DoublerResultFlag.Exact:
+                case DoublerResultFlag.Win:
+                    user.SetVar(Stats.Doubler.CurrentLossStreak, 0);
 
-                    user.AddToVar(TickStats.TimesWon);
-                    user.AddToVar(TickStats.TotalWon, Reward);
+                    user.AddToVar(Stats.Doubler.TimesWon);
+                    user.AddToVar(Stats.Doubler.TotalWon, Reward);
 
                     if (ExpectedTick == ActualTick)
-                        user.AddToVar(TickStats.TimesWonExact);
+                        user.AddToVar(Stats.Doubler.TimesWonExact);
 
-                    user.AddToVar(TickStats.CurrentWinStreak);
-                    user.AddToVar(TickStats.CurrentWinAmount, Reward);
+                    user.AddToVar(Stats.Doubler.CurrentWinStreak);
+                    user.AddToVar(Stats.Doubler.CurrentWinAmount, Reward);
 
-                    Var.SetIfGreater(user, TickStats.LongestWin, TickStats.CurrentWinStreak);
-                    Var.SetIfGreater(user, TickStats.LargestWin, TickStats.CurrentWinAmount);
-                    Var.SetIfGreater(user, TickStats.LargestWinSingle, Reward);
+                    Var.SetIfGreater(user, Stats.Doubler.LongestWin, Stats.Doubler.CurrentWinStreak);
+                    Var.SetIfGreater(user, Stats.Doubler.LargestWin, Stats.Doubler.CurrentWinAmount);
+                    Var.SetIfGreater(user, Stats.Doubler.LargestWinSingle, Reward);
                     break;
 
-                case TickResultFlag.Lose:
-                    Var.Clear(user, TickStats.CurrentWinStreak, TickStats.CurrentWinAmount);
-                    user.AddToVar(TickStats.TimesLost);
-                    user.AddToVar(TickStats.CurrentLossStreak);
+                case DoublerResultFlag.Lose:
+                    Var.Clear(user, Stats.Doubler.CurrentWinStreak, Stats.Doubler.CurrentWinAmount);
+                    user.AddToVar(Stats.Doubler.TimesLost);
+                    user.AddToVar(Stats.Doubler.CurrentLossStreak);
                     break;
 
                 default:

@@ -131,7 +131,7 @@ namespace Arcadia
 
             ItemHelper.GiveItem(user, recipe.Result.ItemId, recipe.Result.Amount);
 
-            user.AddToVar(Stats.ItemsCrafted);
+            user.AddToVar(Stats.Common.ItemsCrafted);
             return true;
         }
         public static bool CanCraft(Item item)

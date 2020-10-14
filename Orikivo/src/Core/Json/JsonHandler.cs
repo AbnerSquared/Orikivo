@@ -30,11 +30,11 @@ namespace Orikivo
             };
 
         public static void SaveJsonEntity<T>(T obj, JsonSerializer serializer = null)
-            where T : IJsonEntity
+            where T : IJsonModel
             => Save(obj, string.Format(JsonFrame, obj.Id), serializer);
 
         public static void SaveEntity<T>(T obj, string directory, JsonSerializer serializer = null)
-            where T : IJsonEntity
+            where T : IJsonModel
         {
             //lock (_lock)
             Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
@@ -69,7 +69,7 @@ namespace Orikivo
             serializer.Serialize(stream, obj);
         }
 
-        public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonEntity
+        public static T LoadJsonEntity<T>(ulong id, JsonSerializer serializer = null) where T : IJsonModel
             => Load<T>(JsonUtils.GetDirectoryIndex<T>() + string.Format(JsonFrame, id), serializer);
 
         /// <summary>
@@ -145,10 +145,10 @@ namespace Orikivo
             => RestoreContainer<T>(JsonUtils.GetDirectoryIndex<T>());
 
         public static string GetJsonPath<T>(ulong id)
-            where T : IJsonEntity
+            where T : IJsonModel
             => JsonUtils.GetDirectoryIndex<T>() + string.Format(JsonFrame, id);
 
-        public static bool JsonExists<T>(ulong id) where T : IJsonEntity
+        public static bool JsonExists<T>(ulong id) where T : IJsonModel
             => File.Exists(GetJsonPath<T>(id));
 
 

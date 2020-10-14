@@ -142,7 +142,7 @@ namespace Arcadia
 
         public static CatalogStatus GetCatalogStatus(ArcadeUser user, string itemId)
         {
-            if (ItemHelper.GroupOf(itemId) == ItemGroups.Internal)
+            if (ItemHelper.GroupOf(itemId) == Ids.Groups.Internal)
                 return CatalogStatus.Unknown;
 
             long raw = user.GetVar(GetCatalogId(itemId));
@@ -158,7 +158,7 @@ namespace Arcadia
 
         public static void SetCatalogStatus(ArcadeUser user, string itemId, CatalogStatus status)
         {
-            if (ItemHelper.GroupOf(itemId) == ItemGroups.Internal)
+            if (ItemHelper.GroupOf(itemId) == Ids.Groups.Internal)
                 return;
 
             // If the user has already seen or known about this item, return;

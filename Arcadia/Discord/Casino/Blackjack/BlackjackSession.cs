@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
-using Orikivo.Framework;
 
 namespace Arcadia.Casino
 {
@@ -281,7 +281,7 @@ namespace Arcadia.Casino
 
         public override async Task OnStartAsync()
         {
-            Invoker.AddToVar(BlackJackStats.TimesPlayed);
+            Invoker.AddToVar(Stats.BlackJack.TimesPlayed);
             DealerHand.Add(Deck.Take());
             DealerHand.Add(Deck.Take());
             Hand.Add(Deck.Take());
@@ -291,7 +291,7 @@ namespace Arcadia.Casino
         }
 
         /// <inheritdoc />
-        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
+        public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             string input = message.Content;
 
@@ -302,12 +302,12 @@ namespace Arcadia.Casino
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
-                    return SessionTaskResult.Success;
+                    return SessionResult.Success;
                 }
                 else
                 {
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
             }
 
@@ -319,17 +319,17 @@ namespace Arcadia.Casino
                 {
                     if (GetBestSum(Hand) == 21)
                     {
-                        Invoker.AddToVar(BlackJackStats.TimesWonExact);
+                        Invoker.AddToVar(Stats.BlackJack.TimesWonExact);
                     }
 
-                    Invoker.AddToVar(BlackJackStats.TimesWon);
+                    Invoker.AddToVar(Stats.BlackJack.TimesWon);
                     Invoker.Give(Wager, CurrencyType.Chips);
                 }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
-                return SessionTaskResult.Success;
+                return SessionResult.Success;
             }
 
             if (input == "double" && Invoker.ChipBalance >= Wager * 2)
@@ -341,7 +341,7 @@ namespace Arcadia.Casino
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
                     await UpdateAsync();
-                    return SessionTaskResult.Success;
+                    return SessionResult.Success;
                 }
 
                 State = GetResult();
@@ -350,17 +350,17 @@ namespace Arcadia.Casino
                 {
                     if (GetBestSum(Hand) == 21)
                     {
-                        Invoker.AddToVar(BlackJackStats.TimesWonExact);
+                        Invoker.AddToVar(Stats.BlackJack.TimesWonExact);
                     }
 
-                    Invoker.AddToVar(BlackJackStats.TimesWon);
+                    Invoker.AddToVar(Stats.BlackJack.TimesWon);
                     Invoker.Give(Wager, CurrencyType.Chips);
                 }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
                 await UpdateAsync();
-                return SessionTaskResult.Success;
+                return SessionResult.Success;
             }
 
             if (input == "fold")
@@ -370,10 +370,10 @@ namespace Arcadia.Casino
                 State = BlackJackState.Fold;
                 Invoker.Take(Wager, CurrencyType.Chips);
                 await UpdateAsync();
-                return SessionTaskResult.Success;
+                return SessionResult.Success;
             }
 
-            return SessionTaskResult.Continue;
+            return SessionResult.Continue;
         }
 
         private async Task UpdateAsync()

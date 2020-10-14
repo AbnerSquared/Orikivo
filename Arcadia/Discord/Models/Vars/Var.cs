@@ -39,44 +39,44 @@ namespace Arcadia
             },
             new Var
             {
-                Id = GimiStats.TimesLost,
+                Id = Stats.Gimi.TimesLost,
                 Summary = "This represents all of the times you have lost in **Gimi**.",
                 Type = VarType.Stat,
-                ValueGetter = u => Difference(u, GimiStats.TimesWon, GimiStats.TimesPlayed)
+                ValueGetter = u => Difference(u, Stats.Gimi.TimesWon, Stats.Gimi.TimesPlayed)
             },
             new Var
             {
-                Id = TickStats.TimesLost,
+                Id = Stats.Doubler.TimesLost,
                 Summary = "This represents all of the times you have lost in **Doubler**.",
                 Type = VarType.Stat,
-                ValueGetter = u => Difference(u, TickStats.TimesWon, TickStats.TimesPlayed)
+                ValueGetter = u => Difference(u, Stats.Doubler.TimesWon, Stats.Doubler.TimesPlayed)
             },
             new Var
             {
-                Id = TickStats.CurrentLossStreak,
+                Id = Stats.Doubler.CurrentLossStreak,
                 Summary = "Increases the chance of winning by 1% for every 3 losses in **Doubler**."
             },
             new Var
             {
-                Id = Stats.LastAssignedQuest,
+                Id = Stats.Common.LastAssignedQuest,
                 Name = "Last Assigned Quest",
                 Type = VarType.Time
             },
             new Var
             {
-                Id = Stats.LastSkippedQuest,
+                Id = Stats.Common.LastSkippedQuest,
                 Name = "Last Skipped Quest",
                 Type = VarType.Time
             },
             new Var
             {
-                Id = GimiStats.CurrentWinStreak,
-                UpperId = GimiStats.LongestWin,
+                Id = Stats.Gimi.CurrentWinStreak,
+                UpperId = Stats.Gimi.LongestWin,
                 Summary = "This represents your current winning streak in **Gimi**."
             },
             new Var
             {
-                Id = Stats.QuestCapacity,
+                Id = Stats.Common.QuestCapacity,
                 Name = "Quest Capacity",
                 Type = VarType.Attribute,
                 Summary = "This determines how many quests you can receive at a time."
@@ -151,18 +151,18 @@ namespace Arcadia
                 Type = VarType.Stat,
                 Writer = (user =>
                 {
-                    string winRate = $"**{((user.GetVar(GimiStats.TimesWon) / (double)user.GetVar(GimiStats.TimesPlayed)) * 100):##,0}**%";
-                    long profit = user.GetVar(GimiStats.TotalWon) - user.GetVar(GimiStats.TotalLost);
+                    string winRate = $"**{((user.GetVar(Stats.Gimi.TimesWon) / (double)user.GetVar(Stats.Gimi.TimesPlayed)) * 100):##,0}**%";
+                    long profit = user.GetVar(Stats.Gimi.TotalWon) - user.GetVar(Stats.Gimi.TotalLost);
                     var details = new StringBuilder();
 
-                    details.AppendLine($"• **Play Count:** {user.GetVar(GimiStats.TimesPlayed):##,0} ({winRate} win rate)");
-                    details.AppendLine($"• **Wins:** {user.GetVar(GimiStats.TimesWon):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalWon):##,0}**)");
-                    details.AppendLine($"• **Losses:** {user.GetVar(GimiStats.TimesLost):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.TotalLost):##,0}**)");
-                    details.AppendLine($"• **Gold:** {user.GetVar(GimiStats.TimesGold):##,0}");
-                    details.AppendLine($"• **Curse:** {user.GetVar(GimiStats.TimesCursed):##,0}");
+                    details.AppendLine($"• **Play Count:** {user.GetVar(Stats.Gimi.TimesPlayed):##,0} ({winRate} win rate)");
+                    details.AppendLine($"• **Wins:** {user.GetVar(Stats.Gimi.TimesWon):##,0} ({Icons.Balance} **{user.GetVar(Stats.Gimi.TotalWon):##,0}**)");
+                    details.AppendLine($"• **Losses:** {user.GetVar(Stats.Gimi.TimesLost):##,0} ({Icons.Balance} **{user.GetVar(Stats.Gimi.TotalLost):##,0}**)");
+                    details.AppendLine($"• **Gold:** {user.GetVar(Stats.Gimi.TimesGold):##,0}");
+                    details.AppendLine($"• **Curse:** {user.GetVar(Stats.Gimi.TimesCursed):##,0}");
                     details.AppendLine($"\n• **{(profit >= 0 ? "Profits" : "Expenses")}:** {(profit >= 0 ? Icons.Balance : Icons.Debt)} **{profit:##,0}**");
-                    details.AppendLine($"• **Longest Win Streak:** {user.GetVar(GimiStats.LongestWin):##,0} ({Icons.Balance} **{user.GetVar(GimiStats.LargestWin):##,0}**)");
-                    details.AppendLine($"• **Longest Loss Streak:** {user.GetVar(GimiStats.LongestLoss):##,0} ({Icons.Debt} **{user.GetVar(GimiStats.LargestLoss):##,0}**)");
+                    details.AppendLine($"• **Longest Win Streak:** {user.GetVar(Stats.Gimi.LongestWin):##,0} ({Icons.Balance} **{user.GetVar(Stats.Gimi.LargestWin):##,0}**)");
+                    details.AppendLine($"• **Longest Loss Streak:** {user.GetVar(Stats.Gimi.LongestLoss):##,0} ({Icons.Debt} **{user.GetVar(Stats.Gimi.LargestLoss):##,0}**)");
 
                     return details.ToString();
                 })

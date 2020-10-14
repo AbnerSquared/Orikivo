@@ -14,9 +14,9 @@ using Orikivo.Canary;
 
 namespace Orikivo
 {
-    public class ShopHandler : MessageSession
+    public class ShopSession : MessageSession
     {
-        public ShopHandler(DesyncContext context, Market market, PaletteType palette)
+        public ShopSession(DesyncContext context, Market market, PaletteType palette)
         {
             Context = context;
             Market = market;

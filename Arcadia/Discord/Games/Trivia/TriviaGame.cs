@@ -801,18 +801,18 @@ namespace Arcadia.Multiplayer.Games
                 // By default, session results can only update specifics
                 ulong playerId = player.Source.User.Id;
                 var stats = new List<StatUpdatePacket>();
-                stats.Add(new StatUpdatePacket(TriviaStats.TimesPlayed, 1));
-                stats.Add(new StatUpdatePacket(TriviaStats.HighestScore, GetScore(session, playerId), StatUpdateType.SetIfGreater));
+                stats.Add(new StatUpdatePacket(Stats.Trivia.TimesPlayed, 1));
+                stats.Add(new StatUpdatePacket(Stats.Trivia.HighestScore, GetScore(session, playerId), StatUpdateType.SetIfGreater));
 
                 if (GetWinningPlayerId(session) == playerId)
                 {
-                    stats.Add(new StatUpdatePacket(TriviaStats.TimesWon, 1));
-                    stats.Add(new StatUpdatePacket(TriviaStats.CurrentWinStreak, 1));
-                    stats.Add(new StatUpdatePacket(TriviaStats.LongestWin, TriviaStats.CurrentWinStreak, StatUpdateType.SetIfGreater));
+                    stats.Add(new StatUpdatePacket(Stats.Trivia.TimesWon, 1));
+                    stats.Add(new StatUpdatePacket(Stats.Trivia.CurrentWinStreak, 1));
+                    stats.Add(new StatUpdatePacket(Stats.Trivia.LongestWin, Stats.Trivia.CurrentWinStreak, StatUpdateType.SetIfGreater));
                 }
                 else
                 {
-                    stats.Add(new StatUpdatePacket(TriviaStats.CurrentWinStreak, 0, StatUpdateType.Set));
+                    stats.Add(new StatUpdatePacket(Stats.Trivia.CurrentWinStreak, 0, StatUpdateType.Set));
                 }
 
                 var toUpdate = new PlayerResult

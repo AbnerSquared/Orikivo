@@ -24,31 +24,31 @@ namespace Arcadia.Casino
 
         public void Apply(ArcadeUser user)
         {
-            Var.Add(user, 1, GimiStats.TimesPlayed);
+            Var.Add(user, 1, Stats.Gimi.TimesPlayed);
 
             switch (Flag)
             {
                 case GimiResultFlag.Win:
                 case GimiResultFlag.Gold:
-                    Var.Clear(user, GimiStats.CurrentCurseStreak, GimiStats.CurrentLossStreak, GimiStats.CurrentLossAmount);
-                    Var.Add(user, 1, GimiStats.TimesWon, GimiStats.CurrentWinStreak);
-                    Var.Add(user, Reward, GimiStats.TotalWon, GimiStats.CurrentWinAmount);
-                    Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                    Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
+                    Var.Clear(user, Stats.Gimi.CurrentCurseStreak, Stats.Gimi.CurrentLossStreak, Stats.Gimi.CurrentLossAmount);
+                    Var.Add(user, 1, Stats.Gimi.TimesWon, Stats.Gimi.CurrentWinStreak);
+                    Var.Add(user, Reward, Stats.Gimi.TotalWon, Stats.Gimi.CurrentWinAmount);
+                    Var.SetIfGreater(user, Stats.Gimi.LongestWin, Stats.Gimi.CurrentWinStreak);
+                    Var.SetIfGreater(user, Stats.Gimi.LargestWin, Stats.Gimi.CurrentWinAmount);
 
                     if (Flag == GimiResultFlag.Gold)
                     {
-                        ItemHelper.GiveItem(user, Items.PocketLawyer);
+                        ItemHelper.GiveItem(user, Ids.Items.PocketLawyer);
 
                         if (RandomProvider.Instance.Next(0, 1001) == 1000)
-                            ItemHelper.GiveItem(user, Items.PaletteGold);
+                            ItemHelper.GiveItem(user, Ids.Items.PaletteGold);
 
-                        Var.Add(user, 1, GimiStats.TimesGold, GimiStats.CurrentGoldStreak);
-                        Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                        Var.Add(user, 1, Stats.Gimi.TimesGold, Stats.Gimi.CurrentGoldStreak);
+                        Var.SetIfGreater(user, Stats.Gimi.LongestGold, Stats.Gimi.CurrentGoldStreak);
                     }
                     else
                     {
-                        Var.Clear(user, GimiStats.CurrentGoldStreak);
+                        Var.Clear(user, Stats.Gimi.CurrentGoldStreak);
                         Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
                     }
 
@@ -57,20 +57,20 @@ namespace Arcadia.Casino
 
                 case GimiResultFlag.Lose:
                 case GimiResultFlag.Curse:
-                    Var.Clear(user, GimiStats.CurrentGoldStreak, GimiStats.CurrentWinStreak, GimiStats.CurrentWinAmount);
-                    Var.Add(user, 1, GimiStats.TimesLost, GimiStats.CurrentLossStreak);
-                    Var.Add(user, Reward, GimiStats.TotalLost, GimiStats.CurrentLossAmount);
-                    Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                    Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
+                    Var.Clear(user, Stats.Gimi.CurrentGoldStreak, Stats.Gimi.CurrentWinStreak, Stats.Gimi.CurrentWinAmount);
+                    Var.Add(user, 1, Stats.Gimi.TimesLost, Stats.Gimi.CurrentLossStreak);
+                    Var.Add(user, Reward, Stats.Gimi.TotalLost, Stats.Gimi.CurrentLossAmount);
+                    Var.SetIfGreater(user, Stats.Gimi.LongestLoss, Stats.Gimi.CurrentLossStreak);
+                    Var.SetIfGreater(user, Stats.Gimi.LargestLoss, Stats.Gimi.CurrentLossAmount);
 
                     if (Flag == GimiResultFlag.Curse)
                     {
-                        Var.Add(user, 1, GimiStats.TimesCursed, GimiStats.CurrentCurseStreak);
-                        Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                        Var.Add(user, 1, Stats.Gimi.TimesCursed, Stats.Gimi.CurrentCurseStreak);
+                        Var.SetIfGreater(user, Stats.Gimi.LongestCurse, Stats.Gimi.CurrentCurseStreak);
                     }
                     else
                     {
-                        Var.Clear(user, GimiStats.CurrentCurseStreak);
+                        Var.Clear(user, Stats.Gimi.CurrentCurseStreak);
                         Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
                     }
 
@@ -90,17 +90,17 @@ namespace Arcadia.Casino
             long value = Reward;
             ImmutableColor color = ImmutableColor.GammaGreen;
 
-            Var.Add(user, 1, GimiStats.TimesPlayed);
+            Var.Add(user, 1, Stats.Gimi.TimesPlayed);
 
             switch (Flag)
             {
                 case GimiResultFlag.Win:
                 case GimiResultFlag.Gold:
-                    Var.Clear(user, GimiStats.CurrentCurseStreak, GimiStats.CurrentLossStreak, GimiStats.CurrentLossAmount);
-                    Var.Add(user, 1, GimiStats.TimesWon, GimiStats.CurrentWinStreak);
-                    Var.Add(user, Reward, GimiStats.TotalWon, GimiStats.CurrentWinAmount);
-                    Var.SetIfGreater(user, GimiStats.LongestWin, GimiStats.CurrentWinStreak);
-                    Var.SetIfGreater(user, GimiStats.LargestWin, GimiStats.CurrentWinAmount);
+                    Var.Clear(user, Stats.Gimi.CurrentCurseStreak, Stats.Gimi.CurrentLossStreak, Stats.Gimi.CurrentLossAmount);
+                    Var.Add(user, 1, Stats.Gimi.TimesWon, Stats.Gimi.CurrentWinStreak);
+                    Var.Add(user, Reward, Stats.Gimi.TotalWon, Stats.Gimi.CurrentWinAmount);
+                    Var.SetIfGreater(user, Stats.Gimi.LongestWin, Stats.Gimi.CurrentWinStreak);
+                    Var.SetIfGreater(user, Stats.Gimi.LargestWin, Stats.Gimi.CurrentWinAmount);
 
                     if (Flag == GimiResultFlag.Gold)
                     {
@@ -108,17 +108,17 @@ namespace Arcadia.Casino
                         type = "+";
                         color = GammaPalette.Glass[Gamma.Max];
 
-                        ItemHelper.GiveItem(user, Items.PocketLawyer);
+                        ItemHelper.GiveItem(user, Ids.Items.PocketLawyer);
 
                         if (RandomProvider.Instance.Next(0, 1001) == 1000)
-                            ItemHelper.GiveItem(user, Items.PaletteGold);
+                            ItemHelper.GiveItem(user, Ids.Items.PaletteGold);
 
-                        Var.Add(user, 1, GimiStats.TimesGold, GimiStats.CurrentGoldStreak);
-                        Var.SetIfGreater(user, GimiStats.LongestGold, GimiStats.CurrentGoldStreak);
+                        Var.Add(user, 1, Stats.Gimi.TimesGold, Stats.Gimi.CurrentGoldStreak);
+                        Var.SetIfGreater(user, Stats.Gimi.LongestGold, Stats.Gimi.CurrentGoldStreak);
                     }
                     else
                     {
-                        Var.Clear(user, GimiStats.CurrentGoldStreak);
+                        Var.Clear(user, Stats.Gimi.CurrentGoldStreak);
                         Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
                     }
                     long debt = user.Debt;
@@ -144,11 +144,11 @@ namespace Arcadia.Casino
                     type = "-";
                     color = ImmutableColor.NeonRed;
 
-                    Var.Clear(user, GimiStats.CurrentGoldStreak, GimiStats.CurrentWinStreak, GimiStats.CurrentWinAmount);
-                    Var.Add(user, 1, GimiStats.TimesLost, GimiStats.CurrentLossStreak);
-                    Var.Add(user, Reward, GimiStats.TotalLost, GimiStats.CurrentLossAmount);
-                    Var.SetIfGreater(user, GimiStats.LongestLoss, GimiStats.CurrentLossStreak);
-                    Var.SetIfGreater(user, GimiStats.LargestLoss, GimiStats.CurrentLossAmount);
+                    Var.Clear(user, Stats.Gimi.CurrentGoldStreak, Stats.Gimi.CurrentWinStreak, Stats.Gimi.CurrentWinAmount);
+                    Var.Add(user, 1, Stats.Gimi.TimesLost, Stats.Gimi.CurrentLossStreak);
+                    Var.Add(user, Reward, Stats.Gimi.TotalLost, Stats.Gimi.CurrentLossAmount);
+                    Var.SetIfGreater(user, Stats.Gimi.LongestLoss, Stats.Gimi.CurrentLossStreak);
+                    Var.SetIfGreater(user, Stats.Gimi.LargestLoss, Stats.Gimi.CurrentLossAmount);
 
                     if (Flag == GimiResultFlag.Curse)
                     {
@@ -156,12 +156,12 @@ namespace Arcadia.Casino
                         type = "-";
                         color = GammaPalette.Alconia[Gamma.Standard];
 
-                        Var.Add(user, 1, GimiStats.TimesCursed, GimiStats.CurrentCurseStreak);
-                        Var.SetIfGreater(user, GimiStats.LongestCurse, GimiStats.CurrentCurseStreak);
+                        Var.Add(user, 1, Stats.Gimi.TimesCursed, Stats.Gimi.CurrentCurseStreak);
+                        Var.SetIfGreater(user, Stats.Gimi.LongestCurse, Stats.Gimi.CurrentCurseStreak);
                     }
                     else
                     {
-                        Var.Clear(user, GimiStats.CurrentCurseStreak);
+                        Var.Clear(user, Stats.Gimi.CurrentCurseStreak);
                         Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
                     }
 

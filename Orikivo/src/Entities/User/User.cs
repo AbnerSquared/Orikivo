@@ -213,7 +213,7 @@ namespace Orikivo
             => Merits.ContainsKey(id);
 
         public override bool Equals(object obj)
-            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
+            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonModel));
 
         public override int GetHashCode()
             => unchecked((int)Id);

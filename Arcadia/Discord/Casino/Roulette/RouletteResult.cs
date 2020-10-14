@@ -38,21 +38,21 @@ namespace Arcadia.Casino
 
             user.ChipBalance -= Wager;
 
-            user.AddToVar(RouletteStats.TimesPlayed);
+            user.AddToVar(Stats.Roulette.TimesPlayed);
 
             if (IsSuccess)
             {
-                user.AddToVar(RouletteStats.TimesWon);
-                user.AddToVar(RouletteStats.TotalWon, Reward - Wager);
-                Var.SetIfGreater(user, RouletteStats.MostWon, Reward - Wager);
+                user.AddToVar(Stats.Roulette.TimesWon);
+                user.AddToVar(Stats.Roulette.TotalWon, Reward - Wager);
+                Var.SetIfGreater(user, Stats.Roulette.MostWon, Reward - Wager);
 
                 if (Pocket == 0)
-                    user.AddToVar(RouletteStats.TimesWonGreen);
+                    user.AddToVar(Stats.Roulette.TimesWonGreen);
             }
             else
             {
-                user.AddToVar(RouletteStats.TimesLost);
-                user.AddToVar(RouletteStats.TotalLost, Wager);
+                user.AddToVar(Stats.Roulette.TimesLost);
+                user.AddToVar(Stats.Roulette.TotalLost, Wager);
             }
 
             if (IsSuccess)

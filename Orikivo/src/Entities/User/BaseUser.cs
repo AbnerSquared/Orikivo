@@ -9,7 +9,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a generic user account.
     /// </summary>
-    public class BaseUser : IJsonEntity
+    public class BaseUser : IJsonModel
     {
         public BaseUser(IUser user)
         {
@@ -60,9 +60,9 @@ namespace Orikivo
         public override bool Equals(object obj)
             => obj != null
                && GetType() == obj.GetType()
-               && (ReferenceEquals(this, obj) || Equals(obj as IJsonEntity));
+               && (ReferenceEquals(this, obj) || Equals(obj as IJsonModel));
 
-        public bool Equals(IJsonEntity obj)
+        public bool Equals(IJsonModel obj)
             => Id == obj?.Id;
 
         public override int GetHashCode()

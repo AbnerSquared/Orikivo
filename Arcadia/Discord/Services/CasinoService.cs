@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Arcadia.Casino;
+using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
 
@@ -42,7 +43,7 @@ namespace Arcadia.Modules
 
             try
             {
-                var options = new SessionOptions
+                var options = new MatchOptions
                 {
                     ResetTimeoutOnAttempt = true,
                     Timeout = TimeSpan.FromSeconds(15)

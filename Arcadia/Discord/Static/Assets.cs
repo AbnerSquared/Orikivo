@@ -13,7 +13,7 @@ namespace Arcadia
     // Nonetheless, I can't stop you, so do what you will. :(
     public static class Assets
     {
-        public static readonly List<Guide> Guides = new List<Guide>
+        public static readonly HashSet<Guide> Guides = new HashSet<Guide>
         {
             new Guide
             {
@@ -45,7 +45,7 @@ namespace Arcadia
             }
         };
 
-        public static readonly List<Quest> Quests = new List<Quest>
+        public static readonly HashSet<Quest> Quests = new HashSet<Quest>
         {
             new Quest
             {
@@ -55,7 +55,7 @@ namespace Arcadia
                 Difficulty = QuestDifficulty.Normal,
                 Criteria = new List<VarCriterion>
                 {
-                    new VarCriterion(Stats.DailyStreak, 7)
+                    new VarCriterion(Stats.Common.DailyStreak, 7)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -92,8 +92,8 @@ namespace Arcadia
                 Difficulty = QuestDifficulty.Easy,
                 Criteria = new List<VarCriterion>
                 {
-                    new VarCriterion(RouletteStats.TimesPlayed, 10),
-                    new VarCriterion(BlackJackStats.TimesPlayed, 10)
+                    new VarCriterion(Stats.Roulette.TimesPlayed, 10),
+                    new VarCriterion(Stats.BlackJack.TimesPlayed, 10)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -110,8 +110,8 @@ namespace Arcadia
                 Difficulty = QuestDifficulty.Easy,
                 Criteria = new List<VarCriterion>
                 {
-                    new VarCriterion(GimiStats.TimesPlayed, 25),
-                    new VarCriterion(TickStats.TimesPlayed, 25)
+                    new VarCriterion(Stats.Gimi.TimesPlayed, 25),
+                    new VarCriterion(Stats.Doubler.TimesPlayed, 25)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -128,8 +128,8 @@ namespace Arcadia
                 Difficulty = QuestDifficulty.Easy,
                 Criteria = new List<VarCriterion>
                 {
-                    new VarCriterion(TriviaStats.TimesPlayed, 5),
-                    new VarCriterion(TriviaStats.TimesWon, 1)
+                    new VarCriterion(Stats.Trivia.TimesPlayed, 5),
+                    new VarCriterion(Stats.Trivia.TimesWon, 1)
                 },
                 Type = QuestType.User,
                 Reward = new Reward
@@ -140,1363 +140,1359 @@ namespace Arcadia
             }
         };
 
-        public static readonly List<Vendor> Vendors =
-               new List<Vendor>
-               {
-                new Vendor
+        public static readonly HashSet<Vendor> Vendors = new HashSet<Vendor>
+        {
+            new Vendor
+            {
+                Name = "V3-NDR",
+                PreferredTag = ItemTag.Palette,
+                OnEnter = new []
                 {
-                    Name = "V3-NDR",
-                    PreferredTag = ItemTag.Palette,
-                    OnEnter = new []
+                    "Welcome.",
+                    "What can I do for you on this fine hour?"
+                }
+            }
+        };
+
+        public static readonly HashSet<Shop> Shops = new HashSet<Shop>
+        {
+            new Shop
+            {
+                Id = "tinker_tent",
+                Name = "Tinker's Tent",
+                Quote = "Purchase components and crafting materials here.",
+                Allow = ShopAllow.Buy,
+                SellDeduction = 60,
+                SellTags = ItemTag.Ingredient | ItemTag.Tool,
+                Catalog = new CatalogGenerator
+                {
+                    Size = 2,
+                    MaxDiscountsAllowed = 0,
+                    MaxSpecialsAllowed = 1,
+                    Entries = new List<CatalogEntry>
                     {
-                        "Welcome.",
-                        "What can I do for you on this fine hour?"
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.ToolGiftWrap,
+                            Weight = 20
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.ComponentSmearKit,
+                            Weight = 8,
+                            IsSpecial = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.ComponentBlendKit,
+                            Weight = 2,
+                            IsSpecial = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.ComponentNeonKit,
+                            Weight = 4,
+                            IsSpecial = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.ComponentDimmerKit,
+                            Weight = 4,
+                            IsSpecial = true
+                        }
                     }
                 }
-               };
-
-        public static readonly List<Shop> Shops =
-            new List<Shop>
+            },
+            new Shop
             {
-                new Shop
+                Id = "boost_blight",
+                Name = "Booster's Blight",
+                Quote = "Purchase an assortment of boosters here.",
+                Allow = ShopAllow.All,
+                SellDeduction = 50,
+                SellTags = ItemTag.Booster,
+                Catalog = new CatalogGenerator
                 {
-                    Id = "tinker_tent",
-                    Name = "Tinker's Tent",
-                    Quote = "Purchase components and crafting materials here.",
-                    Allow = ShopAllow.Buy,
-                    SellDeduction = 60,
-                    SellTags = ItemTag.Ingredient | ItemTag.Tool,
-                    Catalog = new CatalogGenerator
+                    Size = 1,
+                    MaxDiscountsAllowed = 0,
+                    MaxSpecialsAllowed = 0,
+                    Entries = new List<CatalogEntry>
                     {
-                        Size = 2,
-                        MaxDiscountsAllowed = 0,
-                        MaxSpecialsAllowed = 1,
-                        Entries = new List<CatalogEntry>
+                        new CatalogEntry
                         {
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.ToolGiftWrap,
-                                Weight = 20
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.ComponentSmearKit,
-                                Weight = 8,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.ComponentBlendKit,
-                                Weight = 2,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.ComponentNeonKit,
-                                Weight = 4,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.ComponentDimmerKit,
-                                Weight = 4,
-                                IsSpecial = true
-                            }
+                            ItemId = Ids.Items.BoosterDebtBlocker,
+                            Weight = 10
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.BoosterOriteBooster,
+                            Weight = 5
                         }
                     }
-                },
-                new Shop
-                {
-                    Id = "boost_blight",
-                    Name = "Booster's Blight",
-                    Quote = "Purchase an assortment of boosters here.",
-                    Allow = ShopAllow.All,
-                    SellDeduction = 50,
-                    SellTags = ItemTag.Booster,
-                    Catalog = new CatalogGenerator
-                    {
-                        Size = 1,
-                        MaxDiscountsAllowed = 0,
-                        MaxSpecialsAllowed = 0,
-                        Entries = new List<CatalogEntry>
-                        {
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.BoosterDebtBlocker,
-                                Weight = 10
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.BoosterOriteBooster,
-                                Weight = 5
-                            }
-                        }
-                    }
-                },
-                new Shop
-                {
-                    Id = "chrome_cove",
-                    Name = "Chromatic Cove",
-                    Quote = "The reliable place to purchase color palettes.",
-                    CriteriaTiers = new Dictionary<long, List<VarCriterion>>
-                    {
-                        [2] = new List<VarCriterion>
-                        {
-                            new VarCriterion(ShopHelper.GetVisitId("chrome_cove"), 10),
-                            new VarCriterion(ShopHelper.GetTotalBoughtId("chrome_cove"), 5)
-                        }
-                    },
-                    Catalog = new CatalogGenerator
-                    {
-                        Size = 2,
-                        MaxDiscountsAllowed = 1,
-                        MaxSpecialsAllowed = 1,
-                        Entries = new List<CatalogEntry>
-                        {
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteGammaGreen,
-                                Weight = 60,
-                                MinDiscount = 5,
-                                MaxDiscount = 10,
-                                DiscountChance = 0.4f
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteWumpite,
-                                Weight = 15,
-                                MinDiscount = 1,
-                                MaxDiscount = 5,
-                                DiscountChance = 0.3f,
-                                MaxAllowed = 1,
-                                RequiredTier = 2,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteCrimson,
-                                Weight = 75,
-                                MinDiscount = 5,
-                                MaxDiscount = 10,
-                                DiscountChance = 0.5f
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteGlass,
-                                Weight = 2,
-                                MaxAllowed = 1,
-                                IsSpecial = true
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteLemon,
-                                Weight = 8,
-                                MaxAllowed = 1,
-                                RequiredTier = 2
-                            },
-                            new CatalogEntry
-                            {
-                                ItemId = Arcadia.Items.PaletteOceanic,
-                                Weight = 6,
-                                MaxAllowed = 1,
-                                RequiredTier = 2
-                            }
-                        }
-                    },
-                    Allow = ShopAllow.All,
-                    SellDeduction = 50,
-                    SellTags = ItemTag.Palette
                 }
-            };
-
-        public static readonly List<Merit> Merits =
-            new List<Merit>
+            },
+            new Shop
             {
-                new Merit
+                Id = "chrome_cove",
+                Name = "Chromatic Cove",
+                Quote = "The reliable place to purchase color palettes.",
+                CriteriaTiers = new Dictionary<long, List<VarCriterion>>
                 {
-                    Id = "currency:tidal_taxes",
-                    Icon = "🌊",
-                    Name = "Tidal Taxes",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 100,
-                    LockQuote = "Drown in debt.",
-                    Quote = "You have asserted your side against currency, reaching over 10,000 in applied debt.",
-                    Criteria = user => user.Debt >= 10000
-                },
-                new Merit
-                {
-                    Id = "currency:raging_riches",
-                    Icon = "🔥",
-                    Name = "Raging Riches",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 100,
-                    LockQuote = "Bathe in Orite.",
-                    Quote = "You have grown to love money, reaching over 10,000 in Orite.",
-                    Criteria = user => user.Balance >= 10000
-                },
-                new Merit
-                {
-                    Id = "currency:chip_collector",
-                    Icon = "💰",
-                    Name = "Chip Collector",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 100,
-                    LockQuote = "The casino is calling to you.",
-                    Quote = "You have beaten the odds of the casino, reaching over 10,000 in gambling chips.",
-                    Criteria = user => user.ChipBalance >= 10000
-                },
-                new Merit
-                {
-                    Id = "exp:freshly_grown",
-                    Icon = "🌱",
-                    Name = "Freshly Grown",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 25,
-                    LockQuote = "Your level means nothing.",
-                    Quote = "You have escaped the depths, achieving your 10th firmware upgrade.",
-                    Criteria = user => user.Level >= 10
-                },
-                new Merit
-                {
-                    Id = "exp:rising_rookie",
-                    Icon = "🌾",
-                    Name = "Rising Rookie",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Silver,
-                    Score = 50,
-                    LockQuote = "Your level has not yet proved your worth.",
-                    Quote = "You have climbed up wild lands, reaching your 25th firmware upgrade.",
-                    Criteria = user => user.Level >= 25
-                },
-                new Merit
-                {
-                    Id = "exp:astral_advocate",
-                    Icon = "🎋",
-                    Name = "Astral Advocate",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 100,
-                    LockQuote = "Your level status must reach for the clouds.",
-                    Quote = "You have reached what many consider the limit, reaching your 50th firmware upgrade.",
-                    Criteria = user => user.Level >= 50
-                },
-                new Merit
-                {
-                    Id = "exp:space_veteran",
-                    Icon = "🌸",
-                    Name = "Celestial Veteran",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Platinum,
-                    Score = 250,
-                    LockQuote = "Your level status must reach for the stars.",
-                    Quote = "You have reached the stars, achieving your 100th firmware upgrade.",
-                    Criteria = user => user.Level >= 100
-                },
-                new Merit
-                {
-                    Id = "common:prisma_infusion",
-                    Icon = "🌈",
-                    Name = "Prisma Infusion",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 500,
-                    Quote = "You have collected every single color available.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:color_theory",
-                    Icon = "🟧",
-                    Name = "Color Theory",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "You have created a new color from other colors.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:tinkerer",
-                    Icon = "🔨",
-                    Name = "Tinker Tot",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have crafted an item for the first time.",
-                    Criteria = user => user.GetVar(Stats.ItemsCrafted) > 0
-                },
-                new Merit
-                {
-                    Id = "common:trade_beginner",
-                    Icon = "🔂",
-                    Name = "Trading Beginner",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have traded with another user for the first time.",
-                    Criteria = user => user.GetVar(Stats.TimesTraded) > 0
-                },
-                new Merit
-                {
-                    Id = "common:bronze_heart",
-                    Icon = "🤎",
-                    Name = "Bronze Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You were a kind soul and gave someone else an item of your own.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 0
-                },
-                new Merit
-                {
-                    Id = "common:silver_heart",
-                    Icon = "🤍",
-                    Name = "Silver Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Silver,
-                    Score = 50,
-                    Quote = "You have been a good person and gifted over 100 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 100
-                },
-                new Merit
-                {
-                    Id = "common:golden_heart",
-                    Icon = "💛",
-                    Name = "Golden Heart",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "You have given over 500 items to plenty of people.",
-                    Criteria = user => user.GetVar(Stats.ItemsGifted) > 500,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:ignition",
-                    Icon = "🕯️",
-                    Name = "Ignition",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "You have equipped your first booster.",
-                    Criteria = user => user.Boosters.Count > 0
-                },
-                new Merit
-                {
-                    Id = "common:progress_pioneer",
-                    Icon = "🚝",
-                    Name = "Progression Pioneer",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 100,
-                    Quote = "You were there at the start, carving the path to the future.",
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:liquidation",
-                    Name = "Liquidation",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "Your requests have been met with gold.",
-                    Criteria = user => user.GetVar(GimiStats.TimesGold) > 0
-                },
-                new Merit
-                {
-                    Id = "casino:deprivation",
-                    Name = "Deprivation",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 5,
-                    Quote = "Your greed has led you to perish under the moonlight.",
-                    Criteria = user => user.GetVar(GimiStats.TimesCursed) > 0
-                },
-                new Merit
-                {
-                    Id = "casino:golden_touch",
-                    Name = "Golden Touch",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "Midas must have gifted you with his abilities.",
-                    Criteria = user => user.GetVar(GimiStats.LongestGold) >= 2,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:pandoras_box",
-                    Name = "Pandora's Box",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "Your ruthless requests released the worst of this world.",
-                    Criteria = user => user.GetVar(GimiStats.LongestCurse) >= 2,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:lucky_guesses",
-                    Name = "Lucky Lassie",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
-                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 3,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_beginner",
-                    Name = "Gimi Beginner",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have requested funds 100 times.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 100
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_clover",
-                    Icon = "☘️",
-                    Name = "Clover of Gimi",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have won over 20 times in a row in Gimi.",
-                    Criteria = user => user.GetVar(GimiStats.LongestWin) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_curse",
-                    Icon = "🧿",
-                    Name = "Curse of Gimi",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have lost over 20 times in a row in Gimi.",
-                    Criteria = user => user.GetVar(GimiStats.LongestLoss) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_clover",
-                    Icon = "☘️",
-                    Name = "Clover of Doubler",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have won over 20 times in a row in Doubler.",
-                    Criteria = user => user.GetVar(TickStats.LongestWin) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_exact_clover",
-                    Icon = "🏵️",
-                    Name = "Golden Clover of Doubler",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
-                    Criteria = user => user.GetVar(TickStats.LongestWinExact) >= 20,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "casino:tick_beginner",
-                    Name = "Doubler Beginner",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "You have attempted to double your chips 100 times.",
-                    Criteria = user => user.GetVar(TickStats.TimesPlayed) >= 100
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_advocate",
-                    Name = "Gimi Advocate",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Silver,
-                    Score = 25,
-                    Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 1000
-                },
-                new Merit
-                {
-                    Id = "casino:gimi_expert",
-                    Name = "Gimi Expert",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Gold,
-                    Score = 50,
-                    Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 5000,
-                    Hidden = true,
-                    Reward = new Reward
+                    [2] = new List<VarCriterion>
                     {
-                        Money = 100
+                        new VarCriterion(ShopHelper.GetVisitId("chrome_cove"), 10),
+                        new VarCriterion(ShopHelper.GetTotalBoughtId("chrome_cove"), 5)
                     }
                 },
-                new Merit
+                Catalog = new CatalogGenerator
                 {
-                    Id = "casino:gimi_maniac",
-                    Icon = "⚗️",
-                    Name = "Gimi Maniac",
-                    Tag = MeritTag.Casino,
-                    Rank = MeritRank.Diamond,
-                    Score = 250,
-                    Quote = "No matter what anyone said, you kept going 10,000 times over.",
-                    Criteria = user => user.GetVar(GimiStats.TimesPlayed) >= 10000,
-                    Hidden = true,
-                    Reward = new Reward
+                    Size = 2,
+                    MaxDiscountsAllowed = 1,
+                    MaxSpecialsAllowed = 1,
+                    Entries = new List<CatalogEntry>
                     {
-                        ItemIds = new Dictionary<string, int>
+                        new CatalogEntry
                         {
-                            [Arcadia.Items.AutomatonGimi] = 1
+                            ItemId = Ids.Items.PaletteGammaGreen,
+                            Weight = 60,
+                            MinDiscount = 5,
+                            MaxDiscount = 10,
+                            DiscountChance = 0.4f
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteWumpite,
+                            Weight = 15,
+                            MinDiscount = 1,
+                            MaxDiscount = 5,
+                            DiscountChance = 0.3f,
+                            MaxAllowed = 1,
+                            RequiredTier = 2,
+                            IsSpecial = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteCrimson,
+                            Weight = 75,
+                            MinDiscount = 5,
+                            MaxDiscount = 10,
+                            DiscountChance = 0.5f
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteGlass,
+                            Weight = 2,
+                            MaxAllowed = 1,
+                            IsSpecial = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteLemon,
+                            Weight = 8,
+                            MaxAllowed = 1,
+                            RequiredTier = 2
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteOceanic,
+                            Weight = 6,
+                            MaxAllowed = 1,
+                            RequiredTier = 2
                         }
                     }
                 },
-                new Merit
-                {
-                    Id = "common:weekly_worker",
-                    Icon = "✨",
-                    Name = "Weekly Worker",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 7,
-                    Quote = "You've stopped by for 7 days, making your name known.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 7
-                },
-                new Merit
-                {
-                    Id = "common:monthly_advocate",
-                    Icon = "⭐",
-                    Name = "Monthly Advocate",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Gold,
-                    Score = 30,
-                    Quote = "30 days have passed, and you have yet to miss a single one.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 30
-                },
-                new Merit
-                {
-                    Id = "common:daily_automaton",
-                    Icon = "💫",
-                    Name = "Daily Automaton",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Platinum,
-                    Score = 100,
-                    Quote = "You're still here. Even after 100 days.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 100,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:perfect_attendance",
-                    Icon = "🌟",
-                    Name = "Perfect Attendance",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Diamond,
-                    Score = 365,
-                    Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
-                    Criteria = user => user.GetVar(Stats.LongestDailyStreak) >= 365,
-                    Hidden = true
-                },
-                new Merit
-                {
-                    Id = "common:escaping_trouble",
-                    Icon = "☎️",
-                    Name = "Escaping Trouble",
-                    Tag = MeritTag.Common,
-                    Rank = MeritRank.Bronze,
-                    Score = 10,
-                    Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
-                    Criteria = user => user.GetVar($"{Arcadia.Items.PocketLawyer}:times_used") >= 1
-                } // TODO: Create automatic item stat tracking
-            };
+                Allow = ShopAllow.All,
+                SellDeduction = 50,
+                SellTags = ItemTag.Palette
+            }
+        };
 
-        public static readonly List<Recipe> Recipes = new List<Recipe>
+        public static readonly HashSet<Merit> Merits = new HashSet<Merit>
+        {
+            new Merit
+            {
+                Id = "currency:tidal_taxes",
+                Icon = "🌊",
+                Name = "Tidal Taxes",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 100,
+                LockQuote = "Drown in debt.",
+                Quote = "You have asserted your side against currency, reaching over 10,000 in applied debt.",
+                Criteria = user => user.Debt >= 10000
+            },
+            new Merit
+            {
+                Id = "currency:raging_riches",
+                Icon = "🔥",
+                Name = "Raging Riches",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 100,
+                LockQuote = "Bathe in Orite.",
+                Quote = "You have grown to love money, reaching over 10,000 in Orite.",
+                Criteria = user => user.Balance >= 10000
+            },
+            new Merit
+            {
+                Id = "currency:chip_collector",
+                Icon = "💰",
+                Name = "Chip Collector",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 100,
+                LockQuote = "The casino is calling to you.",
+                Quote = "You have beaten the odds of the casino, reaching over 10,000 in gambling chips.",
+                Criteria = user => user.ChipBalance >= 10000
+            },
+            new Merit
+            {
+                Id = "exp:freshly_grown",
+                Icon = "🌱",
+                Name = "Freshly Grown",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 25,
+                LockQuote = "Your level means nothing.",
+                Quote = "You have escaped the depths, achieving your 10th firmware upgrade.",
+                Criteria = user => user.Level >= 10
+            },
+            new Merit
+            {
+                Id = "exp:rising_rookie",
+                Icon = "🌾",
+                Name = "Rising Rookie",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Silver,
+                Score = 50,
+                LockQuote = "Your level has not yet proved your worth.",
+                Quote = "You have climbed up wild lands, reaching your 25th firmware upgrade.",
+                Criteria = user => user.Level >= 25
+            },
+            new Merit
+            {
+                Id = "exp:astral_advocate",
+                Icon = "🎋",
+                Name = "Astral Advocate",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 100,
+                LockQuote = "Your level status must reach for the clouds.",
+                Quote = "You have reached what many consider the limit, reaching your 50th firmware upgrade.",
+                Criteria = user => user.Level >= 50
+            },
+            new Merit
+            {
+                Id = "exp:space_veteran",
+                Icon = "🌸",
+                Name = "Celestial Veteran",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Platinum,
+                Score = 250,
+                LockQuote = "Your level status must reach for the stars.",
+                Quote = "You have reached the stars, achieving your 100th firmware upgrade.",
+                Criteria = user => user.Level >= 100
+            },
+            new Merit
+            {
+                Id = "common:prisma_infusion",
+                Icon = "🌈",
+                Name = "Prisma Infusion",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Diamond,
+                Score = 500,
+                Quote = "You have collected every single color available.",
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "common:color_theory",
+                Icon = "🟧",
+                Name = "Color Theory",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Silver,
+                Score = 25,
+                Quote = "You have created a new color from other colors.",
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "common:tinkerer",
+                Icon = "🔨",
+                Name = "Tinker Tot",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "You have crafted an item for the first time.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsCrafted) > 0
+            },
+            new Merit
+            {
+                Id = "common:trade_beginner",
+                Icon = "🔂",
+                Name = "Trading Beginner",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "You have traded with another user for the first time.",
+                Criteria = user => user.GetVar(Stats.Common.TimesTraded) > 0
+            },
+            new Merit
+            {
+                Id = "common:bronze_heart",
+                Icon = "🤎",
+                Name = "Bronze Heart",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "You were a kind soul and gave someone else an item of your own.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 0
+            },
+            new Merit
+            {
+                Id = "common:silver_heart",
+                Icon = "🤍",
+                Name = "Silver Heart",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Silver,
+                Score = 50,
+                Quote = "You have been a good person and gifted over 100 items to plenty of people.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 100
+            },
+            new Merit
+            {
+                Id = "common:golden_heart",
+                Icon = "💛",
+                Name = "Golden Heart",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 50,
+                Quote = "You have given over 500 items to plenty of people.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 500,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "common:ignition",
+                Icon = "🕯️",
+                Name = "Ignition",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "You have equipped your first booster.",
+                Criteria = user => user.Boosters.Count > 0
+            },
+            new Merit
+            {
+                Id = "common:progress_pioneer",
+                Icon = "🚝",
+                Name = "Progression Pioneer",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Diamond,
+                Score = 100,
+                Quote = "You were there at the start, carving the path to the future.",
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:liquidation",
+                Name = "Liquidation",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "Your requests have been met with gold.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesGold) > 0
+            },
+            new Merit
+            {
+                Id = "casino:deprivation",
+                Name = "Deprivation",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                Quote = "Your greed has led you to perish under the moonlight.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesCursed) > 0
+            },
+            new Merit
+            {
+                Id = "casino:golden_touch",
+                Name = "Golden Touch",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Gold,
+                Score = 50,
+                Quote = "Midas must have gifted you with his abilities.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestGold) >= 2,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:pandoras_box",
+                Name = "Pandora's Box",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Gold,
+                Score = 50,
+                Quote = "Your ruthless requests released the worst of this world.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestCurse) >= 2,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:lucky_guesses",
+                Name = "Lucky Lassie",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Silver,
+                Score = 25,
+                Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 3,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:gimi_beginner",
+                Name = "Gimi Beginner",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "You have requested funds 100 times.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 100
+            },
+            new Merit
+            {
+                Id = "casino:gimi_clover",
+                Icon = "☘️",
+                Name = "Clover of Gimi",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "You have won over 20 times in a row in Gimi.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestWin) >= 20,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:gimi_curse",
+                Icon = "🧿",
+                Name = "Curse of Gimi",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "You have lost over 20 times in a row in Gimi.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestLoss) >= 20,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:tick_clover",
+                Icon = "☘️",
+                Name = "Clover of Doubler",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "You have won over 20 times in a row in Doubler.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWin) >= 20,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:tick_exact_clover",
+                Icon = "🏵️",
+                Name = "Golden Clover of Doubler",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Gold,
+                Score = 50,
+                Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 20,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "casino:tick_beginner",
+                Name = "Doubler Beginner",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "You have attempted to double your chips 100 times.",
+                Criteria = user => user.GetVar(Stats.Doubler.TimesPlayed) >= 100
+            },
+            new Merit
+            {
+                Id = "casino:gimi_advocate",
+                Name = "Gimi Advocate",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Silver,
+                Score = 25,
+                Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 1000
+            },
+            new Merit
+            {
+                Id = "casino:gimi_expert",
+                Name = "Gimi Expert",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Gold,
+                Score = 50,
+                Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 5000,
+                Hidden = true,
+                Reward = new Reward
+                {
+                    Money = 100
+                }
+            },
+            new Merit
+            {
+                Id = "casino:gimi_maniac",
+                Icon = "⚗️",
+                Name = "Gimi Maniac",
+                Tag = MeritTag.Casino,
+                Rank = MeritRank.Diamond,
+                Score = 250,
+                Quote = "No matter what anyone said, you kept going 10,000 times over.",
+                Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 10000,
+                Hidden = true,
+                Reward = new Reward
+                {
+                    ItemIds = new Dictionary<string, int>
+                    {
+                        [Ids.Items.AutomatonGimi] = 1
+                    }
+                }
+            },
+            new Merit
+            {
+                Id = "common:weekly_worker",
+                Icon = "✨",
+                Name = "Weekly Worker",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 7,
+                Quote = "You've stopped by for 7 days, making your name known.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 7
+            },
+            new Merit
+            {
+                Id = "common:monthly_advocate",
+                Icon = "⭐",
+                Name = "Monthly Advocate",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Gold,
+                Score = 30,
+                Quote = "30 days have passed, and you have yet to miss a single one.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 30
+            },
+            new Merit
+            {
+                Id = "common:daily_automaton",
+                Icon = "💫",
+                Name = "Daily Automaton",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Platinum,
+                Score = 100,
+                Quote = "You're still here. Even after 100 days.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 100,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "common:perfect_attendance",
+                Icon = "🌟",
+                Name = "Perfect Attendance",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Diamond,
+                Score = 365,
+                Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 365,
+                Hidden = true
+            },
+            new Merit
+            {
+                Id = "common:escaping_trouble",
+                Icon = "☎️",
+                Name = "Escaping Trouble",
+                Tag = MeritTag.Common,
+                Rank = MeritRank.Bronze,
+                Score = 10,
+                Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
+                Criteria = user => user.GetVar($"{Ids.Items.PocketLawyer}:times_used") >= 1
+            } // TODO: Create automatic item stat tracking
+        };
+
+        public static readonly HashSet<Recipe> Recipes = new HashSet<Recipe>
         {
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteGlass, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteWumpite, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentSmearKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteGlass, 1),
+                    new RecipeComponent(Ids.Items.PaletteWumpite, 1),
+                    new RecipeComponent(Ids.Items.ComponentSmearKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteGlossyWumpite, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteGlossyWumpite, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteCrimson, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteLemon, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentSmearKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteCrimson, 1),
+                    new RecipeComponent(Ids.Items.PaletteLemon, 1),
+                    new RecipeComponent(Ids.Items.ComponentSmearKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteBurntLemon, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteBurntLemon, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteLemon, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteCrimson, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteLemon, 1),
+                    new RecipeComponent(Ids.Items.PaletteCrimson, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteAmber, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteAmber, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteWumpite, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteLemon, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteWumpite, 1),
+                    new RecipeComponent(Ids.Items.PaletteLemon, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteChocolate, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteChocolate, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteCrimson, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteGammaGreen, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteCrimson, 1),
+                    new RecipeComponent(Ids.Items.PaletteGammaGreen, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteChocolate, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteChocolate, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteCrimson, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteLemon, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteOceanic, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteCrimson, 1),
+                    new RecipeComponent(Ids.Items.PaletteLemon, 1),
+                    new RecipeComponent(Ids.Items.PaletteOceanic, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteChocolate, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteChocolate, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteAmber, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteOceanic, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteAmber, 1),
+                    new RecipeComponent(Ids.Items.PaletteOceanic, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteChocolate, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteChocolate, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteCrimson, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentNeonKit, 2)
+                    new RecipeComponent(Ids.Items.PaletteCrimson, 1),
+                    new RecipeComponent(Ids.Items.ComponentNeonKit, 2)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteTaffy, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteTaffy, 1)
             },
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.PaletteLemon, 1),
-                    new RecipeComponent(Arcadia.Items.PaletteOceanic, 1),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1)
+                    new RecipeComponent(Ids.Items.PaletteLemon, 1),
+                    new RecipeComponent(Ids.Items.PaletteOceanic, 1),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
-                Result = new RecipeComponent(Arcadia.Items.PaletteGammaGreen, 1)
+                Result = new RecipeComponent(Ids.Items.PaletteGammaGreen, 1)
             }
             ,
             new Recipe
             {
                 Components = new List<RecipeComponent>
                 {
-                    new RecipeComponent(Arcadia.Items.ComponentNeonKit, 8),
-                    new RecipeComponent(Arcadia.Items.ComponentBlendKit, 1),
+                    new RecipeComponent(Ids.Items.ComponentNeonKit, 8),
+                    new RecipeComponent(Ids.Items.ComponentBlendKit, 1),
                 },
-                Result = new RecipeComponent(Arcadia.Items.PalettePolarity, 1)
+                Result = new RecipeComponent(Ids.Items.PalettePolarity, 1)
             }
         };
 
-        public static List<Item> Items =>
-            new List<Item>
+        public static readonly HashSet<Item> Items = new HashSet<Item>
+        {
+            new Item
             {
-                new Item
+                Id = Ids.Items.InternalSealedItem,
+                GroupId = "$",
+                Icon = "📦",
+                Name = "Sealed Item",
+                Quotes = new List<string>
                 {
-                    Id = Arcadia.Items.InternalSealedItem,
-                    GroupId = "$",
-                    Icon = "📦",
-                    Name = "Sealed Item",
-                    Quotes = new List<string>
-                    {
-                        "A mysterious container with unknown contents."
-                    }
+                    "A mysterious container with unknown contents."
+                }
+            },
+            new Item
+            {
+                Id = "t_nt",
+                GroupId = Ids.Groups.Tool,
+                Icon = "🉐",
+                Name = "Name Tag",
+                Rarity = ItemRarity.Uncommon,
+                Tag = ItemTag.Tool,
+                Value = 750,
+                Size = 50
+            },
+            new Item
+            {
+                Id = "t_gc",
+                GroupId = Ids.Groups.Tool,
+                Icon = "🧺",
+                Name = "Gift Catapult",
+                Summary = "Randomly gifts an account with the specified item.",
+                Rarity = ItemRarity.Rare,
+                Tag = ItemTag.Tool,
+                Value = 1250,
+                Size = 100
+            },
+            new Item
+            {
+                Id = Ids.Items.ComponentNeonKit,
+                GroupId = Ids.Groups.Component,
+                Name = "Neon Kit",
+                Summary = "A component used to brighten the value of a color.",
+                Quotes = new List<string>
+                {
+                    "It cries with a strong vibrant call of chromacy."
                 },
-                new Item
+                Rarity = ItemRarity.Rare,
+                Tag = ItemTag.Ingredient,
+                Value = 1250,
+                Size = 250
+            },
+            new Item
+            {
+                Id = Ids.Items.ComponentDimmerKit,
+                GroupId = Ids.Groups.Component,
+                Name = "Dimmer Kit",
+                Summary = "A component used to darken the value of a color.",
+                Quotes = new List<string>
                 {
-                    Id = "t_nt",
-                    GroupId = ItemGroups.Tool,
-                    Icon = "🉐",
-                    Name = "Name Tag",
-                    Rarity = ItemRarity.Uncommon,
-                    Tag = ItemTag.Tool,
-                    Value = 750,
-                    Size = 50
+                    "It absorbs every color surrounding it."
                 },
-                new Item
+                Rarity = ItemRarity.Rare,
+                Tag = ItemTag.Ingredient,
+                Value = 1250,
+                Size = 250
+            },
+            new Item
+            {
+                Id = Ids.Items.ComponentSmearKit,
+                GroupId = Ids.Groups.Component,
+                Name = "Smear Kit",
+                Summary = "Often used to create a hybrid of your favorite colors.",
+                Quotes = new List<string>
                 {
-                    Id = "t_gc",
-                    GroupId = ItemGroups.Tool,
-                    Icon = "🧺",
-                    Name = "Gift Catapult",
-                    Summary = "Randomly gifts an account with the specified item.",
-                    Rarity = ItemRarity.Rare,
-                    Tag = ItemTag.Tool,
-                    Value = 1250,
-                    Size = 100
+                    "It swings open to reveal two color slots with a churning device in the center."
                 },
-                new Item
+                Rarity = ItemRarity.Uncommon,
+                Tag = ItemTag.Ingredient,
+                Value = 750,
+                Size = 250
+            },
+            new Item
+            {
+                Id = Ids.Items.ComponentBlendKit,
+                GroupId = Ids.Groups.Component,
+                Name = "Blend Kit",
+                Summary = "Used to give way to a brand new color from two existing ones.",
+                Quotes = new List<string>
                 {
-                    Id = Arcadia.Items.ComponentNeonKit,
-                    GroupId = ItemGroups.Component,
-                    Name = "Neon Kit",
-                    Summary = "A component used to brighten the value of a color.",
-                    Quotes = new List<string>
-                    {
-                        "It cries with a strong vibrant call of chromacy."
-                    },
-                    Rarity = ItemRarity.Rare,
-                    Tag = ItemTag.Ingredient,
-                    Value = 1250,
-                    Size = 250
+                    "It pops open to reveal two color slots that point towards a rapidly spinning motor."
                 },
-                new Item
+                Rarity = ItemRarity.Rare,
+                Tag = ItemTag.Ingredient,
+                Value = 1000,
+                Size = 250
+            },
+            new Item
+            {
+                Id = Ids.Items.AutomatonGimi,
+                Name = "Gimi",
+                Summary = "Gives you the ability to execute the Gimi command a specified number of times. Please note that you are required to wait a second on each execution.",
+                Quotes = new List<string>
                 {
-                    Id = Arcadia.Items.ComponentDimmerKit,
-                    GroupId = ItemGroups.Component,
-                    Name = "Dimmer Kit",
-                    Summary = "A component used to darken the value of a color.",
-                    Quotes = new List<string>
-                    {
-                        "It absorbs every color surrounding it."
-                    },
-                    Rarity = ItemRarity.Rare,
-                    Tag = ItemTag.Ingredient,
-                    Value = 1250,
-                    Size = 250
+                    "It echoes a tick loud enough to break the sound barrier."
                 },
-                new Item
+                GroupId = Ids.Groups.Automaton,
+                Rarity = ItemRarity.Myth,
+                Tag = ItemTag.Tool | ItemTag.Automaton,
+                Value = 100000,
+                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal,
+                TradeLimit = 0,
+                Size = 1000,
+                OwnLimit = 1
+            },
+            new Item
+            {
+                Id = Ids.Items.ToolGiftWrap,
+                GroupId = Ids.Groups.Tool,
+                Icon = "🎀",
+                Name = "Gift Wrap",
+                Quotes = new List<string>
                 {
-                    Id = Arcadia.Items.ComponentSmearKit,
-                    GroupId = ItemGroups.Component,
-                    Name = "Smear Kit",
-                    Summary = "Often used to create a hybrid of your favorite colors.",
-                    Quotes = new List<string>
-                    {
-                        "It swings open to reveal two color slots with a churning device in the center."
-                    },
-                    Rarity = ItemRarity.Uncommon,
-                    Tag = ItemTag.Ingredient,
-                    Value = 750,
-                    Size = 250
+                    "Add a little mystery to your gifting!"
                 },
-                new Item
+                Summary = "Wraps an item to seal its contents.",
+                Rarity = ItemRarity.Common,
+                Tag = ItemTag.Tool,
+                Value = 25,
+                BypassCriteriaOnTrade = true,
+                Size = 10,
+                Usage = new ItemUsage
                 {
-                    Id = Arcadia.Items.ComponentBlendKit,
-                    GroupId = ItemGroups.Component,
-                    Name = "Blend Kit",
-                    Summary = "Used to give way to a brand new color from two existing ones.",
-                    Quotes = new List<string>
+                    Durability = 1,
+                    DeleteMode = DeleteMode.Break,
+                    Action = delegate(UsageContext ctx)
                     {
-                        "It pops open to reveal two color slots that point towards a rapidly spinning motor."
-                    },
-                    Rarity = ItemRarity.Rare,
-                    Tag = ItemTag.Ingredient,
-                    Value = 1000,
-                    Size = 250
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.AutomatonGimi,
-                    Name = "Gimi",
-                    Summary = "Gives you the ability to execute the Gimi command a specified number of times. Please note that you are required to wait a second on each execution.",
-                    Quotes = new List<string>
-                    {
-                        "It echoes a tick loud enough to break the sound barrier."
-                    },
-                    GroupId = ItemGroups.Automaton,
-                    Rarity = ItemRarity.Myth,
-                    Tag = ItemTag.Tool | ItemTag.Automaton,
-                    Value = 100000,
-                    AllowedHandles = ItemAllow.Clone | ItemAllow.Seal,
-                    TradeLimit = 0,
-                    Size = 1000,
-                    OwnLimit = 1
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.ToolGiftWrap,
-                    GroupId = ItemGroups.Tool,
-                    Icon = "🎀",
-                    Name = "Gift Wrap",
-                    Quotes = new List<string>
-                    {
-                        "Add a little mystery to your gifting!"
-                    },
-                    Summary = "Wraps an item to seal its contents.",
-                    Rarity = ItemRarity.Common,
-                    Tag = ItemTag.Tool,
-                    Value = 25,
-                    BypassCriteriaOnTrade = true,
-                    Size = 10,
-                    Usage = new ItemUsage
-                    {
-                        Durability = 1,
-                        DeleteMode = DeleteMode.Break,
-                        Action = delegate(UsageContext ctx)
+                        if (!Check.NotNull(ctx.Input))
+                            return UsageResult.FromError("An item data reference must be specified.");
+
+                        var reader = new StringReader(ctx.Input);
+
+                        if (!reader.CanRead())
+                            return UsageResult.FromError("An item data reference must be specified.");
+
+                        string id = reader.ReadUnquotedString();
+
+                        // The amount to wrap. If unspecified, the default is 1.
+                        int amount = 1;
+
+                        if (reader.CanRead())
                         {
-                            if (!Check.NotNull(ctx.Input))
-                                return UsageResult.FromError("An item data reference must be specified.");
+                            reader.SkipWhiteSpace();
+                            int.TryParse(reader.ReadUnquotedString(), out amount);
+                        }
 
-                            var reader = new StringReader(ctx.Input);
+                        bool isUniqueId = ctx.User.Items.Any(x => x.Data?.Id == id);
 
-                            if (!reader.CanRead())
-                                return UsageResult.FromError("An item data reference must be specified.");
+                        if (!ItemHelper.Exists(id) && !isUniqueId)
+                        {
+                            return UsageResult.FromError("Unknown data reference specified.");
+                        }
 
-                            string id = reader.ReadUnquotedString();
+                        string itemId = isUniqueId ? ItemHelper.ItemOf(ctx.User, id).Id : id;
+                        string uniqueId = isUniqueId ? id : null;
 
-                            // The amount to wrap. If unspecified, the default is 1.
-                            int amount = 1;
+                        bool isUnique = ItemHelper.IsUnique(itemId);
 
-                            if (reader.CanRead())
-                            {
-                                reader.SkipWhiteSpace();
-                                int.TryParse(reader.ReadUnquotedString(), out amount);
-                            }
+                        if (isUnique && !isUniqueId)
+                            return UsageResult.FromError("This item is marked as unique and must be specified by its unique ID.");
 
-                            bool isUniqueId = ctx.User.Items.Any(x => x.Data?.Id == id);
+                        ItemData data = ItemHelper.DataOf(ctx.User, itemId, uniqueId);
 
-                            if (!ItemHelper.Exists(id) && !isUniqueId)
-                            {
-                                return UsageResult.FromError("Unknown data reference specified.");
-                            }
+                        if (amount < 0)
+                            amount = 1;
+                        else if (amount > data.Count)
+                            amount = data.Count;
 
-                            string itemId = isUniqueId ? ItemHelper.ItemOf(ctx.User, id).Id : id;
-                            string uniqueId = isUniqueId ? id : null;
-
-                            bool isUnique = ItemHelper.IsUnique(itemId);
-
-                            if (isUnique && !isUniqueId)
-                                return UsageResult.FromError("This item is marked as unique and must be specified by its unique ID.");
-
-                            ItemData data = ItemHelper.DataOf(ctx.User, itemId, uniqueId);
-
-                            if (amount < 0)
-                                amount = 1;
-                            else if (amount > data.Count)
-                                amount = data.Count;
-
-                            if (isUnique)
+                        if (isUnique)
+                        {
+                            data.Seal = new ItemSealData("$_seal");
+                        }
+                        else
+                        {
+                            if (amount == data.Count)
                             {
                                 data.Seal = new ItemSealData("$_seal");
                             }
                             else
                             {
-                                if (amount == data.Count)
-                                {
-                                    data.Seal = new ItemSealData("$_seal");
-                                }
-                                else
-                                {
-                                    var seal = new ItemData(data.Id, amount);
-                                    seal.Seal = new ItemSealData("$_seal");
-                                    data.StackCount -= amount;
-                                    ctx.User.Items.Add(seal);
-                                }
+                                var seal = new ItemData(data.Id, amount);
+                                seal.Seal = new ItemSealData("$_seal");
+                                data.StackCount -= amount;
+                                ctx.User.Items.Add(seal);
                             }
-
-                            return UsageResult.FromSuccess($"> Successfully wrapped {amount:##,0} **{ItemHelper.NameOf(itemId)}**.");
                         }
-                    }
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.BoosterDebtBlocker,
-                    Name = "Debt Blocker",
-                    Quotes = new List<string>
-                    {
-                        "It creates a small shield when near debt."
-                    },
-                    GroupId = ItemGroups.Booster,
-                    Rarity = ItemRarity.Uncommon,
-                    Tag = ItemTag.Booster,
-                    Value = 525,
-                    BypassCriteriaOnTrade = true,
-                    Size = 75,
-                    Usage = new ItemUsage
-                    {
-                        Durability = 1,
-                        DeleteMode = DeleteMode.Break,
-                        Action = delegate(UsageContext ctx)
-                        {
-                            var booster = new BoostData(Arcadia.Items.BoosterDebtBlocker, BoostType.Debt, -0.2f, TimeSpan.FromHours(12), 20);
 
-                            if (!TryApplyBooster(ctx.User, booster))
-                                return UsageResult.FromError("> You already have too many active modifiers.");
-
-                            return UsageResult.FromSuccess("> The **Debt Blocker** opens up, revealing a crystal clear shield that surrounds you.");
-                        },
-                        OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
-                    },
-                    OwnLimit = 2
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.BoosterOriteBooster,
-                    Name = "Orite Booster",
-                    Quotes = new List<string>
-                    {
-                        "It amplifies the value of Orite when given close exposure."
-                    },
-                    GroupId = ItemGroups.Booster,
-                    Rarity = ItemRarity.Uncommon,
-                    Tag = ItemTag.Booster,
-                    Value = 500,
-                    BypassCriteriaOnTrade = true,
-                    Size = 75,
-                    Usage = new ItemUsage
-                    {
-                        Durability = 1,
-                        DeleteMode = DeleteMode.Break,
-                        Action = delegate(UsageContext ctx)
-                        {
-                            var booster = new BoostData(Arcadia.Items.BoosterOriteBooster, BoostType.Money, 0.2f, TimeSpan.FromHours(12), 20);
-
-                            if (!TryApplyBooster(ctx.User, booster))
-                                return UsageResult.FromError("> You already have too many active modifiers.");
-
-                            return UsageResult.FromSuccess("> The **Orite Booster** cracks open and infuses with your very well-being.");
-                        },
-                        OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
-                    },
-                    OwnLimit = 2
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PocketLawyer,
-                    Name = "Pocket Lawyer",
-                    Summary = "A summon that completely wipes all debt from a user.",
-                    Quotes = new List<string>
-                    {
-                        "With my assistance, ORS doesn't stand a chance.",
-                        "You'll get the chance to dispute in court, don't worry."
-                    },
-                    GroupId = ItemGroups.Summon,
-                    Rarity = ItemRarity.Myth,
-                    Tag = ItemTag.Summon,
-                    Value = 750,
-                    AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Sell,
-                    TradeLimit = 0,
-                    BypassCriteriaOnTrade = true,
-                    Size = 100,
-                    MemoId = 1,
-                    Memo = "The pocket-sized lawyer is a hollow shell of what it once was. Before ORS conquered over all, Po Ket was just an average fellow, amazed by the wonders of financial advancement.",
-                    ResearchTiers = new Dictionary<int, string>
-                    {
-                        [2] = $"Removal of {Format.Number(750, Icons.Debt)} requirement to use",
-                        [3] = $"New usage ability (`use su_pl recover`): **25**% chance of recovering previously lost funds (**4** day cooldown if successful)"
-                    },
-                    Usage = new ItemUsage
-                    {
-                        Durability = 1,
-                        Cooldown = TimeSpan.FromDays(3),
-                        DeleteMode = DeleteMode.Break,
-                        Action = delegate (UsageContext ctx)
-                        {
-                            if (ctx.Input.ToLower() == "recover")
-                            {
-                                if (ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
-                                    return UsageResult.FromError("> You have yet to understand the concept of recovery.");
-
-                                if (ctx.User.LastFundsLost == null)
-                                    return UsageResult.FromError("> There was nothing to recover.");
-
-                                if (RandomProvider.Instance.Next(0, 100) <= 25)
-                                {
-                                    ctx.User.Give(ctx.User.LastFundsLost.Value, ctx.User.LastFundsLost.Currency);
-                                    return UsageResult.FromSuccessCooldown(TimeSpan.FromDays(4),
-                                        "> Your funds have been recovered from the abyss.",
-                                        CooldownMode.Item);
-                                }
-
-                                return UsageResult.FromSuccess("> After several attempted hours of recovery, your funds fade into the darkness.");
-                            }
-
-                            if (ctx.User.Debt < 750 && ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 2)
-                                return UsageResult.FromError("> You called for help, but the request remains unanswered. You aren't seen as in need of assistance.");
-
-                            ctx.User.Debt = 0;
-                            return UsageResult.FromSuccess("> ⛓️ After a tough fight with **ORS**, **Mr. Pocket** was able to prove your innocence and wipe your debt. You have been freed from the shackles of debt.");
-                        }
-                    },
-                    OwnLimit = 3
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteGammaGreen,
-                    Name = "Gamma Green",
-                    Quotes = new List<string>
-                    {
-                        "It glows with a shade of green similar to uranium."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 1000,
-                    Size = 50,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Common,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteCrimson,
-                    Name = "Crimson",
-                    Quotes = new List<string>
-                    {
-                        "It thrives in a neon glow of a reddish-purple hue."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 1000,
-                    Size = 50,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Common,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteWumpite,
-                    Name = "Wumpite",
-                    Quotes = new List<string>
-                    {
-                        "Crafted with the shades of a Wumpus."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 1500,
-                    Size = 75,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Uncommon,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PalettePolarity,
-                    Name = "Polarity",
-                    Quotes = new List<string>
-                    {
-                        "It reminds you of a desolate atmosphere, now frozen over."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 6000,
-                    Size = 325,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Myth,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Polarity)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteGlass,
-                    Name = "Glass",
-                    Quotes = new List<string>
-                    {
-                        "It refracts a mixture of light blue to white light."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 3000,
-                    Size = 75,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteLemon,
-                    Name = "Lemon",
-                    Quotes = new List<string>
-                    {
-                        "It exudes a wave of citrus in the air."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 2500,
-                    Size = 75,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Lemon)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteBurntLemon,
-                    Name = "Burnt Lemon",
-                    Quotes = new List<string>
-                    {
-                        "The citrus wave it once provided sparks under the embers."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Value = 5000,
-                    Size = 75,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Crimson, PaletteType.Lemon))),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 2
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteOceanic,
-                    Name = "Oceanic",
-                    Quotes = new List<string>
-                    {
-                        "It crashes down on land, whispering the secrets of the sea."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 2500,
-                    Size = 150,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Oceanic)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 10
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteTaffy,
-                    Name = "Taffy",
-                    Quotes = new List<string>
-                    {
-                        "It coats itself in a swirl of flexible sugar."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    Value = 3500,
-                    Size = 150,
-                    BypassCriteriaOnTrade = true,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Taffy)),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 5
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteGlossyWumpite,
-                    Name = "Glossy Wumpite",
-                    Quotes = new List<string>
-                    {
-                        "It refracts a mixture of light that absorbs the color of a Wumpus."
-                    },
-                    GroupId = ItemGroups.Palette,
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Value = 3500,
-                    Size = 175,
-                    TradeLimit = 0,
-                    Rarity =  ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass))),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 5
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteGold,
-                    GroupId = ItemGroups.Palette,
-                    Name = "Gold",
-                    Quotes = new List<string>
-                    {
-                        "It gleams a golden radiant of hope."
-                    },
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    AllowedHandles = ItemAllow.Seal,
-                    Value = 7500,
-                    Size = 400,
-                    TradeLimit = 0,
-                    Rarity = ItemRarity.Desolate,
-                    OwnLimit = 1
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteAmber,
-                    GroupId = ItemGroups.Palette,
-                    Name = "Amber",
-                    Quotes = new List<string>
-                    {
-                        "It preserves the life form of something hidden in the past."
-                    },
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Value = 5000,
-                    Size = 300,
-                    TradeLimit = 0,
-                    Rarity = ItemRarity.Myth,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Amber))),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 2
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.PaletteChocolate,
-                    GroupId = ItemGroups.Palette,
-                    Name = "Chocolate",
-                    Quotes = new List<string>
-                    {
-                        "It reminds you of a simpler time, where sweets meant everything."
-                    },
-                    Tag = ItemTag.Palette | ItemTag.Decorator,
-                    AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                    Value = 3000,
-                    Size = 350,
-                    TradeLimit = 0,
-                    Rarity = ItemRarity.Rare,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Chocolate))),
-                        DeleteMode = DeleteMode.Break
-                    },
-                    OwnLimit = 2
-                },
-                new Item
-                {
-                    Id = "ap_mc",
-                    GroupId = ItemGroups.AccessPass,
-                    Name = "Midonian Casino",
-                    Quotes = new List<string>
-                    {
-                        "It absorbs the addiction of desperate gamblers."
-                    },
-                    Tag = ItemTag.Pass,
-                    AllowedHandles = ItemAllow.Seal,
-                    Rarity = ItemRarity.Desolate,
-                    OwnLimit = 1,
-                    TradeLimit = 0
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.FontFoxtrot,
-                    Name = "Foxtrot",
-                    Quotes = new List<string>
-                    {
-                        "It represents a strongly typed font face with a clean design."
-                    },
-                    Tag = ItemTag.Font | ItemTag.Decorator,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Foxtrot))
-                    }
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.FontMonori,
-                    Name = "Monori",
-                    Quotes = new List<string>
-                    {
-                        "It resists the automation of auto-width characters.",
-                        "It translates at the speed of sound when left near a docking port."
-                    },
-                    Tag = ItemTag.Font | ItemTag.Decorator,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Monori))
-                    }
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.FontOrikos,
-                    Name = "Orikos",
-                    Quotes = new List<string>
-                    {
-                        "A system default that holds up to this day."
-                    },
-                    Tag = ItemTag.Font | ItemTag.Decorator,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Orikos))
-                    }
-                },
-                new Item
-                {
-                    Id = Arcadia.Items.FontDelta,
-                    Name = "Delta",
-                    Quotes = new List<string>
-                    {
-                        "It showcases a sharp range of tiny characters."
-                    },
-                    Tag = ItemTag.Font | ItemTag.Decorator,
-                    Usage = new ItemUsage
-                    {
-                        Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
+                        return UsageResult.FromSuccess($"> Successfully wrapped {amount:##,0} **{ItemHelper.NameOf(itemId)}**.");
                     }
                 }
-            };
+            },
+            new Item
+            {
+                Id = Ids.Items.BoosterDebtBlocker,
+                Name = "Debt Blocker",
+                Quotes = new List<string>
+                {
+                    "It creates a small shield when near debt."
+                },
+                GroupId = Ids.Groups.Booster,
+                Rarity = ItemRarity.Uncommon,
+                Tag = ItemTag.Booster,
+                Value = 525,
+                BypassCriteriaOnTrade = true,
+                Size = 75,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    DeleteMode = DeleteMode.Break,
+                    Action = delegate(UsageContext ctx)
+                    {
+                        var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostType.Debt, -0.2f, TimeSpan.FromHours(12), 20);
 
-        public static readonly List<ItemGroup> Groups = new List<ItemGroup>
+                        if (!TryApplyBooster(ctx.User, booster))
+                            return UsageResult.FromError("> You already have too many active modifiers.");
+
+                        return UsageResult.FromSuccess("> The **Debt Blocker** opens up, revealing a crystal clear shield that surrounds you.");
+                    },
+                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
+                },
+                OwnLimit = 2
+            },
+            new Item
+            {
+                Id = Ids.Items.BoosterOriteBooster,
+                Name = "Orite Booster",
+                Quotes = new List<string>
+                {
+                    "It amplifies the value of Orite when given close exposure."
+                },
+                GroupId = Ids.Groups.Booster,
+                Rarity = ItemRarity.Uncommon,
+                Tag = ItemTag.Booster,
+                Value = 500,
+                BypassCriteriaOnTrade = true,
+                Size = 75,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    DeleteMode = DeleteMode.Break,
+                    Action = delegate(UsageContext ctx)
+                    {
+                        var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostType.Money, 0.2f, TimeSpan.FromHours(12), 20);
+
+                        if (!TryApplyBooster(ctx.User, booster))
+                            return UsageResult.FromError("> You already have too many active modifiers.");
+
+                        return UsageResult.FromSuccess("> The **Orite Booster** cracks open and infuses with your very well-being.");
+                    },
+                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
+                },
+                OwnLimit = 2
+            },
+            new Item
+            {
+                Id = Ids.Items.PocketLawyer,
+                Name = "Pocket Lawyer",
+                Summary = "A summon that completely wipes all debt from a user.",
+                Quotes = new List<string>
+                {
+                    "With my assistance, ORS doesn't stand a chance.",
+                    "You'll get the chance to dispute in court, don't worry."
+                },
+                GroupId = Ids.Groups.Summon,
+                Rarity = ItemRarity.Myth,
+                Tag = ItemTag.Summon,
+                Value = 750,
+                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Sell,
+                TradeLimit = 0,
+                BypassCriteriaOnTrade = true,
+                Size = 100,
+                MemoId = 1,
+                Memo = "The pocket-sized lawyer is a hollow shell of what it once was. Before ORS conquered over all, Po Ket was just an average fellow, amazed by the wonders of financial advancement.",
+                ResearchTiers = new Dictionary<int, string>
+                {
+                    [2] = $"Removal of {Format.Number(750, Icons.Debt)} requirement to use",
+                    [3] = $"New usage ability (`use su_pl recover`): **25**% chance of recovering previously lost funds (**4** day cooldown if successful)"
+                },
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    Cooldown = TimeSpan.FromDays(3),
+                    DeleteMode = DeleteMode.Break,
+                    Action = delegate (UsageContext ctx)
+                    {
+                        if (ctx.Input.ToLower() == "recover")
+                        {
+                            if (ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 3)
+                                return UsageResult.FromError("> You have yet to understand the concept of recovery.");
+
+                            if (ctx.User.LastFundsLost == null)
+                                return UsageResult.FromError("> There was nothing to recover.");
+
+                            if (RandomProvider.Instance.Next(0, 100) <= 25)
+                            {
+                                ctx.User.Give(ctx.User.LastFundsLost.Value, ctx.User.LastFundsLost.Currency);
+                                return UsageResult.FromSuccessCooldown(TimeSpan.FromDays(4),
+                                    "> Your funds have been recovered from the abyss.",
+                                    CooldownMode.Item);
+                            }
+
+                            return UsageResult.FromSuccess("> After several attempted hours of recovery, your funds fade into the darkness.");
+                        }
+
+                        if (ctx.User.Debt < 750 && ResearchHelper.GetResearchTier(ctx.User, ctx.Item.Id) < 2)
+                            return UsageResult.FromError("> You called for help, but the request remains unanswered. You aren't seen as in need of assistance.");
+
+                        ctx.User.Debt = 0;
+                        return UsageResult.FromSuccess("> ⛓️ After a tough fight with **ORS**, **Mr. Pocket** was able to prove your innocence and wipe your debt. You have been freed from the shackles of debt.");
+                    }
+                },
+                OwnLimit = 3
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteGammaGreen,
+                Name = "Gamma Green",
+                Quotes = new List<string>
+                {
+                    "It glows with a shade of green similar to uranium."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 1000,
+                Size = 50,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Common,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteCrimson,
+                Name = "Crimson",
+                Quotes = new List<string>
+                {
+                    "It thrives in a neon glow of a reddish-purple hue."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 1000,
+                Size = 50,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Common,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteWumpite,
+                Name = "Wumpite",
+                Quotes = new List<string>
+                {
+                    "Crafted with the shades of a Wumpus."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 1500,
+                Size = 75,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Uncommon,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PalettePolarity,
+                Name = "Polarity",
+                Quotes = new List<string>
+                {
+                    "It reminds you of a desolate atmosphere, now frozen over."
+                },
+                GroupId = Ids.Groups.Palette,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 6000,
+                Size = 325,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Myth,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Polarity)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteGlass,
+                Name = "Glass",
+                Quotes = new List<string>
+                {
+                    "It refracts a mixture of light blue to white light."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 3000,
+                Size = 75,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteLemon,
+                Name = "Lemon",
+                Quotes = new List<string>
+                {
+                    "It exudes a wave of citrus in the air."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 2500,
+                Size = 75,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Lemon)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteBurntLemon,
+                Name = "Burnt Lemon",
+                Quotes = new List<string>
+                {
+                    "The citrus wave it once provided sparks under the embers."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Value = 5000,
+                Size = 75,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Crimson, PaletteType.Lemon))),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 2
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteOceanic,
+                Name = "Oceanic",
+                Quotes = new List<string>
+                {
+                    "It crashes down on land, whispering the secrets of the sea."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 2500,
+                Size = 150,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Oceanic)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 10
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteTaffy,
+                Name = "Taffy",
+                Quotes = new List<string>
+                {
+                    "It coats itself in a swirl of flexible sugar."
+                },
+                GroupId = Ids.Groups.Palette,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Value = 3500,
+                Size = 150,
+                BypassCriteriaOnTrade = true,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Taffy)),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 5
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteGlossyWumpite,
+                Name = "Glossy Wumpite",
+                Quotes = new List<string>
+                {
+                    "It refracts a mixture of light that absorbs the color of a Wumpus."
+                },
+                GroupId = Ids.Groups.Palette,
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Value = 3500,
+                Size = 175,
+                TradeLimit = 0,
+                Rarity =  ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass))),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 5
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteGold,
+                GroupId = Ids.Groups.Palette,
+                Name = "Gold",
+                Quotes = new List<string>
+                {
+                    "It gleams a golden radiant of hope."
+                },
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                AllowedHandles = ItemAllow.Seal,
+                Value = 7500,
+                Size = 400,
+                TradeLimit = 0,
+                Rarity = ItemRarity.Desolate,
+                OwnLimit = 1
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteAmber,
+                GroupId = Ids.Groups.Palette,
+                Name = "Amber",
+                Quotes = new List<string>
+                {
+                    "It preserves the life form of something hidden in the past."
+                },
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Value = 5000,
+                Size = 300,
+                TradeLimit = 0,
+                Rarity = ItemRarity.Myth,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Amber))),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 2
+            },
+            new Item
+            {
+                Id = Ids.Items.PaletteChocolate,
+                GroupId = Ids.Groups.Palette,
+                Name = "Chocolate",
+                Quotes = new List<string>
+                {
+                    "It reminds you of a simpler time, where sweets meant everything."
+                },
+                Tag = ItemTag.Palette | ItemTag.Decorator,
+                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Value = 3000,
+                Size = 350,
+                TradeLimit = 0,
+                Rarity = ItemRarity.Rare,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Chocolate))),
+                    DeleteMode = DeleteMode.Break
+                },
+                OwnLimit = 2
+            },
+            new Item
+            {
+                Id = "ap_mc",
+                GroupId = Ids.Groups.AccessPass,
+                Name = "Midonian Casino",
+                Quotes = new List<string>
+                {
+                    "It absorbs the addiction of desperate gamblers."
+                },
+                Tag = ItemTag.Pass,
+                AllowedHandles = ItemAllow.Seal,
+                Rarity = ItemRarity.Desolate,
+                OwnLimit = 1,
+                TradeLimit = 0
+            },
+            new Item
+            {
+                Id = Ids.Items.FontFoxtrot,
+                Name = "Foxtrot",
+                Quotes = new List<string>
+                {
+                    "It represents a strongly typed font face with a clean design."
+                },
+                Tag = ItemTag.Font | ItemTag.Decorator,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Foxtrot))
+                }
+            },
+            new Item
+            {
+                Id = Ids.Items.FontMonori,
+                Name = "Monori",
+                Quotes = new List<string>
+                {
+                    "It resists the automation of auto-width characters.",
+                    "It translates at the speed of sound when left near a docking port."
+                },
+                Tag = ItemTag.Font | ItemTag.Decorator,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Monori))
+                }
+            },
+            new Item
+            {
+                Id = Ids.Items.FontOrikos,
+                Name = "Orikos",
+                Quotes = new List<string>
+                {
+                    "A system default that holds up to this day."
+                },
+                Tag = ItemTag.Font | ItemTag.Decorator,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Orikos))
+                }
+            },
+            new Item
+            {
+                Id = Ids.Items.FontDelta,
+                Name = "Delta",
+                Quotes = new List<string>
+                {
+                    "It showcases a sharp range of tiny characters."
+                },
+                Tag = ItemTag.Font | ItemTag.Decorator,
+                Usage = new ItemUsage
+                {
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
+                }
+            }
+        };
+
+        public static readonly HashSet<ItemGroup> Groups = new HashSet<ItemGroup>
         {
             new ItemGroup
             {

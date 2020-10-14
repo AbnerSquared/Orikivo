@@ -16,7 +16,7 @@ namespace Arcadia.Services
         public static VoteResultFlag Next(BoatClient boatClient, ArcadeUser user)
         {
             long lastTicks = user.GetVar(CooldownVars.Vote);
-            long streak = user.GetVar(Stats.VoteStreak);
+            long streak = user.GetVar(Stats.Common.VoteStreak);
 
             TimeSpan sinceLast = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks);
 
@@ -69,7 +69,7 @@ namespace Arcadia.Services
                 case VoteResultFlag.Reset:
                     content = "Your streak has been reset.";
                     color = GammaPalette.NeonRed[Gamma.Max];
-                    user.SetVar(Stats.VoteStreak, 0);
+                    user.SetVar(Stats.Common.VoteStreak, 0);
                     break;
 
                 case VoteResultFlag.Bonus:
@@ -96,9 +96,9 @@ namespace Arcadia.Services
             if (flag != VoteResultFlag.Cooldown && flag != VoteResultFlag.Unavailable)
             {
                 user.SetVar(CooldownVars.Vote, DateTime.UtcNow.Ticks);
-                user.AddToVar(Stats.VoteStreak);
-                user.AddToVar(Stats.TimesVoted);
-                Var.SetIfGreater(user, Stats.LongestVoteStreak, Stats.VoteStreak);
+                user.AddToVar(Stats.Common.VoteStreak);
+                user.AddToVar(Stats.Common.TimesVoted);
+                Var.SetIfGreater(user, Stats.Common.LongestVoteStreak, Stats.Common.VoteStreak);
                 user.Give(reward, CurrencyType.Tokens);
             }
 

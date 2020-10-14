@@ -116,10 +116,10 @@ namespace Arcadia
             if (TryWriteCooldown(user, "Daily", CooldownVars.Daily, DailyService.Cooldown, out string daily))
                 cooldowns.Add(daily);
 
-            if (TryWriteCooldown(user, "Objective Assign", Stats.LastAssignedQuest, QuestHelper.AssignCooldown, out string assign))
+            if (TryWriteCooldown(user, "Objective Assign", Stats.Common.LastAssignedQuest, QuestHelper.AssignCooldown, out string assign))
                 cooldowns.Add(assign);
 
-            if (TryWriteCooldown(user, "Objective Skip", Stats.LastSkippedQuest, QuestHelper.SkipCooldown, out string skip))
+            if (TryWriteCooldown(user, "Objective Skip", Stats.Common.LastSkippedQuest, QuestHelper.SkipCooldown, out string skip))
                 cooldowns.Add(skip);
 
             // Include research in cooldowns

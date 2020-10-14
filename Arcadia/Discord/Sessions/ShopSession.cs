@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
 using Orikivo.Text;
@@ -241,7 +242,7 @@ namespace Arcadia
             await MessageReference.ModifyAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
         }
 
-        public override async Task<SessionTaskResult> OnMessageReceivedAsync(SocketMessage message)
+        public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             var reader = new StringReader(message.Content);
 
@@ -269,44 +270,44 @@ namespace Arcadia
                     case "buy" when !Shop.Buy:
                         State = ShopState.BuyDeny;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "buy" when Catalog.ItemIds.Count == 0:
                         State = ShopState.BuyEmpty;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "buy" when Shop.MaxAllowedPurchases.HasValue && GetHistory().PurchasedIds.Values.Sum() >= Shop.MaxAllowedPurchases:
                         State = ShopState.BuyLimit;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "buy":
                         State = ShopState.ViewBuy;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "sell" when !Shop.Sell:
                         State = ShopState.SellDeny;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "sell" when User.Items.Count == 0:
                         State = ShopState.SellEmpty;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "sell":
                         if (User.Items.Count(x => (ItemHelper.GetTag(x.Id) & Shop.SellTags) != 0) == 0)
                         {
                             State = ShopState.SellEmpty;
                             await UpdateAsync();
-                            return SessionTaskResult.Continue;
+                            return SessionResult.Continue;
                         }
 
                         State = ShopState.ViewSell;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                         // Handle unlocking new shops
                         // by having the vendor talk about it
@@ -316,10 +317,10 @@ namespace Arcadia
                         Notice = null;
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return SessionTaskResult.Success;
+                        return SessionResult.Success;
 
                     default:
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                 }
             }
 
@@ -333,13 +334,13 @@ namespace Arcadia
                         Notice = null;
                         State = ShopState.Menu;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
                     // leave
                     case "leave":
                         Notice = null;
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return SessionTaskResult.Success;
+                        return SessionResult.Success;
                 }
 
                 State = ShopState.ViewBuy;
@@ -348,14 +349,14 @@ namespace Arcadia
 
 
                 if (item == null && !ItemHelper.Exists(command))
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
 
                 if (item == null)
                 {
                     State = ShopState.BuyInvalid;
                     // Write a notice
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 int amount = ParseAmount(arg, item);
@@ -363,14 +364,14 @@ namespace Arcadia
                 if (amount < 1)
                 {
                     await UpdateAsync("I don't think I heard that correctly. How many did you want to purchase?");
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (!CanBuy(item, amount))
                 {
                     State = ShopState.BuyFail;
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 // Otherwise, if the item can be bought:
@@ -389,12 +390,12 @@ namespace Arcadia
                 {
                     State = ShopState.BuyRemainder;
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 State = ShopState.Buy;
                 await UpdateAsync();
-                return SessionTaskResult.Continue;
+                return SessionResult.Continue;
             }
 
             if (State.EqualsAny(ShopState.ViewSell, ShopState.Sell, ShopState.SellInvalid, ShopState.SellNotAllowed, ShopState.SellNotOwned))
@@ -404,12 +405,12 @@ namespace Arcadia
                     case "back":
                         State = ShopState.Menu;
                         await UpdateAsync();
-                        return SessionTaskResult.Continue;
+                        return SessionResult.Continue;
 
                     case "leave":
                         State = ShopState.Exit;
                         await UpdateAsync();
-                        return SessionTaskResult.Success;
+                        return SessionResult.Success;
                 }
 
                 State = ShopState.ViewSell;
@@ -417,21 +418,21 @@ namespace Arcadia
                 Item item = GetItemFromInventory(command);
 
                 if (item == null && !ItemHelper.Exists(command))
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
 
                 if (item == null)
                 {
                     State = ShopState.SellInvalid;
                     // Write a notice
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (!CanSell(item))
                 {
                     State = ShopState.SellNotAllowed;
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 int amount = ParseAmount(arg, item);
@@ -439,14 +440,14 @@ namespace Arcadia
                 if (amount < 1)
                 {
                     await UpdateAsync("I don't think I heard that correctly. How many did you want to sell?");
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 if (ItemHelper.GetOwnedAmount(User, item) == 0)
                 {
                     State = ShopState.SellNotOwned;
                     await UpdateAsync();
-                    return SessionTaskResult.Continue;
+                    return SessionResult.Continue;
                 }
 
                 // Take the item from the user
@@ -456,11 +457,11 @@ namespace Arcadia
 
                 State = ShopState.Sell;
                 await UpdateAsync();
-                return SessionTaskResult.Continue;
+                return SessionResult.Continue;
             }
 
             // Otherwise, wait for the next input
-            return SessionTaskResult.Continue;
+            return SessionResult.Continue;
         }
 
         private bool CanSell(Item item)
@@ -488,7 +489,7 @@ namespace Arcadia
             if (!User.CatalogHistory[Shop.Id].SoldIds.TryAdd(item.Id, amount))
                 User.CatalogHistory[Shop.Id].SoldIds[item.Id] += amount;
 
-            User.AddToVar(Stats.ItemsSold, amount);
+            User.AddToVar(Stats.Common.ItemsSold, amount);
             User.AddToVar(ShopHelper.GetTotalSoldId(Shop.Id), amount);
         }
 
@@ -510,7 +511,7 @@ namespace Arcadia
                     Catalog.Discounts.Remove(item.Id);
             }
 
-            User.AddToVar(Stats.ItemsBought, amount);
+            User.AddToVar(Stats.Common.ItemsBought, amount);
             User.AddToVar(ShopHelper.GetTotalBoughtId(Shop.Id), amount);
         }
 

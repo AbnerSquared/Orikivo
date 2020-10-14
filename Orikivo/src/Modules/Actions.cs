@@ -196,7 +196,7 @@ namespace Orikivo.Modules
             if (Engine.CanChatWith(Context.Account.Husk, id, out Character npc))
             {
                 // TODO: Handle how dialogue pools are chosen.
-                ChatHandler chat = new ChatHandler(Context, npc, Engine.GetGenericTree());
+                ChatSession chat = new ChatSession(Context, npc, Engine.GetGenericTree());
                 await HandleChatAsync(chat);
             }
             else
@@ -264,7 +264,7 @@ namespace Orikivo.Modules
 
             if (Engine.CanShopAt(Context.Account.Husk, out Market market))
             {
-                ShopHandler shop = new ShopHandler(Context, market, PaletteType.Glass);
+                ShopSession shop = new ShopSession(Context, market, PaletteType.Glass);
                 await HandleShopAsync(shop);
             }
             else
@@ -494,7 +494,7 @@ namespace Orikivo.Modules
             }
         }
 
-        private async Task HandleShopAsync(ShopHandler shop)
+        private async Task HandleShopAsync(ShopSession shop)
         {
             try
             {
@@ -518,7 +518,7 @@ namespace Orikivo.Modules
                 await Context.Channel.CatchAsync(e);
             }
         }
-        private async Task HandleChatAsync(ChatHandler handler)
+        private async Task HandleChatAsync(ChatSession handler)
         {
             try
             {

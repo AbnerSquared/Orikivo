@@ -4,13 +4,13 @@ using Orikivo.Framework;
 
 namespace Arcadia.Casino
 {
-    public class Tick
+    public class Doubler
     {
         public static readonly int BaseChance = 40;
         public static readonly int LowerBound = 0;
         public static readonly int UpperBound = 100;
 
-        public Tick(int expectedTick, TickWinMethod method = TickWinMethod.Below)
+        public Doubler(int expectedTick, DoublerWinMethod method = DoublerWinMethod.Below)
         {
             Method = method;
             ExpectedTick = expectedTick;
@@ -21,12 +21,12 @@ namespace Arcadia.Casino
 
         public int Chance { get; private set; }
 
-        public TickWinMethod Method { get; }
+        public DoublerWinMethod Method { get; }
 
-        public static float GetMultiplier(int ticks, TickWinMethod method)
-            => (float) (Math.Pow(2, ticks) * (method == TickWinMethod.Exact ? 1.5 : 1));
+        public static float GetMultiplier(int ticks, DoublerWinMethod method)
+            => (float) (Math.Pow(2, ticks) * (method == DoublerWinMethod.Exact ? 1.5 : 1));
 
-        public TickResult Next(long wager, long lossStreak = 0)
+        public DoublerResult Next(long wager, long lossStreak = 0)
         {
             var ticks = 0;
             var alive = true;
@@ -61,20 +61,20 @@ namespace Arcadia.Casino
             Chance = chance;
             bool won = Method switch
             {
-                TickWinMethod.Exact => ticks == ExpectedTick,
+                DoublerWinMethod.Exact => ticks == ExpectedTick,
                 _ => ticks >= ExpectedTick
             };
 
-            TickResultFlag flag = won ? TickResultFlag.Win : TickResultFlag.Lose;
+            DoublerResultFlag flag = won ? DoublerResultFlag.Win : DoublerResultFlag.Lose;
 
-            if (won && Method == TickWinMethod.Exact)
-                flag = TickResultFlag.Exact;
+            if (won && Method == DoublerWinMethod.Exact)
+                flag = DoublerResultFlag.Exact;
 
             float multiplier = GetMultiplier(ExpectedTick, Method);
             var reward = (long) Math.Floor(wager * multiplier);
 
             Logger.Debug($"Tick died at {ticks} ({chance}%) [{flag} - {wager} => {reward} (x{multiplier})]");
-            return new TickResult(wager, reward, flag, ExpectedTick, ticks, multiplier);
+            return new DoublerResult(wager, reward, flag, ExpectedTick, ticks, multiplier);
         }
     }
 }
