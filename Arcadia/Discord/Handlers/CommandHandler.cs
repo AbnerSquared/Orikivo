@@ -290,7 +290,7 @@ namespace Arcadia
                 {
                     if (!(DateTime.UtcNow - ctx.Account.GlobalCooldown >= TimeSpan.Zero))
                     {
-                        if (!ctx.Account.HasBeenNoticed)
+                        if ((ctx.Server?.Config.AllowCooldownNotices ?? true) && !ctx.Account.HasBeenNoticed)
                         {
                             await ctx.Channel.SendMessageAsync(WriteCooldownText(ctx.Account.GlobalCooldown.Value));
                             ctx.Account.HasBeenNoticed = true;
