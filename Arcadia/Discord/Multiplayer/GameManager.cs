@@ -217,6 +217,8 @@ namespace Arcadia.Multiplayer
 
             ServerProperties properties = ServerProperties.GetDefault(user.Username);
 
+            gameId = gameId?.ToLower();
+
             if (!string.IsNullOrWhiteSpace(gameId) && Games.ContainsKey(gameId))
                 properties.GameId = gameId;
 

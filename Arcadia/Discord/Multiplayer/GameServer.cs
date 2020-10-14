@@ -107,7 +107,9 @@ namespace Arcadia.Multiplayer
         internal static async Task<GameServer> CreateAsync(GameManager manager, IUser user, IMessageChannel channel, ServerProperties properties = null)
         {
             properties ??= ServerProperties.GetDefault(user.Username);
-            properties.GameId = manager.DefaultGameId;
+
+            if (string.IsNullOrWhiteSpace(properties.GameId))
+                properties.GameId = manager.DefaultGameId;
 
             if (manager.ReservedUsers.ContainsKey(user.Id))
                 throw new ReservedException(user.Id, EntityType.User);
