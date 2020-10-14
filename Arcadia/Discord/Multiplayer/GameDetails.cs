@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Orikivo.Desync;
 using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer
@@ -20,5 +22,10 @@ namespace Arcadia.Multiplayer
         public bool AllowSessionLeave { get; set; }
         public List<string> LoadingTips { get; set; }
         public long RequiredWager { get; set; }
+
+        // This is the length of time from which experience will scale up
+        public TimeBlock ExpTimeRange { get; set; }
+
+
     }
 }

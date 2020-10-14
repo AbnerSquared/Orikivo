@@ -69,6 +69,7 @@ namespace Arcadia
 
             internal static readonly string MultiplayerGamesPlayedDaily = "multiplayer:games_played_daily";
             internal static readonly string MultiplayerGamesPlayed = "multiplayer:games_played";
+            internal static readonly string MultiplayerLastGamePlayed = "multiplayer:last_game_played";
         }
 
         internal static class Trivia

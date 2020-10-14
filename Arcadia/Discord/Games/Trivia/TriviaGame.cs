@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenTDB;
+using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -471,6 +472,7 @@ namespace Arcadia.Multiplayer.Games
                             if (answerSelected.IsCorrect)
                             {
                                 data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
                             }
                             else
                             {
@@ -506,6 +508,7 @@ namespace Arcadia.Multiplayer.Games
                             if (answerSelected.IsCorrect)
                             {
                                 data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
                             }
                             else
                             {
@@ -541,6 +544,7 @@ namespace Arcadia.Multiplayer.Games
                             if (answerSelected.IsCorrect)
                             {
                                 data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
                             }
                             else
                             {
@@ -576,6 +580,7 @@ namespace Arcadia.Multiplayer.Games
                             if (answerSelected.IsCorrect)
                             {
                                 data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
                             }
                             else
                             {
@@ -696,6 +701,8 @@ namespace Arcadia.Multiplayer.Games
                     {
                         GameProperty.Create("score", 0),
                         GameProperty.Create("streak", 0),
+                        // This is the sum of correct responses they've given
+                        GameProperty.Create("total_correct", 0),
                         // if the answer they selected was correct, set to true; otherwise false
                         GameProperty.Create("is_correct", false),
                         GameProperty.Create("has_answered", false),
@@ -790,6 +797,76 @@ namespace Arcadia.Multiplayer.Games
             return result;
         }
 
+        /// <inheritdoc />
+        protected override ulong CalculateExp(GameSession session, PlayerData player)
+        {
+            TriviaDifficulty difficulty = session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty);
+            int questionCount = session.GetConfigValue<int>(TriviaConfig.QuestionCount);
+            int playerCount = session.Players.Count;
+            int totalCorrect = player.ValueOf<int>(TriviaVars.TotalCorrect);
+            int streak = player.ValueOf<int>(TriviaVars.Streak);
+
+            int baseQuestionExp = 2;
+
+            Logger.Debug($"Q COUNT: {questionCount}\nP COUNT: {playerCount}\nTOTAL CORRECT: {totalCorrect}\nSTREAK: {streak}");
+
+            // If they didn't get any correct, return a consolation 2 exp as long as there were at least 3 questions
+            if (totalCorrect == 0)
+            {
+                if (questionCount >= 3)
+                    return 2;
+
+                return 0; // otherwise, grant no experience
+            }
+
+            if (questionCount < 10) // below 10 is considered a short game, which is reduced exp
+            {
+                if (questionCount <= 5)
+                    baseQuestionExp = 1;
+
+                ulong score = (ulong) (baseQuestionExp * totalCorrect); // return the amount of questions below 5
+
+                // Don't grant bonus exp for a game with less than 5 questions
+                if (questionCount < 5)
+                    return score;
+
+                if (streak == questionCount)
+                    score += 5; // If all of the answers were correct, grant 5 bonus exp for a short game
+
+                if (difficulty == TriviaDifficulty.Hard && ((totalCorrect / (double)questionCount) >= 0.5f))
+                    score += 5; // If all of the answers were hard, grant 5 bonus exp if they got at least 50% of the questions right
+
+                return score;
+            }
+
+            // If at least one other person was playing, set the base exp to 3 (150% per question)
+            if (playerCount > 1)
+                baseQuestionExp = 3;
+
+            bool isOpenTdb = session.GetConfigValue<bool>(TriviaConfig.UseOpenTDB);
+
+            // multiply score by total correct
+            ulong baseScore = (ulong)(baseQuestionExp * totalCorrect);
+
+            if (!isOpenTdb)
+                return baseScore;
+
+            float baseMultiplier = 1f;
+
+            // add 0.25x to the base multiplier if they scored a flawless game
+            if (streak == totalCorrect)
+                baseMultiplier += 0.25f;
+
+            // If all of the questions were hard AND they were using OpenTDB, add 0.10x to the base multiplier
+            if (difficulty == TriviaDifficulty.Hard)
+                baseMultiplier += 0.1f;
+
+            // Multiply the score with the multiplier
+            baseScore = (ulong)Math.Floor(baseScore * baseMultiplier);
+
+            return baseScore;
+        }
+
         public override GameResult OnSessionFinish(GameSession session)
         {
             var result = new GameResult();
@@ -817,7 +894,8 @@ namespace Arcadia.Multiplayer.Games
 
                 var toUpdate = new PlayerResult
                 {
-                    Stats = stats
+                    Stats = stats,
+                    Exp = CalculateExp(session, player)
                 };
 
                 result.UserIds.Add(playerId, toUpdate);

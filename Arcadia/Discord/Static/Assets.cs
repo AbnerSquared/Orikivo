@@ -45,6 +45,11 @@ namespace Arcadia
             }
         };
 
+        public static readonly HashSet<Challenge> Challenges = new HashSet<Challenge>
+        {
+
+        };
+
         public static readonly HashSet<Quest> Quests = new HashSet<Quest>
         {
             new Quest
