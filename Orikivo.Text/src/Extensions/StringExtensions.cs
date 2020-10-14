@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Orikivo
+namespace Orikivo.Text
 {
     public static class StringExtensions
     {
@@ -501,7 +501,7 @@ namespace Orikivo
         /// </summary>
         public static string Escape(this string s, params char[] escapeChars)
         {
-            escapeChars.ForEach(c => s = s.Replace(c.ToString(), c.Escape()));
+            Array.ForEach(escapeChars, c => s = s.Replace(c.ToString(), c.ToString().Escape()));
             return s;
         }
 
@@ -510,7 +510,7 @@ namespace Orikivo
         /// </summary>
         public static string Escape(this string s, params string[] args)
         {
-            args.ForEach(x => s = s.Replace(x, x.Escape()));
+            Array.ForEach(args, x => s = s.Replace(x, x.Escape()));
             return s;
         }
 
@@ -519,7 +519,7 @@ namespace Orikivo
         /// </summary>
         public static string Remove(this string s, params string[] args)
         {
-            args.ForEach(x => s = s.Replace(x, string.Empty));
+            Array.ForEach(args, x => s = s.Replace(x, string.Empty));
             return s;
         }
 
@@ -528,7 +528,7 @@ namespace Orikivo
         /// </summary>
         public static string Remove(this string s, params char[] args)
         {
-            args.ForEach(c => s = s.Replace(c.ToString(), string.Empty));
+            Array.ForEach(args, c => s = s.Replace(c.ToString(), string.Empty));
             return s;
         }
     }

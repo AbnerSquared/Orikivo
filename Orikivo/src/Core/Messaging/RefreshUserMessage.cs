@@ -63,6 +63,5 @@ namespace Orikivo
 
         public async Task DeleteAsync(RequestOptions options = null)
             => await _message.DeleteAsync(options);
-
     }
 }

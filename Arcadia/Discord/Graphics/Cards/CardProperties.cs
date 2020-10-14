@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Graphics
 {

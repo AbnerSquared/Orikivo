@@ -36,6 +36,17 @@ namespace Orikivo.Text
             return builder.Insert(0, c).Append(c);
         }
 
+        /// <summary>
+        /// Appends a specified number of copies of the specified string to this instance.
+        /// </summary>
+        public static StringBuilder Append(this StringBuilder stringBuilder, string value, int repeatCount)
+        {
+            for (int i = 0; i < repeatCount; i++)
+                stringBuilder.Append(value);
+
+            return stringBuilder;
+        }
+
         public static StringBuilder AppendMarkdown(this StringBuilder builder, string value, Markdown markdown = 0)
         {
             return builder.Append(MarkdownBuilder.Format(value, markdown));

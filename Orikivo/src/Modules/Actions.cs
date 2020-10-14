@@ -218,7 +218,7 @@ namespace Orikivo.Modules
             }
             Context.Account.Husk = husk;
 
-            await Context.Channel.SendMessageAsync(HuskHandler.ViewStatus(Context.Account, Context.Account.Husk));
+            await Context.Channel.SendMessageAsync(HuskViewer.ViewStatus(Context.Account, Context.Account.Husk));
         }
 
         [RequireUser]

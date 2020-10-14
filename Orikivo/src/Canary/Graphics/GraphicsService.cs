@@ -4,6 +4,7 @@ using System.Linq;
 using Orikivo.Drawing;
 using Orikivo.Drawing.Graphics2D;
 using Orikivo.Desync;
+using Orikivo.Text;
 
 namespace Orikivo.Canary
 {

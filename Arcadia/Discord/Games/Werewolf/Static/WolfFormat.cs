@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Arcadia.Multiplayer.Games.Werewolf;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Multiplayer.Games
 {

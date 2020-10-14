@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Orikivo
 {
-    internal static class HuskHandler
+    internal static class HuskViewer
     {
         internal static string ViewStatus(User user, Husk husk)
         {
@@ -12,7 +12,7 @@ namespace Orikivo
             var status = new StringBuilder();
 
             status.AppendLine($"> **HP**: **{husk.Status.Health}**/{husk.Attributes.MaxHealth}");
-            
+
             if (showTooltips)
                 status.AppendLine("> Represents your current health pool. This determines how many hits you can take before being desynchronized.\n");
 

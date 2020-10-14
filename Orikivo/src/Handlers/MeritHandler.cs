@@ -189,7 +189,5 @@ namespace Orikivo
         // checks if the merit has a reward AND the user hasn't claimed it.
         private static bool CanReward(User user, Merit merit)
             => merit.Reward != null && (!user.Merits[merit.Id].IsClaimed ?? false);
-
-        
     }
 }

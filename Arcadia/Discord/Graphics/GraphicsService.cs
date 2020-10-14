@@ -3,6 +3,7 @@ using System.Drawing;
 using Orikivo.Drawing;
 using Orikivo;
 using System.Diagnostics;
+using Orikivo.Text;
 
 namespace Arcadia.Graphics
 {

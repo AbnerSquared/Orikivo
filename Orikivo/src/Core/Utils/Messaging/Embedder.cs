@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Orikivo.Text;
 
 namespace Orikivo
 {
@@ -13,7 +14,7 @@ namespace Orikivo
         public static Embedder Default
             => new Embedder { Color = ImmutableColor.GammaGreen };
 
-        public TextLocale Locale { get; set; } = TextLocale.English;
+        public Language Locale { get; set; } = Language.English;
 
         public Color? Color { get; set; }
 

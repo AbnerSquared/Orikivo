@@ -1,4 +1,4 @@
-﻿namespace Orikivo
+﻿namespace Orikivo.Text
 {
     public enum Casing
     {

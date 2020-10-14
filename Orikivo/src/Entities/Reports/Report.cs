@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Orikivo.Text;
 
 namespace Orikivo
 {
@@ -193,7 +194,7 @@ namespace Orikivo
                 sb.Append($" • {string.Join(' ', Tag.GetFlags().Select(x => $"**#**{x.ToString()}"))}");
             sb.AppendLine();
             sb.AppendLine(Content);
-            sb.AppendLine($"`{Author.Name}` **@** `{(EditedAt ?? CreatedAt).ToString("MM/dd/yyyy hh:mm:sstt")}`");
+            sb.AppendLine($"`{Author.Name}` **@** `{(EditedAt ?? CreatedAt):MM/dd/yyyy hh:mm:sstt}`");
             return sb.ToString();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Orikivo.Drawing;
 using System.Collections.Generic;
+using Orikivo.Text;
 
 namespace Orikivo.Canary
 {

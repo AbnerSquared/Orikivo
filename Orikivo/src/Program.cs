@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Orikivo.Canary;
 using Orikivo.Modules;
+using Orikivo.Text;
 
 namespace Orikivo
 {

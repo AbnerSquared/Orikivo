@@ -5,6 +5,7 @@ using System.Text;
 using Orikivo;
 using Orikivo.Desync;
 using Orikivo.Text.Pagination;
+using Orikivo.Text;
 
 namespace Arcadia
 {

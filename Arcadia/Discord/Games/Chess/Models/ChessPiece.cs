@@ -1,6 +1,6 @@
 ﻿using System;
-using Orikivo;
 using Orikivo.Drawing;
+using Orikivo.Text;
 
 namespace Arcadia.Multiplayer.Games
 {

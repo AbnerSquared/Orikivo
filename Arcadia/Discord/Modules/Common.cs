@@ -11,6 +11,7 @@ using Arcadia.Graphics;
 using Arcadia.Multiplayer.Games;
 using DiscordBoats;
 using Microsoft.Extensions.Configuration;
+using Orikivo.Text;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
