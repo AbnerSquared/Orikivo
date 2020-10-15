@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace Arcadia.Multiplayer
     /// Represents a generic game structure.
     /// </summary>
     /// <typeparam name="TPlayer"></typeparam>
-    public abstract class GameBase<TPlayer> where TPlayer : IPlayerData
+    public abstract class GameBase<TPlayer> where TPlayer : IPlayer
     {
         public string Id { get; protected set; } // What is the ID for this game?
         public GameDetails Details { get; protected set; } // What are the details for this game?
@@ -23,6 +24,21 @@ namespace Arcadia.Multiplayer
         public abstract Task OnGameBuild(); // What to do when this game is initialized
         public abstract Task OnGameComplete(); // What to do when this game is complete
         public abstract Task OnGameStart(); // How does this game start
+    }
+
+    public class TriviaPlayer : IPlayer
+    {
+        // This is all specified from the base player
+        public ulong Id { get; }
+        public string Name { get; }
+        public DateTime JoinedAt { get; }
+        public bool IsPlaying { get; }
+
+        public int Score { get; internal set; }
+
+        public int Streak { get; internal set; }
+
+        public int TotalCorrect { get; internal set; }
     }
 
     /// <summary>
@@ -92,6 +108,17 @@ namespace Arcadia.Multiplayer
         /// Represents the method used to safely end a <see cref="GameSession"/>.
         /// </summary>
         public abstract GameResult OnSessionFinish(GameSession session);
+
+        protected void FinalizeResult(GameResult result, GameSession session)
+        {
+            var properties = new List<GameProperty>();
+            properties.AddRange(session.Properties);
+            properties.AddRange(session.Options);
+
+            result.GameId = session.Game.Id;
+            result.SessionProperties = properties;
+            result.SessionDuration = DateTime.UtcNow - session.StartedAt;
+        }
 
         // Determine a player's exp amount based on their results
         protected virtual ulong CalculateExp(GameSession session, PlayerData player)

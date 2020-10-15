@@ -66,10 +66,16 @@ namespace Arcadia
             internal static readonly string VoteStreak = "vote:current_streak";
             internal static readonly string LongestVoteStreak = "vote:longest_streak";
             internal static readonly string TimesVoted = "vote:times_used";
+            internal static readonly string ChallengeTotalCompleted = "challenge:total_completed";
+            internal static readonly string ChallengeMostSetsCompleted = "challenge:most_sets_completed";
+            internal static readonly string ChallengeSetsCompletedDaily = "challenge:sets_completed_daily";
+        }
 
-            internal static readonly string MultiplayerGamesPlayedDaily = "multiplayer:games_played_daily";
-            internal static readonly string MultiplayerGamesPlayed = "multiplayer:games_played";
-            internal static readonly string MultiplayerLastGamePlayed = "multiplayer:last_game_played";
+        internal static class Multiplayer
+        {
+            internal static readonly string GamesPlayedDaily = "multiplayer:games_played_daily";
+            internal static readonly string GamesPlayed = "multiplayer:games_played";
+            internal static readonly string LastGamePlayed = "multiplayer:last_game_played";
         }
 
         internal static class Trivia

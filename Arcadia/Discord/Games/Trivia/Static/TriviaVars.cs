@@ -3,6 +3,7 @@
     internal static class TriviaVars
     {
         internal static readonly string TotalCorrect = "total_correct";
+        internal static readonly string Score = "score";
         internal static readonly string Streak = "streak";
         internal static readonly string TotalAnswered = "total_answered";
         internal static readonly string GetQuestionResult = "get_question_result";

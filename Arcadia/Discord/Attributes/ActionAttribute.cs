@@ -10,4 +10,15 @@ namespace Arcadia.Multiplayer
         // UpdateOnExecute
         // 
     }
+
+    /// <summary>
+    /// Marks a command as a session, which prevents other sessions from initializing until the existing session ends.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class SessionAttribute : Attribute { }
+
+    /// <summary>
+    /// Marks a command to require the specified user to not be in any sessions to execute.
+    /// </summary>
+    public class RequireNoSessionAttribute : Attribute { }
 }

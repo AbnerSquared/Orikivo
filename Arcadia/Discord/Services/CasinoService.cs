@@ -17,7 +17,7 @@ namespace Arcadia.Modules
 
         public async Task RunBlackJackAsync(ArcadeUser invoker, ISocketMessageChannel channel, Wager wager)
         {
-            if (!invoker.CanGamble)
+            if (invoker.IsInSession)
                 return;
 
             if (wager.Value < 0)
@@ -38,7 +38,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            invoker.CanGamble = false;
+            invoker.IsInSession = true;
             var session = new BlackJackSession(invoker, channel, wager.Value);
 
             try
@@ -61,7 +61,7 @@ namespace Arcadia.Modules
                 await channel.CatchAsync(e);
             }
 
-            invoker.CanGamble = true;
+            invoker.IsInSession = false;
         }
     }
 }

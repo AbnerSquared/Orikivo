@@ -10,7 +10,7 @@ namespace Arcadia.Multiplayer.Games
 {
     public class TriviaGame : GameBase
     {
-        public static List<TriviaQuestion> Questions => new List<TriviaQuestion>
+        public static readonly List<TriviaQuestion> Questions = new List<TriviaQuestion>
         {
             /*
              new TriviaQuestion("",
@@ -870,6 +870,8 @@ namespace Arcadia.Multiplayer.Games
         public override GameResult OnSessionFinish(GameSession session)
         {
             var result = new GameResult();
+
+            var playerResults = new Dictionary<ulong, PlayerResult>();
             // because we don't have access to stats directly, we have to use stat update packets
             // NOTE: unless the stat allows it, you CANNOT update existing stats outside of the ones specified.
             foreach (PlayerData player in session.Players)
@@ -898,9 +900,12 @@ namespace Arcadia.Multiplayer.Games
                     Exp = CalculateExp(session, player)
                 };
 
-                result.UserIds.Add(playerId, toUpdate);
+                toUpdate.PlayerProperties = player.Properties;
+                playerResults.Add(playerId, toUpdate);
             }
 
+            result.PlayerResults = playerResults;
+            FinalizeResult(result, session);
             return result;
         }
 

@@ -41,6 +41,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [RequireNoSession]
         [Command("hostserver")]
         [Summary("Host a new game server.")]
         public async Task HostServerAsync([Name("game_id")]string gameId = null, Privacy privacy = Privacy.Public)
@@ -69,6 +70,7 @@ namespace Arcadia.Modules
             await _games.CreateServerAsync(Context.User, Context.Channel, gameId, privacy).ConfigureAwait(false);
         }
 
+        [RequireNoSession]
         [Command("joinserver")]
         [Summary("Join an existing game server.")]
         public async Task JoinServerAsync([Name("server_id")]string serverId)
@@ -88,6 +90,7 @@ namespace Arcadia.Modules
             await _games.JoinServerAsync(Context.User, Context.Channel, serverId).ConfigureAwait(false);
         }
 
+        [RequireNoSession]
         [Command("quickjoin"), Priority(0)]
         [Summary("Quickly attempts to finds a game to join.")]
         public async Task QuickJoinAsync()
@@ -107,6 +110,7 @@ namespace Arcadia.Modules
             await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer()).ConfigureAwait(false);
         }
 
+        [RequireNoSession]
         [Command("quickjoin"), Priority(1)]
         [Summary("Quickly finds a server to join for the specified game mode.")]
         public async Task QuickJoinAsync([Name("game_id")]string gameId)

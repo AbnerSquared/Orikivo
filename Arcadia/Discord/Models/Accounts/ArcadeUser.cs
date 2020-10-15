@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
+using Arcadia.Multiplayer;
 using Discord;
 using Orikivo;
 
@@ -22,6 +23,7 @@ namespace Arcadia
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
             Boosters = new List<BoostData>();
+            Challenges = new Dictionary<string, bool>();
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig
@@ -36,7 +38,8 @@ namespace Arcadia
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<BoostData> boosters, List<QuestData> quests, List<ItemData> items, CardConfig card,
+            Dictionary<string, MeritData> merits, List<BoostData> boosters, Dictionary<string, bool> challenges,
+            List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
         {
@@ -45,6 +48,7 @@ namespace Arcadia
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
             Boosters = boosters ?? new List<BoostData>();
+            Challenges = challenges ?? new Dictionary<string, bool>();
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig
@@ -102,6 +106,9 @@ namespace Arcadia
         [JsonProperty("boosters")]
         public List<BoostData> Boosters { get; }
 
+        [JsonProperty("challenges")]
+        public Dictionary<string, bool> Challenges { get; }
+
         [JsonProperty("quests")]
         public List<QuestData> Quests { get; }
 
@@ -122,19 +129,11 @@ namespace Arcadia
         [JsonIgnore]
         public DateTime? GlobalCooldown { get; set; }
 
+        [JsonIgnore]
+        public bool IsInSession { get; set; } = false;
+
+        [JsonIgnore]
         public bool HasBeenNoticed { get; set; } = false;
-
-        [JsonIgnore]
-        public bool CanAutoGimi { get; set; } = true;
-
-        [JsonIgnore]
-        public bool CanShop { get; set; } = true;
-
-        [JsonIgnore]
-        public bool CanTrade { get; set; } = true;
-
-        [JsonIgnore]
-        public bool CanGamble { get; set; } = true;
 
         [JsonIgnore] public Wager LastFundsLost { get; set; }
 

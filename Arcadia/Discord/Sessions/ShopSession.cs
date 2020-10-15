@@ -215,7 +215,7 @@ namespace Arcadia
 
         public override async Task OnStartAsync()
         {
-            User.CanShop = false;
+            User.IsInSession = true;
             State = ShopState.Enter;
             Notice = $"> Welcome to **{Shop.Name}**.\n\n";
             MessageReference = await Context.Channel.SendMessageAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice));

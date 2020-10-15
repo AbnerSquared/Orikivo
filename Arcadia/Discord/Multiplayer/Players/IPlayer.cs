@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Arcadia.Multiplayer
 {
     public interface IPlayer
     {
-        Player Source { get; }
+        ulong Id { get; }
 
-        List<GameProperty> GetProperties();
+        string Name { get; }
+
+        DateTime JoinedAt { get; }
+
+        bool IsPlaying { get; }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Casino;
 using Arcadia.Graphics;
+using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
 using Orikivo;
 using Orikivo.Text;
@@ -47,7 +48,138 @@ namespace Arcadia
 
         public static readonly HashSet<Challenge> Challenges = new HashSet<Challenge>
         {
+            new Challenge
+            {
+                Id = "task_trivia:001",
+                Name = "Play a game of Trivia (5 question minimum)",
+                Difficulty = 0,
+                Criterion = new Criterion
+                {
+                    Judge = delegate (CriterionContext ctx)
+                    {
+                        if (ctx.User == null)
+                            throw new Exception("Expected ArcadeUser but is unspecified");
 
+                        if (ctx.Result == null)
+                            throw new Exception("Expected GameResult but is unspecified");
+
+                        if (ctx.Result.GameId != "trivia")
+                            return false;
+
+                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                            throw new Exception("Expected game property but does not exist");
+
+                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
+                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                    }
+                }
+            },
+            new Challenge
+            {
+                Id = "task_trivia:002",
+                Name = "Play a game of Trivia (10 question minimum)",
+                Difficulty = 1,
+                Criterion = new Criterion
+                {
+                    Judge = delegate (CriterionContext ctx)
+                    {
+                        if (ctx.User == null)
+                            throw new Exception("Expected ArcadeUser but is unspecified");
+
+                        if (ctx.Result == null)
+                            throw new Exception("Expected GameResult but is unspecified");
+
+                        if (ctx.Result.GameId != "trivia")
+                            return false;
+
+                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                            throw new Exception("Expected game property but does not exist");
+
+                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 10
+                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                    }
+                }
+            },
+            new Challenge
+            {
+                Id = "task_trivia:003",
+                Name = "Play a game of Trivia (15 question minimum)",
+                Difficulty = 2,
+                Criterion = new Criterion
+                {
+                    Judge = delegate (CriterionContext ctx)
+                    {
+                        if (ctx.User == null)
+                            throw new Exception("Expected ArcadeUser but is unspecified");
+
+                        if (ctx.Result == null)
+                            throw new Exception("Expected GameResult but is unspecified");
+
+                        if (ctx.Result.GameId != "trivia")
+                            return false;
+
+                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                            throw new Exception("Expected game property but does not exist");
+
+                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 15
+                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                    }
+                }
+            },
+            new Challenge
+            {
+                Id = "task_trivia:004",
+                Name = "Play a game of Trivia (20 question minimum)",
+                Difficulty = 3,
+                Criterion = new Criterion
+                {
+                    Judge = delegate (CriterionContext ctx)
+                    {
+                        if (ctx.User == null)
+                            throw new Exception("Expected ArcadeUser but is unspecified");
+
+                        if (ctx.Result == null)
+                            throw new Exception("Expected GameResult but is unspecified");
+
+                        if (ctx.Result.GameId != "trivia")
+                            return false;
+
+                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                            throw new Exception("Expected game property but does not exist");
+
+                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 20
+                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                    }
+                }
+            },
+            new Challenge
+            {
+                Id = "task_trivia:011",
+                Name = "Win a game of Trivia (2 player minimum)",
+                Difficulty = 1,
+                Criterion = new Criterion
+                {
+                    Judge = delegate (CriterionContext ctx)
+                    {
+                        if (ctx.User == null)
+                            throw new Exception("Expected ArcadeUser but is unspecified");
+
+                        if (ctx.Result == null)
+                            throw new Exception("Expected GameResult but is unspecified");
+
+                        if (ctx.Result.GameId != "trivia")
+                            return false;
+
+                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                            throw new Exception("Expected game property but does not exist");
+
+                        if (ctx.Result.GetPlayerResult(ctx.User.Id) == null)
+                            return false;
+
+                        return ctx.Result.PlayerResults.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
+                    }
+                }
+            }
         };
 
         public static readonly HashSet<Quest> Quests = new HashSet<Quest>

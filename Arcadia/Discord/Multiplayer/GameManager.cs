@@ -232,11 +232,7 @@ namespace Arcadia.Multiplayer
         internal void EndSession(GameSession session)
         {
             GameResult result = session.Game.OnSessionFinish(session);
-            result.GameId = session.Game.Id;
-
-            TimeSpan sessionDuration = DateTime.UtcNow - session.StartedAt;
-
-            result.Apply(_container, sessionDuration, _container.Data.GetOrAssignBonusGame(this));
+            result.Apply(_container, _container.Data.GetOrAssignBonusGame(this));
         }
 
         // Destroys the session of a game server

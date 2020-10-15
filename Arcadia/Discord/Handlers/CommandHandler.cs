@@ -38,22 +38,24 @@ namespace Arcadia
         public CommandHandler(DiscordSocketClient client, CommandService service, ArcadeContainer container,
             IServiceProvider provider, InfoService info, GameManager games, IConfigurationRoot config)
         {
-            _client = client;
-            _service = service;
             _container = container;
             _provider = provider;
             _config = config;
+            _info = info;
+            _games = games;
+
+            _client = client;
             _client.MessageReceived += ReadInputAsync;
-            _service.CommandExecuted += OnExecutedAsync;
             _client.Log += Logger.LogAsync;
-            _service.Log += Logger.LogAsync;
             _client.GuildAvailable += SumGuildCount;
             _client.JoinedGuild += UpdateGuildCount;
             _client.LeftGuild += UpdateGuildCount;
             _client.Ready += OnReady;
             _client.Disconnected += ResetGuildCount;
-            _info = info;
-            _games = games;
+
+            _service = service;
+            _service.Log += Logger.LogAsync;
+            _service.CommandExecuted += OnExecutedAsync;
         }
 
         private BoatClient BoatClient { get; set; }
@@ -111,9 +113,6 @@ namespace Arcadia
             LastGuildCountUpdate = DateTime.UtcNow;
         }
 
-        public string GetPrefix(ArcadeContext ctx)
-            => ctx.Account?.Config.Prefix ?? ctx.Server?.Config.Prefix ?? OriGlobal.DEFAULT_PREFIX;
-
         public async Task ReadInputAsync(SocketMessage arg)
         {
             // Ignore bots
@@ -143,16 +142,16 @@ namespace Arcadia
                 return;
             }
 
-            if (source.HasStringPrefix(GetPrefix(ctx) + "d]", ref i))
+            if (source.HasStringPrefix(ctx.GetPrefix() + "d]", ref i))
             {
                 prefixFound = true;
                 deleteInput = true;
             }
 
             // Move this functionality to [about <input>
-            if (source.HasStringPrefix(GetPrefix(ctx) + "?]", ref i))
+            if (source.HasStringPrefix(ctx.GetPrefix() + "?]", ref i))
             {
-                string inner = source.Content[(GetPrefix(ctx) + "?]").Length..].ToLower();
+                string inner = source.Content[(ctx.GetPrefix() + "?]").Length..].ToLower();
 
                 Console.WriteLine(inner);
 
@@ -192,7 +191,7 @@ namespace Arcadia
 
             if (!prefixFound)
             {
-                if (source.HasStringPrefix(GetPrefix(ctx), ref i))
+                if (source.HasStringPrefix(ctx.GetPrefix(), ref i))
                 {
                     prefixFound = true;
                 }
@@ -315,13 +314,23 @@ namespace Arcadia
                         {
                             if (!(DateTime.UtcNow - ctx.Account.InternalCooldowns[id] >= TimeSpan.Zero))
                             {
-                                await ctx.Channel.SendMessageAsync(WriteCooldownText(ctx.Account.InternalCooldowns[id],
-                                    false));
+                                await ctx.Channel.SendMessageAsync(WriteCooldownText(ctx.Account.InternalCooldowns[id], false));
                                 ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
                                 return;
                             }
+                        }
 
+                        if ((possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null || possibleCommand.Attributes.FirstOrDefault<RequireNoSessionAttribute>() != null)
+                            && ctx.Account.IsInSession)
+                        {
+                            await ctx.Channel.SendMessageAsync(Format.Warning("You are currently in a session."));
+                            ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
+                            return;
+                        }
 
+                        if (possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null)
+                        {
+                            ctx.Account.IsInSession = true;
                         }
                     }
                 }
@@ -343,6 +352,12 @@ namespace Arcadia
             if (!(context is ArcadeContext ctx))
                 throw new Exception("Invalid context provided.");
 
+            // Remove any session locks IF the command that was executed invoked a session call
+            if (command.IsSpecified && command.Value.Attributes.FirstOrDefault<SessionAttribute>() != null && ctx.Account != null)
+            {
+                ctx.Account.IsInSession = false;
+            }
+
             // Attempt to set a global cooldown on the account that executed this command
 
             // If the command failed
@@ -351,7 +366,7 @@ namespace Arcadia
                 if (result is ExecuteResult execute)
                 {
                     if (!result.IsSuccess)
-                        await context.Channel.CatchAsync((execute).Exception, ctx?.Account?.Config?.ErrorHandling ?? StackTraceMode.Simple);
+                        await context.Channel.CatchAsync(execute.Exception, ctx?.Account?.Config?.ErrorHandling ?? StackTraceMode.Simple);
                 }
                 else
                 {

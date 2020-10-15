@@ -3,6 +3,7 @@ using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
+using Arcadia.Multiplayer;
 
 namespace Arcadia.Modules
 {
@@ -74,6 +75,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
         }
 
+        [Session]
         [RequireItem("au_gimi")]
         [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
         public async Task AutoGimiAsync(int times)
@@ -84,18 +86,12 @@ namespace Arcadia.Modules
                 return;
             }
 
-            if (!Context.Account.CanAutoGimi)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You have already started an automated run."));
-                return;
-            }
-
             await HandleAutoGimiAsync(times).ConfigureAwait(false);
         }
 
         private async Task HandleAutoGimiAsync(int times)
         {
-            Context.Account.CanAutoGimi = false;
+            Context.Account.IsInSession = true;
             times = times > 100 ? 100 : times <= 0 ? 1 : times;
 
             long result = 0;
@@ -118,7 +114,6 @@ namespace Arcadia.Modules
             }
 
             await reference.ModifyAsync($"> 〽️ **The results are in!**\n> **Net Outcome**: **{result:##,0}**").ConfigureAwait(false);
-            Context.Account.CanAutoGimi = true;
         }
 
         [RequireUser]

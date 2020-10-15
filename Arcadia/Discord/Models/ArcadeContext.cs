@@ -81,6 +81,9 @@ namespace Arcadia
         public bool TryGetGuild(ulong id, out BaseGuild server)
             => Data.Guilds.TryGet(id, out server);
 
+        /// <summary>
+        /// Returns the default prefix for the specified command context.
+        /// </summary>
         public string GetPrefix()
             => Account?.Config.Prefix ?? Server?.Config.Prefix ?? OriGlobal.DEFAULT_PREFIX;
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
+using Arcadia.Multiplayer;
 using Arcadia.Multiplayer.Games;
 using DiscordBoats;
 using Microsoft.Extensions.Configuration;
@@ -319,22 +320,17 @@ namespace Arcadia.Modules
         public async Task DrawPieceMovesAsync(int whitePieceCount, int blackPieceCount, ChessOwner perspective)
         {
             ChessBoard board = ChessBoard.GetRandom(whitePieceCount, blackPieceCount);
-
             await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
         }
 
+        [Session]
         [RequireUser]
         [RequireData]
         [Command("shop")]
         public async Task ShopAsync(Shop shop)
         {
-            if (!Context.Account.CanShop)
-                return;
-
             var session = new ShopSession(Context, shop);
-
             await StartSessionAsync(session);
-            Context.Account.CanShop = true;
         }
 
         [RequireUser]
@@ -469,15 +465,18 @@ namespace Arcadia.Modules
             if (await CatchEmptyAccountAsync(account))
                 return;
 
-            if (!Context.Account.CanTrade)
+            if (Context.Account.IsInSession)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You are already in another active session."));
                 return;
+            }
 
-            Context.Account.CanTrade = false;
+            Context.Account.IsInSession = true;
 
             var session = new TradeSession(Context, account);
             await StartSessionAsync(session, TimeSpan.FromSeconds(20));
-            Context.Account.CanTrade = true;
-            account.CanTrade = true;
+            Context.Account.IsInSession = false;
+            account.IsInSession = true;
         }
 
 
