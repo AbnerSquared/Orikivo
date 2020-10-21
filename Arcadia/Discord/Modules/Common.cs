@@ -27,11 +27,27 @@ namespace Arcadia.Modules
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfigurationRoot _config;
-        
+
         public Common(DiscordSocketClient client, IConfigurationRoot config)
         {
             _client = client;
             _config = config;
+        }
+
+        [RequireUser]
+        [Command("submitchallenges")]
+        public async Task SubmitChallengesAsync()
+        {
+            string result = ChallengeHelper.Submit(Context.Account);
+            await Context.Channel.SendMessageAsync(result);
+        }
+
+        [RequireUser]
+        [Command("challenges")]
+        public async Task ViewChallengesAsync()
+        {
+            string result = ChallengeHelper.View(Context.Account);
+            await Context.Channel.SendMessageAsync(result);
         }
 
         /*
@@ -744,9 +760,9 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync($"> Successfully removed **{name}** from your **Card Palette**.");
         }
 
-        [RequireUser]
-        [Command("cardconfig"), Alias("ccfg")]
-        [Summary("View your current configurations for your **Card**.")]
+        //[RequireUser]
+        //[Command("cardconfig"), Alias("ccfg")]
+        //[Summary("View your current configurations for your **Card**.")]
         public async Task GetCardConfigAsync()
         {
             await Context.Channel.SendMessageAsync(Context.Account.Card.Display());

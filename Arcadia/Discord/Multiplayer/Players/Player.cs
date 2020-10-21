@@ -1,19 +1,23 @@
 ﻿using Discord;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord.Net;
+using Orikivo;
 
 namespace Arcadia.Multiplayer
 {
     /// <summary>
     /// Represents a player connection to a <see cref="GameServer"/>.
     /// </summary>
-    public class Player
+    public class Player // : Receiver
     {
         internal Player(GameServer server, IUser user)
         {
             Server = server;
             User = user;
             JoinedAt = DateTime.UtcNow;
+            //Channel = user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -29,7 +33,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// If true, this <see cref="Player"/> is the host of this <see cref="GameServer"/>.
         /// </summary>
-        public bool Host => Server.HostId == User.Id;
+        public bool IsHost => Server.HostId == User.Id;
 
         /// <summary>
         /// If true, this <see cref="Player"/> is currently playing a game.
@@ -51,14 +55,65 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Gets the direct message channel for this <see cref="Player"/>, if any.
         /// </summary>
-        public PlayerChannel Channel { get; private set; }
+        public PlayerChannel PlayerChannel { get; private set; }
 
         /// <summary>
         /// Gets or creates the direct message channel for this <see cref="Player"/>.
         /// </summary>
         public async Task<PlayerChannel> GetOrCreateChannelAsync()
         {
-            return Channel ??= await PlayerChannel.CreateAsync(User);
+            return PlayerChannel ??= await PlayerChannel.CreateAsync(User);
+        }
+    }
+
+    public class Connection : Receiver
+    {
+        public int Frequency { get; set; }
+        public DisplayContent Content { get; set; }
+        public InputController Controller { get; set; }
+    }
+
+    public class InputController
+    {
+        public List<IInput> Inputs { get; set; }
+
+        public bool Disabled { get; set; }
+    }
+
+    public class Receiver
+    {
+        public IMessageChannel Channel { get; protected set; }
+
+        public IUserMessage Message { get; private set; }
+
+        // Determines if this receiver is included in the update pool or not
+        public bool Disabled { get; internal set; }
+
+        public bool CanSendMessages { get; protected set; } = true;
+
+        public async Task<IUserMessage> UpdateAsync(string content, bool replacePrevious = false)
+        {
+            if (!CanSendMessages)
+                return null;
+
+            try
+            {
+                if (Message != null && !replacePrevious)
+                {
+                    await Message.ModifyAsync(content);
+                }
+                else
+                {
+                    Message = await Channel.SendMessageAsync(content);
+                }
+
+                return Message;
+            }
+            catch (HttpException error) when (error.DiscordCode == 50007)
+            {
+                CanSendMessages = false;
+                return null;
+            }
         }
     }
 }

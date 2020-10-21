@@ -23,7 +23,7 @@ namespace Arcadia
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, MeritData>();
             Boosters = new List<BoostData>();
-            Challenges = new Dictionary<string, bool>();
+            Challenges = new Dictionary<string, ChallengeData>();
             Quests = new List<QuestData>();
             Items = new List<ItemData>();
             Card = new CardConfig
@@ -32,13 +32,14 @@ namespace Arcadia
                 Palette = PaletteType.Default,
                 Font = FontType.Foxtrot
             };
+
             CatalogHistory = new Dictionary<string, CatalogHistory>();
         }
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<BoostData> boosters, Dictionary<string, bool> challenges,
+            Dictionary<string, MeritData> merits, List<BoostData> boosters, Dictionary<string, ChallengeData> challenges,
             List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
@@ -48,7 +49,7 @@ namespace Arcadia
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, MeritData>();
             Boosters = boosters ?? new List<BoostData>();
-            Challenges = challenges ?? new Dictionary<string, bool>();
+            Challenges = challenges ?? new Dictionary<string, ChallengeData>();
             Quests = quests ?? new List<QuestData>();
             Items = items ?? new List<ItemData>();
             Card = card ?? new CardConfig
@@ -107,7 +108,7 @@ namespace Arcadia
         public List<BoostData> Boosters { get; }
 
         [JsonProperty("challenges")]
-        public Dictionary<string, bool> Challenges { get; }
+        public Dictionary<string, ChallengeData> Challenges { get; }
 
         [JsonProperty("quests")]
         public List<QuestData> Quests { get; }

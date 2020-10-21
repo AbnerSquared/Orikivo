@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer
@@ -26,7 +27,7 @@ namespace Arcadia.Multiplayer
         public abstract Task OnGameStart(); // How does this game start
     }
 
-    public class TriviaPlayer : IPlayer
+    public class TriviaPlayer
     {
         // This is all specified from the base player
         public ulong Id { get; }

@@ -36,6 +36,25 @@ namespace Orikivo
             return array;
         }
 
+        public static IEnumerable<IEnumerable<T>> Group<T>(this IEnumerable<T> enumerable, int groupSize)
+        {
+            var collection = new List<List<T>>();
+            var set = new List<T>();
+
+            foreach (T item in enumerable)
+            {
+                set.Add(item);
+
+                if (set.Count >= groupSize)
+                {
+                    collection.Add(set);
+                    set = new List<T>();
+                }
+            }
+
+            return collection;
+        }
+
         /// <summary>
         /// Adds the elements of the specified collection to the end of the <see cref="List{T}"/>.
         /// </summary>

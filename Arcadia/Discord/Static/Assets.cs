@@ -48,11 +48,46 @@ namespace Arcadia
 
         public static readonly HashSet<Challenge> Challenges = new HashSet<Challenge>
         {
+            /*
+            new Challenge
+            {
+                Id = "task_roulette:001",
+                Name = "Play Roulette 5 Times",
+                Difficulty = 0,
+                Triggers = CriteriaTriggers.Command,
+                Criterion = new VarCriterion(Stats.Roulette.TimesPlayed, 5)
+            },
+            new Challenge
+            {
+                Id = "task_gimi:001",
+                Name = "Play Gimi 5 Times",
+                Difficulty = 0,
+                Triggers = CriteriaTriggers.Command,
+                Criterion = new VarCriterion(Stats.Gimi.TimesPlayed, 5)
+            },
+            new Challenge
+            {
+                Id = "task_blackjack:001",
+                Name = "Play Blackjack 5 Times",
+                Difficulty = 0,
+                Triggers = CriteriaTriggers.Command,
+                Criterion = new VarCriterion(Stats.BlackJack.TimesPlayed, 5)
+            },
+            new Challenge
+            {
+                Id = "task_doubler:001",
+                Name = "Play Doubler 5 times",
+                Difficulty = 0,
+                Triggers = CriteriaTriggers.Command,
+                Criterion = new VarCriterion(Stats.Doubler.TimesPlayed, 5)
+            },
+            */
             new Challenge
             {
                 Id = "task_trivia:001",
                 Name = "Play a game of Trivia (5 question minimum)",
                 Difficulty = 0,
+                Triggers = CriteriaTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -79,6 +114,7 @@ namespace Arcadia
                 Id = "task_trivia:002",
                 Name = "Play a game of Trivia (10 question minimum)",
                 Difficulty = 1,
+                Triggers = CriteriaTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -105,6 +141,7 @@ namespace Arcadia
                 Id = "task_trivia:003",
                 Name = "Play a game of Trivia (15 question minimum)",
                 Difficulty = 2,
+                Triggers = CriteriaTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -131,6 +168,7 @@ namespace Arcadia
                 Id = "task_trivia:004",
                 Name = "Play a game of Trivia (20 question minimum)",
                 Difficulty = 3,
+                Triggers = CriteriaTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -155,7 +193,7 @@ namespace Arcadia
             new Challenge
             {
                 Id = "task_trivia:011",
-                Name = "Win a game of Trivia (2 player minimum)",
+                Name = "Win a game of Trivia (2 player & 5 question minimum)",
                 Difficulty = 1,
                 Criterion = new Criterion
                 {
@@ -176,7 +214,10 @@ namespace Arcadia
                         if (ctx.Result.GetPlayerResult(ctx.User.Id) == null)
                             return false;
 
-                        return ctx.Result.PlayerResults.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
+                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
+                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id)
+                        && ctx.Result.PlayerResults.Count >= 2
+                        && ctx.Result.PlayerResults.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
                     }
                 }
             }

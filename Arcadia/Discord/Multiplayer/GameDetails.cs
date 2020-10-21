@@ -25,7 +25,5 @@ namespace Arcadia.Multiplayer
 
         // This is the length of time from which experience will scale up
         public TimeBlock ExpTimeRange { get; set; }
-
-
     }
 }

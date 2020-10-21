@@ -47,7 +47,7 @@ namespace Arcadia.Multiplayer.Games
                 Source = player,
                 Properties = new List<GameProperty>
                 {
-                    GameProperty.Create(ChessVars.Color, player.Host ? ChessOwner.White : ChessOwner.Black)
+                    GameProperty.Create(ChessVars.Color, player.IsHost ? ChessOwner.White : ChessOwner.Black)
                 }
             };
         }
@@ -286,7 +286,12 @@ namespace Arcadia.Multiplayer.Games
         {
             server.SetStateFrequency(GameState.Playing, ChessChannel.Main);
             session.SpectateFrequency = ChessChannel.Main;
-            session.SetValue(ChessVars.CurrentColor, Flip(session.ValueOf<ChessOwner>(ChessVars.CurrentColor)));
+
+            ChessStartMode startMode = session.GetConfigValue<ChessStartMode>(ChessConfig.StartingPlayer);
+
+            if (startMode == ChessStartMode.Host || (startMode == ChessStartMode.Random && RandomProvider.Instance.Next(1, 3) == 1))
+                session.SetValue(ChessVars.CurrentColor, Flip(session.ValueOf<ChessOwner>(ChessVars.CurrentColor)));
+
             // set current player based on config
             session.InvokeAction(ChessVars.SwapCurrentPlayer);
         }

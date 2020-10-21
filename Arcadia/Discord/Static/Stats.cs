@@ -32,6 +32,13 @@ namespace Arcadia
             }
         }
 
+        internal static class Challenge
+        {
+            internal static readonly string TotalCompleted = "challenge:total_completed";
+            internal static readonly string MostSetsCompleted = "challenge:most_sets_completed";
+            internal static readonly string SetsCompletedDaily = "challenge:sets_completed_daily";
+        }
+
         internal static class Common
         {
             internal static readonly string QuestCapacity = "var:quest_capacity";
@@ -66,9 +73,6 @@ namespace Arcadia
             internal static readonly string VoteStreak = "vote:current_streak";
             internal static readonly string LongestVoteStreak = "vote:longest_streak";
             internal static readonly string TimesVoted = "vote:times_used";
-            internal static readonly string ChallengeTotalCompleted = "challenge:total_completed";
-            internal static readonly string ChallengeMostSetsCompleted = "challenge:most_sets_completed";
-            internal static readonly string ChallengeSetsCompletedDaily = "challenge:sets_completed_daily";
         }
 
         internal static class Multiplayer

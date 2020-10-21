@@ -26,6 +26,9 @@ namespace Arcadia.Multiplayer
 
         public void Apply(ArcadeContainer container, string bonusGameId)
         {
+            if (PlayerResults == null)
+                return;
+
             foreach ((ulong userId, PlayerResult result) in PlayerResults)
             {
                 if (!container.Users.TryGet(userId, out ArcadeUser user))

@@ -233,6 +233,15 @@ namespace Arcadia.Multiplayer
         {
             GameResult result = session.Game.OnSessionFinish(session);
             result.Apply(_container, _container.Data.GetOrAssignBonusGame(this));
+
+            foreach (ArcadeUser user in session.Server.Players.Select(delegate(Player player)
+            {
+                _container.Users.TryGet(player.User.Id, out ArcadeUser account);
+                return account;
+            }).Where(x => x != null))
+            {
+                ChallengeHelper.UpdateChallengeProgress(user, result);
+            }
         }
 
         // Destroys the session of a game server
@@ -440,7 +449,7 @@ namespace Arcadia.Multiplayer
 
             info.Append(player.User.Username);
 
-            if (player.Host)
+            if (player.IsHost)
                 info.Append(" [Host]");
 
             if (player.Playing)
@@ -557,7 +566,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // Ignore if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may start the game.");
                                 break;
@@ -639,7 +648,7 @@ namespace Arcadia.Multiplayer
                             string buffer = $"[To {user.Username}] Only the host may view server connections.";
 
                             // List connections if the player is the host
-                            if (player.Host)
+                            if (player.IsHost)
                                 buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(WriteConnectionInfo))}";
 
                             AddConsoleText(server, buffer);
@@ -656,7 +665,7 @@ namespace Arcadia.Multiplayer
                             var notice = "";
 
                             // If they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                                 notice = $"[To {user.Username}] Only the host can edit the server config.";
 
                             // If there is an existing connection already in the editing state
@@ -710,7 +719,7 @@ namespace Arcadia.Multiplayer
                             }
 
                             // if they are the host, automatically start it.
-                            if (player.Host)
+                            if (player.IsHost)
                             {
                                 connection.State = GameState.Watching;
                                 connection.Frequency = 2;
@@ -848,7 +857,7 @@ namespace Arcadia.Multiplayer
                             if (player == null)
                                 break;
 
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may kick other players.");
                                 break;
@@ -942,7 +951,7 @@ namespace Arcadia.Multiplayer
                             string buffer = $"[To {user.Username}] Only the host may view server connections.";
 
                             // List connections if the player is the host
-                            if (player.Host)
+                            if (player.IsHost)
                                 buffer = $"Connections ({server.Connections.Count}): {string.Join(", ", server.Connections.Select(WriteConnectionInfo))}";
 
                             AddConsoleText(server, buffer);
@@ -970,7 +979,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may exit the server configuration.");
                                 break;
@@ -991,7 +1000,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
                                 break;
@@ -1008,7 +1017,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
                                 break;
@@ -1026,7 +1035,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may toggle this setting.");
                                 break;
@@ -1044,7 +1053,7 @@ namespace Arcadia.Multiplayer
                             if (player == null)
                                 break;
 
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may kick other players.");
                                 break;
@@ -1095,7 +1104,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // If they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's name.");
                                 break;
@@ -1113,13 +1122,12 @@ namespace Arcadia.Multiplayer
                         // [HOST, PLAYER] game <value>
                         if (ctx.StartsWith("game"))
                         {
-
                             // If they are already in the server
                             if (player == null)
                                 break;
 
                             // If they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's game mode.");
                                 break;
@@ -1141,7 +1149,7 @@ namespace Arcadia.Multiplayer
                                 break;
 
                             // if they are not the host
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may edit the server's privacy.");
                                 break;
@@ -1171,7 +1179,7 @@ namespace Arcadia.Multiplayer
                             if (player == null)
                                 break;
 
-                            if (!player.Host)
+                            if (!player.IsHost)
                             {
                                 AddConsoleText(server, $"[To {user.Username}] Only the host may edit configuration values.");
                                 break;

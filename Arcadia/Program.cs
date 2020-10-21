@@ -96,7 +96,9 @@ namespace Arcadia
                 {
                     ["trivia"] = new TriviaGame(),
                     ["werewolf"] = new WerewolfGame(),
-                    ["chess"] = new ChessGame()
+                    ["chess"] = new ChessGame(),
+                    ["tictactoe"] = new TicGame(),
+                    ["ultimatetic"] = new UltimateTicGame()
                 };
 
         await client.StartAsync(cancelSource.Token);

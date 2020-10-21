@@ -7,7 +7,7 @@ namespace Arcadia
     public static class CurrencyHelper
     {
         public static string WriteCost(long value, CurrencyType currency)
-            => value <= 0 ? "**Unknown Cost**" : $"{Icons.IconOf(currency)} **{value:##,0}**";
+            => value <= 0 ? "**Unknown Cost**" : $"{Icons.IconOf(currency)} **{value:##,0}**"; // {(value == 69 ? "(nice)" : "")}
 
         public static bool CanApplyBooster(BoostData boost)
         {
