@@ -35,7 +35,7 @@ namespace Arcadia
         public OfferType Type { get; internal set; } = OfferType.Inbound;
         public Author Author { get; }
         public Author Target { get; }
-        public DateTime CreatedAt { get; }
+        public DateTime CreatedAt { get; internal set; }
         public Dictionary<string, int> ItemIds { get; internal set; } = new Dictionary<string, int>();
         public Dictionary<string, int> RequestedItemIds { get; internal set; } = new Dictionary<string, int>();
     }

@@ -334,6 +334,28 @@ namespace Arcadia
 
         public static readonly HashSet<Shop> Shops = new HashSet<Shop>
         {
+            /*
+            new Shop
+            {
+                Id = "token_emporium",
+                Name = "Token Emporium",
+                Quote = "Purchase specialized goods here.",
+                Allow = ShopAllow.Buy,
+                Catalog = new CatalogGenerator
+                {
+                    Size = 1,
+                    MaxDiscountsAllowed = 0,
+                    MaxSpecialsAllowed = 0,
+                    Entries = new List<CatalogEntry>
+                    {
+                        new CatalogEntry
+                        {
+
+                        }
+                    }
+                }
+            },
+            */
             new Shop
             {
                 Id = "tinker_tent",

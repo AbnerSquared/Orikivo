@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Framework;
 using Orikivo.Text;
 
 namespace Arcadia
@@ -22,7 +23,8 @@ namespace Arcadia
                 info.AppendLine($"\nYou do not have any active offers.");
             else
             {
-                foreach (TradeOffer offer in user.Offers)
+                var offers = new List<TradeOffer>(user.Offers);
+                foreach (TradeOffer offer in offers)
                 {
                     info.AppendLine($"\n{ViewOffer(offer, ctx)}");
                 }
@@ -85,7 +87,8 @@ namespace Arcadia
 
         public static bool IsOfferValid(ArcadeUser author, ArcadeUser target, TradeOffer offer)
         {
-            if (DateTime.UtcNow - offer.CreatedAt >= TimeSpan.FromHours(24))
+            Logger.Debug($"Creation Date: {offer.CreatedAt}");
+            if ((DateTime.UtcNow - offer.CreatedAt) >= TimeSpan.FromHours(24))
                 return false;
 
             foreach ((string itemId, int amount) in offer.ItemIds)
@@ -143,7 +146,7 @@ namespace Arcadia
             ctx.TryGetUser(offer.Target.Id.Value, out ArcadeUser target);
             ctx.TryGetUser(offer.Author.Id.Value, out ArcadeUser author);
 
-            if (!IsOfferValid(target, author, offer))
+            if (!IsOfferValid(author, target, offer))
             {
                 info.AppendLine(Format.Warning("This trade offer is invalid or expired and will be removed."));
                 target.Offers.RemoveAll(x => x.Id == offer.Id);
@@ -243,6 +246,7 @@ namespace Arcadia
 
             offer = new TradeOffer(user, target)
             {
+                CreatedAt = DateTime.UtcNow,
                 ItemIds = offered,
                 RequestedItemIds = requests
             };
