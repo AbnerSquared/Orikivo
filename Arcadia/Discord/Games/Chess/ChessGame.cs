@@ -10,28 +10,31 @@ namespace Arcadia.Multiplayer.Games
 {
     public class ChessGame : GameBase
     {
-        public ChessGame()
-        {
-            Id = "chess";
-            Details = new GameDetails
-            {
-                Name = "Chess",
-                Icon = "♟️",
-                Summary = "A classic game of immense strategy.",
-                RequiredPlayers = 2,
-                PlayerLimit = 2
-            };
+        /// <inheritdoc />
+        public override string Id => "chess";
 
-            Options = new List<GameOption>
-            {
-                GameOption.Create(ChessConfig.RotateBoard, "Rotate board on each turn", true),
-                GameOption.Create(ChessConfig.StartingPlayer, "Starting player", ChessStartMode.Random),
-                GameOption.Create(ChessConfig.AllowEnPassant, "Allow 'En Passant'", false),
-                GameOption.Create(ChessConfig.PieceFormat, "Piece Format", ChessIconFormat.Text)
-            };
-        }
+        /// <inheritdoc />
+        public override GameDetails Details => new GameDetails
+        {
+            Name = "Chess",
+            Icon = "♟️",
+            Summary = "A classic game of immense strategy.",
+            RequiredPlayers = 2,
+            PlayerLimit = 2
+        };
+
+        /// <inheritdoc />
+        public override List<GameOption> Options => new List<GameOption>
+        {
+            GameOption.Create(ChessConfig.RotateBoard, "Rotate board on each turn", true),
+            GameOption.Create(ChessConfig.StartingPlayer, "Starting player", ChessStartMode.Random),
+            GameOption.Create(ChessConfig.AllowEnPassant, "Allow 'En Passant'", false),
+            GameOption.Create(ChessConfig.PieceFormat, "Piece Format", ChessIconFormat.Text)
+        };
+
         public List<ChessMove> MoveHistory { get; internal set; } = new List<ChessMove>();
 
+        [Property("board")]
         public ChessBoard Board { get; internal set; }
 
         /// <inheritdoc />
@@ -65,7 +68,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             return new List<GameAction>
             {
@@ -297,7 +300,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             var result = new GameResult();
             return result;

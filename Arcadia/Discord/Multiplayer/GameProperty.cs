@@ -3,7 +3,7 @@
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents a variable for a <see cref="GameSession"/>.
+    /// Represents a variable for a <see cref="GameBase"/>.
     /// </summary>
     public class GameProperty
     {

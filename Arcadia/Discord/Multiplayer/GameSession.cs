@@ -11,16 +11,18 @@ namespace Arcadia.Multiplayer
         internal readonly GameServer Server;
         internal readonly GameBase Game;
 
+        // TODO: Use Activator.CreateInstance(Type) as GameBase game to initialize new game sessions from now on
+
         public GameSession(GameServer server, GameBase game)
         {
             StartedAt = DateTime.UtcNow;
             Server = server;
             Game = game;
-            Game.Options = server.Options;
+            // Game.Options = server.Options;
             Options = server.Options;
             Players = game.OnBuildPlayers(server.Players);
             Criteria = game.OnBuildRules(Players);
-            Actions = game.OnBuildActions(Players);
+            Actions = game.OnBuildActions();
 
             // base game actions required
             Actions.Add(new GameAction

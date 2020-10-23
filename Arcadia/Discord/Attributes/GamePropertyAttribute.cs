@@ -2,14 +2,20 @@
 
 namespace Arcadia.Multiplayer
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public class GamePropertyAttribute : Attribute
+    /// <summary>
+    /// Marks the specified property as a <see cref="GameProperty"/> for a <see cref="GameBase"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class PropertyAttribute : Attribute
     {
-        public GamePropertyAttribute(string id)
+        public PropertyAttribute(string id)
         {
             Id = id;
         }
 
+        /// <summary>
+        /// Represents the unique identifier for a <see cref="GameProperty"/>.
+        /// </summary>
         public string Id { get; internal set; }
     }
 }

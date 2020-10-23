@@ -231,7 +231,7 @@ namespace Arcadia.Multiplayer
 
         internal void EndSession(GameSession session)
         {
-            GameResult result = session.Game.OnSessionFinish(session);
+            GameResult result = session.Game.OnGameFinish(session);
             result.Apply(_container, _container.Data.GetOrAssignBonusGame(this));
 
             foreach (ArcadeUser user in session.Server.Players.Select(delegate(Player player)

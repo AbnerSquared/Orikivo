@@ -7,44 +7,22 @@ using Orikivo;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public static class TicChannel
-    {
-        public static readonly int Main = 41;
-        public static readonly int Results = 42;
-        public static readonly string Header = "header";
-        public static readonly string Board = "board";
-        public static readonly string Content = "content";
-    }
-
-    public static class TicVars
-    {
-        public static readonly string Marker = "marker";
-        public static readonly string Board = "board";
-        public static readonly string Direction = "direction";
-        public static readonly string Winner = "winner";
-        public static readonly string GetResults = "get_results";
-        public static readonly string ActivePlayer = "active_player";
-        public static readonly string UpdateState = "update_state";
-    }
-
     public class TicGame : GameBase
     {
-        public TicGame()
+        public override string Id => "tictactoe";
+
+        public override GameDetails Details => new GameDetails
         {
-            Id = "tictactoe";
-            Details = new GameDetails
-            {
-                Name = "Tic-Tac-Toe",
-                Icon = "❌",
-                Summary = "A primitive game of 3 in a row.",
-                CanSpectate = true,
-                AllowSessionJoin = false,
-                AllowSessionLeave = false,
-                RequireDirectMessages = false,
-                PlayerLimit = 2,
-                RequiredPlayers = 2
-            };
-        }
+            Name = "Tic-Tac-Toe",
+            Icon = "❌",
+            Summary = "A primitive game of 3 in a row.",
+            CanSpectate = true,
+            AllowSessionJoin = false,
+            AllowSessionLeave = false,
+            RequireDirectMessages = false,
+            PlayerLimit = 2,
+            RequiredPlayers = 2
+        };
 
         /// <inheritdoc />
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
@@ -95,7 +73,7 @@ namespace Arcadia.Multiplayer.Games
         */
 
         /// <inheritdoc />
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             return new List<GameAction>
             {
@@ -244,7 +222,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             var result = new GameResult();
             return result;

@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using OpenTDB;
 using Orikivo.Framework;
+using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -93,35 +95,31 @@ namespace Arcadia.Multiplayer.Games
 
         public TriviaGame()
         {
-            Id = "trivia";
-            Details = new GameDetails
-            {
-                Name = "Trivia",
-                Icon = "📰",
-                Summary = "Answer questions against the clock!",
-                PlayerLimit = 16,
-                RequiredPlayers = 1,
-                CanSpectate = true
-            };
-
-            Options = new List<GameOption>
-            {
-                GameOption.Create("topics", "Topics", TriviaTopic.Any, "Determines the topics to filter for (only when **Use OpenTDB** is disabled)."),
-                GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any, "Determines the difficulty range to filter each question for."),
-                GameOption.Create("questioncount", "Question Count", 5, "Represents the total amount of questions to play in this session."),
-                GameOption.Create("questionduration", "Question Duration", 15d, "Determines how long a player has to answer each question."),
-                GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API, which allows for a wider range of unique questions. Disable if you wish to only answer custom-made questions.")
-            };
         }
 
+        /// <inheritdoc />
+        public override string Id => "trivia";
 
-        // 'get_question_result'
-        // This action is executed from 'get_next_question'
+        /// <inheritdoc />
+        public override GameDetails Details => new GameDetails
+        {
+            Name = "Trivia",
+            Icon = "📰",
+            Summary = "Answer questions against the clock!",
+            PlayerLimit = 16,
+            RequiredPlayers = 1,
+            CanSpectate = true
+        };
 
-        // This shows the result of the question that they answered
+        public override List<GameOption> Options => new List<GameOption>
+        {
+            GameOption.Create("topics", "Topics", TriviaTopic.Any, "Determines the topics to filter for (only when **Use OpenTDB** is disabled)."),
+            GameOption.Create("difficulty", "Difficulty", TriviaDifficulty.Any, "Determines the difficulty range to filter each question for."),
+            GameOption.Create("questioncount", "Question Count", 5, "Represents the total amount of questions to play in this session."),
+            GameOption.Create("questionduration", "Question Duration", 15d, "Determines how long a player has to answer each question."),
+            GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API, which allows for a wider range of unique questions. Disable if you wish to only answer custom-made questions.")
+        };
 
-        // A timer is set for 3 seconds
-        // When the timer runs out, the action 'try_get_next_question' is executed
         private void GetQuestionResult(GameContext ctx)
         {
             // set all currently playing displays to freq. 10
@@ -234,7 +232,6 @@ namespace Arcadia.Multiplayer.Games
             ctx.Session.QueueAction(TimeSpan.FromSeconds(ctx.Session.GetConfigValue<double>("questionduration")), "get_question_result");
         }
 
-
         private void GetResults(GameContext ctx)
         {
             // set all currently playing connection to frequency 12
@@ -289,7 +286,7 @@ namespace Arcadia.Multiplayer.Games
             }
         }
 
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             return new List<GameAction>
             {
@@ -327,6 +324,12 @@ namespace Arcadia.Multiplayer.Games
 
         private static bool HasAllPlayersAnswered(GameSession session)
             => session.ValueOf<int>(TriviaVars.TotalAnswered) == session.Players.Count;
+
+        private static bool MostPlayersWantRematch(GameSession session)
+            => session.ValueOf<int>("rematch_requests") >= (session.Players.Count / 2);
+
+        private static bool HasAnsweredAllQuestions(GameSession session)
+            => session.ValueOf<int>("current_question") == session.GetConfigValue<int>("questioncount");
 
         public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
         {
@@ -371,6 +374,15 @@ namespace Arcadia.Multiplayer.Games
             return rules;
         }
 
+        [Property("rematch_vote_count")]
+        public int RematchVoteCount { get; set; } = 1;
+
+        [Property("answer_count")]
+        public int AnswerCount { get; set; } = 2;
+
+        [Property("question_index")]
+        public int QuestionIndex { get; set; } = 3;
+
         public override List<GameProperty> OnBuildProperties()
         {
             var attributes = new List<GameProperty>();
@@ -379,17 +391,12 @@ namespace Arcadia.Multiplayer.Games
             // This keeps track of all players wanting to rematch
             var rematchRequests = GameProperty.Create<int>("rematch_requests", 0);
 
-
             // This attribute is set from the freqency 12:rematch input
             // This attribute is reset from 'restart'
-
-            // 'players_answered'
-            // This keeps track of all players that have answered
             var playersAnswered = GameProperty.Create<int>("players_answered", 0);
 
             // This attribute is set from frequency 10:a,b,c, or d input
             // This attribute is reset from 'get_question_result'
-
             var currentQuestion = GameProperty.Create<int>("current_question", 0);
 
             attributes.Add(rematchRequests);
@@ -399,8 +406,6 @@ namespace Arcadia.Multiplayer.Games
             return attributes;
         }
 
-        // create display channels here
-        // inputs are specified here
         public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
             var displays = new List<DisplayBroadcast>();
@@ -452,13 +457,43 @@ namespace Arcadia.Multiplayer.Games
                 },
                 Inputs = new List<IInput>
                 {
+                    /*
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇦"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = true,
+                        RequireOnMessage = true
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇧"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = true,
+                        RequireOnMessage = true
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇨"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = true,
+                        RequireOnMessage = true
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇩"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = true,
+                        RequireOnMessage = true
+                    }, 
+
+                     */
                     new TextInput
                     {
                         Name = "a",
                         UpdateOnExecute = false,
                         OnExecute = delegate(InputContext ctx)
                         {
-
                             var data = ctx.Session.DataOf(ctx.Invoker.Id);
 
                             if (data.ValueOf<bool>("has_answered"))
@@ -867,7 +902,7 @@ namespace Arcadia.Multiplayer.Games
             return baseScore;
         }
 
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             var result = new GameResult();
 

@@ -6,16 +6,16 @@ namespace Arcadia.Multiplayer
 {
     public class TriviaPlayerData
     {
-        [GameProperty("score")]
+        [Property("score")]
         public int Score { get; internal set; }
 
-        [GameProperty("streak")]
+        [Property("streak")]
         public int Streak { get; internal set; }
 
-        [GameProperty("answer_state")]
+        [Property("answer_state")]
         public TriviaAnswerState AnswerState { get; internal set; }
 
-        [GameProperty("answer_position")]
+        [Property("answer_position")]
         public int AnswerPosition { get; internal set; }
 
         public List<GameProperty> GetProperties(string id)
@@ -23,8 +23,8 @@ namespace Arcadia.Multiplayer
             return
                 GetType()
                     .GetProperties()
-                    .Where(x => x.GetCustomAttribute<GamePropertyAttribute>()?.Id == id)
-                    .Select(x => GameProperty.Create(x.GetCustomAttribute<GamePropertyAttribute>()?.Id, x.GetValue(this), true))
+                    .Where(x => x.GetCustomAttribute<PropertyAttribute>()?.Id == id)
+                    .Select(x => GameProperty.Create(x.GetCustomAttribute<PropertyAttribute>()?.Id, x.GetValue(this), true))
                     .ToList();
         }
     }

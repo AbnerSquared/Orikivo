@@ -24,6 +24,9 @@ namespace Arcadia.Multiplayer
 
         public bool RequirePlayer { get; set; }
 
+        // Does this specific input need to be placed on all connected displays?
+        public bool RequireOnMessage { get; set; }
+
         public InputResult TryParse(Input input)
         {
             var result = new InputResult();

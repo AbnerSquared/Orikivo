@@ -8,20 +8,18 @@ namespace Arcadia.Multiplayer.Games
 {
     public class UltimateTicGame : GameBase
     {
-        public UltimateTicGame()
+        public override string Id => "ultimatetic";
+
+        public override GameDetails Details => new GameDetails
         {
-            Id = "ultimatetic";
-            Details = new GameDetails
-            {
-                Name = "Ultimate Tic-Tac-Toe",
-                Icon = "⭕",
-                Summary = "Tic-Tac-Toe made complex. The first to match 3 boards in a row wins.",
-                RequiredPlayers = 2,
-                PlayerLimit = 2,
-                AllowSessionLeave = false,
-                AllowSessionJoin = false
-            };
-        }
+            Name = "Ultimate Tic-Tac-Toe",
+            Icon = "⭕",
+            Summary = "Tic-Tac-Toe made complex. The first to match 3 boards in a row wins.",
+            RequiredPlayers = 2,
+            PlayerLimit = 2,
+            AllowSessionLeave = false,
+            AllowSessionJoin = false
+        };
 
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
@@ -62,7 +60,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             return new List<GameAction>
             {
@@ -250,7 +248,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             var result = new GameResult();
             return result;

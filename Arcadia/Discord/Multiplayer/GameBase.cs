@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Orikivo;
+using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
@@ -10,21 +12,15 @@ namespace Arcadia.Multiplayer
     /// Represents a generic game structure.
     /// </summary>
     /// <typeparam name="TPlayer"></typeparam>
-    public abstract class GameBase<TPlayer> where TPlayer : IPlayer
+    public abstract class GameBase<TPlayer> : GameBase
+        where TPlayer : PlayerData
     {
-        public string Id { get; protected set; } // What is the ID for this game?
-        public GameDetails Details { get; protected set; } // What are the details for this game?
-        public List<GameAction> Actions { get; protected set; } // What are the actions for this game?
-        public List<GameOption> Options { get; protected set; } // What are the options for this game?
-        public List<TPlayer> Players { get; protected set; } // The data for the players?
-        public abstract Task<List<TPlayer>> OnBuildPlayers(in IEnumerable<Player> players); // What to do to build players?
-        public abstract Task OnPlayerRemoved(TPlayer player); // What to do when a player leaves/is removed?
-        public abstract Task OnPlayerJoined(TPlayer player); // What to do when a player joins?
-        public abstract Task OnConnectionRemoved(ServerConnection connection); // What to do when a connection was removed?
-        public abstract Task OnConnectionCreated(ServerConnection connection); // What to do when a connection was created?
-        public abstract Task OnGameBuild(); // What to do when this game is initialized
-        public abstract Task OnGameComplete(); // What to do when this game is complete
-        public abstract Task OnGameStart(); // How does this game start
+        public abstract List<TPlayer> OnBuildTPlayers(in IEnumerable<Player> players);
+
+        /// <summary>
+        /// Represents the data of all players for this <see cref="GameBase"/>.
+        /// </summary>
+        public new IReadOnlyList<TPlayer> Players { get; set; }
     }
 
     public class TriviaPlayer
@@ -42,51 +38,72 @@ namespace Arcadia.Multiplayer
         public int TotalCorrect { get; internal set; }
     }
 
+    // TODO: Merge GameBase structure with GameSession
     /// <summary>
     /// Represents a generic structure for a game.
     /// </summary>
     public abstract class GameBase
     {
-        internal void SetGameConfig(GameServer server)
-            => Options = server.Options;
-
         // CANNOT BE NULL
         /// <summary>
         /// Represents the global identifier for this <see cref="GameBase"/>.
         /// </summary>
-        public string Id { get; protected set; }
+        public abstract string Id { get; }
 
         // CANNOT BE NULL
         /// <summary>
         /// Represents the details of this <see cref="GameBase"/>.
         /// </summary>
-        public GameDetails Details { get; protected set; }
+        public abstract GameDetails Details { get; }
 
         // CAN BE NULL
         /// <summary>
         /// Represents all of the possible configurations that this <see cref="GameBase"/> allows.
         /// </summary>
-        public List<GameOption> Options { get; internal set; } = new List<GameOption>();
+        public virtual List<GameOption> Options { get; protected set; } = new List<GameOption>();
+
+        /// <summary>
+        /// Represents the data of all players for this <see cref="GameBase"/>.
+        /// </summary>
+        public virtual IReadOnlyList<PlayerData> Players { get; protected set; }
 
         /// <summary>
         /// When specified, handles building the required data for every player in a <see cref="GameSession"/>.
         /// </summary>
         public abstract List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players);
 
+        // TODO: Remove requirement of this method
         /// <summary>
         /// When specified, handles collecting all of the required global properties for this <see cref="GameBase"/>.
         /// </summary>
-        /// <returns></returns>
         public abstract List<GameProperty> OnBuildProperties();
 
-        // NOTE: Player references are included to allow you to require specific player IDs on certain actions
+        /// <summary>
+        /// Returns a collection of all specified game properties for this <see cref="GameBase"/>.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<GameProperty> ExportProperties()
+        {
+            return GetType().GetProperties().Where(x => x.GetCustomAttribute<PropertyAttribute>() != null).Select(x => CreateGameProperty(this, x));
+        }
+
+        private static GameProperty CreateGameProperty(object callback, PropertyInfo property)
+        {
+            var propertyInfo = property.GetCustomAttribute<PropertyAttribute>();
+
+            if (propertyInfo == null)
+                throw new ArgumentException("Expected the specified PropertyInfo to have an attribute of type PropertyAttribute");
+
+            return GameProperty.Create(propertyInfo.Id, property.GetValue(callback), true);
+        }
+
         /// <summary>
         /// When specified, handling collection all of the required actions for this <see cref="GameBase"/>.
         /// </summary>
-        public abstract List<GameAction> OnBuildActions(List<PlayerData> players);
+        public abstract List<GameAction> OnBuildActions();
 
         /// <summary>
-        /// When specified, handles collecting all of the required criterion for this <see cref="GameBase"/>.
+        /// When specified, handles collecting all of the required criteria for this <see cref="GameBase"/>.
         /// </summary>
         public virtual List<GameCriterion> OnBuildRules(List<PlayerData> players)
             => new List<GameCriterion>();
@@ -108,8 +125,9 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents the method used to safely end a <see cref="GameSession"/>.
         /// </summary>
-        public abstract GameResult OnSessionFinish(GameSession session);
+        public abstract GameResult OnGameFinish(GameSession session);
 
+        // This method is used to finalize the result information for when a game finishes
         protected void FinalizeResult(GameResult result, GameSession session)
         {
             var properties = new List<GameProperty>();
@@ -143,6 +161,8 @@ namespace Arcadia.Multiplayer
             // Set all of the server connections to playing
             foreach (ServerConnection connection in server.Connections)
                 connection.State = GameState.Playing;
+
+            ExportProperties().ForEach(x => Logger.Debug($"{x.Id}: {x.Value.ToString()}"));
 
             // Read the method used when a session starts
             await OnSessionStartAsync(server, session);

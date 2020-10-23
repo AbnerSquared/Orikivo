@@ -8,6 +8,13 @@ namespace Arcadia.Multiplayer.Games
 {
     public class SticksGame : GameBase
     {
+        public override string Id => "sticks";
+
+        public override GameDetails Details => new GameDetails
+        {
+
+        };
+
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
             return players.Select((x, i) =>
@@ -60,12 +67,8 @@ namespace Arcadia.Multiplayer.Games
              
              
              */
-        public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
-        {
-            throw new NotImplementedException();
-        }
 
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             throw new NotImplementedException();
         }
@@ -80,7 +83,7 @@ namespace Arcadia.Multiplayer.Games
             throw new NotImplementedException();
         }
 
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             return null;
         }

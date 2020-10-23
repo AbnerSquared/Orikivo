@@ -16,28 +16,25 @@ namespace Arcadia.Multiplayer.Games
 
     public class WerewolfGame : GameBase
     {
-        public WerewolfGame()
+        public override string Id => "werewolf";
+
+        public override GameDetails Details => new GameDetails
         {
-            Id = "werewolf";
+            Name = "Werewolf",
+            Icon = "🐺",
+            Summary = "Seek out the werewolves and save the village.",
+            RequiredPlayers = 3,
+            PlayerLimit = 16
+        };
 
-            Details = new GameDetails
-            {
-                Name = "Werewolf",
-                Icon = "🐺",
-                Summary = "Seek out the werewolves and save the village.",
-                RequiredPlayers = 3,
-                PlayerLimit = 16
-            };
-
-            Options = new List<GameOption>
-            {
-                GameOption.Create(WolfConfig.RevealRolesOnDeath, "Reveal roles on death", true, "Determines if a player's role is revealed when they die."),
-                GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WerewolfRoleDeny.None, "Specifies a set of roles to exclude from the game (unimplemented)."),
-                GameOption.Create(WolfConfig.RandomizeNames, "Randomize names", false, "Toggles the randomization of names to hide the actual name of each player."),
-                GameOption.Create(WolfConfig.SharedPeeking, "Shared peeking", false, "Determines if seers share the same peeking mechanic."),
-                GameOption.Create(WolfConfig.RevealPartners, "Reveal partners", true, "Determines if all of your partners are revealed to you when the game first starts.")
-            };
-        }
+        public override List<GameOption> Options => new List<GameOption>
+        {
+            GameOption.Create(WolfConfig.RevealRolesOnDeath, "Reveal roles on death", true, "Determines if a player's role is revealed when they die."),
+            GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WerewolfRoleDeny.None, "Specifies a set of roles to exclude from the game (unimplemented)."),
+            GameOption.Create(WolfConfig.RandomizeNames, "Randomize names", false, "Toggles the randomization of names to hide the actual name of each player."),
+            GameOption.Create(WolfConfig.SharedPeeking, "Shared peeking", false, "Determines if seers share the same peeking mechanic."),
+            GameOption.Create(WolfConfig.RevealPartners, "Reveal partners", true, "Determines if all of your partners are revealed to you when the game first starts.")
+        };
 
         private List<string> RandomNames { get; set; }
 
@@ -340,6 +337,48 @@ namespace Arcadia.Multiplayer.Games
             // AND if there was at least one vote on that player, extend the ability vote timer by 10 seconds.
         }
 
+        [Property("deaths")]
+        public List<WerewolfDeath> Deaths { get; set; }
+
+        [Property("peeks")]
+        public List<WerewolfPeekData> Peeks { get; set; }
+
+        [Property("lovers")]
+        public Dictionary<ulong, ulong> LoverIds { get; set; }
+
+        [Property("suspect")]
+        public ulong SuspectId { get; set; }
+
+        [Property("accuser")]
+        public ulong AccuserId { get; set; }
+
+        [Property("current_death")]
+        public WerewolfDeath CurrentDeath { get; set; }
+
+        [Property("current_ability")]
+        public WerewolfAbility CurrentAbility { get; set; }
+
+        [Property("current_phase")]
+        public WerewolfPhase CurrentPhase { get; set; }
+
+        [Property("next_phase")]
+        public WerewolfPhase NextPhase { get; set; }
+
+        [Property("current_round")]
+        public int CurrentRound { get; set; }
+
+        [Property("handled_abilities")]
+        public WerewolfAbility HandledAbilities { get; set; }
+
+        [Property("ability_votes")]
+        public List<WerewolfVoteData> AbilityVotes { get; set; }
+
+        [Property("is_on_trial")]
+        public bool OnTrial { get; set; }
+
+        [Property("winning_group")]
+        public WerewolfGroup WinningGroup { get; set; }
+
         public override List<GameProperty> OnBuildProperties()
         {
             return new List<GameProperty>
@@ -386,7 +425,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
-        public override List<GameAction> OnBuildActions(List<PlayerData> players)
+        public override List<GameAction> OnBuildActions()
         {
             return new List<GameAction>
             {
@@ -449,7 +488,7 @@ namespace Arcadia.Multiplayer.Games
             session.InvokeAction(WolfVars.Start, true);
         }
 
-        public override GameResult OnSessionFinish(GameSession session)
+        public override GameResult OnGameFinish(GameSession session)
         {
             var result = new GameResult();
 

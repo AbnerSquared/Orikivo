@@ -2,23 +2,22 @@
 
 namespace Arcadia.Multiplayer
 {
-    // [Action("start_day")]
-    // This attribute is used to mark a method as a game action
-    public class ActionAttribute : Attribute
-    {
-        // Name
-        // UpdateOnExecute
-        // 
-    }
-
     /// <summary>
-    /// Marks a command as a session, which prevents other sessions from initializing until the existing session ends.
+    /// Marks the specified method as a <see cref="GameAction"/> for a <see cref="GameBase"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class SessionAttribute : Attribute { }
+    public class ActionAttribute : Attribute
+    {
+        public ActionAttribute(string id, bool updateOnExecute = true)
+        {
+            Id = id;
+            UpdateOnExecute = updateOnExecute;
+        }
 
-    /// <summary>
-    /// Marks a command to require the specified user to not be in any sessions to execute.
-    /// </summary>
-    public class RequireNoSessionAttribute : Attribute { }
+        // Represents the Id of the game action
+        public string Id { get; internal set; }
+
+        // Determines if the GameServer updates all connected displays when this action is executed
+        public bool UpdateOnExecute { get; internal set; }
+    }
 }
