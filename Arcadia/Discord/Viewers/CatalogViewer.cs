@@ -322,8 +322,8 @@ namespace Arcadia.Services
                 if (Check.NotNull(data.Data.Name))
                     details.AppendLine($"🉐 **Name Tag**: **{data.Data.Name}**");
 
-                foreach ((string id, long value) in data.Data.Properties)
-                    details.AppendLine($"• `{id}`: **{value:##,0}**");
+                foreach ((string id, ItemPropertyData property) in data.Data.Properties)
+                    details.AppendLine($"• `{id}`: **{property.Value:##,0}**");
             }
 
             return details.ToString();

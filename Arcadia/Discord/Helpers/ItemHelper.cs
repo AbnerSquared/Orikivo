@@ -19,6 +19,7 @@ namespace Arcadia
             || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
 
         // item.Value > 0
+        // TODO: Include user to determine if they can buy the item based on their current progress
         public static bool CanBuy(Item item)
         {
             return Assets.Shops.Any(x => x.Catalog.Entries.Any(c => c.ItemId == item.Id));

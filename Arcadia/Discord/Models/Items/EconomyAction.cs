@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum ItemMarketAction
+    public enum EconomyAction
     {
         Buy,
         Sell,

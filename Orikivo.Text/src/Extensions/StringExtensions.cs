@@ -26,6 +26,14 @@ namespace Orikivo.Text
         }
 
         /// <summary>
+        /// Returns a value indicating whether any of the specified strings matches the specified string when compared using the specified comparison option.
+        /// </summary>
+        public static bool Contains(this IEnumerable<string> enumerable, string value, StringComparison comparisonType)
+        {
+            return enumerable.Any(x => x.Equals(value, comparisonType));
+        }
+
+        /// <summary>
         /// Determines whether the beginning of this string instance matches any of the specified strings.
         /// </summary>
         public static bool StartsWithAny(this string str, params string[] anyOf)

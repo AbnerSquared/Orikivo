@@ -23,20 +23,6 @@ namespace Arcadia.Multiplayer
         public new IReadOnlyList<TPlayer> Players { get; set; }
     }
 
-    public class TriviaPlayer
-    {
-        // This is all specified from the base player
-        public ulong Id { get; }
-        public string Name { get; }
-        public DateTime JoinedAt { get; }
-        public bool IsPlaying { get; }
-
-        public int Score { get; internal set; }
-
-        public int Streak { get; internal set; }
-
-        public int TotalCorrect { get; internal set; }
-    }
 
     // TODO: Merge GameBase structure with GameSession
     /// <summary>

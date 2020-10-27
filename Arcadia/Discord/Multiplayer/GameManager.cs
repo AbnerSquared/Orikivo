@@ -59,6 +59,14 @@ namespace Arcadia.Multiplayer
             }
         }
 
+        public GameServer GetServerFor(ulong userId)
+        {
+            if (ReservedUsers.ContainsKey(userId))
+                return Servers[ReservedUsers[userId]];
+
+            return null;
+        }
+
         public IEnumerable<GameServer> GetServersFor(ulong userId, ulong guildId = 0)
         {
             return Servers.Values.Where(x => MeetsServerCriterion(x, userId, guildId));

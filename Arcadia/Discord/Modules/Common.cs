@@ -2,14 +2,11 @@
 using Discord.WebSocket;
 using Orikivo;
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
-using Arcadia.Multiplayer;
-using Arcadia.Multiplayer.Games;
 using DiscordBoats;
 using Microsoft.Extensions.Configuration;
 using Orikivo.Text;
@@ -35,7 +32,8 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("submitchallenges")]
+        [Command("submit")]
+        [Summary("Submit your challenge set for completion.")]
         public async Task SubmitChallengesAsync()
         {
             string result = ChallengeHelper.Submit(Context.Account);
@@ -44,23 +42,16 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("challenges")]
+        [Summary("View your current challenge set.")]
         public async Task ViewChallengesAsync()
         {
             string result = ChallengeHelper.View(Context.Account);
             await Context.Channel.SendMessageAsync(result);
         }
 
-        /*
-        [Command("peekshop")]
-        [Summary("View what a shop has for sale before entering.")]
-        public async Task PeekShopAsync(Shop shop)
-        {
-            context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
-        }*/
-
         [RequireUser]
         [Command("memos")]
-        [Summary("View a full summary of discovered entries.")]
+        [Summary("View memos about previous research.")]
         public async Task ViewMemosAsync(int page = 1)
         {
             string result = ResearchHelper.ViewMemos(Context.Account, --page);
@@ -69,7 +60,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("memo")]
-        [Summary("View a full summary of discovered entries.")]
+        [Summary("View a research memo.")]
         public async Task ViewMemoAsync(Item item)
         {
             string result = ResearchHelper.ViewMemo(Context.Account, item);
@@ -77,7 +68,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("researchinfo")]
+        [Command("researchinfo"), Alias("rinfo")]
         [Summary("View details about the research progress of an item.")]
         public async Task ReadResearchAsync(Item item)
         {
@@ -102,85 +93,6 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
-        [RequireUser]
-        [Command("offer")]
-        [Summary("Send a trade offer to the specified user.")]
-        public async Task SendOfferAsync(SocketUser user, [Remainder]string input)
-        {
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            if (!Check.NotNull(input))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You must specify your offer contents."));
-                return;
-            }
-
-            if (!TradeHelper.TryParseOffer(Context.User, user, input, out TradeOffer offer))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("An error has occurred while trying to parse the specified trade offer."));
-                return;
-            }
-
-            string result = TradeHelper.SendOffer(Context.Account, account, offer);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [RequireUser]
-        [Command("acceptoffer")]
-        [Summary("Accepts the specified trade offer.")]
-        public async Task AcceptOfferAsync(string offerId)
-        {
-            if (Context.Account.Offers.All(x => x.Id != offerId))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
-                return;
-            }
-
-            TradeOffer offer = Context.Account.Offers.First(x => x.Id == offerId);
-
-            if (!offer.Author.Id.HasValue)
-                throw new Exception("Expected author ID to be specified in trade offer");
-
-            if (!Context.TryGetUser(offer.Author.Id.Value, out ArcadeUser account))
-                throw new Exception("Expected user account to exist from the specified offer");
-
-            string result = TradeHelper.AcceptOffer(Context.Account, account, offer);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [RequireUser]
-        [Command("declineoffer"), Alias("canceloffer")]
-        [Summary("Declines or cancels the specified trade offer.")]
-        public async Task DeclineOfferAsync(string offerId)
-        {
-            if (Context.Account.Offers.All(x => x.Id != offerId))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
-                return;
-            }
-
-            TradeOffer offer = Context.Account.Offers.First(x => x.Id == offerId);
-
-            if (!offer.Author.Id.HasValue)
-                throw new Exception("Expected author ID to be specified in trade offer");
-
-            if (!Context.TryGetUser(offer.Author.Id.Value, out ArcadeUser account))
-                throw new Exception("Expected user account to exist from the specified offer");
-
-            string result = TradeHelper.DeclineOffer(Context.Account, account, offer);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [Command("offers")]
-        [Summary("View all of the possible trade offers requested to you.")]
-        public async Task ViewOffersAsync()
-        {
-            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account, Context));
-        }
-
         [Command("guides")]
         [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
         public async Task ViewGuidesAsync(int page = 1)
@@ -190,7 +102,7 @@ namespace Arcadia.Modules
 
         [Command("guide")]
         [Summary("Read and view the contents of the specified guide.")]
-        public async Task ReadGuideAsync(string id, int page = 1)
+        public async Task ReadGuideAsync([Name("guide_id")]string id, int page = 1)
         {
             await Context.Channel.SendMessageAsync(GuideViewer.ViewGuide(id, --page));
         }
@@ -206,7 +118,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("recipe")]
         [Summary("View information about a specific recipe.")]
-        public async Task ViewRecipeAsync([Name("recipe_id")] Recipe recipe)
+        public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
             /*
             if (!ItemHelper.RecipeExists(recipeId))
@@ -220,7 +132,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("craft")]
-        [Summary("Craft an item from the specified recipe.")]
+        [Summary("Attempt to craft an **Item** using the specified **Recipe**.")]
         public async Task CraftAsync([Name("recipe_id")]Recipe recipe)
         {
             /*
@@ -284,7 +196,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("merit")]
-        [Summary("View the details of a merit.")]
+        [Summary("View information about a **Merit**.")]
         public async Task ViewMeritAsync(Merit merit)
         {
             if (!MeritHelper.HasUnlocked(Context.Account, merit) && merit.Hidden)
@@ -298,6 +210,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("cooldowns"), Alias("cooldown", "expiry")]
+        [Summary("View all currently active cooldowns and expirations.")]
         public async Task ViewCooldownsAsync()
         {
             await Context.Channel.SendMessageAsync(CooldownHelper.ViewAllTimers(Context.Account));
@@ -305,48 +218,26 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("claim")]
-        [Summary("Attempt to claim the specified merit.")]
+        [Summary("Attempt to claim the specified **Merit**.")]
         public async Task ClaimAsync(string meritId = null)
         {
             await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
         }
 
         [RequireUser]
-        [Command("shops")]
-        public async Task ViewShopsAsync()
-        {
-            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops(Context.Data.Data));
-        }
-
-        [RequireUser]
         [Command("stat")]
-        public async Task ViewStatAsync(string id)
+        [Summary("View details about a single **Stat**.")]
+        public async Task ViewStatAsync([Name("stat_id")]string id)
         {
             await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
         }
 
         [RequireUser]
         [Command("level"), Alias("exp", "ascent", "lv", "xp")]
+        [Summary("View your current level.")]
         public async Task ViewLevelAsync()
         {
             await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
-        }
-
-        //[Command("drawmoves")]
-        public async Task DrawPieceMovesAsync(int whitePieceCount, int blackPieceCount, ChessOwner perspective)
-        {
-            ChessBoard board = ChessBoard.GetRandom(whitePieceCount, blackPieceCount);
-            await Context.Channel.SendMessageAsync(board.DrawMoves(Randomizer.Choose(board.Pieces), perspective));
-        }
-
-        [Session]
-        [RequireUser]
-        [RequireData]
-        [Command("shop")]
-        public async Task ShopAsync(Shop shop)
-        {
-            var session = new ShopSession(Context, shop);
-            await StartSessionAsync(session);
         }
 
         [RequireUser]
@@ -357,7 +248,21 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, query, --page));
         }
 
-        // NOTE: QUESTS
+        [RequireUser]
+        [Command("quests"), Alias("missions", "tasks"), Priority(0)]
+        [Summary("View all of your currently assigned quests.")]
+        public async Task ViewQuestsAsync()
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
+        }
+
+        [RequireUser]
+        [Command("quests"), Alias("missions", "tasks"), Priority(1)]
+        [Summary("View the currently assigned objective on the specified slot.")]
+        public async Task ViewQuestAsync(int slot)
+        {
+            await Context.Channel.SendMessageAsync(QuestHelper.ViewSlot(Context.Account, --slot));
+        }
 
         [RequireUser]
         [Command("assign")]
@@ -368,24 +273,8 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(1)]
-        [Summary("View the currently assigned objective on the specified slot.")]
-        public async Task ViewQuestAsync(int slot)
-        {
-            await Context.Channel.SendMessageAsync(QuestHelper.ViewSlot(Context.Account, --slot));
-        }
-
-        [RequireUser]
-        [Command("objectives"), Alias("missions", "quests", "tasks"), Priority(0)]
-        [Summary("View all of your currently assigned quests.")]
-        public async Task ViewQuestsAsync()
-        {
-            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
-        }
-
-        [RequireUser]
         [Command("toss")]
-        [Summary("Toss the specified objective you are currently working on.")]
+        [Summary("Toss the specified quest you are currently working on.")]
         public async Task TossQuestAsync(int slot)
         {
             await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, --slot));
@@ -393,11 +282,41 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("complete")]
-        [Summary("Claim the rewards from all of your completed objectives.")]
+        [Summary("Claim the rewards from all of your completed quests.")]
         public async Task CompleteQuestsAsync()
         {
             await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
         }
+
+        /*
+        [Group("quests"), Alias("missions", "tasks")]
+        public class Quests : BaseModule<ArcadeContext>
+        {
+            [RequireUser]
+            [Command("assign")]
+            [Summary("Assign a new set of quests.")]
+            public async Task AssignQuestsAsync()
+            {
+                await Context.Channel.SendMessageAsync(QuestHelper.AssignAndDisplay(Context.Account));
+            }
+
+            [RequireUser]
+            [Command("toss")]
+            [Summary("Toss the specified quest you are currently working on.")]
+            public async Task TossQuestAsync(int slot)
+            {
+                await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, --slot));
+            }
+
+            [RequireUser]
+            [Command("complete")]
+            [Summary("Claim the rewards from all of your completed quests.")]
+            public async Task CompleteQuestsAsync()
+            {
+                await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
+            }
+        }
+        */
 
         [RequireUser]
         [Command("vote")]
@@ -472,101 +391,6 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(CatalogViewer.Search(Context.Account, input));
         }
 
-        [Command("trade")]
-        [Summary("Attempts to start a trade with the specified user.")]
-        public async Task TradeAsync(SocketUser user)
-        {
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            if (Context.Account.IsInSession)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in another active session."));
-                return;
-            }
-
-            Context.Account.IsInSession = true;
-
-            var session = new TradeSession(Context, account);
-            await StartSessionAsync(session, TimeSpan.FromSeconds(20));
-            Context.Account.IsInSession = false;
-            account.IsInSession = true;
-        }
-
-
-        [Command("gift")]
-        [Summary("Attempts to gift an **Item** to the specified user.")]
-        public async Task GiftAsync(SocketUser user, string dataId)
-        {
-            Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
-
-            if (data == null)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
-                return;
-            }
-
-            if (account.Id == Context.Account.Id)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You can't send a gift to yourself."));
-                return;
-            }
-
-            Item item = ItemHelper.GetItem(data.Id);
-
-            // Next, check if the item can be gifted.
-            if (!ItemHelper.CanGift(data.Id, data))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
-                return;
-            }
-
-            // Otherwise, Take the item away from the invoker
-            // If the item has a limited gift count, add one to the gift counter and give it to the user.
-
-            Context.Account.Items.Remove(data);
-
-            if (data.Seal != null)
-                data.Seal.SenderId = Context.Account.Id;
-
-            if (item.TradeLimit.HasValue)
-            {
-                bool hasGiftCounter = data.Data?.TradeCount.HasValue ?? false;
-
-                if (hasGiftCounter)
-                    ItemHelper.DataOf(account, item).Data.TradeCount++;
-            }
-
-            account.Items.Add(data);
-            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
-            Context.Account.AddToVar(Stats.Common.ItemsGifted);
-        }
-
-        [RequireUser]
-        [Command("sell")]
-        [Summary("Sells the specified **Item** to the shop of choice")]
-        public async Task SellItemAsync(string dataId, Shop shop)
-        {
-            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
-
-            if (data == null)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
-                return;
-            }
-
-            string result = ShopHelper.Sell(shop, data, Context.Account);
-
-            await Context.Channel.SendMessageAsync(Context.Account, result);
-        }
-
         [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
@@ -607,7 +431,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspectat")]
         [Summary("Inspect at specific **Item** slot in your inventory.")]
-        public async Task ViewInventorySlotAsync(int slot)
+        public async Task ViewInventorySlotAsync([Name("slot_index")]int slot)
         {
             if (Context.Account.Items.Count == 0)
             {
@@ -627,7 +451,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspect")]
         [Summary("Inspect a specific **Item** in your inventory using a data reference.")]
-        public async Task InspectInInventoryAsync(string dataId)
+        public async Task InspectInInventoryAsync([Name("data_id")]string dataId)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
             int slot = Context.Account.Items.IndexOf(data);
@@ -690,7 +514,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("leaderboard"), Alias("top"), Priority(0)]
         [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
-        public async Task GetLeaderboardAsync(string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
+        public async Task GetLeaderboardAsync([Name("stat_id")]string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
         {
             var board = new Leaderboard(statId, sort);
             string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
@@ -802,15 +626,14 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("profile"), Alias("account", "acc", "pf", "user")]
         [Summary("View a profile.")]
-        public async Task ViewProfileAsync(SocketUser user = null)
+        public async Task ViewProfileAsync(ArcadeUser user = null)
         {
-            user ??= Context.User;
-            Context.TryGetUser(user.Id, out ArcadeUser account);
+            user ??= Context.Account;
 
-            if (await CatchEmptyAccountAsync(account))
+            if (await CatchEmptyAccountAsync(user))
                 return;
 
-            await Context.Channel.SendMessageAsync(ProfileViewer.View(account, Context));
+            await Context.Channel.SendMessageAsync(ProfileViewer.View(user, Context));
         }
 
         private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)

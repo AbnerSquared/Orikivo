@@ -139,15 +139,22 @@ namespace Arcadia.Modules
             await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(gameId)).ConfigureAwait(false);
         }
 
-        /*
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("leaveserver")]
         [Summary("Leave the current server you are in.")]
         public async Task LeaveServerAsync()
         {
+            GameServer server = _games.GetServerFor(Context.User.Id);
 
-        }*/
+            if (server == null)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You are not in a game server."));
+                return;
+            }
 
-        //[Access(AccessLevel.Dev)]
+            await server.RemovePlayerAsync(Context.User.Id);
+        }
+
         [Command("destroyserver")]
         [Summary("Destroys the specified server.")]
         public async Task DestroyServerAsync([Name("server_id")] string serverId)
@@ -172,16 +179,16 @@ namespace Arcadia.Modules
         [Summary("Destroys the current session for the specified server, if any.")]
         public async Task DestroySessionAsync([Name("server_id")] string serverId)
         {
-            if (Context.User.Id != OriGlobal.DevId)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are not the developer of this bot.")).ConfigureAwait(false);
-                return;
-            }
-
             if (_games.Servers.ContainsKey(serverId))
             {
                 if (_games.Servers[serverId].Session != null)
                 {
+                    if (Context.User.Id != _games.Servers[serverId].HostId && Context.User.Id != OriGlobal.DevId)
+                    {
+                        await Context.Channel.SendMessageAsync(Format.Warning("You are not the server host or the developer of this bot.")).ConfigureAwait(false);
+                        return;
+                    }
+
                     await _games.DestroySessionAsync(_games.Servers[serverId]).ConfigureAwait(false);
                     await Context.Channel.SendMessageAsync($"The current session for #`{serverId}` has been destroyed.").ConfigureAwait(false);
                     return;

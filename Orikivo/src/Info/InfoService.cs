@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using Orikivo.Desync;
+using Orikivo.Text;
 
 namespace Orikivo
 {
@@ -34,7 +35,7 @@ namespace Orikivo
             => m.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
 
         private static bool FilterGroup(ModuleInfo g, string n)
-            => g.Group.Equals(n, StringComparison.OrdinalIgnoreCase);
+            => g.Group?.Equals(n, StringComparison.OrdinalIgnoreCase) ?? g.Aliases?.Contains(n, StringComparison.OrdinalIgnoreCase) ?? false;
 
         private static bool FilterCommand(CommandInfo c, string n)
             => c.Aliases.Contains(n.ToLower());

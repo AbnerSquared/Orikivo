@@ -46,7 +46,8 @@ namespace Arcadia
 
         public bool CanBuy => AllowedHandles.HasFlag(ItemAllow.Buy);
 
-        public Func<ItemMarketAction, UniqueItemData, float> MarketCriteria { get; set; }
+        // Determines if a specified item data instance can allow the following economy action based on if the item data meets the criteria.
+        public Dictionary<EconomyAction, Func<ItemData, bool>> EconomyCriteria { get; set; }
 
         public int? TradeLimit { get; set; }
 

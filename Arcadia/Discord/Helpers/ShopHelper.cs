@@ -24,6 +24,12 @@ namespace Arcadia
         public static bool Exists(string shopId)
             => Assets.Shops.Any(x => x.Id == shopId);
 
+        public static IEnumerable<Shop> GetKnownShops(ArcadeUser user)
+        {
+            // get the variable if not empty; otherwise, attempt to set it to 1 if they can visit
+            return Assets.Shops.Where(x => Var.GetOrSet(user, GetTierId(x.Id), (x.ToVisit?.Invoke(user) ?? true) ? 1 : 0) > 0);
+        }
+
         public static CatalogHistory HistoryOf(ArcadeUser user, string shopId)
         {
             if (!Exists(shopId))
@@ -121,7 +127,7 @@ namespace Arcadia
         }
 
         // Make sure to incorporate pagination
-        public static string ViewShops(ArcadeData data)
+        public static string ViewShops(ArcadeUser user)
         {
             // Incorporate the user into this
             // As it determines what shops they can currently view
@@ -133,7 +139,7 @@ namespace Arcadia
             TimeSpan remainder = TimeSpan.FromDays(1) - DateTime.UtcNow.TimeOfDay;
             info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
 
-            foreach (Shop shop in Assets.Shops)
+            foreach (Shop shop in GetKnownShops(user))
                 info.Append(WriteShopRow(shop));
 
             return info.ToString();

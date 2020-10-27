@@ -56,8 +56,8 @@ namespace Arcadia
                 throw new ArgumentException("Cannot initialize a catalog with an empty or negative size.");
 
             var reference = new GeneratorReference(tier);
-
-            while (reference.Items.Count < Size)
+            int count = 0;
+            while (count < Size)
             {
                 CatalogEntry entry = GetNextEntry(ref reference);
 
@@ -103,6 +103,8 @@ namespace Arcadia
                     if (!reference.GroupCounters.TryAdd(entry.GroupId, 1))
                         reference.GroupCounters[entry.GroupId]++;
                 }
+
+                count++;
             }
 
             Logger.Debug($"Compiling catalog with {reference.Items.Count} {Format.TryPluralize("entry", reference.Items.Count)}");

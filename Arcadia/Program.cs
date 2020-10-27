@@ -78,7 +78,8 @@ namespace Arcadia
                     .AddModule<Core>()
                     .AddModule<Modules.Casino>()
                     .AddModule<Modules.Multiplayer>()
-                    .AddModule<Common>();
+                    .AddModule<Common>()
+                    .AddModule<Economy>();
 
                 Client client = builder.Build();
                 client.Status = UserStatus.Online;
