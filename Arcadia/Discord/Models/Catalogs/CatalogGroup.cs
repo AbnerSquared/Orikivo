@@ -13,8 +13,6 @@
 
         public float DiscountChance { get; set; }
 
-        public float CostScale { get; set; }
-
         public int RequiredTier { get; set; }
 
         public bool ForceAtTier { get; set; }

@@ -3,9 +3,12 @@ using Newtonsoft.Json;
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents transaction history for an <see cref="ItemCatalog"/>.
+    /// </summary>
     public class CatalogHistory
     {
-        public CatalogHistory()
+        internal CatalogHistory()
         {
             PurchasedIds = new Dictionary<string, int>();
             SoldIds = new Dictionary<string, int>();
@@ -29,7 +32,7 @@ namespace Arcadia
         [JsonProperty("sold_ids")]
         public Dictionary<string, int> SoldIds { get; }
 
-        public void Clear()
+        internal void Clear()
         {
             PurchasedIds.Clear();
             SoldIds.Clear();

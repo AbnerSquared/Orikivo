@@ -244,7 +244,7 @@ namespace Orikivo
         public static int[] GenerateNumbers(int lowerBound, int upperBound, int len, bool allowRepeats = true)
         {
             len = len < 1 ? 1 : len;
-            List<int> bag = Int32Utils.Increment(lowerBound, upperBound).ToList();
+            List<int> bag = NumberUtils.CreateInt32Range(lowerBound, upperBound).ToList();
             var mix = new int[len];
 
             for (int i = 0; i < len; i++)
@@ -285,6 +285,46 @@ namespace Orikivo
         {
             range = RangeF.Truncate(range);
             return RandomProvider.Instance.Next((int)range.Min, (int)range.Max);
+        }
+
+        public static int Next(int max, HashSet<int> exclude, bool inclusive = true)
+        {
+            if (inclusive)
+                max++;
+
+            List<int> numbers = NumberUtils.CreateInt32Range(0, max, 1, exclude).ToList();
+            return numbers.ElementAt(RandomProvider.Instance.Next(0, numbers.Count));
+        }
+
+        public static int Next(int min, int max, HashSet<int> exclude, bool inclusiveMin = true, bool inclusiveMax = true)
+        {
+            if (!inclusiveMin)
+                min++;
+
+            if (inclusiveMax)
+                max++;
+
+            List<int> numbers = NumberUtils.CreateInt32Range(min, max, 1, exclude).ToList();
+            return numbers.ElementAt(RandomProvider.Instance.Next(0, numbers.Count));
+        }
+
+        public static int Next(int min, int max, bool inclusiveMin = true, bool inclusiveMax = true)
+        {
+            if (!inclusiveMin)
+                min++;
+
+            if (inclusiveMax)
+                max++;
+
+            return RandomProvider.Instance.Next(min, max);
+        }
+
+        public static int Next(int max, bool inclusive = true)
+        {
+            if (inclusive)
+                max++;
+
+            return RandomProvider.Instance.Next(max);
         }
 
         public static AngleF NextAngle()

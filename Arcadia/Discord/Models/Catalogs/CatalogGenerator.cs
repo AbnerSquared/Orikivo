@@ -52,19 +52,14 @@ namespace Arcadia
         /// </summary>
         public ItemCatalog Generate(long tier = 1)
         {
-            int specials = 0;
-            int discounts = 0;
-            var counters = new Dictionary<string, int>();
-            var discountEntries = new Dictionary<string, int>();
-            var groupCounters = new Dictionary<string, int>();
-            int entries = 0;
+            var reference = new GeneratorReference(tier);
 
             if (Size <= 0)
                 throw new ArgumentException("Cannot initialize a catalog with an empty or negative size.");
 
-            while (entries < Size)
+            while (reference.Items.Count < Size)
             {
-                CatalogEntry entry = GetNextEntry(tier, specials, counters, groupCounters);
+                CatalogEntry entry = GetNextEntry(ref reference);
 
                 if (entry == null)
                 {
@@ -74,7 +69,7 @@ namespace Arcadia
                 if (entry.IsSpecial)
                 {
                     Logger.Debug($"Special entry applied ({entry.ItemId})");
-                    specials++;
+                    reference.SpecialCount++;
                 }
                 else
                 {
@@ -83,39 +78,36 @@ namespace Arcadia
 
                 if (entry.DiscountChance > 0 && entry.MaxDiscount.HasValue)
                 {
-                    if (!discountEntries.ContainsKey(entry.ItemId)
-                        && discounts < MaxDiscountsAllowed
+                    if (!reference.Discounts.ContainsKey(entry.ItemId)
+                        && reference.Discounts.Count < MaxDiscountsAllowed
                         && RandomProvider.Instance.NextDouble() <= entry.DiscountChance)
                     {
                         // NOTE: Since the upper bound is exclusive, add 1 to the max discount, so that it's possible to land on the specified max
                         int discountToApply = RandomProvider.Instance
                             .Next(entry.MinDiscount ?? CatalogEntry.DefaultMinDiscount, (entry.MaxDiscount ?? CatalogEntry.DefaultMaxDiscount) + 1);
 
-                        discountEntries.Add(entry.ItemId, discountToApply);
+                        reference.Discounts.Add(entry.ItemId, discountToApply);
 
                         Logger.Debug($"{discountToApply}% discount applied ({entry.ItemId})");
-                        discounts++;
                     }
                 }
 
                 if (!ItemHelper.Exists(entry.ItemId))
                     throw new Exception("The specified item ID could not be found.");
 
-                if (!counters.TryAdd(entry.ItemId, 1))
-                    counters[entry.ItemId]++;
+                if (!reference.Items.TryAdd(entry.ItemId, 1))
+                    reference.Items[entry.ItemId]++;
 
                 if (Check.NotNull(entry.GroupId))
                 {
-                    if (!groupCounters.TryAdd(entry.GroupId, 1))
-                        groupCounters[entry.GroupId]++;
+                    if (!reference.GroupCounters.TryAdd(entry.GroupId, 1))
+                        reference.GroupCounters[entry.GroupId]++;
                 }
-
-                entries++;
             }
 
-            Logger.Debug($"Compiling catalog with {entries} {Format.TryPluralize("entry", entries)}");
+            Logger.Debug($"Compiling catalog with {reference.Items.Count} {Format.TryPluralize("entry", reference.Items.Count)}");
 
-            return new ItemCatalog(counters, discountEntries);
+            return new ItemCatalog(reference.Items, reference.Discounts);
         }
 
         public int GetBaseWeight()
@@ -130,11 +122,11 @@ namespace Arcadia
                 && (!x.MaxAllowed.HasValue || counters.GetValueOrDefault(x.ItemId, 0) >= x.MaxAllowed)).ToArray();
         }
 
-        private CatalogEntry GetNextEntry(long tier, int specials, IReadOnlyDictionary<string, int> counters, IReadOnlyDictionary<string, int> groupCounters)
+        private CatalogEntry GetNextEntry(ref GeneratorReference reference)
         {
-            CatalogEntry[] entries = GetAvailableEntries(tier, specials, counters, groupCounters);
+            CatalogEntry[] entries = GetAvailableEntries(reference.Tier, reference.SpecialCount, reference.Items, reference.GroupCounters);
             int totalWeight = entries.Sum(x => x.Weight);
-            int marker = RandomProvider.Instance.Next(0, totalWeight);
+            int marker = RandomProvider.Instance.Next(0, totalWeight + 1); // +1 to include the final weight counter
             int weightSum = 0;
 
             if (totalWeight == 0)
