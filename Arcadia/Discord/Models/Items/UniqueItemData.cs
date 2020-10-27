@@ -18,7 +18,7 @@ namespace Arcadia
         [JsonConstructor]
         internal UniqueItemData(string id, string name, int? durability, DateTime? expiresOn,
             DateTime? lastUsed, int? tradeCount,
-            Dictionary<string, long> attributes)
+            Dictionary<string, ItemPropertyData> properties)
         {
             Id = id;
             Name = name;
@@ -26,7 +26,7 @@ namespace Arcadia
             ExpiresOn = expiresOn;
             LastUsed = lastUsed;
             TradeCount = tradeCount;
-            Properties = attributes;
+            Properties = properties;
         }
 
         [JsonProperty("id")]
@@ -49,6 +49,6 @@ namespace Arcadia
 
         // This is everything that the item is keeping track of
         [JsonProperty("properties")]
-        public Dictionary<string, long> Properties { get; internal set; }
+        public Dictionary<string, ItemPropertyData> Properties { get; internal set; }
     }
 }

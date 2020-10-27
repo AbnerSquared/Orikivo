@@ -62,6 +62,11 @@ namespace Arcadia
 
         public List<ItemProperty> Properties { get; set; }
 
+        // Represents a collection of property IDs that can be specified for this item
+        // If unspecified, any property ID can be set.
+        // All dynamic properties that are specified in Item.Properties are included
+        public List<string> AllowedPropertyIds { get; set; } = new List<string>();
+
         public string GetName()
         {
             if (ItemHelper.TryGetGroup(GroupId, out ItemGroup group))

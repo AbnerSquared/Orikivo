@@ -3,9 +3,6 @@ using Newtonsoft.Json;
 
 namespace Arcadia
 {
-    /// <summary>
-    /// Represents transaction history for an <see cref="ItemCatalog"/>.
-    /// </summary>
     public class CatalogHistory
     {
         internal CatalogHistory()

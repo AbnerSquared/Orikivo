@@ -52,10 +52,10 @@ namespace Arcadia
         /// </summary>
         public ItemCatalog Generate(long tier = 1)
         {
-            var reference = new GeneratorReference(tier);
-
             if (Size <= 0)
                 throw new ArgumentException("Cannot initialize a catalog with an empty or negative size.");
+
+            var reference = new GeneratorReference(tier);
 
             while (reference.Items.Count < Size)
             {

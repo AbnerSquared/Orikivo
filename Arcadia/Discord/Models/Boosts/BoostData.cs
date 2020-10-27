@@ -3,7 +3,6 @@ using System;
 
 namespace Arcadia
 {
-    // for Arcadia
     public class BoostData
     {
         public BoostData(string itemId, BoostType type, float rate, TimeSpan? duration = null, int? useLimit = null)
@@ -53,6 +52,7 @@ namespace Arcadia
         [JsonProperty("parent_id")]
         public string ParentId { get; }
 
+        // If the type doesn't matter, this can be ignored
         [JsonProperty("type")]
         public BoostType Type { get; }
 
