@@ -65,8 +65,13 @@ namespace Arcadia
                 Icon = "✉️",
                 Title = "Trade Offers",
                 Subtitle = "Because connections matter."
+            },
+            [Headers.Invites] = new Header
+            {
+                Icon = "🎲",
+                Title = "Server Invites",
+                Subtitle = "Come and join the party!"
             }
-
         };
 
         public static string BuildMessage(TextBody template, bool allowTooltips = true)

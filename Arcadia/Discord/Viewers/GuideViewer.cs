@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
@@ -36,6 +37,22 @@ namespace Arcadia
 
             if (guide == null)
                 return Format.Warning("Could not find the specified guide.");
+
+            if (Check.NotNull(guide.Content))
+            {
+                string header = $"> {guide.Icon ?? "📚"} **Guides: {guide.Title}** ({Format.PageCount(page + 1, guide.Pages.Count)})\n";
+
+                string[] sections = guide.Content.Split("<#>", StringSplitOptions.RemoveEmptyEntries);
+                List<string> pages = Paginate.GetPages(sections, 1250, header.Length, "\n\n").ToList();
+
+                page = Math.Clamp(page, 0, pages.Count - 1);
+                var result = new StringBuilder();
+                result.AppendLine(header);
+                result.Append(pages[page]);
+
+                return result.ToString();
+            }
+
 
             if (!Check.NotNullOrEmpty(guide.Pages))
                 throw new Exception("Expected the specified guide to have at least a single page");

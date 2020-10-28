@@ -26,7 +26,8 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("offer")]
         [Summary("Send a trade offer to the specified user.")]
-        public async Task SendOfferAsync(SocketUser user, [Remainder]string input)
+        public async Task SendOfferAsync(SocketUser user,
+            [Remainder][Summary("The input representing the trade offer to create.")][Tooltip("Type `guide beginner 4` to learn more about how to create trade offers.")] string input)
         {
             Context.TryGetUser(user.Id, out ArcadeUser account);
 

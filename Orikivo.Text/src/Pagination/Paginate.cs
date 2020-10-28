@@ -37,7 +37,47 @@ namespace Orikivo.Text.Pagination
             return (int) Math.Ceiling(collectionSize / (double) groupSize);
         }
 
-        public static int GetSplitCount(IEnumerable<string> collection, int characterLimit, int baseLength = 0)
+        public static IEnumerable<string> GetPages(IEnumerable<string> collection, int characterLimit, int baseLength = 0, string separator = "\n")
+        {
+            if (baseLength < 0)
+            {
+                baseLength = 0;
+            }
+
+            var pages = new List<string>();
+            int length = baseLength;
+            string page = "";
+
+            foreach (string value in collection)
+            {
+                int valueLength = value?.Length ?? 0;
+
+                if (length + valueLength > characterLimit)
+                {
+                    pages.Add(page);
+                    page = value;
+                    length = baseLength + valueLength;
+                    continue;
+                }
+
+                if (length > baseLength)
+                {
+                    page += separator;
+                }
+
+                page += value;
+                length += valueLength;
+            }
+
+            if (!string.IsNullOrWhiteSpace(page))
+            {
+                pages.Add(page);
+            }
+
+            return pages;
+        }
+
+        public static int GetPageCount(IEnumerable<string> collection, int characterLimit, int baseLength = 0)
         {
             if (baseLength < 0)
             {

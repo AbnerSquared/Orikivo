@@ -8,6 +8,9 @@ namespace Arcadia
         public string Icon { get; set; }
         public string Title { get; set; }
         public string Summary { get; set; }
+
+        // Represents the entire guide as one string
+        public string Content { get; set; }
         public List<string> Pages { get; set; } = new List<string>();
     }
 }

@@ -335,6 +335,8 @@ namespace Orikivo
 
             if (allowTooltips)
             {
+                var tooltips = new List<string>(ctx.Tooltips);
+
                 /*
                 string tooltip = ctx switch
                 {
@@ -343,27 +345,40 @@ namespace Orikivo
                     _ => ""
                 };*/
 
-                if (ctx.Type == InfoType.Command)
+                if (ctx is CommandNode c && c.Overloads.Count > 1)
                 {
-                    if ((ctx as CommandNode).Overloads.Count > 1)
-                        panel.AppendLine($"> 🛠️ Use `help {ctx.Name}+<index>` to learn more about a specific command overload.\n");
+                    tooltips.Add($"Use `help {ctx.Name}+<index>` to learn more about a specific command overload.");
+                    //panel.AppendLine($"> 🛠️ Use `help {ctx.Name}+<index>` to learn more about a specific command overload.\n");
                 }
                 else if (ctx.Type == InfoType.Group)
                 {
-                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.\n");
+                    tooltips.Add($"Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.");
+                    //panel.AppendLine($"> 🛠️ Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.\n");
                 }
                 else if (ctx.Type == InfoType.Module)
                 {
-                    panel.AppendLine("> 🛠️ Use `help <command>` to learn more about a specific command.\n");
+                    tooltips.Add($"Use `help <command>` to learn more about a specific command.");
+                    //panel.AppendLine("> 🛠️ Use `help <command>` to learn more about a specific command.\n");
                 }
+
+                if (ctx is OverloadNode o && o.Parameters.Count > 0)
+                {
+                    {
+                        tooltips.Add($"Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.");
+                        //panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
+                    }
+                }
+
+                panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
             }
 
             if (ctx is OverloadNode overload)
             {
+                /*
                 if (allowTooltips && overload.Parameters.Count > 0)
                 {
-                    panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
-                }
+                       panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
+                }*/
 
                 SetExample(overload, prefix);
                 ctx = overload;
@@ -554,7 +569,8 @@ namespace Orikivo
 
                     if (parameters.Count() > 1)
                     {
-                        error = $"> **Huh?**\n> There were several matching parameters for the specified input:\n{string.Join("\n", parameters.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                        // NOTE: Distinct() is used to filter out repetitive input searches
+                        error = $"> **Huh?**\n> There were several matching parameters for the specified input:\n{string.Join("\n", parameters.Select(x => $"• `{ContextNode.GetId(x)}`").Distinct().OrderBy(x => x[3..]))}";
                         return null;
                     }
 
@@ -656,7 +672,7 @@ namespace Orikivo
             {
                 if (values.Count(x => x.Type.EqualsAny(InfoType.Module, InfoType.Group)) > 1)
                 {
-                    error = $"> **Huh?**\n> There were multiple results for the specified input:\n{string.Join("\n", values.Select(x => $"• `{x.Id}`").OrderBy(x => x[3..]))}";
+                    error = $"> **Huh?**\n> There were multiple results for the specified input:\n{string.Join("\n", values.Select(x => $"• `{x.Id}`").Distinct().OrderBy(x => x[3..]))}";
                     return null;
                 }
 
@@ -725,7 +741,7 @@ namespace Orikivo
 
             if (modules.Count() > 1)
             {
-                error = $"> **Huh?**\n> There were several matching modules for the specified input:\n{string.Join("\n", modules.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                error = $"> **Huh?**\n> There were several matching modules for the specified input:\n{string.Join("\n", modules.Select(x => $"• `{ContextNode.GetId(x)}`").Distinct().OrderBy(x => x[3..]))}";
                 return null;
             }
 
@@ -819,7 +835,7 @@ namespace Orikivo
 
             if (groups.Count() > 1)
             {
-                error = $"> **Huh?**\n> There were several matching groups for the specified input:\n{string.Join("\n", groups.Select(x => $"• `{ContextNode.GetId(x)}`").OrderBy(x => x[3..]))}";
+                error = $"> **Huh?**\n> There were several matching groups for the specified input:\n{string.Join("\n", groups.Select(x => $"• `{ContextNode.GetId(x)}`").Distinct().OrderBy(x => x[3..]))}";
                 return null;
             }
 

@@ -76,9 +76,11 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
         }
 
+        // NOTE: If this proves to be too much for multi-threading, remove this functionality entirely
         [Session]
         [RequireItem("au_gimi")]
         [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
+        [Summary("Begins an automated run of **Gimi**, up to 100 runs.")]
         public async Task AutoGimiAsync(int times)
         {
             if (!ItemHelper.HasItem(Context.Account, Ids.Items.AutomatonGimi))

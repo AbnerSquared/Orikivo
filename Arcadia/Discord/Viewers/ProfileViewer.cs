@@ -11,11 +11,11 @@ namespace Arcadia
         {
             var details = new StringBuilder();
 
-            details.AppendLine($"> **{user.Username}**");
+            details.AppendLine($"> **{user.Username}** ({LevelViewer.GetLevel(user.Level, user.Ascent)})");
             details.AppendLine($"> Joined: **{Format.Date(user.CreatedAt, '.')}**");
 
-            details.AppendLine("\n> **Level**");
-            details.AppendLine($"> {LevelViewer.GetLevel(user.Level, user.Ascent)}");
+            //details.AppendLine("\n> **Level**");
+            //details.AppendLine($"> {LevelViewer.GetLevel(user.Level, user.Ascent)}");
 
             if (user.Balance > 0 || user.Debt > 0 || user.ChipBalance > 0)
             {

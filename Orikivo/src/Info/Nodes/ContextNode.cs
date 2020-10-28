@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
+﻿using System;
+using Discord.Commands;
 using Orikivo.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using static System.Reflection.CustomAttributeExtensions;
 namespace Orikivo
 {
     public abstract class ContextNode : ContentNode
@@ -17,6 +19,10 @@ namespace Orikivo
             Id = GetId(module);
             Name = module.Name;
             Aliases = module.Aliases.ToList();
+
+            List<string> tooltips = module.Attributes.FirstOrDefault<TooltipAttribute>()?.Tips.ToList() ?? new List<string>();
+            Tooltips = tooltips;
+
             Summary = module.Summary;
         }
 
@@ -26,6 +32,8 @@ namespace Orikivo
             Name = command.Name;
             Aliases = command.Aliases.ToList();
             Summary = command.Summary;
+            List<string> tooltips = command.Attributes.FirstOrDefault<TooltipAttribute>()?.Tips.ToList() ?? new List<string>();
+            Tooltips = tooltips;
             // Reports = ...
         }
 
@@ -35,6 +43,17 @@ namespace Orikivo
             Name = parameter.Name;
             Aliases = null;
             Summary = parameter.Summary;
+            List<string> tooltips = parameter.Attributes.FirstOrDefault<TooltipAttribute>()?.Tips.ToList() ?? new List<string>();
+
+            if (parameter.Type.IsEnum)
+            {
+                if (parameter.Type.GetCustomAttribute<FlagsAttribute>() != null)
+                    tooltips.Add("This parameter type supports combined flag input.");
+                else
+                    tooltips.Add("This parameter can be specified by an individual name or number.");
+            }
+
+            Tooltips = tooltips;
         }
 
         protected override bool ReadAttributes => false;
@@ -43,6 +62,7 @@ namespace Orikivo
 
         public string Name { get; }
         public List<string> Aliases { get; }
+        public List<string> Tooltips { get; }
         public string Summary { get; }
         public List<IReport> Reports { get; } = new List<IReport>();
         public abstract InfoType Type { get; }

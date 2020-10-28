@@ -104,13 +104,11 @@ namespace Arcadia.Modules
         public static string ViewInvites(ArcadeUser user, GameManager games, int page = 0)
         {
             var info = new StringBuilder();
-
-            info.AppendLine($"> 🎲 **Server Invites**");
-            info.AppendLine($"> Come and join the party!");
+            info.AppendLine(Locale.GetHeader(Headers.Invites));
 
             if (games.Servers.Values.Count(x => x.Invites.Any(i => i.UserId == user.Id)) == 0)
             {
-                info.AppendLine("\nYou have no pending invitations.");
+                info.AppendLine("\n> *You have no pending invitations.*");
                 return info.ToString();
             }
 
