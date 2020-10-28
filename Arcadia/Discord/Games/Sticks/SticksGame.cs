@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public class SticksGame : GameBase
+    public static class StickVars
+    {
+        public static readonly string Position = "position";
+        public static readonly string RightHand = "right_hand";
+        public static readonly string LeftHand = "left_hand";
+    }
+    public class StickGame : GameBase
     {
         public override string Id => "sticks";
 
@@ -24,12 +30,9 @@ namespace Arcadia.Multiplayer.Games
                     Source = x,
                     Properties = new List<GameProperty>
                     {
-                        // position
-                        // used to determine turn rotation
-                        // it goes in a loop
-                        GameProperty.Create<int>("position", i),
-                        GameProperty.Create<int>("left_hand", 1),
-                        GameProperty.Create<int>("right_hand", 1)
+                        GameProperty.Create("position", i),
+                        GameProperty.Create("left_hand", 1),
+                        GameProperty.Create("right_hand", 1)
                     }
                 };
             }).ToList();

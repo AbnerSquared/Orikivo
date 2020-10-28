@@ -13,6 +13,7 @@ namespace Arcadia.Modules
     public class Casino : BaseModule<ArcadeContext>
     {
         private readonly CasinoService _service;
+
         public Casino(CasinoService service)
         {
             _service = service;
@@ -29,34 +30,34 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("roulette")]
         [Summary("A Casino classic. Choose your style of bet and go wild.")]
-        public async Task RouletteAsync(RouletteBetMode mode, long wager)
+        public async Task RouletteAsync(RouletteBetMode mode, Wager wager)
         {
-            if (wager < 0)
+            if (wager.Value < 0)
             {
                 await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
                 return;
             }
 
-            if (wager == 0)
+            if (wager.Value == 0)
             {
                 // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
                 await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
                 return;
             }
 
-            if (wager > Context.Account.ChipBalance)
+            if (wager.Value > Context.Account.ChipBalance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
                 return;
             }
 
-            if (wager > Roulette.MaxWager)
+            if (wager.Value > Roulette.MaxWager)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ The maximum wager for **Roulette** is {Icons.Chips} **{Roulette.MaxWager:##,0}**.");
                 return;
             }
 
-            RouletteResult result = Roulette.Next(Context.Account, mode, wager);
+            RouletteResult result = Roulette.Next(Context.Account, mode, wager.Value);
             Message message = result.ApplyAndDisplay(Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
@@ -119,22 +120,29 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("doubler"), Alias("double", "dbl")]
         [Summary("A **Casino** activity that allows you to attempt to make an astonishing return.")]
-        public async Task DoublerAsync(long wager = 0, int expectedTick = 1, DoublerWinMethod method = DoublerWinMethod.Below)
+        public async Task DoublerAsync(Wager wager = null, int expectedTick = 1, DoublerWinMethod method = DoublerWinMethod.Below)
         {
-            if (wager < 0)
-            {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
-                return;
-            }
-
-            if (wager == 0)
+            if (wager == null)
             {
                 // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
                 await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteTick());
                 return;
             }
 
-            if (wager > Context.Account.ChipBalance)
+            if (wager.Value < 0)
+            {
+                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                return;
+            }
+
+            if (wager.Value == 0)
+            {
+                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
+                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteTick());
+                return;
+            }
+
+            if (wager.Value > Context.Account.ChipBalance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
                 return;
@@ -148,7 +156,7 @@ namespace Arcadia.Modules
 
             var tick = new Doubler(expectedTick, method);
 
-            DoublerResult result = tick.Next(wager, Context.Account.GetVar(Stats.Doubler.CurrentLossStreak));
+            DoublerResult result = tick.Next(wager.Value, Context.Account.GetVar(Stats.Doubler.CurrentLossStreak));
             Message message = result.ApplyAndDisplay(Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, message);
