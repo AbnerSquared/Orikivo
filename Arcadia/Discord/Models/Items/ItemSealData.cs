@@ -23,9 +23,11 @@ namespace Arcadia
             ToUnlock = toUnlock;
         }
 
+        // The ID that represents the item to display itself as, acting as a costume for the actual item
         [JsonProperty("id")]
         public string ReferenceId { get; internal set; }
 
+        // The ID of the user that sent this item
         [JsonProperty("sender_id")]
         public ulong? SenderId { get; internal set; }
 

@@ -4,10 +4,16 @@ using Orikivo;
 namespace Arcadia
 {
     /// <summary>
-    /// Represents the result from an <see cref="Item"/> that was used.
+    /// Represents the result from an <see cref="Item"/> usage.
     /// </summary>
     public class UsageResult
     {
+        /// <summary>
+        /// Returns a successful <see cref="UsageResult"/> with a cooldown.
+        /// </summary>
+        /// <param name="cooldown">The cooldown duration to apply on the <see cref="Item"/> that was used.</param>
+        /// <param name="message">The message to display.</param>
+        /// <param name="mode">The cooldown mode to apply on the <see cref="Item"/> that was used.</param>
         public static UsageResult FromSuccessCooldown(TimeSpan cooldown, string message = null, CooldownMode? mode = null)
         {
             return new UsageResult(message, true)
@@ -17,21 +23,52 @@ namespace Arcadia
             };
         }
 
+        /// <summary>
+        /// Returns a successful <see cref="UsageResult"/> with a cooldown.
+        /// </summary>
+        /// <param name="cooldown">The cooldown duration to apply on the <see cref="Item"/> that was used.</param>
+        /// <param name="message">The message to display.</param>
+        /// <param name="mode">The cooldown mode to apply on the <see cref="Item"/> that was used.</param>
+        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, Message message = null, CooldownMode? mode = null)
+        {
+            return new UsageResult(message, true)
+            {
+                Cooldown = cooldown,
+                CooldownMode = mode
+            };
+        }
+
+        /// <summary>
+        /// Returns a successful <see cref="UsageResult"/>.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
         public static UsageResult FromSuccess(string message = null)
         {
             return new UsageResult(message, true);
         }
 
-        public static UsageResult FromError(string message = null)
-        {
-            return new UsageResult(message, false);
-        }
-
+        /// <summary>
+        /// Returns a successful <see cref="UsageResult"/>.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
         public static UsageResult FromSuccess(Message message = null)
         {
             return new UsageResult(message, true);
         }
 
+        /// <summary>
+        /// Returns a failed <see cref="UsageResult"/>.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
+        public static UsageResult FromError(string message = null)
+        {
+            return new UsageResult(message, false);
+        }
+
+        /// <summary>
+        /// Returns a failed <see cref="UsageResult"/>.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
         public static UsageResult FromError(Message message = null)
         {
             return new UsageResult(message, false);
@@ -49,11 +86,24 @@ namespace Arcadia
             IsSuccess = isSuccess;
         }
 
+        /// <summary>
+        /// Represents the message that specified for this <see cref="UsageResult"/>.
+        /// </summary>
         public Message Message { get; }
 
+        /// <summary>
+        /// Specifies if this <see cref="UsageResult"/> was successful.
+        /// </summary>
         public bool IsSuccess { get; }
 
+        /// <summary>
+        /// Represents the cooldown to apply for the <see cref="Item"/> that was used (optional).
+        /// </summary>
         public TimeSpan? Cooldown { get; internal set; }
+
+        /// <summary>
+        /// Represents the cooldown mode for the <see cref="Item"/> that was used (optional).
+        /// </summary>
         public CooldownMode? CooldownMode { get; internal set; }
     }
 }

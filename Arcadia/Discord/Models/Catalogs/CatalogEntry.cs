@@ -8,15 +8,6 @@
         public static readonly int DefaultMinDiscount = 1;
         public static readonly int DefaultMaxDiscount = 25;
 
-        public CatalogEntry() { }
-
-        public CatalogEntry(string itemId, int weight, int? maxAllowed = null)
-        {
-            ItemId = itemId;
-            Weight = weight;
-            MaxAllowed = maxAllowed;
-        }
-
         /// <summary>
         /// Specifies the item ID for this <see cref="CatalogEntry"/>.
         /// </summary>
@@ -33,7 +24,7 @@
         public int? MaxAllowed { get; set; }
 
         /// <summary>
-        /// Represents the minimum discount that can be applied to this <see cref="CatalogEntry"/> (0% minimum).
+        /// Represents the minimum discount that can be applied to this <see cref="CatalogEntry"/> (1% minimum).
         /// </summary>
         public int? MinDiscount { get; set; }
 

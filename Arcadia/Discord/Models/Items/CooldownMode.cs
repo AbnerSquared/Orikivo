@@ -1,10 +1,29 @@
 ﻿namespace Arcadia
 {
+    /// <summary>
+    /// Represents a collection of cooldown variations for an <see cref="Arcadia.Item"/> that is used.
+    /// </summary>
     public enum CooldownMode
     {
-        Instance = 1, // Applied to this unique instance only
-        Item = 2, // Applied to this item only
-        Group = 3, // Applied to this item's group only (throw an exception if no group is specified
-        Global = 4 // Applied to all items as a whole
+        /// <summary>
+        /// Cooldowns are applied to the unique instance of an item.
+        /// </summary>
+        Instance = 1,
+
+        /// <summary>
+        /// Cooldowns are applied to the item itself.
+        /// </summary>
+        Item = 2,
+
+        // NOTE: Throw an exception if no group is specified
+        /// <summary>
+        /// Cooldowns are applied to the group of an item.
+        /// </summary>
+        Group = 3,
+
+        /// <summary>
+        /// Cooldowns are applied to all items.
+        /// </summary>
+        Global = 4
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents a collection of identifier tags for an <see cref="Item"/>.
+    /// </summary>
     [Flags]
     public enum ItemTag
     {

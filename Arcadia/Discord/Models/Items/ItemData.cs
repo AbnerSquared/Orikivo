@@ -14,7 +14,7 @@ namespace Arcadia
         /// </summary>
         /// <param name="id">The ID of the <see cref="Item"/> to store.</param>
         /// <param name="stackCount">The stack count of the <see cref="Item"/> to store.</param>
-        internal ItemData(string id, int stackCount)
+        public ItemData(string id, int stackCount)
         {
             if (ItemHelper.IsUnique(id))
                 throw new Exception("Incorrect item data initializer used.");

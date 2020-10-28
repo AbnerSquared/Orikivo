@@ -1,5 +1,8 @@
 ﻿namespace Arcadia
 {
+    /// <summary>
+    /// Specifies a collection of various rarities for an <see cref="Item"/>.
+    /// </summary>
     public enum ItemRarity
     {
         Common = 1,

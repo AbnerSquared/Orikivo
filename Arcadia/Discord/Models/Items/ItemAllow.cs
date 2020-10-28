@@ -2,6 +2,9 @@
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents a collection of actions that <see cref="Item"/> can allow.
+    /// </summary>
     [Flags]
     public enum ItemAllow
     {
