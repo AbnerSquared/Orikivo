@@ -14,6 +14,7 @@ namespace Arcadia
         public QuestDifficulty Difficulty { get; set; }
 
         public QuestType Type { get; set; }
+
         public Func<ArcadeGuild, bool> ToAssign { get; set; }
 
         public List<VarCriterion> Criteria { get; internal set; } = new List<VarCriterion>();

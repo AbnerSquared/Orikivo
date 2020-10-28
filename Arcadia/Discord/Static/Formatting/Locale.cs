@@ -59,7 +59,14 @@ namespace Arcadia
             {
                 Icon = "🗃️",
                 Title = "Catalog"
+            },
+            [Headers.Offers] = new Header
+            {
+                Icon = "✉️",
+                Title = "Trade Offers",
+                Subtitle = "Because connections matter."
             }
+
         };
 
         public static string BuildMessage(TextBody template, bool allowTooltips = true)

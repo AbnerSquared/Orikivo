@@ -66,6 +66,10 @@ namespace Arcadia.Services
         private static string WriteTooltip()
             => $"Type `research <item_id>` to begin research on an item.";
 
+        private static string WriteInfoTooltip()
+            => $"Type `researchinfo <item_id>` to view research tiers for an item.";
+
+
         private static string WriteTooltip(string itemId)
             => $"Type `research {itemId}` to begin research.";
 
@@ -260,8 +264,15 @@ namespace Arcadia.Services
             if (!HasActiveResearch(user))
             {
                 if (allowTooltips)
-                    details.Insert(0, $"{Format.Tooltip(WriteTooltip())}\n\n");
+                {
+                    var tooltips = new List<string>
+                    {
+                        WriteTooltip(),
+                        WriteInfoTooltip()
+                    };
 
+                    details.Insert(0, $"{Format.Tooltip(tooltips)}\n\n");
+                }
                 details.Append(GetEmptyTips());
             }
 

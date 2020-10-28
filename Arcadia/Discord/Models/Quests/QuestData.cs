@@ -30,8 +30,6 @@ namespace Arcadia
         [JsonProperty("id")]
         public string Id { get; }
 
-
-
         /// <summary>
         /// Keeps track of all of the required criterion for a <see cref="Quest"/>.
         /// </summary>

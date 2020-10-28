@@ -15,12 +15,10 @@ namespace Arcadia
         public static string ViewOffers(ArcadeUser user, ArcadeContext ctx)
         {
             var info = new StringBuilder();
-
-            info.AppendLine($"> ✉️ **Trade Offers**");
-            info.AppendLine($"> Because connections matter.");
+            info.AppendLine(Locale.GetHeader(Headers.Offers));
 
             if (user.Offers.Count == 0)
-                info.AppendLine($"\nYou do not have any active offers.");
+                info.AppendLine($"\n> *You do not have any active offers.*");
             else
             {
                 var offers = new List<TradeOffer>(user.Offers);
@@ -127,8 +125,7 @@ namespace Arcadia
             }
 
             if (target.Offers.Count == 5)
-                return Format.Warning(
-                    $"**{target.Username}** already has too many pending trade offers. Try again later.");
+                return Format.Warning($"**{target.Username}** already has too many pending trade offers. Try again later.");
 
             target.Offers.Add(offer);
             author.Offers.Add(TradeOffer.CloneAsOutbound(offer));

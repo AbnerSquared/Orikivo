@@ -11,5 +11,6 @@
         internal static readonly string Recipe = "recipe";
         internal static readonly string Merits = "merits";
         internal static readonly string Catalog = "catalog";
+        internal static readonly string Offers = "trade_offers";
     }
 }

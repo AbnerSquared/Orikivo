@@ -161,10 +161,9 @@ namespace Arcadia
             if (ItemHelper.GroupOf(itemId) == Ids.Groups.Internal)
                 return;
 
-            // If the user has already seen or known about this item, return;
+            // If the user has already seen or known about this item, return
             if (GetCatalogStatus(user, itemId) >= status)
                 return;
-
 
             user.SetVar(GetCatalogId(itemId), (long)status);
         }

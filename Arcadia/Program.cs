@@ -98,7 +98,7 @@ namespace Arcadia
                     ["trivia"] = new TriviaGame(),
                     ["werewolf"] = new WerewolfGame(),
                     ["chess"] = new ChessGame(),
-                    ["tictactoe"] = new TicGame(),
+                    // ["tictactoe"] = new TicGame(),
                     ["ultimatetic"] = new UltimateTicGame()
                 };
 

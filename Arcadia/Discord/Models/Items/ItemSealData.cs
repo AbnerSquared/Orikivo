@@ -33,7 +33,6 @@ namespace Arcadia
         [JsonProperty("id")]
         public string ReferenceId { get; internal set; }
 
-        // The ID of the user that sent this item
         /// <summary>
         /// Represents the ID of the user that sent this <see cref="ItemData"/>.
         /// </summary>

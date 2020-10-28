@@ -65,7 +65,7 @@ namespace Arcadia.Modules
 
         [Command("gimi")]
         [RequireUser]
-        [Summary("An activity that randomly offers a reward value (if you're lucky enough).")]
+        [Summary("An activity that randomly provides curses or blessings.")]
         public async Task GimiAsync()
         {
             var gimi = new Gimi();

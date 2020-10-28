@@ -6,6 +6,7 @@ using Orikivo;
 
 namespace Arcadia
 {
+    // TODO: Merge all base casino replies together, as they can be separated by criteria
     public static class Replies
     {
         public static readonly string DebtGeneric = "You have been fined.";
@@ -130,7 +131,7 @@ namespace Arcadia
             "Please stop. You're hurting yourself.",
             "ORS isn't pleased. I'm worried for you.",
             "Unable to compute negative funds.",
-            "Perish."
+            "Your **Orite** exists no longer. Cease interaction."
         };
 
         public static readonly CasinoReply[] Curse =
@@ -140,8 +141,11 @@ namespace Arcadia
             new CasinoReply
             {
                 Content = "Pocket Lawyer can't save you this time.",
-                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Ids.Items.PocketLawyer)?.Ticks > 0
-            }
+                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Ids.Items.PocketLawyer)?.Ticks > 0,
+                Priority = 1
+            },
+            "The moon has risen.",
+            "Then perish."
         };
 
         public static readonly CasinoReply[] Gold =
@@ -149,7 +153,7 @@ namespace Arcadia
             "All that truly glitters is gold.",
             "The calm before the storm.",
             "Let's hope this got you out of debt.",
-            "Huh. Who would've thought I could even give out this much?"
+            "Huh. Who would've known I could even give out this much?"
         };
 
         public static readonly CasinoReply[] Win =
@@ -164,7 +168,8 @@ namespace Arcadia
             {
                 Content = "Maximum profits achieved!",
                 Criteria = (user, result) => result.Reward == 10
-            }
+            },
+            "Profitable success."
         };
 
         public static readonly CasinoReply[] Recover =
@@ -188,20 +193,43 @@ namespace Arcadia
             {
                 Content = "Maximum losses obtained.",
                 Criteria = (user, result) => result.Reward == 10
+            },
+            new CasinoReply
+            {
+                Content = "This isn't looking good.",
+                Criteria = (user, result) => user.GetVar(Stats.Gimi.CurrentLossStreak) > 3,
+                Priority = 1
+            },
+            new CasinoReply
+            {
+                Content = "I sense a grim path ahead.",
+                Criteria = (user, result) => user.GetVar(Stats.Gimi.CurrentLossStreak) > 3,
+                Priority = 1
+            },
+            new CasinoReply
+            {
+                Content = "Please stop now. You are headed towards debt.",
+                Criteria = (user, result) => user.GetVar(Stats.Gimi.CurrentLossStreak) > 3,
+                Priority = 1
             }
         };
 
         public static readonly string[] DailyReset =
         {
             "Waiting until the right moment is called patience. Waiting forever is called laziness.",
-            "You took too long. Now your candy is gone."
+            "You took too long. Now your candy is gone.",
+            "The timeframe of your attendance has fallen short.",
+            "Your streak has fallen apart.",
+            "Welcome to square one."
         };
 
         public static readonly string[] Daily =
         {
             "Enjoy the funds.",
             "Don't mention it. It's the least I could do.",
-            "I'll be honest, this is your best bet to earning funds."
+            "I'll be honest, this is your best bet to earning funds.",
+            "I'm glad you checked in today. Welcome back.",
+            "It's an honor to see you again."
         };
 
         public static readonly string[] DailyCooldown =
@@ -209,7 +237,10 @@ namespace Arcadia
             "Hang tight. I'm not an OTM.",
             "Patience is key.",
             "Access denied.",
-            "Please go find something better to do."
+            "Please go find something better to do.",
+            "Don't worry. I have already made sure you checked in today.",
+            "I already took care of you.",
+            "Greed is a road nobody should walk on."
         };
 
         public static readonly string[] DailyBonus =

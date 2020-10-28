@@ -9,6 +9,10 @@ namespace Arcadia
     {
         public List<RecipeComponent> Components { get; set; }
 
+        // This is the primary result of a recipe
         public RecipeComponent Result { get; set; }
+
+        // This is a collection of possible extra returning components on craft
+        public List<RecipeResult> Extra { get; set; }
     }
 }

@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace Arcadia
+﻿namespace Arcadia
 {
+    /// <summary>
+    /// Represents an employee for a <see cref="Shop"/>.
+    /// </summary>
     public class Vendor
     {
         public static readonly string NameGeneric = "Vendor";
@@ -37,27 +38,37 @@ namespace Arcadia
         public string[] OnTimeout { get; set; }
 
         public string[] OnBuy { get; set; }
+
         public string[] OnBuyRemainder { get; set; }
+
         public string[] OnBuyDeny { get; set; }
 
         public string[] OnBuyFail { get; set; }
 
         public string[] OnBuyEmpty { get; set; }
+
         public string[] OnBuyInvalid { get; set; }
+
         public string[] OnBuyLimit { get; set; }
 
         public string[] OnSell { get; set; }
-        public string[] OnSellDeny { get; set; }
-        public string[] OnSellEmpty { get; set; }
-        public string[] OnSellInvalid { get; set; }
-        public string[] OnSellNotAllowed { get; set; }
-        public string[] OnSellNotOwned { get; set; }
 
+        public string[] OnSellDeny { get; set; }
+
+        public string[] OnSellEmpty { get; set; }
+
+        public string[] OnSellInvalid { get; set; }
+
+        public string[] OnSellNotAllowed { get; set; }
+
+        public string[] OnSellNotOwned { get; set; }
 
         public string[] OnViewBuy { get; set; }
 
         public string[] OnViewSell { get; set; }
 
         public string[] OnExit { get; set; }
+
+        public string[] OnInvalidAmount { get; set; }
     }
 }

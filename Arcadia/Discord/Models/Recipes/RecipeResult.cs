@@ -15,8 +15,11 @@
             Chance = chance;
         }
         public string ItemId { get; set; }
+
         public int MinStack { get; set; } = 1;
+
         public int? MaxStack { get; set; }
+
         public float Chance { get; set; } = 1f;
     }
 }
