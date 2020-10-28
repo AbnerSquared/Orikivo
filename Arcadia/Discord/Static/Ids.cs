@@ -4,11 +4,13 @@
     {
         internal static class Items
         {
+            internal static readonly string CapsuleDailyI = "cp_di";
+
             // ROY G BIV
-            internal static readonly string FontDelta = "cf_de";
-            internal static readonly string FontOrikos = "cf_or";
-            internal static readonly string FontFoxtrot = "cf_ft";
-            internal static readonly string FontMonori = "cf_mo";
+            internal static readonly string FontDelta = "f_de";
+            internal static readonly string FontOrikos = "f_or";
+            internal static readonly string FontFoxtrot = "f_ft";
+            internal static readonly string FontMonori = "f_mo";
 
             // Other
             internal static readonly string PalettePolarity = "p_po";

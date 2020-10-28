@@ -12,6 +12,9 @@
 
         public string ItemId { get; set; }
 
+        // If specified, overrides the item ID
+        public long Money { get; set; }
+
         public int Weight { get; set; }
     }
 }

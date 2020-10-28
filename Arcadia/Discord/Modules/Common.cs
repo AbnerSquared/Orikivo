@@ -60,7 +60,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("memo")]
-        [Summary("View a research memo.")]
+        [Summary("View a research memo on the specified **Item**.")]
         public async Task ViewMemoAsync(Item item)
         {
             string result = ResearchHelper.ViewMemo(Context.Account, item);
@@ -69,7 +69,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("researchinfo"), Alias("rinfo")]
-        [Summary("View details about the research progress of an item.")]
+        [Summary("View details about the research progress of an **Item**.")]
         public async Task ReadResearchAsync(Item item)
         {
             string result = ResearchHelper.ViewResearch(Context.Account, item);
@@ -87,6 +87,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("research"), Priority(1)]
+        [Summary("Begin research on the specified **Item**.")]
         public async Task ResearchAsync(Item item)
         {
             string result = ResearchHelper.ResearchItem(Context.Account, item);
@@ -117,7 +118,7 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("recipe")]
-        [Summary("View information about a specific recipe.")]
+        [Summary("View information about a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
             /*
@@ -157,7 +158,6 @@ namespace Arcadia.Modules
                 await Context.Channel.SendMessageAsync(notice.ToString());
                 return;
             }
-
 
             if (CraftHelper.Craft(Context.Account, recipe))
             {
@@ -234,7 +234,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("level"), Alias("exp", "ascent", "lv", "xp")]
-        [Summary("View your current level.")]
+        [Summary("View your current level and experience.")]
         public async Task ViewLevelAsync()
         {
             await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
@@ -320,6 +320,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("vote")]
+        [Summary("Support **Orikivo Arcade** and receive **Tokens**.")]
         public async Task VoteAsync()
         {
             if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
@@ -363,6 +364,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("daily")]
+        [Summary("Check in for the day to receive rewards.")]
         public async Task GetDailyAsync()
         {
             DailyResultFlag result = DailyService.Next(Context.Account);
@@ -379,7 +381,7 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("catalogsearch")]
-        [Summary("Search through your item catalog to find a specific item.")]
+        [Summary("Search through your item catalog to find a specific **Item**.")]
         public async Task CatalogSearchAsync([Remainder] string input)
         {
             if (!Check.NotNull(input))
@@ -394,13 +396,13 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
-        public async Task UseItemAsync(string dataId, [Remainder]string input = null)
+        public async Task UseItemAsync([Name("data_id")]string dataId, [Remainder]string input = null)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data instance."));
                 return;
             }
 

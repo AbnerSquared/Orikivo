@@ -115,6 +115,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("shops")]
+        [Summary("View your collection of available shops to visit.")]
         public async Task ViewShopsAsync()
         {
             await Context.Channel.SendMessageAsync(ShopHelper.ViewShops(Context.Account));
@@ -124,6 +125,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [RequireData]
         [Command("shop")]
+        [Summary("Enter the specified **Shop**.")]
         public async Task ShopAsync(Shop shop)
         {
             var session = new ShopSession(Context, shop);
@@ -156,7 +158,7 @@ namespace Arcadia.Modules
 
         [Command("gift")]
         [Summary("Attempts to gift an **Item** to the specified user.")]
-        public async Task GiftAsync(SocketUser user, string dataId)
+        public async Task GiftAsync(SocketUser user, [Name("data_id")][Summary("The specified item data instance to gift.")]string dataId)
         {
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
@@ -209,8 +211,8 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("sell")]
-        [Summary("Sells the specified **Item** to the shop of choice")]
-        public async Task SellItemAsync(string dataId, Shop shop)
+        [Summary("Sells the specified **Item** to the desired **Shop**.")]
+        public async Task SellItemAsync([Name("data_id")][Summary("The specified item data instance to sell.")]string dataId, [Summary("The **Shop** to sell your **Item** to.")]Shop shop)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 

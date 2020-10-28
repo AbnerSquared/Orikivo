@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Arcadia.Casino;
 using Arcadia.Graphics;
 using Arcadia.Multiplayer.Games;
@@ -42,6 +43,67 @@ namespace Arcadia
                 Pages = new List<string>
                 {
                     $"> {Icons.Warning} Please note that in some multiplayer games, you are required to have the option **Allow direct message from server members** enabled. This can be found in **Privacy & Safety/Server Privacy Defaults**.\n\nSo you've come here to learn about multiplayer? You're in the right place.\n\n> **Game Modes**\nYou can view all of the games **Orikivo Arcade** currently offers by typing `games`.\n\n> {Icons.Warning} **Beware!**\nGames that are marked with `(Beta)` may have bugs and/or issues that could make the game unplayable. If a session becomes soft-locked, the server host can force end the session by typing `destroysession`.\n\n> **Hosting a Server**\nTo host a session, simply type `hostserver` to start up a default server. If you have a game in mind that you wish to play, type `hostserver <game_id>` instead to automatically launch the server for the specified game mode.\n\n> **Joining a Server**\nJoining a server has been made as easy as possible! To join an existing server, you can use the **Server Browser** to find a server to join (`servers [page]`), from which you can join by typing `joinserver <server_id>`. If you were invited to a server, you can view those invites by typing `invites`, and accepting the specified invite by its unique index (`acceptinvite <index>`). Likewise, if you just wish to quickly get into a game, you can type `quickjoin` or `quickjoin <game_id>` to hop into a random available server! You can also join existing servers by typing `join` (no prefix) in an existing server connection.",
+                }
+            }
+        };
+
+        public static readonly HashSet<LootTable> LootTables = new HashSet<LootTable>
+        {
+            new LootTable
+            {
+                Id = Ids.Items.CapsuleDailyI,
+                Entries = new List<LootEntry>
+                {
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteGammaGreen,
+                        Weight = 3
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteCrimson,
+                        Weight = 1
+                    },
+                    new LootEntry
+                    {
+                        Money = 10,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        Money = 25,
+                        Weight = 35
+                    },
+                    new LootEntry
+                    {
+                        Money = 50,
+                        Weight = 25
+                    },
+                    new LootEntry
+                    {
+                        Money = 75,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        Money = 100,
+                        Weight = 5
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.BoosterOriteBooster,
+                        Weight = 2
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteOceanic,
+                        Weight = 1
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteLemon,
+                        Weight = 1
+                    }
                 }
             }
         };
@@ -1689,6 +1751,29 @@ namespace Arcadia
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
                 }
+            },
+            new Item
+            {
+                Id = Ids.Items.CapsuleDailyI,
+                Name = "Daily Capsule I",
+                Summary = "A sealed goodie bag for checking in on a daily basis.",
+                Quotes = new List<string>
+                {
+                    "The contents inside glow with hope."
+                },
+                Tag = ItemTag.Capsule,
+                Rarity = ItemRarity.Uncommon,
+                Currency = CurrencyType.Money,
+                Value = 50,
+                AllowedHandles = ItemAllow.Sell,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
+                    DeleteMode = DeleteMode.Break
+                },
+                TradeLimit = 0
+
             }
         };
 
@@ -1819,6 +1904,58 @@ namespace Arcadia
 
             user.Boosters.Add(booster);
             return true;
+        }
+
+        private static UsageResult GetLoot(ArcadeUser user, Item capsule, string lootId, int rollCount)
+        {
+            LootTable table = LootTables.FirstOrDefault(x => x.Id == lootId);
+
+            if (table == null)
+                return UsageResult.FromError(Format.Warning("An unknown loot table ID was specified."));
+
+            if (rollCount <= 0)
+                return UsageResult.FromError(Format.Warning("Expected the roll count to be greater than 0."));
+
+            Reward reward = table.Next(rollCount);
+
+            var result = new StringBuilder();
+            result.AppendLine($"> **{capsule.Name}**");
+            result.AppendLine($"> You have opened this capsule to reveal:\n");
+
+            result.Append(ViewReward(reward));
+            reward.Apply(user);
+
+            return UsageResult.FromSuccess(result.ToString());
+        }
+
+        private static string ViewReward(Reward reward)
+        {
+            if (reward == null)
+                return "";
+
+            var result = new StringBuilder();
+
+            if (reward.Money > 0)
+                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)} Orite");
+
+            // if (reward.Exp > 0)
+            //     result.AppendLine($"> {Icons.Exp} **{reward.Exp:##,0}**");
+
+            if (Check.NotNullOrEmpty(reward.ItemIds))
+            {
+                foreach ((string itemId, int amount) in reward.ItemIds)
+                    result.AppendLine($"> {GetItemPreview(itemId, amount)}");
+            }
+
+            return result.ToString();
+        }
+
+        private static string GetItemPreview(string itemId, int amount)
+        {
+            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
+            string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
+            return $"`{itemId}` {icon} **{name}**{counter}";
         }
     }
 }

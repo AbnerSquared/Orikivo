@@ -134,7 +134,7 @@ namespace Arcadia
             result.AppendLine();
 
             if (reward.Money > 0)
-                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)}");
+                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)} Orite");
 
             if (reward.Exp > 0)
                 result.AppendLine($"> {Icons.Exp} **{reward.Exp:##,0}**");
