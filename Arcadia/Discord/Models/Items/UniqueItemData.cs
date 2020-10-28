@@ -29,25 +29,46 @@ namespace Arcadia
             Properties = properties;
         }
 
+        /// <summary>
+        /// Represents the unique identifier for this <see cref="UniqueItemData"/>.
+        /// </summary>
         [JsonProperty("id")]
         public string Id { get; }
 
+        /// <summary>
+        /// Represents the custom name of this <see cref="UniqueItemData"/>.
+        /// </summary>
         [JsonProperty("name")]
         public string Name { get; internal set; }
 
+        /// <summary>
+        /// Represents the current health pool for this <see cref="UniqueItemData"/>.
+        /// </summary>
         [JsonProperty("durability")]
         public int? Durability { get; internal set; }
 
+        /// <summary>
+        /// Represents the time that this <see cref="UniqueItemData"/> expires.
+        /// </summary>
         [JsonProperty("expires_on")]
         public DateTime? ExpiresOn { get; internal set; }
 
+        /// <summary>
+        /// Represents the time that this <see cref="UniqueItemData"/> was last used.
+        /// </summary>
         [JsonProperty("last_used")]
         public DateTime? LastUsed { get; internal set; }
 
+        /// <summary>
+        /// Represents the amount of times that this <see cref="UniqueItemData"/> was traded.
+        /// </summary>
         [JsonProperty("trade_count")]
         public int? TradeCount { get; internal set; }
 
         // This is everything that the item is keeping track of
+        /// <summary>
+        /// Represents a collection of custom properties for this <see cref="UniqueItemData"/>.
+        /// </summary>
         [JsonProperty("properties")]
         public Dictionary<string, ItemPropertyData> Properties { get; internal set; }
     }

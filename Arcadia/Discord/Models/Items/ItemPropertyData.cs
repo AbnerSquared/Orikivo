@@ -1,22 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents data for an <see cref="ItemPropertyData"/>.
+    /// </summary>
     public class ItemPropertyData
     {
-        internal ItemPropertyData(long value, List<ModifierData> modifiers, DateTime? expiresOn)
+        internal ItemPropertyData(long value, List<ModifierData> modifiers)
         {
             Value = value;
             Modifiers = modifiers;
-            ExpiresOn = expiresOn;
         }
 
+        /// <summary>
+        /// Represents the current value of this <see cref="ItemPropertyData"/>.
+        /// </summary>
         public long Value { get; internal set; }
 
-        // A collection of temporary modifiers for the specified property (eg. +3 ATTACK for 20 uses)
+        // EX: +3 Attack (20 uses)
+        /// <summary>
+        /// Specifies a collection of active modifiers for this <see cref="ItemPropertyData"/>.
+        /// </summary>
         public List<ModifierData> Modifiers { get; }
-
-        public DateTime? ExpiresOn { get; }
     }
 }

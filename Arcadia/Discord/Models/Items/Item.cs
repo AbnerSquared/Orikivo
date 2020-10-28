@@ -49,8 +49,6 @@ namespace Arcadia
         /// </summary>
         public List<string> Quotes { get; set; }
 
-        public Dictionary<int, string> ResearchTiers { get; set; }
-
         /// <summary>
         /// Represents the set of identifier tags for this <see cref="Item"/>.
         /// </summary>
@@ -130,6 +128,11 @@ namespace Arcadia
         /// Specifies a collection of whitelisted property IDs that can be used with this <see cref="Item"/>. (optional)
         /// </summary>
         public List<string> AllowedPropertyIds { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Represents a collection of research tiers for this <see cref="Item"/>.
+        /// </summary>
+        public Dictionary<int, string> ResearchTiers { get; set; }
 
         public bool CanSell => AllowedHandles.HasFlag(ItemAllow.Sell);
 

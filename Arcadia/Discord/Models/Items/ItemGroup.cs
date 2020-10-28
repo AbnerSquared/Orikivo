@@ -7,7 +7,7 @@ namespace Arcadia
     /// </summary>
     public class ItemGroup
     {
-        // This is the ID that is prefixed on items
+        // NOTE: This is the ID that is prefixed on items {short}_{id} su_pl  Summon: Pocket Lawyer
         public string ShortId { get; set; }
 
         /// <summary>
@@ -30,7 +30,6 @@ namespace Arcadia
         /// </summary>
         public string Name { get; set; }
 
-        // This is applied to the name before the name of the item
         /// <summary>
         /// Represents the name prefix for an <see cref="Item"/> in this group.
         /// </summary>
@@ -41,11 +40,17 @@ namespace Arcadia
         /// </summary>
         public string Summary { get; set; }
 
-        public Dictionary<string, long> Attributes { get; set; }
+        /// <summary>
+        /// Represents a base collection of custom properties for an <see cref="Item"/> in this group.
+        /// </summary>
+        public List<ItemProperty> Properties { get; set; }
 
+        /// <summary>
+        /// Represents a collection of research tiers for this <see cref="ItemGroup"/>.
+        /// </summary>
         public Dictionary<int, string> ResearchTiers { get; set; }
 
-        // This can be handled by catalog_group:item_group: research_tier
+        // NOTE: This can be handled by 'catalog_group:item_group = research_tier'
         /// <summary>
         /// When true, allows group research for this <see cref="ItemGroup"/> (unimplemented).
         /// </summary>
