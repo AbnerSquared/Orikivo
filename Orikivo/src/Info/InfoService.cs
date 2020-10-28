@@ -241,7 +241,7 @@ namespace Orikivo
                             panel.Append("> ");
 
                         int inserted = 0;
-                        foreach(CommandNode command in module.Commands.OrderBy(x => x.Name))
+                        foreach(CommandNode command in Randomizer.Shuffle(module.Commands))// module.Commands.OrderBy(x => x.Name))
                         {
                             if (inserted >= MAX_COMMAND_DISPLAY)
                                 break;

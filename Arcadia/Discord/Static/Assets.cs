@@ -1311,7 +1311,7 @@ namespace Arcadia
 
                         return UsageResult.FromSuccess("> The **Debt Blocker** opens up, revealing a crystal clear shield that surrounds you.");
                     },
-                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
+                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 5))
                 },
                 OwnLimit = 2
             },
@@ -1341,8 +1341,8 @@ namespace Arcadia
                             return UsageResult.FromError("> You already have too many active modifiers.");
 
                         return UsageResult.FromSuccess("> The **Orite Booster** cracks open and infuses with your very well-being.");
-                    },
-                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
+                    }
+                    // OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
                 },
                 OwnLimit = 2
             },

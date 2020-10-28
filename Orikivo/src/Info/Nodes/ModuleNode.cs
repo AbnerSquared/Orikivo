@@ -108,7 +108,7 @@ namespace Orikivo
 
                     if (Commands.Count > 0)
                     {
-                        format.AppendLine($"**Commands** ({InnerCount:##,0})");
+                        format.AppendLine($"**Commands** (**{InnerCount:##,0}**)");
 
                         format.Append($"> ");
 
