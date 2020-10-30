@@ -12,7 +12,7 @@ namespace Arcadia
             if (ItemHelper.Exists(input))
                 return Task.FromResult(TypeReaderResult.FromSuccess(ItemHelper.GetItem(input)));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find an Item with the specified ID."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "I couldn't find an **Item** under that ID."));
         }
     }
 }

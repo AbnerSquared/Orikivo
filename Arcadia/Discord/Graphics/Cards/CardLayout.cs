@@ -78,10 +78,10 @@ namespace Arcadia.Graphics
                 },
 
                 // Exp bar
-                new ComponentInfo
+                new ComponentInfo // Set the fill info to [FillMode.Bar], specify the Primary and Secondary Gamma, and set the Palette
                 {
                     Type = ComponentType.Solid,
-                    Group = CardComponent.Level | CardComponent.Exp,
+                    Group = CardComponent.Level | CardComponent.Exp, // Requires both LEVEL and EXP to be active to display
                     Priority = 5,
                     //MaxHeight = 2,
                     CursorOffset = CursorOffset.X,
@@ -91,7 +91,7 @@ namespace Arcadia.Graphics
                     PreviousOffsetInherit = SizeInherit.Y
                 },
 
-                new ComponentInfo
+                new ComponentInfo // Get the money icon that is used, and set its value to the component info
                 {
                     Type = ComponentType.Icon,
                     Group = CardComponent.Money,
@@ -103,7 +103,7 @@ namespace Arcadia.Graphics
                     OffsetY = -1
                 },
 
-                new ComponentInfo
+                new ComponentInfo // Get the current amount of money owned, and set its value to the component info.
                 {
                     Type = ComponentType.Text,
                     Group = CardComponent.Money,

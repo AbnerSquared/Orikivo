@@ -11,7 +11,7 @@ namespace Arcadia
             if (ShopHelper.Exists(input))
                 return Task.FromResult(TypeReaderResult.FromSuccess(ShopHelper.GetShop(input)));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Shop with the specified ID."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "I couldn't find a **Shop** under that ID."));
         }
     }
 }

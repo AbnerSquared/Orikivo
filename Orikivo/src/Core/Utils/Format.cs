@@ -544,6 +544,20 @@ namespace Orikivo
             return SetCasing(result, casing);
         }
 
+        public static string TryPluralize(string word, bool predicate)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+                return word;
+
+            if (!predicate)
+                return word;
+
+            Casing casing = GetCasing(word);
+            string result = Pluralize(word);
+
+            return SetCasing(result, casing);
+        }
+
         private static Casing GetCasing(string input)
         {
             if (string.IsNullOrWhiteSpace(input))

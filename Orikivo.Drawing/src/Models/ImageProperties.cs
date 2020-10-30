@@ -10,7 +10,7 @@ namespace Orikivo.Drawing
         public float Opacity { get; set; }
 
         public int? Width { get; set; }
-        
+
         public int? Height { get; set; }
 
         public Padding Padding { get; set; }

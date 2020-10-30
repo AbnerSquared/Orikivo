@@ -1756,6 +1756,7 @@ namespace Arcadia
             new Item
             {
                 Id = Ids.Items.CapsuleDailyI,
+                Icon = "🏮",
                 Name = "Daily Capsule I",
                 Summary = "A sealed goodie bag for checking in on a daily basis.",
                 Quotes = new List<string>

@@ -43,21 +43,20 @@ namespace Arcadia.Graphics
             return y;
         }
 
-        public bool CanTrim { get; }
-        public int Width { get; }
-        public int Height { get; }
-        public Padding Padding { get; }
-        public Padding Margin { get; }
-        public int CursorOriginX { get; }
-        public int CursorOriginY { get; }
-        public List<ICardComponent> Components { get; }
-        public GammaPalette BasePalette { get; }
-        public int BorderThickness { get; }
-        public BorderAllow BorderAllow { get; }
-        public FillInfo BorderFill { get; }
-
-        public string BackgroundUrl { get; }
-        public bool TileBackground { get; }
-        public FillInfo BackgroundFill { get; }
+        public bool CanTrim { get; internal set; }
+        public int Width { get; internal set; }
+        public int Height { get; internal set; }
+        public Padding Padding { get; internal set; }
+        public Padding Margin { get; internal set; }
+        public int CursorOriginX { get; internal set; }
+        public int CursorOriginY { get; internal set; }
+        public List<ICardComponent> Components { get; internal set; }
+        public GammaPalette BasePalette { get; internal set; }
+        public int BorderThickness { get; internal set; }
+        public BorderAllow BorderAllow { get; internal set; }
+        public FillInfo BorderFill { get; internal set; }
+        public string BackgroundUrl { get; internal set; }
+        public bool TileBackground { get; internal set; }
+        public FillInfo BackgroundFill { get; internal set; }
     }
 }

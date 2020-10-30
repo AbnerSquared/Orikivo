@@ -8,7 +8,7 @@ namespace Arcadia
 {
     public class ArcadeData
     {
-        public static readonly string Version = "0.8.1b";
+        public static readonly string Version = "1.0.0rc-1";// "0.8.1b";
 
         public ArcadeData()
         {

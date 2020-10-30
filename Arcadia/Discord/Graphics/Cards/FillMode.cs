@@ -9,7 +9,7 @@
         Solid = 1,
 
         // REQ: Palette, Primary, Secondary, Direction
-        Experience = 2,
+        Bar = 2,
 
         // REQ: Palette, Direction
         Gradient = 3,

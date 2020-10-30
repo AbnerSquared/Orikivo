@@ -11,7 +11,7 @@ namespace Arcadia
             if (CraftHelper.RecipeExists(input))
                 return Task.FromResult(TypeReaderResult.FromSuccess(CraftHelper.GetRecipe(input)));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find a Recipe with the specified ID."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "I couldn't find a **Recipe** under that ID."));
         }
     }
 }

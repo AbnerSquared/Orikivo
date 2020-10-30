@@ -24,7 +24,7 @@ namespace Arcadia
                        && percent > 0
                        && percent <= 100 => TypeReaderResult.FromSuccess(new Wager(FromPercent(chipBalance, percent))),
                 _ when long.TryParse(input, out long wager) => TypeReaderResult.FromSuccess(new Wager(wager)),
-                _ => TypeReaderResult.FromError(CommandError.ObjectNotFound, "Invalid wager specified")
+                _ => TypeReaderResult.FromError(CommandError.ParseFailed, "An invalid wager input was given.")
             });
         }
 

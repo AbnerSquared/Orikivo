@@ -27,7 +27,7 @@ namespace Arcadia
             if (result.IsSuccess && result.BestMatch is SocketUser best && context.TryGetUser(best.Id, out match))
                 return Task.FromResult(TypeReaderResult.FromSuccess(match));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Could not find the specified account."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "The user you seek doesn't exist in this world."));
         }
     }
 }

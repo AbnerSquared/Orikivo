@@ -9,6 +9,13 @@ namespace Arcadia.Graphics
     {
         public CardComponent Group { get; set; }
         public ComponentType Type { get; set; }
+
+        // This marks this component to be the primary target for detail inheritance
+        // If a primary target is marked as true, and invalid grouping and types were specified, an error would be thrown.
+        // Valid targets:
+        // - Text/Username
+        public bool PrimaryTarget { get; set; }
+
         public int Priority { get; set; } = 0;
         public int MaxWidth { get; set; } = -1;
         public int MaxHeight { get; set; } = -1;

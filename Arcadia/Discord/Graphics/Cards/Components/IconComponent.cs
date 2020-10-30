@@ -4,6 +4,12 @@ namespace Arcadia.Graphics
 {
     public class IconComponent : ICardComponent
     {
+        public IconComponent(ComponentInfo info, FillInfo fill)
+        {
+            Info = info;
+            Fill = fill;
+        }
+
         public ComponentInfo Info { get; }
         public FillInfo Fill { get; }
 

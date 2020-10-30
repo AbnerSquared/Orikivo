@@ -120,7 +120,10 @@ namespace Orikivo
                         await ctx.Channel.CatchAsync(((ExecuteResult)result).Exception);
                 }
                 else
+                {
+
                     await ctx.Channel.ThrowAsync(result.ErrorReason);
+                }
 
                 return;
             }

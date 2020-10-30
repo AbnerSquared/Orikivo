@@ -374,6 +374,12 @@ namespace Arcadia
                     if (result.Error == CommandError.UnknownCommand)
                         return;
 
+                    if (result.Error == CommandError.ObjectNotFound)
+                    {
+                        await context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> {result.ErrorReason ?? "An unknown error has occurred."}");
+                        return;
+                    }
+
                     await context.Channel.ThrowAsync(result.ErrorReason);
                 }
 

@@ -121,13 +121,6 @@ namespace Arcadia.Modules
         [Summary("View information about a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
-            /*
-            if (!ItemHelper.RecipeExists(recipeId))
-            {
-                await Context.Channel.WarnAsync("Could not find the specified recipe.");
-                return;
-            }*/
-
             await Context.Channel.SendMessageAsync(RecipeViewer.ViewRecipeInfo(Context.Account, recipe));
         }
 
@@ -136,13 +129,6 @@ namespace Arcadia.Modules
         [Summary("Attempt to craft an **Item** using the specified **Recipe**.")]
         public async Task CraftAsync([Name("recipe_id")]Recipe recipe)
         {
-            /*
-            if (!ItemHelper.RecipeExists(recipeId))
-            {
-                await Context.Channel.WarnAsync("Could not find the specified recipe.");
-                return;
-            }*/
-
             if (!CraftHelper.CanCraft(Context.Account, recipe))
             {
                 var notice = new StringBuilder();
@@ -381,8 +367,8 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("catalogsearch")]
-        [Summary("Search through your item catalog to find a specific **Item**.")]
-        public async Task CatalogSearchAsync([Remainder] string input)
+        [Summary("Search through the item catalog to look for a specific **Item**.")]
+        public async Task CatalogSearchAsync([Remainder]string input)
         {
             if (!Check.NotNull(input))
             {
@@ -396,7 +382,7 @@ namespace Arcadia.Modules
         [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
-        public async Task UseItemAsync([Name("data_id")]string dataId, [Remainder]string input = null)
+        public async Task UseItemAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId, [Remainder]string input = null)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
@@ -420,7 +406,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("item")]
         [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
-        public async Task ViewItemAsync(Item item)
+        public async Task ViewItemAsync([Summary("The **Item** to view more information about.")]Item item)
         {
             CatalogStatus status = CatalogHelper.GetCatalogStatus(Context.Account, item);
 
@@ -453,7 +439,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspect")]
         [Summary("Inspect a specific **Item** in your inventory using a data reference.")]
-        public async Task InspectInInventoryAsync([Name("data_id")]string dataId)
+        public async Task InspectInInventoryAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
             int slot = Context.Account.Items.IndexOf(data);
@@ -463,28 +449,23 @@ namespace Arcadia.Modules
                 if (ItemHelper.Exists(dataId))
                 {
                     await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
+                    return;
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data instance."));
                 return;
             }
 
             await Context.Channel.SendMessageAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot));
         }
 
-        // This gets a person's backpack.
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inventory"), Alias("backpack", "inv", "bp")]
-        [Summary("View your contents currently in storage.")]
-        public async Task GetBackpackAsync(SocketUser user = null)
+        [Summary("View a collection of items that you or another user own.")]
+        public async Task GetBackpackAsync(ArcadeUser user = null)
         {
-            user ??= Context.User;
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            await Context.Channel.SendMessageAsync(InventoryViewer.Write(account, account.Id == Context.Account.Id));
+            user ??= Context.Account;
+            await Context.Channel.SendMessageAsync(InventoryViewer.Write(user, user.Id == Context.Account.Id));
         }
 
         [Command("statsof")]
@@ -496,14 +477,9 @@ namespace Arcadia.Modules
 
         [Command("stats"), Priority(1)]
         [RequireUser(AccountHandling.ReadOnly)]
-        public async Task GetStatsAsync(SocketUser user, int page = 1)
+        public async Task GetStatsAsync(ArcadeUser user, int page = 1)
         {
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
-            await Context.Channel.SendMessageAsync(StatHelper.Write(account, false, --page));
+            await Context.Channel.SendMessageAsync(StatHelper.Write(user, false, --page));
         }
 
         [Command("stats"), Priority(0)]
@@ -542,30 +518,22 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("balance"), Alias("money", "bal", "chips", "tokens", "debt")]
         [Summary("Returns a display showing all of the values in a wallet.")]
-        public async Task GetMoneyAsync(SocketUser user = null)
+        public async Task GetMoneyAsync(ArcadeUser user = null)
         {
-            user ??= Context.User;
-            Context.TryGetUser(user.Id, out ArcadeUser account);
-
-            if (await CatchEmptyAccountAsync(account))
-                return;
-
+            user ??= Context.Account;
             var provider = new CurrencyFormatter();
             var result = new StringBuilder();
 
-            if (user != null)
-            {
-                if (user != Context.User)
-                    result.AppendLine($"> **Wallet: {account.Username}**");
-            }
+            if (user.Id != Context.Account.Id)
+                result.AppendLine($"> **Wallet: {user.Username}**");
 
-            if (account.Debt > 0)
-                result.AppendLine(string.Format(provider, "{0:D}", account.Debt));
-            else if (account.Balance > 0)
-                result.AppendLine(string.Format(provider, "{0:O}", account.Balance));
+            if (user.Debt > 0)
+                result.AppendLine(string.Format(provider, "{0:D}", user.Debt));
+            else if (user.Balance > 0)
+                result.AppendLine(string.Format(provider, "{0:O}", user.Balance));
 
-            result.AppendLine(string.Format(provider, "{0:C}", account.ChipBalance));
-            result.AppendLine(string.Format(provider, "{0:T}", account.TokenBalance));
+            result.AppendLine(string.Format(provider, "{0:C}", user.ChipBalance));
+            result.AppendLine(string.Format(provider, "{0:T}", user.TokenBalance));
 
             await Context.Channel.SendMessageAsync(result.ToString());
         }
@@ -601,8 +569,11 @@ namespace Arcadia.Modules
             user ??= Context.User;
             Context.TryGetUser(user.Id, out ArcadeUser account);
 
-            if (await CatchEmptyAccountAsync(account))
+            if (account == null)
+            {
+                await Context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> The user you seek doesn't exist in this world.");
                 return;
+            }
 
             try
             {
@@ -631,22 +602,7 @@ namespace Arcadia.Modules
         public async Task ViewProfileAsync(ArcadeUser user = null)
         {
             user ??= Context.Account;
-
-            if (await CatchEmptyAccountAsync(user))
-                return;
-
             await Context.Channel.SendMessageAsync(ProfileViewer.View(user, Context));
-        }
-
-        private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
-        {
-            if (reference == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Odd.**\n> The user you seek does not exist in this world.");
-                return true;
-            }
-
-            return false;
         }
     }
 }

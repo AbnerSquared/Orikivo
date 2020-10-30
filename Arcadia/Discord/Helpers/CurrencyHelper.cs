@@ -6,6 +6,19 @@ namespace Arcadia
 {
     public static class CurrencyHelper
     {
+        public static string WriteName(CurrencyType currency, long value)
+        {
+            bool isPlural = value != 0 && value > 1;
+            return currency switch
+            {
+                CurrencyType.Chips => Format.TryPluralize("Chip", isPlural),
+                CurrencyType.Money => Format.TryPluralize("Orite", isPlural),
+                CurrencyType.Debt => "Debt",
+                CurrencyType.Tokens => Format.TryPluralize("Token", isPlural),
+                _ => "UNKNOWN_CURRENCY"
+            };
+        }
+
         public static string WriteCost(long value, CurrencyType currency)
             => value <= 0 ? "**Unknown Cost**" : $"{Icons.IconOf(currency)} **{value:##,0}**"; // {(value == 69 ? "(nice)" : "")}
 
