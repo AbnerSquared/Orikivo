@@ -6,19 +6,19 @@ namespace Arcadia.Graphics
 {
     public class FillInfo
     {
-        public Color? OutlineColor;
+        public Color? OutlineColor { get; set; }
 
         public Gamma Primary { get; set; } = Gamma.Max;
 
-        public Gamma? Secondary;
+        public Gamma? Secondary { get; set; }
 
         public GammaPalette Palette { get; set; } = GammaPalette.Default;
 
-        public FillMode Usage;
+        public FillMode Usage { get; set; } = FillMode.None;
 
-        public Direction Direction;
+        public Direction Direction { get; set; } = Direction.Right;
 
         // This is only used in bars
-        public float? FillPercent;
+        public float? FillPercent { get; set; }
     }
 }

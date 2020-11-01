@@ -1,22 +1,43 @@
 ﻿using System;
-using System.Drawing;
+using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
-    [Flags]
-    public enum CardComponent
+    /// <summary>
+    /// Represents a generic card component.
+    /// </summary>
+    public abstract class CardComponent
     {
-        Username = 1,
-        Activity = 2,
-        Avatar = 4,
-        Level = 8,
-        Money = 16,
-        Exp = 32,
-        Bar = 64
+        public ComponentInfo Info { get; protected set; }
+
+        public FillInfo Fill { get; protected set; }
+
+        protected abstract DrawableLayer Build();
+
+        /// <summary>
+        /// Draws this <see cref="CardComponent"/> onto the current card instance.
+        /// </summary>
+        public virtual void Draw(ref Drawable card, ref Cursor cursor, ref ComponentReference previous)
+        {
+            if (Fill == null || Info == null)
+                throw new Exception("Expected both component fill info and base info to be specified");
+
+            DrawableLayer layer = Build();
+
+            int offsetX = CardInfo.GetOffsetX(Info, cursor, previous);
+            int offsetY = CardInfo.GetOffsetY(Info, cursor, previous);
+
+            layer.Offset = new Coordinate(offsetX, offsetY);
+            layer.Properties.Padding = Info.Padding;
+
+            if (Info.CursorOffset.HasFlag(CursorOffset.X))
+                cursor.X += layer.GetBaseWidth() + layer.Properties.Padding.Width;
+
+            if (Info.CursorOffset.HasFlag(CursorOffset.Y))
+                cursor.Y += layer.GetBaseHeight() + layer.Properties.Padding.Height;
+
+            previous.Update(layer.GetBaseWidth(), layer.GetBaseHeight(), layer.Properties.Padding);
+            card.AddLayer(layer);
+        }
     }
-
-    // Likewise, this is also handled by Merit slots
-
-    // Get the fill space of text by simply requesting the opacity mask
-    // Set up the fill design by creating a bitmap of the same width and height
 }

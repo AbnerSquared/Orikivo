@@ -3,11 +3,11 @@
 namespace Arcadia.Graphics
 {
     /// <summary>
-    /// Represents the details of how an <see cref="ICardComponent"/> should render.
+    /// Represents the details of how a <see cref="CardComponent"/> should render.
     /// </summary>
     public class ComponentInfo
     {
-        public CardComponent Group { get; set; }
+        public CardGroup Group { get; set; }
         public ComponentType Type { get; set; }
 
         // This marks this component to be the primary target for detail inheritance
@@ -17,6 +17,8 @@ namespace Arcadia.Graphics
         public bool PrimaryTarget { get; set; }
 
         public int Priority { get; set; } = 0;
+        public int BaseHeight { get; set; } = 0;
+        public int BaseWidth { get; set; } = 0;
         public int MaxWidth { get; set; } = -1;
         public int MaxHeight { get; set; } = -1;
         public SizeHandling SizeHandling { get; set; } = SizeHandling.Ignore;

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Arcadia.Multiplayer;
 using Arcadia.Services;
 using DiscordBoats;
+using DiscordBotList;
 using Microsoft.Extensions.Configuration;
 using Format = Orikivo.Format;
 
@@ -60,6 +61,8 @@ namespace Arcadia
 
         private BoatClient BoatClient { get; set; }
 
+        private DblClient DblClient { get; set; }
+
         private int GuildCount { get; set; }
 
         private async Task ResetGuildCount(Exception error)
@@ -84,19 +87,30 @@ namespace Arcadia
 
         private async Task OnReady()
         {
-            if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
-                return;
+            /*
+            try
+            {
+                //if (string.IsNullOrWhiteSpace(_config["token_dbl"]))
+                    return;
 
-            BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+                //BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+                //DblClient ??= new DblClient(_client.CurrentUser.Id, _config["token_dbl"]);
 
-            if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
-                return;
+                if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
+                    return;
 
-            int guildCount = await GetGuildCountAsync();
+                int guildCount = await GetGuildCountAsync();
 
-            await BoatClient.UpdateGuildCountAsync(guildCount).ConfigureAwait(false);
-            LastGuildCountUpdate = DateTime.UtcNow;
-            Logger.Debug($"Posted guild count to Discord Boats ({guildCount:##,0})");
+                //await BoatClient.UpdateGuildCountAsync(guildCount).ConfigureAwait(false);
+                await DblClient.UpdateStatsAsync(guildCount).ConfigureAwait(false);
+
+                LastGuildCountUpdate = DateTime.UtcNow;
+                Logger.Debug($"Posted guild count to Discord Boats ({guildCount:##,0})");
+            }
+            catch (Exception e)
+            {
+                Logger.Debug(e.ToString());
+            }*/
         }
 
         private async Task UpdateGuildCount(SocketGuild guild)
@@ -104,12 +118,14 @@ namespace Arcadia
             if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
                 return;
 
-            BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+            //BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+            DblClient ??= new DblClient(_client.CurrentUser.Id, _config["token_dbl"]);
 
             if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
                 return;
 
-            await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
+            //await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
+            await DblClient.UpdateStatsAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
             LastGuildCountUpdate = DateTime.UtcNow;
         }
 

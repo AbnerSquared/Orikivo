@@ -43,20 +43,73 @@ namespace Arcadia.Graphics
             return y;
         }
 
+        public static int GetWidth(ComponentInfo info, Cursor cursor, ComponentReference previous)
+        {
+            int width = info.BaseWidth;
+
+            if (info.SizeHandling == SizeHandling.Set)
+            {
+                width = info.MaxWidth < 0 ? 0 : info.MaxWidth;
+                return width;
+            }
+
+            if (info.PreviousInherit.HasFlag(SizeInherit.Width))
+                width += previous.Width;
+
+            if (info.PreviousInherit.HasFlag(SizeInherit.PaddingWidth))
+                width += previous.PaddingWidth;
+
+            return width;
+        }
+
+        public static int GetHeight(ComponentInfo info, Cursor cursor, ComponentReference previous)
+        {
+            int height = info.BaseHeight;
+
+            if (info.SizeHandling == SizeHandling.Set)
+            {
+                height = info.MaxHeight < 0 ? 0 : info.MaxHeight;
+                return height;
+            }
+
+            if (info.PreviousInherit.HasFlag(SizeInherit.Height))
+                height += previous.Height;
+
+            if (info.PreviousInherit.HasFlag(SizeInherit.PaddingHeight))
+                height += previous.PaddingHeight;
+
+            return height;
+        }
+
+        public ImageScale Scale { get; internal set; }
+
         public bool CanTrim { get; internal set; }
+
         public int Width { get; internal set; }
+
         public int Height { get; internal set; }
-        public Padding Padding { get; internal set; }
-        public Padding Margin { get; internal set; }
+
+        public Padding Padding { get; internal set; } = Padding.Empty;
+
+        public Padding Margin { get; internal set; } = Padding.Empty;
+
         public int CursorOriginX { get; internal set; }
+
         public int CursorOriginY { get; internal set; }
-        public List<ICardComponent> Components { get; internal set; }
+
+        public List<CardComponent> Components { get; internal set; }
+
         public GammaPalette BasePalette { get; internal set; }
+
         public int BorderThickness { get; internal set; }
+
         public BorderAllow BorderAllow { get; internal set; }
+        public BorderEdge BorderEdge { get; internal set; }
+
         public FillInfo BorderFill { get; internal set; }
-        public string BackgroundUrl { get; internal set; }
-        public bool TileBackground { get; internal set; }
-        public FillInfo BackgroundFill { get; internal set; }
+
+        //public string BackgroundUrl { get; internal set; }
+        //public bool TileBackground { get; internal set; }
+        //public FillInfo BackgroundFill { get; internal set; }
     }
 }

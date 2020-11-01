@@ -493,6 +493,7 @@ namespace Arcadia
             return result.ToString();
         }
 
+        // TODO: Move item previews over to ItemViewer instead to be used as a common base
         private static string GetItemPreview(string itemId, int amount)
         {
             string icon = ItemHelper.IconOf(itemId) ?? "•";

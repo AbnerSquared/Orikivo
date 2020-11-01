@@ -15,6 +15,7 @@ namespace Arcadia
             IsClaimed = isClaimed;
         }
 
+        // TODO: Rename JSON to unlocked_at
         /// <summary>
         /// Gets the <see cref="DateTime"/> at which the <see cref="Merit"/> was unlocked.
         /// </summary>

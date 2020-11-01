@@ -56,6 +56,26 @@ namespace Orikivo.Drawing
             return position;
         }
 
+        public int GetBaseWidth()
+        {
+            using Bitmap image = GetBaseImage();
+
+            if (image == null)
+                return 0;
+
+            return image.Width;
+        }
+
+        public int GetBaseHeight()
+        {
+            using Bitmap image = GetBaseImage();
+
+            if (image == null)
+                return 0;
+
+            return image.Height;
+        }
+
         /// <summary>
         /// Renders the base image for this <see cref="DrawableLayer"/>.
         /// </summary>

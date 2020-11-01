@@ -1,9 +1,8 @@
-﻿using Discord;
-using Orikivo.Drawing;
+﻿using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
-    public class ImageComponent : ICardComponent
+    public class ImageComponent : CardComponent
     {
         public ImageComponent(ComponentInfo info, FillInfo fill)
         {
@@ -11,48 +10,15 @@ namespace Arcadia.Graphics
             Fill = fill;
         }
 
-        public ComponentInfo Info { get; }
+        public string Url { get; set; }
 
-        public FillInfo Fill { get; }
-
-        public string Url;
-
-        public int Size;
-
-        public Color? BackgroundColor;
-
-        public Color? FramePrimaryColor;
-
-        public Color? FrameSecondaryColor;
-
-        public string BorderId;
-
-        public void Draw(Drawable card, ref Cursor cursor, ref ComponentReference previous)
+        /// <inheritdoc />
+        protected override DrawableLayer Build()
         {
-            // Get the layer offsets
-            int offsetX = CardInfo.GetOffsetX(Info, cursor, previous);
-            int offsetY = CardInfo.GetOffsetY(Info, cursor, previous);
-
-            var layer = new BitmapLayer
+            return new BitmapLayer
             {
-                Source = ImageHelper.ForceLumenPalette(ImageHelper.GetHttpImage(Url), Fill.Palette),
-                Offset = new Coordinate(offsetX, offsetY)
+                Source = ImageHelper.ForceLumenPalette(ImageHelper.GetHttpImage(Url), Fill.Palette)
             };
-
-            layer.Properties.Padding = Info.Padding;
-
-            // Try to offset the cursor
-            if (Info.CursorOffset.HasFlag(CursorOffset.X))
-                cursor.X += layer.Source.Width + layer.Properties.Padding.Width;
-
-            if (Info.CursorOffset.HasFlag(CursorOffset.Y))
-                cursor.Y += layer.Source.Height + layer.Properties.Padding.Height;
-
-            // Finally, update the component reference
-            previous.Update(layer.Source.Width, layer.Source.Height, layer.Properties.Padding);
-
-            // Add the layer to the card
-            card.AddLayer(layer);
         }
     }
 }

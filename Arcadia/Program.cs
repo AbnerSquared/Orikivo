@@ -63,7 +63,7 @@ namespace Arcadia
                     .AddEnumTypeReader<PaletteType>()
                     .AddEnumTypeReader<BorderAllow>()
                     .AddEnumTypeReader<ImageScale>()
-                    .AddEnumTypeReader<CardComponent>()
+                    .AddEnumTypeReader<CardGroup>()
                     .AddEnumTypeReader<Gamma>()
                     .AddEnumTypeReader<BorderEdge>()
                     .AddEnumTypeReader<LeaderboardQuery>()

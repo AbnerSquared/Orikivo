@@ -24,6 +24,6 @@ namespace Arcadia.Multiplayer
         public long RequiredWager { get; set; }
 
         // This is the length of time from which experience will scale up
-        public TimeBlock ExpTimeRange { get; set; }
+        public DateTimeRange ExpTimeRange { get; set; }
     }
 }

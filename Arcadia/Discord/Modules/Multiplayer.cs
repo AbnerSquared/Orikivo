@@ -44,7 +44,7 @@ namespace Arcadia.Modules
         [RequireNoSession]
         [Command("hostserver")]
         [Summary("Host a new game server.")]
-        public async Task HostServerAsync([Name("game_id")]string gameId = null, Privacy privacy = Privacy.Public)
+        public async Task HostServerAsync([Name("game_id")][Summary("The ID of the **Game** that you want to host.")][Tooltip("Type `games` to view the collection games that you can currently host.")]string gameId = null, [Summary("The privacy of the new server.")]Privacy privacy = Privacy.Public)
         {
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
@@ -73,7 +73,7 @@ namespace Arcadia.Modules
         [RequireNoSession]
         [Command("joinserver")]
         [Summary("Join an existing game server.")]
-        public async Task JoinServerAsync([Name("server_id")]string serverId)
+        public async Task JoinServerAsync([Name("server_id")][Summary("The ID of the server that you wish to join.")][Tooltip("Type `servers` to view a collection of available game servers to join.")]string serverId)
         {
             if (string.IsNullOrWhiteSpace(serverId))
             {
@@ -92,7 +92,7 @@ namespace Arcadia.Modules
 
         [RequireNoSession]
         [Command("quickjoin"), Priority(0)]
-        [Summary("Quickly attempts to finds a game to join.")]
+        [Summary("Quickly attempts to finds an available game server to join.")]
         public async Task QuickJoinAsync()
         {
             if (_games.Servers.Count == 0)
@@ -112,8 +112,8 @@ namespace Arcadia.Modules
 
         [RequireNoSession]
         [Command("quickjoin"), Priority(1)]
-        [Summary("Quickly finds a server to join for the specified game mode.")]
-        public async Task QuickJoinAsync([Name("game_id")]string gameId)
+        [Summary("Quickly finds a server to join for the specified **Game**.")]
+        public async Task QuickJoinAsync([Name("game_id")][Summary("The ID of the **Game** that you want to join.")]string gameId)
         {
             if (_games.Servers.Count == 0)
             {
@@ -157,7 +157,7 @@ namespace Arcadia.Modules
 
         [Command("destroyserver")]
         [Summary("Destroys the specified server.")]
-        public async Task DestroyServerAsync([Name("server_id")] string serverId)
+        public async Task DestroyServerAsync([Name("server_id")][Summary("The ID of the server to destroy.")]string serverId)
         {
             if (Context.User.Id != OriGlobal.DevId)
             {
@@ -177,7 +177,7 @@ namespace Arcadia.Modules
 
         [Command("destroysession")]
         [Summary("Destroys the current session for the specified server, if any.")]
-        public async Task DestroySessionAsync([Name("server_id")] string serverId)
+        public async Task DestroySessionAsync([Name("server_id")][Summary("The ID of the server to destroy the session for.")]string serverId)
         {
             if (_games.Servers.ContainsKey(serverId))
             {
@@ -203,7 +203,7 @@ namespace Arcadia.Modules
 
         [RequireData]
         [Command("games")]
-        [Summary("View the list of all available multiplayer games.")]
+        [Summary("View the list of all available multiplayer games that a server can play.")]
         public async Task ViewGamesAsync(int page = 1)
         {
             await Context.Channel.SendMessageAsync(GameViewer.ViewGames(Context.Data.Data, _games, --page, Context.Account));
@@ -212,7 +212,7 @@ namespace Arcadia.Modules
         [RequireData]
         [Command("game")]
         [Summary("View all of the proper details for the specified game.")]
-        public async Task ViewGameAsync(string gameId, int page = 1)
+        public async Task ViewGameAsync([Name("game_id")][Summary("The ID of the **Game** to view more information for.")]string gameId, int page = 1)
         {
             await Context.Channel.SendMessageAsync(GameViewer.ViewGame(_games.GetGame(gameId), --page, Context.Account));
         }

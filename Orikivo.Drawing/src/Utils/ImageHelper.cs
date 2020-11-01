@@ -579,9 +579,8 @@ namespace Orikivo.Drawing
         // TODO: Implement AngleF instead of Direction
         public static Bitmap CreateProgressBar(Color foreground, Color background, int width, int height, float progress, Direction direction = Direction.Right)
         {
-            int length = direction.HasFlag(Direction.Left | Direction.Right) ? width : height;
-            int fillLength = (int)Math.Floor(RangeF.Convert(0, 1, 0, length, progress));
-
+            int length = direction == Direction.Right || direction == Direction.Left ? width : height;
+            int fillLength = (int)Math.Floor(RangeF.Convert(0.0f, 1.0f, 0, length, progress));
             var result = new Bitmap(width, height);
 
             using Graphics g = Graphics.FromImage(result);

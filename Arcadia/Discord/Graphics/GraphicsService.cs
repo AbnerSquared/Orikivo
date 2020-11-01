@@ -3,6 +3,7 @@ using System.Drawing;
 using Orikivo.Drawing;
 using Orikivo;
 using System.Diagnostics;
+using Orikivo.Framework;
 using Orikivo.Text;
 
 namespace Arcadia.Graphics
@@ -166,12 +167,12 @@ namespace Arcadia.Graphics
                 _ => GammaPalette.Default
             };
 
-        public static bool CanGroup(CardComponent component)
+        public static bool CanGroup(CardGroup component)
         {
             return component switch
             {
-                CardComponent.Level => true,
-                CardComponent.Money => true,
+                CardGroup.Level => true,
+                CardGroup.Money => true,
                 _ => false
             };
         }
@@ -259,14 +260,46 @@ namespace Arcadia.Graphics
                 _ => value
             };
 
-        private void DrawComponent(CardInfo info)
+        public Bitmap DrawCard(CardInfo info, CardGroup deniedGroups)
         {
+            var stopwatch = Stopwatch.StartNew();
 
+            var card = new Drawable(info.Width, info.Height)
+            {
+                Properties = new DrawableProperties
+                {
+                    Palette = info.BasePalette,
+                    Padding = info.Padding,
+                    Margin = info.Margin
+                }.WithScale(info.Scale)
+            };
 
-            int previousWidth = 0;
-            int previousHeight = 0;
-            int previousPadWidth = 0;
-            int previousPadHeight = 0;
+            if (info.BorderThickness > 0)
+            {
+                card.Border = new Border
+                {
+                    Allow = info.BorderAllow,
+                    Thickness = info.BorderThickness,
+                    Edge = info.BorderEdge,
+                    Color = info.BorderFill?.Palette[info.BorderFill.Primary] ?? info.BasePalette[Gamma.Max]
+                };
+            }
+
+            var cursor = new Cursor(info.CursorOriginX, info.CursorOriginY);
+            var previous = new ComponentReference();
+
+            foreach (CardComponent component in info.Components)
+            {
+                if (!deniedGroups.HasFlag(component.Info.Group))
+                    component.Draw(ref card, ref cursor, ref previous);
+            }
+
+            Bitmap result = card.BuildAndDispose();
+            stopwatch.Stop();
+
+            Logger.Debug($"Card generated in {Format.RawCounter(stopwatch.ElapsedMilliseconds)}.");
+
+            return result;
         }
 
         public Bitmap DrawCard(CardDetails details, CardProperties properties = null)
@@ -297,7 +330,7 @@ namespace Arcadia.Graphics
             var cursor = new Cursor(0, 0);
 
             // AVATAR
-            if (!properties.Deny.HasFlag(CardDeny.Avatar))
+            if (!properties.Deny.HasFlag(CardGroup.Avatar))
             {
                 var imageProperties = DrawableProperties.Default;
                 imageProperties.Padding = new Padding(right: 2);
@@ -315,9 +348,9 @@ namespace Arcadia.Graphics
             }
 
             // USERNAME
-            if (!properties.Deny.HasFlag(CardDeny.Username))
+            if (!properties.Deny.HasFlag(CardGroup.Username))
             {
-                var usernameGamma = properties.Gamma[CardComponent.Username] ?? Gamma.Max;
+                var usernameGamma = properties.Gamma[CardGroup.Username] ?? Gamma.Max;
                 var username = new BitmapLayer
                 {
                     Source = DrawText(GetString(properties.Casing, details.Name), GetFont(properties.Font), usernameGamma, defaultProperties),
@@ -330,9 +363,9 @@ namespace Arcadia.Graphics
             }
 
             // ACTIVITY
-            if (!properties.Deny.HasFlag(CardDeny.Activity))
+            if (!properties.Deny.HasFlag(CardGroup.Activity))
             {
-                var activityGamma = properties.Gamma[CardComponent.Activity] ?? Gamma.Max;
+                var activityGamma = properties.Gamma[CardGroup.Activity] ?? Gamma.Max;
                 var activity = new BitmapLayer
                 {
                     Source = DrawText(details.Program ?? details.Status.ToString(), GetFont(FontType.Minic), activityGamma, defaultProperties),
@@ -345,12 +378,12 @@ namespace Arcadia.Graphics
             }
 
             // LEVEL
-            if (!properties.Deny.HasFlag(CardDeny.Level))
+            if (!properties.Deny.HasFlag(CardGroup.Level))
             {
                 var iconSheet = new Sheet(@"../assets/icons/levels.png", 6, 6);
 
                 // ICON
-                var levelGamma = properties.Gamma[CardComponent.Level] ?? Gamma.Max;
+                var levelGamma = properties.Gamma[CardGroup.Level] ?? Gamma.Max;
                 var icon = new BitmapLayer
                 {
                     Source = ImageHelper.Trim(ImageHelper.SetColorMap(iconSheet.GetSprite(1, 1), GammaPalette.Default, Palette), true),
@@ -376,17 +409,16 @@ namespace Arcadia.Graphics
                 card.AddLayer(counter);
 
                 // EXP
-                if (!properties.Deny.HasFlag(CardDeny.Exp))
+                if (!properties.Deny.HasFlag(CardGroup.Exp))
                 {
-                    var fillGamma = properties.Gamma[CardComponent.Exp] ?? Gamma.Max;
-                    var emptyGamma = properties.Gamma[CardComponent.Bar] ?? Gamma.Standard;
+                    var fillGamma = properties.Gamma[CardGroup.Exp] ?? Gamma.Max;
+                    var emptyGamma = properties.Gamma[CardGroup.Bar] ?? Gamma.Standard;
 
                     var toNextLevel = RangeF.Convert(currentExp, nextExp, 0, 1, details.Exp);
 
                     int counterHeight = counter.Source.Height + counter.Properties.Padding.Height;
                     var exp = new BitmapLayer
                     {
-                        // TODO: 
                         Source = ImageHelper.CreateProgressBar(palette[emptyGamma], palette[fillGamma],
                             counter.Source.Width, 2, toNextLevel),
                         Offset = new Coordinate(cursor.X, cursor.Y + counterHeight)
@@ -399,7 +431,7 @@ namespace Arcadia.Graphics
             }
 
             // MONEY
-            if (!properties.Deny.HasFlag(CardDeny.Money))
+            if (!properties.Deny.HasFlag(CardGroup.Money))
             {
                 var coinSheet = new Sheet(@"../assets/icons/coins.png", 8, 8);
                 cursor.Y -= 1;
@@ -421,7 +453,7 @@ namespace Arcadia.Graphics
 
                 // COUNTER
                 // CardComponent: Name of all colorable components
-                var moneyGamma = properties.Gamma[CardComponent.Money] ?? Gamma.Max;
+                var moneyGamma = properties.Gamma[CardGroup.Money] ?? Gamma.Max;
 
                 // TODO: Dim color for debt
                 var counter = new BitmapLayer(DrawText(text, GetFont(FontType.Delta), moneyGamma, defaultProperties));

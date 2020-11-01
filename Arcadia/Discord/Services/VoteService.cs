@@ -85,7 +85,7 @@ namespace Arcadia.Services
                     break;
 
                 case VoteResultFlag.Unavailable:
-                    content = $"Voting allows you to receive a **Token** on each vote you submit.\nYou are given an additional 2 **Tokens** on each 7 day streak.\n**Tokens** can be cashed out, or saved to purchase upcoming special items that can only be bought with this currency!\nYou can vote every **12** hours on any voting platform, and your streak is cut short after **48**  hours.\n\n> **Voting Portal**\n• [**Discord Boats**](https://discord.boats/bot/686093964029329413/vote)";
+                    content = $"Voting allows you to receive a **Token** on each vote you submit.\nYou are given an additional 2 **Tokens** on each 7 day streak.\n**Tokens** can be cashed out, or saved to purchase upcoming special items that can only be bought with this currency!\nYou can vote every **12** hours on any voting platform, and your streak is cut short after **48**  hours.\n\n> **Voting Portal**\n• [**Discord Boats**](https://discord.boats/bot/686093964029329413/vote)\n• [**Discord Bot List**](https://top.gg/bot/686093964029329413)";
                     color = GammaPalette.Oceanic[Gamma.Max];
                     icon = Icons.Tokens;
                     header = $"Voting";

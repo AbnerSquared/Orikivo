@@ -586,7 +586,8 @@ namespace Arcadia.Modules
                 p.Trim = false;
                 p.Casing = Casing.Upper;
 
-                System.Drawing.Bitmap card = graphics.DrawCard(d, p);
+                CardInfo info = CardBuilder.BuildCardInfo(CardLayout.Default, d, p);
+                System.Drawing.Bitmap card = graphics.DrawCard(info, p.Deny);
 
                 await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
             }

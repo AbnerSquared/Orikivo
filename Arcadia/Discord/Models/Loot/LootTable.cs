@@ -22,15 +22,15 @@ namespace Arcadia
 
             string choice = Entries.First().ItemId;
 
-            for (int i = 0; i < Entries.Count; i++)
+            foreach (LootEntry entry in Entries)
             {
-                weightSum += Entries[i].Weight;
+                weightSum += entry.Weight;
 
-                if (marker <= weightSum)
-                {
-                    choice = Entries[i].ItemId;
-                    break;
-                }
+                if (marker > weightSum)
+                    continue;
+
+                choice = entry.ItemId;
+                break;
             }
 
             return ItemHelper.GetItem(choice);
@@ -62,23 +62,23 @@ namespace Arcadia
                 int marker = RandomProvider.Instance.Next(0, totalWeight);
                 int weightSum = 0;
 
-                for (int i = 0; i < Entries.Count; i++)
+                foreach (LootEntry entry in Entries)
                 {
-                    weightSum += Entries[i].Weight;
+                    weightSum += entry.Weight;
 
-                    if (marker <= weightSum)
+                    if (marker > weightSum)
+                        continue;
+
+                    if (entry.Money > 0)
                     {
-                        if (Entries[i].Money > 0)
-                        {
-                            money += Entries[i].Money;
-                        }
-                        else if (!results.TryAdd(Entries[i].ItemId, 1))
-                        {
-                            results[Entries[i].ItemId]++;
-                        }
-
-                        break;
+                        money += entry.Money;
                     }
+                    else if (!results.TryAdd(entry.ItemId, 1))
+                    {
+                        results[entry.ItemId]++;
+                    }
+
+                    break;
                 }
 
                 rolls++;

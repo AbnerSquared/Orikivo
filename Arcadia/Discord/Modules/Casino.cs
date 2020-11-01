@@ -121,7 +121,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("doubler"), Alias("double", "dbl")]
-        [Summary("A **Casino** activity that allows you to attempt to make an astonishing return.")]
+        [Summary("An activity in the **Casino** that grants you a chance at large returns by guessing the dying tick of the machine.")]
         public async Task DoublerAsync(Wager wager = null, int expectedTick = 1, DoublerWinMethod method = DoublerWinMethod.Below)
         {
             if (wager == null)
@@ -177,7 +177,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("getchips")]
-        [Summary("Convert some of your money into chips.")]
+        [Summary("Convert some of your **Orite** into **Chips** for use in casino activities.")]
         public async Task GetChipsAsync(long amount = 0)
         {
             if (amount < 0)

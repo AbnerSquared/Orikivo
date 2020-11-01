@@ -11,30 +11,30 @@ namespace Arcadia.Graphics
         public static CardProperties Default = new CardProperties
         {
             Trim = false,
-            Deny = CardDeny.None,
+            Deny = 0,
             Border = BorderAllow.All,
             Casing = Casing.Upper,
             Font = FontType.Foxtrot,
             Palette = PaletteType.Default,
             Padding = new Padding(2),
             Scale = ImageScale.Medium,
-            Gamma = new Dictionary<CardComponent, Gamma?>
+            Gamma = new Dictionary<CardGroup, Gamma?>
             {
-                [CardComponent.Activity] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Avatar] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Activity] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Avatar] = Orikivo.Drawing.Gamma.Max,
                 //[CardComponent.Background] = null,
                 //[CardComponent.Border] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Username] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Exp] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Bar] = Orikivo.Drawing.Gamma.Bright,
-                [CardComponent.Level] = Orikivo.Drawing.Gamma.Max,
-                [CardComponent.Money] = Orikivo.Drawing.Gamma.Max
+                [CardGroup.Username] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Exp] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Bar] = Orikivo.Drawing.Gamma.Bright,
+                [CardGroup.Level] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Money] = Orikivo.Drawing.Gamma.Max
             }
         };
 
         public bool Trim { get; set; }
 
-        public CardDeny Deny { get; set; }
+        public CardGroup Deny { get; set; }
 
         public BorderAllow Border { get; set; } = BorderAllow.All;
 
@@ -48,7 +48,7 @@ namespace Arcadia.Graphics
 
         public Color? OutlineColor { get; set; } = null;
 
-        public Dictionary<CardComponent, Gamma?> Gamma { get; set; }
+        public Dictionary<CardGroup, Gamma?> Gamma { get; set; }
 
         public Padding Padding { get; set; }
 
