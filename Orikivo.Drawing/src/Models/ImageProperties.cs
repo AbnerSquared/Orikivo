@@ -13,7 +13,7 @@ namespace Orikivo.Drawing
 
         public int? Height { get; set; }
 
-        public Padding Padding { get; set; }
+        public Padding Padding { get; set; } = Padding.Empty;
 
         // if true, text rows will expand to include offsets
         public bool ExpandRowOnOffset { get; set; }

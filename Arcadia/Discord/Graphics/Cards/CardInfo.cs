@@ -5,6 +5,31 @@ namespace Arcadia.Graphics
 {
     public class CardInfo
     {
+        public ImageScale Scale { get; internal set; }
+
+        public bool Trim { get; internal set; }
+
+        public int Width { get; internal set; }
+
+        public int Height { get; internal set; }
+
+        public Padding Padding { get; internal set; } = Padding.Empty;
+
+        public Padding Margin { get; internal set; } = Padding.Empty;
+
+        public int CursorOriginX { get; internal set; }
+
+        public int CursorOriginY { get; internal set; }
+
+        public List<CardComponent> Components { get; internal set; }
+
+        public GammaPalette Palette { get; internal set; }
+
+        // If null, the border is not allowed
+        public BorderInfo Border { get; internal set; }
+
+        public FillInfo BackgroundFill { get; internal set; }
+
         public static int GetOffsetX(ComponentInfo info, Cursor cursor, ComponentReference previous)
         {
             int x = 0;
@@ -80,36 +105,5 @@ namespace Arcadia.Graphics
 
             return height;
         }
-
-        public ImageScale Scale { get; internal set; }
-
-        public bool CanTrim { get; internal set; }
-
-        public int Width { get; internal set; }
-
-        public int Height { get; internal set; }
-
-        public Padding Padding { get; internal set; } = Padding.Empty;
-
-        public Padding Margin { get; internal set; } = Padding.Empty;
-
-        public int CursorOriginX { get; internal set; }
-
-        public int CursorOriginY { get; internal set; }
-
-        public List<CardComponent> Components { get; internal set; }
-
-        public GammaPalette BasePalette { get; internal set; }
-
-        public int BorderThickness { get; internal set; }
-
-        public BorderAllow BorderAllow { get; internal set; }
-        public BorderEdge BorderEdge { get; internal set; }
-
-        public FillInfo BorderFill { get; internal set; }
-
-        //public string BackgroundUrl { get; internal set; }
-        //public bool TileBackground { get; internal set; }
-        //public FillInfo BackgroundFill { get; internal set; }
     }
 }

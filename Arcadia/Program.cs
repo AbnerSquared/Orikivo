@@ -72,6 +72,7 @@ namespace Arcadia
                     .AddEnumTypeReader<StackTraceMode>()
                     .AddEnumTypeReader<ChessOwner>()
                     .AddEnumTypeReader<Privacy>()
+                    .AddEnumTypeReader<LayoutType>()
                     .AddEnumTypeReader<RouletteBetMode>();
 
                 builder

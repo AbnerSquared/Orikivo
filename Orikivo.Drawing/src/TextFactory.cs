@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace Orikivo.Drawing
@@ -298,7 +299,7 @@ namespace Orikivo.Drawing
         {
             properties ??= new ImageProperties();
             TextData textData = CreateText(content, font, properties.Padding, properties.TrimEmptyPixels, properties.ExpandRowOnOffset);
-            var result = new Bitmap(textData.ImageWidth, textData.ImageHeight);
+            var result = new Bitmap(textData.ImageWidth, textData.ImageHeight, PixelFormat.Format32bppArgb);
 
             if (properties.Matte.HasValue)
                 result = ImageHelper.Fill(result, properties.Matte.Value);

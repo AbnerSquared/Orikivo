@@ -18,16 +18,16 @@
         public DrawablePaletteHandling ColorHandling { get; set; } = DrawablePaletteHandling.Map;
 
         public GammaPalette Palette { get; set; }
-        
+
         public Gamma? Matte { get; set; }
-        
+
         public float Opacity { get; set; }
 
         public Vector2 Scale { get; set; }
-        
-        public Padding Padding { get; set; } // BEFORE Border
 
-        public Padding Margin { get; set; } // AFTER Border
+        public Padding Padding { get; set; }
+
+        public Padding Margin { get; set; }
 
         public Shadow Shadow { get; set; }
 

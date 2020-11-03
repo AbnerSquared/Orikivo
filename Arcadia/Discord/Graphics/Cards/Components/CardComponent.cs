@@ -12,6 +12,8 @@ namespace Arcadia.Graphics
 
         public FillInfo Fill { get; protected set; }
 
+        public FillInfo OutlineFill { get; internal set; }
+
         protected abstract DrawableLayer Build();
 
         /// <summary>

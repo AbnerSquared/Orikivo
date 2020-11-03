@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
@@ -11,6 +12,79 @@ namespace Arcadia.Graphics
         public const int MaxImageWidth = 400;
         public const int MaxImageHeight = 300;
 
+        public static readonly CardLayout Micro = new CardLayout
+        {
+            Width = 200,
+            Height = 16,
+            TrimMode = TrimMode.Force,
+            Margin = 2,
+            Padding = new Padding(left: 2),
+            BorderAllow = BorderAllow.Left,
+            BorderThickness = 2,
+            BorderEdge = BorderEdge.Outside,
+            BorderFill = new BaseFillInfo
+            {
+                Mode = FillMode.Solid,
+                Primary = Gamma.Max
+            },
+            CursorOriginX = 0,
+            CursorOriginY = 0,
+            AvatarScale = ImageScale.Small,
+            Components = new List<ComponentInfo>
+            {
+                // AVATAR
+                new ComponentInfo
+                {
+                    Priority = 0,
+                    PrimaryTarget = true,
+                    Type = ComponentType.Image,
+                    Group = CardGroup.Avatar,
+                    Padding = new Padding(right: 2),
+                    CursorOffset = CursorOffset.X
+                },
+
+                // NAME
+                new ComponentInfo
+                {
+                    Priority = 1,
+                    PrimaryTarget = true,
+                    Type = ComponentType.Text,
+                    Group = CardGroup.Name | CardGroup.Exp,
+                    Padding = new Padding(bottom: 1),
+                    CursorOffset = CursorOffset.Y,
+                    BaseFill = new BaseFillInfo
+                    {
+                        Mode = FillMode.Bar,
+                        Primary = Gamma.Max,
+                        Secondary = Gamma.Bright,
+                        Direction = Direction.Up
+                    },
+                    BaseOutline = new BaseFillInfo
+                    {
+                        Mode = FillMode.Bar,
+                        Primary = Gamma.Standard,
+                        Secondary = Gamma.Dim,
+                        Direction = Direction.Up
+                    }
+                },
+
+                // ACTIVITY
+                new ComponentInfo
+                {
+                    Priority = 2,
+                    PrimaryTarget = true,
+                    Type = ComponentType.Text,
+                    Group = CardGroup.Activity,
+                    CursorOffset = CursorOffset.Y,
+                    BaseFill = new BaseFillInfo
+                    {
+                        Mode = FillMode.Solid,
+                        Primary = Gamma.Max
+                    }
+                }
+            }
+        };
+
         public static readonly CardLayout Default = new CardLayout
         {
             Width = 192,
@@ -19,7 +93,16 @@ namespace Arcadia.Graphics
             Margin = 2,
             CursorOriginX = 0,
             CursorOriginY = 0,
-            CanTrim = true,
+            TrimMode = TrimMode.Optional,
+            BorderAllow = BorderAllow.All,
+            BorderThickness = 2,
+            BorderEdge = BorderEdge.Outside,
+            BorderFill = new BaseFillInfo
+            {
+                Mode = FillMode.Solid,
+                Primary = Gamma.Max
+            },
+            AvatarScale = ImageScale.Medium,
             Components = new List<ComponentInfo>
             {
                 // Avatar
@@ -28,9 +111,6 @@ namespace Arcadia.Graphics
                     Type = ComponentType.Image,
                     Group = CardGroup.Avatar,
                     Priority = 0,
-                    //MaxWidth = 32,
-                    //MaxHeight = 32,
-                    //SizeHandling = SizeHandling.Set,
                     Padding = new Padding(right: 2),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.X
@@ -40,10 +120,8 @@ namespace Arcadia.Graphics
                 new ComponentInfo
                 {
                     Type = ComponentType.Text,
-                    Group = CardGroup.Username,
+                    Group = CardGroup.Name,
                     Priority = 1,
-                    //MaxWidth = 158, // 192 - 34
-                    //SizeHandling = SizeHandling.Throw,
                     Padding = new Padding(bottom: 2),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.Y
@@ -83,10 +161,10 @@ namespace Arcadia.Graphics
                 },
 
                 // Exp bar
-                new ComponentInfo // Set the fill info to [FillMode.Bar], specify the Primary and Secondary Gamma, and set the Palette
+                new ComponentInfo
                 {
                     Type = ComponentType.Solid,
-                    Group = CardGroup.Level | CardGroup.Exp, // Requires both LEVEL and EXP to be active to display
+                    Group = CardGroup.Level | CardGroup.Exp,
                     Priority = 5,
                     BaseHeight = 2,
                     Padding = new Padding(right: 5),
@@ -95,10 +173,17 @@ namespace Arcadia.Graphics
                     OffsetUsage = OffsetUsage.Include,
                     PreviousInherit = SizeInherit.Width,
                     PrimaryTarget = true,
-                    PreviousOffsetInherit = SizeInherit.Y
+                    PreviousOffsetInherit = SizeInherit.Y,
+                    BaseFill = new BaseFillInfo
+                    {
+                        Mode = FillMode.Bar,
+                        Primary = Gamma.Max,
+                        Secondary = Gamma.Standard,
+                        Direction = Direction.Right
+                    },
                 },
 
-                new ComponentInfo // Get the money icon that is used, and set its value to the component info
+                new ComponentInfo
                 {
                     Type = ComponentType.Icon,
                     Group = CardGroup.Money,
@@ -111,7 +196,7 @@ namespace Arcadia.Graphics
                     OffsetY = -1
                 },
 
-                new ComponentInfo // Get the current amount of money owned, and set its value to the component info.
+                new ComponentInfo
                 {
                     Type = ComponentType.Text,
                     Group = CardGroup.Money,
@@ -123,7 +208,9 @@ namespace Arcadia.Graphics
             }
         };
 
-        public bool CanTrim { get; set; }
+        public ImageScale AvatarScale { get; set; } = ImageScale.Medium;
+
+        public TrimMode TrimMode { get; set; }
 
         public int Width { get; set; }
 
@@ -137,9 +224,14 @@ namespace Arcadia.Graphics
 
         public Padding Margin { get; set; }
 
-        // this will be used to created component presets
-        public List<ComponentInfo> Components { get; set; }
+        public BorderAllow BorderAllow { get; set; }
 
-        // Likewise, this should also be able to understand reading component style IDs and assign them to the layout accordingly
+        public BorderEdge BorderEdge { get; set; } = BorderEdge.Outside;
+
+        public int BorderThickness { get; set; }
+
+        public BaseFillInfo BorderFill { get; set; }
+
+        public List<ComponentInfo> Components { get; set; }
     }
 }

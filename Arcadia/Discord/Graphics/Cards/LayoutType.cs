@@ -2,6 +2,7 @@
 {
     public enum LayoutType
     {
-        Default, // This is the current card layout
+        Default = 1,
+        Micro = 2
     }
 }

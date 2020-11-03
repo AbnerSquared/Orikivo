@@ -154,47 +154,96 @@ namespace Orikivo.Drawing
         public static Size GetNonEmptySize(Bitmap bmp)
             => new Size(GetNonEmptyWidth(bmp), GetNonEmptyHeight(bmp));
 
-        public static Bitmap DrawOutline(Bitmap bmp, int width, Color color, Color? alphaColor = null, bool drawOnNew = false)
+        public static Bitmap DrawOutline(Bitmap target, int thickness, Bitmap mask, bool drawOnNew = false)
         {
-            Grid<Color> pixels = GetPixelData(bmp);
-            var validPoints = new List<(int px, int py)>();
-            Color alpha = alphaColor ?? Color.FromArgb(0, 0, 0, 0);
+            if (mask == null)
+                throw new ArgumentNullException(nameof(mask), "The specified outline underlying mask is unspecified");
 
-            for (int y = 0; y < bmp.Height; y++)
+            if (mask.Width != target.Width || mask.Height != target.Height)
+                throw new ArgumentException("The specified outline mask does not match the dimensions of the target image");
+
+            Grid<Color> pixels = GetPixelData(target);
+            Color alpha = Color.Empty;// Color.FromArgb(0, 0, 0, 0);
+            List<(int, int)> validPoints = GetOutlinePoints(ref pixels, ref alpha, thickness);
+
+            Grid<Color> maskPixels = GetPixelData(mask);
+            if (drawOnNew)
             {
-                for (int x = 0; x < bmp.Width; x++)
+                /*
+                var handle = new ImageHandle(target.Width, target.Height);
+
+                foreach ((int x, int y) in validPoints)
+                    handle.SetPixel(x, y, maskPixels[x, y]); // handle.SetPixel(x, y, ImmutableColor.Default);
+
+
+                return handle.Bitmap;
+                */
+
+                var outlinePixels = new Grid<Color>(target.Width, target.Height, alpha);
+
+                foreach ((int x, int y) in validPoints)
                 {
-                    if (pixels[x, y] == alpha)
+                    outlinePixels.SetValue(maskPixels[x, y], x, y);
+                }
+
+                return CreateArgbBitmap(outlinePixels.Values);
+            }
+
+            foreach ((int x, int y) in validPoints)
+            {
+                // Console.WriteLine($"Set outline pixel at {x}, {y}");
+                pixels.SetValue(maskPixels[x, y], x, y);
+            }
+
+            return CreateArgbBitmap(pixels.Values);
+
+                // This makes sure that the target image that is given is not modified in any way, shape or form.
+            // It's likely that optimizations can be made to simply modify the image given
+            //var result = CreateArgbBitmap(pixels.Values);
+            //using var g = Graphics.FromImage(result);
+            //ClipAndDrawImage(g, handle.Bitmap, 0, 0);
+            //handle.Dispose();
+
+            //return result;
+        }
+
+        private static List<(int, int)> GetOutlinePoints(ref Grid<Color> pixels, ref Color alpha, int thickness)
+        {
+            var validPoints = new List<(int px, int py)>();
+
+            for (int y = 0; y < pixels.Height; y++)
+            {
+                for (int x = 0; x < pixels.Width; x++)
+                {
+                    if (pixels[x, y].A == 0) // == alpha
                         continue;
 
-                    int minX = x - width;
-                    int maxX = x + width;
-                    int minY = y - width;
-                    int maxY = y + width;
+                    int minX = x - thickness;
+                    int maxX = x + thickness;
+                    int minY = y - thickness;
+                    int maxY = y + thickness;
 
                     for (int m = minX; m <= maxX; m++)
                     {
                         if (m < 0)
                             continue;
 
-                        if (m > bmp.Width - 1)
+                        if (m > pixels.Width - 1)
                             break;
 
                         for (int n = minY; n <= maxY; n++)
                         {
-                            if (n > bmp.Height - 1)
+                            if (n > pixels.Height - 1)
                                 break;
 
                             if (n < 0)
                                 continue;
 
-                            //Console.WriteLine($"{m} ({minX}/{maxX}) || {n} ({minY}/{maxY})");
-
                             if (!validPoints.Contains((m, n)))
                             {
-                                if (pixels[m, n].Equals(alpha))
+                                if (pixels[m, n].A == 0)
                                 {
-                                    //Console.WriteLine(pixels[m, n].ToString());
+                                    //Console.WriteLine($"Add {m}, {n}");
                                     validPoints.Add((m, n));
                                 }
                             }
@@ -203,25 +252,40 @@ namespace Orikivo.Drawing
                 }
             }
 
+            return validPoints;
+        }
+
+        public static Bitmap DrawOutline(Bitmap target, int thickness, Color color, Color? alphaColor = null, bool drawOnNew = false)
+        {
+            Grid<Color> pixels = GetPixelData(target);
+            Color alpha = alphaColor ?? Color.Empty;
+            List<(int, int)> validPoints = GetOutlinePoints(ref pixels, ref alpha, thickness);
+
             if (drawOnNew)
             {
-                var result = new Grid<Color>(bmp.Width, bmp.Height, alpha);
+                /*
+                var handle = new ImageHandle(target.Width, target.Height);
 
-                var handle = new ImageHandle(bmp.Width, bmp.Height);
-
-                foreach ((int pX, int pY) in validPoints)
-                    handle.SetPixel(pX, pY, color);
+                foreach ((int x, int y) in validPoints)
+                    handle.SetPixel(x, y, color);
 
                 return handle.Bitmap;
-                // validPoints.ForEach(x => result.SetValue(color, x.px, x.py));
-                // return ImageEditor.CreateArgbBitmap(result.Values);
+                */
+
+                var outlinePixels = new Grid<Color>(target.Width, target.Height, alpha);
+
+                foreach ((int x, int y) in validPoints)
+                {
+                    outlinePixels.SetValue(color, x, y);
+                }
+
+                return CreateArgbBitmap(outlinePixels.Values);
             }
 
-            foreach ((int pX, int pY) in validPoints)
-                pixels.SetValue(color, pX, pY);
+            foreach ((int x, int y) in validPoints)
+                pixels.SetValue(color, x, y);
 
             return CreateArgbBitmap(pixels.Values);
-            // return bmp;
         }
 
         public static Bitmap Pad(Bitmap image, Padding padding, bool dispose = false)
@@ -446,13 +510,16 @@ namespace Orikivo.Drawing
         private static readonly Size Thumbs2_1 = new Size(40, 80);
 
         // TODO: Implement OuterColor and InnerColor
-        public static Bitmap SetBorder(Bitmap image, Color color, int thickness, BorderEdge edge = BorderEdge.Outside, BorderAllow allow = BorderAllow.All)
+        public static Bitmap SetBorder(Bitmap target, Bitmap mask, int thickness, BorderEdge edge = BorderEdge.Outside, BorderAllow allow = BorderAllow.All)
         {
-            if (!(thickness > 0))
-                return image;
+            if (thickness <= 0)
+                return target;
+
+            if (mask == null)
+                throw new ArgumentNullException(nameof(mask), "The specified border mask was unspecified");
 
             int innerLen = GetInnerLength(thickness, edge);
-            int maxInnerLen = (int)Math.Floor((double)image.Width / 2);
+            int maxInnerLen = (int)Math.Floor((double)target.Width / 2);
 
             bool hasLeft = allow.HasFlag(BorderAllow.Left);
             bool hasRight = allow.HasFlag(BorderAllow.Right);
@@ -462,17 +529,9 @@ namespace Orikivo.Drawing
             if (innerLen > maxInnerLen)
                 innerLen = maxInnerLen;
 
-            /*
-            bool fillInner = false;
-            if (innerLen >= maxInnerLen)
-            {
-                fillInner = true;
-                innerLen = 0;
-            }*/
-
             int outerLen = GetOuterLength(thickness, edge);
-            int imageWidth = image.Width;
-            int imageHeight = image.Height;
+            int imageWidth = target.Width;
+            int imageHeight = target.Height;
 
             if (outerLen > 0)
             {
@@ -489,20 +548,81 @@ namespace Orikivo.Drawing
                     imageHeight += outerLen;
             }
 
+            if (imageHeight != mask.Height || imageWidth != mask.Width)
+                throw new Exception("Expected border mask to match the resulting image dimensions");
 
             var result = new Bitmap(imageWidth, imageHeight);
-
             using Graphics g = Graphics.FromImage(result);
-            var brush = new SolidBrush(color);
 
             // Do this first to overlap brush marks with center borders
-            ClipAndDrawImage(g, image, hasLeft ? outerLen : 0, hasTop ? outerLen : 0);
+            ClipAndDrawImage(g, target, hasLeft ? outerLen : 0, hasTop ? outerLen : 0);
+
+            // Now, get the border mask and apply it to the underlying cover for the border.
+            Bitmap border = SetOpacityMask(mask, CreateBorderMask(ref target, thickness, edge, allow));
+            ClipAndDrawImage(g, border, 0, 0);
+
+            return result;
+        }
+
+        private static BorderDims GetBorderDims(int baseWidth, int baseHeight, int thickness, BorderEdge edge, BorderAllow allow)
+        {
+            var dims = new BorderDims
+            {
+                InnerLength = GetInnerLength(thickness, edge),
+                MaxInnerLength = (int)Math.Floor(baseWidth / (double)2),
+                OuterLength = GetOuterLength(thickness, edge)
+            };
+
+            if (dims.InnerLength > dims.MaxInnerLength)
+                dims.InnerLength = dims.MaxInnerLength;
+
+            int imageWidth = baseWidth;
+            int imageHeight = baseHeight;
+
+            if (dims.OuterLength > 0)
+            {
+                if (allow.HasFlag(BorderAllow.Left))
+                    imageWidth += dims.OuterLength;
+
+                if (allow.HasFlag(BorderAllow.Right))
+                    imageWidth += dims.OuterLength;
+
+                if (allow.HasFlag(BorderAllow.Top))
+                    imageHeight += dims.OuterLength;
+
+                if (allow.HasFlag(BorderAllow.Bottom))
+                    imageHeight += dims.OuterLength;
+            }
+
+            dims.ImageWidth = imageWidth;
+            dims.ImageHeight = imageHeight;
+
+            return dims;
+        }
+
+        public static Bitmap SetBorder(Bitmap target, Color color, int thickness, BorderEdge edge = BorderEdge.Outside, BorderAllow allow = BorderAllow.All)
+        {
+            if (thickness <= 0)
+                return target;
+
+            BorderDims dims = GetBorderDims(target.Width, target.Height, thickness, edge, allow);
+            bool hasLeft = allow.HasFlag(BorderAllow.Left);
+            bool hasRight = allow.HasFlag(BorderAllow.Right);
+            bool hasTop = allow.HasFlag(BorderAllow.Top);
+            bool hasBottom = allow.HasFlag(BorderAllow.Bottom);
+
+            var result = new Bitmap(dims.ImageWidth, dims.ImageHeight);
+            using Graphics g = Graphics.FromImage(result);
+            using var brush = new SolidBrush(color);
+
+            // Do this first to overlap brush marks with center borders
+            ClipAndDrawImage(g, target, hasLeft ? dims.OuterLength : 0, hasTop ? dims.OuterLength : 0);
 
             // Left Border
             if (hasLeft)
             {
-                int width = outerLen + innerLen;
-                int height = imageHeight;
+                int width = dims.OuterLength + dims.InnerLength;
+                int height = dims.ImageHeight;
 
                 g.FillRectangle(brush, 0, 0, width, height);
             }
@@ -510,13 +630,13 @@ namespace Orikivo.Drawing
             // Right Border
             if (hasRight)
             {
-                int x = image.Width - innerLen;
+                int x = target.Width - dims.InnerLength;
 
                 if (hasLeft)
-                    x += outerLen;
+                    x += dims.OuterLength;
 
-                int width = outerLen + innerLen;
-                int height = imageHeight;
+                int width = dims.OuterLength + dims.InnerLength;
+                int height = dims.ImageHeight;
 
                 g.FillRectangle(brush, x, 0, width, height);
             }
@@ -524,8 +644,8 @@ namespace Orikivo.Drawing
             // Top Border
             if (hasTop)
             {
-                int width = imageWidth;
-                int height = outerLen + innerLen;
+                int width = dims.ImageWidth;
+                int height = dims.OuterLength + dims.InnerLength;
 
                 g.FillRectangle(brush, 0, 0, width, height);
             }
@@ -533,19 +653,88 @@ namespace Orikivo.Drawing
             // Bottom Border
             if (hasBottom)
             {
-                int y = image.Height - innerLen;
+                int y = target.Height - dims.InnerLength;
 
                 if (hasTop)
-                    y += outerLen;
+                    y += dims.OuterLength;
 
-                int width = imageWidth;
-                int height = outerLen + innerLen;
+                int width = dims.ImageWidth;
+                int height = dims.OuterLength + dims.InnerLength;
 
                 g.FillRectangle(brush, 0, y, width, height);
             }
 
-            brush.Dispose();
+            return result;
+        }
 
+        private static Grid<float> CreateBorderMask(ref Bitmap target, int thickness, BorderEdge edge, BorderAllow allow)
+        {
+            BorderDims dims = GetBorderDims(target.Width, target.Height, thickness, edge, allow);
+            bool hasLeft = allow.HasFlag(BorderAllow.Left);
+            bool hasRight = allow.HasFlag(BorderAllow.Right);
+            bool hasTop = allow.HasFlag(BorderAllow.Top);
+            bool hasBottom = allow.HasFlag(BorderAllow.Bottom);
+
+            using var result = new Bitmap(dims.ImageWidth, dims.ImageHeight);
+            using Graphics g = Graphics.FromImage(result);
+            using var brush = new SolidBrush(ImmutableColor.Default);
+
+            // Left Border
+            if (hasLeft)
+            {
+                int width = dims.OuterLength + dims.InnerLength;
+                int height = dims.ImageHeight;
+
+                g.FillRectangle(brush, 0, 0, width, height);
+            }
+
+            // Right Border
+            if (hasRight)
+            {
+                int x = target.Width - dims.InnerLength;
+
+                if (hasLeft)
+                    x += dims.OuterLength;
+
+                int width = dims.OuterLength + dims.InnerLength;
+                int height = dims.ImageHeight;
+
+                g.FillRectangle(brush, x, 0, width, height);
+            }
+
+            // Top Border
+            if (hasTop)
+            {
+                int width = dims.ImageWidth;
+                int height = dims.OuterLength + dims.InnerLength;
+
+                g.FillRectangle(brush, 0, 0, width, height);
+            }
+
+            // Bottom Border
+            if (hasBottom)
+            {
+                int y = target.Height - dims.InnerLength;
+
+                if (hasTop)
+                    y += dims.OuterLength;
+
+                int width = dims.ImageWidth;
+                int height = dims.OuterLength + dims.InnerLength;
+
+                g.FillRectangle(brush, 0, y, width, height);
+            }
+
+            return GetOpacityMask(result);
+        }
+
+        public static Bitmap CreateSolid(Color color, int width, int height, Padding padding)
+        {
+            var result = new Bitmap(width + padding.Width, height + padding.Height);
+            using var g = Graphics.FromImage(result);
+            using var brush = new SolidBrush(color);
+
+            g.FillRectangle(brush, padding.Left, padding.Top, width, height);
             return result;
         }
 
@@ -581,24 +770,30 @@ namespace Orikivo.Drawing
         {
             int length = direction == Direction.Right || direction == Direction.Left ? width : height;
             int fillLength = (int)Math.Floor(RangeF.Convert(0.0f, 1.0f, 0, length, progress));
-            var result = new Bitmap(width, height);
+            var result = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
             using Graphics g = Graphics.FromImage(result);
 
-            using (var backBrush = new SolidBrush(background))
+            if (background != Color.Empty)
             {
-                Rectangle backClip = GetBackClip(width, height, fillLength, direction);
-                g.SetClip(backClip);
-                g.FillRectangle(backBrush, backClip);
-                g.ResetClip();
+                using (var backBrush = new SolidBrush(background))
+                {
+                    Rectangle backClip = GetBackClip(width, height, fillLength, direction);
+                    g.SetClip(backClip);
+                    g.FillRectangle(backBrush, backClip);
+                    g.ResetClip();
+                }
             }
 
-            using (var foreBrush = new SolidBrush(foreground))
+            if (foreground != Color.Empty)
             {
-                Rectangle foreClip = GetForeClip(width, height, fillLength, direction);
-                g.SetClip(foreClip);
-                g.FillRectangle(foreBrush, foreClip);
-                g.ResetClip();
+                using (var foreBrush = new SolidBrush(foreground))
+                {
+                    Rectangle foreClip = GetForeClip(width, height, fillLength, direction);
+                    g.SetClip(foreClip);
+                    g.FillRectangle(foreBrush, foreClip);
+                    g.ResetClip();
+                }
             }
 
             return result;
@@ -782,6 +977,7 @@ namespace Orikivo.Drawing
 
             unsafe
             {
+                // Console.WriteLine(image.PixelFormat.ToString());
                 var area = new Rectangle(0, 0, image.Width, image.Height);
                 BitmapData source = image.LockBits(area, ImageLockMode.ReadOnly, image.PixelFormat);
                 int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
@@ -842,7 +1038,7 @@ namespace Orikivo.Drawing
             return mask;
         }
 
-        public static Bitmap SetOpacityMask(Bitmap image, Grid<float> mask)
+        public static Bitmap SetOpacityMask(Bitmap image, Grid<float> mask, MaskingMode mode = MaskingMode.Set)
         {
             if (mask.Size != image.Size)
                 throw new ArgumentException("The opacity mask specified must be the same size as the binding image");
@@ -850,7 +1046,7 @@ namespace Orikivo.Drawing
             unsafe
             {
                 var area = new Rectangle(0, 0, image.Width, image.Height);
-                BitmapData source = image.LockBits(area, ImageLockMode.WriteOnly, image.PixelFormat);
+                BitmapData source = image.LockBits(area, ImageLockMode.ReadWrite, image.PixelFormat);
                 int bitsPerPixel = Image.GetPixelFormatSize(image.PixelFormat) / 8;
                 int sourceWidth = source.Width * bitsPerPixel;
                 int sourceHeight = source.Height;
@@ -862,7 +1058,12 @@ namespace Orikivo.Drawing
                     int pX = 0;
                     for (var x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
+                        byte oldAlpha = row[x + 3];
                         var alpha = (byte)Math.Floor(RangeF.Convert(0, 1, 0, 255, mask[pX, y]));
+
+                        if (mode == MaskingMode.Clamp)
+                            alpha = alpha > oldAlpha ? oldAlpha : alpha;
+
                         row[x + 3] = alpha;
                         pX++;
                     }

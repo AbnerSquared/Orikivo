@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
@@ -8,7 +9,8 @@ namespace Arcadia.Graphics
     public class CardDetails
     {
         internal CardDetails() { }
-        public CardDetails(ArcadeUser user, IUser socket)
+
+        public CardDetails(ArcadeUser user, IUser socket, ImageScale avatarScale = ImageScale.Medium)
         {
             Program = socket.Activity?.Name;
             Activity = socket.Activity?.Type;
@@ -17,8 +19,19 @@ namespace Arcadia.Graphics
             Name = user.Username;
             Balance = user.Balance;
             Debt = user.Debt;
-            AvatarUrl = socket.GetAvatarUrl(ImageFormat.Png, 32);
+            AvatarUrl = socket.GetAvatarUrl(ImageFormat.Png, GetAvatarSize(avatarScale));
             Exp = user.Exp;
+        }
+
+        private static ushort GetAvatarSize(ImageScale scale)
+        {
+            return scale switch
+            {
+                ImageScale.Large => 64,
+                ImageScale.Medium => 32,
+                ImageScale.Small => 16,
+                _ => 32
+            };
         }
 
         /// <summary>

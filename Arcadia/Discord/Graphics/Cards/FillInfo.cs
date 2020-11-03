@@ -1,24 +1,45 @@
 ﻿using Discord;
 using Orikivo.Drawing;
-using Direction = Orikivo.Drawing.Direction;
 
 namespace Arcadia.Graphics
 {
-    public class FillInfo
+    public class FillInfo : BaseFillInfo
     {
-        public Color? OutlineColor { get; set; }
+        public FillInfo() { }
 
-        public Gamma Primary { get; set; } = Gamma.Max;
+        public FillInfo(BaseFillInfo info)
+        {
+            if (info == null)
+                return;
 
-        public Gamma? Secondary { get; set; }
+            Primary = info.Primary;
+            Secondary = info.Secondary;
+            Mode = info.Mode;
+            FillPercent = info.FillPercent;
+            Direction = info.Direction;
+        }
 
         public GammaPalette Palette { get; set; } = GammaPalette.Default;
 
-        public FillMode Usage { get; set; } = FillMode.None;
+        public void SetBaseInfo(BaseFillInfo baseInfo)
+        {
+            if (baseInfo == null)
+                return;
 
-        public Direction Direction { get; set; } = Direction.Right;
+            if (baseInfo.Primary != 0)
+                Primary = baseInfo.Primary;
 
-        // This is only used in bars
-        public float? FillPercent { get; set; }
+            if (baseInfo.Secondary.HasValue)
+                Secondary = baseInfo.Secondary;
+
+            if (baseInfo.Mode != FillMode.None)
+                Mode = baseInfo.Mode;
+
+            if (baseInfo.FillPercent.HasValue)
+               FillPercent = baseInfo.FillPercent;
+
+            if (baseInfo.Direction != 0)
+                Direction = baseInfo.Direction;
+        }
     }
 }

@@ -5,10 +5,11 @@ namespace Arcadia.Graphics
 {
     public class IconComponent : CardComponent
     {
-        public IconComponent(ComponentInfo info, FillInfo fill)
+        public IconComponent(ComponentInfo info, FillInfo fill, FillInfo outlineFill = null)
         {
             Info = info;
             Fill = fill;
+            OutlineFill = outlineFill;
         }
 
         public SheetInfo Sheet { get; set; }

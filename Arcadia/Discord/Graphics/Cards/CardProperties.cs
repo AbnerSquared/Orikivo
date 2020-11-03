@@ -24,9 +24,9 @@ namespace Arcadia.Graphics
                 [CardGroup.Avatar] = Orikivo.Drawing.Gamma.Max,
                 //[CardComponent.Background] = null,
                 //[CardComponent.Border] = Orikivo.Drawing.Gamma.Max,
-                [CardGroup.Username] = Orikivo.Drawing.Gamma.Max,
+                [CardGroup.Name] = Orikivo.Drawing.Gamma.Max,
                 [CardGroup.Exp] = Orikivo.Drawing.Gamma.Max,
-                [CardGroup.Bar] = Orikivo.Drawing.Gamma.Bright,
+                //[CardGroup.Bar] = Orikivo.Drawing.Gamma.Bright,
                 [CardGroup.Level] = Orikivo.Drawing.Gamma.Max,
                 [CardGroup.Money] = Orikivo.Drawing.Gamma.Max
             }

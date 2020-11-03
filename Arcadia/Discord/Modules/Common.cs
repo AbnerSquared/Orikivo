@@ -562,6 +562,47 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account.Card.Display());
         }
 
+        private CardLayout GetLayout(LayoutType type)
+        {
+            return type switch
+            {
+                LayoutType.Default => CardLayout.Default,
+                LayoutType.Micro => CardLayout.Micro,
+                _ => throw new Exception("Unknown layout type specified")
+            };
+        }
+
+        [RequireUser]
+        [Command("drawcard")]
+        public async Task DrawCardAsync(LayoutType layoutType = LayoutType.Default)
+        {
+            SocketUser user = Context.User;
+            ArcadeUser account = Context.Account;
+
+            try
+            {
+                CardLayout layout = GetLayout(layoutType);
+
+                using var graphics = new GraphicsService();
+                var details = new CardDetails(account, user, layout.AvatarScale);
+                var properties = CardProperties.Default;
+                properties.Font = account.Card.Font;
+                properties.Palette = account.Card.Palette.Primary;
+                properties.PaletteOverride = account.Card.Palette.Build();
+                properties.Trim = false;
+                properties.Casing = Casing.Upper;
+
+                CardInfo info = CardBuilder.BuildCardInfo(layout, details, properties);
+                System.Drawing.Bitmap card = graphics.DrawCard(info, properties.Deny);
+
+                await Context.Channel.SendImageAsync(card, $"../tmp/{user.Id}_card.png");
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.CatchAsync(ex);
+            }
+        }
+
         [RequireUser]
         [Command("card")]
         public async Task GetCardAsync(SocketUser user = null)
@@ -577,19 +618,21 @@ namespace Arcadia.Modules
 
             try
             {
+                CardLayout layout = CardLayout.Default;
+
                 using var graphics = new GraphicsService();
-                var d = new CardDetails(account, user);
-                var p = CardProperties.Default;
-                p.Font = account.Card.Font;
-                p.Palette = account.Card.Palette.Primary;
-                p.PaletteOverride = account.Card.Palette.Build();
-                p.Trim = false;
-                p.Casing = Casing.Upper;
+                var details = new CardDetails(account, user, layout.AvatarScale);
+                var properties = CardProperties.Default;
+                properties.Font = account.Card.Font;
+                properties.Palette = account.Card.Palette.Primary;
+                properties.PaletteOverride = account.Card.Palette.Build();
+                properties.Trim = false;
+                properties.Casing = Casing.Upper;
 
-                CardInfo info = CardBuilder.BuildCardInfo(CardLayout.Default, d, p);
-                System.Drawing.Bitmap card = graphics.DrawCard(info, p.Deny);
+                CardInfo info = CardBuilder.BuildCardInfo(layout, details, properties);
+                System.Drawing.Bitmap card = graphics.DrawCard(info, properties.Deny);
 
-                await Context.Channel.SendImageAsync(card, $"../tmp/{Context.User.Id}_card.png");
+                await Context.Channel.SendImageAsync(card, $"../tmp/{user.Id}_card.png");
             }
             catch (Exception ex)
             {
