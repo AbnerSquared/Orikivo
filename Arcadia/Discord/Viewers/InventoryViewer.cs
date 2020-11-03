@@ -114,36 +114,47 @@ namespace Arcadia
         // > **Slot {slot}:** `{id}`/`{unique_id}` {icon ?? •} **{name}** [{size}] (x**{count}**)
         private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true, bool showTooltips = true)
         {
-            Item item = ItemHelper.GetItem(id);
+            bool exists = ItemHelper.Exists(id);
+            if (!exists)
+            {
+                if (!isPrivate)
+                {
+                    throw new ArgumentException("Cannot view an external inventory item if the item does not exist");
+                }
+            }
+
+            Item item = ItemHelper.GetItem(id) ?? ItemHelper.GetItem(Ids.Items.InternalUnknown);
             var summary = new StringBuilder();
 
-            string visibleId = data.Seal != null ? data.TempId : id;
+            string visibleId = !exists || data.Seal != null ? data.TempId : id;
             string icon = data.Seal != null ? ItemHelper.IconOf(data.Seal.ReferenceId) : item.GetIcon();
             string name = (data.Seal != null ? ItemHelper.NameOf(data.Seal.ReferenceId) : (Check.NotNull(icon) ? item.Name : item.GetName())) ?? "Unknown Item";
 
 
             summary.Append($"> **Slot {index}:** ");
-
             summary.Append($"`{visibleId}`");
 
-            if (!string.IsNullOrWhiteSpace(data.Data?.Id))
-                summary.Append($"/`{data.Data.Id}`");
+            if (exists)
+            {
+                if (!string.IsNullOrWhiteSpace(data.Data?.Id))
+                    summary.Append($"/`{data.Data.Id}`");
+            }
 
             summary.Append($" {(Check.NotNull(icon) ? icon : "•")} **{name}**");
 
-            if (isPrivate && showTooltips)
-                summary.Append($" ({WriteCapacity(item.Size)})");
+            if (exists)
+            {
+                if (isPrivate && showTooltips)
+                    summary.Append($" ({WriteCapacity(item.Size)})");
 
-            if (data.Count > 1)
-                summary.Append($" (x**{data.Count}**)");
-
-            // if (!isPrivate && !ItemHelper.CanTrade(item.Id, data.Data))
-            //    summary.Append("\n> ⚠️ This item is untradable.");
+                if (data.Count > 1)
+                    summary.Append($" (x**{data.Count}**)");
+            }
 
             return summary.ToString();
         }
 
-        public static string WriteItems(ArcadeUser user, Shop shop)
+        public static string ViewShopSellables(ArcadeUser user, Shop shop)
         {
             var inventory = new StringBuilder();
 
@@ -162,18 +173,18 @@ namespace Arcadia
             return inventory.ToString();
         }
 
-        private static long GetInventorySize(ArcadeUser user)
+        public static long GetInventorySize(ArcadeUser user)
         {
             return user.Items.Sum(x => ItemHelper.SizeOf(x.Id) * x.Count);
         }
 
-        public static string Write(ArcadeUser user, bool isPrivate = true, int page = 0)
+        public static string View(ArcadeUser user, bool isPrivate = true, int page = 0)
         {
             // set the default capacity if unspecified
             Var.SetIfEmpty(user, Vars.Capacity, 4000);
             var inventory = new StringBuilder();
 
-            List<ItemData> items = isPrivate ? user.Items : user.Items.Where(x => x.Seal == null).ToList();
+            List<ItemData> items = isPrivate ? user.Items : user.Items.Where(x => x.Seal == null && ItemHelper.Exists(x.Id)).ToList();
 
             int pageCount = Paginate.GetPageCount(items.Count, _rowSize);
 
@@ -209,8 +220,6 @@ namespace Arcadia
             }
 
             int i = 0;
-
-
 
             foreach (ItemData data in Paginate.GroupAt(items, page, _rowSize))
             {

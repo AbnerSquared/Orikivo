@@ -183,7 +183,7 @@ namespace Arcadia.Modules
             Item item = ItemHelper.GetItem(data.Id);
 
             // Next, check if the item can be gifted.
-            if (!ItemHelper.CanGift(data.Id, data))
+            if (!ItemHelper.CanGift(account, data.Id, data))
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
                 return;
@@ -226,6 +226,27 @@ namespace Arcadia.Modules
             string result = ShopHelper.Sell(shop, data, Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, result);
+        }
+
+        [RequireUser]
+        [Command("delete"), Alias("del")]
+        [Summary("Delete the specified **Item** from your inventory.")]
+        public async Task DeleteItemAsync([Name("data_id")][Summary("The specified item data instance to delete.")]string dataId)
+        {
+            var deletable = Context.Account.Items.Where(ItemHelper.CanDelete);
+
+            ItemData target = deletable.FirstOrDefault(x =>
+                (ItemHelper.Exists(x.Id) && (x.Id == dataId || x.Data?.Id == dataId)) || x.TempId == dataId);
+
+            if (target == null)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("An unknown or undeletable data instance was specified."));
+                return;
+            }
+
+            ItemHelper.DeleteItem(Context.Account, target);
+            // TODO: Set the default names for items to always point at Ids.Items.InternalUnknown
+            await Context.Channel.SendMessageAsync($"> Deleted **{ItemHelper.GetItem(target.Id)?.GetName() ?? ItemHelper.GetItem(Ids.Items.InternalUnknown).Name}** from your inventory pool.");
         }
     }
 }

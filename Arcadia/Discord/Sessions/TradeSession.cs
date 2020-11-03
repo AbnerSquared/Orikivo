@@ -97,7 +97,7 @@ namespace Arcadia
         }
 
         private string WriteInventory(ArcadeUser user)
-            => InventoryViewer.Write(user, false);
+            => InventoryViewer.View(user, false);
 
         private string WriteOffer(ArcadeUser user, Dictionary<string, int> items)
         {

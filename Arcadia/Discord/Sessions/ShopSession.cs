@@ -8,6 +8,7 @@ using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
 using Orikivo.Text;
+using Orikivo.Text.Pagination;
 using Format = Orikivo.Format;
 
 namespace Arcadia
@@ -36,8 +37,13 @@ namespace Arcadia
 
             long tier = context.Account.GetVar(ShopHelper.GetTierId(shop.Id));
 
-            if (Check.NotNullOrEmpty(shop.CriteriaTiers) && shop.CriteriaTiers.ContainsKey(tier + 1) && shop.CriteriaTiers[tier + 1].All(x => Var.MeetsCriterion(context.Account, x)))
+            if (Check.NotNullOrEmpty(shop.CriteriaTiers)
+                && shop.CriteriaTiers.ContainsKey(tier + 1)
+                && shop.CriteriaTiers[tier + 1].All(x => Var.MeetsCriterion(context.Account, x)))
                 context.Account.AddToVar(ShopHelper.GetTierId(shop.Id));
+
+            PageIndex = 0;
+            PageCount = Paginate.GetPageCount(Catalog.ItemIds.Count, ShopHelper.GroupSize);
         }
 
         public CatalogHistory GetHistory()
@@ -49,79 +55,31 @@ namespace Arcadia
         }
 
         public ArcadeContext Context { get; }
+
         public ArcadeUser User => Context.Account;
+
         public Shop Shop { get; }
+
         public Vendor Vendor { get; }
+
         public ItemCatalog Catalog { get; }
 
         public ShopState State { get; set; }
 
         public IUserMessage MessageReference { get; set; }
 
+        public int PageIndex { get; set; }
+
+        internal int PageCount { get; set; }
+
         public string Notice { get; set; }
 
-        private bool CanClearNotice { get; set; } = false;
-
-        private static string GetGenericReply(ShopState state)
-        {
-            return state switch
-            {
-                ShopState.Enter => Vendor.EnterGeneric,
-                ShopState.Buy => Vendor.BuyGeneric,
-                ShopState.BuyDeny => Vendor.BuyDenyGeneric,
-                ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
-                ShopState.BuyFail => Vendor.BuyFailGeneric,
-                ShopState.BuyLimit => Vendor.BuyLimitGeneric,
-                ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
-                ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
-                ShopState.SellInvalid => Vendor.SellInvalidGeneric,
-                ShopState.BuyInvalid => Vendor.BuyInvalidGeneric,
-                ShopState.ViewBuy => Vendor.ViewBuyGeneric,
-                ShopState.Sell => Vendor.SellGeneric,
-                ShopState.ViewSell => Vendor.ViewSellGeneric,
-                ShopState.SellDeny => Vendor.SellDenyGeneric,
-                ShopState.SellEmpty => Vendor.SellEmptyGeneric,
-                ShopState.Exit => Vendor.ExitGeneric,
-                ShopState.Timeout => Vendor.TimeoutGeneric,
-                ShopState.Menu => Vendor.MenuGeneric,
-                ShopState.BuyRemainder => Arcadia.Vendor.BuyRemainderGeneric,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
-            };
-        }
-
-        private static string GetVendorReply(Vendor vendor, ShopState state)
-        {
-            var replies = state switch
-            {
-                ShopState.Enter => vendor?.OnEnter,
-                ShopState.Buy => vendor?.OnBuy,
-                ShopState.ViewBuy => vendor?.OnViewBuy,
-                ShopState.BuyDeny => vendor?.OnBuyDeny,
-                ShopState.BuyEmpty => vendor?.OnBuyEmpty,
-                ShopState.BuyFail => vendor?.OnBuyFail,
-                ShopState.BuyLimit => vendor?.OnBuyLimit,
-                ShopState.SellNotAllowed => vendor?.OnSellNotAllowed,
-                ShopState.SellNotOwned => vendor?.OnSellNotOwned,
-                ShopState.SellInvalid => vendor?.OnSellInvalid,
-                ShopState.BuyInvalid => vendor?.OnBuyInvalid,
-                ShopState.Sell => vendor?.OnSell,
-                ShopState.ViewSell => vendor?.OnViewSell,
-                ShopState.SellDeny => vendor?.OnSellDeny,
-                ShopState.SellEmpty => vendor?.OnSellEmpty,
-                ShopState.Exit => vendor?.OnExit,
-                ShopState.Timeout => vendor?.OnTimeout,
-                ShopState.Menu => vendor?.OnMenu,
-                ShopState.BuyRemainder => vendor?.OnBuyRemainder,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
-            };
-
-            return Check.NotNullOrEmpty(replies) ? Randomizer.Choose(replies) : GetGenericReply(state);
-        }
+        private bool CanClearNotice { get; set; }
 
         public static string WriteVendor(Vendor vendor, ShopState state, string replyOverride = null)
         {
             string name = vendor?.Name ?? Vendor.NameGeneric;
-            string reply = string.IsNullOrWhiteSpace(replyOverride) ? GetVendorReply(vendor, state) : replyOverride;
+            string reply = string.IsNullOrWhiteSpace(replyOverride) ? ShopHelper.GetVendorReply(vendor, state) : replyOverride;
             return $"**{name}**: \"{reply}\"";
         }
 
@@ -145,12 +103,12 @@ namespace Arcadia
 
             if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
             {
-                body.Append(ShopHelper.WriteCatalog(shop.Catalog, catalog));
+                body.Append(ShopHelper.WriteCatalog(shop.Catalog, catalog, PageIndex));
 
                 // TODO: Instead of updating the entire catalog for the user, update based on how many items are visible on that page, so that each page has to been seen to know about the item
                 if (!HasUpdatedCatalog)
                 {
-                    foreach ((string itemId, int amount) in catalog.ItemIds)
+                    foreach ((string itemId, int amount) in Paginate.GroupAt(catalog.ItemIds, PageIndex, ShopHelper.GroupSize)) // catalog.ItemIds)
                     {
                         CatalogHelper.SetCatalogStatus(user, itemId, CatalogStatus.Seen);
                     }
@@ -161,7 +119,7 @@ namespace Arcadia
             else if (state.EqualsAny(ShopState.ViewSell, ShopState.Sell))
             {
                 body.AppendLine();
-                body.Append(InventoryViewer.WriteItems(user, shop));
+                body.Append(InventoryViewer.ViewShopSellables(user, shop));
             }
 
             // Menu, Enter, Exit, Timeout: These do not have bodies
@@ -173,8 +131,13 @@ namespace Arcadia
 
         public static string WriteActionBar(ShopState state)
         {
-            if (state.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty, ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
+            // var actions = new List<string>();
+
+            if (state.EqualsAny(ShopState.Enter, ShopState.Menu, ShopState.BuyDeny, ShopState.BuyEmpty,
+                ShopState.SellDeny, ShopState.SellEmpty, ShopState.BuyRemainder))
             {
+                // actions.AddRange("buy", "sell", "leave");
+
                 return "`buy` `sell` `leave`";
             }
 
@@ -200,7 +163,7 @@ namespace Arcadia
             return notice.ToString();
         }
 
-        private string GetMenu(ArcadeUser user, Vendor vendor, ItemCatalog catalog, Shop shop, ShopState state, string notice = "", string replyOverride = null)
+        private string DrawMenu(ArcadeUser user, Vendor vendor, ItemCatalog catalog, Shop shop, ShopState state, string notice = "", string replyOverride = null)
         {
             var menu = new StringBuilder();
 
@@ -218,7 +181,7 @@ namespace Arcadia
             User.IsInSession = true;
             State = ShopState.Enter;
             Notice = $"> Welcome to **{Shop.Name}**.\n\n";
-            MessageReference = await Context.Channel.SendMessageAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice));
+            MessageReference = await Context.Channel.SendMessageAsync(DrawMenu(Context.Account, Vendor, Catalog, Shop, State, Notice));
         }
 
         private async Task UpdateAsync(string replyOverride = null)
@@ -239,7 +202,7 @@ namespace Arcadia
                 CanClearNotice = false;
             }
 
-            await MessageReference.ModifyAsync(GetMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
+            await MessageReference.ModifyAsync(DrawMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
         }
 
         public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
@@ -378,9 +341,11 @@ namespace Arcadia
 
                 // Give the item to the user
                 ItemHelper.GiveItem(User, item, amount);
-
+                long cost = GetCost(item, amount);
                 // Take the money from the user
-                Take(GetCost(item, amount), item.Currency);
+                Take(cost, item.Currency);
+                // Add the money spent to the total spent count
+                Var.AddToValue(User, ShopHelper.GetTotalSpentId(Shop.Id), cost);
                 RemoveFromCatalog(item, amount);
 
                 Notice = WriteBuyNotice(item, amount, GetCost(item, amount));
@@ -451,7 +416,7 @@ namespace Arcadia
                 }
 
                 // Take the item from the user
-                ItemHelper.TakeItem(User, item, amount);
+                RemoveFromInventory(item, amount);
                 long worth = GetWorth(item, amount);
                 User.Give(worth, item.Currency);
 

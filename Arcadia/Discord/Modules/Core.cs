@@ -514,8 +514,8 @@ namespace Arcadia.Modules
         }
 
         // TODO: Implement GuildConfig, and replace OriGuild with Guild.
-        [DoNotNotify]
-        [Command("version")]
+        //[DoNotNotify]
+        //[Command("version")]
         public async Task GetVersionAsync()
             => await Context.Channel.SendMessageAsync(OriGlobal.ClientVersion);
     }

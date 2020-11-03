@@ -4,7 +4,11 @@
     {
         internal static class Items
         {
+            internal static readonly string InternalUnknown = "$_?";
             internal static readonly string CapsuleDailyI = "cp_di";
+
+            internal static readonly string LayoutClassic = "ly_cl";
+            internal static readonly string LayoutMinimal = "ly_mi";
 
             // ROY G BIV
             internal static readonly string FontDelta = "f_de";
@@ -35,8 +39,6 @@
             // Blues
             internal static readonly string PaletteOceanic = "p_oc";
 
-            // Purples
-
             // Blends
             internal static readonly string PaletteChocolate = "p_ch";
             internal static readonly string PaletteBirch = "p_bi";
@@ -46,8 +48,8 @@
             internal static readonly string PaletteWumpite = "p_wu";
             internal static readonly string PaletteGold = "p_go";
             internal static readonly string PaletteGlass = "p_gl";
-            internal static readonly string PaletteHarmony = "p_ha";
-            internal static readonly string PaletteDiscord = "p_di";
+            internal static readonly string PaletteHarmony = "p_ha"; // Wumpite + Polarity
+            internal static readonly string PaletteDiscord = "p_di"; // Wumpite + Dark Matter
 
             // Smears
             internal static readonly string PaletteLemonLime = "p_leli";
@@ -63,6 +65,7 @@
             internal static readonly string ComponentSmearKit = "c_sk";
             internal static readonly string ComponentDimmerKit = "c_dk";
             internal static readonly string ComponentNeonKit = "c_nk";
+
             internal static readonly string InternalSealedItem = "$_seal";
         }
 
@@ -74,9 +77,21 @@
             internal static readonly string Component = "component";
             internal static readonly string Palette = "palette";
             internal static readonly string Font = "font";
+            internal static readonly string Layout = "layout";
             internal static readonly string Summon = "summon";
             internal static readonly string Automaton = "automaton";
             internal static readonly string AccessPass = "access_pass";
+            internal static readonly string Material = "material";
+            internal static readonly string Equipment = "equipment";
+        }
+
+        internal static class Shops
+        {
+            internal static readonly string TokenEmporium = "token_emporium";
+            internal static readonly string TypoTavern = "typo_tavern";
+            internal static readonly string ChromeCove = "chrome_cove";
+            internal static readonly string TinkerTent = "tinker_tent";
+            internal static readonly string BoostBlight = "boost_blight";
         }
     }
 }

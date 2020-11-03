@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Arcadia;
 using Orikivo;
 using Orikivo.Drawing;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
     public static class ShopHelper
     {
+        internal static readonly int GroupSize = 5;
         internal static string GetTotalSoldId(string shopId)
             => $"{shopId}:items_sold";
 
@@ -18,11 +21,17 @@ namespace Arcadia
         internal static string GetTotalBoughtId(string shopId)
             => $"{shopId}:items_bought";
 
+        internal static string GetTotalSpentId(string shopId)
+            => $"{shopId}:total_spent";
+
         internal static string GetTierId(string shopId)
             => $"{shopId}:tier";
 
         public static bool Exists(string shopId)
             => Assets.Shops.Any(x => x.Id == shopId);
+
+        public static bool ExistsFor(ArcadeUser user, string shopId)
+            => GetKnownShops(user).Any(x => x.Id == shopId);
 
         public static IEnumerable<Shop> GetKnownShops(ArcadeUser user)
         {
@@ -111,7 +120,7 @@ namespace Arcadia
                 return value;
 
             float discount = RangeF.Convert(0, 100, 0, 1, discountUpper);
-            return (long) MathF.Floor(value * (1 - discount));
+            return (long)MathF.Floor(value * (1 - discount));
         }
 
         private static string WriteShopRow(Shop shop)
@@ -156,11 +165,14 @@ namespace Arcadia
         }
 
         // This writes the catalog info
-        public static string WriteCatalog(CatalogGenerator generator, ItemCatalog catalog)
+        public static string WriteCatalog(CatalogGenerator generator, ItemCatalog catalog, int page = 0)
         {
+            page = Paginate.ClampIndex(page, Paginate.GetPageCount(catalog.Count, GroupSize));
+            Paginate.GroupAt(catalog.ItemIds, page, 5);
+
             var info = new StringBuilder();
 
-            foreach ((string itemId, int amount) in catalog.ItemIds)
+            foreach ((string itemId, int amount) in Paginate.GroupAt(catalog.ItemIds, page, GroupSize))//catalog.ItemIds)
             {
                 int discountUpper = catalog.Discounts.ContainsKey(itemId) ? catalog.Discounts[itemId] : 0;
                 info.AppendLine(WriteCatalogEntry(ItemHelper.GetItem(itemId), amount, generator.Entries.Any(x => x.ItemId == itemId && x.IsSpecial), discountUpper));
@@ -253,5 +265,61 @@ namespace Arcadia
 
         public static string NameOf(string shopId)
             => GetShop(shopId).Name;
+
+        public static string GetGenericReply(ShopState state)
+        {
+            return state switch
+            {
+                ShopState.Enter => Vendor.EnterGeneric,
+                ShopState.Buy => Vendor.BuyGeneric,
+                ShopState.BuyDeny => Vendor.BuyDenyGeneric,
+                ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
+                ShopState.BuyFail => Vendor.BuyFailGeneric,
+                ShopState.BuyLimit => Vendor.BuyLimitGeneric,
+                ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
+                ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
+                ShopState.SellInvalid => Vendor.SellInvalidGeneric,
+                ShopState.BuyInvalid => Vendor.BuyInvalidGeneric,
+                ShopState.ViewBuy => Vendor.ViewBuyGeneric,
+                ShopState.Sell => Vendor.SellGeneric,
+                ShopState.ViewSell => Vendor.ViewSellGeneric,
+                ShopState.SellDeny => Vendor.SellDenyGeneric,
+                ShopState.SellEmpty => Vendor.SellEmptyGeneric,
+                ShopState.Exit => Vendor.ExitGeneric,
+                ShopState.Timeout => Vendor.TimeoutGeneric,
+                ShopState.Menu => Vendor.MenuGeneric,
+                ShopState.BuyRemainder => Vendor.BuyRemainderGeneric,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+        }
+
+        public static string GetVendorReply(Vendor vendor, ShopState state)
+        {
+            var replies = state switch
+            {
+                ShopState.Enter => vendor?.OnEnter,
+                ShopState.Buy => vendor?.OnBuy,
+                ShopState.ViewBuy => vendor?.OnViewBuy,
+                ShopState.BuyDeny => vendor?.OnBuyDeny,
+                ShopState.BuyEmpty => vendor?.OnBuyEmpty,
+                ShopState.BuyFail => vendor?.OnBuyFail,
+                ShopState.BuyLimit => vendor?.OnBuyLimit,
+                ShopState.SellNotAllowed => vendor?.OnSellNotAllowed,
+                ShopState.SellNotOwned => vendor?.OnSellNotOwned,
+                ShopState.SellInvalid => vendor?.OnSellInvalid,
+                ShopState.BuyInvalid => vendor?.OnBuyInvalid,
+                ShopState.Sell => vendor?.OnSell,
+                ShopState.ViewSell => vendor?.OnViewSell,
+                ShopState.SellDeny => vendor?.OnSellDeny,
+                ShopState.SellEmpty => vendor?.OnSellEmpty,
+                ShopState.Exit => vendor?.OnExit,
+                ShopState.Timeout => vendor?.OnTimeout,
+                ShopState.Menu => vendor?.OnMenu,
+                ShopState.BuyRemainder => vendor?.OnBuyRemainder,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+
+            return Check.NotNullOrEmpty(replies) ? Randomizer.Choose(replies) : GetGenericReply(state);
+        }
     }
 }

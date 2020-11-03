@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Orikivo;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Formatters;
@@ -438,7 +439,7 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspect")]
-        [Summary("Inspect a specific **Item** in your inventory using a data reference.")]
+        [Summary("Inspect a specific **Item** in your inventory using a data instance.")]
         public async Task InspectInInventoryAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
@@ -465,11 +466,12 @@ namespace Arcadia.Modules
         public async Task GetBackpackAsync(ArcadeUser user = null)
         {
             user ??= Context.Account;
-            await Context.Channel.SendMessageAsync(InventoryViewer.Write(user, user.Id == Context.Account.Id));
+            await Context.Channel.SendMessageAsync(InventoryViewer.View(user, user.Id == Context.Account.Id));
         }
 
         [Command("statsof")]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Summary("View a collection of stats in the specified group.")]
         public async Task GetGroupStatsAsync(string query, int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, --page));
@@ -477,6 +479,7 @@ namespace Arcadia.Modules
 
         [Command("stats"), Priority(1)]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Summary("View another user's collection of stats.")]
         public async Task GetStatsAsync(ArcadeUser user, int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.Write(user, false, --page));
@@ -484,6 +487,7 @@ namespace Arcadia.Modules
 
         [Command("stats"), Priority(0)]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Summary("View your current collection of stats.")]
         public async Task GetStatsAsync(int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, page: --page));
@@ -562,18 +566,9 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account.Card.Display());
         }
 
-        private CardLayout GetLayout(LayoutType type)
-        {
-            return type switch
-            {
-                LayoutType.Default => CardLayout.Default,
-                LayoutType.Micro => CardLayout.Micro,
-                _ => throw new Exception("Unknown layout type specified")
-            };
-        }
 
-        [RequireUser]
-        [Command("drawcard")]
+        //[RequireUser]
+        //[Command("drawcard")]
         public async Task DrawCardAsync(LayoutType layoutType = LayoutType.Default)
         {
             SocketUser user = Context.User;
@@ -581,7 +576,7 @@ namespace Arcadia.Modules
 
             try
             {
-                CardLayout layout = GetLayout(layoutType);
+                CardLayout layout = GraphicsService.GetLayout(layoutType);
 
                 using var graphics = new GraphicsService();
                 var details = new CardDetails(account, user, layout.AvatarScale);
@@ -605,6 +600,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("card")]
+        [Summary("View a user's or your own current **Card**.")]
         public async Task GetCardAsync(SocketUser user = null)
         {
             user ??= Context.User;

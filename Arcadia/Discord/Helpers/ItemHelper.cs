@@ -13,6 +13,7 @@ namespace Arcadia
 
         public static bool Exists(string itemId)
             => Assets.Items.Any(x => x.Id == itemId);
+
         public static bool GroupExists(string id)
             => Check.NotNull(id)
             && (Assets.Groups.Any(x => x.Id == id)
@@ -23,6 +24,19 @@ namespace Arcadia
         public static bool CanBuy(Item item)
         {
             return Assets.Shops.Any(x => x.Catalog.Entries.Any(c => c.ItemId == item.Id));
+        }
+
+        public static bool DeleteItem(ArcadeUser user, ItemData data)
+        {
+            return user.Items.RemoveAll(x => x.TempId == data.TempId) > 0;
+        }
+
+        public static bool CanDelete(ItemData data)
+        {
+            if (!Exists(data.Id))
+                return true;
+
+            return GetItem(data.Id).AllowedHandles.HasFlag(ItemAllow.Delete);
         }
 
         public static bool CanSell(Item item)
@@ -435,6 +449,17 @@ namespace Arcadia
             return !item.TradeLimit.HasValue || (data?.Data?.TradeCount ?? 0) < item.TradeLimit.Value;
         }
 
+        public static bool CanGift(ArcadeUser target, string itemId, ItemData data = null)
+            => CanGift(target, GetItem(itemId), data);
+
+        public static bool CanGift(ArcadeUser target, Item item, ItemData data = null)
+        {
+            if (!CanGift(item, data))
+                return false;
+
+            return item.BypassCriteriaOnTrade || (item.ToOwn?.Invoke(target) ?? true);
+        }
+
         public static bool CanTrade(ItemData data)
             => CanTrade(GetItem(data.Id), data);
 
@@ -702,6 +727,26 @@ namespace Arcadia
             }
             else
                 AddOrSetToStack(user, item, amount);
+        }
+
+        // This clamps all stacks in an inventory to their specified owning limit.
+        public static void ClampItemStacks(ArcadeUser user)
+        {
+
+            foreach (ItemData data in user.Items.Where(x => x.Seal == null
+                && Exists(x.Id)
+                && GetItem(x.Id).OwnLimit.HasValue).ToList())
+            {
+                int ownLimit = GetItem(data.Id).OwnLimit ?? -1;
+
+                if (ownLimit >= 0 && data.Count > ownLimit)
+                {
+                    data.StackCount = ownLimit;
+                }
+
+                if (data.Count == 0)
+                    TakeItem(user, data);
+            }
         }
 
         private static UniqueItemData CreateUniqueData(Item item)

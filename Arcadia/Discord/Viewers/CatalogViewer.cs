@@ -245,17 +245,24 @@ namespace Arcadia.Services
         {
             var details = new StringBuilder();
 
-            Item item = ItemHelper.GetItem(data.Id);
+            Item item = ItemHelper.GetItem(data.Id) ?? ItemHelper.GetItem(Ids.Items.InternalUnknown);
 
+
+            bool exists = ItemHelper.Exists(data.Id);
             bool isUnique = data.Data != null;
 
-            string refId = isUnique || data.Seal != null ? $" (`{(isUnique ? $"{data.Data.Id}" : $"{data.TempId}")}`)" : "";
+            string refId = !exists ? "" : isUnique || data.Seal != null ? $" (`{(isUnique ? $"{data.Data.Id}" : $"{data.TempId}")}`)" : "";
 
             details.AppendLine($"> {Icons.Inventory} **Inventory: Slot {index + 1}**{refId}");
 
             if (data.Seal == null)
             {
-                details.AppendLine($"> {GetDisplayName(item)} ({item.Rarity})");
+                details.Append($"> {GetDisplayName(item)}");
+
+                if (exists)
+                    details.Append($" ({item.Rarity})");
+
+                details.AppendLine();
 
                 if (Check.NotNullOrEmpty(item.Quotes))
                     details.AppendLine($"> *\"{item.GetQuote()}*\"");
@@ -278,6 +285,9 @@ namespace Arcadia.Services
 
             if (!isUnique)
                 details.AppendLine($"• **Stack Count**: **{data.Count:##,0}**");
+
+            if (!exists)
+                return details.ToString();
 
             details.AppendLine($"📏 **Size**: {InventoryViewer.WriteCapacity(item.Size * data.Count)}");
 

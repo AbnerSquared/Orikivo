@@ -421,6 +421,44 @@ namespace Arcadia
             */
             new Shop
             {
+                Id = "typo_tavern",
+                Name = "Typograph Tavern",
+                Quote = "Purchase font families and text components here.",
+                Allow = ShopAllow.Buy,
+                SellDeduction = 40,
+                SellTags = ItemTag.Font,
+                AllowedCurrency = CurrencyType.Money,
+                ToVisit = u => u.Level == 10 && Var.All(u, VarMatch.GEQ, 2, ShopHelper.GetTierId(Ids.Shops.ChromeCove), ShopHelper.GetTierId(Ids.Shops.TinkerTent)),
+                Catalog = new CatalogGenerator
+                {
+                    Size = 2,
+                    MaxDiscountsAllowed = 0,
+                    MaxSpecialsAllowed = 1,
+                    Entries = new List<CatalogEntry>
+                    {
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.FontMonori,
+                            Weight = 10,
+
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.FontFoxtrot,
+                            Weight = 4,
+                            IsSpecial = true,
+                            RequiredTier = 2
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.FontDelta,
+                            Weight = 8
+                        }
+                    }
+                }
+            },
+            new Shop
+            {
                 Id = "tinker_tent",
                 Name = "Tinker's Tent",
                 Quote = "Purchase components and crafting materials here.",
@@ -1099,6 +1137,17 @@ namespace Arcadia
             },
             new Item
             {
+                Id = Ids.Items.InternalUnknown,
+                GroupId = "$",
+                Name = "Unknown Cluster",
+                Quotes = new List<string>
+                {
+                    "This item no longer seems to be of this world.",
+                    "The noise it emits resembles a garbled signal."
+                }
+            },
+            new Item
+            {
                 Id = "t_nt",
                 GroupId = Ids.Groups.Tool,
                 Icon = "🉐",
@@ -1106,7 +1155,62 @@ namespace Arcadia
                 Rarity = ItemRarity.Uncommon,
                 Tag = ItemTag.Tool,
                 Value = 750,
-                Size = 50
+                Size = 50,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    DeleteMode = DeleteMode.Break,
+                    Action = delegate(UsageContext ctx)
+                    {
+                        if (!Check.NotNull(ctx.Input))
+                            return UsageResult.FromError("An item data instance must be specified.");
+
+                        var reader = new StringReader(ctx.Input);
+
+                        if (!reader.CanRead())
+                            return UsageResult.FromError("An item data instance must be specified.");
+
+                        string id = reader.ReadUnquotedString();
+
+                        if (!reader.CanRead())
+                        {
+                            return UsageResult.FromError("A name must be specified.");
+                        }
+
+                        reader.SkipWhiteSpace();
+                        string name = reader.GetRemaining();
+
+                        ItemData data = ItemHelper.GetItemData(ctx.User, id);
+
+                        if (data == null)
+                            return  UsageResult.FromError("An unknown data instance was specified.");
+
+                        Item item = ItemHelper.GetItem(data.Id);
+
+                        if (!(ItemHelper.IsUnique(item) && item.AllowedHandles.HasFlag(ItemAllow.Rename)))
+                            return UsageResult.FromError("The specified data instance does not support renaming.");
+
+                        if (!VerifyName(name, out string reason))
+                            return UsageResult.FromError(reason);
+
+                        /*
+                        if (data.Data == null)
+                        {
+                            var newData = new ItemData(data.Id, data.Locked, data.StackCount, new UniqueItemData() { Name = name }, data.Seal);
+                            ItemHelper.DeleteItem(ctx.User, data);
+                            ctx.User.Items.Add(newData);
+                            data = newData;
+                        }
+                        else
+                        {
+                            
+                        }*/
+
+                        data.Data.Name = name;
+
+                        return UsageResult.FromSuccess($"Successfully renamed **{item.GetName()}** to **{data.Data.Name}**");
+                    }
+                }
             },
             new Item
             {
@@ -1193,9 +1297,39 @@ namespace Arcadia
                 Rarity = ItemRarity.Myth,
                 Tag = ItemTag.Tool | ItemTag.Automaton,
                 Value = 100000,
-                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal,
+                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Rename,
                 TradeLimit = 0,
                 Size = 1000,
+                OwnLimit = 1
+            },
+            new Item
+            {
+                Id = Ids.Items.LayoutClassic,
+                Name = "Classic",
+                Quotes = new List<string>
+                {
+                    "The originating card format that always delivers clean and direct information."
+                },
+                GroupId = Ids.Groups.Layout,
+                Rarity = ItemRarity.Common,
+                Value = 0,
+                TradeLimit = 0,
+                Size = 10,
+                OwnLimit = 1
+            },
+            new Item
+            {
+                Id = Ids.Items.LayoutMinimal,
+                Name = "Minimal",
+                Quotes = new List<string>
+                {
+                    "Simplicity in a condensed format."
+                },
+                GroupId = Ids.Groups.Layout,
+                Rarity = ItemRarity.Myth,
+                Value = 0,
+                TradeLimit = 0,
+                Size = 10,
                 OwnLimit = 1
             },
             new Item
@@ -1221,12 +1355,12 @@ namespace Arcadia
                     Action = delegate(UsageContext ctx)
                     {
                         if (!Check.NotNull(ctx.Input))
-                            return UsageResult.FromError("An item data reference must be specified.");
+                            return UsageResult.FromError("An item data instance must be specified.");
 
                         var reader = new StringReader(ctx.Input);
 
                         if (!reader.CanRead())
-                            return UsageResult.FromError("An item data reference must be specified.");
+                            return UsageResult.FromError("An item data instance must be specified.");
 
                         string id = reader.ReadUnquotedString();
 
@@ -1239,29 +1373,17 @@ namespace Arcadia
                             int.TryParse(reader.ReadUnquotedString(), out amount);
                         }
 
-                        bool isUniqueId = ctx.User.Items.Any(x => x.Data?.Id == id);
+                        ItemData data = ItemHelper.GetItemData(ctx.User, id);
 
-                        if (!ItemHelper.Exists(id) && !isUniqueId)
-                        {
-                            return UsageResult.FromError("Unknown data reference specified.");
-                        }
-
-                        string itemId = isUniqueId ? ItemHelper.ItemOf(ctx.User, id).Id : id;
-                        string uniqueId = isUniqueId ? id : null;
-
-                        bool isUnique = ItemHelper.IsUnique(itemId);
-
-                        if (isUnique && !isUniqueId)
-                            return UsageResult.FromError("This item is marked as unique and must be specified by its unique ID.");
-
-                        ItemData data = ItemHelper.DataOf(ctx.User, itemId, uniqueId);
+                        if (data == null)
+                            return  UsageResult.FromError("An unknown data instance was specified.");
 
                         if (amount < 0)
                             amount = 1;
                         else if (amount > data.Count)
                             amount = data.Count;
 
-                        if (isUnique)
+                        if (ItemHelper.IsUnique(data.Id))
                         {
                             data.Seal = new ItemSealData("$_seal");
                         }
@@ -1280,7 +1402,7 @@ namespace Arcadia
                             }
                         }
 
-                        return UsageResult.FromSuccess($"> Successfully wrapped {amount:##,0} **{ItemHelper.NameOf(itemId)}**.");
+                        return UsageResult.FromSuccess($"> Successfully wrapped {amount:##,0} **{ItemHelper.NameOf(data.Id)}**.");
                     }
                 }
             },
@@ -1704,6 +1826,8 @@ namespace Arcadia
                 {
                     "It represents a strongly typed font face with a clean design."
                 },
+                Value = 2500,
+                Currency = CurrencyType.Money,
                 Tag = ItemTag.Font | ItemTag.Decorator,
                 Usage = new ItemUsage
                 {
@@ -1717,8 +1841,10 @@ namespace Arcadia
                 Quotes = new List<string>
                 {
                     "It resists the automation of auto-width characters.",
-                    "It translates at the speed of sound when left near a docking port."
+                    "It translates scripture at the speed of sound when left near a typography port."
                 },
+                Value = 2500,
+                Currency = CurrencyType.Money,
                 Tag = ItemTag.Font | ItemTag.Decorator,
                 Usage = new ItemUsage
                 {
@@ -1734,6 +1860,8 @@ namespace Arcadia
                     "A system default that holds up to this day."
                 },
                 Tag = ItemTag.Font | ItemTag.Decorator,
+                Value = 2500,
+                Currency = CurrencyType.Money,
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Orikos))
@@ -1748,6 +1876,8 @@ namespace Arcadia
                     "It showcases a sharp range of tiny characters."
                 },
                 Tag = ItemTag.Font | ItemTag.Decorator,
+                Value = 2500,
+                Currency = CurrencyType.Money,
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
@@ -1783,30 +1913,36 @@ namespace Arcadia
         {
             new ItemGroup
             {
+                ShortId = "$",
+                Id = "$",
+                Name = "Internal",
+                Summary = "This shouldn't even be visible to you."
+            },
+            new ItemGroup
+            {
                 ShortId = "c",
                 Icon = "🍬",
                 Id = "component",
                 Rarity = ItemRarity.Uncommon,
                 Name = "Component",
-                Prefix = "Component: ",
                 Summary = "Helpful building blocks for the creation of new items."
             },
             new ItemGroup
             {
-                Id = "$",
-                Name = "Internal",
-                Summary = "Items that do not exist as an actual obtainable object."
-            },
-            new ItemGroup
-            {
-                Id = "tool",
+                Id = Ids.Groups.Tool,
                 Name = "Tool",
                 Rarity = ItemRarity.Uncommon,
                 Summary = "Items that are used on other instances of items."
             },
             new ItemGroup
             {
-                Id = "booster",
+                Id = Ids.Groups.Equipment,
+                Name = "Equipment",
+                Summary = "Items that modify or provide effects when equipped."
+            },
+            new ItemGroup
+            {
+                Id = Ids.Groups.Booster,
                 Icon = Icons.Booster,
                 Name = "Booster",
                 Prefix = "Booster: ",
@@ -1815,7 +1951,7 @@ namespace Arcadia
             },
             new ItemGroup
             {
-                Id = "palette",
+                Id = Ids.Groups.Palette,
                 Icon = new Icon
                 {
                     Fallback = Icons.Palette,
@@ -1831,7 +1967,7 @@ namespace Arcadia
             },
             new ItemGroup
             {
-                Id = "font",
+                Id = Ids.Groups.Font,
                 Icon = Icons.Palette,
                 Name = "Font",
                 Prefix = "Card Font: ",
@@ -1840,7 +1976,7 @@ namespace Arcadia
             },
             new ItemGroup
             {
-                Id = "summon",
+                Id = Ids.Groups.Summon,
                 Icon = Icons.Summon,
                 Name = "Summon",
                 Prefix = "Summon: ",
@@ -1854,7 +1990,7 @@ namespace Arcadia
                 Summary = "Provides access to undisclosed entries.",
                 Rarity = ItemRarity.Desolate
             },
-            new ItemGroup
+            new ItemGroup // Merge passes and automaton to a Passives grouping
             {
                 Id = "automaton",
                 Icon = "⚙️",
@@ -1862,6 +1998,26 @@ namespace Arcadia
                 Prefix = "Automaton: ",
                 Summary = "Grants the ability to automate specific actions.",
                 Rarity = ItemRarity.Desolate,
+                CanResearch = false
+            },
+            new ItemGroup
+            {
+                ShortId = "ly",
+                Id = Ids.Groups.Layout,
+                Name = "Layout",
+                Prefix = "Card Layout: ",
+                Summary = "Modifies the base formatting of a card.",
+                Rarity = ItemRarity.Myth,
+                CanResearch = false
+            },
+            new ItemGroup
+            {
+                ShortId = "ma",
+                Icon = "🍬",
+                Id = Ids.Groups.Material,
+                Name = "Material",
+                Summary = "Base resources that can be used to craft new items.",
+                Rarity = ItemRarity.Uncommon,
                 CanResearch = false
             }
         };
@@ -1958,6 +2114,31 @@ namespace Arcadia
             string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";
+        }
+
+        private static bool VerifyName(string name, out string reason)
+        {
+            reason = "";
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                reason = "There is no name to use.";
+                return false;
+            }
+
+            if (name.Length > 24)
+            {
+                reason = "The name that was specified is larger than 24 characters.";
+                return false;
+            }
+
+            if (!name.Where(x => !x.EqualsAny(' ', '_', '+', '\'')).All(StringReader.IsUnquotedStringValid))
+            {
+                reason = "Names can only use alphanumeric characters with basic punctuation.";
+                return false;
+            }
+
+            return true;
         }
     }
 }

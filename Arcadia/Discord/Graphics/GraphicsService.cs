@@ -26,6 +26,16 @@ namespace Arcadia.Graphics
         public static char[][][][] GetDefaultCharMap()
             => JsonHandler.Load<char[][][][]>(@"../assets/char_map.json", new JsonCharArrayConverter());
 
+        public static CardLayout GetLayout(LayoutType type)
+        {
+            return type switch
+            {
+                LayoutType.Default => CardLayout.Default,
+                LayoutType.Micro => CardLayout.Micro,
+                _ => throw new Exception("Unknown layout type specified")
+            };
+        }
+
         public static FontFace GetFont(FontType type)
             => type switch
             {

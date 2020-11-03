@@ -12,6 +12,8 @@ namespace Arcadia
         Sell = 2,
         Clone = 4,
         Seal = 8,
-        All = Buy | Sell | Clone | Seal
+        Delete = 16,
+        Rename = 32,
+        All = Buy | Sell | Clone | Seal | Delete | Rename
     }
 }

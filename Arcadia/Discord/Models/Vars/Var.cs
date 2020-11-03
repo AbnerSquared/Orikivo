@@ -204,12 +204,12 @@ namespace Arcadia
             if (!user.Stats.TryAdd(id, value))
                 user.Stats[id] = value;
 
-            string upperId = GetUpperId(id);
+            string upperId = GetUpperBoundId(id);
             if (!string.IsNullOrWhiteSpace(upperId))
                 SetIfGreater(user, upperId, id);
         }
 
-        public static string GetUpperId(string id)
+        public static string GetUpperBoundId(string id)
         {
             return GetDefiner(id)?.UpperId;
         }
@@ -501,6 +501,33 @@ namespace Arcadia
         public static bool MeetsCriterion(ArcadeUser user, VarCriterion criterion)
         {
             return GetValue(user, criterion.Id) >= criterion.ExpectedValue;
+        }
+
+        public static bool All(ArcadeUser user, VarMatch match, long value, params string[] ids)
+        {
+            foreach (string id in ids)
+            {
+                if (!Matches(user, id, match, value))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool Matches(ArcadeUser user, string id, VarMatch match, long value)
+        {
+            long compare = user.GetVar(id);
+
+            return match switch
+            {
+                VarMatch.GTR => compare > value,
+                VarMatch.GEQ => compare >= value,
+                VarMatch.EQU => compare == value,
+                VarMatch.LEQ => compare <= value,
+                VarMatch.LSS => compare < value,
+                VarMatch.NEQ => compare != value,
+                _ => throw new ArgumentOutOfRangeException(nameof(match))
+            };
         }
 
         public static string Humanize(string id)
