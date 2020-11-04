@@ -3,11 +3,8 @@ using Orikivo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Newtonsoft.Json;
 using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -26,22 +23,19 @@ namespace Arcadia.Modules
         }
 
         [DoNotNotify]
-        [Command("about"), Priority(0)]
+        [Command("about")]
+        [Summary("View basic information about **Orikivo Arcade**.")]
         public async Task AboutAsync()
         {
             await Context.Channel.SendMessageAsync(AboutViewer.View());
         }
 
-        //[DoNotNotify]
-        //[Command("about"), Priority(1)]
-        public async Task SearchAboutAsync(string input)
-            => throw new NotImplementedException();
-
         [DoNotNotify]
         [Command("changelog")]
+        [Summary("Returns the most recent changelog for **Orikivo Arcade**.")]
         public async Task ViewChangelogAsync()
         {
-            Discord.IChannel channel = Context.Client.GetChannel(Context.Data.Data.LogChannelId);
+            IChannel channel = Context.Client.GetChannel(Context.Data.Data.LogChannelId);
 
             if (channel is IMessageChannel mChannel)
             {
@@ -61,6 +55,7 @@ namespace Arcadia.Modules
         [DoNotNotify]
         [Cooldown(10)]
         [Command("latency"), Alias("ping")]
+        [Summary("Returns the round-trip latency for both the current client and local connections.")]
         public async Task GetLatencyAsync()
             => await CoreService.PingAsync(Context.Channel, Context.Client);
 
@@ -80,39 +75,32 @@ namespace Arcadia.Modules
             }
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
         [DoNotNotify]
-        [Command("options"), Alias("config", "cfg"), Priority(0)]
-        [Summary("Returns all of your customized preferences.")]
-        public async Task GetOptionsAsync()
-        {
-            await Context.Channel.SendMessageAsync(Context.Account.Config.Display());
-        }
-
+        [RequireGuild(AccountHandling.ReadOnly)]
         [RequireUser(AccountHandling.ReadOnly)]
-        [DoNotNotify]
         [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(0)]
         [Summary("Returns all of the current guild's customized preferences.")]
         public async Task GetGuildOptionsAsync()
         {
-            await Context.Channel.SendMessageAsync(Context.Server.Config.Display());
+            await Context.Channel.SendMessageAsync(Context.Server.Config.Display(Context.Account.Config.Tooltips));
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
         [DoNotNotify]
+        [RequireGuild(AccountHandling.ReadOnly)]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(1)]
         [Summary("View more details for the specified option.")]
-        public async Task ViewGuildOptionAsync(string name)
+        public async Task ViewGuildOptionAsync([Summary("The ID of the option to inspect.")]string id)
         {
-            await Context.Channel.SendMessageAsync(Context.Server.Config.ViewOption(name, Context.Account.Config.Tooltips));
+            await Context.Channel.SendMessageAsync(Context.Server.Config.ViewOption(id, Context.Account.Config.Tooltips));
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
-        [RequireGuild]
         [DoNotNotify]
+        [RequireGuild]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(2)]
-        [Summary("Updates the option to the specified value.")]
-        public async Task SetGuildOptionAsync(string name, string value)
+        [Summary("Updates the guild option to the specified value.")]
+        public async Task SetGuildOptionAsync([Summary("The ID of the option to update.")]string id, [Summary("The new value to set for this option.")]string value)
         {
             if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != OriGlobal.DevId)
             {
@@ -120,197 +108,22 @@ namespace Arcadia.Modules
                 return;
             }
 
-            PropertyInfo option = ClassHelper.GetProperty(Context.Server.Config, name);
-
-            if (option == null)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Unknown option specified."));
-                return;
-            }
-
-            Type type = Context.Server.Config.GetOptionType(name);
-            var clamp = option.GetCustomAttribute<ClampAttribute>();
-            bool useFlags = type.GetCustomAttribute<FlagsAttribute>() != null;
-
-            var panel = new StringBuilder();
-            panel.AppendLine($"> **{Context.Server.Config.GetOptionName(name)}**");
-
-            switch (value)
-            {
-                case "--default":
-                    Context.Server.Config.SetOptionDefault(name);
-                    panel.AppendLine("> The specified option has been reset.");
-                    break;
-
-                case "--min":
-                    {
-                        if (type != typeof(int))
-                        {
-                            panel.AppendLine("> This method can only be used on a `Number` with a specified minimum range.");
-                        }
-                        else if (clamp == null || !clamp.HasMin)
-                        {
-                            panel.AppendLine("> This `Number` does not have a specified minimum range.");
-                        }
-                        else
-                        {
-                            Context.Server.Config.SetOption(name, clamp.Min);
-                            panel.AppendLine("> The specified option has been set to its lowest possible value.");
-                        }
-
-                        break;
-                    }
-
-                case "--max":
-                    {
-                        if (type != typeof(int))
-                        {
-                            panel.AppendLine("> This method can only be used on a `Number` with a specified maximum range.");
-                        }
-                        else if (clamp == null)
-                        {
-                            panel.AppendLine("> This `Number` does not have a specified maximum range.");
-                        }
-                        else
-                        {
-                            Context.Server.Config.SetOption(name, clamp.Max);
-                            panel.AppendLine("> The specified option has been set to its highest possible value.");
-                        }
-
-                        break;
-                    }
-
-                case "--none":
-                    {
-                        if (!type.IsEnum || !useFlags)
-                        {
-                            panel.AppendLine("> This method can only be used on a `Flag`.");
-                        }
-                        else if (!Enum.TryParse(type, "0", out object e))
-                        {
-                            panel.AppendLine("> An error occurred while attempted to clear all flags.");
-                        }
-                        else
-                        {
-                            Context.Server.Config.SetOption(name, e);
-                            panel.AppendLine("> Cleared all flags.");
-                        }
-
-                        break;
-                    }
-
-                case "--all":
-                    {
-                        if (!type.IsEnum || !useFlags)
-                        {
-                            panel.AppendLine("> This method can only be used on a `Flag`.");
-                        }
-                        else if (!Enum.TryParse(type, $"{type.GetEnumValues().Cast<Enum>().Select(Convert.ToInt64).Sum()}", out object e))
-                        {
-                            panel.AppendLine("> An error occurred while attempting to activate all flags.");
-                        }
-                        else
-                        {
-                            Context.Server.Config.SetOption(name, e);
-                            panel.AppendLine("> Activated all flags.");
-                        }
-
-                        break;
-                    }
-
-                default:
-                    if (TypeParser.TryParse(type, value, out object result))
-                    {
-                        if (type.IsEnum)
-                        {
-                            long flagValue = Convert.ToInt64(result);
-                            if (flagValue < 0)
-                            {
-                                panel.AppendLine("> Flags cannot be negative.");
-                                break;
-                            }
-
-                            long partialSum = EnumUtils.GetFlags(result).Select(Convert.ToInt64).Sum();
-
-                            if (flagValue > 0)
-                            {
-                                if (flagValue - partialSum > 0)
-                                {
-                                    panel.AppendLine("> The flag summation contains an invalid flag.");
-                                    break;
-                                }
-                            }
-                        }
-                        if (type == typeof(string) && result is string s)
-                        {
-                            if (s.Contains("\n"))
-                            {
-                                panel.AppendLine("> The specified value cannot contain any line breaks.");
-                                break;
-                            }
-
-                            if (clamp != null)
-                            {
-                                if (s.Length > clamp.Max)
-                                {
-                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                    break;
-                                }
-                            }
-                        }
-                        if (type == typeof(int) && result is int i)
-                        {
-                            if (clamp != null)
-                            {
-                                if (clamp.HasMin && (i < clamp.Min || i > clamp.Max))
-                                {
-                                    panel.AppendLine($"> The specified value is out of range (`{clamp.Min} to {clamp.Max}`).");
-                                    break;
-                                }
-
-                                if (i > clamp.Max)
-                                {
-                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                    break;
-                                }
-                            }
-                        }
-
-                        Context.Server.Config.SetOption(name, result);
-                        panel.Append($"> The specified value has been set to `{Context.Server.Config.WriteOptionValue(result)}`.");
-                    }
-                    else
-                    {
-                        panel.AppendLine("> The specified value could not be parsed.");
-
-                        if (type.IsEnum)
-                        {
-                            panel.AppendLine();
-                            List<string> names = type.GetEnumNames().ToList();
-                            List<long> values = type.GetEnumValues().Cast<object>().Select(Convert.ToInt64).ToList();
-                            List<string> groups = names.Join(values,
-                                a => names.IndexOf(a),
-                                b => values.IndexOf(b),
-                                (a, b) => $"{a} = {b}")
-                                .ToList();
-
-                            if (groups.Any())
-                            {
-                                panel.AppendLine($"> **Values**\n```cs");
-                                panel.AppendJoin(",\n", groups);
-                                panel.AppendLine("```");
-                            }
-                        }
-                    }
-
-                    break;
-            }
-
-            await Context.Channel.SendMessageAsync(panel.ToString());
+            string result = Context.Server.Config.SetOrUpdateValue(id, value);
+            await Context.Channel.SendMessageAsync(result);
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
         [DoNotNotify]
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("options"), Alias("config", "cfg"), Priority(0)]
+        [Summary("Returns a summary of your current personal configuration.")]
+        public async Task GetOptionsAsync()
+        {
+            string content = Context.Account.Config.Display(Context.Account.Config.Tooltips);
+            await Context.Channel.SendMessageAsync(content);
+        }
+
+        [DoNotNotify]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("options"), Alias("config", "cfg"), Priority(1)]
         [Summary("View more details for the specified option.")]
         public async Task ViewOptionAsync(string name)
@@ -318,205 +131,14 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account.Config.ViewOption(name));
         }
 
-        [RequireUser]
         [DoNotNotify]
+        [RequireUser]
         [Command("options"), Alias("config", "cfg"), Priority(2)]
         [Summary("Updates the option to the specified value.")]
-        public async Task SetOptionAsync(string name, [Name("value")]string unparsed)
+        public async Task SetOptionAsync([Summary("The ID of the option to update.")]string id, [Summary("The new value to set for this option.")]string value)
         {
-            PropertyInfo option = ClassHelper.GetProperty(Context.Account.Config, name);
-
-            if (option == null)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("Unknown option specified."));
-                return;
-            }
-
-            Type type = Context.Account.Config.GetOptionType(name);
-            var clamp = option.GetCustomAttribute<ClampAttribute>();
-            bool useFlags = type.GetCustomAttribute<FlagsAttribute>() != null;
-
-            var panel = new StringBuilder();
-            panel.AppendLine($"> **{Context.Account.Config.GetOptionName(name)}**");
-
-            switch (unparsed)
-            {
-                case "--default":
-                    Context.Account.Config.SetOptionDefault(name);
-                    panel.AppendLine("> The specified option has been reset.");
-                    break;
-
-                case "--min":
-                {
-                    if (type != typeof(int))
-                    {
-                        panel.AppendLine("> This method can only be used on a `Number` with a specified minimum range.");
-                    }
-                    else if (clamp == null || !clamp.HasMin)
-                    {
-                        panel.AppendLine("> This `Number` does not have a specified minimum range.");
-                    }
-                    else
-                    {
-                        Context.Account.Config.SetOption(name, clamp.Min);
-                        panel.AppendLine("> The specified option has been set to its lowest possible value.");
-                    }
-
-                    break;
-                }
-
-                case "--max":
-                {
-                    if (type != typeof(int))
-                    {
-                        panel.AppendLine("> This method can only be used on a `Number` with a specified maximum range.");
-                    }
-                    else if (clamp == null)
-                    {
-                        panel.AppendLine("> This `Number` does not have a specified maximum range.");
-                    }
-                    else
-                    {
-                        Context.Account.Config.SetOption(name, clamp.Max);
-                        panel.AppendLine("> The specified option has been set to its highest possible value.");
-                    }
-
-                    break;
-                }
-
-                case "--none":
-                {
-                    if (!type.IsEnum || !useFlags)
-                    {
-                        panel.AppendLine("> This method can only be used on a `Flag`.");
-                    }
-                    else if (!Enum.TryParse(type, "0", out object e))
-                    {
-                        panel.AppendLine("> An error occurred while attempted to clear all flags.");
-                    }
-                    else
-                    {
-                        Context.Account.Config.SetOption(name, e);
-                        panel.AppendLine("> Cleared all flags.");
-                    }
-
-                    break;
-                }
-
-                case "--all":
-                {
-                    if (!type.IsEnum || !useFlags)
-                    {
-                        panel.AppendLine("> This method can only be used on a `Flag`.");
-                    }
-                    else if (!Enum.TryParse(type, $"{type.GetEnumValues().Cast<Enum>().Select(Convert.ToInt64).Sum()}", out object e))
-                    {
-                        panel.AppendLine("> An error occurred while attempting to activate all flags.");
-                    }
-                    else
-                    {
-                        Context.Account.Config.SetOption(name, e);
-                        panel.AppendLine("> Activated all flags.");
-                    }
-
-                    break;
-                }
-
-                default:
-                    if (TypeParser.TryParse(type, unparsed, out object result))
-                    {
-                        if (type.IsEnum)
-                        {
-                            long flagValue = Convert.ToInt64(result);
-                            if (flagValue < 0)
-                            {
-                                panel.AppendLine("> Flags cannot be negative.");
-                                break;
-                            }
-
-                            long partialSum = EnumUtils.GetFlags(result).Select(Convert.ToInt64).Sum();
-
-                            if (flagValue > 0)
-                            {
-                                if (flagValue - partialSum > 0)
-                                {
-                                    panel.AppendLine("> The flag summation contains an invalid flag.");
-                                    break;
-                                }
-                            }
-                        }
-                        if (type == typeof(string) && result is string s)
-                        {
-                            if (s.Contains("\n"))
-                            {
-                                panel.AppendLine("> The specified value cannot contain any line breaks.");
-                                break;
-                            }
-
-                            if (clamp != null)
-                            {
-                                if (s.Length > clamp.Max)
-                                {
-                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                    break;
-                                }
-                            }
-                        }
-                        if (type == typeof(int) && result is int i)
-                        {
-                            if (clamp != null)
-                            {
-                                if (clamp.HasMin && (i < clamp.Min || i > clamp.Max))
-                                {
-                                    panel.AppendLine($"> The specified value is out of range (`{clamp.Min} to {clamp.Max}`).");
-                                    break;
-                                }
-
-                                if (i > clamp.Max)
-                                {
-                                    panel.AppendLine($"> The specified value cannot be larger than `{clamp.Max}`.");
-                                    break;
-                                }
-                            }
-                        }
-
-                        Context.Account.Config.SetOption(name, result);
-                        panel.Append($"> The specified value has been set to `{Context.Account.Config.WriteOptionValue(result)}`.");
-                    }
-                    else
-                    {
-                        panel.AppendLine("> The specified value could not be parsed.");
-
-                        if (type.IsEnum)
-                        {
-                            panel.AppendLine();
-                            List<string> names = type.GetEnumNames().ToList();
-                            List<long> values = type.GetEnumValues().Cast<object>().Select(Convert.ToInt64).ToList();
-                            List<string> groups = names.Join(values,
-                                a => names.IndexOf(a),
-                                b => values.IndexOf(b),
-                                (a, b) => $"{a} = {b}")
-                                .ToList();
-
-                            if (groups.Any())
-                            {
-                                panel.AppendLine($"> **Values**\n```cs");
-                                panel.AppendJoin(",\n", groups);
-                                panel.AppendLine("```");
-                            }
-                        }
-                    }
-
-                    break;
-            }
-
-            await Context.Channel.SendMessageAsync(panel.ToString());
+            string result = Context.Account.Config.SetOrUpdateValue(id, value);
+            await Context.Channel.SendMessageAsync(result);
         }
-
-        // TODO: Implement GuildConfig, and replace OriGuild with Guild.
-        //[DoNotNotify]
-        //[Command("version")]
-        public async Task GetVersionAsync()
-            => await Context.Channel.SendMessageAsync(OriGlobal.ClientVersion);
     }
 }

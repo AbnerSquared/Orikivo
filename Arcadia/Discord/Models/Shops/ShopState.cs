@@ -1,5 +1,8 @@
 ﻿namespace Arcadia
 {
+    // TODO: Simplify primary shop state to their rudimentary states, and create a secondary sub-state.
+    // Here's an example:
+    // ShopFlags.Empty | ShopFlags.Deny | ShopFlags.Invalid | ShopFlags.Forbidden | ShopFlags.NotOwned | ShopFlags.Remainder | ShopFlags.Limited
     public enum ShopState
     {
         Enter = 1,

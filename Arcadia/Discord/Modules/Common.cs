@@ -15,8 +15,6 @@ using Orikivo.Text;
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
-    // - Card Customization
-
     // TODO: Transfer everything to CommonService
     [Icon("🧮")]
     [Name("Common")]
@@ -33,15 +31,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("submit")]
-        [Summary("Submit your challenge set for completion.")]
-        public async Task SubmitChallengesAsync()
-        {
-            string result = ChallengeHelper.Submit(Context.Account);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [RequireUser]
         [Command("challenges")]
         [Summary("View your current challenge set.")]
         public async Task ViewChallengesAsync()
@@ -51,21 +40,12 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("memos")]
-        [Summary("View memos about previous research.")]
-        public async Task ViewMemosAsync(int page = 1)
+        [Command("submit")]
+        [Summary("Submit your challenge set for completion.")]
+        public async Task SubmitChallengesAsync()
         {
-            string result = ResearchHelper.ViewMemos(Context.Account, --page);
-            await Context.Channel.SendMessageAsync(Context.Account, result);
-        }
-
-        [RequireUser]
-        [Command("memo")]
-        [Summary("View a research memo on the specified **Item**.")]
-        public async Task ViewMemoAsync(Item item)
-        {
-            string result = ResearchHelper.ViewMemo(Context.Account, item);
-            await Context.Channel.SendMessageAsync(Context.Account, result);
+            string result = ChallengeHelper.Submit(Context.Account);
+            await Context.Channel.SendMessageAsync(result);
         }
 
         [RequireUser]
@@ -95,13 +75,6 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
-        [Command("guides")]
-        [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
-        public async Task ViewGuidesAsync(int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(GuideViewer.View(--page));
-        }
-
         [Command("guide")]
         [Summary("Read and view the contents of the specified guide.")]
         public async Task ReadGuideAsync([Name("guide_id")]string id, int page = 1)
@@ -109,20 +82,11 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(GuideViewer.ViewGuide(id, --page));
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("recipes")]
-        [Summary("View all of your currently known recipes.")]
-        public async Task ViewRecipesAsync()
+        [Command("guides")]
+        [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
+        public async Task ViewGuidesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(RecipeViewer.View(Context.Account));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("recipe")]
-        [Summary("View information about a specific **Recipe**.")]
-        public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
-        {
-            await Context.Channel.SendMessageAsync(RecipeViewer.ViewRecipeInfo(Context.Account, recipe));
+            await Context.Channel.SendMessageAsync(GuideViewer.View(--page));
         }
 
         [RequireUser]
@@ -182,60 +146,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("merit")]
-        [Summary("View information about a **Merit**.")]
-        public async Task ViewMeritAsync(Merit merit)
-        {
-            if (!MeritHelper.HasUnlocked(Context.Account, merit) && merit.Hidden)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are not authorized to view this merit."));
-                return;
-            }
-
-            await Context.Channel.SendMessageAsync(MeritHelper.ViewMerit(merit, Context.Account));
-        }
-
-        [RequireUser]
-        [Command("cooldowns"), Alias("cooldown", "expiry")]
-        [Summary("View all currently active cooldowns and expirations.")]
-        public async Task ViewCooldownsAsync()
-        {
-            await Context.Channel.SendMessageAsync(CooldownHelper.ViewAllTimers(Context.Account));
-        }
-
-        [RequireUser]
-        [Command("claim")]
-        [Summary("Attempt to claim the specified **Merit**.")]
-        public async Task ClaimAsync(string meritId = null)
-        {
-            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
-        }
-
-        [RequireUser]
-        [Command("stat")]
-        [Summary("View details about a single **Stat**.")]
-        public async Task ViewStatAsync([Name("stat_id")]string id)
-        {
-            await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
-        }
-
-        [RequireUser]
-        [Command("level"), Alias("exp", "ascent", "lv", "xp")]
-        [Summary("View your current level and experience.")]
-        public async Task ViewLevelAsync()
-        {
-            await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
-        }
-
-        [RequireUser]
-        [Command("merits")]
-        [Summary("Search and view all of your known merits.")]
-        public async Task ViewMeritsAsync(string query = null, int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(MeritHelper.View(Context.Account, query, --page));
-        }
-
-        [RequireUser]
         [Command("quests"), Alias("missions", "tasks"), Priority(0)]
         [Summary("View all of your currently assigned quests.")]
         public async Task ViewQuestsAsync()
@@ -273,6 +183,30 @@ namespace Arcadia.Modules
         public async Task CompleteQuestsAsync()
         {
             await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
+        }
+
+        [RequireUser]
+        [Command("cooldowns"), Alias("cooldown", "expiry")]
+        [Summary("View all currently active cooldowns and expirations.")]
+        public async Task ViewCooldownsAsync()
+        {
+            await Context.Channel.SendMessageAsync(CooldownHelper.ViewAllTimers(Context.Account));
+        }
+
+        [RequireUser]
+        [Command("claim")]
+        [Summary("Attempt to claim the specified **Merit**.")]
+        public async Task ClaimAsync(string meritId = null)
+        {
+            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
+        }
+
+        [RequireUser]
+        [Command("level"), Alias("exp", "ascent", "lv", "xp")]
+        [Summary("View your current level and experience.")]
+        public async Task ViewLevelAsync()
+        {
+            await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
         }
 
         /*
@@ -358,28 +292,6 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(DailyService.ApplyAndDisplay(Context.Account, result));
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("catalog"), Alias("items")]
-        [Summary("View all of the items you have seen or known about.")]
-        public async Task ViewCatalogAsync(string query = null, int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(CatalogViewer.View(Context.Account, query, --page));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("catalogsearch")]
-        [Summary("Search through the item catalog to look for a specific **Item**.")]
-        public async Task CatalogSearchAsync([Remainder]string input)
-        {
-            if (!Check.NotNull(input))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You must specify a reference for the catalog to use."));
-                return;
-            }
-
-            await Context.Channel.SendMessageAsync(CatalogViewer.Search(Context.Account, input));
-        }
-
         [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
@@ -402,19 +314,6 @@ namespace Arcadia.Modules
             }
 
             await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(data.Id)}**."));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("item")]
-        [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
-        public async Task ViewItemAsync([Summary("The **Item** to view more information about.")]Item item)
-        {
-            CatalogStatus status = CatalogHelper.GetCatalogStatus(Context.Account, item);
-
-            if (status == CatalogStatus.Unknown && Context.Account.Items.Exists(x => x.Id == item.Id))
-                CatalogHelper.SetCatalogStatus(Context.Account, item, CatalogStatus.Known);
-
-            await Context.Channel.SendMessageAsync(CatalogViewer.ViewItem(item, CatalogHelper.GetCatalogStatus(Context.Account, item)));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -467,56 +366,6 @@ namespace Arcadia.Modules
         {
             user ??= Context.Account;
             await Context.Channel.SendMessageAsync(InventoryViewer.View(user, user.Id == Context.Account.Id));
-        }
-
-        [Command("statsof")]
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Summary("View a collection of stats in the specified group.")]
-        public async Task GetGroupStatsAsync(string query, int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, --page));
-        }
-
-        [Command("stats"), Priority(1)]
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Summary("View another user's collection of stats.")]
-        public async Task GetStatsAsync(ArcadeUser user, int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(StatHelper.Write(user, false, --page));
-        }
-
-        [Command("stats"), Priority(0)]
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Summary("View your current collection of stats.")]
-        public async Task GetStatsAsync(int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, page: --page));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("leaderboard"), Alias("top"), Priority(0)]
-        [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
-        public async Task GetLeaderboardAsync([Name("stat_id")]string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
-        {
-            var board = new Leaderboard(statId, sort);
-            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
-
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        // TODO: Implement enum value listings
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("leaderboard"), Alias("top"), Priority(1)]
-        [Summary("View the current pioneers of a specific category.")]
-        public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
-        {
-            if (flag == LeaderboardQuery.Custom)
-                flag = LeaderboardQuery.Default;
-
-            var board = new Leaderboard(flag, sort);
-            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
-
-            await Context.Channel.SendMessageAsync(result);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]

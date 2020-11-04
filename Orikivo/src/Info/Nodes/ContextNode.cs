@@ -11,7 +11,7 @@ namespace Orikivo
     public abstract class ContextNode : ContentNode
     {
         public const char GroupMarker = '*';
-        private const char ModuleMarker = '.';
+        private const char ModuleMarker = '.'; // Use delimiter name instead?
         private const char CommandMarker = '(';
 
         protected ContextNode(ModuleInfo module)

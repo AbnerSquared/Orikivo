@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Orikivo.Desync;
 using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer
@@ -24,6 +23,6 @@ namespace Arcadia.Multiplayer
         public long RequiredWager { get; set; }
 
         // This is the length of time from which experience will scale up
-        public DateTimeRange ExpTimeRange { get; set; }
+        public TimeSpan ExpTimeRange { get; set; }
     }
 }

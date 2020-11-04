@@ -11,6 +11,8 @@ namespace Arcadia
     public static class TradeHelper
     {
         public const string Separator = "for";
+        public static readonly int MaxTargetOfferCount = 1;
+        public static readonly int MaxOfferCount = 5;
 
         public static string ViewOffers(ArcadeUser user, ArcadeContext ctx)
         {
@@ -85,7 +87,6 @@ namespace Arcadia
 
         public static bool IsOfferValid(ArcadeUser author, ArcadeUser target, TradeOffer offer)
         {
-            Logger.Debug($"Creation Date: {offer.CreatedAt}");
             if ((DateTime.UtcNow - offer.CreatedAt) >= TimeSpan.FromHours(24))
                 return false;
 
@@ -106,10 +107,10 @@ namespace Arcadia
 
         public static string SendOffer(ArcadeUser author, ArcadeUser target, TradeOffer offer)
         {
-            if (author.Offers.Count(x => x.Target.Id == target.Id) == 1)
+            if (author.Offers.Count(x => x.Target.Id == target.Id) >= MaxTargetOfferCount)
                 return Format.Warning($"You already have an active trade offer to **{target.Username}**. Please cancel your current offer to this user before sending a new one.");
 
-            if (author.Offers.Count == 5)
+            if (author.Offers.Count >= MaxOfferCount)
                 return Format.Warning("You already have too many active trade offers. Try again later.");
 
             foreach ((string itemId, int amount) in offer.ItemIds)
@@ -124,7 +125,7 @@ namespace Arcadia
                     return Format.Warning($"**{target.Username}** does not own one of the specified items in your trade offer.");
             }
 
-            if (target.Offers.Count == 5)
+            if (target.Offers.Count == MaxOfferCount)
                 return Format.Warning($"**{target.Username}** already has too many pending trade offers. Try again later.");
 
             target.Offers.Add(offer);
@@ -170,6 +171,7 @@ namespace Arcadia
             return info.ToString();
         }
 
+        // TODO: Make the base trade offer parsing generic, so that it can be used for other purposes (such as using items)
         public static bool TryParseOffer(Discord.IUser user, Discord.IUser target, string input, out TradeOffer offer)
         {
             offer = null;

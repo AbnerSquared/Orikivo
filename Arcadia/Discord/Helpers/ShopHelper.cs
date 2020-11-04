@@ -12,6 +12,10 @@ namespace Arcadia
     public static class ShopHelper
     {
         internal static readonly int GroupSize = 5;
+
+        // TODO: Move these over to the Var class, from which they can be set up as templates instead.
+        // *:items_sold
+
         internal static string GetTotalSoldId(string shopId)
             => $"{shopId}:items_sold";
 
@@ -30,6 +34,8 @@ namespace Arcadia
         public static bool Exists(string shopId)
             => Assets.Shops.Any(x => x.Id == shopId);
 
+        // TODO: Create ExistsFor methods in other helper classes (such as items, merits, etc.)
+        // This is shop that the type readers can falsely let the user know that this merit does not exist, solely for them
         public static bool ExistsFor(ArcadeUser user, string shopId)
             => GetKnownShops(user).Any(x => x.Id == shopId);
 

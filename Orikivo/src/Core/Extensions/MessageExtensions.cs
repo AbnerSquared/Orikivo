@@ -16,6 +16,15 @@ namespace Orikivo
             => OriRegex.ContainsEmote(message.Content);
 
         /// <summary>
+        /// Determines if this message contains the specified emote.
+        /// </summary>
+        /// <param name="message">The message to check.</param>
+        /// <param name="emote">The emote to compare the collection of captured emotes to.</param>
+        /// <returns>A value that represents the result of this comparison.</returns>
+        public static bool ContainsEmote(this IMessage message, IEmote emote)
+            => OriRegex.CaptureEmotes(message.Content).Any(x => x.Equals(emote));
+
+        /// <summary>
         /// Returns a collection of all emotes that this message contains.
         /// </summary>
         public static List<Emote> GetEmotes(this IMessage message)

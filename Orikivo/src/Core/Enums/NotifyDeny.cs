@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orikivo.Desync
+namespace Orikivo
 {
     /// <summary>
     /// Defines what a <see cref="Notifier"/> is allowed to store.

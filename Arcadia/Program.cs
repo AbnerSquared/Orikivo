@@ -22,7 +22,9 @@ namespace Arcadia
         {
             Task.Run(async () =>
             {
+#if DEBUG
                 Logger.DebugAllowed = true;
+#endif
                 var cancelSource = new CancellationTokenSource();
 
                 var layout = new ConsoleLayout
@@ -80,7 +82,8 @@ namespace Arcadia
                     .AddModule<Modules.Casino>()
                     .AddModule<Modules.Multiplayer>()
                     .AddModule<Common>()
-                    .AddModule<Economy>();
+                    .AddModule<Economy>()
+                    .AddModule<Records>();
 
                 Client client = builder.Build();
                 client.Status = UserStatus.Online;

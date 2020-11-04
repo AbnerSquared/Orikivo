@@ -13,10 +13,11 @@ namespace Arcadia
     /// </summary>
     public class Var
     {
-        public const char Placeholder = '*';
-        public const char Separator = ':';
-        public const char TextSeparator = '_';
+        public static readonly char Placeholder = '*';
+        public static readonly char Delimiter = ':';
+        public static readonly char TextDelimiter = '_';
 
+        // TODO: Move to a static viewer class
         private static string WriteDefault(long value, VarType type = VarType.Stat)
         {
             return type switch
@@ -238,6 +239,7 @@ namespace Arcadia
                    ?? WriteDefault(GetValue(user, id), type);
         }
 
+        // TODO: Move to a static viewer class
         public static string ViewDetails(ArcadeUser user, string id, in IEnumerable<ArcadeUser> users = null)
         {
             if (!user.Stats.ContainsKey(id))
@@ -264,6 +266,7 @@ namespace Arcadia
             return details.ToString();
         }
 
+        // TODO: Move to a static viewer class
         private static string WriteLeaderboardRank(in IEnumerable<ArcadeUser> users, ArcadeUser user, string id)
             => $"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**";
 
@@ -342,7 +345,7 @@ namespace Arcadia
         public static void Rename(ArcadeUser user, string a, string b)
         {
             if (user.Stats.ContainsKey(b))
-                throw new ArgumentException("The new name for the specified var already exists");
+                throw new ArgumentException("The new name for the specified variable already exists");
 
             user.SetVar(a, 0, out long previous);
             user.SetVar(b, previous);
@@ -530,15 +533,17 @@ namespace Arcadia
             };
         }
 
+        // TODO: Move to a static viewer class
         public static string Humanize(string id)
         {
             if (!IsValid(id))
                 return ""; // throw new ArgumentException("Invalid ID specified");
 
             string key = GetKey(id);
-            return $"{HumanizeGroup(id)}{Separator} {HumanizePartial(key)}";
+            return $"{HumanizeGroup(id)}{Delimiter} {HumanizePartial(key)}";
         }
 
+        // TODO: Move to a static viewer class
         private static string HumanizeGroup(string id)
         {
             string group = GetGroup(id);
@@ -555,6 +560,7 @@ namespace Arcadia
             return HumanizePartial(group);
         }
 
+        // TODO: Move to a static viewer class
         private static string HumanizePartial(string input)
         {
             var reader = new StringReader(input);
@@ -565,7 +571,7 @@ namespace Arcadia
             {
                 char c = reader.Read();
 
-                if (c == TextSeparator)
+                if (c == TextDelimiter)
                 {
                     text.Append(' ');
                     upper = true;
@@ -652,7 +658,7 @@ namespace Arcadia
             return c >= '0' && c <= '9'
                    || c >= 'A' && c <= 'Z'
                    || c >= 'a' && c <= 'z'
-                   || c == TextSeparator
+                   || c == TextDelimiter
                    || c == '.' || c == '#'
                    || c == '/';
         }
@@ -664,7 +670,7 @@ namespace Arcadia
 
             var reader = new StringReader(id);
 
-            return reader.ReadUntil(Separator);
+            return reader.ReadUntil(Delimiter);
         }
 
         public static string GetKey(string id)
@@ -674,7 +680,7 @@ namespace Arcadia
 
             var reader = new StringReader(id);
 
-            reader.SkipUntil(Separator, true);
+            reader.SkipUntil(Delimiter, true);
 
             return reader.GetRemaining();
         }
@@ -733,14 +739,14 @@ namespace Arcadia
 
             var reader = new StringReader(group);
 
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
+            if (reader.CanRead() && reader.Peek() == TextDelimiter)
                 return false;
 
             while (reader.CanRead())
             {
                 char c = reader.Read();
 
-                if (!IsCharValid(c) || c == Placeholder || c == Separator)
+                if (!IsCharValid(c) || c == Placeholder || c == Delimiter)
                     return false;
             }
 
@@ -754,14 +760,14 @@ namespace Arcadia
 
             var reader = new StringReader(key);
 
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
+            if (reader.CanRead() && reader.Peek() == TextDelimiter)
                 return false;
 
             while (reader.CanRead())
             {
                 char c = reader.Read();
 
-                if (!IsCharValid(c) || c == Placeholder || c == Separator)
+                if (!IsCharValid(c) || c == Placeholder || c == Delimiter)
                     return false;
             }
 
@@ -775,21 +781,21 @@ namespace Arcadia
 
             id = id.Trim();
 
-            if (!id.Contains(Separator))
+            if (!id.Contains(Delimiter))
                 return false;
 
             var reader = new StringReader(id);
 
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
+            if (reader.CanRead() && reader.Peek() == TextDelimiter)
                 return false;
 
             while (reader.CanRead())
             {
                 char c = reader.Read();
-                if (c == Placeholder && reader.CanRead() && reader.Peek() != Separator)
+                if (c == Placeholder && reader.CanRead() && reader.Peek() != Delimiter)
                     return false;
 
-                if (c == Separator)
+                if (c == Delimiter)
                     break;
 
                 if (!IsCharValid(c) && c != Placeholder)
@@ -805,14 +811,14 @@ namespace Arcadia
 
             int groupCursor = reader.GetCursor();
 
-            if (reader.CanRead() && reader.Peek() == TextSeparator)
+            if (reader.CanRead() && reader.Peek() == TextDelimiter)
                 return false;
 
             while (reader.CanRead())
             {
                 char c = reader.Read();
 
-                if (!IsCharValid(c) || c == Separator)
+                if (!IsCharValid(c) || c == Delimiter)
                     return false;
             }
 
@@ -826,7 +832,7 @@ namespace Arcadia
             if (!IsKeyValid(key))
                 throw new ArgumentException("Could not validate the specified key to a Var.");
 
-            Id = $"{Placeholder}{Separator}{key}";
+            Id = $"{Placeholder}{Delimiter}{key}";
             Template = template;
             Type = type;
             DefaultValue = defaultValue;
@@ -850,8 +856,6 @@ namespace Arcadia
 
         public string Name { get; internal set; }
 
-        // If this value is greater than the max_id, set the MaxId to this value
-        // If unspecified, do nothing
         public string UpperId { get; private set; }
 
         public string Summary { get; internal set; }

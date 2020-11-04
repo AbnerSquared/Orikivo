@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcadia
+namespace Orikivo
 {
     /// <summary>
     /// Represents a range for two <see cref="DateTime"/> values.

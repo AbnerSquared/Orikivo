@@ -220,7 +220,7 @@ namespace Orikivo
                 panel.AppendLine();
                 panel.AppendLine("**Categories**");
 
-                foreach(ModuleNode module in GetBaseModules().Select(x => new ModuleNode(x)))
+                foreach(ModuleNode module in GetBaseModules().OrderBy(x => x.Name).Select(x => new ModuleNode(x)))
                 {
                     panel.Append("> ");
 

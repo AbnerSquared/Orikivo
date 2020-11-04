@@ -44,6 +44,7 @@ namespace Arcadia
 
             PageIndex = 0;
             PageCount = Paginate.GetPageCount(Catalog.ItemIds.Count, ShopHelper.GroupSize);
+            KnownShopCount = ShopHelper.GetKnownShops(context.Account).Count();
         }
 
         public CatalogHistory GetHistory()
@@ -76,28 +77,33 @@ namespace Arcadia
 
         private bool CanClearNotice { get; set; }
 
-        public static string WriteVendor(Vendor vendor, ShopState state, string replyOverride = null)
+        private bool HasUpdatedCatalog { get; set; }
+
+        private int KnownShopCount { get; }
+
+        // TODO: Place in ShopHelper
+        public static string GetVendorText(Vendor vendor, ShopState state, string replyOverride = null)
         {
             string name = vendor?.Name ?? Vendor.NameGeneric;
             string reply = string.IsNullOrWhiteSpace(replyOverride) ? ShopHelper.GetVendorReply(vendor, state) : replyOverride;
             return $"**{name}**: \"{reply}\"";
         }
 
-        public static string WriteMenuHeader(Vendor vendor, ShopState state, string replyOverride = null)
+        // TODO: Place in ShopHelper
+        public static string GetMenuHeader(Vendor vendor, ShopState state, string replyOverride = null)
         {
             var header = new StringBuilder();
 
-            header.AppendLine($"> {WriteVendor(vendor, state, replyOverride)}");
+            header.AppendLine($"> {GetVendorText(vendor, state, replyOverride)}");
 
             if (!state.EqualsAny(ShopState.Exit, ShopState.Timeout))
-                header.AppendLine($"> {WriteActionBar(state)}");
+                header.AppendLine($"> {GetMenuActions(state)}");
             // Write Menu Footer (available cash for the shop's currency type, and available inventory space)
             return header.ToString();
         }
 
-        private bool HasUpdatedCatalog = false;
-
-        public string WriteMenuBody(ArcadeUser user, Shop shop, ItemCatalog catalog, ShopState state)
+        // TODO: Make static and place in ShopHelper
+        public string GetMenuBody(ArcadeUser user, Shop shop, ItemCatalog catalog, ShopState state)
         {
             var body = new StringBuilder();
 
@@ -105,7 +111,6 @@ namespace Arcadia
             {
                 body.Append(ShopHelper.WriteCatalog(shop.Catalog, catalog, PageIndex));
 
-                // TODO: Instead of updating the entire catalog for the user, update based on how many items are visible on that page, so that each page has to been seen to know about the item
                 if (!HasUpdatedCatalog)
                 {
                     foreach ((string itemId, int amount) in Paginate.GroupAt(catalog.ItemIds, PageIndex, ShopHelper.GroupSize)) // catalog.ItemIds)
@@ -122,14 +127,12 @@ namespace Arcadia
                 body.Append(InventoryViewer.ViewShopSellables(user, shop));
             }
 
-            // Menu, Enter, Exit, Timeout: These do not have bodies
-            // ViewBuy: WriteCatalog()
-            // ViewSell: Inventory.Write()
-
             return body.ToString();
         }
 
-        public static string WriteActionBar(ShopState state)
+        // TODO: Place in ShopHelper
+        // TODO: This needs to include the `next` `previous` `first` `last` `goto <page>` base on page count
+        public static string GetMenuActions(ShopState state)
         {
             // var actions = new List<string>();
 
@@ -144,6 +147,7 @@ namespace Arcadia
             return "`<item_id>` `back` `leave`";
         }
 
+        // TODO: Place in ShopHelper
         public static string WriteBuyNotice(Item item, int amount, long cost)
         {
             var notice = new StringBuilder();
@@ -163,6 +167,7 @@ namespace Arcadia
             return notice.ToString();
         }
 
+        // TODO: Make static and place in ShopHelper
         private string DrawMenu(ArcadeUser user, Vendor vendor, ItemCatalog catalog, Shop shop, ShopState state, string notice = "", string replyOverride = null)
         {
             var menu = new StringBuilder();
@@ -170,8 +175,8 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(notice))
                 menu.Append(notice);
 
-            menu.Append(WriteMenuHeader(vendor, state, replyOverride));
-            menu.Append(WriteMenuBody(user, shop, catalog, state));
+            menu.Append(GetMenuHeader(vendor, state, replyOverride));
+            menu.Append(GetMenuBody(user, shop, catalog, state));
 
             return menu.ToString();
         }
@@ -205,6 +210,7 @@ namespace Arcadia
             await MessageReference.ModifyAsync(DrawMenu(Context.Account, Vendor, Catalog, Shop, State, Notice, replyOverride)).ConfigureAwait(false);
         }
 
+        // TODO: Separate the three primary shop menu states into their own methods to simplify this method
         public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
             var reader = new StringReader(message.Content);
@@ -277,6 +283,17 @@ namespace Arcadia
                         // "Hey. Word is, there's another shop out there that sells color palettes on an entirely different level."
                     case "leave":
                     case "back":
+
+
+                        // TODO: Implement notifying the user if a new shop has appeared for them.
+                        /*
+                        string replyOverride = null;
+                        if (ShopHelper.GetKnownShops(User).Count() != KnownShopCount)
+                        {
+                            replyOverride = "";
+                        }
+                        */
+
                         Notice = null;
                         State = ShopState.Exit;
                         await UpdateAsync();
@@ -429,6 +446,14 @@ namespace Arcadia
             return SessionResult.Continue;
         }
 
+        public override async Task OnTimeoutAsync(SocketMessage message)
+        {
+            State = ShopState.Timeout;
+            Notice = null;
+            await UpdateAsync();
+        }
+
+        // TODO: Remove this method and use the existing ShopHelper.CanSell() method
         private bool CanSell(Item item)
             => (item.Tag & Shop.SellTags) != 0;
 
@@ -480,6 +505,7 @@ namespace Arcadia
             User.AddToVar(ShopHelper.GetTotalBoughtId(Shop.Id), amount);
         }
 
+        // TODO: Move to ShopHelper
         private long GetWorth(Item item, int amount)
         {
             long value = Shop.SellDeduction > 0
@@ -489,27 +515,32 @@ namespace Arcadia
             return value * amount;
         }
 
+        // TODO: Move to ShopHelper
         private long GetWorth(long value, int deduction)
             => (long)Math.Floor(value * (1 - deduction / (double)100));
 
+        // TODO: Move to ShopHelper
         private bool CanBuy(Item item, int amount)
         {
             long cost = GetCost(item, amount);
             return CanTake(cost, item.Currency);
         }
 
+        // TODO: Move to ShopHelper
         private long GetCost(Item item, int amount)
         {
             long cost = ShopHelper.CostOf(item, Catalog);
             return cost * amount;
         }
 
+        // TODO: Move to ShopHelper
         private bool CanTake(long value, CurrencyType currency)
         {
             long balance = GetBalance(currency);
             return balance - value >= 0;
         }
 
+        // TODO: Move to ShopHelper
         private void Take(long value, CurrencyType currency)
         {
             if (!CanTake(value, currency))
@@ -518,6 +549,7 @@ namespace Arcadia
             User.Take(value, currency);
         }
 
+        // TODO: Move to ShopHelper
         private long GetBalance(CurrencyType currency)
         {
             return currency switch
@@ -547,13 +579,6 @@ namespace Arcadia
                 return null;
 
             return ItemHelper.GetItem(itemId);
-        }
-
-        public override async Task OnTimeoutAsync(SocketMessage message)
-        {
-            State = ShopState.Timeout;
-            Notice = null;
-            await UpdateAsync();
         }
     }
 }

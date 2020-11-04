@@ -479,6 +479,7 @@ namespace Arcadia.Multiplayer
             return info.ToString();
         }
 
+        // TODO: Reduce method complexity and reduce Logger usage (or limit it to the debug build only)
         public async Task OnMessageReceived(SocketMessage message)
         {
             bool allowUpdate = true;
@@ -490,7 +491,7 @@ namespace Arcadia.Multiplayer
 
             if (!ReservedChannels.ContainsKey(message.Channel.Id))
             {
-                Logger.Debug("Message channel not reserved to server");
+                // Logger.Debug("Message channel not reserved to server");
                 return;
             }
 
@@ -499,12 +500,12 @@ namespace Arcadia.Multiplayer
             {
                 if (ReservedChannels[message.Channel.Id] != ReservedUsers[user.Id])
                 {
-                    Logger.Debug("Reserved channel does not match reserved user");
+                    // Logger.Debug("Reserved channel does not match reserved user");
                     return;
                 }
             }
 
-            Logger.Debug("Reserve comparison success");
+            // Logger.Debug("Reserve comparison success");
 
             // Throw an error if the reserved reference points to an empty server
             if (!Servers.ContainsKey(ReservedChannels[message.Channel.Id]))
@@ -522,7 +523,7 @@ namespace Arcadia.Multiplayer
                 throw new Exception("Unable to retrieve the server connection for the specified channel");
             }
 
-            Logger.Debug("Ensure connection success");
+            // Logger.Debug("Ensure connection success");
 
             Player player = server.GetPlayer(user.Id);
             ServerConnection connection = server.GetConnection(message.Channel.Id);
@@ -547,7 +548,7 @@ namespace Arcadia.Multiplayer
                         break;
                 }
 
-                Logger.Debug("Session ensure success");
+                // Logger.Debug("Session ensure success");
             }
 
             allowUpdate = player != null;

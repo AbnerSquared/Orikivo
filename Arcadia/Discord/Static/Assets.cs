@@ -642,7 +642,7 @@ namespace Arcadia
                 Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
                 Score = 100,
-                LockQuote = "Win the casino.",
+                LockQuote = "Beat the casino.",
                 Quote = "You have beaten the odds of the casino, reaching over 10,000 in gambling chips.",
                 Criteria = user => user.ChipBalance >= 10000
             },
@@ -713,7 +713,7 @@ namespace Arcadia
                 Tag = MeritTag.Common,
                 Rank = MeritRank.Silver,
                 Score = 25,
-                Quote = "You have created a new color from other colors.",
+                Quote = "You have created a new color from existing colors.",
                 Hidden = true
             },
             new Merit
@@ -839,7 +839,7 @@ namespace Arcadia
             new Merit
             {
                 Id = "casino:lucky_guesses",
-                Name = "Lucky Lassie",
+                Name = "Lucky Guessing",
                 Tag = MeritTag.Casino,
                 Rank = MeritRank.Silver,
                 Score = 25,
@@ -1192,19 +1192,6 @@ namespace Arcadia
 
                         if (!VerifyName(name, out string reason))
                             return UsageResult.FromError(reason);
-
-                        /*
-                        if (data.Data == null)
-                        {
-                            var newData = new ItemData(data.Id, data.Locked, data.StackCount, new UniqueItemData() { Name = name }, data.Seal);
-                            ItemHelper.DeleteItem(ctx.User, data);
-                            ctx.User.Items.Add(newData);
-                            data = newData;
-                        }
-                        else
-                        {
-                            
-                        }*/
 
                         data.Data.Name = name;
 
@@ -2111,7 +2098,7 @@ namespace Arcadia
         private static string GetItemPreview(string itemId, int amount)
         {
             string icon = ItemHelper.IconOf(itemId) ?? "•";
-            string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
+            string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(itemId);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";
         }

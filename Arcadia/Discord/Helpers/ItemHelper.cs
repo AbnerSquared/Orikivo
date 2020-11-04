@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
+using JetBrains.Annotations;
 using Orikivo;
 
 namespace Arcadia
@@ -122,6 +123,11 @@ namespace Arcadia
                 throw new ArgumentException("There are more than one groups with the specified ID.");
 
             return Assets.Groups.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static string GetGroupIcon(string groupId)
+        {
+            return GetGroup(groupId)?.Icon?.ToString() ?? "";
         }
 
         public static ItemData GetBestStack(ArcadeUser user, Item item)
@@ -323,9 +329,25 @@ namespace Arcadia
             return item.Name;
         }
 
-        public static string GroupOf(string id)
+        public static string NameOf(ItemData data)
         {
-            if (!TryGetItem(id, out Item item))
+            if (Check.NotNull(data.Data?.Name))
+                return data.Data?.Name;
+
+            if (data.Seal != null)
+                return NameOf(data.Seal.ReferenceId);
+
+            string icon = IconOf(data);
+
+            if (Check.NotNull(icon))
+                return GetBaseName(data.Id);
+
+            return NameOf(data.Id);
+        }
+
+        public static string GroupOf(string itemId)
+        {
+            if (!TryGetItem(itemId, out Item item))
                 return null;
 
             return item.GroupId;
@@ -334,12 +356,20 @@ namespace Arcadia
         public static string IconOf(string itemId)
             => GetItem(itemId)?.GetIcon() ?? "";
 
+        public static string IconOf(ItemData data)
+        {
+            if (data.Seal != null)
+                return IconOf(data.Seal.ReferenceId);
+
+            return IconOf(data.Id);
+        }
+
         public static long SizeOf(string itemId)
             => GetItem(itemId)?.Size ?? 0;
 
         public static Item ItemOf(ArcadeUser user, string uniqueId)
         {
-            if (user.Items.Any(x => x.Data?.Id == uniqueId))
+            if (user.Items.All(x => x.Data?.Id != uniqueId))
                 return null;
 
             return GetItem(user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Id);
@@ -347,9 +377,9 @@ namespace Arcadia
 
         public static ItemData DataOf(ArcadeUser user, string itemId, string uniqueId = null)
         {
-            return user.Items.FirstOrDefault(x => (!string.IsNullOrWhiteSpace(uniqueId)
-                ? x.Data?.Id == uniqueId
-                : x.Id == itemId) && x.Seal == null);
+            return user.Items.FirstOrDefault(x =>
+                (!string.IsNullOrWhiteSpace(uniqueId) ? x.Data?.Id == uniqueId && x.Id == itemId : x.Id == itemId)
+                && x.Seal == null);
         }
 
         public static ItemData DataOf(ArcadeUser user, Item item, string uniqueId = null)

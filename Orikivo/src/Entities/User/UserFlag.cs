@@ -1,4 +1,4 @@
-﻿namespace Orikivo.Desync
+﻿namespace Orikivo
 {
     [System.Flags]
     public enum UserFlag
