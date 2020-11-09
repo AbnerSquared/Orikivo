@@ -5,21 +5,6 @@ using System.Text;
 
 namespace Orikivo.Text.Pagination
 {
-    public enum TextSplitOptions
-    {
-        Character = 1,
-        Word = 2,
-        Line = 3
-    }
-
-    public enum GroupSplitOptions
-    {
-        Character = 1,
-        Word = 2,
-        Row = 3,
-        Element = 4
-    }
-
     public static class Paginate
     {
         // What is the offset length for this collection on the specified index?

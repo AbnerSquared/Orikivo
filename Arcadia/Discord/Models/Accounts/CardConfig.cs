@@ -32,14 +32,14 @@ namespace Arcadia
 
         [ReadOnly]
         [JsonProperty("font")]
-        [Description("Defines the **Font** used for your the name on your **Card**.")]
+        [Description("Defines the **Font** used for the name on your **Card**.")]
         public FontType Font { get; internal set; } = FontType.Orikos;
 
         public string Display()
         {
             var panel = new StringBuilder();
 
-            panel.AppendLine($"> **Card Config**");
+            panel.AppendLine($"> **Card Properties**");
 
             PropertyInfo[] properties = GetType().GetProperties();
 

@@ -21,8 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Tests", "Orikivo.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Desync", "Orikivo.Desync\Orikivo.Desync.csproj", "{C20B2260-7C4D-408D-A807-524C75690E78}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordBotList", "..\forks\DiscordBotList.Net\DiscordBotList\DiscordBotList.csproj", "{E6B22357-A2C4-4802-82FC-92B52C73E31F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,10 +63,6 @@ Global
 		{C20B2260-7C4D-408D-A807-524C75690E78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C20B2260-7C4D-408D-A807-524C75690E78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C20B2260-7C4D-408D-A807-524C75690E78}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E6B22357-A2C4-4802-82FC-92B52C73E31F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E6B22357-A2C4-4802-82FC-92B52C73E31F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E6B22357-A2C4-4802-82FC-92B52C73E31F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E6B22357-A2C4-4802-82FC-92B52C73E31F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

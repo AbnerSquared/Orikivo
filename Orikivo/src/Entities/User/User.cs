@@ -18,7 +18,6 @@ namespace Orikivo
             string username,
             string discriminator,
             DateTime createdAt,
-            Notifier notifier,
             ulong balance,
             ulong tokenBalance,
             ulong debt,
@@ -131,8 +130,6 @@ namespace Orikivo
                 Balance -= (ulong)value;
         }
 
-        
-
         /// <summary>
         /// Sets or updates a cooldown for a user.
         /// </summary>
@@ -213,7 +210,9 @@ namespace Orikivo
             => Merits.ContainsKey(id);
 
         public override bool Equals(object obj)
-            => obj != null && GetType() == obj.GetType() && (ReferenceEquals(this, obj) || Equals(obj as IJsonModel));
+            => obj != null
+            && GetType() == obj.GetType()
+            && (ReferenceEquals(this, obj) || Equals(obj as IJsonModel));
 
         public override int GetHashCode()
             => unchecked((int)Id);

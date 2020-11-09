@@ -77,6 +77,7 @@ namespace Arcadia
             },
             new Var
             {
+                // TODO: Do something like GetLocaleText(string id) => var_{id}_name AND var_{id}_summary0
                 Id = Stats.Common.QuestCapacity,
                 Name = "Quest Capacity",
                 Type = VarType.Attribute,

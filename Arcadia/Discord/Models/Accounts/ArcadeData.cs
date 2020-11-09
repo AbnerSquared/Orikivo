@@ -8,7 +8,7 @@ namespace Arcadia
 {
     public class ArcadeData
     {
-        public static readonly string Version = "1.0.0rc-1";// "0.8.1b";
+        public static readonly string Version = "1.0.0rc-2";
 
         public ArcadeData()
         {
@@ -16,7 +16,8 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs, string bonusGameId, DateTime bonusAssignedAt)
+        internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs,
+            string bonusGameId, DateTime bonusAssignedAt)
         {
             LogChannelId = logChannelId;
             Catalogs = catalogs ?? new Dictionary<string, ItemCatalog>();

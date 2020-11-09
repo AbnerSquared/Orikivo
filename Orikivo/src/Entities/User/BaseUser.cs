@@ -2,7 +2,6 @@
 using System;
 using Discord;
 using MongoDB.Bson.Serialization.Attributes;
-using Orikivo.Desync;
 
 namespace Orikivo
 {

@@ -2,9 +2,10 @@
 
 namespace Orikivo.Drawing
 {
-    public struct Padding
+    public readonly struct Padding
     {
         public static readonly Padding Char = new Padding(right: 1);
+
         public static readonly Padding Empty = new Padding(0);
 
         public Padding(int lrtb)
@@ -22,16 +23,16 @@ namespace Orikivo.Drawing
         }
 
         [JsonProperty("left")]
-        public int Left { get; set; }
+        public int Left { get; }
 
         [JsonProperty("right")]
-        public int Right { get; set; }
+        public int Right { get; }
 
         [JsonProperty("top")]
-        public int Top { get; set; }
+        public int Top { get; }
 
         [JsonProperty("bottom")]
-        public int Bottom { get; set; }
+        public int Bottom { get; }
 
         [JsonIgnore]
         public int Width => Left + Right;

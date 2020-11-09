@@ -21,7 +21,8 @@ namespace Arcadia.Modules
         {
             _info = info;
         }
-
+        
+        // [Id("")]: For use in locale.
         [DoNotNotify]
         [Command("about")]
         [Summary("View basic information about **Orikivo Arcade**.")]
@@ -61,7 +62,7 @@ namespace Arcadia.Modules
 
         [DoNotNotify]
         [Command("help"), Alias("h")]
-        [Summary("A guide to understanding everything **Orikivo** has to offer.")]
+        [Summary("A guide to understanding everything **Orikivo Arcade** has to offer.")]
         public async Task HelpAsync(
             [Remainder, Summary("The **InfoContext** that defines your search.")]string context = null)
         {
@@ -89,7 +90,7 @@ namespace Arcadia.Modules
         [RequireGuild(AccountHandling.ReadOnly)]
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("guildoptions"), Alias("guildconfig", "gcfg"), Priority(1)]
-        [Summary("View more details for the specified option.")]
+        [Summary("View more details for the specified guild option.")]
         public async Task ViewGuildOptionAsync([Summary("The ID of the option to inspect.")]string id)
         {
             await Context.Channel.SendMessageAsync(Context.Server.Config.ViewOption(id, Context.Account.Config.Tooltips));

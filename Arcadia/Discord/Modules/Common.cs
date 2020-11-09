@@ -318,7 +318,7 @@ namespace Arcadia.Modules
 
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("inspectat")]
-        [Summary("Inspect at specific **Item** slot in your inventory.")]
+        [Summary("Inspect a specific **Item** slot in your inventory.")]
         public async Task ViewInventorySlotAsync([Name("slot_index")]int slot)
         {
             if (Context.Account.Items.Count == 0)

@@ -11,9 +11,9 @@ namespace Orikivo.Desync
     public static class EventParser
     {
         // TODO: Find a better way to handle these custom markers.
-        public static Dictionary<string, EventMarker> Markers => new Dictionary<string, EventMarker>
+        public static Dictionary<string, EventTemplate> Markers => new Dictionary<string, EventTemplate>
         {
-            ["user"] = new EventMarker
+            ["user"] = new EventTemplate
             {
                 Name = "user",
                 Aliases = new List<string>
@@ -22,7 +22,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.User.Mention
             },
-            ["name"] = new EventMarker
+            ["name"] = new EventTemplate
             {
                 Name = "name",
                 Aliases = new List<string>
@@ -31,7 +31,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.User.Username
             },
-            ["user_id"] = new EventMarker
+            ["user_id"] = new EventTemplate
             {
                 Name = "user_id",
                 Aliases = new List<string>
@@ -40,7 +40,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.User.Id.ToString()
             },
-            ["position"] = new EventMarker
+            ["position"] = new EventTemplate
             {
                 Name = "position",
                 Aliases = new List<string>
@@ -49,7 +49,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => Format.Ordinal(ctx.Guild.Users.OrderBy(x => x.JoinedAt.Value).ToList().IndexOf(ctx.User) + 1)
             },
-            ["guild"] = new EventMarker
+            ["guild"] = new EventTemplate
             {
                 Name = "guild",
                 Aliases = new List<string>
@@ -58,7 +58,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.Guild.Name
             },
-            ["guild_id"] = new EventMarker
+            ["guild_id"] = new EventTemplate
             {
                 Name = "guild_id",
                 Aliases = new List<string>
@@ -67,7 +67,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.Guild.Id.ToString()
             },
-            ["owner"] = new EventMarker
+            ["owner"] = new EventTemplate
             {
                 Name = "owner",
                 Aliases = new List<string>
@@ -76,7 +76,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.Guild.Owner.Username
             },
-            ["date"] = new EventMarker
+            ["date"] = new EventTemplate
             {
                 Name = "date",
                 Aliases = new List<string>
@@ -85,7 +85,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("M/d/yyyy")
             },
-            ["full_date"] = new EventMarker
+            ["full_date"] = new EventTemplate
             {
                 Name = "full_date",
                 Aliases = new List<string>
@@ -94,7 +94,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString($"MMMM d, yyyy")
             },
-            ["time"] = new EventMarker
+            ["time"] = new EventTemplate
             {
                 Name = "time",
                 Aliases = new List<string>
@@ -103,7 +103,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("h:mm tt")
             },
-            ["time_24"] = new EventMarker
+            ["time_24"] = new EventTemplate
             {
                 Name = "time_24",
                 Aliases = new List<string>
@@ -112,7 +112,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("HH:mm tt")
             },
-            ["year"] = new EventMarker
+            ["year"] = new EventTemplate
             {
                 Name = "year",
                 Aliases = new List<string>
@@ -121,7 +121,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Year.ToString()
             },
-            ["month"] = new EventMarker
+            ["month"] = new EventTemplate
             {
                 Name = "month",
                 Aliases = new List<string>
@@ -130,7 +130,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Month.ToString()
             },
-            ["month_name"] = new EventMarker
+            ["month_name"] = new EventTemplate
             {
                 Name = "month_name",
                 Aliases = new List<string>
@@ -139,7 +139,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("MMMM")
             },
-            ["day"] = new EventMarker
+            ["day"] = new EventTemplate
             {
                 Name = "day",
                 Aliases = new List<string>
@@ -149,7 +149,7 @@ namespace Orikivo.Desync
                 Writer = ctx => ctx.ReceivedAt.Day.ToString()
             },
 
-            ["day_name"] = new EventMarker
+            ["day_name"] = new EventTemplate
             {
                 Name = "day_name",
                 Aliases = new List<string>
@@ -158,7 +158,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.DayOfWeek.ToString()
             },
-            ["hour"] = new EventMarker
+            ["hour"] = new EventTemplate
             {
                 Name = "hour",
                 Aliases = new List<string>
@@ -167,7 +167,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Hour.ToString()
             },
-            ["hour_24"] = new EventMarker
+            ["hour_24"] = new EventTemplate
             {
                 Name = "hour_24",
                 Aliases = new List<string>
@@ -176,7 +176,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.ToString("hh")
             },
-            ["minute"] = new EventMarker
+            ["minute"] = new EventTemplate
             {
                 Name = "minute",
                 Aliases = new List<string>
@@ -185,7 +185,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Minute.ToString()
             },
-            ["second"] = new EventMarker
+            ["second"] = new EventTemplate
             {
                 Name = "second",
                 Aliases = new List<string>
@@ -194,7 +194,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Second.ToString()
             },
-            ["millisecond"] = new EventMarker
+            ["millisecond"] = new EventTemplate
             {
                 Name = "millisecond",
                 Aliases = new List<string>
@@ -203,7 +203,7 @@ namespace Orikivo.Desync
                 },
                 Writer = ctx => ctx.ReceivedAt.Millisecond.ToString()
             },
-            ["period"] = new EventMarker
+            ["period"] = new EventTemplate
             {
                 Name = "period",
                 Aliases = new List<string>

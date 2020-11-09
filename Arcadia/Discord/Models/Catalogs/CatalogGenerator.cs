@@ -27,7 +27,7 @@ namespace Arcadia
             Size = size;
 
             if (!Check.NotNullOrEmpty(entries))
-                throw new Exception("Expected at least entry for the catalog generator but returned empty");
+                throw new Exception("Expected at least one entry for the catalog generator but returned empty");
 
             Entries = entries;
             MaxDiscountsAllowed = maxDiscountsAllowed;

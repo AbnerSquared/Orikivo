@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace Orikivo
 {
-    // Moderation class
     /// <summary>
-    /// Represents a parseable marker when writing events.
+    /// Represents a event placeholder.
     /// </summary>
-    public class EventMarker
+    public class EventTemplate
     {
         public string Name { get; set; }
+
         public List<string> Aliases { get; set; } = new List<string>();
 
         /// <summary>
-        /// Represents the function used to convert the <see cref="EventMarker"/> into a readable <see cref="string"/>.
+        /// Represents the function used to convert the <see cref="EventTemplate"/> into a readable <see cref="string"/>.
         /// </summary>
         public Func<EventContext, string> Writer { get; set; }
     }

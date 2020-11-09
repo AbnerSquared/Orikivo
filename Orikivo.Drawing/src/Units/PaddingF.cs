@@ -1,6 +1,6 @@
 ﻿namespace Orikivo.Drawing
 {
-    public struct PaddingF
+    public readonly struct PaddingF
     {
         public PaddingF(float ltrb)
         {
@@ -15,16 +15,22 @@
             Bottom = bottom;
         }
 
-        public float Left { get; set; }
+        public float Left { get; }
 
-        public float Right { get; set; }
+        public float Right { get; }
 
-        public float Top { get; set; }
+        public float Top { get; }
 
-        public float Bottom { get; set; }
+        public float Bottom { get; }
 
         public float Width => Right + Left;
 
         public float Height => Bottom + Top;
+
+        public bool IsEmpty =>
+            Left == 0
+            && Right == 0
+            && Bottom == 0
+            && Right == 0;
     }
 }

@@ -45,7 +45,7 @@ namespace Arcadia.Services
                 LeaderboardQuery.Level => "> 📈 **Leaderboard: Experience**",
                 LeaderboardQuery.Chips => "> 📈 **Leaderboard: Casino**",
                 LeaderboardQuery.Merits => "> 📈 **Leaderboard: Merits**",
-                _ => "> 📈 **Leaderboard**"
+                _ => "> 📈 **Leaderboards**"
             };
         }
 

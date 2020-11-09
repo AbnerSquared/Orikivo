@@ -10,7 +10,7 @@ namespace Arcadia
     {
         internal ItemSealData()
         {
-            ReferenceId = "$_seal";
+            ReferenceId = Ids.Items.InternalSealedItem;
         }
 
         internal ItemSealData(string referenceId)

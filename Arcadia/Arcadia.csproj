@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Orikivo\Orikivo.csproj" />
-    <ProjectReference Include="..\..\forks\DiscordBotList.Net\DiscordBotList\DiscordBotList.csproj" />
   </ItemGroup>
 
   <ItemGroup>

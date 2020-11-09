@@ -25,7 +25,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("offer")]
-        [Summary("Send a trade offer to the specified user.")]
+        [Summary("Sends a trade offer to the specified user.")]
         public async Task SendOfferAsync(SocketUser user,
             [Remainder][Summary("The input representing the trade offer to create.")][Tooltip("Type `guide beginner 4` to learn more about how to create trade offers.")] string input)
         {
@@ -50,6 +50,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(result);
         }
 
+        // Instead of using the term 'author' for trade offers, try using 'creator' or 'composer' instead
         [RequireUser]
         [Command("offeraccept")]
         [Summary("Accepts the specified trade offer.")]
@@ -230,7 +231,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("delete"), Alias("del")]
-        [Summary("Delete the specified **Item** from your inventory.")]
+        [Summary("Deletes the specified **Item** from your inventory.")]
         public async Task DeleteItemAsync([Name("data_id")][Summary("The specified item data instance to delete.")]string dataId)
         {
             var deletable = Context.Account.Items.Where(ItemHelper.CanDelete);
@@ -240,7 +241,7 @@ namespace Arcadia.Modules
 
             if (target == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("An unknown or undeletable data instance was specified."));
+                await Context.Channel.SendMessageAsync(Format.Warning("An unknown or indestructable data instance was specified."));
                 return;
             }
 

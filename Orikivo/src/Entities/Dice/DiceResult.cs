@@ -1,23 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Orikivo
 {
-    // barebones class
-    // dice result holds the dice used, how many times it was used, and the resulting rolls for all rolls.
     public class DiceResult
     {
-        public DiceResult(params DiceRoll[] rolls)
-        {
-            Rolls = rolls.ToList();
-        }
-
         public DiceResult(List<DiceRoll> rolls)
         {
-            Rolls = rolls ?? new List<DiceRoll>();
+            if (Check.NotNullOrEmpty(rolls))
+                throw new ArgumentException("The specified collection of dice rolls is null or empty");
+
+            Rolls = rolls;
         }
 
-        public List<DiceRoll> Rolls { get; }
+        public IReadOnlyList<DiceRoll> Rolls { get; }
 
         /// <summary>
         /// Returns an <see cref="IEnumerable{T}"/> of all of the dice that were used on this result.

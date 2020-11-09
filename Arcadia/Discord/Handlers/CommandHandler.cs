@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Arcadia.Multiplayer;
 using Arcadia.Services;
 using DiscordBoats;
-using DiscordBotList;
 using Microsoft.Extensions.Configuration;
 using Format = Orikivo.Format;
 
@@ -61,7 +60,7 @@ namespace Arcadia
 
         private BoatClient BoatClient { get; set; }
 
-        private DblClient DblClient { get; set; }
+        // private DblClient DblClient { get; set; }
 
         private int GuildCount { get; set; }
 
@@ -119,13 +118,13 @@ namespace Arcadia
                 return;
 
             //BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
-            DblClient ??= new DblClient(_client.CurrentUser.Id, _config["token_dbl"]);
+            //DblClient ??= new DblClient(_client.CurrentUser.Id, _config["token_dbl"]);
 
             if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
                 return;
 
             //await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
-            await DblClient.UpdateStatsAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
+            //await DblClient.UpdateStatsAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
             LastGuildCountUpdate = DateTime.UtcNow;
         }
 
