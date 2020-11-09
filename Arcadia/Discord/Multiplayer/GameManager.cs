@@ -74,7 +74,10 @@ namespace Arcadia.Multiplayer
 
         private IEnumerable<GameServer> GetOpenServersFor(ulong userId, ulong guildId = 0, string gameId = null)
         {
-            return Servers.Values.Where(x => MeetsServerCriterion(x, userId, guildId) && !x.IsFull && (string.IsNullOrWhiteSpace(gameId) || x.GameId == gameId));
+            return Servers.Values.Where(x =>
+                MeetsServerCriterion(x, userId, guildId)
+                && !x.IsFull
+                && (string.IsNullOrWhiteSpace(gameId) || x.GameId == gameId));
         }
 
         private static bool MeetsServerCriterion(GameServer server, ulong userId, ulong guildId)
@@ -131,7 +134,7 @@ namespace Arcadia.Multiplayer
                 // and the user is in this server
                 if (ReservedUsers[user.Id] == serverId)
                 {
-                    await channel.SendMessageAsync("You have already joined this server elsewhere.");
+                    await channel.SendMessageAsync(Format.Warning("You have already joined this server elsewhere."));
                     return;
                 }
 
@@ -1300,7 +1303,7 @@ namespace Arcadia.Multiplayer
                                 Console.WriteLine(e);
                                 server.DestroyCurrentSession();
                                 AddConsoleText(server,
-                                    $"[Console] An exception has been thrown while handling an input.");
+                                    $"[Console] An exception was thrown while handling an input.");
                                 allowUpdate = true;
                                 break;
                             }

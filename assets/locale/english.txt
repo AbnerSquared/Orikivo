@@ -3,7 +3,6 @@ error_invalid_context: The specified command context is invalid.
 error_blackjack_joker: Jokers are not supported in Blackjack
 error_reserved_entity: Cannot initialize a new server as the specified {} {} is already reserved to an existing server.
 error_has_session: You are currently in a session.
-error_not_found: 
 error_unknown_recipe: Could not find a recipe with the specified ID
 error_unknown_item: Could not find an item with the specified ID
 error_unknown_merit: An unknown merit was specified
@@ -20,7 +19,7 @@ error_catalog_empty: Expected the specified catalog to have at least a single en
 error_invalid_item_data_constructor: An invalid item data constructor was used
 error_expect_single: Expected at least a single count entry
 error_expect_user: Expected to find the specified user in the given collection
-error_invalid_leaderboard_flag: Cannot user the custom leaderboard flag if the given stat is unspecified
+error_invalid_leaderboard_flag: Cannot use the custom leaderboard flag if the given stat is unspecified
 error_offset_out_of_range: The given offset is larger than the specified collection size
 error_var_exists: The new name for the specified variable already exists
 error_invalid_template_type: An invalid template was given
@@ -43,6 +42,32 @@ error_game_property_not_found: Could not find the specified property
 error_game_property_invalid_type: The specified type within the property does not match the implicit type reference
 error_unknown_stat_update_method: Unknown stat update method
 error_game_property_not_int32: Cannot add to the specified property '{}' as it is not a type of Int32
+error_action_search_failed: Failed to find the specified action in the current game session
+error_action_not_found: Could not find the specified action '{}'
+error_action_already_queued: There is already a queued action with the specified ID ('{}')
+error_expect_propertyattribute: Expected the specified property to have an attribute of type PropertyAttribute
+error_user_reserved: Cannot join this server as the user is reserved to a different server
+error_channel_reserved: Cannot initialize a connection to this server as the channel is already reserved to a different server
+error_unknown_privacy: Unknown privacy state
+error_server_not_found: Cannot find a server with the specified ID
+error_user_server_not_found: Unable to find the requested server for the specified user
+error_server_connection_not_found: Unable to retrieve the server connection for the specified channel
+error_expect_active_session: Expected server to have an active game session
+error_input_method_unspecified: Expected a function for the given input but was unspecified
+error_property_empty: Cannot initialize a game property with an empty value
+error_property_value_mismatch: Could not set the specified value to the given property '{}' as their internal types do not match
+error_server_destroyed: This server has been destroyed
+error_server_player_init_fail: Unable to create a new player for the specified server
+error_option_not_found: Could not find the specified option
+error_property_set_fail: The specified type within the property does not match the implicit type reference
+error_property_search_fail: Could not find the specified property '{}'
+error_player_data_not_found: Cannot find session data for the specified user
+error_trade_id_mismatch: The specified ID did not match either the host or participant
+errror_trade_id_empty: Cannot read the inventory of an empty primary ID
+error_text_out_of_range: The specified text body is outside of the specified message range
+error_expect_header_text: Expected header text to have a specified value
+error_negative_boost: Cannot negate a value if the negation is explicitly specified
+error_invalid_level_range: The level from cannot be larger than the level to.
 
 debug_special_entry: Special entry applied ({})
 debug_load_entry: Next entry loaded ({})
@@ -59,6 +84,35 @@ debug_text_input_read: Reading input: \"{}\"
 debug_text_input_arg_parse: Parsing argument: \"{}\"
 debug_text_input_parse_result: Parsed {} ({})
 debug_message_forbidden: Unable to send a message to user {} as their direct message channel is disabled
+debug_action_queued: [{}] Queued '{}' (at {}) to invoke in {}.
+debug_action_paused: [{}] Action paused at {}
+debug_action_resumed: [{}] Action resumed
+debug_action_cancelled: [{}] Queued action was cancelled
+debug_action_call_fail_cancel: [{}] Queued action was called but was cancelled
+debug_action_call_fail_paused: [{}] Queued action was called but is paused
+debug_action_call_invoke: [{}] Queued action was called and is now executing the action '{}'
+debug_action_call_success: [{}] Queued action invocation was completed, now disposing
+debug_action_call_fail_disposed: [{}] Queued action call was paused but is already disposed
+debug_action_dispose_success: [{}] Queued action was successfully disposed
+debug_channel_not_reserved: Message channel not reserved to server
+debug_user_channel_mismatch: Reserved channel does not match reserved user's game server
+debug_channel_server_not_found: Unable to find the requested server from the given channel
+debug_input_handle_success: Handled input successfully
+debug_attempt_delete_message: Attempting to delete a message
+debug_revoke_delete_permission: Revoked a message deletion permission
+debug_refresh_counter: {}/{} refreshes called
+debug_content_replaced: Replacing connection content
+debug_update_success: Allow update success
+debug_ensure_delete_state: Ensured deletion state as {}
+debug_bind_deleted: A binded connection was deleted, now restoring
+debug_connection_refreshed: Refreshing {} - {}
+debug_refresh_exception: Error thrown when refreshing connection\n{}\n{}
+debug_action_executed: Executing action {}
+debug_get_property: Getting property {}
+debug_get_option: Getting option {}
+debug_property_set: Set property {} to {}
+debug_property_add: Adding {} to property {}
+debug_get_user_data: Getting data of {}
 
 header_odd: Odd.
 header_oops: Oops!
@@ -305,6 +359,8 @@ shop_cost_free: Free
 shop_cost_worthless: Worthless
 shop_word_discount: discount
 shop_word_deduction: deduction
+shop_buy_success: You have purchased an item.
+shop_enter_header: Welcome to **{}**.
 
 stat_unknown_group: Unable to find the specified stat group.
 stat_group_header: Stats: {}
@@ -334,6 +390,28 @@ trade_offer_inbound_header: To: {}
 trade_offer_expiry: Expires in {}
 trade_offer_output_header: Offers:
 trade_offer_input_header: Requests:
+trade_invite_header: Invited **{}** to trade!
+trade_invite_subtitle: *Waiting for a response...*
+trade_ready: **{}** is ready to trade.
+trade_invite_decline_header: Sorry.
+trade_invite_decline_subtitle: **{}** has denied the invitation to trade.
+trade_invite_cancel_header: Oops!
+trade_invite_cancel_subtitle: **{}** has cancelled the trade.
+trade_invite_timeout_header: Oops!
+trade_invite_timeout_subtitle: **{}** did not respond to the invitation in time.
+trade_timeout_header: Oops!
+trade_timeout_subtitle: The trade has timed out.
+trade_partial_empty_header: **{}** has not offered anything.
+trade_partial_header: **{}** offers:
+trade_invite_accept_notice: **{}** has agreed to trade.
+trade_ready_empty: There aren't any items specified!
+trade_select_invalid: An invalid item ID was specified.
+trade_select_remove: Removed the specified item from your offer.
+trade_select_unavailable: This item is unavailable for trading.
+trade_select_add: Added the specified item to your offer.
+trade_success_header: Success!
+trade_success_subtitle: The trade has successfully gone through.
+trade_receive_header: **{}** has received:
 
 bot_name: Orikivo Arcade
 bot_name_secondary: Arcadia
@@ -362,6 +440,73 @@ game_name_default_server: {}'s Server
 game_spectate_subtitle: You are currently spectating the active session.
 game_spectate_failed: Unable to load the spectator panel.
 game_empty_content: Empty Content
+game_player_counter: **{}** {}
+game_player_counter_capped: **{}**/**{}** {} 
+game_server_destroyed: > {} **{}** has been shut down.\n> Sorry about the inconvenience.
+game_word_host: Host
+game_word_playing: Playing
+game_console_message: [Console] {}
+game_to_user_message: [To {}] {}
+game_user_message: [{}] {}
+game_me_message: {} {}
+game_host_start_fail: Only the host may start the game.
+game_session_destroyed: The current session has been destroyed.
+game_host_view_connections_fail: Only the host may view server connections.
+game_host_config_edit_fail: Only the host can edit the server configuration.
+game_config_already_active_fail: There is already a connection that is editing the configuration.
+game_spectate_fail_no_session: Unable to call vote for spectating as there is no currently active session.
+game_spectate_fail_disabled: Spectating is disabled on this server.
+game_spectate_fail_not_supported: The current session does not support spectating.
+game_user_not_found: Unable to find the specified user.
+game_invite_fail_active: The specified user already has an active invitation.
+game_invite_success: Sent an invite to {}.
+game_kick_fail_host: Only the host can kick other players.
+game_kick_fail_null: A player must be specified.
+game_player_not_found: Unable to find the specified player.
+game_multiple_players_found: There is more than one player with the specified username.
+game_config_exit_fail_host: Only the host may exit the server configuration.
+game_config_toggle_fail_host: Only the host may toggle this setting.
+game_config_name_fail_host: Only the host may edit the server's name.
+game_config_mode_fail_host: Only the host may edit the server's game mode.
+game_config_privacy_fail_host: Only the host may edit the server's privacy.
+game_config_privacy_fail_parse: Unable to parse the specified privacy.
+game_config_custom_fail_host: Only the host may edit game rulesets.
+game_config_custom_fail_unspecified: A value was not specified for the given ruleset.
+game_input_exception: An exception was thrown while handling an input.
+game_user_joined: {} has joined.
+game_user_left: {} has left.
+game_user_new_host: {} is now the host.
+game_in_progress: A game is already in progress.
+game_mode_not_found: Unable to find the specified game to start.
+game_init_fail_generic: Unable to initialize a session of '{}'.
+game_exception_thrown: An exception was thrown while initializing a session for {}.
+game_init_player_overflow: There are too many players to start a game of {}.
+game_init_player_underflow: {} more {} {} required to start a game of {}.
+game_conjoin_plural: are
+game_conjoin: is
+game_rename_fail_empty: A name cannot be empty or consist of only whitespace characters.
+game_rename_fail_markdown: A name cannot contain any Markdown sequence characters.
+game_rename_fail_overflow: A name must be less than or equal to {} characters in size.
+game_rename_success: The name of this server has been set to \"{}\".
+game_config_load_fail: Unable to load the options for the specified game.
+game_ruleset_success: Updated the \"{}\" for {}.
+game_ruleset_not_found: Unable to find the specified option.
+game_mode_unknown: An unknown game mode was specified.
+game_mode_success: The game mode has been set to '{}'.
+game_privacy_success: The privacy of this server has been set to {}.
+game_toggle_spectate_fail_active: Spectator toggle cannot be modified while a game session is active.
+game_toggle_spectate_success: Server spectating is now {}.
+game_toggle_chat_success: Server chat is now {}.
+game_toggle_invite_success: Server invites are now {}.
+game_toggle_enabled: enabled
+game_toggle_disabled: disabled
+game_kick_connections_destroyed: All of your visible server connections were destroyed.
+game_kick_reason: You were removed from the server.\nReason: {}
+game_session_ended: The current session has ended.
+game_activity_default: Playing a game
+game_action_exception: An exception was thrown while executing an action.
+game_invite_header: You have been invited to join a server!
+game_default_server_name: New Game Server
 
 broadcast_waiting_header: > `{}` **{}**\n> {} ({})
 broadcast_waiting_console: ```\n{}```
@@ -422,15 +567,25 @@ vendor_sell_fail_generic: I can't afford to pay for all of this.
 vendor_buy_invalid_generic: I can't figure out what item you want to purchase.
 vendor_sell_invalid_generic: I'm not sure what item you're trying to offer me.
 vendor_amount_underflow_generic: You have to specify at least a single instance at a minimum.
-vendor_amount_overflow_generic: You don't have enough of this item to sell that many.
+vendor_buy_amount_overflow_generic: I don't have this many in stock to purchase.
+vendor_sell_amount_overflow_generic: You don't have enough of this item to sell that many.
 vendor_sell_not_owned_generic: You don't have this item in your inventory.
 vendor_sell_not_allowed_generic: Sorry, but I don't buy that here.
 vendor_buy_remainder_generic: Thank you for purchasing the last items in stock. I'll refill soon.
 vendor_buy_limit_generic: You have reached your purchase limit for now. Come back another time.
 
+vote_unavailable_header: Voting
+vote_unavailable_default: Voting allows you to receive a **Token** on each vote you submit.\nYou are given an additional 2 **Tokens** on each 7 day streak.\n**Tokens** can be cashed out, or saved to purchase upcoming special items that can only be bought with this currency!\nYou can vote every **12** hours on any voting platform, and your streak is cut short after **48**  hours.
+vote_portal_header: Voting Portal
+vote_success_default: Thank you for voting!
+vote_cooldown_default: You are on cooldown.
+vote_reset_default: Your streak has been reset.
+vote_bonus_default: You have received a bonus.
+
 stat_unknown: An unknown stat was specified.
 
 // DO: warning_{id}_optional for easily getting locale text.
+
 warning_negative_wager: You can't specify a negative value.
 warning_negative_wager_subtitle: I know what you were trying to do.
 warning_empty_wager: You need to specify a positive amount of Chips to bet.
@@ -468,6 +623,17 @@ warning_destroy_target_missing_session: The server {} does not have an existing 
 warning_invalid_server: Unable to find the specified server.
 warning_catalog_empty_reference: You must specify a reference for the catalog to use.
 warning_merit_not_authorized: You are not authorized to view this merit.
+warning_server_joined_external: You have already joined this server elsewhere.
+warning_server_joined: You have already joined this server.
+warning_server_joined_local: You can only join this server from where it was initialized.
+warning_account_not_found: The user you seek doesn't exist in this world.
+warning_item_not_found: I couldn't find an **Item** under that ID.
+warning_merit_not_found: Could not find a Merit with the specified ID.
+warning_quest_not_found: Could not find a Quest with the specified ID.
+warning_recipe_not_found: I couldn't find a **Recipe** under that ID.
+warning_shop_not_found: I couldn't find a **Shop** under that ID.
+warning_invoker_account_unspecified: The executing user does not have an account.
+warning_invalid_wager: An invalid wager input was given.
 
 autogimi_gather: Gathering results in {}...
 autogimi_result_header: The results are in!
@@ -487,6 +653,140 @@ delete_succes: Deleted {} from your inventory pool.
 
 palette_remove_success: Successfully removed {} from your **Card Palette**.
 
+header_unknown: UNKNOWN_HEADER
+header_server_browser: Server Browser
+header_server_browser_subtitle: View all of the public game servers.
+header_inventory: Inventory
+header_subtitle: View your contents currently in storage.
+header_booster: Boosters
+header_booster_subtitle: View all of your currently active boosters.
+header_stat: Stats
+header_recipe: Recipes
+header_user_browser: User Browser
+header_user_browser_subtitle: Search for a specific user.
+header_guild_browser: Guild Browser
+header_guild_browser_subtitle: Server for a specific guild.
+header_merit: Merits
+header_catalog: Catalog
+header_offer: Trade Offers
+header_offer_subtitle: Because connections matter.
+header_invite: Server Invites
+header_invite_subtitle: Come and join the party!
+
+reply_generic_debt: You have been fined.
+reply_generic_curse: You have been cursed.
+reply_generic_bless: You have been blessed.
+reply_generic_win: You have won.
+reply_generic_recover: You have recovered.
+reply_generic_lost: You have lost.
+reply_generic_even: You broke even.
+reply_generic_claim: You have claimed your contents.
+reply_generic_reset: Your streak has been reset.
+reply_generic_cooldown: You are currently on cooldown.
+reply_generic_bonus: You have been given a bonus.
+reply_invalid_flag: INVALID_FLAG
+
+doubler_reply_generic_exact: You have correctly guessed the exact dying tick.
+
+doubler_reply_win:
+	Nicely done!
+
+doubler_reply_win_large: You beat the odds, boosting your bet by an astonishing x**{}**!
+doubler_reply_win_stop: The machine stopped at **{}** {}.
+
+doubler_reply_exact: Now that was a clean guess.
+doubler_reply_exact_stop: The machine stopped at exactly **{}** {}. Good guessing!
+
+doubler_reply_loss:
+	Ouch. Sorry about that.
+	You missed a chance to win {}.
+
+doubler_reply_loss_start: The machine flat-lined at the very start.
+doubler_reply_loss_single: You were off by a single tick.
+doubler_reply_loss_stop: The machine stopped at **{}** {}.
+doubler_reply_loss_offset: You were **{}** {} {} **{}**.
+
+offset_above: above
+offset_below: below
+
+gimi_reply_debt:
+	I guess you reap what you sow.
+	Please stop. You're hurting yourself.
+	ORS isn't pleased. I'm worried for you.
+	Unable to compute negative funds.
+	Your **Orite** exists no longer. Cease interaction.
+
+gimi_reply_curse:
+	Experience oblivion.
+	The moonlight burns through your funds.
+	The moon has risen.
+	Then perish.
+
+gimi_reply_curse_pocket_lawyer: Pocket Lawyer can't save you this time.
+
+gimi_reply_gold:
+	All that truly glitters is gold.
+	The calm before the storm.
+	Let's hope this got you out of debt.
+	Huh. Who would've known I could even give out this much?
+
+gimi_reply_win:
+	A little bit of **Orite** can go far in life.
+	Your wish has been granted.
+	Hope is a powerful emotion.
+	Ask and you shall receive.
+	A new wave of profits splash your way!
+	z):^)
+	Profitable success.
+
+gimi_reply_win_max: Maximum profits achieved!
+
+gimi_reply_recover:
+	Paying off your debt early helps in the long run.
+	Look at you! You're being an adult.
+	The debt in this reality is no laughing matter.
+
+gimi_reply_lost:
+	I guess they can't all be winners.
+	Yikes!
+	Sorry, lad. I can't host myself for free.
+
+gimi_reply_lost_max: Maximum losses obtained.
+
+gimi_reply_lost_streak:
+	This isn't looking good.
+	I sense a grim path ahead.
+	Please stop now. You are headed towards a downfall of debt.
+
+daily_reply_success:
+	Enjoy the funds.
+	Don't mention it. It's the least I could do.
+	I'll be honest, this is your best bet to earning funds.
+	I'm glad you checked in today. Welcome back.
+	It's an honor to see you again.
+
+daily_reply_reset:
+	Waiting until the right moment is called patience. Waiting forever is called laziness.
+	Acting in the moment is important. Don't wait for life to pass by.
+	You took too long. Now your candy is gone.
+	The timeframe of your attendance has fallen short.
+	Your streak has fallen apart.
+	Welcome to square one.
+
+daily_reply_cooldown:
+	Hang tight. I'm not an OTM.
+	Patience is key.
+	Access denied.
+	Please go find something better to do.
+	Don't worry. I have already made sure you checked in today.
+	I already took care of you.
+	Greed is a road nobody should walk on.
+
+daily_reply_bonus:
+	You have achieved true consistency.
+	Glad to see you could make it.
+	Here's something you might like.
+
 // FORMATTING:
 
 fmt_header: > {} **{}** {}
@@ -494,6 +794,15 @@ fmt_header_subtitle: > {}
 fmt_page_count: Page {} of {}
 fmt_leader: > {}: **{}** {} {}
 fmt_leaderboard_element: **{}** ... {}
+fmt_game_option: {}: **{}**
+fmt_game_connections: Connections ({}): {}
+fmt_game_connection: {} - {} ({})
+fmt_game_players: Players ({}): {}
+fmt_game_player: {} {}
+fmt_game_invite: > `{}` • **{}**
+fmt_game_invite_description: > *\"{}\"*
+fmt_vendor_text: **{}**: \"{}\"
+fmt_shop_menu_header: > {}
 
 // ASSETS: These are custom definitions, not required by the base bot features
 // Use <$locale_id> to automatically use a locale reference.

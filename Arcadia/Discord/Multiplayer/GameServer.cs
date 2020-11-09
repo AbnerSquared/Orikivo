@@ -536,7 +536,7 @@ namespace Arcadia.Multiplayer
                     removedUserIds.Add(player.User.Id);
             }
 
-            await RemovePlayerGroupAsync(removedUserIds, "All visible connections were destroyed");
+            await RemovePlayerGroupAsync(removedUserIds, "All of your visible server connections were destroyed");
             await connection.DestroyAsync();
             connection.Destroyed = true;
             return true;

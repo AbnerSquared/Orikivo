@@ -184,11 +184,11 @@ namespace Arcadia
             "I guess they can't all be winners.",
             "Yikes!",
             "Sorry, lad. I can't host myself for free.",
-            new CasinoReply
+            /*new CasinoReply // Not a fan of this one.
             {
                 Content = "The **E** in your name stands for empty. Just like your wallet.",
                 Criteria = (user, result) => user.Username.ToLower().StartsWith('e')
-            },
+            },*/
             new CasinoReply
             {
                 Content = "Maximum losses obtained.",
@@ -208,7 +208,7 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Content = "Please stop now. You are headed towards debt.",
+                Content = "Please stop now. You are headed towards a downfall of debt.",
                 Criteria = (user, result) => user.GetVar(Stats.Gimi.CurrentLossStreak) > 3,
                 Priority = 1
             }
@@ -217,6 +217,7 @@ namespace Arcadia
         public static readonly string[] DailyReset =
         {
             "Waiting until the right moment is called patience. Waiting forever is called laziness.",
+            "Acting in the moment is important. Don't wait for life to pass by.",
             "You took too long. Now your candy is gone.",
             "The timeframe of your attendance has fallen short.",
             "Your streak has fallen apart.",
@@ -246,7 +247,8 @@ namespace Arcadia
         public static readonly string[] DailyBonus =
         {
             "You have achieved true consistency.",
-            "Glad to see you could make it."
+            "Glad to see you could make it.",
+            "Here's something you might like."
         };
 
         public static readonly CasinoReply[] TickWin =

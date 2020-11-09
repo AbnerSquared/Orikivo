@@ -231,6 +231,7 @@ namespace Arcadia.Multiplayer
             }
         }
 
+        // TODO: Remove this entire structure from games, as they can handle criteria checks on their own
         internal bool MeetsCriterion(string ruleId)
         {
             Logger.Debug($"Checking criterion {ruleId}");
@@ -317,10 +318,10 @@ namespace Arcadia.Multiplayer
         public void SetValue(string id, string fromId)
         {
             if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not the specified property '{id}'");
+                throw new Exception($"Could not find the specified property '{id}'");
 
             if (Properties.All(x => x.Id != fromId))
-                throw new Exception($"Could not the specified property '{fromId}'");
+                throw new Exception($"Could not find the specified property '{fromId}'");
 
             Properties.First(x => x.Id == id).Set(Properties.First(x => x.Id == fromId).Value);
         }
@@ -335,7 +336,7 @@ namespace Arcadia.Multiplayer
             GameProperty property = Properties.First(x => x.Id == id);
 
             if (property.ValueType != typeof(int))
-                throw new Exception($"Cannot add to attribute '{id}' as it is not a type of Int32");
+                throw new Exception($"Cannot add to property '{id}' as it is not a type of Int32");
 
             property.Value = (int) property.Value + value;
         }
