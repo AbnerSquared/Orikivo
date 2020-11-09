@@ -51,7 +51,7 @@ namespace Arcadia.Multiplayer
         public GameProperty GetProperty(string id)
         {
             if (Properties.All(x => x.Id != id))
-                throw new Exception($"Could not the specified property '{id}'");
+                throw new Exception($"Could not find the specified property '{id}'");
 
             return Properties.First(x => x.Id == id);
         }
