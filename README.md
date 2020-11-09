@@ -6,6 +6,11 @@ Orikivo is a Discord bot library containing a wide range of helpful utilities, m
 > Invite **Orikivo Arcade** [here](https://discord.com/oauth2/authorize?client_id=686093964029329413&scope=bot&permissions=388160)!<br/>
 > View the most recent changelog [here](https://abnersquared.github.io/Orikivo.Web/changelogs/arcadia)!
 
+## Bot Discovery Portal
+> **Discord Bot List**: https://top.gg/bot/686093964029329413<br/>
+> **Discord Boats**: https://discord.boats/bot/686093964029329413<br/>
+> **Bots On Discord**: https://bots.ondiscord.xyz/bots/686093964029329413
+
 ## Contents
 - **Orikivo**: The primary and original library, containing all extensions and primary services used by most Discord bots in this area
 - **Orikivo.Desync**: This is a library focusing on RPG mechanics and features that handle pathfinding, early shopping mechanics, as well as a full-blown dialogue system
