@@ -22,6 +22,39 @@ namespace Orikivo.Text.Pagination
             return (int) Math.Ceiling(collectionSize / (double) groupSize);
         }
 
+        public static IEnumerable<string> GetPages(string content, int characterLimit, TextSplitOptions options, int baseLength = 0)
+        {
+            if (baseLength >= characterLimit)
+            {
+                throw new ArgumentOutOfRangeException(nameof(baseLength), "The specified base page length cannot be greater than or equal to the substring character limit");
+            }
+
+            if (options == TextSplitOptions.Character)
+            {
+                return content.Split(characterLimit - baseLength);
+            }
+
+            string separator = options switch
+            {
+                TextSplitOptions.Word => " ",
+                TextSplitOptions.Line => "\n",
+                _ => throw new ArgumentException("Unknown split method was specified")
+            };
+
+            return GetPages(content.Split(separator, StringSplitOptions.RemoveEmptyEntries), characterLimit, baseLength, separator);
+        }
+
+        // The delimiter is what connects the separated content together. By default, they are returned using the separator again
+        public static IEnumerable<string> GetPages(string content, int characterLimit, string separator, int baseLength = 0, string delimiter = null)
+        {
+            if (string.IsNullOrWhiteSpace(delimiter))
+            {
+                delimiter = separator;
+            }
+
+            return GetPages(content.Split(separator, StringSplitOptions.RemoveEmptyEntries), characterLimit, baseLength, delimiter);
+        }
+
         public static IEnumerable<string> GetPages(IEnumerable<string> collection, int characterLimit, int baseLength = 0, string separator = "\n")
         {
             if (baseLength < 0)

@@ -1,27 +1,40 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Arcadia
 {
+    /// <summary>
+    /// Represents emoticon-based text.
+    /// </summary>
     public class Icon
     {
-        // The base custom icon to use
-        public string Value { get; set; }
-        // The icon the use in case the custom emojis are not allowed
-        public string Fallback { get; set; }
+        private readonly string DefaultValue = "EMPTY_ICON";
 
-        public List<string> Aliases { get; set; } = new List<string>();
+        internal Icon() { }
 
-        public static implicit operator Icon(string value)
-            => new Icon
-            {
-                Fallback = value
-            };
+        public Icon(string fallback)
+        {
+            Fallback = fallback;
+            Aliases = new List<string>(0);
+        }
+
+        /// <summary>
+        /// Represents the default Unicode string.
+        /// </summary>
+        public string Value { get; internal set; }
+
+        /// <summary>
+        /// Represents the fallback Unicode string if custom icons are disabled.
+        /// </summary>
+        public string Fallback { get; internal set; }
+
+        public IReadOnlyList<string> Aliases { get; internal set; }
+
+        public override string ToString()
+            => Value ?? Fallback ?? DefaultValue;
 
         public string ToString(bool useCustomIcons)
             => useCustomIcons ? Value ?? Fallback : Fallback;
-
-        public override string ToString()
-            => Value ?? Fallback ?? "EMPTY_ICON";
 
         public bool Equals(string value)
         {
@@ -34,10 +47,16 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(Fallback) && Fallback == value)
                 return true;
 
-            if (Aliases.Contains(value))
-                return true;
-
-            return false;
+            return Aliases.Contains(value);
         }
+
+        public static implicit operator Icon(string value)
+            => new Icon
+            {
+                Fallback = value
+            };
+
+        public static implicit operator string(Icon icon)
+            => icon?.ToString();
     }
 }

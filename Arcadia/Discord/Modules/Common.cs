@@ -103,7 +103,7 @@ namespace Arcadia.Modules
 
                 foreach ((string itemId, int amount) in CraftHelper.GetMissingFromRecipe(Context.Account, recipe))
                 {
-                    notice.AppendLine(RecipeViewer.WriteRecipeComponent(itemId, amount));
+                    notice.AppendLine(SRecipeViewer.WriteRecipeComponent(itemId, amount));
                 }
 
                 await Context.Channel.SendMessageAsync(notice.ToString());

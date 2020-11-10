@@ -9,6 +9,30 @@ namespace Orikivo.Text
     public static class StringExtensions
     {
         /// <summary>
+        /// Splits a string into substrings that are determined based on the substring length specified.
+        /// </summary>
+        public static string[] Split(this string str, int length)
+        {
+            int splitCount = (int)Math.Ceiling(str.Length / (double)length);
+
+            string[] results = new string[splitCount];
+
+            string segment = str;
+            for (int i = 0; i < splitCount; i++)
+            {
+                if (segment.Length <= length)
+                {
+                    results[i] = segment;
+                    break;
+                }
+
+                results[i] = segment.Substring(i * length, length);
+            }
+
+            return results;
+        }
+
+        /// <summary>
         /// Sets the specified casing rule for this current instance.
         /// </summary>
         public static string ToString(this string str, Casing casing)

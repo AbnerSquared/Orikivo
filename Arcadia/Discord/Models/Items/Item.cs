@@ -25,14 +25,14 @@ namespace Arcadia
         public string GroupId { get; set; }
 
         /// <summary>
-        /// Represents the display name for this <see cref="Item"/>.
+        /// Represents the base name of this <see cref="Item"/>.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Represents the display icon for this <see cref="Item"/>.
+        /// Represents the display icon of this <see cref="Item"/>.
         /// </summary>
-        public string Icon { get; set; }
+        public Icon Icon { get; set; }
 
         /// <summary>
         /// Represents the summary for this <see cref="Item"/>.

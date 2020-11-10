@@ -1,19 +1,20 @@
 ﻿using Arcadia.Models;
 
-namespace Arcadia.Modules
+namespace Arcadia
 {
-    public interface IViewer <in TModel> where TModel : IModel
+    public interface IViewer <in TModel>
+        where TModel : IModel
     {
         // This is the 'main menu' of the viewer, mainly to show generalized information
-        string ViewDefault();
+        string ViewDefault(ArcadeUser invoker);
 
         // This is used to view specifics based on a query
-        string View(string query, int page);
+        string View(ArcadeUser invoker, string query, int page);
 
         // For viewing the full details of a model
-        string ViewSingle(TModel model);
+        string ViewSingle(ArcadeUser invoker, TModel model);
 
         // For previewing a model on a page
-        string PreviewSingle(TModel model);
+        string PreviewSingle(ArcadeUser invoker, TModel model);
     }
 }

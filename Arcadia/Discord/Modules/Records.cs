@@ -33,7 +33,7 @@ namespace Arcadia.Modules
         [Summary("View information about a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
-            await Context.Channel.SendMessageAsync(RecipeViewer.ViewRecipeInfo(Context.Account, recipe));
+            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewRecipeInfo(Context.Account, recipe));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -41,7 +41,7 @@ namespace Arcadia.Modules
         [Summary("View all of your currently known recipes.")]
         public async Task ViewRecipesAsync()
         {
-            await Context.Channel.SendMessageAsync(RecipeViewer.View(Context.Account));
+            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]

@@ -653,6 +653,15 @@ delete_succes: Deleted {} from your inventory pool.
 
 palette_remove_success: Successfully removed {} from your **Card Palette**.
 
+boost_header: Current Rates
+boost_break_counter: Breaks in {} {}
+boost_expire_counter: Expires in {} {}
+
+about_header: > **Arcadia** (v**{}**)
+about_question: Wait, I thought this was **Orikivo Arcade**?
+about_answer: They're both the same!
+about_description: **Arcadia** is a alternative version of **Orikivo** that branched off to focus more on the multiplayer side. A greater emphasis was made for an economy-like structure that players can work together to climb the tops of, while also giving a slight peek into the story-like structure that **Orikivo** is planned to have.
+
 header_unknown: UNKNOWN_HEADER
 header_server_browser: Server Browser
 header_server_browser_subtitle: View all of the public game servers.
