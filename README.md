@@ -7,9 +7,10 @@ Orikivo is a Discord bot library containing a wide range of helpful utilities, m
 > View the most recent changelog [here](https://abnersquared.github.io/Orikivo.Web/changelogs/arcadia)!
 
 ## Bot Discovery Portal
-> **Discord Bot List**: https://top.gg/bot/686093964029329413<br/>
-> **Discord Boats**: https://discord.boats/bot/686093964029329413<br/>
-> **Bots On Discord**: https://bots.ondiscord.xyz/bots/686093964029329413
+> [**Discord Bot List**](https://top.gg/bot/686093964029329413)<br/>
+> [**Discord Boats**](https://discord.boats/bot/686093964029329413)<br/>
+> [**Bots On Discord**](https://bots.ondiscord.xyz/bots/686093964029329413)<br/>
+> [**Discord Extreme List**](https://discordextremelist.xyz/en-US/bots/686093964029329413)
 
 ## Contents
 - **Orikivo**: The primary and original library, containing all extensions and primary services used by most Discord bots in this area
