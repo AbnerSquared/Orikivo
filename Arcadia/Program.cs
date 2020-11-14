@@ -41,6 +41,8 @@ namespace Arcadia
 
                 builder.Services
                     .AddSingleton<GameManager>()
+                    .AddSingleton<LocaleProvider>()
+                    .AddSingleton<InfoFormatter>()
                     .AddSingleton<InfoService>()
                     .AddSingleton<ArcadeContainer>()
                     .AddSingleton<LogService>()

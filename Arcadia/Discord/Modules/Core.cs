@@ -2,9 +2,13 @@
 using Orikivo;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Orikivo.Drawing;
+using Orikivo.Drawing.Animating;
 using Format = Orikivo.Format;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -21,7 +25,33 @@ namespace Arcadia.Modules
         {
             _info = info;
         }
-        
+
+        [Command("tmptest")]
+        public async Task TmpTest()
+        {
+            using var animator = new TimelineAnimator();
+
+            animator.Ticks = 500;
+            animator.Viewport = new Size(128, 128);
+
+            var initial = new Keyframe(0, 1.0f, Vector2.Zero, 0.0f, Vector2.One);
+            var mid = new Keyframe(250, 1.0f, new Vector2(32, 32), 359.9f, new Vector2(1, 1));
+            var quarter = new Keyframe(375, 1.0f, new Vector2(16, 16), 180.0f, new Vector2(2, 2));
+            var final = new Keyframe(500, 1.0f, new Vector2(0, 0), 0.0f, new Vector2(1, 1));
+
+            var square = new TimelineLayer(ImageHelper.CreateSolid(GammaPalette.GammaGreen[Gamma.Max], 32, 32), 0, 500, mid, quarter, final);
+
+            var background = new TimelineLayer(ImageHelper.CreateSolid(GammaPalette.GammaGreen[Gamma.Min], 128, 128), 0, 500, initial);
+
+            animator.AddLayer(background);
+            animator.AddLayer(square);
+
+            MemoryStream animation = animator.Compile(TimeSpan.FromMilliseconds(20));
+
+            using var temp = new Temporary<MemoryStream>(animation);
+            await Context.Channel.SendFileAsync(temp.Read(), "temporary.gif");
+        }
+
         // [Id("")]: For use in locale.
         [DoNotNotify]
         [Command("about")]

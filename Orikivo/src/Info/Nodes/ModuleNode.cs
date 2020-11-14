@@ -40,6 +40,7 @@ namespace Orikivo
         public List<CommandNode> Commands { get; protected set; }
 
         public override InfoType Type => InfoType.Module;
+
         protected override string Formatting
         {
             get
@@ -56,7 +57,7 @@ namespace Orikivo
                     {
                         format.Append("⇛ ");
                         format.Append(Summary);
-                        format.AppendLine();          
+                        format.AppendLine();
                     }
 
                     if (Commands.Count > 0)
@@ -88,8 +89,6 @@ namespace Orikivo
                                     format.Append(' ');
                                     format.Append(Format.Subscript($"+{overload.Index}"));
                                 }
-
-                                
                             }
                         }
                     }

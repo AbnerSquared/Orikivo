@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orikivo.Text;
 
 namespace Orikivo
 {
@@ -11,7 +12,8 @@ namespace Orikivo
         {
             Notifier = 0,
             Prefix = null,
-            Tooltips = true
+            Tooltips = true,
+            Language = Language.English
         };
 
         public override ConfigBase GetDefault()
@@ -33,11 +35,12 @@ namespace Orikivo
         public UserConfig() { }
 
         [JsonConstructor]
-        internal UserConfig(string prefix, NotifyAllow notifier, UserFlag flag)
+        internal UserConfig(string prefix, NotifyAllow notifier, UserFlag flag, Language language)
         {
             Prefix = prefix;
             Notifier = notifier;
             Flag = flag;
+            Language = language;
         }
 
         /// <summary>
@@ -86,6 +89,13 @@ namespace Orikivo
             get => Flag.HasFlag(UserFlag.Tooltips);
             set => Flag = value ? Flag | UserFlag.Tooltips : Flag & ~UserFlag.Tooltips;
         }
+
+        [Id("language")]
+        [JsonProperty("language")]
+        [Title("Language")]
+        [Description("Determines the text language of this bot.")]
+        [Details("This sets the base language for most text values in **Orikivo Arcade**. The excluded values are ones that are required as command input and argument names. An example would be typing a query for the leaderboard command, typed as `leaderboard money`.")]
+        public Language Language { get; set; }
 
         public bool CanNotify(NotifyAllow notifier)
         {

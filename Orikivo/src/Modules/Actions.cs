@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.Addons.Collectors;
 using Orikivo.Canary;
+using Orikivo.Text;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo.Modules
@@ -278,9 +279,10 @@ namespace Orikivo.Modules
         [Command("actions"), Alias("act")]
         public async Task GetActionsAsync()
         {
-            InfoService info = new InfoService(_commands, Context.Global);
+            var fmt = new DesyncInfoFormatter(new LocaleProvider());
+            var info = new InfoService(_commands, fmt);
 
-            await Context.Channel.SendMessageAsync(info.GetActions(Context.Account));
+            await Context.Channel.SendMessageAsync(fmt.GetActions(info, Context.Account));
         }
 
         [BindToRegion(ConstructType.Market)]

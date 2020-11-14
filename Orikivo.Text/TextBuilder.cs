@@ -38,12 +38,12 @@ namespace Orikivo.Text
 
             var collection = new List<string>();
 
-            foreach (string element in Paginate.GetPages(_builder.ToString(), PageCapacity, SplitOptions, BaseContent))
+            foreach (string element in Paginate.GetPages(_builder.ToString(), PageCapacity, SplitOptions, BaseContent.Length))
             {
                 collection.Add($"{BaseContent}\n{element}");
             }
 
-            Paginate.GetPages(collection, PageCapacity, BaseContent.Length);
+            return Paginate.GetPages(collection, PageCapacity, BaseContent.Length);
         }
     }
 }

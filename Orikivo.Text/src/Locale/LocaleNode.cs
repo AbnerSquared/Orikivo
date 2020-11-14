@@ -18,6 +18,6 @@ namespace Orikivo.Text
             => Value;
 
         public string ToString(params object[] args)
-            => string.Format(Value, args);
+            => args.Length > 0 ? string.Format(Value, args) : Value;
     }
 }

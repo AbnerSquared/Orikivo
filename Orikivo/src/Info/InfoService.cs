@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using Orikivo.Desync;
 using Orikivo.Text;
 
 namespace Orikivo
@@ -13,23 +12,12 @@ namespace Orikivo
     /// </summary>
     public class InfoService
     {
-        // the number of commands shown on the side of a module.
-        private const int MAX_COMMAND_DISPLAY = 3;
-
-        // TODO: Separate IconHandler, which can manage fallback emojis and custom emojis
-        public const int YieldThreshold = 1;
-        public const int CriticalThreshold = 10;
-        public const string StableEmoji = "\uD83D\uDD39"; // :small_blue_diamond:
-        public const string YieldEmoji = "\uD83D\uDD38"; // :small_orange_diamond:
-        public const string CriticalEmoji = "\uD83D\uDD3A"; // :small_red_triangle:
-
         public static readonly string DefaultExample = "value";
         public static readonly string MentionExample = "@Orikivo Arcade#8156";
         public static readonly string TrailingExample = "this is all one value";
 
         private readonly CommandService _commands;
         private readonly InfoFormatter _formatter;
-        private readonly ReportContainer _reports;
 
         private static bool FilterModule(ModuleInfo m, string n)
             => m.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
@@ -43,237 +31,13 @@ namespace Orikivo
         private static bool FilterParameter(ParameterInfo p, string n)
             => p.Name.Equals(n, StringComparison.OrdinalIgnoreCase);
 
-        // TODO: Fix the guide storage location
-        public static List<GuideNode> DefaultGuides = new List<GuideNode>
-        {
-            new GuideNode
-            {
-                Id = "beginner",
-                Title = "The **Beginner's** Guide",
-                Tooltip = "**Beginner**: Learn more about how to use **Orikivo**.",
-                Chapters = new List<GuideChapter>
-                {
-                    new GuideChapter
-                    {
-                        Number = 1,
-                        Title = "Using the `help` command",
-                        Content = new StringBuilder()
-                        .AppendLine("• The `help` command may be mess at first glance, but it was made to allow you to understand any command to an extreme depth.\n")
-                        .AppendLine("• A command can be implicitly or explicitly searched. (In quick terms, this just means that you can optionally write the name of the module that the command was in, and **I** will try to find the best match possible.)\n")
-                        .AppendLine("• The `help` command allows you to learn more about the following:```Modules: a group of commands and modules\nGroups: a command that contains other commands written after its main name)\nCommands: a group of overloads\nOverloads: a method for a specific command\nParameters: an argument for an overload```")
-                        .AppendLine("• By default, if nothing is specified, you will be shown the main help menu, which lists the guides, modules, and **actions** (see `help husks`).")
-                        .AppendLine("• However, if you wish to learn more about any of them, you can normally simply write `help <name>`.\n")
-                        .AppendLine("• Another part of what might make the `help` command confusing is that there is multiple ways a command can be executed, also known as **overloads**.")
-                        .AppendLine("• If there is more than one overload for a command, it will be denoted by a `+index` marker at the end of a command, where index is a number marking the overload.")
-                        .AppendLine("• When using the `help` command, you can explicitly specify the overload of a command by writing its index after the name of a command (`help command+index`).")
-                        .AppendLine("• You can also learn more about the parameter of a command by writing the name of the parameter you wish learn about after the command name (`help command(parameter`).")
-                        .ToString()
-                    },
-                    new GuideChapter
-                    {
-                        Number = 2,
-                        Title = "Initializing Husks",
-                        Content = new StringBuilder()
-                        .AppendLine("Husks are an integral part of **Orikivo**. In order to start utilizing one, you can type `awaken`, which will set up your very own **Husk**.")
-                        .AppendLine("**Husks** are a physical counterpart to your digital account. They are being controlled by your actions in the real world, which can be used to explore and gather materials that can be used to upgrade your digital progress.")
-                        .ToString()
-                    }
-                }
-            }
-        };
-
-        public InfoService(CommandService commands)
+        public InfoService(CommandService commands, InfoFormatter formatter)
         {
             _commands = commands;
-            Guides = DefaultGuides;
-            _formatter = null;
+            _formatter = formatter;
         }
 
-        public InfoService(CommandService commands, InfoFormatter formatter = null) // , InfoFormatter formatter = null
-        {
-            _commands = commands;
-            Guides = formatter?.OnLoadGuides();
-            _formatter = formatter; // ?? InfoFormatter.Default;
-        }
-
-        public InfoService(CommandService commands, OriGlobal global, InfoFormatter formatter = null)
-        {
-            _commands = commands;
-            _reports = global.Reports;
-            _formatter = formatter; // ?? InfoFormatter.Default;
-            Guides = formatter?.OnLoadGuides();
-        }
-
-        internal void SetFormatter(InfoFormatter formatter)
-        {
-
-        }
-
-        // BASE
-        public static string GetSeverityIcon(int reportCount)
-            => reportCount >= CriticalThreshold ?
-            CriticalEmoji : reportCount >= YieldThreshold ?
-            YieldEmoji : StableEmoji;
-
-        public static string GetSeverityIcon(ContextNode node)
-            => GetSeverityIcon(node.Reports.Count(x => x.State == ReportState.Open));
-
-        public string GetActions(User user)
-        {
-            StringBuilder panel = new StringBuilder();
-            // Husk system
-            if (user?.Husk != null)
-            {
-                bool canMove = Engine.CanMove(user.Husk, out string notification);
-
-                if (!string.IsNullOrWhiteSpace(notification))
-                    user.Notifier.Append(notification);
-
-                Husk husk = user.Husk;
-                bool canAct = Engine.CanAct(ref husk, user.Brain);
-                user.Husk = husk;
-                panel.AppendLine();
-                panel.AppendLine("**Actions**");
-                panel.Append("• ");
-
-                Locator location = user.Husk.Location;
-                // you need to implement movement info.
-
-                if (user.Husk.Destination != null)
-                    location = user.Husk.Destination;
-
-                panel.AppendLine(Engine.WriteLocationInfo(location.Id, user.Husk.Destination != null));
-
-                ModuleInfo main = _commands.Modules.FirstOrDefault(x => x.Name == "Actions");
-                List<CommandNode> actions = new List<CommandNode>();
-                
-                foreach (CommandInfo action in main?.Commands)
-                {
-                    if (actions.Any(x => x.Name == action.Name))
-                        continue;
-
-                    // Flag checking
-                    OnlyWhenAttribute precondition = action.Preconditions.FirstOrDefault<OnlyWhenAttribute>();
-                    // replace with BindToRegion when ready
-                    BindToRegionAttribute check = action.Attributes.FirstOrDefault<BindToRegionAttribute>();
-
-                    if (precondition != null)
-                    {
-                        if (!precondition.Judge(user.Brain, user.Stats))
-                            continue;
-                    }
-
-                    if (check != null)
-                    {
-                        if (!canMove)
-                            continue;
-
-                        if (!canAct)
-                            continue;
-
-                        if (!check.Judge(user.Husk))
-                            continue;
-                    }
-
-                    actions.Add(new CommandNode(GetCommands(action.Name, main)));
-                }
-
-                panel.AppendJoin(" • ", actions.Select(delegate (CommandNode x)
-                {
-                    string term = $"`{x.Name}`";
-
-                    if (x.Overloads.Count > 1)
-                        term += $"**+{x.Overloads.Count - 1}**";
-
-                    return term;
-                }));
-            }
-            else
-            {
-                panel.Append("Where are you?");
-            }
-            return panel.ToString();
-        }
-
-        private string GetMenu(User user = null, bool drawActions = true)
-        {
-            bool showTooltips = user?.Config?.Tooltips ?? true;
-
-            StringBuilder panel = new StringBuilder();
-            panel.AppendLine("> **Help Menu**");
-
-            if (showTooltips)
-                panel.AppendLine("> 🛠️ Use `help <name>` to learn more about a command or category.");
-
-            // TODO: Handle report status icon management
-            if (Guides?.Any() ?? false)
-            {
-                panel.AppendLine();
-                panel.AppendLine("**Guides**");
-
-                foreach (GuideNode guide in Guides)
-                    panel.AppendLine($"> {guide.Tooltip}");
-            }
-
-            if (Modules.Any())
-            {
-                panel.AppendLine();
-                panel.AppendLine("**Categories**");
-
-                foreach(ModuleNode module in GetBaseModules().OrderBy(x => x.Name).Select(x => new ModuleNode(x)))
-                {
-                    panel.Append("> ");
-
-                    if (Check.NotNull(module.Icon))
-                        panel.Append($"{module.Icon} ");
-
-                    panel.Append($"**{module.Name}**");
-
-                    if (Check.NotNull(module.Subtitle) || module.Commands.Count > 0)
-                        panel.Append(": ");
-
-                    if (Check.NotNull(module.Subtitle))
-                        panel.AppendLine(module.Subtitle);
-
-                    if (module.Commands.Count > 0)
-                    {
-                        if (Check.NotNull(module.Subtitle))
-                            panel.Append("> ");
-
-                        int inserted = 0;
-                        foreach(CommandNode command in Randomizer.Shuffle(module.Commands))// module.Commands.OrderBy(x => x.Name))
-                        {
-                            if (inserted >= MAX_COMMAND_DISPLAY)
-                                break;
-
-                            if (inserted > 0)
-                                panel.Append(" ");
-
-                            panel.Append($"`{command.Name}`");
-
-                            inserted++;
-                        }
-
-                        if (module.Commands.Count() - inserted > 0)
-                            panel.Append($" (+**{module.Commands.Count() - inserted}** more)");
-
-                        panel.AppendLine();
-                    }
-                    else
-                    {
-                        panel.Append("...");
-                        panel.AppendLine();
-                    }
-                }
-            }
-
-            //if (user != null && drawActions)
-             //   if (user.Husk != null)
-             //       panel.Append(GetActions(user));
-
-            return panel.ToString();
-        }
-
+        // TODO: Move example building to the formatter
         private static void SetExample(OverloadNode command, string prefix)
         {
             var result = new StringBuilder();
@@ -301,31 +65,12 @@ namespace Orikivo
             return DefaultExample;
         }
 
-        public string GetPanel(string content = null, User user = null, bool drawActions = true, string prefix = "[")
+        public string GetPanel(string input = null, BaseUser user = null, string prefix = "[")
         {
-            if (!Check.NotNull(content))
-                return GetMenu(user, drawActions);
+            if (string.IsNullOrWhiteSpace(input))
+                return _formatter.ViewMenu(this, user);
 
-            if (Check.NotNullOrEmpty(Guides))
-            {
-                // TODO: Clean up chapter parsing (Regex).
-                bool isGuideName = Guides.Any(x => content.ToLower().StartsWith(x.Id));
-                bool hasIndex = isGuideName && content.Split(' ').Count() == 2;
-
-                if (isGuideName)
-                {
-                    if (hasIndex)
-                    {
-                        if (int.TryParse(content.Split(' ')[1], out int index))
-                            return Guides.First(x => content.ToLower().StartsWith(x.Id)).GetChapter(index);
-                    }
-                    else if (Guides.Any(x => x.Id == content.ToLower()))
-                        return Guides.First(x => x.Id == content.ToLower()).GetChapter(1);
-
-                }
-            }
-
-            ContextNode ctx = Search(content, out string error);
+            ContextNode ctx = Search(input, out string error);
 
             if (!string.IsNullOrWhiteSpace(error))
                 return error;
@@ -333,40 +78,27 @@ namespace Orikivo
             bool allowTooltips = user?.Config?.Tooltips ?? true;
             var panel = new StringBuilder();
 
+            // TODO: Move tooltip implementation into the formatter
             if (allowTooltips)
             {
                 var tooltips = new List<string>(ctx.Tooltips);
 
-                /*
-                string tooltip = ctx switch
-                {
-                    CommandNode c => $"> Use `help {ctx.Name}+<index>` to learn more about a specific command method.",
-                    ModuleNode m when ctx.Type == InfoType.Group => $"> Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.",
-                    _ => ""
-                };*/
-
                 if (ctx is CommandNode c && c.Overloads.Count > 1)
                 {
                     tooltips.Add($"Use `help {ctx.Name}+<index>` to learn more about a specific command overload.");
-                    //panel.AppendLine($"> 🛠️ Use `help {ctx.Name}+<index>` to learn more about a specific command overload.\n");
                 }
                 else if (ctx.Type == InfoType.Group)
                 {
                     tooltips.Add($"Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.");
-                    //panel.AppendLine($"> 🛠️ Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.\n");
                 }
                 else if (ctx.Type == InfoType.Module)
                 {
                     tooltips.Add($"Use `help <command>` to learn more about a specific command.");
-                    //panel.AppendLine("> 🛠️ Use `help <command>` to learn more about a specific command.\n");
                 }
 
                 if (ctx is OverloadNode o && o.Parameters.Count > 0)
                 {
-                    {
-                        tooltips.Add($"Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.");
-                        //panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
-                    }
+                    tooltips.Add($"Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.");
                 }
 
                 panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
@@ -374,23 +106,19 @@ namespace Orikivo
 
             if (ctx is OverloadNode overload)
             {
-                /*
-                if (allowTooltips && overload.Parameters.Count > 0)
-                {
-                       panel.AppendLine($"> 🛠️ Use `help {ctx.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}(<parameter>` to learn more about a specific parameter.\n");
-                }*/
-
                 SetExample(overload, prefix);
                 ctx = overload;
             }
 
-            panel.Append(ctx.ToString());
+            panel.Append(_formatter.ViewContext(ctx, user));
             return panel.ToString();
         }
 
-        public ContextNode Search(string content)
+        // TODO: Merge the Search method into a single unique instance
+        // TODO: Move all of the error text into the locale file
+        public ContextNode Search(string input)
         {
-            InfoContext ctx = InfoContext.Parse(content);
+            InfoContext ctx = InfoContext.Parse(input);
 
             InfoType type = InfoType.Unknown;
 
@@ -682,8 +410,6 @@ namespace Orikivo
             return values.First();
         }
 
-
-
         // MODULES
         public ModuleInfo GetInnerModule(InfoContext ctx)
         {
@@ -777,9 +503,6 @@ namespace Orikivo
             return modules;
         }
 
-        // GUIDES
-        public IEnumerable<GuideNode> Guides { get; private set; }
-
         // GROUPS
         public ModuleInfo GetInnerGroup(InfoContext ctx, ModuleInfo parent = null)
         {
@@ -853,9 +576,11 @@ namespace Orikivo
             IEnumerable<ModuleInfo> groups = parent.Submodules.Where(g => FilterGroup(g, name));
 
             if (includeChildren)
+            {
                 parent.Submodules
                     .Select(x => GetGroups(x, name, x.Submodules.Count > 0))
                     .ForEach(x => groups = groups.Concat(x));
+            }
 
             return groups;
         }

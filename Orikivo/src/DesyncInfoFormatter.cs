@@ -3,11 +3,17 @@ using Orikivo.Desync;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Orikivo.Text;
 
 namespace Orikivo
 {
     public class DesyncInfoFormatter : InfoFormatter
     {
+        public DesyncInfoFormatter(LocaleProvider locale) : base(locale)
+        {
+
+        }
+
         public override List<GuideNode> OnLoadGuides()
         {
             return new List<GuideNode>
@@ -49,7 +55,7 @@ namespace Orikivo
             };
         }
 
-        public override string OnWriteMenu(InfoService service, BaseUser user = null)
+        public override string ViewMenu(InfoService service, BaseUser user = null)
         {
             bool showTooltips = user?.Config?.Tooltips ?? true;
 

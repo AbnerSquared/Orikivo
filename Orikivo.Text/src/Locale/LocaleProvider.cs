@@ -11,34 +11,36 @@ namespace Orikivo.Text
     {
         private static readonly string DefaultPath = @"..\assets\locale\";
 
-        public static LocaleProvider GetDefault()
+        public LocaleProvider()
         {
-            IDictionary<string, List<LocaleNode>> entries = RestoreDirectory<List<LocaleNode>>(DefaultPath);
+            IDictionary<string, Dictionary<string, string>> entries = RestoreDirectory<Dictionary<string, string>>(DefaultPath);
             var banks = new List<LocaleBank>();
 
-            foreach ((string lang, List<LocaleNode> nodes) in entries)
+            foreach ((string lang, Dictionary<string, string> nodes) in entries)
             {
                 if (!(Enum.TryParse(lang, true, out Language result) && banks.All(x => x.Language != result)))
                     throw new ArgumentException("One of the specified locale files has already been specified or is invalid");
 
-                banks.Add(new LocaleBank(result, nodes));
+                banks.Add(new LocaleBank(result, nodes.Select(x => new LocaleNode(x.Key, x.Value)).ToList()));
             }
 
-            return new LocaleProvider
-            {
-                Banks = banks
-            };
+            Banks = banks;
         }
 
         public IEnumerable<LocaleBank> Banks { get; set; }
 
+        public Language DefaultLanguage { get; set; } = Language.English;
+
         public LocaleBank GetBank(Language language)
-            => Banks.FirstOrDefault(x => x.Language == language || x.Language == Language.English);
+            => Banks.FirstOrDefault(x => x.Language == language);
 
         public string GetValue(string id, Language language = Language.English)
         {
-            return GetBank(language)?.GetNode(id)?.ToString() ?? "UNKNOWN_NODE";
+            return GetBank(language)?.GetNode(id)?.ToString() ?? "INVALID_LOCALE";
         }
+
+        public string GetValueOrDefault(string id, Language language = Language.English, string defaultValue = "INVALID_LOCALE")
+            => GetBank(language)?.GetNode(id)?.ToString() ?? defaultValue;
 
         private static JsonSerializerSettings DefaultSerializerSettings
             => new JsonSerializerSettings
@@ -75,8 +77,10 @@ namespace Orikivo.Text
 
         private static IDictionary<string, TValue> RestoreDirectory<TValue>(string directory)
         {
+            string fullPath = GetOrCreateDirectory(directory);
+            Console.WriteLine(fullPath);
             var tmp = new ConcurrentDictionary<string, TValue>();
-            List<string> files = ReadJsonDirectory(GetOrCreateDirectory(directory));
+            List<string> files = ReadJsonDirectory(fullPath);
 
             foreach (string path in files)
             {

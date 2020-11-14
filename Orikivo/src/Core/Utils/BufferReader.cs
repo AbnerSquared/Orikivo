@@ -1,12 +1,15 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Orikivo
 {
     // represents a group of blocks for a specified buffer size
-    public class BufferReader<TStream> where TStream : Stream
+    public class BufferReader<TStream> : IDisposable
+        where TStream : Stream
     {
         public BufferReader(TStream stream, int bufferSize)
         {
+            stream.Position = 0;
             Stream = stream;
             Value = new byte[bufferSize];
         }
@@ -25,9 +28,14 @@ namespace Orikivo
             set => Stream.Position = value;
         }
 
+        public bool Disposed { get; private set; }
+
         // reads the next buffer block
         public int Next()
         {
+            if (Disposed)
+                throw new ObjectDisposedException("The specified buffer reader has been disposed");
+
             if (RemainingBytes == 0)
                 return 0;
 
@@ -35,6 +43,15 @@ namespace Orikivo
             ReadBytes += readBytes;
 
             return readBytes;
+        }
+
+        public void Dispose()
+        {
+            if (Disposed)
+                return;
+
+            Stream.Dispose();
+            Disposed = true;
         }
     }
 }

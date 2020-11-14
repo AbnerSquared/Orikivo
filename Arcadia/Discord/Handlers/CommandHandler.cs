@@ -63,6 +63,7 @@ namespace Arcadia
         // private DblClient DblClient { get; set; }
 
         private int GuildCount { get; set; }
+        private int PostedCount { get; set; }
 
         private async Task ResetGuildCount(Exception error)
         {

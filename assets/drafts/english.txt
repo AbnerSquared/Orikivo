@@ -113,7 +113,6 @@ debug_get_option: Getting option {}
 debug_property_set: Set property {} to {}
 debug_property_add: Adding {} to property {}
 debug_get_user_data: Getting data of {}
-
 header_odd: Odd.
 header_oops: Oops!
 header_yikes: Yikes!
@@ -129,11 +128,11 @@ blackjack_dealer_hand: Dealer's Hand
 blackjack_or: or
 blackjack_bust: Bust!
 blackjack_your_hand: Your Hand
-blackjack_hand_title: Playing with {}
+blackjack_hand_title: Playing with {0}
 blackjack_on_bust: You have gone over 21. The dealer has won.
-blackjack_on_fold: You have backed out of the game. You have only lost 50% of your wager ({}).
-blackjack_on_lose: The dealer has a stronger hand. You have lost {}.
-blackjack_on_win: You have a stronger hand than the dealer. You have won {}.
+blackjack_on_fold: You have backed out of the game. You have only lost 50% of your wager ({0}).
+blackjack_on_lose: The dealer has a stronger hand. You have lost {0}.
+blackjack_on_win: You have a stronger hand than the dealer. You have won {0}.
 blackjack_on_draw: You and the dealer have equal hands. Nobody has won.
 blackjack_on_timeout: You have timed out. Your wager has been returned to you.
 blackjack_on_invalid: INVALID_STATE
@@ -815,99 +814,6 @@ fmt_shop_menu_header: > {}
 
 // ASSETS: These are custom definitions, not required by the base bot features
 // Use <$locale_id> to automatically use a locale reference.
-
-module_records_name: Records
-module_records_summary: View information about unlocked information and extra statistics.
-module_multiplayer_name: Multiplayer
-module_multiplayer_summary: Come play with others.
-module_economy_name: Economy
-module_economy_summary: Commands related to economical features.
-module_core_name: Core
-module_core_summary: Contains all root commands for Orikivo Arcade.
-module_common_name: Common
-module_common_summary: Generic commands that are commonly used.
-module_casino_name: Casino
-module_casino_summary: Come and gamble your life away.
-command_casino.blackjack_summary: A game of 21.
-command_casino.roulette_summary: A Casino classic. Choose your style of bet and go wild.
-command_casino.gimi_summary: An activity that randomly provides curses or blessings.
-command_casino.autogimi_summary: Begins an automated run of **Gimi** (up to 100 times).
-command_casino.doubler_summary: An activity in the **Casino** that grants you a chance at large returns by guessing the dying tick of the machine.
-command_casino.getchips_summary: Convert some of your **Orite** into **Chips** for use in casino activities.
-command_common.challenges_summary: View your current challenge set.
-command_common.submit_summary: Submit your challenge set for completion.
-command_common.researchinfo_summary: View details about the research progress of an **Item**.
-command_common.research+0_summary: View the current progress of your research.
-command_common.research+1_summary: Begin research on the specified **Item**.
-command_common.guide_summary: Read and view the contents of a specific **Guide**.
-command_common.guides_summary: Learn how to use **Orikivo Arcade** with this collection of guides.
-command_common.craft_summary: Attempt to craft an **Item** using the specified **Recipe**.
-command_common.boosters_summary: View all of your currently equipped boosters.
-command_common.quests+0_summary: View all of your current assigned quests.
-command_common.quests+1_summary: View the currently assigned objective on the specified slot.
-command_common.assign_summary: Assign a new set of quests.
-command_common.toss_summary: Toss the specified quest you are currently working on.
-command_common.complete_summary: Claim the rewards from all of your completed quests.
-command_common.cooldowns_summary: View all currently active cooldowns and expirations.
-command_common.claim_summary: Attempt to claim the specified **Merit**.
-command_common.level_summary: View your current level and experience.
-command_common.vote_summary: Support **Orikivo Arcade** and receive **Tokens**.
-command_common.cashout_summary: Cash out **Tokens** for **Orite**.
-command_common.daily_summary: Check in for the day to receive rewards.
-command_common.use_summary: Uses the specified **Item** by its internal or unique ID.
-command_common.inspectat_summary: Inspect a specific **Item** stack in your inventory.
-command_common.inspect_summary: Inspect a specific **Item** in your inventory using a data instance.
-command_common.inventory_summary: View a collection of items that you or another user own.
-command_common.balance_summary: Returns a display showing all of the values in a wallet.
-command_common.clearpalette_summary: Removes your currently equipped palette, if any.
-command_common.card_summary: View a user's or your own current **Card**.
-command_common.profile_summary: View a profile.
-command_core.about_summary: View basic information about **Orikivo Arcade**.
-command_core.changelog_summary: Returns the most recent changelog for **Orikivo Arcade**.
-command_core.latency_summary: Returns the round-trip latency for both the current client and local connections.
-command_core.help_summary: A guide to understanding everything **Orikivo Arcade** has to offer.
-command_core.guildoptions+0_summary: Returns all of the current guild's customized preferences.
-command_core.guildoptions+1_summary: View more details for the specified guild option.
-command_core.guildoptions+2_summary: Updates the guild option to the specified value.
-command_core.options+0_summary: Returns a summary of your current personal configuration.
-command_core.options+1_summary: View more details for the specified option.
-command_core.options+2_summary: Updates the specified option to the given value.
-command_economy.offer_summary: Sends a trade offer to the specified user.
-command_economy.offeraccept_summary: Accepts the specified trade offer.
-command_economy.offerdecline_summary: Declines or cancels the specified trade offer.
-command_economy.offers_summary: View all of your currently active trade offers.
-command_economy.shops_summary: View your collection of available shops to visit.
-command_economy.shop_summary: Enter the specified **Shop**.
-command_economy.trade_summary: Attempts to start a live trade with the specified user.
-command_economy.gift_summary: Attempts to gift an **Item** to the specified user.
-command_economy.sell_summary: Sells the specified **Item** to the desired **Shop**.
-command_economy.delete_summary: Deletes the specified **Item** from your inventory.
-command_multiplayer.invites_summary: View all of your current server invites.
-command_multiplayer.servers_summary: View all currently open game servers.
-command_multiplayer.hostserver_summary: Host a new game server.
-command_multiplayer.joinserver_summary: Join an existing game server.
-command_multiplayer.quickjoin+0_summary: Quickly attempts to find an available game server to join.
-command_multiplayer.quickjoin+1_summary: Quickly finds a server to join for the specified **Game**.
-command_multiplayer.leaveserver_summary: Leave the current server you are in.
-command_multiplayer.destroyserver_summary: Destroys the specified game server.
-command_multiplayer.destroysession_summary: Destroys the current session for the specified server, if any.
-command_multiplayer.games_summary: View the list of all available multiplayer games that a server can play.
-command_multiplayer.game_summary: View all of the proper details for the specified **Game**.
-command_records.memo_summary: View a research memo on the specified **Item**.
-command_records.memos_summary: View memos about previous research.
-command_records.recipe_summary: View information about a specific **Recipe**.
-command_records.recipes_summary: View all of your currently known recipes.
-command_records.catalog_summary: View all of the items you have seen or known about.
-command_records.catalogsearch_summary: Search through the item catalog to look for a specific **Item**.
-command_records.item_summary: Provides details about the specified **Item**, if it has been previously discovered.
-command_records.statsof_summary: View a collection of stats in the specified group.
-command_records.stats+0_summary: View your current collection of stats.
-command_records.stats+1_summary: View another user's collection of stats.
-command_records.leaderboard+0_summary: Filters a custom leaderboard based on a specified **Stat**.
-command_records.leaderboard+1_summary: View the current pioneers of a specific category.
-command_records.merit_summary: View information about a **Merit**.
-command_records.merits_summary: Search and view all of your known merits.
-command_records.stat_summary: View details about a single **Stat**.
 
 var_items:total_discovered_summary: This represents all of your seen and known items that you've discovered.
 var_gimi:times_lost_summary: This represents all of the times you have lost in **Gimi**.

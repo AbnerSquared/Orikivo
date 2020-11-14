@@ -2,7 +2,7 @@
 
 namespace Orikivo
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
     public class IdAttribute : Attribute
     {
         public IdAttribute(string id)

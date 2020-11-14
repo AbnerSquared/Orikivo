@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Casino
 {
     public class BlackJackSession : BaseSession
     {
-        public BlackJackSession(ArcadeUser invoker, ISocketMessageChannel channel, long wager) : base(invoker, channel)
+        public BlackJackSession(ArcadeUser invoker, ISocketMessageChannel channel, long wager, LocaleProvider locale) : base(invoker, channel)
         {
             Deck = CardDeck.Create(new DeckProperties
             {
@@ -25,7 +26,10 @@ namespace Arcadia.Casino
 
             State = BlackJackState.Active;
             Wager = wager;
+            Locale = locale;
         }
+
+        public LocaleProvider Locale { get; }
 
         public CardDeck Deck { get; }
 
@@ -39,7 +43,7 @@ namespace Arcadia.Casino
 
         private bool IsHidden { get; set; } = true;
 
-
+        private Language Language => Invoker.Config.Language;
         private string DrawCardSuit(CardSuit suit)
         {
             return suit switch
@@ -48,7 +52,7 @@ namespace Arcadia.Casino
                 CardSuit.Diamonds => "♦️",
                 CardSuit.Hearts => "♥️",
                 CardSuit.Spades => "♠️",
-                _ => throw new Exception("Unknown rsuit")
+                _ => throw new Exception("Unknown card suit")
             };
         }
 
@@ -78,7 +82,7 @@ namespace Arcadia.Casino
         {
             var result = new StringBuilder();
 
-            result.AppendLine($"> **Dealer's Hand**{(State == BlackJackState.Active ? "" : $" (**{GetBestSum(DealerHand)}**)")}");
+            result.AppendLine($"> **{Locale.GetValue("blackjack_dealer_hand", Language)}**{(State == BlackJackState.Active ? "" : $" (**{GetBestSum(DealerHand)}**)")}");
             result.AppendJoin("\n", DealerHand.Select((c, i) => $"> {(isHidden && i > 0 ? DrawHidden() : DrawCard(c))}"));
 
             return result.ToString();
@@ -89,12 +93,12 @@ namespace Arcadia.Casino
             var sums = GetPossibleSums(Hand);
 
             if (sums.Count == 0)
-                return $"(**Bust!**)";
+                return $"(**{Locale.GetValue("blackjack_bust", Language)}**)"; // Bust!
 
             if (State != BlackJackState.Active)
                 return $"(**{GetBestSum(Hand)}**)";
 
-            return $"({string.Join(" or ", sums.Select(x => $"**{x}**"))})";
+            return $"({string.Join($" {Locale.GetValue("blackjack_or", Language)} ", sums.Select(x => $"**{x}**"))})";
         }
 
         private List<int> GetPossibleSums(List<Card> hand)
@@ -120,7 +124,7 @@ namespace Arcadia.Casino
         private string DrawPlayerHand()
         {
             var result = new StringBuilder();
-            result.AppendLine($"> **Your Hand** {DrawHandWorth()}");
+            result.AppendLine($"> **{Locale.GetValue("blackjack_your_hand", Language)}** {DrawHandWorth()}");
             result.AppendJoin("\n", Hand.Select(c => $"> {DrawCard(c)}"));
             return result.ToString();
         }
@@ -130,8 +134,9 @@ namespace Arcadia.Casino
             var display = new StringBuilder();
 
             display
-                .AppendLine($"> **Blackjack**")
-                .AppendLine($"> Playing with {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}\n")
+                .AppendLine($"> **{Locale.GetValue("blackjack_header", Language)}**")
+                // Playing with {0}
+                .AppendLine($"> {Locale.GetValue("blackjack_hand_title", Language)} {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}\n")
                 .AppendLine($"{DrawDealerHand(IsHidden)}\n")
                 .AppendLine($"{DrawPlayerHand()}\n")
                 .AppendLine($"{(State == BlackJackState.Active ? DrawActions() : DrawStateResult())}");

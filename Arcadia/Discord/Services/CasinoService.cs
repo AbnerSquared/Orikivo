@@ -4,15 +4,18 @@ using Arcadia.Casino;
 using Discord.Addons.Collectors;
 using Discord.WebSocket;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
     public class CasinoService
     {
         private readonly MessageCollector _collector;
-        public CasinoService(DiscordSocketClient client)
+        private readonly LocaleProvider _locale;
+        public CasinoService(DiscordSocketClient client, LocaleProvider locale)
         {
             _collector = new MessageCollector(client);
+            _locale = locale;
         }
 
         public async Task RunBlackJackAsync(ArcadeUser invoker, ISocketMessageChannel channel, Wager wager)
@@ -39,7 +42,7 @@ namespace Arcadia.Modules
             }
 
             invoker.IsInSession = true;
-            var session = new BlackJackSession(invoker, channel, wager.Value);
+            var session = new BlackJackSession(invoker, channel, wager.Value, _locale);
 
             try
             {
