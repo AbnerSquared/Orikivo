@@ -17,6 +17,7 @@ namespace Arcadia.Multiplayer
         {
             StartedAt = DateTime.UtcNow;
             Server = server;
+
             Game = game;
             // Game.Options = server.Options;
             Options = server.Options;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
@@ -13,6 +14,7 @@ using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
 using Orikivo;
 using Orikivo.Text;
+using EventHandler = Orikivo.EventHandler;
 
 namespace Arcadia
 {
@@ -22,6 +24,7 @@ namespace Arcadia
         {
             Task.Run(async () =>
             {
+                Logger.DebugAllowed = false;
 #if DEBUG
                 Logger.DebugAllowed = true;
 #endif
@@ -99,16 +102,17 @@ namespace Arcadia
                 client.Provider.GetRequiredService<CommandHandler>();
 
                 client.Provider.GetRequiredService<GameManager>().DefaultGameId = "trivia";
-                client.Provider.GetRequiredService<GameManager>().Games = new Dictionary<string, GameBase>
+                // TODO: Implement GameInfo instead, where a custom ID can be written to support custom games
+                client.Provider.GetRequiredService<GameManager>().Games = new Dictionary<string, GameInfo>
                 {
-                    ["trivia"] = new TriviaGame(),
-                    ["werewolf"] = new WerewolfGame(),
-                    ["chess"] = new ChessGame(),
+                    ["trivia"] = new GameInfo(new TriviaGame()),
+                    ["werewolf"] = new GameInfo(new WerewolfGame()),
+                    ["chess"] = new GameInfo(new ChessGame()),
                     // ["tictactoe"] = new TicGame(),
-                    ["ultimatetic"] = new UltimateTicGame()
+                    ["ultimatetic"] = new GameInfo(new UltimateTicGame())
                 };
 
-        await client.StartAsync(cancelSource.Token);
+                await client.StartAsync(cancelSource.Token);
             }).GetAwaiter().GetResult();
         }
     }
