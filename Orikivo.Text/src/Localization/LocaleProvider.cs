@@ -34,9 +34,9 @@ namespace Orikivo.Text
         public LocaleBank GetBank(Language language)
             => Banks.FirstOrDefault(x => x.Language == language);
 
-        public string GetValue(string id, Language language = Language.English)
+        public string GetValue(string id, Language language = Language.English, params object[] args)
         {
-            return GetBank(language)?.GetNode(id)?.ToString() ?? "INVALID_LOCALE";
+            return GetBank(language)?.GetNode(id)?.ToString(args) ?? "INVALID_LOCALE";
         }
 
         public string GetValueOrDefault(string id, Language language = Language.English, string defaultValue = "INVALID_LOCALE")

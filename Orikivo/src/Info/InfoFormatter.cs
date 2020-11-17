@@ -29,10 +29,32 @@ namespace Orikivo
 
             var panel = new StringBuilder();
 
-            panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
-
             if (showTooltips)
-                panel.AppendLine("> 🛠️ Use `help <name>` to learn more about a command or category.");
+            {
+                var tooltips = new List<string>();
+
+                if (user == null)
+                {
+                    tooltips.Add(Locale.GetValue("help_tooltip_newbie", language));
+                }
+
+                tooltips.Add(Locale.GetValue("help_tooltip_default", language));
+
+                if (tooltips.Count > 1)
+                {
+                    panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
+                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+                }
+                else
+                {
+                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+                    panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
+                }
+            }
+            else
+            {
+                panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+            }
 
             if (service.Modules.Any())
             {
@@ -96,6 +118,14 @@ namespace Orikivo
             Language language = user?.Config.Language ?? Language.English;
 
             var result = new StringBuilder();
+
+            if (showTooltips)
+            {
+                var tooltips = new List<string>(module.Tooltips);
+
+                tooltips.Add(Locale.GetValue("help_tooltip_module", language));
+                result.AppendLine($"{Format.Tooltip(tooltips)}\n");
+            }
 
             string summary = Locale.GetValueOrDefault($"{module.Id}_summary", language, module.Summary);
 
@@ -188,6 +218,14 @@ namespace Orikivo
 
             var result = new StringBuilder();
 
+            if (showTooltips)
+            {
+                var tooltips = new List<string>(group.Tooltips);
+
+                tooltips.Add(Locale.GetValue("help_tooltip_group", language, group.Name));
+                result.AppendLine($"{Format.Tooltip(tooltips)}\n");
+            }
+
             result.AppendLine($"**{group.Group}** •()");
 
             if (Check.NotNull(summary))
@@ -239,6 +277,14 @@ namespace Orikivo
             {
                 var result = new StringBuilder();
 
+                if (showTooltips)
+                {
+                    var tooltips = new List<string>(command.Tooltips);
+
+                    tooltips.Add(Locale.GetValue("help_tooltip_overload", language, command.Name));
+                    result.AppendLine($"{Format.Tooltip(tooltips)}\n");
+                }
+
                 // Group
                 if (Check.NotNull(command.Group))
                 {
@@ -282,6 +328,19 @@ namespace Orikivo
             string summary = Locale.GetValueOrDefault($"{overload.Id}_summary", language); //, overload.Summary);
 
             var result = new StringBuilder();
+
+            if (showTooltips)
+            {
+                var tooltips = new List<string>(overload.Tooltips);
+
+                if (overload.Parameters.Count > 0)
+                {
+                    string commandName = $"{overload.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}";
+                    tooltips.Add(Locale.GetValue("help_tooltip_parameter", language, commandName));
+                }
+
+                result.AppendLine($"{Format.Tooltip(tooltips)}\n");
+            }
 
             // page bar, if more than 1
             if (overload.Count > 1)
@@ -367,7 +426,7 @@ namespace Orikivo
             bool showTooltips = user?.Config.Tooltips ?? true;
             Language language = user?.Config.Language ?? Language.English;
 
-            string summary = Locale.GetValueOrDefault($"{parameter.Id}_summary", language); //, parameter.Summary);
+            string summary = Locale.GetValueOrDefault($"{parameter.Id}_summary", language, parameter.Summary); //, parameter.Summary);
 
             var result = new StringBuilder();
 

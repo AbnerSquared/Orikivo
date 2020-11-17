@@ -75,10 +75,10 @@ namespace Orikivo
             if (!string.IsNullOrWhiteSpace(error))
                 return error;
 
+            /*
             bool allowTooltips = user?.Config?.Tooltips ?? true;
             var panel = new StringBuilder();
 
-            // TODO: Move tooltip implementation into the formatter
             if (allowTooltips)
             {
                 var tooltips = new List<string>(ctx.Tooltips);
@@ -102,7 +102,7 @@ namespace Orikivo
                 }
 
                 panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
-            }
+            }*/
 
             if (ctx is OverloadNode overload)
             {
@@ -110,8 +110,7 @@ namespace Orikivo
                 ctx = overload;
             }
 
-            panel.Append(_formatter.ViewContext(ctx, user));
-            return panel.ToString();
+            return _formatter.ViewContext(ctx, user);
         }
 
         // TODO: Merge the Search method into a single unique instance

@@ -49,7 +49,7 @@ namespace Arcadia.Modules
                 var options = new MatchOptions
                 {
                     ResetTimeoutOnAttempt = true,
-                    Timeout = TimeSpan.FromSeconds(15)
+                    Timeout = TimeSpan.FromSeconds(20)
                 };
 
                 bool Filter(SocketMessage message, int index)

@@ -40,7 +40,7 @@ namespace Orikivo
             Prefix = prefix;
             Notifier = notifier;
             Flag = flag;
-            Language = language;
+            Language = language == 0 ? Default.Language : language;
         }
 
         /// <summary>

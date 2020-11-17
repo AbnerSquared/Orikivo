@@ -35,12 +35,12 @@ namespace Orikivo
             properties ??= DeckProperties.Default;
 
             List<Card> available = Randomizer.Shuffle(GetCardPack(properties.AllowJokers)).ToList();
-            Logger.Debug($"{available.Count}");
+            //Logger.Debug($"{available.Count}");
             int limit = properties.Size > available.Count ? available.Count : properties.Size;
 
             if (limit == properties.Size)
                 available.RemoveRange(properties.Size - 1, available.Count - properties.Size);
-            Logger.Debug($"{available.Count}");
+            //Logger.Debug($"{available.Count}");
             return new CardDeck(available);
         }
 

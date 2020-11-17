@@ -122,22 +122,6 @@ balance_chips: Chips
 balance_tokens: Tokens
 balance_debt: Debt
 
-blackjack_header: Blackjack
-blackjack_hidden: Hidden
-blackjack_dealer_hand: Dealer's Hand
-blackjack_or: or
-blackjack_bust: Bust!
-blackjack_your_hand: Your Hand
-blackjack_hand_title: Playing with {0}
-blackjack_on_bust: You have gone over 21. The dealer has won.
-blackjack_on_fold: You have backed out of the game. You have only lost 50% of your wager ({0}).
-blackjack_on_lose: The dealer has a stronger hand. You have lost {0}.
-blackjack_on_win: You have a stronger hand than the dealer. You have won {0}.
-blackjack_on_draw: You and the dealer have equal hands. Nobody has won.
-blackjack_on_timeout: You have timed out. Your wager has been returned to you.
-blackjack_on_invalid: INVALID_STATE
-blackjack_action_title: Actions
-
 roulette_header: Roulette
 roulette_subtitle: Betting on **{}**
 roulette_on_win: You have won.
@@ -716,6 +700,12 @@ doubler_reply_loss_offset: You were **{}** {} {} **{}**.
 
 offset_above: above
 offset_below: below
+
+"help_tooltip_default": "Use `help <name>` to learn more about a command or category.",
+"help_tooltip_overload": "Use `help {0}+<index>` to learn more about a specific command overload.",
+"help_tooltip_group": "Use `help {0} <command>` to learn more about a specific command method within a group.",
+"help_tooltip_module": "Use `help <command>` to learn more about a specific command.",
+"help_tooltip_parameter": "Use `help {0}(<parameter>` to learn more about a specific parameter.",
 
 gimi_reply_debt:
 	I guess you reap what you sow.

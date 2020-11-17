@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Orikivo.Text
 {
@@ -18,5 +17,11 @@ namespace Orikivo.Text
 
         public LocaleNode GetNode(string id)
             => Nodes.FirstOrDefault(x => x.Id == id);
+
+        public bool Exists(string id)
+            => Nodes.Any(x => x.Id == id);
+
+        public string GetString(string id, params object[] args)
+            => GetNode(id)?.ToString(args) ?? "INVALID_LOCALE";
     }
 }

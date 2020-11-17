@@ -10,6 +10,17 @@ using Orikivo.Text;
 
 namespace Arcadia.Casino
 {
+    public class BlackJackHand
+    {
+        public int Index { get; internal set; } = 0;
+
+        public List<Card> Cards { get; internal set; } = new List<Card>();
+
+        public long Wager { get; internal set; } = 0;
+
+        public BlackJackState State { get; internal set; } = BlackJackState.Active;
+    }
+
     public class BlackJackSession : BaseSession
     {
         public BlackJackSession(ArcadeUser invoker, ISocketMessageChannel channel, long wager, LocaleProvider locale) : base(invoker, channel)
@@ -26,16 +37,18 @@ namespace Arcadia.Casino
 
             State = BlackJackState.Active;
             Wager = wager;
-            Locale = locale;
+            Locale = locale.GetBank(Invoker.Config.Language);
         }
 
-        public LocaleProvider Locale { get; }
+        public LocaleBank Locale { get; }
 
         public CardDeck Deck { get; }
 
         public List<Card> DealerHand { get; }
 
-        public List<Card> Hand { get; }
+        public List<Card> Hand { get; private set; }
+
+        public BlackJackHand Offhand { get; } = new BlackJackHand();
 
         public long Wager { get; private set; }
 
@@ -43,7 +56,10 @@ namespace Arcadia.Casino
 
         private bool IsHidden { get; set; } = true;
 
-        private Language Language => Invoker.Config.Language;
+        public bool HasSplit { get; private set; }
+
+        public bool HasExecutedAction { get; private set; }
+
         private string DrawCardSuit(CardSuit suit)
         {
             return suit switch
@@ -82,23 +98,23 @@ namespace Arcadia.Casino
         {
             var result = new StringBuilder();
 
-            result.AppendLine($"> **{Locale.GetValue("blackjack_dealer_hand", Language)}**{(State == BlackJackState.Active ? "" : $" (**{GetBestSum(DealerHand)}**)")}");
+            result.AppendLine($"> **{Locale.GetString("blackjack_dealer_hand")}**{(State == BlackJackState.Active ? "" : $" (**{GetBestSum(DealerHand)}**)")}");
             result.AppendJoin("\n", DealerHand.Select((c, i) => $"> {(isHidden && i > 0 ? DrawHidden() : DrawCard(c))}"));
 
             return result.ToString();
         }
 
-        private string DrawHandWorth()
+        private string DrawHandWorth(List<Card> hand)
         {
-            var sums = GetPossibleSums(Hand);
+            var sums = GetPossibleSums(hand);
 
             if (sums.Count == 0)
-                return $"(**{Locale.GetValue("blackjack_bust", Language)}**)"; // Bust!
+                return $"(**{Locale.GetString("blackjack_bust")}**)"; // Bust!
 
             if (State != BlackJackState.Active)
-                return $"(**{GetBestSum(Hand)}**)";
+                return $"(**{GetBestSum(hand)}**)";
 
-            return $"({string.Join($" {Locale.GetValue("blackjack_or", Language)} ", sums.Select(x => $"**{x}**"))})";
+            return $"({string.Join($" {Locale.GetString("blackjack_or")} ", sums.Select(x => $"**{x}**"))})";
         }
 
         private List<int> GetPossibleSums(List<Card> hand)
@@ -124,8 +140,20 @@ namespace Arcadia.Casino
         private string DrawPlayerHand()
         {
             var result = new StringBuilder();
-            result.AppendLine($"> **{Locale.GetValue("blackjack_your_hand", Language)}** {DrawHandWorth()}");
+            result.AppendLine($"> **{Locale.GetString("blackjack_your_hand")}** {DrawHandWorth(Hand)}");
             result.AppendJoin("\n", Hand.Select(c => $"> {DrawCard(c)}"));
+            return result.ToString();
+        }
+
+        private string DrawSecondaryHand(string title)
+        {
+            var result = new StringBuilder();
+
+            result
+                .Append($"> {title}\n> ")
+                .AppendJoin(" • ", Offhand.Cards.Select(DrawCard))
+                .AppendLine();
+
             return result.ToString();
         }
 
@@ -134,12 +162,29 @@ namespace Arcadia.Casino
             var display = new StringBuilder();
 
             display
-                .AppendLine($"> **{Locale.GetValue("blackjack_header", Language)}**")
+                .AppendLine($"> **{Locale.GetString("blackjack_header")}**")
                 // Playing with {0}
-                .AppendLine($"> {Locale.GetValue("blackjack_hand_title", Language)} {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}\n")
+                .AppendLine($"> {Locale.GetString("blackjack_hand_title")} {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}\n")
                 .AppendLine($"{DrawDealerHand(IsHidden)}\n")
-                .AppendLine($"{DrawPlayerHand()}\n")
-                .AppendLine($"{(State == BlackJackState.Active ? DrawActions() : DrawStateResult())}");
+                .AppendLine($"{DrawPlayerHand()}\n");
+
+            // off-hand draw
+
+            if (Offhand.Cards.Count > 0)
+            {
+                string title = $"**{Locale.GetString("blackjack_offhand_title")}** {DrawHandWorth(Offhand.Cards)}";
+
+                if (Offhand.State != BlackJackState.Active)
+                {
+                    bool isLoss = Offhand.State.EqualsAny(BlackJackState.Bust, BlackJackState.Lose, BlackJackState.Fold);
+                    string wager = Offhand.State == BlackJackState.Draw ? "" : $" [{(isLoss ? "-" : "+")} {CurrencyHelper.WriteCost(Offhand.Wager, CurrencyType.Chips)}]";
+                    title = $"**{Locale.GetString("blackjack_previous_title")}** (**{Locale.GetString($"blackjack_state_{Offhand.State.ToString().ToLower()}")}!**){wager}";
+                }
+
+                display.AppendLine(DrawSecondaryHand(title));
+            }
+
+            display.AppendLine($"{(State == BlackJackState.Active ? DrawActions() : DrawStateResult())}");
 
             return display.ToString();
         }
@@ -149,7 +194,7 @@ namespace Arcadia.Casino
             if (State == BlackJackState.Active)
                 return "";
 
-            var result = new StringBuilder($"> **{State}**\n");
+            var result = new StringBuilder($"> **{Locale.GetString($"blackjack_state_{State.ToString().ToLower()}")}!**\n");
             result.AppendLine($"> {GetStateSummary(State)}");
 
             return result.ToString();
@@ -157,14 +202,15 @@ namespace Arcadia.Casino
 
         private string GetStateSummary(BlackJackState state)
         {
+            string chips = CurrencyHelper.WriteCost(Wager, CurrencyType.Chips);
             return state switch
             {
-                BlackJackState.Bust => "You have gone over **21**. The dealer has won.",
-                BlackJackState.Fold => $"You have backed out of the game. You have only lost 50% of your wager ({CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}).",
-                BlackJackState.Lose => $"The dealer has a stronger hand. You have lost {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
-                BlackJackState.Win => $"You have a stronger hand than the dealer. You have won {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
-                BlackJackState.Draw => $"You and the dealer have equal hands. Nobody has won.",
-                BlackJackState.Timeout => "You have timed out. Your wager has been returned to you.",
+                BlackJackState.Bust => Locale.GetString("blackjack_on_bust"),//  "You have gone over **21**. The dealer has won.",
+                BlackJackState.Fold => Locale.GetString("blackjack_on_fold", chips),// $"You have backed out of the game. You have only lost 50% of your wager ({chips}).",
+                BlackJackState.Lose => Locale.GetString("blackjack_on_lose", chips),// $"The dealer has a stronger hand. You have lost {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
+                BlackJackState.Win => Locale.GetString("blackjack_on_win", chips),// $"You have a stronger hand than the dealer. You have won {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
+                BlackJackState.Draw => Locale.GetString("blackjack_on_draw"),// $"You and the dealer have equal hands. Nobody has won.",
+                BlackJackState.Timeout => Locale.GetString("blackjack_on_timeout"),// "You have timed out. Your wager has been returned to you.",
                 _ => "INVALID_STATE"
             };
         }
@@ -173,11 +219,14 @@ namespace Arcadia.Casino
         {
             var actionBar = new StringBuilder();
 
-            actionBar.AppendLine($"> **Actions**")
+            actionBar.AppendLine($"> **{Locale.GetString("blackjack_action_title")}**")
                 .Append("`hit` `stand`");
 
             if (Invoker.ChipBalance >= Wager * 2)
                 actionBar.Append(" `double`");
+
+            if (Invoker.ChipBalance >= Wager * 2 && !HasExecutedAction && !HasSplit && Hand.Count == 2 && Hand.All(x => x.Rank == Hand.First().Rank))
+                actionBar.Append(" `split`");
 
             actionBar.Append(" `fold`");
 
@@ -200,7 +249,6 @@ namespace Arcadia.Casino
             else
                 worth = (int)card.Rank;
 
-            // Logger.Debug($"{card.Rank} = {worth}");
             return worth;
         }
 
@@ -284,15 +332,28 @@ namespace Arcadia.Casino
             return BlackJackState.Lose;
         }
 
+        private bool HasSplitHand()
+        {
+            return Offhand.Cards.Count > 0 && Offhand.State == BlackJackState.Active;
+        }
+
         public override async Task OnStartAsync()
         {
             Invoker.AddToVar(Stats.BlackJack.TimesPlayed);
-            DealerHand.Add(Deck.Take());
-            DealerHand.Add(Deck.Take());
-            Hand.Add(Deck.Take());
-            Hand.Add(Deck.Take());
-
+            DealerHand.AddRange(Deck.Take(), Deck.Take());
+            Hand.AddRange(Deck.Take(), Deck.Take());
             Reference = await Channel.SendMessageAsync(DrawGameDisplay());
+        }
+
+        // puts primary hand to offhand with its result.
+        private void SwapHands()
+        {
+            List<Card> offhand = new List<Card>(Offhand.Cards);
+            Offhand.Cards = new List<Card>(Hand);
+            Offhand.State = State;
+            Offhand.Wager = Wager;
+            Hand = offhand;
+            State = BlackJackState.Active;
         }
 
         /// <inheritdoc />
@@ -302,10 +363,21 @@ namespace Arcadia.Casino
 
             if (input == "hit")
             {
+                if (!HasExecutedAction)
+                    HasExecutedAction = true;
+
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
+
+                    if (HasSplitHand())
+                    {
+                        SwapHands();
+                        await UpdateAsync();
+                        return SessionResult.Continue;
+                    }
+
                     await UpdateAsync();
                     return SessionResult.Success;
                 }
@@ -318,6 +390,9 @@ namespace Arcadia.Casino
 
             if (input == "stand")
             {
+                if (!HasExecutedAction)
+                    HasExecutedAction = true;
+
                 State = GetResult();
 
                 if (State == BlackJackState.Win)
@@ -333,18 +408,36 @@ namespace Arcadia.Casino
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
+                if (HasSplitHand())
+                {
+                    SwapHands();
+                    await UpdateAsync();
+                    return SessionResult.Continue;
+                }
+
                 await UpdateAsync();
                 return SessionResult.Success;
             }
 
             if (input == "double" && Invoker.ChipBalance >= Wager * 2)
             {
+                if (!HasExecutedAction)
+                    HasExecutedAction = true;
+
                 Wager *= 2;
 
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
                     Invoker.Take(Wager, CurrencyType.Chips);
+
+                    if (HasSplitHand())
+                    {
+                        SwapHands();
+                        await UpdateAsync();
+                        return SessionResult.Continue;
+                    }
+
                     await UpdateAsync();
                     return SessionResult.Success;
                 }
@@ -364,16 +457,53 @@ namespace Arcadia.Casino
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);
 
+                if (HasSplitHand())
+                {
+                    SwapHands();
+                    await UpdateAsync();
+                    return SessionResult.Continue;
+                }
+
                 await UpdateAsync();
                 return SessionResult.Success;
             }
 
+            if (input == "split" && Invoker.ChipBalance >= Wager * 2 && !HasSplit && Hand.Count == 2 && Hand.All(x => x.Rank == Hand.First().Rank))
+            {
+                if (!HasExecutedAction)
+                    HasExecutedAction = true;
+
+                HasSplit = true;
+                Card copy = Hand.ElementAt(Hand.Count - 1);
+                Hand.RemoveAt(Hand.Count - 1);
+                Hand.Add(Deck.Take());
+
+                Offhand.Cards.Add(copy);
+                Offhand.Cards.Add(Deck.Take());
+
+                await UpdateAsync();
+                return SessionResult.Continue;
+            }
+
             if (input == "fold")
             {
+                if (!HasExecutedAction)
+                    HasExecutedAction = true;
+
+                long old = Wager;
                 long partial = (long)Math.Floor(Wager / (double)2);
                 Wager = partial == 0 ? 1 : partial;
                 State = BlackJackState.Fold;
                 Invoker.Take(Wager, CurrencyType.Chips);
+
+                if (HasSplitHand())
+                {
+                    SwapHands();
+                    Wager = old;
+                    await UpdateAsync();
+                    return SessionResult.Continue;
+                }
+
                 await UpdateAsync();
                 return SessionResult.Success;
             }
