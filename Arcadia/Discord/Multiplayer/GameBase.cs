@@ -8,6 +8,9 @@ using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
+    // TODO: Implement a base player class inheritance structure that can store game data for players with custom classes
+    // This is to simplify how game logic is required to be written
+
     /// <summary>
     /// Represents a generic game structure.
     /// </summary>
@@ -140,18 +143,21 @@ namespace Arcadia.Multiplayer
         /// </summary>
         public virtual async Task BuildAsync(GameServer server)
         {
+            if (!(Activator.CreateInstance(new GameInfo(this).BaseType) is GameBase game))
+                throw new Exception("Expected inbound game information to initialize a new game");
+
             // Initialize the new game session
-            var session = new GameSession(server, this);
+            var session = new GameSession(server, game);
             server.Session = session;
 
             // Set all of the server connections to playing
             foreach (ServerConnection connection in server.Connections)
                 connection.State = GameState.Playing;
 
-            ExportProperties().ForEach(x => Logger.Debug($"{x.Id}: {x.Value.ToString()}"));
+            server.Session.Game.ExportProperties().ForEach(x => Logger.Debug($"{x.Id}: {x.Value.ToString()}"));
 
             // Read the method used when a session starts
-            await OnSessionStartAsync(server, session);
+            await server.Session.Game.OnSessionStartAsync(server, session);
         }
     }
 }

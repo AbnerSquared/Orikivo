@@ -86,11 +86,11 @@ namespace Arcadia.Multiplayer
                 return;
             }
 
-            GameBase game = _manager.GetGame(GameId);
+            GameInfo game = _manager.GetGame(GameId);
 
             if (game != null)
             {
-                Options = game.Options;
+                Options = new List<GameOption>(game.Options);
                 return;
             }
 
@@ -265,42 +265,46 @@ namespace Arcadia.Multiplayer
                 AddConsoleText($"[Console] Unable to initialize a session of '{GameId}'");
                 return false;
             }
-            else
+
+            if (Connections.Any(x => x.State == GameState.Editing))
             {
-                string name = details.Name ?? "UNKNOWN_GAME";
+                AddConsoleText($"[Console] There is an open configuration panel that is preventing the game from starting.");
+                return false;
+            }
 
-                if (Players.Count >= details.RequiredPlayers &&
-                    Players.Count <= details.PlayerLimit)
+            string name = details.Name ?? "UNKNOWN_GAME";
+
+            if (Players.Count >= details.RequiredPlayers &&
+                Players.Count <= details.PlayerLimit)
+            {
+                try
                 {
-                    try
-                    {
-                        await _manager.GetGame(GameId).BuildAsync(this);
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        AddConsoleText($"[Console] An exception has been thrown while initializing {name}.");
-                        DestroyCurrentSession();
-                        return false;
-                    }
+                    await _manager.GetGame(GameId).BuildAsync(this);
+                    return true;
                 }
-
-                if (Players.Count >= details.PlayerLimit)
+                catch (Exception e)
                 {
-                    AddConsoleText($"[Console] There are too many players in this server to start a game of {name}.");
+                    Console.WriteLine(e);
+                    AddConsoleText($"[Console] An exception has been thrown while initializing {name}.");
+                    DestroyCurrentSession();
                     return false;
                 }
+            }
 
-                if (Players.Count < details.RequiredPlayers)
-                {
-                    int requiredPlayers = details.RequiredPlayers - Players.Count;
-                    string conjoin = requiredPlayers > 1 ? "are" : "is";
-                    string buffer = $"[Console] {requiredPlayers} more {Format.TryPluralize("player", requiredPlayers)} {conjoin} required to start a game of {name}.";
+            if (Players.Count >= details.PlayerLimit)
+            {
+                AddConsoleText($"[Console] There are too many players in this server to start a game of {name}.");
+                return false;
+            }
 
-                    AddConsoleText(buffer);
-                    return false;
-                }
+            if (Players.Count < details.RequiredPlayers)
+            {
+                int requiredPlayers = details.RequiredPlayers - Players.Count;
+                string conjoin = requiredPlayers > 1 ? "are" : "is";
+                string buffer = $"[Console] {requiredPlayers} more {Format.TryPluralize("player", requiredPlayers)} {conjoin} required to start a game of {name}.";
+
+                AddConsoleText(buffer);
+                return false;
             }
 
             return false;

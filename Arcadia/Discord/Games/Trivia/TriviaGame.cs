@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 using OpenTDB;
 using Orikivo.Framework;
 using Format = Orikivo.Format;
@@ -93,10 +92,6 @@ namespace Arcadia.Multiplayer.Games
                 "80", "181", "210", "174", "177", "176", "205")
         };
 
-        public TriviaGame()
-        {
-        }
-
         /// <inheritdoc />
         public override string Id => "trivia";
 
@@ -111,6 +106,7 @@ namespace Arcadia.Multiplayer.Games
             CanSpectate = true
         };
 
+        // TODO: Merge GameOption collection into GameDetails
         public override List<GameOption> Options => new List<GameOption>
         {
             GameOption.Create("topics", "Topics", TriviaTopic.Any, "Determines the topics to filter for (only when **Use OpenTDB** is disabled)."),
@@ -375,13 +371,13 @@ namespace Arcadia.Multiplayer.Games
         }
 
         [Property("rematch_vote_count")]
-        public int RematchVoteCount { get; set; } = 1;
+        public int RematchVoteCount { get; set; } = 0;
 
         [Property("answer_count")]
-        public int AnswerCount { get; set; } = 2;
+        public int AnswerCount { get; set; } = 0;
 
         [Property("question_index")]
-        public int QuestionIndex { get; set; } = 3;
+        public int QuestionIndex { get; set; } = 0;
 
         public override List<GameProperty> OnBuildProperties()
         {

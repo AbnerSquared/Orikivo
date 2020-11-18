@@ -37,7 +37,7 @@ namespace Arcadia.Multiplayer
             _client.LatencyUpdated += HandleIdleServers;
         }
 
-        public IReadOnlyDictionary<string, GameBase> Games { get; set; }
+        public IReadOnlyDictionary<string, GameInfo> Games { get; set; }
         public string DefaultGameId { get; set; }
         public Dictionary<string, GameServer> Servers { get; }
 
@@ -195,7 +195,7 @@ namespace Arcadia.Multiplayer
             return Games[gameId].Details;
         }
 
-        public GameBase GetGame(string gameId)
+        public GameInfo GetGame(string gameId)
         {
             if (!Games.ContainsKey(gameId))
                 return null;
