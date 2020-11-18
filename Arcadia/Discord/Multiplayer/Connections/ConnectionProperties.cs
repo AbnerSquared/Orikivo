@@ -19,7 +19,7 @@ namespace Arcadia.Multiplayer
         };
 
         // The default frequency to set this connection to
-        public int Frequency { get; set; } = 0;
+        public int Frequency { get; set; }
 
         // The game state that should be set for this connection
         public GameState State { get; set; } = GameState.Waiting;
@@ -27,10 +27,10 @@ namespace Arcadia.Multiplayer
         public OriginType Origin { get; set; } = OriginType.Unknown;
 
         // If this connection can delete messages
-        public bool CanDeleteMessages { get; set; } = false;
+        public bool CanDeleteMessages { get; set; }
 
         // If this connection should ignore input
-        public bool BlockInput { get; set; } = false;
+        public bool BlockInput { get; set; }
 
         // After 4 messages is sent that CANNOT be deleted, this screen is refreshed, which resends the content into
         // a new message body

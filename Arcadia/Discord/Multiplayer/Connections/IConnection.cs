@@ -4,24 +4,26 @@ using Discord;
 
 namespace Arcadia.Multiplayer
 {
+    // To make connections platform-independant, the message/channel grouping needs to be removed.
+    // Instead, the connection should store the last updated text value that was updated
+
     /// <summary>
     /// Represents a generic connection to a <see cref="GameServer"/>.
     /// </summary>
     public interface IConnection
     {
-        // The time at which this connection was established
+        /// <summary>
+        /// Represents the time at which this connection was established.
+        /// </summary>
         DateTime CreatedAt { get; }
 
-        // The type of connection that was established
-        ConnectionType Type { get; }
-        
         /// <summary>
-        /// Represents the message that this <see cref="IConnection"/> references.
+        /// Represents the message that this connection references.
         /// </summary>
         IUserMessage Message { get; }
-        
+
         /// <summary>
-        /// Represents the channel that this <see cref="IConnection"/> is bound to.
+        /// Represents the channel that this connection is bound to.
         /// </summary>
         IMessageChannel Channel { get; }
 

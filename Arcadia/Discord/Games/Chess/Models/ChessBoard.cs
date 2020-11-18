@@ -27,112 +27,112 @@ namespace Arcadia.Multiplayer.Games
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Rook,
+                        Type = ChessPieceType.Rook,
                         Rank = 0,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Knight,
+                        Type = ChessPieceType.Knight,
                         Rank = 1,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Bishop,
+                        Type = ChessPieceType.Bishop,
                         Rank = 2,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Queen,
+                        Type = ChessPieceType.Queen,
                         Rank = 3,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.King,
+                        Type = ChessPieceType.King,
                         Rank = 4,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Bishop,
+                        Type = ChessPieceType.Bishop,
                         Rank = 5,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Knight,
+                        Type = ChessPieceType.Knight,
                         Rank = 6,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Rook,
+                        Type = ChessPieceType.Rook,
                         Rank = 7,
                         File = 0
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 0,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 1,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 2,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 3,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 4,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 5,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 6,
                         File = 1
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.Black,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 7,
                         File = 1
                     },
@@ -140,112 +140,112 @@ namespace Arcadia.Multiplayer.Games
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Rook,
+                        Type = ChessPieceType.Rook,
                         Rank = 0,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Knight,
+                        Type = ChessPieceType.Knight,
                         Rank = 1,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Bishop,
+                        Type = ChessPieceType.Bishop,
                         Rank = 2,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Queen,
+                        Type = ChessPieceType.Queen,
                         Rank = 3,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.King,
+                        Type = ChessPieceType.King,
                         Rank = 4,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Bishop,
+                        Type = ChessPieceType.Bishop,
                         Rank = 5,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Knight,
+                        Type = ChessPieceType.Knight,
                         Rank = 6,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Rook,
+                        Type = ChessPieceType.Rook,
                         Rank = 7,
                         File = 7
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 0,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 1,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 2,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 3,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 4,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 5,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 6,
                         File = 6
                     },
                     new ChessPiece
                     {
                         Owner = ChessOwner.White,
-                        Piece = ChessRank.Pawn,
+                        Type = ChessPieceType.Pawn,
                         Rank = 7,
                         File = 6
                     },
@@ -281,18 +281,18 @@ namespace Arcadia.Multiplayer.Games
             for (int i = 0; i < whitePieceCount + blackPieceCount; i++)
             {
                 Coordinate tile = Randomizer.Take(tiles);
-                var pieceType = (ChessRank)RandomProvider.Instance.Next(1, 7);
+                var pieceType = (ChessPieceType)RandomProvider.Instance.Next(1, 7);
 
                 pieces.Add(new ChessPiece
                 {
                     Owner = i < whitePieceCount ? ChessOwner.White : ChessOwner.Black,
-                    Piece = pieceType,
+                    Type = pieceType,
                     File = tile.X,
                     Rank = tile.Y
                 });
             }
 
-            Console.WriteLine($"Pieces Added:\n{string.Join("\n", pieces.Select(p => $"- {p.Owner.ToString()} {p.Piece.ToString()}"))}");
+            Console.WriteLine($"Pieces Added:\n{string.Join("\n", pieces.Select(p => $"- {p.Owner.ToString()} {p.Type.ToString()}"))}");
 
             return new ChessBoard
             {
@@ -319,7 +319,7 @@ namespace Arcadia.Multiplayer.Games
         {
             var text = new StringBuilder();
             text.AppendLine("```");
-            text.AppendLine(DrawRanks(perspective));
+            text.AppendLine(DrawBorderLabels(perspective));
 
             bool isFlipped = perspective == ChessOwner.Black;
 
@@ -331,7 +331,7 @@ namespace Arcadia.Multiplayer.Games
                 {
                     ChessPiece piece = GetPiece(row, column);
                     string tile = piece == null ? EmptyTile
-                        : ChessPiece.GetString(piece.Piece, piece.Owner, format);
+                        : ChessPiece.GetString(piece.Type, piece.Owner, format);
                     text.Append($" {tile}");
                 }
 
@@ -347,7 +347,7 @@ namespace Arcadia.Multiplayer.Games
             List<Coordinate> moves = GetMoves(focus);
             var text = new StringBuilder();
             text.AppendLine("```");
-            text.AppendLine(DrawRanks(perspective));
+            text.AppendLine(DrawBorderLabels(perspective));
 
             bool isFlipped = perspective == ChessOwner.Black;
 
@@ -363,7 +363,7 @@ namespace Arcadia.Multiplayer.Games
                         : EmptyTile
                         : moves.Contains(new Coordinate(row, column)) && piece.Rank == row && piece.File == column
                             ? "x"
-                            : ChessPiece.GetString(piece.Piece, perspective, format);
+                            : ChessPiece.GetString(piece.Type, perspective, format);
                     text.Append($" {tile}");
                 }
 
@@ -374,7 +374,7 @@ namespace Arcadia.Multiplayer.Games
             return text.ToString();
         }
 
-        private static string DrawRanks(ChessOwner perspective)
+        private static string DrawBorderLabels(ChessOwner perspective)
         {
             return perspective == ChessOwner.Black
                 ? "- H G F E D C B A"
@@ -383,7 +383,7 @@ namespace Arcadia.Multiplayer.Games
 
         public bool IsInCheck(ChessOwner player)
         {
-            if (GetPieces(player).All(x => x.Piece != ChessRank.King))
+            if (GetPieces(player).All(x => x.Type != ChessPieceType.King))
                 return false;
 
             ChessPiece king = GetKing(player);
@@ -394,7 +394,7 @@ namespace Arcadia.Multiplayer.Games
 
         public ChessPiece GetKing(ChessOwner player)
         {
-            return GetPieces(player).FirstOrDefault(x => x.Piece == ChessRank.King) ?? throw new Exception("Expected a king piece");
+            return GetPieces(player).FirstOrDefault(x => x.Type == ChessPieceType.King) ?? throw new Exception("Expected a king piece");
         }
 
         public bool IsCheckmate(ChessOwner player)
@@ -444,7 +444,7 @@ namespace Arcadia.Multiplayer.Games
         {
             var tiles = new List<Coordinate>();
 
-            if (attacker.Piece.EqualsAny(ChessRank.Pawn, ChessRank.Knight, ChessRank.King))
+            if (attacker.Type.EqualsAny(ChessPieceType.Pawn, ChessPieceType.Knight, ChessPieceType.King))
                 return tiles;
 
             ChessDirection direction = GetAttackDirection(attacker, target);
@@ -493,7 +493,7 @@ namespace Arcadia.Multiplayer.Games
 
         private ChessDirection GetAttackDirection(ChessPiece attacker, ChessPiece target)
         {
-            if (attacker.Piece.EqualsAny(ChessRank.King, ChessRank.Pawn, ChessRank.Knight))
+            if (attacker.Type.EqualsAny(ChessPieceType.King, ChessPieceType.Pawn, ChessPieceType.Knight))
                 return 0;
 
             int xDiff = attacker.Rank - target.Rank;
@@ -596,7 +596,7 @@ namespace Arcadia.Multiplayer.Games
             }
 
             // en passant
-            if (LastMove != null && LastMove.Piece == ChessRank.Pawn && LastMove.Player != piece.Owner)
+            if (LastMove != null && LastMove.Piece == ChessPieceType.Pawn && LastMove.Player != piece.Owner)
             {
                 int fromY = (LastMove.Player == ChessOwner.Black) ? 1 : 6;
                 int toY = (LastMove.Player == ChessOwner.Black) ? 3 : 4;
@@ -633,13 +633,13 @@ namespace Arcadia.Multiplayer.Games
 
             moves.RemoveAll(x => !available.Contains(x) && !attackable.Contains(x));
 
-            Console.WriteLine($"Available required moves for {piece.Owner} {piece.Piece}:\n{string.Join("\n", moves)}");
+            Console.WriteLine($"Available required moves for {piece.Owner} {piece.Type}:\n{string.Join("\n", moves)}");
             return moves;
         }
 
         public List<Coordinate> GetMoves(ChessPiece piece)
         {
-            if (IsInCheck(piece.Owner) && piece.Piece != ChessRank.King)
+            if (IsInCheck(piece.Owner) && piece.Type != ChessPieceType.King)
                 return GetRequiredMoves(piece);
 
             return GetDefaultMoves(piece);
@@ -647,17 +647,17 @@ namespace Arcadia.Multiplayer.Games
 
         private List<Coordinate> GetDefaultMoves(ChessPiece piece)
         {
-            var moves = GetBaseMoves(piece.Owner, piece.Piece, piece.Rank, piece.File)
+            var moves = GetBaseMoves(piece.Owner, piece.Type, piece.Rank, piece.File)
                 .Where(x => !GetUsedTiles(piece.Owner).Contains(x)).ToList();
 
-            if (piece.Piece == ChessRank.King)
+            if (piece.Type == ChessPieceType.King)
                 RemoveDangerMoves(ref moves, piece.Owner);
 
-            if (piece.Piece == ChessRank.Pawn)
+            if (piece.Type == ChessPieceType.Pawn)
                 AddPawnTiles(ref moves, piece);
             // remove all moves where: a piece owned by the current owner is in a specified coordinate
             // remove all moves where: an enemy piece is already blocking
-            Console.WriteLine($"Moves available for {piece.Owner.ToString()} {piece.Piece.ToString()}:\n{string.Join("\n", moves.Select(x => $"- {GetPosition(x.X, x.Y)}"))}");
+            Console.WriteLine($"Moves available for {piece.Owner.ToString()} {piece.Type.ToString()}:\n{string.Join("\n", moves.Select(x => $"- {GetPosition(x.X, x.Y)}"))}");
             return moves;
         }
 
@@ -673,18 +673,18 @@ namespace Arcadia.Multiplayer.Games
         }
 
         public List<Coordinate> GetBaseMoves(ChessPiece piece)
-            => GetBaseMoves(piece.Owner, piece.Piece, piece.Rank, piece.File);
+            => GetBaseMoves(piece.Owner, piece.Type, piece.Rank, piece.File);
 
         // 0 to 7
         // file = y
         // rank = x
-        private List<Coordinate> GetBaseMoves(ChessOwner owner, ChessRank piece, int rank, int file)
+        private List<Coordinate> GetBaseMoves(ChessOwner owner, ChessPieceType piece, int rank, int file)
         {
             var moves = new List<Coordinate>();
 
             switch (piece)
             {
-                case ChessRank.King:
+                case ChessPieceType.King:
                     moves.AddRange(new List<Coordinate>
                     {
                         new Coordinate(rank + 1, file),
@@ -699,7 +699,7 @@ namespace Arcadia.Multiplayer.Games
 
                     break;
 
-                case ChessRank.Knight:
+                case ChessPieceType.Knight:
                     moves.AddRange(new List<Coordinate>
                     {
                         new Coordinate(rank + 1, file - 2),
@@ -714,21 +714,21 @@ namespace Arcadia.Multiplayer.Games
 
                     break;
 
-                case ChessRank.Rook:
+                case ChessPieceType.Rook:
                     MoveWest(ref moves, rank, file);
                     MoveEast(ref moves, rank, file);
                     MoveNorth(ref moves, rank, file);
                     MoveSouth(ref moves, rank, file);
                     break;
 
-                case ChessRank.Bishop:
+                case ChessPieceType.Bishop:
                     MoveNorthWest(ref moves, rank, file);
                     MoveNorthEast(ref moves, rank, file);
                     MoveSouthWest(ref moves, rank, file);
                     MoveSouthEast(ref moves, rank, file);
                     break;
 
-                case ChessRank.Queen:
+                case ChessPieceType.Queen:
                     MoveWest(ref moves, rank, file);
                     MoveEast(ref moves, rank, file);
                     MoveNorth(ref moves, rank, file);
@@ -739,7 +739,7 @@ namespace Arcadia.Multiplayer.Games
                     MoveSouthEast(ref moves, rank, file);
                     break;
 
-                case ChessRank.Pawn:
+                case ChessPieceType.Pawn:
                     if (owner == ChessOwner.Black)
                     {
                         moves.Add(new Coordinate(rank, file + 1));
@@ -918,150 +918,6 @@ namespace Arcadia.Multiplayer.Games
                 moves.Add(new Coordinate(++x, ++y));
         }
 
-        private Coordinate PeekWest(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.Rank < x && p.File == y)
-                .OrderBy(p => p.Rank - x)
-                .FirstOrDefault();
-
-            int nearest = piece?.Rank ?? Min;
-
-            while (x > nearest)
-                --x;
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekNorth(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.File < y && p.Rank == x)
-                .OrderBy(p => y - p.File)
-                .FirstOrDefault();
-
-            int nearest = piece?.File ?? Min;
-
-            while (y > nearest)
-                --y;
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekSouth(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.Rank == x && p.File > y)
-                .OrderBy(p => p.File - y)
-                .FirstOrDefault();
-
-            int nearest = piece?.File ?? Max;
-
-            while (y < nearest)
-                ++y;
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekEast(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.Rank > x && p.File == y)
-                .OrderBy(p => x - p.Rank)
-                .FirstOrDefault();
-
-            int nearest = piece?.Rank ?? Max;
-
-            while (x < nearest)
-                ++x;
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekNorthWest(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => x - p.Rank > 0
-                            && y - p.File > 0
-                            && x - p.Rank == y - p.File)
-                .OrderBy(p => x - p.Rank)
-                .FirstOrDefault();
-
-            int nearestX = piece?.Rank ?? Min;
-            int nearestY = piece?.File ?? Min;
-
-            while (x > nearestX && y > nearestY)
-            {
-                --x;
-                --y;
-            }
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekSouthWest(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => x - p.Rank > 0
-                            && p.File - y > 0
-                            && x - p.Rank == p.File - y)
-                .OrderBy(p => x - p.Rank)
-                .FirstOrDefault();
-
-            int nearestX = piece?.Rank ?? Min;
-            int nearestY = piece?.File ?? Max;
-
-            while (x > nearestX && y < nearestY)
-            {
-                --x;
-                ++y;
-            }
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekNorthEast(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.Rank - x > 0
-                            && y - p.File > 0
-                            && p.Rank - x == y - p.File)
-                .OrderBy(p => p.Rank - x)
-                .FirstOrDefault();
-
-            int nearestX = piece?.Rank ?? Max;
-            int nearestY = piece?.File ?? Min;
-
-            while (x < nearestX && y > nearestY)
-            {
-                ++x;
-                --y;
-            }
-
-            return new Coordinate(x, y);
-        }
-
-        private Coordinate PeekSouthEast(int x, int y)
-        {
-            ChessPiece piece = Pieces
-                .Where(p => p.Rank - x > 0
-                            && p.File - y > 0
-                            && p.Rank - x == p.File - y)
-                .OrderBy(p => p.Rank - x)
-                .FirstOrDefault();
-
-            int nearestX = piece?.Rank ?? Max;
-            int nearestY = piece?.File ?? Max;
-
-            while (x < nearestX && y < nearestY)
-            {
-                ++x;
-                ++y;
-            }
-
-            return new Coordinate(x, y);
-        }
-
         public DateTime StartedAt { get; }
 
         public ChessMove LastMove { get; set; }
@@ -1080,12 +936,13 @@ namespace Arcadia.Multiplayer.Games
                 Console.WriteLine($"{LastMove.Piece} ({LastMove.Rank}, {LastMove.File} => {LastMove.To.X}, {LastMove.To.Y})");
             }
 
+            // Um... This is disgusting lol
             if (LastMove != null
-                && LastMove.Piece == ChessRank.Pawn
+                && LastMove.Piece == ChessPieceType.Pawn
                 && LastMove.Player != focus.Owner
                 && LastMove.File == ((LastMove.Player == ChessOwner.Black) ? 1 : 6)
                 && LastMove.To.Y == ((LastMove.Player == ChessOwner.Black) ? 3 : 4)
-                && focus.Piece == ChessRank.Pawn
+                && focus.Type == ChessPieceType.Pawn
                 && tile.X == LastMove.To.X
                 && (LastMove.Player == ChessOwner.Black
                     ? LastMove.To.Y - ((LastMove.Player == ChessOwner.Black) ? 2 : 5)
@@ -1099,37 +956,35 @@ namespace Arcadia.Multiplayer.Games
                 Pieces.Remove(target);
 
                 ChessOwner enemy = focus.Owner == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
-                ChessMoveAction action = 0;
+                ChessEvents action = 0;
 
                 if (IsCheckmate(enemy))
-                    action |= ChessMoveAction.Checkmate;
+                    action |= ChessEvents.Checkmate;
                 else if (IsInCheck(enemy))
-                    action |= ChessMoveAction.Check;
+                    action |= ChessEvents.Check;
 
-                LastMove = new ChessMove(StartedAt, focus, tile, action | ChessMoveAction.EnPassant);
+                LastMove = new ChessMove(StartedAt, focus, tile, action | ChessEvents.EnPassant);
                 focus.Rank = tile.X;
                 focus.File = tile.Y;
             }
             else
             {
                 ChessPiece target = GetPiece(tile.X, tile.Y);
-
                 ChessOwner enemy = focus.Owner == ChessOwner.Black ? ChessOwner.White : ChessOwner.Black;
-
-                ChessMoveAction action = 0;
+                ChessEvents events = 0;
 
                 if (IsCheckmate(enemy))
-                    action |= ChessMoveAction.Checkmate;
+                    events |= ChessEvents.Checkmate;
                 else if (IsInCheck(enemy))
-                    action |= ChessMoveAction.Check;
+                    events |= ChessEvents.Check;
 
                 if (target != null)
                 {
                     Pieces.Remove(target);
-                    action |= ChessMoveAction.Capture;
+                    events |= ChessEvents.Capture;
                 }
 
-                LastMove = new ChessMove(StartedAt, focus, tile, action);
+                LastMove = new ChessMove(StartedAt, focus, tile, events);
                 focus.Rank = tile.X;
                 focus.File = tile.Y;
             }

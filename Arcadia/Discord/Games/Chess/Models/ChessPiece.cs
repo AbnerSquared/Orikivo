@@ -1,72 +1,72 @@
 ﻿using System;
-using Orikivo.Drawing;
 using Orikivo.Text;
 
 namespace Arcadia.Multiplayer.Games
 {
     public class ChessPiece
     {
-        public static bool TryParse(string input, out ChessRank piece)
+        public static bool TryParse(string input, out ChessPieceType piece)
         {
             piece = 0;
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "p", "pawn"))
             {
-                piece = ChessRank.Pawn;
+                piece = ChessPieceType.Pawn;
                 return true;
             }
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "n", "knight"))
             {
-                piece = ChessRank.Knight;
+                piece = ChessPieceType.Knight;
                 return true;
             }
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "b", "bishop"))
             {
-                piece = ChessRank.Bishop;
+                piece = ChessPieceType.Bishop;
                 return true;
             }
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "r", "rook"))
             {
-                piece = ChessRank.Rook;
+                piece = ChessPieceType.Rook;
                 return true;
             }
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "q", "queen"))
             {
-                piece = ChessRank.Queen;
+                piece = ChessPieceType.Queen;
                 return true;
             }
 
             if (input.EqualsAny(StringComparison.OrdinalIgnoreCase, "k", "king"))
             {
-                piece = ChessRank.King;
+                piece = ChessPieceType.King;
                 return true;
             }
 
             return false;
         }
 
-            public static string GetString(ChessRank rank, ChessOwner player, ChessIconFormat format = ChessIconFormat.Text)
+        // TODO: Move to a formatter
+        public static string GetString(ChessPieceType rank, ChessOwner player, ChessIconFormat format = ChessIconFormat.Text)
         {
             bool isBlack = player == ChessOwner.Black;
             bool isEmote = format == ChessIconFormat.Emote;
             string text = rank switch
             {
-                ChessRank.Pawn when isEmote => isBlack ? "♙" : "♟",
-                ChessRank.Pawn => "P",
-                ChessRank.Knight when isEmote => isBlack ? "♘" : "♞",
-                ChessRank.Knight => "N",
-                ChessRank.Bishop when isEmote => isBlack ? "♗" : "♝",
-                ChessRank.Bishop => "B",
-                ChessRank.Rook when isEmote => isBlack ? "♖" : "♜",
-                ChessRank.Rook => "R",
-                ChessRank.Queen when isEmote => isBlack ? "♕" : "♛",
-                ChessRank.Queen => "Q",
-                ChessRank.King when isEmote => isBlack ? "♔" : "♚",
-                ChessRank.King => "K",
+                ChessPieceType.Pawn when isEmote => isBlack ? "♙" : "♟",
+                ChessPieceType.Pawn => "P",
+                ChessPieceType.Knight when isEmote => isBlack ? "♘" : "♞",
+                ChessPieceType.Knight => "N",
+                ChessPieceType.Bishop when isEmote => isBlack ? "♗" : "♝",
+                ChessPieceType.Bishop => "B",
+                ChessPieceType.Rook when isEmote => isBlack ? "♖" : "♜",
+                ChessPieceType.Rook => "R",
+                ChessPieceType.Queen when isEmote => isBlack ? "♕" : "♛",
+                ChessPieceType.Queen => "Q",
+                ChessPieceType.King when isEmote => isBlack ? "♔" : "♚",
+                ChessPieceType.King => "K",
                 _ => throw new ArgumentException("Unknown rank")
             };
 
@@ -76,14 +76,24 @@ namespace Arcadia.Multiplayer.Games
             return text;
         }
 
-        public Coordinate StartingPosition { get; set; }
+        /// <summary>
+        /// Represents the type that this <see cref="ChessPiece"/> represents.
+        /// </summary>
+        public ChessPieceType Type { get; internal set; }
 
-        public ChessRank Piece { get; internal set; }
-
-        public int File { get; internal set; }
-
+        /// <summary>
+        /// Represents the x-coordinate of this <see cref="ChessPiece"/>.
+        /// </summary>
         public int Rank { get; internal set; }
 
+        /// <summary>
+        /// Represents the y-coordinate of this <see cref="ChessPiece"/>.
+        /// </summary>
+        public int File { get; internal set; }
+
+        /// <summary>
+        /// Represents the owner of this <see cref="ChessPiece"/>.
+        /// </summary>
         public ChessOwner Owner { get; internal set; }
     }
 }

@@ -8,7 +8,7 @@ using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer.Games
 {
-    public class ChessGame : GameBase
+    public sealed class ChessGame : GameBase
     {
         /// <inheritdoc />
         public override string Id => "chess";
@@ -32,10 +32,14 @@ namespace Arcadia.Multiplayer.Games
             GameOption.Create(ChessConfig.PieceFormat, "Piece Format", ChessIconFormat.Text)
         };
 
+        [Property("move_history")]
         public List<ChessMove> MoveHistory { get; internal set; } = new List<ChessMove>();
 
         [Property("board")]
         public ChessBoard Board { get; internal set; }
+
+        [Property("state")]
+        public ChessState State { get; internal set; } = ChessState.Active;
 
         /// <inheritdoc />
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
@@ -77,6 +81,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
+        // Find a way to make broadcast building easier
         /// <inheritdoc />
         public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
@@ -176,7 +181,7 @@ namespace Arcadia.Multiplayer.Games
             if (piece == null)
                 return;
 
-            Logger.Debug($"Parsed piece: \"{piece.Owner} {piece.Piece} {piece.Rank} {piece.File}\"");
+            Logger.Debug($"Parsed piece: \"{piece.Owner} {piece.Type} {piece.Rank} {piece.File}\"");
 
             ChessOwner color = ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor);
 
@@ -251,17 +256,17 @@ namespace Arcadia.Multiplayer.Games
 
             var board = ctx.Session.ValueOf<ChessBoard>(ChessVars.Board);
 
-            if (ChessPiece.TryParse(input, out ChessRank type))
+            if (ChessPiece.TryParse(input, out ChessPieceType type))
             {
                 List<ChessPiece> pieces = board.GetPieces(ctx.Session.ValueOf<ChessOwner>(ChessVars.CurrentColor));
 
-                if (pieces.Count(x => x.Piece == type) > 1)
+                if (pieces.Count(x => x.Type == type) > 1)
                 {
                     Logger.Debug("Expected a single piece instance to move");
                     return null;
                 }
 
-                return pieces.First(x => x.Piece == type);
+                return pieces.First(x => x.Type == type);
             }
 
             if (input.Length != 2 || !int.TryParse(input[1].ToString(), out int y))

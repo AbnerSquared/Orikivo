@@ -1,6 +1,9 @@
 ﻿namespace Arcadia.Multiplayer.Games
 {
-    public enum ChessRank
+    /// <summary>
+    /// Defines the possible types for a <see cref="ChessPiece"/>.
+    /// </summary>
+    public enum ChessPieceType
     {
         Pawn = 1,
         Knight = 2,

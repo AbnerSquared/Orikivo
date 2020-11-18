@@ -16,6 +16,9 @@ namespace Arcadia.Multiplayer
         // what method of reaction used is needed to invoke this input? (by default, it is set to any)
         public ReactionHandling Handling { get; set; } = ReactionHandling.Any;
 
+        // Determines if the bot auto-reverts the reaction made on this input (i.e. removed added reaction once read)
+        bool RevertOnRead { get; set; }
+
         public Func<IUser, ServerConnection, GameServer, bool> Criterion { get; set; }
 
         public Action<InputContext> OnExecute { get; set; }

@@ -6,15 +6,15 @@ namespace Arcadia.Multiplayer.Games
 {
     public class ChessMove
     {
-        internal ChessMove(DateTime startedAt, ChessPiece piece, Coordinate to,  ChessMoveAction action)
+        internal ChessMove(DateTime startedAt, ChessPiece piece, Coordinate to,  ChessEvents action)
         {
             StartedAt = startedAt;
             Player = piece.Owner;
-            Piece = piece.Piece;
+            Piece = piece.Type;
             File = piece.File;
             Rank = piece.Rank;
             To = to;
-            Action = action;
+            Events = action;
             Timestamp = DateTime.UtcNow;
         }
 
@@ -22,7 +22,7 @@ namespace Arcadia.Multiplayer.Games
 
         public ChessOwner Player { get; }
 
-        public ChessRank Piece { get; }
+        public ChessPieceType Piece { get; }
 
         public int File { get; }
 
@@ -32,8 +32,8 @@ namespace Arcadia.Multiplayer.Games
 
         public DateTime Timestamp { get; }
 
-        // Actions made during this move
-        public ChessMoveAction Action { get; }
+        // Events triggered during this move
+        public ChessEvents Events { get; }
 
         public override string ToString()
         {

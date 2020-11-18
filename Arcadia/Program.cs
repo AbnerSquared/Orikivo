@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Orikivo.Drawing;
@@ -64,7 +63,6 @@ namespace Arcadia
                     .AddTypeReader<Shop>(new ShopTypeReader())
                     .AddTypeReader<ArcadeUser>(new ArcadeUserTypeReader())
                     .AddTypeReader<Wager>(new WagerTypeReader())
-                    .AddEnumTypeReader<CardDeny>()
                     .AddEnumTypeReader<Casing>()
                     .AddEnumTypeReader<FontType>()
                     .AddEnumTypeReader<PaletteType>()
@@ -108,7 +106,6 @@ namespace Arcadia
                     ["trivia"] = new GameInfo(new TriviaGame()),
                     ["werewolf"] = new GameInfo(new WerewolfGame()),
                     ["chess"] = new GameInfo(new ChessGame()),
-                    // ["tictactoe"] = new TicGame(),
                     ["ultimatetic"] = new GameInfo(new UltimateTicGame())
                 };
 
