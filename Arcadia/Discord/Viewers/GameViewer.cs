@@ -34,7 +34,7 @@ namespace Arcadia
 
             result.AppendLine($"> **Games**{extra}");
 
-            foreach (GameBase game in Paginate.GroupAt(gameManager.Games.Values, page, 8))
+            foreach (GameInfo game in Paginate.GroupAt(gameManager.Games.Values, page, 8))
             {
                 string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase) ? "" : $"`{game.Id}` ";
                 result.AppendLine($"> {id}{Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
@@ -43,7 +43,7 @@ namespace Arcadia
             return result.ToString();
         }
 
-        public static string ViewGame(GameBase game, int page = 0, ArcadeUser user = null)
+        public static string ViewGame(GameInfo game, int page = 0, ArcadeUser user = null)
         {
             bool allowTooltips = user?.Config?.Tooltips ?? true;
 
