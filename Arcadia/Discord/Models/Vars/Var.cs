@@ -507,7 +507,7 @@ namespace Arcadia
             return GetValue(user, criterion.Id) >= criterion.ExpectedValue;
         }
 
-        public static bool All(ArcadeUser user, VarMatch match, long value, params string[] ids)
+        public static bool All(ArcadeUser user, VarOp match, long value, params string[] ids)
         {
             foreach (string id in ids)
             {
@@ -518,18 +518,18 @@ namespace Arcadia
             return true;
         }
 
-        public static bool Matches(ArcadeUser user, string id, VarMatch match, long value)
+        public static bool Matches(ArcadeUser user, string id, VarOp match, long value)
         {
             long compare = user.GetVar(id);
 
             return match switch
             {
-                VarMatch.GTR => compare > value,
-                VarMatch.GEQ => compare >= value,
-                VarMatch.EQU => compare == value,
-                VarMatch.LEQ => compare <= value,
-                VarMatch.LSS => compare < value,
-                VarMatch.NEQ => compare != value,
+                VarOp.GTR => compare > value,
+                VarOp.GEQ => compare >= value,
+                VarOp.EQU => compare == value,
+                VarOp.LEQ => compare <= value,
+                VarOp.LSS => compare < value,
+                VarOp.NEQ => compare != value,
                 _ => throw new ArgumentOutOfRangeException(nameof(match))
             };
         }

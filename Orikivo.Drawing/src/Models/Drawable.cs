@@ -5,7 +5,7 @@ using System.Drawing;
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents an image builder that supports layering.
+    /// Represents a modular image base.
     /// </summary>
     public class Drawable : IDisposable
     {
@@ -13,7 +13,7 @@ namespace Orikivo.Drawing
 
         public Drawable(int width, int height)
         {
-            Viewport = new Size(width, height);
+            Viewport = new Unit(width, height);
         }
 
         public Drawable(Unit viewport)
@@ -46,11 +46,14 @@ namespace Orikivo.Drawing
 
         public Border Border { get; set; }
 
+        /// <summary>
+        /// Gets the finalized dimensions of this <see cref="Drawable"/>.
+        /// </summary>
         public Unit Size => new Unit(Viewport.Width + Properties.Padding.Width,
             Viewport.Height + Properties.Padding.Height);
 
         /// <summary>
-        /// Adds a new <see cref="DrawableLayer"/> to the set of existing layers.
+        /// Adds a new layer to this <see cref="Drawable"/>.
         /// </summary>
         public void AddLayer(DrawableLayer layer)
         {
@@ -59,10 +62,21 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Updates the existing <see cref="DrawableLayer"/> at the specified index to the new one specified.
+        /// Inserts a new layer at the specified index.
+        /// </summary>
+        public void InsertLayer(int index, DrawableLayer layer)
+        {
+            InternalLayers.Insert(index, layer);
+        }
+
+        /// <summary>
+        /// Updates the existing layer at the specified index to the new one specified.
         /// </summary>
         public void UpdateLayer(int index, DrawableLayer layer, bool keepProperties = true)
         {
+            if (index >= InternalLayers.Count || index < 0)
+                throw new IndexOutOfRangeException("The specified index is outside of the possible range of layer indexes.");
+
             if (keepProperties)
                 layer.Properties = InternalLayers[index].Properties;
 
@@ -70,26 +84,34 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Swaps two different <see cref="DrawableLayer"/> values by index.
+        /// Swaps two layers by their indexes.
         /// </summary>
-        public void SwapLayers(int index, int newIndex)
+        public void SwapLayers(int oldIndex, int newIndex)
         {
-            DrawableLayer a = InternalLayers[index];
-            InternalLayers[index] = InternalLayers[newIndex];
-            InternalLayers[newIndex] = a;
+            if (oldIndex >= InternalLayers.Count || oldIndex < 0)
+                throw new IndexOutOfRangeException("The specified old index is outside of the possible range of layer indexes.");
+
+            if (newIndex >= InternalLayers.Count || newIndex < 0)
+                throw new IndexOutOfRangeException("The specified new index is outside of the possible range of layer indexes.");
+
+            DrawableLayer old = InternalLayers[oldIndex];
+            InternalLayers[oldIndex] = InternalLayers[newIndex];
+            InternalLayers[newIndex] = old;
         }
 
         /// <summary>
-        /// Removes a <see cref="DrawableLayer"/> by its specified index.
+        /// Removes a layer at the specified index.
         /// </summary>
         public void RemoveLayer(int index)
         {
+            if (index >= InternalLayers.Count || index < 0)
+                throw new IndexOutOfRangeException("The specified index is outside of the possible range of layer indexes.");
+
             InternalLayers.RemoveAt(index);
         }
 
-        // NOTE: This auto-resizes the Drawable to perfectly fill all layers
         /// <summary>
-        /// Trims all empty pixels in this <see cref="Drawable"/> to only keep the bounding box of all layers.
+        /// Removes all extraneous pixels in this <see cref="Drawable"/> to only represent the bounding box of all combined layers.
         /// </summary>
         public void Trim()
         {

@@ -40,10 +40,10 @@ namespace Arcadia.Graphics
             if (info.OffsetX != 0)
                 x += info.OffsetX;
 
-            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.Width))
+            if (info.OffsetInherit.HasFlag(SizeInherit.Width))
                 x += previous.Width;
 
-            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.PaddingWidth))
+            if (info.OffsetInherit.HasFlag(SizeInherit.PaddingWidth))
                 x += previous.PaddingWidth;
 
             return x;
@@ -59,10 +59,10 @@ namespace Arcadia.Graphics
             if (info.OffsetY != 0)
                 y += info.OffsetY;
 
-            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.Height))
+            if (info.OffsetInherit.HasFlag(SizeInherit.Height))
                 y += previous.Height;
 
-            if (info.PreviousOffsetInherit.HasFlag(SizeInherit.PaddingHeight))
+            if (info.OffsetInherit.HasFlag(SizeInherit.PaddingHeight))
                 y += previous.PaddingHeight;
 
             return y;
@@ -78,10 +78,10 @@ namespace Arcadia.Graphics
                 return width;
             }
 
-            if (info.PreviousInherit.HasFlag(SizeInherit.Width))
+            if (info.SizeInherit.HasFlag(SizeInherit.Width))
                 width += previous.Width;
 
-            if (info.PreviousInherit.HasFlag(SizeInherit.PaddingWidth))
+            if (info.SizeInherit.HasFlag(SizeInherit.PaddingWidth))
                 width += previous.PaddingWidth;
 
             return width;
@@ -97,10 +97,10 @@ namespace Arcadia.Graphics
                 return height;
             }
 
-            if (info.PreviousInherit.HasFlag(SizeInherit.Height))
+            if (info.SizeInherit.HasFlag(SizeInherit.Height))
                 height += previous.Height;
 
-            if (info.PreviousInherit.HasFlag(SizeInherit.PaddingHeight))
+            if (info.SizeInherit.HasFlag(SizeInherit.PaddingHeight))
                 height += previous.PaddingHeight;
 
             return height;

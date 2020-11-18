@@ -9,17 +9,17 @@ namespace Orikivo.Drawing
         private DrawableProperties _properties;
 
         /// <summary>
-        /// The max width the <see cref="DrawableLayer"/> can be set to.
+        /// Gets or sets the max width that this <see cref="DrawableLayer"/> can be set to.
         /// </summary>
         public int? MaxWidth { get; set; }
 
         /// <summary>
-        /// The max height the <see cref="DrawableLayer"/> can be set to.
+        /// Gets or sets the max height the <see cref="DrawableLayer"/> can be set to.
         /// </summary>
         public int? MaxHeight { get; set; }
 
         /// <summary>
-        /// Gets or sets the offset to be applied on the <see cref="Drawable"/>.
+        /// Gets or sets the initial offset for this <see cref="DrawableLayer"/>.
         /// </summary>
         public Coordinate Offset { get; set; } = Coordinate.Empty;
 

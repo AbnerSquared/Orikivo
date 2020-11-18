@@ -4,13 +4,13 @@ namespace Arcadia.Graphics
 {
     public class ComponentReference
     {
-        public int Width { get; internal set; }
+        internal int Width { get; set; }
 
-        public int Height { get; internal set; }
+        internal int Height { get; set; }
 
-        public int PaddingWidth { get; internal set; }
+        internal int PaddingWidth { get;set; }
 
-        public int PaddingHeight { get; internal set; }
+        internal int PaddingHeight { get; set; }
 
         internal void Update(int width, int height, Padding padding)
         {

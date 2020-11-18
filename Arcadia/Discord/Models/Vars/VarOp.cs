@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum VarMatch
+    public enum VarOp
     {
         /// <summary>
         /// Compares if a <see cref="Var"/> is greater than the specified value.

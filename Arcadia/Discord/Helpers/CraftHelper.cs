@@ -13,7 +13,7 @@ namespace Arcadia
                && Assets.Recipes.Any(x => CompareRecipeId(GetRecipeId(x), id));
 
         // Scrap this.
-        public static string GetBaseRecipeId(Recipe recipe)
+        public static string GetInternalRecipeId(Recipe recipe)
         {
             if (recipe.Components.Count == 0)
                 throw new Exception("Expected at least one recipe component");
@@ -27,7 +27,7 @@ namespace Arcadia
         }
 
         public static string GetRecipeId(Recipe recipe)
-            => $"recipe:{GetBaseRecipeId(recipe)}";
+            => $"recipe:{GetInternalRecipeId(recipe)}";
 
         public static Dictionary<string, int> GetMissingFromRecipe(ArcadeUser user, Recipe recipe)
         {

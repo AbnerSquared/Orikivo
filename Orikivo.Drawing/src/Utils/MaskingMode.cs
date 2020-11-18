@@ -1,11 +1,18 @@
 ﻿namespace Orikivo.Drawing
 {
+    /// <summary>
+    /// Defines the masking mode for an opacity mask.
+    /// </summary>
     public enum MaskingMode
     {
-        // No matter what, the new mask replaces the current mask's opacity
+        /// <summary>
+        /// The opacity mask overrides any existing opacity values.
+        /// </summary>
         Set = 1,
 
-        // The maximum opacity that can be set is clamped to the current mask's opacity
+        /// <summary>
+        /// Clamps the opacity mask to the maximum existing opacity value at each pixel.
+        /// </summary>
         Clamp = 2
     }
 }

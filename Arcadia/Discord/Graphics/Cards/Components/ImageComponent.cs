@@ -2,7 +2,7 @@
 
 namespace Arcadia.Graphics
 {
-    public class ImageComponent : CardComponent
+    public sealed class ImageComponent : CardComponent
     {
         public ImageComponent(ComponentInfo info, FillInfo fill)
         {

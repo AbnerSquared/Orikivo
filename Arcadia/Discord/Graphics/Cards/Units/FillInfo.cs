@@ -1,5 +1,4 @@
-﻿using Discord;
-using Orikivo.Drawing;
+﻿using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {

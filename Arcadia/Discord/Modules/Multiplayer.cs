@@ -24,7 +24,7 @@ namespace Arcadia.Modules
         public async Task ViewInvitesAsync(int page = 1)
         {
             page--;
-            await Context.Channel.SendMessageAsync(GameViewer.ViewInvites(Context.Account, _games, page));
+            await Context.Channel.SendMessageAsync(SGameViewer.ViewInvites(Context.Account, _games, page));
         }
 
         [Command("servers")]
@@ -37,7 +37,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(GameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(SGameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
         }
 
         [RequireUser]
@@ -206,7 +206,7 @@ namespace Arcadia.Modules
         [Summary("View the list of all available multiplayer games that a server can play.")]
         public async Task ViewGamesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GameViewer.ViewGames(Context.Data.Data, _games, --page, Context.Account));
+            await Context.Channel.SendMessageAsync(SGameViewer.ViewGames(Context.Data.Data, _games, --page, Context.Account));
         }
 
         [RequireData]
@@ -214,7 +214,7 @@ namespace Arcadia.Modules
         [Summary("View all of the proper details for the specified game.")]
         public async Task ViewGameAsync([Name("game_id")][Summary("The ID of the **Game** to view more information for.")]string gameId, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GameViewer.ViewGame(_games.GetGame(gameId), --page, Context.Account));
+            await Context.Channel.SendMessageAsync(SGameViewer.ViewGame(_games.GetGame(gameId), --page, Context.Account));
         }
     }
 }

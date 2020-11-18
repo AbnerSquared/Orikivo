@@ -3,7 +3,7 @@
 namespace Arcadia.Graphics
 {
     [Flags]
-    public enum SizeInherit
+    public enum CursorOffset
     {
         None = 0,
         Width = 1,

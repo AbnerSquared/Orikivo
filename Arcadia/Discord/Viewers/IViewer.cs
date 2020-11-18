@@ -1,4 +1,5 @@
 ﻿using Arcadia.Models;
+using Discord;
 
 namespace Arcadia
 {

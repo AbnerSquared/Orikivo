@@ -785,6 +785,9 @@ daily_reply_bonus:
 	Glad to see you could make it.
 	Here's something you might like.
 
+inventory_empty_self: Your inventory is empty.
+inventory_empty: This inventory does not contain any items.
+
 // FORMATTING:
 
 fmt_header: > {} **{}** {}

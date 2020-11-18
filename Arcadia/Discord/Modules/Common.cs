@@ -431,8 +431,7 @@ namespace Arcadia.Modules
                 var details = new CardDetails(account, user, layout.AvatarScale);
                 var properties = CardProperties.Default;
                 properties.Font = account.Card.Font;
-                properties.Palette = account.Card.Palette.Primary;
-                properties.PaletteOverride = account.Card.Palette.Build();
+                properties.Palette = account.Card.Palette.Build();
                 properties.Trim = false;
                 properties.Casing = Casing.Upper;
 
@@ -469,8 +468,7 @@ namespace Arcadia.Modules
                 var details = new CardDetails(account, user, layout.AvatarScale);
                 var properties = CardProperties.Default;
                 properties.Font = account.Card.Font;
-                properties.Palette = account.Card.Palette.Primary;
-                properties.PaletteOverride = account.Card.Palette.Build();
+                properties.Palette = account.Card.Palette.Build();
                 properties.Trim = false;
                 properties.Casing = Casing.Upper;
 

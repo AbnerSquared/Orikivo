@@ -428,7 +428,7 @@ namespace Arcadia
                 SellDeduction = 40,
                 SellTags = ItemTag.Font,
                 AllowedCurrency = CurrencyType.Money,
-                ToVisit = u => u.Level == 10 && Var.All(u, VarMatch.GEQ, 2, ShopHelper.GetTierId(Ids.Shops.ChromeCove), ShopHelper.GetTierId(Ids.Shops.TinkerTent)),
+                ToVisit = u => u.Level == 10 && Var.All(u, VarOp.GEQ, 2, ShopHelper.GetTierId(Ids.Shops.ChromeCove), ShopHelper.GetTierId(Ids.Shops.TinkerTent)),
                 Catalog = new CatalogGenerator
                 {
                     Size = 2,
@@ -1659,7 +1659,7 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Crimson, PaletteType.Lemon))),
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Crimson, PaletteType.Lemon))),
                     DeleteMode = DeleteMode.Break
                 },
                 OwnLimit = 2
@@ -1724,7 +1724,7 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Wumpite, PaletteType.Glass))),
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Wumpite, PaletteType.Glass))),
                     DeleteMode = DeleteMode.Break
                 },
                 OwnLimit = 5
@@ -1763,7 +1763,7 @@ namespace Arcadia
                 Rarity = ItemRarity.Myth,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Amber))),
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Amber))),
                     DeleteMode = DeleteMode.Break
                 },
                 OwnLimit = 2
@@ -1785,7 +1785,7 @@ namespace Arcadia
                 Rarity = ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ComponentPalette(PaletteType.Chocolate))),
+                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Chocolate))),
                     DeleteMode = DeleteMode.Break
                 },
                 OwnLimit = 2
@@ -2022,7 +2022,7 @@ namespace Arcadia
             return result;
         }
 
-        private static string SetOrSwapPalette(ArcadeUser user, ComponentPalette palette)
+        private static string SetOrSwapPalette(ArcadeUser user, ColorPalette palette)
         {
             if (user.Card.Palette == palette)
                 return Format.Warning($"You already have **{ItemHelper.NameFor(palette.Primary, palette.Secondary)}** equipped on your **Card Palette**.");

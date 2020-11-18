@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Drawing;
 using Orikivo.Drawing;
-using Orikivo.Framework;
 
 namespace Arcadia.Graphics
 {
-    public class TextComponent : CardComponent
+    public sealed class TextComponent : CardComponent
     {
-        public TextComponent(ComponentInfo info, FillInfo fill, FillInfo outlineFill = null)
+        public TextComponent(ComponentInfo info, FillInfo fill, FillInfo outline = null)
         {
             Info = info;
             Fill = fill;
-            OutlineFill = outlineFill;
+            Outline = outline;
         }
 
         public TextInfo Text { get; set; }
@@ -19,7 +18,7 @@ namespace Arcadia.Graphics
         /// <inheritdoc />
         protected override DrawableLayer Build()
         {
-            return new BitmapLayer(CreateText(Text, Fill, OutlineFill));
+            return new BitmapLayer(CreateText(Text, Fill, Outline));
         }
 
         private static Bitmap CreateText(TextInfo text, FillInfo fill, FillInfo outline)

@@ -10,17 +10,6 @@ using Orikivo.Text;
 
 namespace Arcadia.Casino
 {
-    public class BlackJackHand
-    {
-        public int Index { get; internal set; } = 0;
-
-        public List<Card> Cards { get; internal set; } = new List<Card>();
-
-        public long Wager { get; internal set; } = 0;
-
-        public BlackJackState State { get; internal set; } = BlackJackState.Active;
-    }
-
     public class BlackJackSession : BaseSession
     {
         public BlackJackSession(ArcadeUser invoker, ISocketMessageChannel channel, long wager, LocaleProvider locale) : base(invoker, channel)
@@ -184,12 +173,12 @@ namespace Arcadia.Casino
                 display.AppendLine(DrawSecondaryHand(title));
             }
 
-            display.AppendLine($"{(State == BlackJackState.Active ? DrawActions() : DrawStateResult())}");
+            display.AppendLine($"{(State == BlackJackState.Active ? DrawActions() : GetStateResult())}");
 
             return display.ToString();
         }
 
-        private string DrawStateResult()
+        private string GetStateResult()
         {
             if (State == BlackJackState.Active)
                 return "";
@@ -205,12 +194,12 @@ namespace Arcadia.Casino
             string chips = CurrencyHelper.WriteCost(Wager, CurrencyType.Chips);
             return state switch
             {
-                BlackJackState.Bust => Locale.GetString("blackjack_on_bust"),//  "You have gone over **21**. The dealer has won.",
-                BlackJackState.Fold => Locale.GetString("blackjack_on_fold", chips),// $"You have backed out of the game. You have only lost 50% of your wager ({chips}).",
-                BlackJackState.Lose => Locale.GetString("blackjack_on_lose", chips),// $"The dealer has a stronger hand. You have lost {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
-                BlackJackState.Win => Locale.GetString("blackjack_on_win", chips),// $"You have a stronger hand than the dealer. You have won {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}.",
-                BlackJackState.Draw => Locale.GetString("blackjack_on_draw"),// $"You and the dealer have equal hands. Nobody has won.",
-                BlackJackState.Timeout => Locale.GetString("blackjack_on_timeout"),// "You have timed out. Your wager has been returned to you.",
+                BlackJackState.Bust => Locale.GetString("blackjack_on_bust"),
+                BlackJackState.Fold => Locale.GetString("blackjack_on_fold", chips),
+                BlackJackState.Lose => Locale.GetString("blackjack_on_lose", chips),
+                BlackJackState.Win => Locale.GetString("blackjack_on_win", chips),
+                BlackJackState.Draw => Locale.GetString("blackjack_on_draw"),
+                BlackJackState.Timeout => Locale.GetString("blackjack_on_timeout"),
                 _ => "INVALID_STATE"
             };
         }

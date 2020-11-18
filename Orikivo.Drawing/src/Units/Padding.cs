@@ -35,19 +35,19 @@ namespace Orikivo.Drawing
         public int Bottom { get; set; }
 
         [JsonIgnore]
-        public int Width => Left + Right;
+        public readonly int Width => Left + Right;
 
         [JsonIgnore]
-        public int Height => Top + Bottom;
+        public readonly int Height => Top + Bottom;
 
         [JsonIgnore]
-        public bool IsEmpty =>
+        public readonly bool IsEmpty =>
             Left == 0
             && Right == 0
             && Bottom == 0
             && Right == 0;
 
-        public Padding Clone()
+        public readonly Padding Clone()
             => new Padding(Left, Right, Top, Bottom);
 
         public static implicit operator Padding(int lrtb)

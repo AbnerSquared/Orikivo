@@ -4,16 +4,16 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
-    public class SolidComponent : CardComponent
+    public sealed class SolidComponent : CardComponent
     {
-        public SolidComponent(ComponentInfo info, FillInfo fill, FillInfo outlineFill = null)
+        public SolidComponent(ComponentInfo info, FillInfo fill, FillInfo outline = null)
         {
             Info = info;
             Fill = fill;
-            OutlineFill = outlineFill;
+            Outline = outline;
         }
 
-        // For now, this is not handled here, as it needs information from other sources
+        // NOTE: For now, this is not handled here, as it needs information from other sources
         /// <inheritdoc />
         protected override DrawableLayer Build()
         {
@@ -31,7 +31,7 @@ namespace Arcadia.Graphics
 
             DrawableLayer layer = new BitmapLayer
             {
-                Source = CreateSolid(Fill, OutlineFill, width, height)
+                Source = CreateSolid(Fill, Outline, width, height)
             };
 
             int offsetX = CardInfo.GetOffsetX(Info, cursor, previous);
@@ -40,16 +40,23 @@ namespace Arcadia.Graphics
             layer.Offset = new Coordinate(offsetX, offsetY);
             layer.Properties.Padding = Info.Padding;
 
-            if (Info.CursorOffset.HasFlag(CursorOffset.X))
-                cursor.X += layer.GetBaseWidth() + layer.Properties.Padding.Width;
+            if (Info.CursorOffset.HasFlag(CursorOffset.Width))
+                cursor.X += layer.GetBaseWidth();
 
-            if (Info.CursorOffset.HasFlag(CursorOffset.Y))
-                cursor.Y += layer.GetBaseHeight() + layer.Properties.Padding.Height;
+            if (Info.CursorOffset.HasFlag(CursorOffset.PaddingWidth))
+                cursor.X += layer.Properties.Padding.Width;
+
+            if (Info.CursorOffset.HasFlag(CursorOffset.Height))
+                cursor.Y += layer.GetBaseHeight();
+
+            if (Info.CursorOffset.HasFlag(CursorOffset.PaddingHeight))
+                cursor.Y += layer.Properties.Padding.Height;
 
             previous.Update(layer.GetBaseWidth(), layer.GetBaseHeight(), layer.Properties.Padding);
             card.AddLayer(layer);
         }
 
+        // TODO: Handle outline fill building in a separate class, probably CardBuilder
         private static Bitmap CreateSolid(FillInfo fill, FillInfo outline, int width, int height)
         {
             if (width == 0 || height == 0)

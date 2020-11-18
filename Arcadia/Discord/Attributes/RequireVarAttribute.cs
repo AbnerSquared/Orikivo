@@ -5,15 +5,17 @@ namespace Arcadia
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class RequireVarAttribute : Attribute
     {
-        public RequireVarAttribute(string varId, VarMatch match, long value)
+        public RequireVarAttribute(string varId, VarOp match, long value)
         {
             VarId = varId;
-            Matcher = match;
+            Operator = match;
             Value = value;
         }
 
         public string VarId { get; }
-        public VarMatch Matcher { get; }
+
+        public VarOp Operator { get; }
+
         public long Value { get; }
     }
 }

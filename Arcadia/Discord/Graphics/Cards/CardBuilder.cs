@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Orikivo;
 using Orikivo.Drawing;
-using Orikivo.Framework;
 using Orikivo.Text;
 
 namespace Arcadia.Graphics
@@ -12,21 +11,25 @@ namespace Arcadia.Graphics
         public static CardInfo BuildCardInfo(CardLayout layout, CardDetails details, CardProperties properties)
         {
             var components = new List<CardComponent>();
+            BorderInfo borderInfo = null;
 
-            FillInfo borderFill = GetDefaultFill(properties);
-
-            if (layout.BorderFill != null)
+            if (layout.Border != null)
             {
-                borderFill.SetBaseInfo(layout.BorderFill);
+                FillInfo borderFill = GetDefaultFill(properties);
+
+                if (layout.Border.Fill != null)
+                {
+                    borderFill.SetBaseInfo(layout.Border.Fill);
+                }
+
+                borderInfo = layout.Border.Allowed == 0 ? null : new BorderInfo
+                {
+                    Allowed = layout.Border.Allowed,
+                    Thickness = layout.Border.Thickness,
+                    Edge = layout.Border.Edge,
+                    Fill = borderFill
+                };
             }
-
-            BorderInfo borderInfo = layout.BorderAllow == 0 ? null : new BorderInfo
-            {
-                Allowed = layout.BorderAllow,
-                Thickness = layout.BorderThickness,
-                Edge = layout.BorderEdge,
-                Fill = borderFill
-            };
 
             foreach (ComponentInfo info in layout.Components)
             {
@@ -43,7 +46,7 @@ namespace Arcadia.Graphics
                 CursorOriginY = layout.CursorOriginY,
                 Trim = GetTrimState(layout.TrimMode, properties.Trim),
                 Components = components,
-                Palette = properties.PaletteOverride ?? GraphicsService.GetPalette(properties.Palette),
+                Palette = properties.Palette,
                 Border = borderInfo,
                 Scale = properties.Scale
             };
@@ -76,11 +79,11 @@ namespace Arcadia.Graphics
                 _ => throw new Exception("Unknown or invalid component information was specified")
             };
 
-            if (info.BaseOutline != null)
+            if (info.Outline != null)
             {
                 FillInfo outlineInfo = GetDefaultFill(properties);
-                outlineInfo.SetBaseInfo(info.BaseOutline);
-                component.OutlineFill = outlineInfo;
+                outlineInfo.SetBaseInfo(info.Outline);
+                component.Outline = outlineInfo;
             }
 
             return component;
@@ -96,17 +99,11 @@ namespace Arcadia.Graphics
         {
             FillInfo fillInfo = GetDefaultFill(properties);
 
-            if (info.BaseFill != null)
-                fillInfo.SetBaseInfo(info.BaseFill);
+            if (info.Fill != null)
+                fillInfo.SetBaseInfo(info.Fill);
 
             if (info.Group.HasFlag(CardGroup.Exp) && fillInfo.Mode == FillMode.Bar)
             {
-                // Make this dynamic later on
-                //fillInfo.Mode = FillMode.Bar;
-                //fillInfo.Primary = Gamma.Max;
-                //fillInfo.Secondary = Gamma.Standard;
-                //fillInfo.Direction = Direction.Right;
-
                 int level = ExpConvert.AsLevel(details.Exp, details.Ascent);
                 ulong currentExp = ExpConvert.AsExp(level, details.Ascent);
                 ulong nextExp = ExpConvert.AsExp(level + 1, details.Ascent);
@@ -218,7 +215,7 @@ namespace Arcadia.Graphics
         {
             return new FillInfo
             {
-                Palette = properties.PaletteOverride ?? GraphicsService.GetPalette(properties.Palette),
+                Palette = properties.Palette,
                 Primary = Gamma.Max,
                 Mode = FillMode.Solid,
                 Direction = Direction.Right

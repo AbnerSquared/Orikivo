@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using Orikivo;
@@ -12,7 +11,7 @@ namespace Arcadia
     {
         private static readonly int _rowSize = 10;
         private static readonly int _counterRowSize = 4;
-        // TODO: Add pagination and group counter icon support
+
         private static string GetHeader(long capacity, int pageCount = 1, int page = 0, string username = null)
         {
             page = Paginate.ClampIndex(page, pageCount);
@@ -34,9 +33,9 @@ namespace Arcadia
         private static string GetCapacity(long capacity)
         {
             StorageSize suffix = GetSuffix(capacity);
-            double dividend = ((double)1000 * ((int)suffix));
+            double dividend = (double)1000 * (int)suffix;
 
-            if ((int)suffix == 0)
+            if (suffix == 0)
                 dividend = 1;
 
             return suffix switch
@@ -50,44 +49,15 @@ namespace Arcadia
         private static StorageSize GetSuffix(long capacity)
         {
             int len = capacity.ToString().Length;
-
-            //if (len - 1 <= 3)
-            //    return StorageSize.B;
-
             int count = (int)Math.Floor((len - 1) / (double)3);
 
-
-            // 4 7 10 13 16
-            // 1 3  7 10 13
-            // 3 6  9 12 15
             if (count > 5)
                 return StorageSize.Infinity;
 
-            return (StorageSize)(count);
+            return (StorageSize)count;
         }
 
-        private static string WriteItemRow(int index, string id, ItemData data, int deduction)
-        {
-            Item item = ItemHelper.GetItem(id);
-            var summary = new StringBuilder();
-
-            summary.Append($"> ");
-
-            summary.Append($"`{id}`");
-
-            if (!string.IsNullOrWhiteSpace(data.Data?.Id))
-                summary.Append($"/`{data.Data.Id}`");
-
-            summary.Append($" • **{item.GetName()}**");
-
-            if (data.Count > 1)
-            {
-                summary.Append($" (x**{data.Count}**)");
-            }
-
-            return summary.ToString();
-        }
-
+        // Make this method generic for all viewers
         private static string WriteItemRow(string itemId, ItemData data)
         {
             Item item = ItemHelper.GetItem(itemId);
@@ -116,11 +86,18 @@ namespace Arcadia
         }
 
         // NOTE: > **Slot {slot}:** `{id}`/`{unique_id}` {icon} **{name}** [{size}] (x**{count}**)
-        private static string DrawSlot(bool exists, bool showSize, int index, string visibleId, string uniqueId, string icon, string name, long size, int count)
+        private static string DrawRowText(bool exists, bool showSize, string visibleId, string uniqueId, string icon, string name, long size, int count, int? index = null)
         {
             var slot = new StringBuilder();
 
-            slot.Append($"> **Slot {index}**: `{visibleId}`");
+            slot.Append("> ");
+
+            if (index.HasValue)
+            {
+                slot.Append("**Slot {index}**: ");
+            }
+
+            slot.Append($"`{visibleId}`");
 
             if (exists && !string.IsNullOrWhiteSpace(uniqueId))
                 slot.Append($"/`{uniqueId}`");
@@ -140,7 +117,7 @@ namespace Arcadia
         }
 
         // > **Slot {slot}:** `{id}`/`{unique_id}` {icon ?? •} **{name}** [{size}] (x**{count}**)
-        private static string WriteItem(int index, string id, ItemData data, bool isPrivate = true)
+        private static string BuildRowText(int index, string id, ItemData data, bool isPrivate = true)
         {
             bool exists = ItemHelper.Exists(id);
 
@@ -159,7 +136,7 @@ namespace Arcadia
 
             string name = ItemHelper.NameOf(data);
 
-            return DrawSlot(exists, isPrivate, index, visibleId, data.Data?.Id, icon, name, item.Size, data.Count);
+            return DrawRowText(exists, isPrivate, visibleId, data.Data?.Id, icon, name, item.Size, data.Count, index);
         }
 
         public static string ViewShopSellables(ArcadeUser user, Shop shop)
@@ -240,7 +217,7 @@ namespace Arcadia
             }
 
             Paginate.GroupAt(items, page, _rowSize)
-                .ForEach((x, i) => result.AppendLine(WriteItem(i + 1, x.Id, x, isPrivate)));
+                .ForEach((x, i) => result.AppendLine(BuildRowText(i + 1, x.Id, x, isPrivate)));
 
             return result.ToString();
         }

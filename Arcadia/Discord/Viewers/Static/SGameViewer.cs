@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Arcadia.Multiplayer;
+using Orikivo;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
-    public class GameViewer : IViewer<GameInfo>
+    public static class SGameViewer
     {
-<<<<<<< Updated upstream
         public static readonly int DefaultPageSize = 6;
 
         public static string ViewGames(ArcadeData data, GameManager gameManager, int page = 0, ArcadeUser user = null)
@@ -15,7 +19,8 @@ namespace Arcadia
 
             bool allowTooltips = user?.Config?.Tooltips ?? true;
 
-            result.AppendLine($"{Format.Warning($"**{gameManager.GetGame(bonusGameId).Details.Name}** is currently providing bonus experience!")}");
+            result.AppendLine(
+                $"{Format.Warning($"**{gameManager.GetGame(bonusGameId).Details.Name}** is currently providing bonus experience!")}");
 
             if (allowTooltips)
             {
@@ -34,16 +39,19 @@ namespace Arcadia
 
             result.AppendLine($"> **Games**{extra}");
 
-            foreach (GameBase game in Paginate.GroupAt(gameManager.Games.Values, page, 8))
+            foreach (GameInfo game in Paginate.GroupAt(gameManager.Games.Values, page, 8))
             {
-                string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase) ? "" : $"`{game.Id}` ";
-                result.AppendLine($"> {id}{Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+                string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase)
+                    ? ""
+                    : $"`{game.Id}` ";
+                result.AppendLine(
+                    $"> {id}{Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
             }
 
             return result.ToString();
         }
 
-        public static string ViewGame(GameBase game, int page = 0, ArcadeUser user = null)
+        public static string ViewGame(GameInfo game, int page = 0, ArcadeUser user = null)
         {
             bool allowTooltips = user?.Config?.Tooltips ?? true;
 
@@ -64,7 +72,8 @@ namespace Arcadia
 
             result.AppendLine();
 
-            result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+            result.AppendLine(
+                $"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
 
             if (Check.NotNull(game.Details.Summary))
             {
@@ -79,7 +88,8 @@ namespace Arcadia
                 page = Paginate.ClampIndex(page, pageCount);
 
                 string extra = pageCount > 1 ? $" [{Format.PageCount(page + 1, pageCount)}]" : "";
-                string title = $"> **Ruleset** (**{game.Options.Count}** {Format.TryPluralize("rule", game.Options.Count)}){extra}\n";
+                string title =
+                    $"> **Ruleset** (**{game.Options.Count}** {Format.TryPluralize("rule", game.Options.Count)}){extra}\n";
 
                 result.Append(title);
 
@@ -114,7 +124,8 @@ namespace Arcadia
                 .SelectMany(x => x);
 
             foreach (ServerInvite invite in Paginate.GroupAt(invites, page, 10))
-                info.AppendLine($"{invite.Header}"); // {(Check.NotNull(invite.Description) ? $"\n> *\"{invite.Description}\"*" : "")}
+                info.AppendLine(
+                    $"{invite.Header}"); // {(Check.NotNull(invite.Description) ? $"\n> *\"{invite.Description}\"*" : "")}
 
             return info.ToString();
         }
@@ -138,7 +149,8 @@ namespace Arcadia
         {
             var lobby = new StringBuilder();
 
-            lobby.AppendLine($"\n> {WriteServerName(server.Id, server.Name)} ({WritePlayerCounter(server.Players.Count)})");
+            lobby.AppendLine(
+                $"\n> {WriteServerName(server.Id, server.Name)} ({WritePlayerCounter(server.Players.Count)})");
             lobby.AppendLine($"> {WriteGameName(server)}: {WriteActivity(server)}");
             return lobby.ToString();
         }
@@ -149,26 +161,23 @@ namespace Arcadia
         }
 
         private static string WriteServerName(string id, string name)
-=======
-        public string ViewDefault(ArcadeUser invoker)
->>>>>>> Stashed changes
         {
-            throw new NotImplementedException();
+            return $"`{id}` • **{name}**";
         }
 
-        public string View(ArcadeUser invoker, string query, int page)
+        private static string WritePlayerCounter(int count)
         {
-            throw new NotImplementedException();
+            return $"**{count:##,0}** {Format.TryPluralize("player", count)}";
         }
 
-        public string ViewSingle(ArcadeUser invoker, GameInfo game)
+        private static string WriteGameName(GameServer server)
         {
-            throw new NotImplementedException();
+            return server.GetGameDetails()?.Name ?? "Unknown Game";
         }
 
-        public string PreviewSingle(ArcadeUser invoker, GameInfo game)
+        private static string WriteActivity(GameServer server)
         {
-            throw new NotImplementedException();
+            return server.Session != null ? server.Session.ActivityDisplay : "In Lobby";
         }
     }
 }

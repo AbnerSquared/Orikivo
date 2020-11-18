@@ -8,7 +8,9 @@ namespace Arcadia
     /// </summary>
     public class Recipe : IModel<string>
     {
-        public string Id => CraftHelper.GetRecipeId(this);
+        public string Id => Result.ItemId;
+
+        public string InternalId => CraftHelper.GetRecipeId(this);
 
         public string Name => ItemHelper.NameOf(Result?.ItemId);
 

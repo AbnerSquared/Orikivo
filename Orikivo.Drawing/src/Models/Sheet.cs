@@ -7,26 +7,28 @@ using System.Linq;
 namespace Orikivo.Drawing
 {
     /// <summary>
-    /// A <see cref="Sprite"/> that contains multiple images, cropped according to a grid-based pattern.
+    /// Represents a <see cref="Sprite"/> that contains a collection of images according to a grid-based pattern.
     /// </summary>
-    public class Sheet : Sprite
+    public sealed class Sheet : Sprite
     {
         [JsonConstructor]
-        public Sheet(string url, int cropWidth, int cropHeight, 
-            List<SheetOverride> overrides = null, string id = null) : base(url, id)
+        public Sheet(string url, int cropWidth, int cropHeight, List<SheetOverride> overrides = null, string id = null)
+            : base(url, id)
         {
             Overrides = overrides ?? new List<SheetOverride>();
             CropHeight = cropHeight;
             CropWidth = cropWidth;
 
-            using (Bitmap source = GetImage())
-            {
-                if (source.Width % CropWidth != 0 || source.Height % CropHeight != 0)
-                    throw new IndexOutOfRangeException("The crop specified does not completely crop the sheet.");
+            using Bitmap source = GetImage();
 
-                ColumnCount = source.Width / CropWidth;
-                RowCount = source.Height / CropHeight;
-            }
+            if (source.Width % CropWidth != 0)
+                throw new ArgumentException("The crop width specified leaves a remainder width.", nameof(cropWidth));
+
+            if (source.Height % CropHeight != 0)
+                throw new ArgumentException("The crop height specified leaves a remainder height.", nameof(cropHeight));
+
+            ColumnCount = source.Width / CropWidth;
+            RowCount = source.Height / CropHeight;
         }
 
         /// <summary>
@@ -36,37 +38,36 @@ namespace Orikivo.Drawing
         private List<SheetOverride> Overrides { get; }
 
         /// <summary>
-        /// The width of each image on the <see cref="Sheet"/>.
+        /// Represents the image cropping width of this <see cref="Sheet"/>.
         /// </summary>
         [JsonProperty("crop_width")]
         public int CropWidth { get; }
 
         /// <summary>
-        /// The height of each image on the <see cref="Sheet"/>.
+        /// Represents the image cropping height of this <see cref="Sheet"/>.
         /// </summary>
         [JsonProperty("crop_height")]
         public int CropHeight { get; }
 
         /// <summary>
-        /// The number of rows that exist on the current <see cref="Sheet"/>.
+        /// Represents the total number of rows on this <see cref="Sheet"/>.
         /// </summary>
         [JsonIgnore]
         public int RowCount { get; }
 
         /// <summary>
-        /// The number of columns that exist on the current <see cref="Sheet"/>.
+        /// Represents the total number of columns on this <see cref="Sheet"/>.
         /// </summary>
         [JsonIgnore]
         public int ColumnCount { get; }
 
-
         /// <summary>
-        /// Returns the <see cref="Bitmap"/> at the specified index.
+        /// Returns the cropped image at the specified index.
         /// </summary>
-        public Bitmap GetSprite(int index) // # of total crops
+        public Bitmap GetSprite(int index)
         {
-            if (index > ColumnCount * RowCount)
-                throw new ArgumentOutOfRangeException();
+            if (index > ColumnCount * RowCount || index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), "The specified index is out of range");
 
             int column = 1;
 
@@ -80,32 +81,42 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Returns the <see cref="Bitmap"/> at the specified row and column.
+        /// Returns the cropped image at the specified row and column.
         /// </summary>
         public Bitmap GetSprite(int row, int column)
         {
-            if (row > RowCount || column > ColumnCount)
-                throw new ArgumentOutOfRangeException("The specified row or column is out of range.");
+            if (row > RowCount)
+                throw new ArgumentOutOfRangeException(nameof(row), "The specified row index is out of range.");
+
+            if (column > ColumnCount)
+                throw new ArgumentOutOfRangeException(nameof(column), "The specified column index is out of range.");
 
             SheetOverride crop = Overrides.FirstOrDefault(x => x.Row == row && x.Column == column) ?? SheetOverride.Empty;
 
             if (RowCount == 1 && ColumnCount == 1)
                 return GetImage();
 
-            return ImageHelper.Crop(Path, (CropWidth * (column - 1)) + crop.OffsetX, (CropHeight * (row - 1)) + crop.OffsetY,
-                crop.Width ?? CropWidth, crop.Height ?? CropHeight);
+            return ImageHelper.Crop(Path,
+                (CropWidth * (column - 1)) + crop.OffsetX,
+                (CropHeight * (row - 1)) + crop.OffsetY,
+                crop.Width ?? CropWidth,
+                crop.Height ?? CropHeight);
         }
 
         /// <summary>
-        /// Returns all of the images on the <see cref="Sheet"/> with their corresponding row and column.
+        /// Returns all of the image crops with their corresponding row and column.
         /// </summary>
-        public List<(Point Index, Bitmap Bitmap)> GetSprites()
+        public List<(Coordinate Position, Bitmap Bitmap)> GetSprites()
         {
-            List<(Point Index, Bitmap Bitmap)> bitmaps = new List<(Point, Bitmap)>();
+            var bitmaps = new List<(Coordinate, Bitmap)>();
 
             for (int x = 1; x <= ColumnCount; x++)
+            {
                 for (int y = 1; y <= RowCount; y++)
+                {
                     bitmaps.Add((new Point(y, x), GetSprite(y, x)));
+                }
+            }
 
             return bitmaps;
         }

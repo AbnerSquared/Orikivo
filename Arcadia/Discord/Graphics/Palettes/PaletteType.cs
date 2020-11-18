@@ -1,7 +1,6 @@
 ﻿namespace Arcadia.Graphics
 {
-    // 9 => GammaGreen :: Glass
-    public enum PaletteType // If the palette type contains multiple flags, merge
+    public enum PaletteType
     {
         Default = 0,
         GammaGreen = 1,

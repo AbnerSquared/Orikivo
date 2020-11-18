@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
+using Newtonsoft.Json;
 using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
@@ -9,9 +9,17 @@ namespace Arcadia.Graphics
     /// </summary>
     public class CardLayout
     {
+        /// <summary>
+        /// Represents the maximum width of a card.
+        /// </summary>
         public const int MaxImageWidth = 400;
+
+        /// <summary>
+        /// Represents the maximum height of a card.
+        /// </summary>
         public const int MaxImageHeight = 300;
 
+        // TODO: Handle layout definitions in another class
         public static readonly CardLayout Micro = new CardLayout
         {
             Width = 200,
@@ -19,13 +27,16 @@ namespace Arcadia.Graphics
             TrimMode = TrimMode.Force,
             Margin = 2,
             Padding = new Padding(left: 2),
-            BorderAllow = BorderAllow.Left,
-            BorderThickness = 2,
-            BorderEdge = BorderEdge.Outside,
-            BorderFill = new BaseFillInfo
+            Border = new BaseBorderInfo
             {
-                Mode = FillMode.Solid,
-                Primary = Gamma.Max
+                Allowed = BorderAllow.Left,
+                Thickness = 2,
+                Edge = BorderEdge.Outside,
+                Fill = new BaseFillInfo
+                {
+                    Mode = FillMode.Solid,
+                    Primary = Gamma.Max
+                }
             },
             CursorOriginX = 0,
             CursorOriginY = 0,
@@ -35,7 +46,7 @@ namespace Arcadia.Graphics
                 // AVATAR
                 new ComponentInfo
                 {
-                    Priority = 0,
+                    Position = 0,
                     PrimaryTarget = true,
                     Type = ComponentType.Image,
                     Group = CardGroup.Avatar,
@@ -46,20 +57,20 @@ namespace Arcadia.Graphics
                 // NAME
                 new ComponentInfo
                 {
-                    Priority = 1,
+                    Position = 1,
                     PrimaryTarget = true,
                     Type = ComponentType.Text,
                     Group = CardGroup.Name | CardGroup.Exp,
                     Padding = new Padding(bottom: 1),
                     CursorOffset = CursorOffset.Y,
-                    BaseFill = new BaseFillInfo
+                    Fill = new BaseFillInfo
                     {
                         Mode = FillMode.Bar,
                         Primary = Gamma.Max,
                         Secondary = Gamma.Bright,
                         Direction = Direction.Up
                     },
-                    BaseOutline = new BaseFillInfo
+                    Outline = new BaseFillInfo
                     {
                         Mode = FillMode.Bar,
                         Primary = Gamma.Standard,
@@ -71,12 +82,12 @@ namespace Arcadia.Graphics
                 // ACTIVITY
                 new ComponentInfo
                 {
-                    Priority = 2,
+                    Position = 2,
                     PrimaryTarget = true,
                     Type = ComponentType.Text,
                     Group = CardGroup.Activity,
                     CursorOffset = CursorOffset.Y,
-                    BaseFill = new BaseFillInfo
+                    Fill = new BaseFillInfo
                     {
                         Mode = FillMode.Solid,
                         Primary = Gamma.Max
@@ -94,13 +105,16 @@ namespace Arcadia.Graphics
             CursorOriginX = 0,
             CursorOriginY = 0,
             TrimMode = TrimMode.Optional,
-            BorderAllow = BorderAllow.All,
-            BorderThickness = 2,
-            BorderEdge = BorderEdge.Outside,
-            BorderFill = new BaseFillInfo
+            Border = new BaseBorderInfo
             {
-                Mode = FillMode.Solid,
-                Primary = Gamma.Max
+                Allowed = BorderAllow.All,
+                Thickness = 2,
+                Edge = BorderEdge.Outside,
+                Fill = new BaseFillInfo
+                {
+                    Mode = FillMode.Solid,
+                    Primary = Gamma.Max
+                }
             },
             AvatarScale = ImageScale.Medium,
             Components = new List<ComponentInfo>
@@ -110,7 +124,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Image,
                     Group = CardGroup.Avatar,
-                    Priority = 0,
+                    Position = 0,
                     Padding = new Padding(right: 2),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.X
@@ -121,7 +135,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Text,
                     Group = CardGroup.Name,
-                    Priority = 1,
+                    Position = 1,
                     Padding = new Padding(bottom: 2),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.Y
@@ -132,7 +146,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Text,
                     Group = CardGroup.Activity,
-                    Priority = 2,
+                    Position = 2,
                     Padding = new Padding(bottom: 2),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.Y
@@ -143,7 +157,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Icon,
                     Group = CardGroup.Level,
-                    Priority = 3,
+                    Position = 3,
                     Padding = new Padding(right: 1),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.X
@@ -154,7 +168,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Text,
                     Group = CardGroup.Level,
-                    Priority = 4,
+                    Position = 4,
                     Padding = new Padding(right: 5, bottom: 1),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.None
@@ -165,16 +179,16 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Solid,
                     Group = CardGroup.Level | CardGroup.Exp,
-                    Priority = 5,
+                    Position = 5,
                     BaseHeight = 2,
                     Padding = new Padding(right: 5),
                     CursorOffset = CursorOffset.X,
                     OffsetHandling = OffsetHandling.Additive,
-                    OffsetUsage = OffsetUsage.Include,
-                    PreviousInherit = SizeInherit.Width,
+                    OffsetFinalize = OffsetFinalize.Keep,
+                    SizeInherit = SizeInherit.Width,
                     PrimaryTarget = true,
-                    PreviousOffsetInherit = SizeInherit.Y,
-                    BaseFill = new BaseFillInfo
+                    OffsetInherit = SizeInherit.Y,
+                    Fill = new BaseFillInfo
                     {
                         Mode = FillMode.Bar,
                         Primary = Gamma.Max,
@@ -187,11 +201,11 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Icon,
                     Group = CardGroup.Money,
-                    Priority = 6,
+                    Position = 6,
                     Padding = new Padding(right: 2),
                     CursorOffset = CursorOffset.X,
                     OffsetHandling = OffsetHandling.Additive,
-                    OffsetUsage = OffsetUsage.Temporary,
+                    OffsetFinalize = OffsetFinalize.Ignore,
                     PrimaryTarget = true,
                     OffsetY = -1
                 },
@@ -200,7 +214,7 @@ namespace Arcadia.Graphics
                 {
                     Type = ComponentType.Text,
                     Group = CardGroup.Money,
-                    Priority = 7,
+                    Position = 7,
                     Padding = new Padding(right: 1),
                     PrimaryTarget = true,
                     CursorOffset = CursorOffset.X
@@ -208,30 +222,65 @@ namespace Arcadia.Graphics
             }
         };
 
+        // TODO: Handle scaling in ImageComponent instead
+        /// <summary>
+        /// Defines the avatar build scale for this layout.
+        /// </summary>
+        [JsonProperty("avatar_scale")]
         public ImageScale AvatarScale { get; set; } = ImageScale.Medium;
 
+        /// <summary>
+        /// Defines the trimming mode for this layout.
+        /// </summary>
+        [JsonProperty("trim_mode")]
         public TrimMode TrimMode { get; set; }
 
+        /// <summary>
+        /// Defines the initial width of this layout.
+        /// </summary>
+        [JsonProperty("width")]
         public int Width { get; set; }
 
+        /// <summary>
+        /// Defines the initial height of this layout.
+        /// </summary>
+        [JsonProperty("height")]
         public int Height { get; set; }
 
+        /// <summary>
+        /// Defines the horizontal cursor origin of this layout.
+        /// </summary>
+        [JsonProperty("cursor_origin_x")]
         public int CursorOriginX { get; set; }
 
+        /// <summary>
+        /// Defines the vertical cursor origin of this layout.
+        /// </summary>
+        [JsonProperty("cursor_origin_y")]
         public int CursorOriginY { get; set; }
 
+        /// <summary>
+        /// Defines the padding of this layout.
+        /// </summary>
+        [JsonProperty("padding")]
         public Padding Padding { get; set; }
 
+        /// <summary>
+        /// Defines the border of this layout.
+        /// </summary>
+        [JsonProperty("border")]
+        public BaseBorderInfo Border { get; set; }
+
+        /// <summary>
+        /// Defines the margin of this layout.
+        /// </summary>
+        [JsonProperty("margin")]
         public Padding Margin { get; set; }
 
-        public BorderAllow BorderAllow { get; set; }
-
-        public BorderEdge BorderEdge { get; set; } = BorderEdge.Outside;
-
-        public int BorderThickness { get; set; }
-
-        public BaseFillInfo BorderFill { get; set; }
-
+        /// <summary>
+        /// Defines the collection of components to be rendered on this layout.
+        /// </summary>
+        [JsonProperty("components")]
         public List<ComponentInfo> Components { get; set; }
     }
 }

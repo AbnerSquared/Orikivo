@@ -3,13 +3,13 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Graphics
 {
-    public class IconComponent : CardComponent
+    public sealed class IconComponent : CardComponent
     {
-        public IconComponent(ComponentInfo info, FillInfo fill, FillInfo outlineFill = null)
+        public IconComponent(ComponentInfo info, FillInfo fill, FillInfo outline = null)
         {
             Info = info;
             Fill = fill;
-            OutlineFill = outlineFill;
+            Outline = outline;
         }
 
         public SheetInfo Sheet { get; set; }
@@ -18,7 +18,7 @@ namespace Arcadia.Graphics
         protected override DrawableLayer Build()
         {
             var sheet = new Sheet(Sheet.Path, Sheet.CropWidth, Sheet.CropHeight);
-            Bitmap sprite = sheet.GetSprite(Sheet.Index);
+            using Bitmap sprite = sheet.GetSprite(Sheet.Index);
             Bitmap icon = ImageHelper.SetColorMap(sprite, GammaPalette.Default, Fill.Palette);
 
             if (Sheet.AutoTrim)

@@ -2,7 +2,7 @@ using Discord;
 using Discord.Addons.Collectors;
 using Discord.WebSocket;
 
-namespace Arcadia.Casino
+namespace Arcadia
 {
     public abstract class BaseSession : MessageSession
     {

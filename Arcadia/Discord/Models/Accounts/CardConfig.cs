@@ -12,9 +12,9 @@ namespace Arcadia
         public CardConfig() {}
 
         [JsonConstructor]
-        internal CardConfig(ComponentPalette palette, FontType font, LayoutType layout)
+        internal CardConfig(ColorPalette palette, FontType font, LayoutType layout)
         {
-            Palette = palette ?? new ComponentPalette(PaletteType.Default);
+            Palette = palette ?? new ColorPalette(PaletteType.Default);
             Font = font;
             Font = font;
             Layout = layout;
@@ -28,7 +28,7 @@ namespace Arcadia
         [ReadOnly]
         [JsonProperty("palette")]
         [Description("Defines the **Palette** currently equipped to your **Card**.")]
-        public ComponentPalette Palette { get; internal set; }
+        public ColorPalette Palette { get; internal set; }
 
         [ReadOnly]
         [JsonProperty("font")]
