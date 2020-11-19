@@ -3,20 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Orikivo;
-using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
     // TODO: Implement a base player class inheritance structure that can store game data for players with custom classes
     // This is to simplify how game logic is required to be written
 
+    public interface IGameBase
+    {
+        string Id { get; }
+
+        GameDetails Details { get; }
+
+        IReadOnlyList<GameOption> Options { get; }
+
+        IReadOnlyList<PlayerBase> Players { get; }
+    }
+
     /// <summary>
     /// Represents a generic game structure.
     /// </summary>
     /// <typeparam name="TPlayer"></typeparam>
     public abstract class GameBase<TPlayer> : GameBase
-        where TPlayer : PlayerData
+        where TPlayer : PlayerBase
     {
         public abstract List<TPlayer> OnBuildTPlayers(in IEnumerable<Player> players);
 
@@ -33,19 +42,16 @@ namespace Arcadia.Multiplayer
     /// </summary>
     public abstract class GameBase
     {
-        // CANNOT BE NULL
         /// <summary>
         /// Represents the global identifier for this <see cref="GameBase"/>.
         /// </summary>
         public abstract string Id { get; }
 
-        // CANNOT BE NULL
         /// <summary>
         /// Represents the details of this <see cref="GameBase"/>.
         /// </summary>
         public abstract GameDetails Details { get; }
 
-        // CAN BE NULL
         /// <summary>
         /// Represents all of the possible configurations that this <see cref="GameBase"/> allows.
         /// </summary>
@@ -54,7 +60,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents the data of all players for this <see cref="GameBase"/>.
         /// </summary>
-        public virtual IReadOnlyList<PlayerData> Players { get; protected set; }
+        public virtual IReadOnlyList<PlayerBase> Players { get; protected set; }
 
         /// <summary>
         /// When specified, handles building the required data for every player in a <see cref="GameSession"/>.
@@ -76,6 +82,24 @@ namespace Arcadia.Multiplayer
             return GetType().GetProperties().Where(x => x.GetCustomAttribute<PropertyAttribute>() != null).Select(x => CreateGameProperty(this, x));
         }
 
+        public IEnumerable<GameAction> BuildActions()
+        {
+            // in: GameContext, out: void
+            // Assure that the parameters specified are of GameContext, which return void
+            return GetType().GetMethods().Where(x => x.GetCustomAttribute<ActionAttribute>() != null).Select(x => CreateGameAction(this, x));
+        }
+
+        private static GameAction CreateGameAction(object callback, MethodInfo method)
+        {
+            var actionInfo = method.GetCustomAttribute<ActionAttribute>();
+
+            if (actionInfo == null)
+                throw new ArgumentException("Expected the specified MethodInfo to have an attribute of type ActionAttribute");
+
+            // This feels a bit wonky, ngl
+            return new GameAction(actionInfo.Id, (Action<GameContext>) method.CreateDelegate(typeof(Action<GameContext>), callback), actionInfo.UpdateOnExecute);
+        }
+
         private static GameProperty CreateGameProperty(object callback, PropertyInfo property)
         {
             var propertyInfo = property.GetCustomAttribute<PropertyAttribute>();
@@ -86,6 +110,7 @@ namespace Arcadia.Multiplayer
             return GameProperty.Create(propertyInfo.Id, property.GetValue(callback), true);
         }
 
+        // TODO: Instead of force building all actions, automatically retrieve them by labelled attributes
         /// <summary>
         /// When specified, handling collection all of the required actions for this <see cref="GameBase"/>.
         /// </summary>
@@ -136,28 +161,6 @@ namespace Arcadia.Multiplayer
         public virtual void OnPlayerRemoved(Player player)
         {
 
-        }
-
-        /// <summary>
-        /// Builds the <see cref="GameSession"/> for this <see cref="GameBase"/> on the specified <see cref="GameServer"/>.
-        /// </summary>
-        public virtual async Task BuildAsync(GameServer server)
-        {
-            if (!(Activator.CreateInstance(new GameInfo(this).BaseType) is GameBase game))
-                throw new Exception("Expected inbound game information to initialize a new game");
-
-            // Initialize the new game session
-            var session = new GameSession(server, game);
-            server.Session = session;
-
-            // Set all of the server connections to playing
-            foreach (ServerConnection connection in server.Connections)
-                connection.State = GameState.Playing;
-
-            server.Session.Game.ExportProperties().ForEach(x => Logger.Debug($"{x.Id}: {x.Value.ToString()}"));
-
-            // Read the method used when a session starts
-            await server.Session.Game.OnSessionStartAsync(server, session);
         }
     }
 }

@@ -10,4 +10,6 @@ namespace Arcadia.Multiplayer.Games
         Hard = 3,
         Any = Easy | Medium | Hard
     }
+
+    // The reason this is being made is to combine support with OpenTDB's ID/Name system
 }

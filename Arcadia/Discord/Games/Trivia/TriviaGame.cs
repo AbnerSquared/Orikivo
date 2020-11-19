@@ -116,7 +116,8 @@ namespace Arcadia.Multiplayer.Games
             GameOption.Create(TriviaConfig.UseOpenTDB, "Use OpenTDB", true, "This toggles the usage of the OpenTDB API, which allows for a wider range of unique questions. Disable if you wish to only answer custom-made questions.")
         };
 
-        private void GetQuestionResult(GameContext ctx)
+        [Action("get_question_result")]
+        public void GetQuestionResult(GameContext ctx)
         {
             // set all currently playing displays to freq. 10
             foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
@@ -171,7 +172,8 @@ namespace Arcadia.Multiplayer.Games
             ctx.Session.QueueAction(TimeSpan.FromSeconds(5), "try_get_next_question");
         }
 
-        private static void TryGetQuestionResult(GameContext ctx)
+        [Action("try_get_question_result", false)]
+        public void TryGetQuestionResult(GameContext ctx)
         {
             if (ctx.Session.MeetsCriterion("has_all_players_answered"))
             {
@@ -180,7 +182,8 @@ namespace Arcadia.Multiplayer.Games
             }
         }
 
-        private static void TryGetNextQuestion(GameContext ctx)
+        [Action("try_get_next_question", false)]
+        public void TryGetNextQuestion(GameContext ctx)
         {
             if (ctx.Session.MeetsCriterion("has_answered_all_questions"))
                 ctx.Session.InvokeAction(TriviaVars.GetResults, true);
@@ -188,7 +191,8 @@ namespace Arcadia.Multiplayer.Games
                 ctx.Session.InvokeAction(TriviaVars.GetNextQuestion, true);
         }
 
-        private void GetNextQuestion(GameContext ctx)
+        [Action("get_next_question")]
+        public void GetNextQuestion(GameContext ctx)
         {
             // set all currently playing displays to freq. 10
             foreach (ServerConnection connection in ctx.Server.GetConnectionsInState(GameState.Playing))
@@ -228,6 +232,7 @@ namespace Arcadia.Multiplayer.Games
             ctx.Session.QueueAction(TimeSpan.FromSeconds(ctx.Session.GetConfigValue<double>("questionduration")), "get_question_result");
         }
 
+        [Action("get_results")]
         private void GetResults(GameContext ctx)
         {
             // set all currently playing connection to frequency 12
@@ -252,7 +257,8 @@ namespace Arcadia.Multiplayer.Games
             ctx.Session.QueueAction(TimeSpan.FromSeconds(15), "end");
         }
 
-        private void TryRestart(GameContext ctx)
+        [Action("try_restart", false)]
+        public void TryRestart(GameContext ctx)
         {
             if (ctx.Session.MeetsCriterion("most_players_want_rematch"))
             {
@@ -745,26 +751,45 @@ namespace Arcadia.Multiplayer.Games
             return sessionData.ToList();
         }
 
+        private const int STREAK_DELAY = 1;
+        private const int STREAK_BONUS = 2;
+        private const float BASE_POINT_SCALE = 1.0f;
+        private const float EASY_POINT_SCALE = 1.0f;
+        private const float MED_POINT_SCALE = 1.5f;
+        private const float HARD_POINT_SCALE = 2.0f;
+        private const int POSITION_CUTOFF = 12;
+
+        // TODO: Make this calculation easier to modify by leaving constants outside
+        /*
+            Streak Delay: 1 = The amount of questions that are required before a streak bonus is given
+            Streak Bonus Multiplier: 2 = The amount of points that are summed onto the previous streak value on each consecutive correct question
+            Base Point Scale: 1.0 = The base point worth before being calculated
+            Easy Multiplier Scale: 1.0 = The multiplier applied on easy questions
+            Medium Multiplier Scale : 1.5 = The multiplier applied on medium questions
+            Hard Multiplier Scale: 2.0 = The multiplier applied on hard questions
+            Answer Position Cut-off: 10 = The position to answer a question before no points are rewarded
+             
+             */
         // value being the value of the question specified
         internal int GetPoints(int value, int streak, int answerPosition, TriviaDifficulty difficulty) // the further away your position is, the less points you receive
         {
             // streaks can be set up by 5, 10, 15, 20, 25, 30, 35, etc.
-            int streakValue = streak <= 0 ? 0 : (streak - 1) * 5; // a one question delay is added to prevent streak bonuses on the first question.
+            int streakValue = streak <= 0 ? 0 : (streak - STREAK_DELAY) * STREAK_BONUS; // a one question delay is added to prevent streak bonuses on the first question.
             float multiplier = GetDifficultyMultiplier(difficulty);
             // this means they never answered
             if (answerPosition == 0)
                 return 0;
 
-            return (int)Math.Floor(((value * (1.0 - ((answerPosition - 1) / (double) 10))) * multiplier) + streakValue);
+            return (int)Math.Floor(((value * (BASE_POINT_SCALE - ((answerPosition - 1) / (double) POSITION_CUTOFF))) * multiplier) + streakValue);
         }
 
         private float GetDifficultyMultiplier(TriviaDifficulty difficulty)
         {
             return difficulty switch
             {
-                TriviaDifficulty.Easy => 1.0F,
-                TriviaDifficulty.Medium => 1.5F,
-                TriviaDifficulty.Hard => 2.0F,
+                TriviaDifficulty.Easy => EASY_POINT_SCALE,
+                TriviaDifficulty.Medium => MED_POINT_SCALE,
+                TriviaDifficulty.Hard => HARD_POINT_SCALE,
                 _ => throw new Exception("Cannot determine point multiplier for the specified difficulty")
             };
         }
@@ -828,6 +853,7 @@ namespace Arcadia.Multiplayer.Games
             return result;
         }
 
+        // TODO: Move method elsewhere
         /// <inheritdoc />
         protected override ulong CalculateExp(GameSession session, PlayerData player)
         {

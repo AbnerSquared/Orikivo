@@ -23,7 +23,7 @@ namespace Arcadia.Multiplayer
             Options = server.Options;
             Players = game.OnBuildPlayers(server.Players);
             Criteria = game.OnBuildRules(Players);
-            Actions = game.OnBuildActions();
+            Actions = game.BuildActions().ToList(); // game.OnBuildActions();
 
             // base game actions required
             Actions.Add(new GameAction
