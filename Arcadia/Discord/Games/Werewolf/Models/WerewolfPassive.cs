@@ -3,10 +3,8 @@
 namespace Arcadia.Multiplayer.Games.Werewolf
 {
     [Flags]
-    public enum WerewolfPassive
+    public enum WolfPassive
     {
-        None = 0,
-
         /// <summary>
         /// Players are able to take a hit, dying once night falls.
         /// </summary>

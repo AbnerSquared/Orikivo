@@ -76,12 +76,12 @@ namespace Arcadia.Multiplayer.Games
             throw new NotImplementedException();
         }
 
-        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
+        public override List<GameBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
+        public override async Task StartAsync(GameServer server, GameSession session)
         {
             throw new NotImplementedException();
         }

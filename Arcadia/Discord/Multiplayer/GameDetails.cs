@@ -23,6 +23,9 @@ namespace Arcadia.Multiplayer
 
         public bool CanSpectate { get; set; }
 
+        // If false, direct message channels can be used as primary connections
+        public bool RequireDM { get; set; }
+
         public bool RequireDirectMessages { get; set; }
 
         public bool AllowSessionJoin { get; set; }

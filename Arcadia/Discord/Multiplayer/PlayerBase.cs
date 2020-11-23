@@ -5,7 +5,7 @@ using System.Reflection;
 namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents a generic player structure for a <see cref="GameBase"/>.
+    /// Represents a generic player structure for a <see cref="GameBase{T}"/>.
     /// </summary>
     public abstract class PlayerBase
     {
@@ -24,9 +24,24 @@ namespace Arcadia.Multiplayer
             return
                 GetType()
                     .GetProperties()
-                    .Where(x => CustomAttributeExtensions.GetCustomAttribute<PropertyAttribute>((MemberInfo) x) != null)
+                    .Where(x => x.GetCustomAttribute<PropertyAttribute>() != null)
                     .Select(x => GameProperty.Create(x.GetCustomAttribute<PropertyAttribute>()?.Id, x.GetValue(this), true))
                     .ToList();
+        }
+
+        public GameProperty FindProperty(string id)
+        {
+            PropertyInfo info = GetType().GetProperties().FirstOrDefault(x => x.GetCustomAttribute<PropertyAttribute>()?.Id == id);
+
+            if (info == null)
+                return null;
+
+            return GameProperty.Create(info.GetCustomAttribute<PropertyAttribute>()?.Id, info.GetValue(this), true);
+        }
+
+        public void SetProperty(string id, object value)
+        {
+
         }
 
         /// <summary>

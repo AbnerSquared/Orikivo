@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public enum WerewolfAbilityUsage
+    public enum WolfAbilityUsage
     {
         None = 0,
         Initial = 1,

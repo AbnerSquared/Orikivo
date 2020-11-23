@@ -18,7 +18,7 @@
             Server = ctx.Server;
         }
 
-        public GameContext(PlayerData invoker, GameSession session, GameServer server)
+        public GameContext(Player invoker, GameSession session, GameServer server)
         {
             Invoker = invoker;
             Session = session;
@@ -27,7 +27,7 @@
 
         public InvokerType Type { get; set; }
 
-        public PlayerData Invoker { get; set; }
+        public Player Invoker { get; set; }
 
         // The connection that this was called in, if any
         public ServerConnection Connection { get; set; }

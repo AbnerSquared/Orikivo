@@ -157,7 +157,7 @@ namespace Arcadia.Multiplayer
             Name = properties.Name;
             GameId = properties.GameId;
             Privacy = properties.Privacy;
-            Broadcasts = DisplayBroadcast.GetReservedBroadcasts();
+            Broadcasts = GameBroadcast.GetReservedBroadcasts();
             Connections = new List<ServerConnection>();
             Invites = new List<ServerInvite>();
             AllowedActions = properties.AllowedActions;
@@ -228,7 +228,7 @@ namespace Arcadia.Multiplayer
         public Player Host => GetPlayer(HostId);
 
         // all base displays for the game server
-        public List<DisplayBroadcast> Broadcasts { get; }
+        public List<GameBroadcast> Broadcasts { get; }
 
         // everyone connected to the lobby
         public IReadOnlyList<Player> Players => _players;
@@ -417,7 +417,7 @@ namespace Arcadia.Multiplayer
             await UpdateAsync();
         }
 
-        public async Task<bool> UpdateGameAsync(string gameId)
+        public async Task<bool> SetGameAsync(string gameId)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -662,6 +662,15 @@ namespace Arcadia.Multiplayer
         public bool HasConnection(ulong channelId)
             => Connections.Any(x => x.ChannelId == channelId);
 
+        public void GroupForState(GameState state, string group)
+        {
+            if (Destroyed)
+                throw new Exception("This server has been destroyed");
+
+            foreach (ServerConnection connection in Connections.Where(x => x.State == state))
+                connection.Group = group;
+        }
+
         public void GroupAll(string group)
         {
             if (Destroyed)
@@ -671,7 +680,7 @@ namespace Arcadia.Multiplayer
                 connection.Group = group;
         }
 
-        public DisplayBroadcast GetSpectatorBroadcast()
+        public GameBroadcast GetSpectatorBroadcast()
         {
             if (Session == null)
                 return null;
@@ -685,7 +694,7 @@ namespace Arcadia.Multiplayer
         public IEnumerable<ServerConnection> GetGroup(string group)
             => Connections.Where(x => x.Group == group);
 
-        public void Ungroup(string group)
+        public void UngroupAll(string group)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -697,7 +706,7 @@ namespace Arcadia.Multiplayer
             }
         }
 
-        public DisplayBroadcast GetBroadcast(int frequency)
+        public GameBroadcast GetBroadcast(int frequency)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -705,7 +714,12 @@ namespace Arcadia.Multiplayer
             return Broadcasts.FirstOrDefault(x => x.Frequency == frequency);
         }
 
-        public DisplayBroadcast GetBroadcast(GameState state)
+        public IEnumerable<Receiver> GetBroadcastReceivers(int frequency)
+        {
+            return Players.Where(x => x.Frequency == frequency);
+        }
+
+        public GameBroadcast GetBroadcast(GameState state)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");

@@ -1,9 +1,7 @@
-﻿using Discord;
-
-namespace Arcadia.Multiplayer
+﻿namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents the type of connection that an <see cref="IConnection"/> references.
+    /// Represents the type of connection that a connection references.
     /// </summary>
     public enum ConnectionType
     {
@@ -13,12 +11,12 @@ namespace Arcadia.Multiplayer
         Unknown = 0,
 
         /// <summary>
-        /// Represents an <see cref="IConnection"/> that originated from an <see cref="IGuild"/>.
+        /// Represents a connection that originated from a guild.
         /// </summary>
         Guild = 1,
 
         /// <summary>
-        /// Represents an <see cref="IConnection"/> that originated from an <see cref="IUser"/>.
+        /// Represents a connection that originated from a user.
         /// </summary>
         Direct = 2
     }

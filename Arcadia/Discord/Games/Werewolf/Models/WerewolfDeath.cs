@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public class WerewolfDeath
+    public class WolfDeath
     {
-        public WerewolfDeath(ulong userId, WerewolfDeathMethod method)
+        public WolfDeath(ulong userId, WolfDeathMethod method)
         {
             UserId = userId;
             DiedAt = DateTime.UtcNow;
@@ -14,7 +14,7 @@ namespace Arcadia.Multiplayer.Games.Werewolf
             Handled = false;
         }
 
-        public WerewolfDeath(ulong userId, WerewolfDeathMethod method, ulong killerId)
+        public WolfDeath(ulong userId, WolfDeathMethod method, ulong killerId)
         {
             UserId = userId;
             DiedAt = DateTime.UtcNow;
@@ -23,7 +23,7 @@ namespace Arcadia.Multiplayer.Games.Werewolf
             Handled = false;
         }
 
-        public WerewolfDeath(ulong userId, WerewolfDeathMethod method, List<ulong> killerIds)
+        public WolfDeath(ulong userId, WolfDeathMethod method, List<ulong> killerIds)
         {
             UserId = userId;
             DiedAt = DateTime.UtcNow;
@@ -36,7 +36,7 @@ namespace Arcadia.Multiplayer.Games.Werewolf
 
         public DateTime DiedAt { get; }
 
-        public WerewolfDeathMethod Method { get; }
+        public WolfDeathMethod Method { get; }
 
         public List<ulong> KillerIds { get; }
 

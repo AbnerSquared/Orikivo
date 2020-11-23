@@ -70,11 +70,11 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
+        public override List<GameBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
-            return new List<DisplayBroadcast>
+            return new List<GameBroadcast>
             {
-                new DisplayBroadcast(UltimateTicChannel.Main)
+                new GameBroadcast(UltimateTicChannel.Main)
                 {
                     Content = new DisplayContent
                     {
@@ -87,7 +87,7 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("resign", OnResign)
                     }
                 },
-                new DisplayBroadcast(UltimateTicChannel.Results)
+                new GameBroadcast(UltimateTicChannel.Results)
                 {
                     Content = new DisplayContent
                     {
@@ -234,7 +234,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
+        public override async Task StartAsync(GameServer server, GameSession session)
         {
             server.SetStateFrequency(GameState.Playing, UltimateTicChannel.Main);
             session.SpectateFrequency = UltimateTicChannel.Main;

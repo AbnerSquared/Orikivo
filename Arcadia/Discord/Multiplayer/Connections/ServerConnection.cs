@@ -123,7 +123,7 @@ namespace Arcadia.Multiplayer
 
         public List<IInput> GetAvailableInputs()
         {
-            DisplayBroadcast broadcast = State == GameState.Playing
+            GameBroadcast broadcast = State == GameState.Playing
                 ? Server.GetBroadcast(Frequency)
                 : Server.GetBroadcast(State);
 

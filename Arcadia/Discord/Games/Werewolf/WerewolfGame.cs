@@ -14,7 +14,7 @@ namespace Arcadia.Multiplayer.Games
     // Never have the same amount of werewolf equal to player count
     // One werewolf per 3 people?
 
-    public class WerewolfGame : GameBase
+    public class WerewolfGame : GameBase<WolfPlayer>
     {
         public override string Id => "werewolf";
 
@@ -30,7 +30,7 @@ namespace Arcadia.Multiplayer.Games
         public override List<GameOption> Options => new List<GameOption>
         {
             GameOption.Create(WolfConfig.RevealRolesOnDeath, "Reveal roles on death", true, "Determines if a player's role is revealed when they die."),
-            GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WerewolfRoleDeny.None, "Specifies a set of roles to exclude from the game (unimplemented)."),
+            GameOption.Create(WolfConfig.RoleDeny, "Denied roles", WolfRoleDeny.None, "Specifies a set of roles to exclude from the game (unimplemented)."),
             GameOption.Create(WolfConfig.RandomizeNames, "Randomize names", false, "Toggles the randomization of names to hide the actual name of each player."),
             GameOption.Create(WolfConfig.SharedPeeking, "Shared peeking", false, "Determines if seers share the same peeking mechanic."),
             GameOption.Create(WolfConfig.RevealPartners, "Reveal partners", true, "Determines if all of your partners are revealed to you when the game first starts.")
@@ -38,17 +38,17 @@ namespace Arcadia.Multiplayer.Games
 
         private List<string> RandomNames { get; set; }
 
-        private List<WerewolfRole> GenerateRoles(WerewolfRoleDeny roleDeny, int playerCount)
+        private List<WolfRole> GenerateRoles(WolfRoleDeny roleDeny, int playerCount)
         {
             // Load up all available default roles
-            List<WerewolfRole> availableRoles = WerewolfRole.GetPack(WerewolfRolePack.Custom);
+            List<WolfRole> availableRoles = WolfRole.GetPack(WolfRolePack.Custom);
 
             // Remove all of the specified denied roles from the list of available roles
-            foreach (WerewolfRoleDeny deny in roleDeny.GetFlags())
+            foreach (WolfRoleDeny deny in roleDeny.GetFlags())
                 availableRoles.RemoveAll(x => x.Id.Equals(deny.ToString(), StringComparison.OrdinalIgnoreCase));
 
             // Initialize the new list of available roles
-            var roles = new List<WerewolfRole>();
+            var roles = new List<WolfRole>();
 
             int werewolfCount = (int) Math.Floor(playerCount / (double) 3);
             int currentWolf = 0;
@@ -57,11 +57,11 @@ namespace Arcadia.Multiplayer.Games
             {
                 if (werewolfCount - currentWolf > 0)
                 {
-                    roles.Add(WerewolfRole.Werewolf);
+                    roles.Add(WolfRole.Werewolf);
                     currentWolf++;
                 }
                 else
-                    roles.Add(WerewolfRole.Villager);
+                    roles.Add(WolfRole.Villager);
             }
 
             // Return the list of generated roles (this is a bit heavy on operations
@@ -85,80 +85,80 @@ namespace Arcadia.Multiplayer.Games
             => session.Players.Count(x => IsVillager(x) && IsAlive(x));
 
         private static int CountPendingVotes(GameSession session)
-            => session.Players.Count(x => x.ValueOf<WerewolfVote>(WolfVars.Vote) == WerewolfVote.Pending);
+            => session.Players.Count(x => x.ValueOf<WolfVote>(WolfVars.Vote) == WolfVote.Pending);
 
         private static int CountLiveVotes(GameSession session)
-            => session.Players.Count(x => x.ValueOf<WerewolfVote>(WolfVars.Vote) == WerewolfVote.Live);
+            => session.Players.Count(x => x.ValueOf<WolfVote>(WolfVars.Vote) == WolfVote.Live);
 
         private static int CountDeathVotes(GameSession session)
-            => session.Players.Count(x => x.ValueOf<WerewolfVote>(WolfVars.Vote) == WerewolfVote.Die);
+            => session.Players.Count(x => x.ValueOf<WolfVote>(WolfVars.Vote) == WolfVote.Die);
 
-        private static bool HasAbility(PlayerData player, WerewolfAbility ability)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Ability.HasFlag(ability);
+        private static bool HasAbility(PlayerData player, WolfAbility ability)
+            => player.ValueOf<WolfRole>(WolfVars.Role).Ability.HasFlag(ability);
 
-        internal static bool IsAbilityShared(GameSession session, WerewolfAbility ability)
+        internal static bool IsAbilityShared(GameSession session, WolfAbility ability)
         {
             return ability switch
             {
-                WerewolfAbility.Feast => true,
-                WerewolfAbility.Peek => session.GetConfigValue<bool>(WolfConfig.SharedPeeking),
+                WolfAbility.Feast => true,
+                WolfAbility.Peek => session.GetConfigValue<bool>(WolfConfig.SharedPeeking),
                 _ => false
             };
         }
 
-        private static bool CanUseAbilityOnSelf(WerewolfAbility ability)
+        private static bool CanUseAbilityOnSelf(WolfAbility ability)
         {
             return ability switch
             {
-                WerewolfAbility.Protect => true,
+                WolfAbility.Protect => true,
                 _ => false
             };
         }
 
         private static bool HasPassive(PlayerData player)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Passive != WerewolfPassive.None;
+            => player.ValueOf<WolfRole>(WolfVars.Role).Passive != 0;
 
-        private static bool HasPassive(PlayerData player, WerewolfPassive passive)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Passive.HasFlag(passive);
+        private static bool HasPassive(PlayerData player, WolfPassive passive)
+            => player.ValueOf<WolfRole>(WolfVars.Role).Passive.HasFlag(passive);
 
         private static bool HasAbility(PlayerData player)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Ability != WerewolfAbility.None;
+            => player.ValueOf<WolfRole>(WolfVars.Role).Ability != 0;
 
-        public static bool IsInGroup(PlayerData player, WerewolfGroup group)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Group.HasFlag(group);
+        public static bool IsInGroup(PlayerData player, WolfGroup group)
+            => player.ValueOf<WolfRole>(WolfVars.Role).Group.HasFlag(group);
 
         private static bool IsVillager(PlayerData player)
-            => IsInGroup(player, WerewolfGroup.Villager);
+            => IsInGroup(player, WolfGroup.Villager);
 
         private static bool IsWolf(PlayerData player)
-            => IsInGroup(player, WerewolfGroup.Werewolf);
+            => IsInGroup(player, WolfGroup.Werewolf);
 
         private static bool IsSuspect(PlayerData player, GameSession session)
             => session.ValueOf<ulong>(WolfVars.Suspect) == player.Source.User.Id;
 
         private static bool IsAlive(PlayerData player)
-            => !GetStatus(player).HasFlag(WerewolfStatus.Dead);
+            => !GetStatus(player).HasFlag(WolfStatus.Dead);
 
         private static bool IsProtected(PlayerData player)
-            => GetStatus(player).HasFlag(WerewolfStatus.Protected);
+            => GetStatus(player).HasFlag(WolfStatus.Protected);
 
         private static void ClearAbilityVotes(GameSession session)
-            => session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).ForEach(x => x.VoterIds.Clear());
+            => session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes).ForEach(x => x.VoterIds.Clear());
 
         private static int CountAbilityVotes(GameSession session)
-            => session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).Select(x => x.VoterIds.Count).Sum();
+            => session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes).Select(x => x.VoterIds.Count).Sum();
 
-        private static List<WerewolfVoteData> GetAbilityVotes(GameSession session)
-            => session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes);
+        private static List<WolfVoteData> GetAbilityVotes(GameSession session)
+            => session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes);
 
-        internal static WerewolfVoteData GetAbilityVote(GameSession session, PlayerData player)
-            => session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).FirstOrDefault(x => x.UserId == player.Source.User.Id);
+        internal static WolfVoteData GetAbilityVote(GameSession session, PlayerData player)
+            => session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes).FirstOrDefault(x => x.UserId == player.Source.User.Id);
 
-        private static WerewolfPassive GetPassive(PlayerData player)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Passive;
+        private static WolfPassive GetPassive(PlayerData player)
+            => player.ValueOf<WolfRole>(WolfVars.Role).Passive;
 
-        private static WerewolfAbility GetAbility(PlayerData player)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Ability;
+        private static WolfAbility GetAbility(PlayerData player)
+            => player.ValueOf<WolfRole>(WolfVars.Role).Ability;
 
         private static string GetName(PlayerData player)
             => player.ValueOf<string>(WolfVars.Name);
@@ -166,29 +166,29 @@ namespace Arcadia.Multiplayer.Games
         private static PlayerData GetSuspect(GameSession session)
             => session.Players.FirstOrDefault(x => IsSuspect(x, session));
 
-        private static WerewolfStatus GetStatus(PlayerData player)
-            => player.ValueOf<WerewolfStatus>(WolfVars.Status);
+        private static WolfStatus GetStatus(PlayerData player)
+            => player.ValueOf<WolfStatus>(WolfVars.Status);
 
-        private static void AddStatus(PlayerData player, WerewolfStatus status)
+        private static void AddStatus(PlayerData player, WolfStatus status)
             => player.SetValue(WolfVars.Status, GetStatus(player) | status);
 
-        private static void RemoveStatus(PlayerData player, WerewolfStatus status)
+        private static void RemoveStatus(PlayerData player, WolfStatus status)
             => player.SetValue(WolfVars.Status, GetStatus(player) & ~status);
 
-        private static void SetStatus(PlayerData player, WerewolfStatus status)
+        private static void SetStatus(PlayerData player, WolfStatus status)
             => player.SetValue(WolfVars.Status, status);
 
         private static void ClearStatus(PlayerData player)
-            => player.SetValue(WolfVars.Status, WerewolfStatus.None);
+            => player.SetValue(WolfVars.Status, (WolfStatus)0);
 
         private static bool IsDeadTanner(PlayerData player)
-            => player.ValueOf<WerewolfRole>(WolfVars.Role).Group == WerewolfGroup.Tanner && !IsAlive(player);
+            => player.ValueOf<WolfRole>(WolfVars.Role).Group == WolfGroup.Tanner && !IsAlive(player);
 
         private static bool IsMarked(PlayerData player)
-            => GetStatus(player).HasFlag(WerewolfStatus.Marked);
+            => GetStatus(player).HasFlag(WolfStatus.Marked);
 
         private static bool IsHurt(PlayerData player)
-            => GetStatus(player).HasFlag(WerewolfStatus.Hurt);
+            => GetStatus(player).HasFlag(WolfStatus.Hurt);
 
         private static bool IsAccuser(PlayerData player, GameSession session)
             => session.ValueOf<ulong>(WolfVars.Accuser) == player.Source.User.Id;
@@ -197,10 +197,10 @@ namespace Arcadia.Multiplayer.Games
             => session.ValueOf<bool>(WolfVars.IsOnTrial);
 
         private static bool IsNight(GameSession session)
-            => session.ValueOf<WerewolfPhase>(WolfVars.CurrentPhase) == WerewolfPhase.Night;
+            => session.ValueOf<WolfPhase>(WolfVars.CurrentPhase) == WolfPhase.Night;
 
         private static bool HasAnyRecentlyDied(GameSession session)
-            => session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths).Any(x => !x.Handled);
+            => session.ValueOf<List<WolfDeath>>(WolfVars.Deaths).Any(x => !x.Handled);
 
         private static bool HasSuspect(GameSession session)
             => session.ValueOf<ulong>(WolfVars.Suspect) > 0UL;
@@ -208,11 +208,11 @@ namespace Arcadia.Multiplayer.Games
         private static bool HasPrivateChannel(PlayerData player, GameServer server)
             => server.Connections.Any(x => x.ChannelId == player.Source.User.Id);
 
-        private static void InheritRole(PlayerData player, WerewolfRole role)
+        private static void InheritRole(PlayerData player, WolfRole role)
             => player.SetValue(WolfVars.Role, role);
 
         private static bool CanSkipCurrentPhase(GameSession session)
-            => session.ValueOf<WerewolfPhase>(WolfVars.CurrentPhase).HasFlag(WerewolfPhase.Day);
+            => session.ValueOf<WolfPhase>(WolfVars.CurrentPhase).HasFlag(WolfPhase.Day);
 
         private static bool AllDeadWolf(GameSession session)
             => CountWolves(session) == 0;
@@ -226,14 +226,20 @@ namespace Arcadia.Multiplayer.Games
                 connection.Frequency = frequency;
         }
 
-        private static WerewolfAbility GetCurrentAbility(GameSession session)
-            => session.ValueOf<WerewolfAbility>(WolfVars.CurrentAbility);
+        private static void SetPhase(GameSession session, WolfPhase phase)
+            => session.SetValue(WolfVars.CurrentPhase, phase);
 
-        private static WerewolfAbility GetActiveAbilities(GameSession session)
+        private static void SetNextPhase(GameSession session, WolfPhase phase)
+            => session.SetValue(WolfVars.NextPhase, phase);
+
+        private static WolfAbility GetCurrentAbility(GameSession session)
+            => session.ValueOf<WolfAbility>(WolfVars.CurrentAbility);
+
+        private static WolfAbility GetActiveAbilities(GameSession session)
         {
             return GetLivingPlayers(session)
-                .Select(x => x.ValueOf<WerewolfRole>(WolfVars.Role).Ability)
-                .Aggregate(WerewolfAbility.None, (current, ability) => current | ability);
+                .Select(x => x.ValueOf<WolfRole>(WolfVars.Role).Ability)
+                .Aggregate((WolfAbility)0, (current, ability) => current | ability);
         }
 
         private static bool CanUseAbility(PlayerData invoker, GameSession session)
@@ -269,62 +275,40 @@ namespace Arcadia.Multiplayer.Games
         }
         #endregion
 
-        private PlayerData CreatePlayer(Player player, WerewolfRole role, int index)
+        private WolfPlayer CreatePlayer(Player player, WolfRole role, int index)
         {
             Logger.Debug("Creating player...");
-            var data = new PlayerData(player)
+
+            string name = (((bool?)Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value) ?? false)
+                    ? Randomizer.Take(RandomNames)
+                    : player.User.Username;
+
+            return new WolfPlayer
             {
-                Properties = new List<GameProperty>
-                {
-                    // index: Used to keep track of the player as a unique indexer
-                    GameProperty.Create(WolfVars.Index, index),
-
-                    // name: The player's name.
-                    GameProperty.Create(WolfVars.Name, (((bool?) Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value) ?? false) ? Randomizer.Take(RandomNames) : player.User.Username),
-
-                    // initial_role: The ID of their initial role given
-                    GameProperty.Create(WolfVars.InitialRoleId, role.Id),
-
-                    // role: Their current role
-                    GameProperty.Create(WolfVars.Role, role),
-
-                    // is_winner: If the player was a winner in this game
-                    GameProperty.Create(WolfVars.IsWinner, true),
-
-                    // vote: The current vote state of the player
-                    GameProperty.Create(WolfVars.Vote, WerewolfVote.Pending),
-
-                    // status: The current status of the player
-                    GameProperty.Create(WolfVars.Status, WerewolfStatus.None),
-
-                    // has_requested_skip: Checks if the player has already requested to skip
-                    GameProperty.Create(WolfVars.HasRequestedSkip, false),
-
-                    GameProperty.Create(WolfVars.HasUsedAbility, false)
-                }
+                Name = name,
+                Connection = player,
+                Role = role,
+                Position = index,
+                InitialRoleId = role.Id
             };
-
-            // Remove this once this is assured to be okay
-            Console.WriteLine(data.ToString());
-            return data;
         }
 
         #region Required
-        public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
+        public override void BuildPlayers(in IEnumerable<Player> players)
         {
             if ((bool?) Options.FirstOrDefault(x => x.Id == WolfConfig.RandomizeNames)?.Value ?? false)
                 RandomNames = Randomizer.ChooseMany(WolfFormat.DefaultRandomNames, players.Count()).ToList();
 
-            List<WerewolfRole> roles = GenerateRoles((WerewolfRoleDeny?) Options.FirstOrDefault(x => x.Id == WolfConfig.RoleDeny)?.Value ?? WerewolfRoleDeny.None, players.Count());
+            List<WolfRole> roles = GenerateRoles((WolfRoleDeny?) Options.FirstOrDefault(x => x.Id == WolfConfig.RoleDeny)?.Value ?? WolfRoleDeny.None, players.Count());
 
-            return players.Select((x, i) => CreatePlayer(x, Randomizer.Take(roles), i)).ToList();
+            Players = players.Select((x, i) => CreatePlayer(x, Randomizer.Take(roles), i)).ToList();
         }
 
         public override void OnPlayerRemoved(Player player)
         {
             // If a player was removed:
 
-            var death = new WerewolfDeath(player.User.Id, WerewolfDeathMethod.Unknown);
+            var death = new WolfDeath(player.User.Id, WolfDeathMethod.Unknown);
 
             // If the game has already ended, ignore it
 
@@ -338,13 +322,13 @@ namespace Arcadia.Multiplayer.Games
         }
 
         [Property("deaths")]
-        public List<WerewolfDeath> Deaths { get; set; }
+        public List<WolfDeath> Deaths { get; set; } = new List<WolfDeath>();
 
         [Property("peeks")]
-        public List<WerewolfPeekData> Peeks { get; set; }
+        public List<WolfPeekData> Peeks { get; set; } = new List<WolfPeekData>();
 
         [Property("lovers")]
-        public Dictionary<ulong, ulong> LoverIds { get; set; }
+        public Dictionary<ulong, ulong> LoverIds { get; set; } = new Dictionary<ulong, ulong>();
 
         [Property("suspect")]
         public ulong SuspectId { get; set; }
@@ -353,77 +337,31 @@ namespace Arcadia.Multiplayer.Games
         public ulong AccuserId { get; set; }
 
         [Property("current_death")]
-        public WerewolfDeath CurrentDeath { get; set; }
+        public WolfDeath CurrentDeath { get; set; }
 
         [Property("current_ability")]
-        public WerewolfAbility CurrentAbility { get; set; }
+        public WolfAbility CurrentAbility { get; set; }
 
         [Property("current_phase")]
-        public WerewolfPhase CurrentPhase { get; set; }
+        public WolfPhase CurrentPhase { get; set; }
 
         [Property("next_phase")]
-        public WerewolfPhase NextPhase { get; set; }
+        public WolfPhase NextPhase { get; set; }
 
         [Property("current_round")]
         public int CurrentRound { get; set; }
 
         [Property("handled_abilities")]
-        public WerewolfAbility HandledAbilities { get; set; }
+        public WolfAbility HandledAbilities { get; set; }
 
         [Property("ability_votes")]
-        public List<WerewolfVoteData> AbilityVotes { get; set; }
+        public List<WolfVoteData> AbilityVotes { get; set; } = new List<WolfVoteData>();
 
         [Property("is_on_trial")]
         public bool OnTrial { get; set; }
 
         [Property("winning_group")]
-        public WerewolfGroup WinningGroup { get; set; }
-
-        public override List<GameProperty> OnBuildProperties()
-        {
-            return new List<GameProperty>
-            {
-                // deaths: A list of all deaths in werewolf
-                GameProperty.Create(WolfVars.Deaths, new List<WerewolfDeath>()),
-
-                // peeks: A list of all peek information
-                GameProperty.Create(WolfVars.Peeks, new List<WerewolfPeekData>()),
-
-                // lovers: a dictionary of all specified lovers
-                GameProperty.Create(WolfVars.Lovers, new Dictionary<ulong, ulong>()),
-
-                // suspect: The ID of the current suspect
-                GameProperty.Create(WolfVars.Suspect, 0UL),
-
-                GameProperty.Create(WolfVars.Accuser, 0UL),
-
-                GameProperty.Create<WerewolfDeath>(WolfVars.CurrentDeath),
-
-                // current_input: The current input being handled
-                GameProperty.Create(WolfVars.CurrentAbility, WerewolfAbility.None),
-
-                // current_phase: The current phase being handled
-                GameProperty.Create(WolfVars.CurrentPhase, WerewolfPhase.Unknown),
-
-                // next_phase: The next phase to set at the end of the current phase
-                GameProperty.Create(WolfVars.NextPhase, WerewolfPhase.Unknown),
-
-                // current_round: The total counter of passed rounds
-                GameProperty.Create(WolfVars.CurrentRound, 0),
-
-                // handled_inputs: The total set of abilities handled
-                GameProperty.Create(WolfVars.HandledAbilities, WerewolfAbility.None),
-
-                // ability_votes: Keeps track of all of the players voted for during an ability
-                GameProperty.Create(WolfVars.AbilityVotes, new List<WerewolfVoteData>()),
-
-                // is_on_trial: Checks to see if the game is currently waiting for the suspect's defense
-                GameProperty.Create(WolfVars.IsOnTrial, false),
-
-                // winning_group
-                GameProperty.Create(WolfVars.WinningGroup, WerewolfGroup.Unknown)
-            };
-        }
+        public WolfGroup WinningGroup { get; set; }
 
         public override List<GameAction> OnBuildActions()
         {
@@ -450,7 +388,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
-        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
+        public override async Task StartAsync(GameServer server, GameSession session)
         {
             // Set all of the currently connected channels to the specified frequency and group them
             server.SetStateFrequency(GameState.Playing, WolfChannel.Main);
@@ -459,13 +397,14 @@ namespace Arcadia.Multiplayer.Games
 
             DisplayContent main = server.GetBroadcast(WolfChannel.Main).Content;
 
-            foreach (PlayerData player in session.Players)
+            foreach (WolfPlayer player in Players)
             {
-                session.ValueOf<List<WerewolfPeekData>>(WolfVars.Peeks).Add(new WerewolfPeekData(player.Source.User.Id, HasPassive(player, WerewolfPassive.Wolfish)));
-                session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).Add(new WerewolfVoteData(player.Source.User.Id));
+                Peeks.Add(new WolfPeekData(player.Connection.User.Id, player.Role.Passive.HasFlag(WolfPassive.Wolfish)));
+                AbilityVotes.Add(new WolfVoteData(player.Connection.User.Id));
+
                 Logger.Debug("Loading player...");
                 // Set this stuff up AFTER you point all of the connections to the right frequency
-                if (HasAbility(player))
+                if (player.Role.Ability != 0)
                 {
                     var properties = ConnectionProperties.Default;
                     properties.Frequency = -1;
@@ -475,13 +414,13 @@ namespace Arcadia.Multiplayer.Games
                     properties.Inputs = new List<IInput> { new TextInput("pick", OnPick, true) };
                     properties.Origin = OriginType.Session;
 
-                    await server.AddConnectionAsync(player.Source, properties);
+                    // Player channels should already be included in the receiver set.
+                    // Player connections should be considered a secondary connection.
+                    await server.AddConnectionAsync(player.Connection, properties);
                 }
 
-                var index = player.ValueOf<int>(WolfVars.Index);
-
                 // Initialize all of the player slots on the main channel
-                main.GetGroup("players").Set(index, WolfFormat.WritePlayerInfo(player, session));
+                main.GetGroup("players").Set(player.Position, WolfFormat.WritePlayerInfo(player, session));
             }
 
             main["players"].Draw();
@@ -497,11 +436,11 @@ namespace Arcadia.Multiplayer.Games
             return result;
         }
 
-        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
+        public override List<GameBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
-            return new List<DisplayBroadcast>
+            return new List<GameBroadcast>
             {
-                new DisplayBroadcast(WolfChannel.Main)
+                new GameBroadcast(WolfChannel.Main)
                 {
                     Content = new DisplayContent
                     {
@@ -530,7 +469,7 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("silent", OnSilent, true)
                     }
                 },
-                new DisplayBroadcast(WolfChannel.Death)
+                new GameBroadcast(WolfChannel.Death)
                 {
                     Content = new DisplayContent
                     {
@@ -548,7 +487,7 @@ namespace Arcadia.Multiplayer.Games
                         }
                     }
                 },
-                new DisplayBroadcast(WolfChannel.Vote)
+                new GameBroadcast(WolfChannel.Vote)
                 {
                     Content = new DisplayContent
                     {
@@ -567,7 +506,7 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("die", OnDie, true)
                     }
                 },
-                new DisplayBroadcast(WolfChannel.Results)
+                new GameBroadcast(WolfChannel.Results)
                 {
                     Content = new DisplayContent
                     {
@@ -603,12 +542,13 @@ namespace Arcadia.Multiplayer.Games
 
             ctx.Session.BlockInput = true;
 
-            var kill = ctx.Session.ValueOf<WerewolfDeath>(WolfVars.CurrentDeath);
+            var kill = ctx.Session.ValueOf<WolfDeath>(WolfVars.CurrentDeath);
 
             // If null, throw an exception
             if (kill == null)
                 throw new Exception("Attempted to invoke a death sequence with no player killed");
 
+            // This should instead just be GetPlayer(kill.UserId);
             PlayerData player = ctx.Session.DataOf(kill.UserId);
             bool hasGameEnded = WolfGreaterEqualsVillager(ctx.Session) || AllDeadWolf(ctx.Session);
             string extraText = hasGameEnded ? "" : WolfFormat.WriteDeathRemainText(ctx.Session);
@@ -616,40 +556,44 @@ namespace Arcadia.Multiplayer.Games
             // Write to the main channel the information about who died
             death["header"].Draw(player.Source.User.Username);
             death["summary"].Draw(WolfFormat.WriteDeathText(kill.Method));
+
             if (Check.NotNull(extraText) && !ctx.Session.GetConfigValue<bool>(WolfConfig.RevealRolesOnDeath))
             {
                 death["reveal"].Active = false;
             }
             else
             {
-                death["reveal"].Draw(ctx.Session.GetConfigValue<bool>(WolfConfig.RevealRolesOnDeath) ? $"They were a **{player.ValueOf<WerewolfRole>(WolfVars.Role).Name}**." : "", extraText);
+                death["reveal"].Draw(ctx.Session.GetConfigValue<bool>(WolfConfig.RevealRolesOnDeath)
+                    ? $"They were a **{player.ValueOf<WolfRole>(WolfVars.Role).Name}**."
+                    : "",
+                    extraText);
             }
 
             // $"They were a **{player.ValueOf<WerewolfRole>(WolfVars.Role).Name}**."
             // Check winning conditions
             if (WolfGreaterEqualsVillager(ctx.Session))
             {
-                ctx.Session.SetValue(WolfVars.WinningGroup, WerewolfGroup.Werewolf);
-                ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.GetResults);
+                ctx.Session.SetValue(WolfVars.WinningGroup, WolfGroup.Werewolf);
+                ctx.Session.QueueAction(TimeSpan.FromSeconds(6), WolfVars.GetResults);
                 return;
             }
 
             if (AllDeadWolf(ctx.Session))
             {
-                ctx.Session.SetValue(WolfVars.WinningGroup, WerewolfGroup.Villager);
-                ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.GetResults);
+                ctx.Session.SetValue(WolfVars.WinningGroup, WolfGroup.Villager);
+                ctx.Session.QueueAction(TimeSpan.FromSeconds(6), WolfVars.GetResults);
                 return;
             }
 
             // If the next phase is night, start the night
-            if (ctx.Session.ValueOf<WerewolfPhase>(WolfVars.NextPhase) == WerewolfPhase.Night)
+            if (ctx.Session.ValueOf<WolfPhase>(WolfVars.NextPhase) == WolfPhase.Night)
             {
-                ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.StartNight);
+                ctx.Session.QueueAction(TimeSpan.FromSeconds(6), WolfVars.StartNight);
                 return;
             }
 
             // Otherwise, continue handling deaths
-            ctx.Session.QueueAction(TimeSpan.FromSeconds(10), WolfVars.HandleDeaths);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(6), WolfVars.HandleDeaths);
         }
 
         private static void HandleDeaths(GameContext ctx)
@@ -658,10 +602,10 @@ namespace Arcadia.Multiplayer.Games
 
             // If there aren't any deaths, proceed through with the current phase
             ctx.Session.BlockInput = true;
-            var deaths = ctx.Session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths);
+            var deaths = ctx.Session.ValueOf<List<WolfDeath>>(WolfVars.Deaths);
 
 
-            foreach (WerewolfDeath death in deaths.Where(x => !x.Handled))
+            foreach (WolfDeath death in deaths.Where(x => !x.Handled))
             {
                 if (!IsAlive(ctx.Session.DataOf(death.UserId)))
                     throw new Exception("Expected dead player but is still alive");
@@ -677,25 +621,25 @@ namespace Arcadia.Multiplayer.Games
             {
                 if (IsProtected(player))
                 {
-                    RemoveStatus(player, WerewolfStatus.Marked | WerewolfStatus.Protected);
+                    RemoveStatus(player, WolfStatus.Marked | WolfStatus.Protected);
                     main.GetGroup("console").Append(WolfFormat.WriteProtectText(player));
                     continue;
                 }
 
                 // If the player is a tough person
-                if (GetPassive(player).HasFlag(WerewolfPassive.Tough))
+                if (GetPassive(player).HasFlag(WolfPassive.Tough))
                 {
-                    RemoveStatus(player, WerewolfStatus.Marked);
-                    AddStatus(player, WerewolfStatus.Hurt);
+                    RemoveStatus(player, WolfStatus.Marked);
+                    AddStatus(player, WolfStatus.Hurt);
                     main.GetGroup("console").Append(WolfFormat.WriteHurtText(player));
                     continue;
                 }
 
-                var death = new WerewolfDeath(player.Source.User.Id, WerewolfDeathMethod.Wolf,
+                var death = new WolfDeath(player.Source.User.Id, WolfDeathMethod.Wolf,
                     GetLivingWolves(ctx.Session).Select(x => x.Source.User.Id).ToList());
 
-                SetStatus(player, WerewolfStatus.Dead);
-                ctx.Session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths).Add(death);
+                SetStatus(player, WolfStatus.Dead);
+                ctx.Session.ValueOf<List<WolfDeath>>(WolfVars.Deaths).Add(death);
                 ctx.Session.SetValue(WolfVars.CurrentDeath, death);
                 ctx.Session.BlockInput = false;
                 ctx.Session.InvokeAction(WolfVars.HandleDeath, true);
@@ -708,78 +652,86 @@ namespace Arcadia.Multiplayer.Games
 
         private static void HandleAbilities(GameContext ctx)
         {
-            var handled = ctx.Session.ValueOf<WerewolfAbility>(WolfVars.HandledAbilities);
+            var handled = ctx.Session.ValueOf<WolfAbility>(WolfVars.HandledAbilities);
+            WolfAbility remainder = (GetActiveAbilities(ctx.Session) & ~handled);
 
-            // Get the active abilities, and exclude the already handled abilities
-            foreach (WerewolfAbility ability in (GetActiveAbilities(ctx.Session) & ~handled).GetFlags())
+            Logger.Debug($"Remaining ability set: {remainder}");
+
+            if (remainder == 0)
             {
-                // Ignore the empty ability
-                if (ability == WerewolfAbility.None)
-                    continue;
-
-                Logger.Debug($"Handling ability {ability}");
-                ctx.Session.SetValue(WolfVars.CurrentAbility, ability);
-                ctx.Session.InvokeAction(WolfVars.StartAbility, true);
+                ctx.Session.InvokeAction(WolfVars.EndNight);
                 return;
             }
 
-            ctx.Session.InvokeAction(WolfVars.EndNight);
+            WolfAbility next = remainder.GetFlags().First();
+
+            // Get the active abilities, and exclude the already handled abilities
+            //foreach (WolfAbility ability in (GetActiveAbilities(ctx.Session) & ~handled).GetFlags())
+            //{
+            Logger.Debug($"Handling ability {next}");
+            ctx.Session.SetValue(WolfVars.CurrentAbility, next);
+            ctx.Session.InvokeAction(WolfVars.StartAbility, true);
+            return;
+            //}
+
+            // ctx.Session.InvokeAction(WolfVars.EndNight);
         }
 
         private static void Start(GameContext ctx)
         {
-            // If the game configuration supports night zero, handle it here.
-            ctx.Session.CanSpectate = true;
-            // Write the initial texts
-            ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Append(WolfFormat.WriteStartText());
+            ctx.Session.CanSpectate = true; // If the game configuration supports night zero, handle it here.
+            ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Append(WolfFormat.WriteStartText()); // Write the initial texts
+            ctx.Session.InvokeAction(WolfVars.StartDay); // Otherwise, go directly to the day phase
+        }
 
-            // Otherwise, go directly to the day phase
-            ctx.Session.InvokeAction(WolfVars.StartDay);
+        private static void UpdateMainDisplay(GameContext ctx)
+        {
+            SetChannel(ctx.Server, WolfChannel.Main);
+            WolfFormat.WritePlayerList(ctx.Session, ctx.Server);
+            WolfFormat.WriteMainHeader(ctx.Server, ctx.Session);
         }
 
         private static void StartDay(GameContext ctx)
         {
-            // Set the current phase to day
-            ctx.Session.SetValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
-
-            // Update the display
-            SetChannel(ctx.Server, WolfChannel.Main);
-            WolfFormat.WritePlayerList(ctx.Session, ctx.Server);
-            WolfFormat.WriteMainHeader(ctx.Server, ctx.Session);
+            SetPhase(ctx.Session, WolfPhase.Day); // Set the current phase to day
+            UpdateMainDisplay(ctx); // Update the display
 
             // If there was anyone that recently died or is marked for deaths, handle those first
-            if (HasAnyRecentlyDied(ctx.Session)
-                || ctx.Session.Players.Any(IsMarked))
+            if (HasAnyRecentlyDied(ctx.Session) || ctx.Session.Players.Any(IsMarked))
             {
-                // Set the next phase to day
-                ctx.Session.SetValue(WolfVars.NextPhase, WerewolfPhase.Day);
-
-                // Handle deaths
-                ctx.Session.InvokeAction(WolfVars.HandleDeaths, true);
+                SetNextPhase(ctx.Session, WolfPhase.Day); // Set the next phase to day
+                ctx.Session.InvokeAction(WolfVars.HandleDeaths, true); // Handle deaths
                 return;
             }
 
-            // Check winning conditions
-            if (WolfGreaterEqualsVillager(ctx.Session))
-            {
-                ctx.Session.SetValue(WolfVars.WinningGroup, WerewolfGroup.Werewolf);
-                ctx.Session.InvokeAction(WolfVars.GetResults);
+            if (CheckWinConditions(ctx.Session))
                 return;
-            }
 
-            if (AllDeadWolf(ctx.Session))
-            {
-                ctx.Session.SetValue(WolfVars.WinningGroup, WerewolfGroup.Villager);
-                ctx.Session.InvokeAction(WolfVars.GetResults);
-                return;
-            }
-
-            // Set the current phase to day
-            ctx.Session.SetValue(WolfVars.CurrentPhase, WerewolfPhase.Day);
             ctx.Session.BlockInput = false;
+            ctx.Session.QueueAction("day_timer", TimeSpan.FromMinutes(3), WolfVars.EndDay); // Start a timer for 3 minutes that will invoke the action 'end_day'
+        }
 
-            // Start a timer for 3 minutes that will invoke the action 'end_day'
-            ctx.Session.QueueAction("day_timer", TimeSpan.FromMinutes(3), WolfVars.EndDay);
+        private static bool CheckWinConditions(GameSession session)
+        {
+            if (WolfGreaterEqualsVillager(session))
+            {
+                EndGame(session, WolfGroup.Werewolf);
+                return true;
+            }
+
+            if (AllDeadWolf(session))
+            {
+                EndGame(session, WolfGroup.Villager);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void EndGame(GameSession session, WolfGroup winner)
+        {
+            session.SetValue(WolfVars.WinningGroup, winner);
+            session.InvokeAction(WolfVars.GetResults);
         }
 
         private static void StartTrial(GameContext ctx)
@@ -815,7 +767,7 @@ namespace Arcadia.Multiplayer.Games
             vote["header"].Draw(GetName(GetSuspect(ctx.Session)));
             vote["counter"].Draw(WolfFormat.WriteVoteCounter(ctx.Session));
 
-            if (GetLivingPlayers(ctx.Session).Any(x => HasPassive(x, WerewolfPassive.Militarist | WerewolfPassive.Pacifist)))
+            if (GetLivingPlayers(ctx.Session).Any(x => HasPassive(x, WolfPassive.Militarist | WolfPassive.Pacifist)))
                 throw new Exception("The specified player has a conflicting passive ability");
 
             ctx.Session.BlockInput = false;
@@ -829,7 +781,7 @@ namespace Arcadia.Multiplayer.Games
         {
             ctx.Session.BlockInput = false;
             // Set the current phase to night
-            ctx.Session.SetValue(WolfVars.CurrentPhase, WerewolfPhase.Night);
+            ctx.Session.SetValue(WolfVars.CurrentPhase, WolfPhase.Night);
             ctx.Session.SetForEachPlayer(WolfVars.HasRequestedSkip, false);
             // Update the list of players
             WolfFormat.WritePlayerList(ctx.Session, ctx.Server);
@@ -838,10 +790,10 @@ namespace Arcadia.Multiplayer.Games
             // If there is anyone injured, kill them.
             foreach (PlayerData player in ctx.Session.Players.Where(IsHurt))
             {
-                var death = new WerewolfDeath(player.Source.User.Id, WerewolfDeathMethod.Injury);
+                var death = new WolfDeath(player.Source.User.Id, WolfDeathMethod.Injury);
 
-                SetStatus(player, WerewolfStatus.Dead);
-                ctx.Session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths).Add(death);
+                SetStatus(player, WolfStatus.Dead);
+                ctx.Session.ValueOf<List<WolfDeath>>(WolfVars.Deaths).Add(death);
             }
 
             // Handle all abilities
@@ -851,7 +803,7 @@ namespace Arcadia.Multiplayer.Games
         private static void StartAbility(GameContext ctx)
         {
             Logger.Debug("Now handling ability...");
-            WerewolfAbility current = GetCurrentAbility(ctx.Session);
+            WolfAbility current = GetCurrentAbility(ctx.Session);
 
             foreach (PlayerData player in ctx.Session.Players.Where(x => HasAbility(x, current)))
             {
@@ -876,9 +828,9 @@ namespace Arcadia.Multiplayer.Games
         private static void GetResults(GameContext ctx)
         {
             SetChannel(ctx.Server, WolfChannel.Results);
-            var group = ctx.Session.ValueOf<WerewolfGroup>(WolfVars.WinningGroup);
+            var group = ctx.Session.ValueOf<WolfGroup>(WolfVars.WinningGroup);
 
-            foreach (PlayerData player in ctx.Session.Players.Where(x => IsDeadTanner(x) || group.HasFlag(x.ValueOf<WerewolfRole>(WolfVars.Role).Group)))
+            foreach (PlayerData player in ctx.Session.Players.Where(x => IsDeadTanner(x) || group.HasFlag(x.ValueOf<WolfRole>(WolfVars.Role).Group)))
                 player.SetValue(WolfVars.IsWinner, true);
 
             DisplayContent results = ctx.Server.GetBroadcast(WolfChannel.Results).Content;
@@ -894,12 +846,12 @@ namespace Arcadia.Multiplayer.Games
             if (!IsAbilityShared(session, GetCurrentAbility(session)))
                 return null;
 
-            if (session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).Count == 0)
+            if (session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes).Count == 0)
                 throw new Exception("Expected to find value in ability votes but returned null");
 
             // Group by the count of voters and randomly select the best one if there's more than one value
-            WerewolfVoteData best = Randomizer.Choose(session
-                .ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes)
+            WolfVoteData best = Randomizer.Choose(session
+                .ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes)
                 .Where(x => IsAlive(session.DataOf(x.UserId)) && !HasAbility(session.DataOf(x.UserId), GetCurrentAbility(session)))
                 .GroupBy(x => x.VoterIds.Count)
                 .OrderByDescending(x => x.Key).First());
@@ -909,7 +861,7 @@ namespace Arcadia.Multiplayer.Games
 
         private static void EndAbility(GameContext ctx)
         {
-            var current = ctx.Session.ValueOf<WerewolfAbility>(WolfVars.CurrentAbility);
+            var current = ctx.Session.ValueOf<WolfAbility>(WolfVars.CurrentAbility);
 
             ClearAbilityVotes(ctx.Session);
             ctx.Session.SetForEachPlayer(WolfVars.HasUsedAbility, false);
@@ -946,7 +898,7 @@ namespace Arcadia.Multiplayer.Games
             }
 
             // Update the handled abilities and continue checking
-            ctx.Session.SetValue(WolfVars.HandledAbilities, ctx.Session.ValueOf<WerewolfAbility>(WolfVars.HandledAbilities) | current);
+            ctx.Session.SetValue(WolfVars.HandledAbilities, ctx.Session.ValueOf<WolfAbility>(WolfVars.HandledAbilities) | current);
             ctx.Session.InvokeAction(WolfVars.HandleAbilities, true);
         }
 
@@ -962,10 +914,10 @@ namespace Arcadia.Multiplayer.Games
             // Reset all of the votes once you've received the vote counts
             foreach (PlayerData player in GetLivingPlayers(ctx.Session))
             {
-                if (player.ValueOf<WerewolfVote>(WolfVars.Vote) == WerewolfVote.Die)
+                if (player.ValueOf<WolfVote>(WolfVars.Vote) == WolfVote.Die)
                     killers.Add(player.Source.User.Id);
 
-                player.SetValue(WolfVars.Vote, WerewolfVote.Pending);
+                player.SetValue(WolfVars.Vote, WolfVote.Pending);
             }
 
             ctx.Session.BlockInput = true;
@@ -979,17 +931,17 @@ namespace Arcadia.Multiplayer.Games
                     throw new Exception("Expected suspect but returned null");
 
                 // Mark everyone who voted for their death as a killer
-                var death = new WerewolfDeath(suspect.Source.User.Id, WerewolfDeathMethod.Hang, killers);
+                var death = new WolfDeath(suspect.Source.User.Id, WolfDeathMethod.Hang, killers);
 
                 // Kill the suspect
-                SetStatus(suspect, WerewolfStatus.Dead);
+                SetStatus(suspect, WolfStatus.Dead);
 
                 // Add their death to the list
-                ctx.Session.ValueOf<List<WerewolfDeath>>(WolfVars.Deaths).Add(death);
+                ctx.Session.ValueOf<List<WolfDeath>>(WolfVars.Deaths).Add(death);
                 ctx.Session.SetValue(WolfVars.CurrentDeath, death);
 
                 // Set the next phase to night
-                ctx.Session.SetValue(WolfVars.NextPhase, WerewolfPhase.Night);
+                ctx.Session.SetValue(WolfVars.NextPhase, WolfPhase.Night);
 
                 // Handle the suspect's death
                 ctx.Session.SetValue(WolfVars.IsOnTrial, false);
@@ -1025,8 +977,8 @@ namespace Arcadia.Multiplayer.Games
         private static void EndNight(GameContext ctx)
         {
             // Reset read inputs to none
-            ctx.Session.SetValue(WolfVars.HandledAbilities, WerewolfAbility.None);
-            ctx.Session.SetValue(WolfVars.CurrentAbility, WerewolfAbility.None);
+            ctx.Session.SetValue(WolfVars.HandledAbilities, 0);
+            ctx.Session.SetValue(WolfVars.CurrentAbility, 0);
             ctx.Session.SetValue(WolfVars.Suspect, 0UL);
             ctx.Session.SetValue(WolfVars.Accuser, 0UL);
             ctx.Session.AddToValue(WolfVars.CurrentRound, 1);
@@ -1083,7 +1035,7 @@ namespace Arcadia.Multiplayer.Games
             // If all of the votes are secured, end the vote
             if (ctx.Session.Players
                 .Where(x => !IsSuspect(x, ctx.Session))
-                .All(x => x.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending))
+                .All(x => x.ValueOf<WolfVote>(WolfVars.Vote) != WolfVote.Pending))
             {
                 // Cancel the current voting timer
                 ctx.Session.CancelNewestInQueue();
@@ -1097,11 +1049,11 @@ namespace Arcadia.Multiplayer.Games
         {
             if (CountSkips(ctx.Session) >= (CountLiving(ctx.Session) / (double) 2))
             {
-                var current = ctx.Session.ValueOf<WerewolfPhase>(WolfVars.CurrentPhase);
+                var current = ctx.Session.ValueOf<WolfPhase>(WolfVars.CurrentPhase);
 
                 // If it's day time, end the day
 
-                if (current == WerewolfPhase.Day)
+                if (current == WolfPhase.Day)
                 {
                     // Is there is currently a suspect specified, ignore
                     if (HasSuspect(ctx.Session))
@@ -1113,18 +1065,18 @@ namespace Arcadia.Multiplayer.Games
                     return;
                 }
 
-                if (current == WerewolfPhase.Death)
+                if (current == WolfPhase.Death)
                 {
                     ctx.Session.CancelNewestInQueue();
 
-                    var next = ctx.Session.ValueOf<WerewolfPhase>(WolfVars.NextPhase);
-                    if (next == WerewolfPhase.Night)
+                    var next = ctx.Session.ValueOf<WolfPhase>(WolfVars.NextPhase);
+                    if (next == WolfPhase.Night)
                     {
                         ctx.Session.InvokeAction(WolfVars.StartNight);
                         return;
                     }
 
-                    if (next == WerewolfPhase.Day)
+                    if (next == WolfPhase.Day)
                     {
                         ctx.Session.InvokeAction(WolfVars.StartDay);
                         ctx.Session.SetForEachPlayer(WolfVars.HasRequestedSkip, false);
@@ -1182,7 +1134,7 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             // Otherwise, skip the initial command input and write what they said:
-            string statement = ctx.Input.Source.Substring(3);
+            string statement = ctx.Input.Source.Substring(3).Trim();
 
             // If their statement is empty, ignore input
             if (!Check.NotNull(statement))
@@ -1193,7 +1145,7 @@ namespace Arcadia.Multiplayer.Games
             ctx.Session.CancelNewestInQueue();
             ctx.Server.GetBroadcast(WolfChannel.Main).Content.GetGroup("console").Append($"The suspect has spoken: {statement}");
             ctx.Session.SetValue(WolfVars.IsOnTrial, false);
-            ctx.Session.QueueAction(TimeSpan.FromSeconds(5), WolfVars.StartVote);
+            ctx.Session.QueueAction(TimeSpan.FromSeconds(8), WolfVars.StartVote);
         }
 
         private static void OnSilent(InputContext ctx)
@@ -1233,11 +1185,11 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             // Ignore if their vote is not pending
-            if (ctx.Player.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending)
+            if (ctx.Player.ValueOf<WolfVote>(WolfVars.Vote) != WolfVote.Pending)
                 return;
 
             // Otherwise, set their vote
-            ctx.Player.SetValue(WolfVars.Vote, HasPassive(ctx.Player, WerewolfPassive.Militarist) ? WerewolfVote.Die : WerewolfVote.Live);
+            ctx.Player.SetValue(WolfVars.Vote, HasPassive(ctx.Player, WolfPassive.Militarist) ? WolfVote.Die : WolfVote.Live);
 
             // Update the vote counter
             ctx.Server.GetBroadcast(WolfChannel.Vote).Content.GetComponent("counter").Draw(WolfFormat.WriteVoteCounter(ctx.Session));
@@ -1261,11 +1213,11 @@ namespace Arcadia.Multiplayer.Games
                 return;
 
             // Ignore if their vote is not pending
-            if (ctx.Player.ValueOf<WerewolfVote>(WolfVars.Vote) != WerewolfVote.Pending)
+            if (ctx.Player.ValueOf<WolfVote>(WolfVars.Vote) != WolfVote.Pending)
                 return;
 
             // Otherwise, set their vote
-            ctx.Player.SetValue(WolfVars.Vote, HasPassive(ctx.Player, WerewolfPassive.Pacifist) ? WerewolfVote.Live : WerewolfVote.Die);
+            ctx.Player.SetValue(WolfVars.Vote, HasPassive(ctx.Player, WolfPassive.Pacifist) ? WolfVote.Live : WolfVote.Die);
 
             // Update the vote counter
             ctx.Server.GetBroadcast(WolfChannel.Vote).Content.GetComponent("counter").Draw(WolfFormat.WriteVoteCounter(ctx.Session));
@@ -1349,7 +1301,7 @@ namespace Arcadia.Multiplayer.Games
 
         private static void OnPick(InputContext ctx)
         {
-            if (ctx.Session.ValueOf<WerewolfPhase>(WolfVars.CurrentPhase) != WerewolfPhase.Night)
+            if (ctx.Session.ValueOf<WolfPhase>(WolfVars.CurrentPhase) != WolfPhase.Night)
                 return;
 
             if (!CanUseAbility(ctx.Player, ctx.Session))
@@ -1378,14 +1330,14 @@ namespace Arcadia.Multiplayer.Games
                     return;
 
                 // If the invoker has already voted
-                if (ctx.Session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes).Any(x => x.VoterIds.Contains(ctx.Invoker.Id)))
+                if (ctx.Session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes).Any(x => x.VoterIds.Contains(ctx.Invoker.Id)))
                     return;
 
                 Logger.Debug("Adding vote to ability votes");
 
-                var votes = ctx.Session.ValueOf<List<WerewolfVoteData>>(WolfVars.AbilityVotes);
+                var votes = ctx.Session.ValueOf<List<WolfVoteData>>(WolfVars.AbilityVotes);
                 // Get the user's vote data
-                WerewolfVoteData voteData = votes.FirstOrDefault(x => x.UserId == target.Source.User.Id);
+                WolfVoteData voteData = votes.FirstOrDefault(x => x.UserId == target.Source.User.Id);
 
                 if (voteData == null)
                     throw new Exception("Expected vote data for target but returned null");
@@ -1418,7 +1370,7 @@ namespace Arcadia.Multiplayer.Games
         // This is after the presumed target has been handled
         private static void UseAbility(PlayerData invoker, PlayerData target, GameSession session)
         {
-            WerewolfAbility current = GetCurrentAbility(session);
+            WolfAbility current = GetCurrentAbility(session);
             bool isShared = IsAbilityShared(session, current);
 
             if (!isShared && invoker == null)
@@ -1426,8 +1378,8 @@ namespace Arcadia.Multiplayer.Games
 
             switch (current)
             {
-                case WerewolfAbility.Peek:
-                    WerewolfPeekData peek = session.ValueOf<List<WerewolfPeekData>>(WolfVars.Peeks)
+                case WolfAbility.Peek:
+                    WolfPeekData peek = session.ValueOf<List<WolfPeekData>>(WolfVars.Peeks)
                         .FirstOrDefault(x => x.UserId == target.Source.User.Id);
 
                     if (peek == null)
@@ -1440,12 +1392,12 @@ namespace Arcadia.Multiplayer.Games
 
                     return;
 
-                case WerewolfAbility.Feast:
-                    AddStatus(target, WerewolfStatus.Marked);
+                case WolfAbility.Feast:
+                    AddStatus(target, WolfStatus.Marked);
                     return;
 
-                case WerewolfAbility.Protect:
-                    AddStatus(target, WerewolfStatus.Protected);
+                case WolfAbility.Protect:
+                    AddStatus(target, WolfStatus.Protected);
                     return;
 
                 default:

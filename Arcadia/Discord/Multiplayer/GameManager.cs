@@ -158,6 +158,12 @@ namespace Arcadia.Multiplayer
             // otherwise, establish a new connection to this server.
             GameServer server = Servers[serverId];
 
+            if (server.GetGameDetails().RequireDM)
+            {
+                await channel.SendMessageAsync("You cannot join this server through a direct messsage channel.");
+                return;
+            }
+
             if (server.GetPlayer(user.Id) != null)
             {
                 await channel.SendMessageAsync("You have already joined this server.");
@@ -355,7 +361,7 @@ namespace Arcadia.Multiplayer
                     if (server.Session.BlockInput)
                         return;
 
-                DisplayBroadcast display = server.GetBroadcast(connection.Frequency);
+                GameBroadcast display = server.GetBroadcast(connection.Frequency);
 
                 foreach (IInput input in display.Inputs)
                 {
@@ -1149,7 +1155,7 @@ namespace Arcadia.Multiplayer
                             reader.SkipWhiteSpace();
 
                             string game = reader.ReadString();
-                            allowUpdate = !await server.UpdateGameAsync(game);
+                            allowUpdate = !await server.SetGameAsync(game);
                             break;
                         }
 

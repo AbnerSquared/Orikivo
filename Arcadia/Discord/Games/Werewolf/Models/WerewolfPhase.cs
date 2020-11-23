@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public enum WerewolfPhase
+    public enum WolfPhase
     {
         Unknown = 0,
 

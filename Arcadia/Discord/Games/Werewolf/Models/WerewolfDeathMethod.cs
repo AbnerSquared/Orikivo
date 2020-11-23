@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public enum WerewolfDeathMethod
+    public enum WolfDeathMethod
     {
         Unknown = 0, // We aren't sure how the player died
         Hang = 1, // The player was hung by vote

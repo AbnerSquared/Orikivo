@@ -1,119 +1,29 @@
 ﻿using Discord;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Discord.Net;
-using Orikivo;
 
 namespace Arcadia.Multiplayer
 {
-    /// <summary>
-    /// Represents a player connection to a <see cref="GameServer"/>.
-    /// </summary>
-    public class Player // : Receiver
+    public class Player : Receiver
     {
-        internal Player(GameServer server, IUser user)
+        internal Player(GameServer server, IUser user) : base(user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult())
         {
             Server = server;
             User = user;
             JoinedAt = DateTime.UtcNow;
-            //Channel = user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        /// <summary>
-        /// Represents the <see cref="DateTime"/> at which this <see cref="Player"/> joined a <see cref="GameServer"/>.
-        /// </summary>
-        public DateTime JoinedAt { get; }
-
-        /// <summary>
-        /// Represents the <see cref="IUser"/> that this <see cref="Player"/> originates from.
-        /// </summary>
         public IUser User { get; }
 
-        /// <summary>
-        /// If true, this <see cref="Player"/> is the host of this <see cref="GameServer"/>.
-        /// </summary>
+        public DateTime JoinedAt { get; }
+
         public bool IsHost => Server.HostId == User.Id;
 
-        /// <summary>
-        /// If true, this <see cref="Player"/> is currently playing a game.
-        /// </summary>
         public bool Playing { get; internal set; }
 
-        /// <summary>
-        /// Represents the <see cref="DateTime"/> at which this <see cref="Player"/> has last spoken.
-        /// </summary>
         public DateTime LastSpoke { get; internal set; }
 
         public DateTime LastInviteSent { get; internal set; }
 
-        /// <summary>
-        /// Represents the <see cref="GameServer"/> that this <see cref="Player"/> is currently in.
-        /// </summary>
         public GameServer Server { get; }
-
-        /// <summary>
-        /// Gets the direct message channel for this <see cref="Player"/>, if any.
-        /// </summary>
-        public PlayerChannel PlayerChannel { get; private set; }
-
-        /// <summary>
-        /// Gets or creates the direct message channel for this <see cref="Player"/>.
-        /// </summary>
-        public async Task<PlayerChannel> GetOrCreateChannelAsync()
-        {
-            return PlayerChannel ??= await PlayerChannel.CreateAsync(User);
-        }
-    }
-
-    public class Connection : Receiver
-    {
-        public int Frequency { get; set; }
-        public DisplayContent Content { get; set; }
-        public InputController Controller { get; set; }
-    }
-
-    public class InputController
-    {
-        public List<IInput> Inputs { get; set; }
-
-        public bool Disabled { get; set; }
-    }
-
-    public class Receiver
-    {
-        public IMessageChannel Channel { get; protected set; }
-
-        public IUserMessage Message { get; private set; }
-
-        // Determines if this receiver is included in the update pool or not
-        public bool Disabled { get; internal set; }
-
-        public bool CanSendMessages { get; protected set; } = true;
-
-        public async Task<IUserMessage> UpdateAsync(string content, bool replacePrevious = false)
-        {
-            if (!CanSendMessages)
-                return null;
-
-            try
-            {
-                if (Message != null && !replacePrevious)
-                {
-                    await Message.ModifyAsync(content);
-                }
-                else
-                {
-                    Message = await Channel.SendMessageAsync(content);
-                }
-
-                return Message;
-            }
-            catch (HttpException error) when (error.DiscordCode == 50007)
-            {
-                CanSendMessages = false;
-                return null;
-            }
-        }
     }
 }

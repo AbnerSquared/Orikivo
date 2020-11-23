@@ -6,11 +6,8 @@ namespace Arcadia.Multiplayer.Games
     /// Represents the status of a player in Werewolf.
     /// </summary>
     [Flags]
-    public enum WerewolfStatus
+    public enum WolfStatus
     {
-        // The player has no statuses applied
-        None = 0,
-
         // The player is currently dead
         Dead = 1,
 

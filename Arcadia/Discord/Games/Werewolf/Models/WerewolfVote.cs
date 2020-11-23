@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games
 {
-    public enum WerewolfVote
+    public enum WolfVote
     {
         // This vote is currently pending
         Pending = 0,

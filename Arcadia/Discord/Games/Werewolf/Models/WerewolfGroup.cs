@@ -3,9 +3,8 @@
 namespace Arcadia.Multiplayer.Games.Werewolf
 {
     [Flags]
-    public enum WerewolfGroup
+    public enum WolfGroup
     {
-        Unknown = 0,
 
         Villager = 1,
 

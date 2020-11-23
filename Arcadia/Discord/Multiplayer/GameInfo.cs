@@ -7,6 +7,9 @@ using Orikivo.Framework;
 
 namespace Arcadia.Multiplayer
 {
+    /// <summary>
+    /// Represents base information for a game.
+    /// </summary>
     public class GameInfo : IModel<string>
     {
         public GameInfo(GameBase game)
@@ -46,7 +49,7 @@ namespace Arcadia.Multiplayer
 
             // NOTE: This is only for debugging, will be removed later.
             server.Session.Game.ExportProperties().ForEach(x => Logger.Debug($"{x.Id}: {x.Value.ToString()}"));
-            await server.Session.Game.OnSessionStartAsync(server, session);
+            await server.Session.Game.StartAsync(server, session);
         }
     }
 }

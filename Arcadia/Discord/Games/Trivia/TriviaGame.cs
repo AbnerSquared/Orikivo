@@ -333,49 +333,6 @@ namespace Arcadia.Multiplayer.Games
         private static bool HasAnsweredAllQuestions(GameSession session)
             => session.ValueOf<int>("current_question") == session.GetConfigValue<int>("questioncount");
 
-        public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
-        {
-            var rules = new List<GameCriterion>();
-
-            // 'has_all_players_answered'
-            // This rule simply checks to see if: 'players_voted' == Players.Count
-            var hasAllPlayersAnswered = new GameCriterion("has_all_players_answered", HasAllPlayersAnswered)
-            {
-                Id = "has_all_players_answered",
-                Criterion = delegate(GameSession session)
-                {
-                    return session.ValueOf<int>("players_answered") == session.Players.Count;
-                }
-            };
-
-
-            // 'most_players_want_rematch'
-            // This rule checks to see if: 'rematch_requests' is >= (Players.Count / 2)
-            var mostPlayersWantRematch = new GameCriterion
-            {
-                Id = "most_players_want_rematch",
-                Criterion = delegate(GameSession session)
-                {
-                    return session.ValueOf<int>("rematch_requests") >= (session.Players.Count / 2);
-                }
-            };
-
-            var hasAnsweredAllQuestions = new GameCriterion
-            {
-                Id = "has_answered_all_questions",
-                Criterion = delegate (GameSession session)
-                {
-                    return session.ValueOf<int>("current_question") == session.GetConfigValue<int>("questioncount");
-                }
-            };
-
-            rules.Add(hasAllPlayersAnswered);
-            rules.Add(mostPlayersWantRematch);
-            rules.Add(hasAnsweredAllQuestions);
-
-            return rules;
-        }
-
         [Property("rematch_vote_count")]
         public int RematchVoteCount { get; set; } = 0;
 
@@ -408,16 +365,16 @@ namespace Arcadia.Multiplayer.Games
             return attributes;
         }
 
-        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
+        public override List<GameBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
-            var displays = new List<DisplayBroadcast>();
+            var displays = new List<GameBroadcast>();
             // frequency 10 (question)
             // This is what displays all of the questions and allows for answering
             // The action 'show_question_result' is executed when:
             // - All current players chose an answer
             // - The timer of 30 seconds since the question started runs out
 
-            var question = new DisplayBroadcast(10)
+            var question = new GameBroadcast(10)
             {
                 Content = new DisplayContent
                 {
@@ -635,7 +592,7 @@ namespace Arcadia.Multiplayer.Games
             // Display 2: Question Result (Frequency 11)
             // This is what shows what the actual answer was
             // There is a basic timer of 3 seconds before executing the action 'try_get_next_question'
-            var questionResult = new DisplayBroadcast(11)
+            var questionResult = new GameBroadcast(11)
             {
                 Content = new DisplayContent
                 {
@@ -671,7 +628,7 @@ namespace Arcadia.Multiplayer.Games
             };
 
 
-            var results = new DisplayBroadcast(12)
+            var results = new GameBroadcast(12)
             {
                 Content = new DisplayContent
                 {
@@ -794,7 +751,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
-        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
+        public override async Task StartAsync(GameServer server, GameSession session)
         {
             Options = server.Options;
 

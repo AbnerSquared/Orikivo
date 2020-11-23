@@ -1,7 +1,7 @@
 ﻿namespace Arcadia.Multiplayer
 {
     /// <summary>
-    /// Represents the origin of an <see cref="IConnection"/>.
+    /// Represents the origin of a connection.
     /// </summary>
     public enum OriginType
     {

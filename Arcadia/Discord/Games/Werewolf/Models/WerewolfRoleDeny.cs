@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games
 {
-    public enum WerewolfRoleDeny
+    public enum WolfRoleDeny
     {
         None = 0,
         Werewolf = 1,

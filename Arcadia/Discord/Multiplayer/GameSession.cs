@@ -49,7 +49,7 @@ namespace Arcadia.Multiplayer
 
             Properties = game.OnBuildProperties();
             Server.Broadcasts.AddRange(game.OnBuildBroadcasts(Players));
-            ActivityDisplay = "Playing a game";
+            ActivityDisplay = $"Playing {game.Details.Name}";
         }
 
         public DateTime StartedAt { get; }
@@ -88,6 +88,7 @@ namespace Arcadia.Multiplayer
         // If true, nobody is allowed to invoke a command
         public bool BlockInput { get; set; }
 
+        // TODO: Swap arg position of delay and action ID
         // If the action queued doesn't matter too much, just perform a quick fire-and-forget
         internal void QueueAction(TimeSpan delay, string actionId)
         {

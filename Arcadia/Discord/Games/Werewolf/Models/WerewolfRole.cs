@@ -2,13 +2,13 @@
 
 namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public class WerewolfRole
+    public class WolfRole
     {
-        public static List<WerewolfRole> GetPack(WerewolfRolePack pack)
+        public static List<WolfRole> GetPack(WolfRolePack pack)
         {
             return pack switch
             {
-                _ => new List<WerewolfRole>
+                _ => new List<WolfRole>
                 {
                     Villager,
                     Seer,
@@ -17,68 +17,68 @@ namespace Arcadia.Multiplayer.Games.Werewolf
             };
         }
 
-        public static readonly WerewolfRole Villager = new WerewolfRole
+        public static readonly WolfRole Villager = new WolfRole
         {
             Moral = 1,
-            Group = WerewolfGroup.Villager,
+            Group = WolfGroup.Villager,
             Id = "villager",
             Name = "Villager",
             Summary = "You are a villager.",
-            Initial = WerewolfInitial.None,
-            Passive = WerewolfPassive.None,
-            Ability = WerewolfAbility.None,
+            Initial = 0,
+            Passive = 0,
+            Ability = 0,
         };
 
-        public static readonly WerewolfRole Werewolf = new WerewolfRole
+        public static readonly WolfRole Werewolf = new WolfRole
         {
             Moral = -7,
-            Group = WerewolfGroup.Werewolf,
+            Group = WolfGroup.Werewolf,
             Id = "werewolf",
             Name = "Werewolf",
             Summary = "You are a werewolf.",
-            Initial = WerewolfInitial.None,
-            Passive = WerewolfPassive.Wolfish,
-            Ability = WerewolfAbility.Feast
+            Initial = 0,
+            Passive = WolfPassive.Wolfish,
+            Ability = WolfAbility.Feast
         };
 
-        public static readonly WerewolfRole Seer = new WerewolfRole
+        public static readonly WolfRole Seer = new WolfRole
         {
             Moral = 6,
-            Group = WerewolfGroup.Villager,
+            Group = WolfGroup.Villager,
             Id = "seer",
             Name = "Seer",
             Summary = "You can inspect a player each night to determine if they are a werewolf.",
-            Initial = WerewolfInitial.None,
-            Passive = WerewolfPassive.None,
-            Ability = WerewolfAbility.Peek
+            Initial = 0,
+            Passive = 0,
+            Ability = WolfAbility.Peek
         };
 
-        public static readonly WerewolfRole ApprenticeSeer = new WerewolfRole
+        public static readonly WolfRole ApprenticeSeer = new WolfRole
         {
             Moral = 2, // Figure out power level
-            Group = WerewolfGroup.Villager,
+            Group = WolfGroup.Villager,
 
             Id = "apprentice_seer",
             Name = "Apprentice Seer",
-            Summary = "You take up the role of Seer when they die.",
+            Summary = "You inherit the role of Seer when they die.",
 
-            Initial = WerewolfInitial.None,
-            Passive = WerewolfPassive.Apprentice,
-            Ability = WerewolfAbility.None
+            Initial = 0,
+            Passive = WolfPassive.Apprentice,
+            Ability = 0
         };
 
-        public static readonly WerewolfRole Lycan = new WerewolfRole
+        public static readonly WolfRole Lycan = new WolfRole
         {
             Moral = -1,
-            Group = WerewolfGroup.Villager,
+            Group = WolfGroup.Villager,
 
             Id = "lycan",
             Name = "Lycan",
             Summary = "You appear as a werewolf to a seer.",
 
-            Initial = WerewolfInitial.None,
-            Passive = WerewolfPassive.Wolfish,
-            Ability = WerewolfAbility.None
+            Initial = 0,
+            Passive = WolfPassive.Wolfish,
+            Ability = 0
         };
 
         public string Id { get; set; }
@@ -89,19 +89,19 @@ namespace Arcadia.Multiplayer.Games.Werewolf
 
         // By default, this is 0, but this specifies the amount of instances required if this role is selected
         // An example is a mason requiring 2 instances in order to function
-        public int GroupSize { get; set; } = 0;
+        public int RequiredCopyCount { get; set; } = 0;
 
         public int Moral { get; set; }
 
-        public WerewolfGroup Group { get; set; }
+        public WolfGroup Group { get; set; }
 
-        public WerewolfInitial Initial { get; set; }
+        public WolfInitial Initial { get; set; }
 
-        public WerewolfPassive Passive { get; set; }
+        public WolfPassive Passive { get; set; }
 
-        public WerewolfAbility Ability { get; set; }
+        public WolfAbility Ability { get; set; }
 
-        public WerewolfAbilityUsage AbilityUsage { get; set; }
+        public WolfAbilityUsage AbilityUsage { get; set; }
     }
 
     // If initial, the ability is called at the start of the first night

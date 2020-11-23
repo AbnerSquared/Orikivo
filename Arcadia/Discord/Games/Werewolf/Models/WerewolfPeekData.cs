@@ -2,9 +2,9 @@
 
 namespace Arcadia.Multiplayer.Games.Werewolf
 {
-    public class WerewolfPeekData
+    public class WolfPeekData
     {
-        public WerewolfPeekData(ulong userId, bool innocent)
+        public WolfPeekData(ulong userId, bool innocent)
         {
             UserId = userId;
             Innocent = innocent;

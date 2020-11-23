@@ -2,14 +2,45 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arcadia.Multiplayer
 {
+    public class Broadcast
+    {
+        public Broadcast(GameServer server)
+        {
+            Server = server;
+        }
+
+        public GameServer Server { get; }
+
+        public int Frequency { get; }
+
+        public string Content { get; }
+
+        public async Task SendMessageAsync(string content, bool sendAsNew = false)
+        {
+            foreach (Receiver receiver in Server.GetBroadcastReceivers(Frequency))
+            {
+                await receiver.SendMessageAsync(content, sendAsNew);
+            }
+        }
+
+        public async Task UpdateAsync()
+        {
+            foreach (Receiver receiver in Server.GetBroadcastReceivers(Frequency))
+            {
+                await receiver.SendMessageAsync(Content);
+            }
+        }
+    }
+
     /// <summary>
-    /// Represents a text-based display broadcast for a <see cref="GameServer"/>.
+    /// Represents a broadcast channel for a <see cref="GameServer"/>.
     /// </summary>
     [DebuggerDisplay(@"{DebuggerDisplay,nq}")]
-    public class DisplayBroadcast
+    public class GameBroadcast
     {
         public const int WaitingFrequency = 0;
         public const int EditingFrequency = 1;
@@ -17,13 +48,13 @@ namespace Arcadia.Multiplayer
 
         public static readonly int[] ReservedFrequencies = { WaitingFrequency, EditingFrequency, WatchingFrequency };
 
-        private DisplayBroadcast()
+        private GameBroadcast()
         {
             Reserved = true;
             Inputs = new List<IInput>();
         }
 
-        public DisplayBroadcast(int frequency)
+        public GameBroadcast(int frequency)
         {
             if (ReservedFrequencies.Contains(frequency))
                 throw new Exception("This frequency is reserved.");
@@ -34,15 +65,15 @@ namespace Arcadia.Multiplayer
         }
 
         /// <summary>
-        /// Determines if this <see cref="DisplayBroadcast"/> is reserved.
+        /// Determines if this <see cref="GameBroadcast"/> is reserved.
         /// </summary>
         internal bool Reserved { get; }
 
-        public static List<DisplayBroadcast> GetReservedBroadcasts()
+        public static List<GameBroadcast> GetReservedBroadcasts()
         {
-            return new List<DisplayBroadcast>
+            return new List<GameBroadcast>
             {
-                new DisplayBroadcast
+                new GameBroadcast
                 {
                     Frequency = WaitingFrequency,
                     State = GameState.Waiting,
@@ -59,7 +90,7 @@ namespace Arcadia.Multiplayer
                         }
                     }
                 },
-                new DisplayBroadcast
+                new GameBroadcast
                 {
                     Frequency = EditingFrequency,
                     State = GameState.Editing,
@@ -80,7 +111,7 @@ namespace Arcadia.Multiplayer
                         }
                     }
                 },
-                new DisplayBroadcast
+                new GameBroadcast
                 {
                     Frequency = WatchingFrequency,
                     State = GameState.Watching,
@@ -99,21 +130,12 @@ namespace Arcadia.Multiplayer
         // and set their references again once initialized?
         public int Frequency { get; private set; }
 
+        // TODO: Remove this property and use the reserved frequencies
         public GameState? State { get; private set; }
 
         public DisplayContent Content { get; set; }
 
         public List<IInput> Inputs { get; set; }
-
-        public IComponent GetComponent(string id)
-        {
-            return Content?.GetComponent(id);
-        }
-
-        public ComponentGroup GetGroup(string id)
-        {
-            return Content?.GetGroup(id);
-        }
 
         private string DebuggerDisplay => $"{(Reserved ? "[Reserved] " : "")}{Frequency}{(State.HasValue ? $", {State.ToString()}" : "")}";
 

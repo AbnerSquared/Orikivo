@@ -1,6 +1,6 @@
 ﻿namespace Arcadia.Multiplayer.Games
 {
-    public enum WerewolfWinState
+    public enum WolfWinState
     {
         // The game is still going
         Pending = 0,

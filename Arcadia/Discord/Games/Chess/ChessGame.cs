@@ -83,11 +83,11 @@ namespace Arcadia.Multiplayer.Games
 
         // Find a way to make broadcast building easier
         /// <inheritdoc />
-        public override List<DisplayBroadcast> OnBuildBroadcasts(List<PlayerData> players)
+        public override List<GameBroadcast> OnBuildBroadcasts(List<PlayerData> players)
         {
-            return new List<DisplayBroadcast>
+            return new List<GameBroadcast>
             {
-                new DisplayBroadcast(ChessChannel.Main)
+                new GameBroadcast(ChessChannel.Main)
                 {
                     Content = new DisplayContent
                     {
@@ -105,7 +105,7 @@ namespace Arcadia.Multiplayer.Games
                         new TextInput("resign", OnResign)
                     }
                 },
-                new DisplayBroadcast(ChessChannel.Results)
+                new GameBroadcast(ChessChannel.Results)
                 {
                     Content = new DisplayContent
                     {
@@ -290,7 +290,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         /// <inheritdoc />
-        public override async Task OnSessionStartAsync(GameServer server, GameSession session)
+        public override async Task StartAsync(GameServer server, GameSession session)
         {
             server.SetStateFrequency(GameState.Playing, ChessChannel.Main);
             session.SpectateFrequency = ChessChannel.Main;
