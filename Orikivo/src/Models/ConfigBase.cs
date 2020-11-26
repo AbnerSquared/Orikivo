@@ -359,7 +359,7 @@ namespace Orikivo
                     }
 
                 default:
-                    if (TypeParser.TryParse(type, value, out object result))
+                    if (Parser.TryParse(type, value, out object result))
                     {
                         if (type.IsEnum)
                         {

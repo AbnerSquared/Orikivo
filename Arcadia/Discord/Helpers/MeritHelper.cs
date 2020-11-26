@@ -330,7 +330,7 @@ namespace Arcadia
                 user.Merits.Add(merit.Id, new MeritData(DateTime.UtcNow));
 
                 if (canNotify)
-                    user.Notifier.Append(WriteUnlockNotice(merit));
+                    user.Notifier.Add(WriteUnlockNotice(merit));
             }
         }
 
@@ -378,7 +378,7 @@ namespace Arcadia
             user.Merits.Add(merit.Id, GetEmptyData());
 
             if (canNotify)
-                user.Notifier.Append(WriteUnlockNotice(merit));
+                user.Notifier.Add(WriteUnlockNotice(merit));
         }
 
         private static string WriteUnlockNotice(Merit merit)

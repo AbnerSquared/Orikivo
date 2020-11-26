@@ -13,8 +13,6 @@ namespace Orikivo
 {
     public static class ChannelExtensions
     {
-        public static readonly Dictionary<CommonError, MessageBuilder> ErrorPresets = new Dictionary<CommonError, MessageBuilder>();
-
         /// <summary>
         /// Sends a message to this message channel.
         /// </summary>
@@ -165,20 +163,6 @@ namespace Orikivo
             AllowedMentions allowedMentions = null)
         {
             return await channel.SendMessageAsync(Format.Error("Oops!", "An error has occurred.", error), options: options, allowedMentions: allowedMentions);
-        }
-
-        /// <summary>
-        /// Sends an error message preset to this message channel, if a preset is defined.
-        /// </summary>
-        public static async Task<IUserMessage> ThrowAsync(this IMessageChannel channel,
-            CommonError error,
-            RequestOptions options = null,
-            AllowedMentions allowedMentions = null)
-        {
-            if (!ErrorPresets.ContainsKey(error))
-                return await ThrowAsync(channel, error.ToString(), options);
-
-            return await SendMessageAsync(channel, ErrorPresets[error].Build(), options, allowedMentions);
         }
 
         /// <summary>

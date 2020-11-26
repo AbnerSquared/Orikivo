@@ -3,15 +3,15 @@ using Discord.WebSocket;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Orikivo;
 
-namespace Orikivo
+namespace Arcadia
 {
     public static class CoreService
     {
         private static readonly string OnBefore = "🌌 **Pinging...**";
         private static readonly string OnAfter = "🏓 **Pong!**";
 
-        // NOTE: Pings to the specified channel.
         public static async Task<IUserMessage> PingAsync(IMessageChannel channel, BaseSocketClient client)
         {
             var stopwatch = Stopwatch.StartNew();

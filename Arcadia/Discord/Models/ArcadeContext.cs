@@ -85,6 +85,6 @@ namespace Arcadia
         /// Returns the default prefix for the specified command context.
         /// </summary>
         public string GetPrefix()
-            => Account?.Config.Prefix ?? Server?.Config.Prefix ?? OriGlobal.DEFAULT_PREFIX;
+            => Account?.Config.Prefix ?? Server?.Config.Prefix ?? Constants.DEFAULT_PREFIX;
     }
 }

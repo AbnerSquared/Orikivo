@@ -46,7 +46,7 @@ namespace Orikivo.Framework
 
             if (Size.HasValue)
                 Console.SetWindowSize(Size.Value.Width, Size.Value.Height);
-            
+
             if (!string.IsNullOrWhiteSpace(Title))
                 Console.Title = Title;
 

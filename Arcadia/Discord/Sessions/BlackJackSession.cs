@@ -515,14 +515,5 @@ namespace Arcadia.Casino
             IsHidden = false;
             await Reference.ModifyAsync(DrawGameDisplay());
         }
-
-        // Handle
-
-        // Actions:
-        // Hit: Take a card
-        // Stand: End their turn
-        // Double Down: Double the wager, take a card, end turn
-        // Split: If two cards have the same value, separate them into 2 hands
-        // Fold: Retire and lose 50% of the wager
     }
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orikivo
 {
     /// <summary>
-    /// Defines a reader class for <see cref="Enum"/> values.
+    /// Defines a reader class that parses <see cref="Enum"/> values.
     /// </summary>
     /// <typeparam name="TEnum">Represents the <see cref="Enum"/> to compare.</typeparam>
     public sealed class EnumTypeReader<TEnum> : TypeReader

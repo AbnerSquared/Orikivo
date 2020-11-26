@@ -77,7 +77,7 @@ namespace Orikivo.Framework
             if (activity != null)
                 await SetActivityAsync(activity.Name, activity.StreamUrl, activity.Type);
         }
-        
+
         /// <summary>
         /// Stops the connection to Discord for the <see cref="Client"/>.
         /// </summary>

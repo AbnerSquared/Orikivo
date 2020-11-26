@@ -159,7 +159,7 @@ namespace Arcadia.Modules
         [Summary("Destroys the specified server.")]
         public async Task DestroyServerAsync([Name("server_id")][Summary("The ID of the server to destroy.")]string serverId)
         {
-            if (Context.User.Id != OriGlobal.DevId)
+            if (Context.User.Id != Constants.DevId)
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("You are not the developer of this bot.")).ConfigureAwait(false);
                 return;
@@ -183,7 +183,7 @@ namespace Arcadia.Modules
             {
                 if (_games.Servers[serverId].Session != null)
                 {
-                    if (Context.User.Id != _games.Servers[serverId].HostId && Context.User.Id != OriGlobal.DevId)
+                    if (Context.User.Id != _games.Servers[serverId].HostId && Context.User.Id != Constants.DevId)
                     {
                         await Context.Channel.SendMessageAsync(Format.Warning("You are not the server host or the developer of this bot.")).ConfigureAwait(false);
                         return;

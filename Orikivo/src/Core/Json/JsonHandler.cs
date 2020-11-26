@@ -81,10 +81,6 @@ namespace Orikivo
         /// <param name="throwOnEmpty">Defines whether or not an empty object should throw an Exception.</param>
         public static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmpty = false)
         {
-            //Console.WriteLine($"[Debug] -- Loading object of type '{typeof(T).Name}'. --");
-            if (typeof(T) == typeof(OriGlobal))
-                path = JsonUtils.GetDirectoryIndex<OriGlobal>() + path;
-
             if (!File.Exists(path))
             {
                 File.Create(path).Dispose();

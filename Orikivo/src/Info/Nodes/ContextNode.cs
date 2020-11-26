@@ -1,14 +1,13 @@
 ﻿using System;
 using Discord.Commands;
-using Orikivo.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using static System.Reflection.CustomAttributeExtensions;
+
 namespace Orikivo
 {
-    public abstract class ContextNode : ContentNode
+    public abstract class ContextNode
     {
         public const char GroupMarker = '*';
         private const char ModuleMarker = '.'; // Use delimiter name instead?
@@ -50,21 +49,22 @@ namespace Orikivo
                 if (parameter.Type.GetCustomAttribute<FlagsAttribute>() != null)
                     tooltips.Add("This parameter type supports combined flag input.");
                 else
-                    tooltips.Add("This parameter can be specified by an individual name or number.");
+                    tooltips.Add("This parameter is specified by an individual name or number.");
             }
 
             Tooltips = tooltips;
         }
 
-        protected override bool ReadAttributes => false;
-
-        public string Id { get; } // derives from Family
+        public string Id { get; }
 
         public string Name { get; }
+
         public List<string> Aliases { get; }
+
         public List<string> Tooltips { get; }
+
         public string Summary { get; }
-        public List<IReport> Reports { get; } = new List<IReport>();
+
         public abstract InfoType Type { get; }
 
         public static string GetId(ModuleInfo module)
@@ -73,9 +73,6 @@ namespace Orikivo
 
             ModuleInfo parent = module.Parent;
 
-            // If the module is in a group.
-
-            // For modules
             while (parent != null)
             {
                 id.Insert(0, Check.NotNull(parent.Group) ? parent.Group + ' ' : parent.Name + ModuleMarker);
@@ -100,7 +97,6 @@ namespace Orikivo
                 id.Append(command.Name);
             }
 
-            // if there is more than one instance of this command in existence, get the specific priority for the command IF it was requested.
             if (useOverloadIndex)
                 if (command.Module.Commands.Count(x => x.Name == command.Name) > 1)
                     id.Append($"+{command.Priority}");
@@ -120,7 +116,5 @@ namespace Orikivo
             id.Append(parameter.Name);
             return id.ToString().ToLower();
         }
-
-        protected override string Formatting => "";
     }
 }

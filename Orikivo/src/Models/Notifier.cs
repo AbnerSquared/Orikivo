@@ -58,7 +58,7 @@ namespace Orikivo
         /// <summary>
         /// Appends a new <see cref="Notification"/> to the <see cref="Notifier"/>.
         /// </summary>
-        public void Append(string content)
+        public void Add(string content)
         {
             Notifications.Add(new Notification(content));
         }
@@ -79,16 +79,6 @@ namespace Orikivo
             }
 
             return notifier.ToString();
-        }
-
-        // clears all read notifications
-        public void ClearRead()
-            => Notifications.RemoveAll(x => x.Read);
-
-        // clears all notifications
-        public void Clear()
-        {
-            Notifications.Clear();
         }
 
         /// <summary>

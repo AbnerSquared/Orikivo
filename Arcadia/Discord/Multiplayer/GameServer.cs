@@ -356,7 +356,7 @@ namespace Arcadia.Multiplayer
                 if (id != option.Id)
                     continue;
 
-                if (TypeParser.TryParse(option.ValueType, value, out object result))
+                if (Parser.TryParse(option.ValueType, value, out object result))
                 {
                     option.Value = result;
                     AddConsoleText($"[Console] Set \"{option.Name}\" to the specified value.");

@@ -8,33 +8,21 @@ namespace Orikivo
     /// Represents the context of a method search.
     /// </summary>
     public struct InfoContext
-    {   
+    {
         //                                    MODULES            GROUPS            ROOT        INDEX              TYPE       PARAM                 PAGE
-        private const string MAIN_PARSER = @"^((?:[A-Za-z_]+\.)*)((?:[A-Za-z_]+ )*)([A-Za-z_]+)(?:(?:\+(\d{1,3}))?([\.\*\(]?)([A-Za-z_]*)\)?)?(?: +(\d{1,3}))? *"; // Regex.Match
-        /*
-            Input: module.module.module.group group group command+1(param) 2
-            Group 0: Match ==> module.module.module.group group group command+1(param) 2
-            Group 1: Modules ==> module.module.module.
-            Group 2: Groups ==> group group group
-            Group 3: Root ==> command
-            Group 4: Index ==> 1
-            Group 5: Type ==> (
-            Group 6: Parameter ==> param
-            Group 7: Page ==> 2
-         */
-        
+        private const string MAIN_PARSER = @"^((?:[A-Za-z_]+\.)*)((?:[A-Za-z_]+ )*)([A-Za-z_]+)(?:(?:\+(\d{1,3}))?([\.\*\(]?)([A-Za-z_]*)\)?)?(?: +(\d{1,3}))? *";
         private const string MODULE_PARSER = @"(?:([A-Za-z_]+)\.)*";
         private const string GROUP_PARSER = @"(?:([A-Za-z_]+) )*";
 
         /// <summary>
-        /// Gets the raw content that represents the search context.
+        /// Gets the raw input that was used for this search.
         /// </summary>
-        public string Content { get; private set; }
+        public string Input { get; private set; }
 
         /// <summary>
         /// Gets a <see cref="bool"/> that defines if the <see cref="InfoContext"/> was successfully parsed.
         /// </summary>
-        public bool IsSuccess => !Check.NotNull(ErrorReason);
+        public readonly bool IsSuccess => !Check.NotNull(ErrorReason);
 
         /// <summary>
         /// Gets the reason the <see cref="InfoContext"/> failed to parse, if any.
@@ -84,16 +72,16 @@ namespace Orikivo
         /// <summary>
         /// Parses the specified content to a new <see cref="InfoContext"/>.
         /// </summary>
-        public static InfoContext Parse(string content)
+        public static InfoContext Parse(string input)
         {
             var ctx = new InfoContext();
-            Match m = new Regex(MAIN_PARSER).Match(content);
+            Match m = new Regex(MAIN_PARSER).Match(input);
 
-            ctx.Content = content;
+            ctx.Input = input;
 
             if (!m.Success)
             {
-                ctx.ErrorReason = "The content specified failed to successfully parse.";
+                ctx.ErrorReason = "The specified input could not be parsed.";
                 return ctx;
             }
 

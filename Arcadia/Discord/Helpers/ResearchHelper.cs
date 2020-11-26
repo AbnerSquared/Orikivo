@@ -131,7 +131,7 @@ namespace Arcadia.Services
             user.SetVar(GetResearchId(item.Id), 0);
 
             if (user.Config.Notifier.HasFlag(NotifyAllow.Research))
-                user.Notifier.Append(WriteNotice(item.Name, GetResearchTier(user, item)));
+                user.Notifier.Add(WriteNotice(item.Name, GetResearchTier(user, item)));
 
         }
 

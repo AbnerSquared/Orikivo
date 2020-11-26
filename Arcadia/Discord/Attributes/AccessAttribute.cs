@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Arcadia;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Orikivo
@@ -33,7 +34,7 @@ namespace Orikivo
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            var Context = context as DesyncContext;
+            var Context = context as ArcadeContext;
 
             if (Context == null)
                 throw new Exception("Unknown CommandContext type");
@@ -63,12 +64,12 @@ namespace Orikivo
         }
 
         private static bool CheckDev(ulong userId)
-            => OriGlobal.DevId == userId;
+            => Constants.DevId == userId;
 
-        private bool CheckOwner(ulong userId, DesyncContext ctx)
+        private bool CheckOwner(ulong userId, ArcadeContext ctx)
             => DevOverride ? CheckDev(userId) : ctx.Server.OwnerId == userId;
 
-        private bool CheckInherit(ulong userId, DesyncContext ctx)
+        private bool CheckInherit(ulong userId, ArcadeContext ctx)
         {
             if (DevOverride)
                 return CheckDev(userId);
@@ -81,7 +82,5 @@ namespace Orikivo
 
             return ctx.Server.OwnerId == userId;
         }
-
-           
     }
 }

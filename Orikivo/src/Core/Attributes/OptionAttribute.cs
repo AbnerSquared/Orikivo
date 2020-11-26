@@ -106,7 +106,7 @@ namespace Orikivo
 
                     if (c == ',') // This is a value separator, end and attach value.
                     {
-                        if (TypeParser.TryParse(Type, value.ToString(), out result))
+                        if (Parser.TryParse(Type, value.ToString(), out result))
                         {
                             values.Add(result);
                             value.Clear();
@@ -125,7 +125,7 @@ namespace Orikivo
                     continue;
                 }
 
-                return TypeParser.TryParse(Type, reader.ReadString(), out result);
+                return Parser.TryParse(Type, reader.ReadString(), out result);
             }
 
             return false;

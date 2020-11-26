@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     /// <summary>
-    /// Defines the authority required in order to access a method.
+    /// Defines the authority required in order to execute a method.
     /// </summary>
     public enum AccessLevel
     {

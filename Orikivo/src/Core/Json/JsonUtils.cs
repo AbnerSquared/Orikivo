@@ -6,7 +6,7 @@ namespace Orikivo
     {
         internal static string GetDirectoryIndex<T>()
         {
-            if (typeof(T) == typeof(User))
+            if (typeof(T) == typeof(BaseUser))
                 return Directory.CreateDirectory(@"..\data\users\").FullName;
 
             if (typeof(T) == typeof(BaseGuild))

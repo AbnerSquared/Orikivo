@@ -1,7 +1,6 @@
 ﻿using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using Orikivo.Text;
 
@@ -12,10 +11,6 @@ namespace Orikivo
     /// </summary>
     public class InfoService
     {
-        public static readonly string DefaultExample = "value";
-        public static readonly string MentionExample = "@Orikivo Arcade#8156";
-        public static readonly string TrailingExample = "this is all one value";
-
         private readonly CommandService _commands;
         private readonly InfoFormatter _formatter;
 
@@ -37,34 +32,6 @@ namespace Orikivo
             _formatter = formatter;
         }
 
-        // TODO: Move example building to the formatter
-        private static void SetExample(OverloadNode command, string prefix)
-        {
-            var result = new StringBuilder();
-
-            result.Append(prefix);
-            result.Append(command.Name);
-
-            if (command.Parameters.Count > 0)
-            {
-                result.Append(' ');
-                result.AppendJoin(" ", command.Parameters.Select(GetExampleArg));
-            }
-
-            command.Example = result.ToString();
-        }
-
-        private static string GetExampleArg(ParameterNode parameter)
-        {
-            if (parameter.Tag.HasFlag(ParameterTag.Mentionable))
-                return MentionExample;
-
-            if (parameter.Tag.HasFlag(ParameterTag.Trailing))
-                return TrailingExample;
-
-            return DefaultExample;
-        }
-
         public string GetPanel(string input = null, BaseUser user = null, string prefix = "[")
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -75,41 +42,6 @@ namespace Orikivo
             if (!string.IsNullOrWhiteSpace(error))
                 return error;
 
-            /*
-            bool allowTooltips = user?.Config?.Tooltips ?? true;
-            var panel = new StringBuilder();
-
-            if (allowTooltips)
-            {
-                var tooltips = new List<string>(ctx.Tooltips);
-
-                if (ctx is CommandNode c && c.Overloads.Count > 1)
-                {
-                    tooltips.Add($"Use `help {ctx.Name}+<index>` to learn more about a specific command overload.");
-                }
-                else if (ctx.Type == InfoType.Group)
-                {
-                    tooltips.Add($"Use `help {ctx.Name} <command>` to learn more about a specific command method within a group.");
-                }
-                else if (ctx.Type == InfoType.Module)
-                {
-                    tooltips.Add($"Use `help <command>` to learn more about a specific command.");
-                }
-
-                if (ctx is OverloadNode o && o.Parameters.Count > 0)
-                {
-                    tooltips.Add($"Use `help {ctx.Name}{(o.Count > 1 ? $"+{o.Index}" : "")}(<parameter>` to learn more about a specific parameter.");
-                }
-
-                panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
-            }*/
-
-            if (ctx is OverloadNode overload)
-            {
-                SetExample(overload, prefix);
-                ctx = overload;
-            }
-
             return _formatter.ViewContext(ctx, user);
         }
 
@@ -118,8 +50,7 @@ namespace Orikivo
         public ContextNode Search(string input)
         {
             InfoContext ctx = InfoContext.Parse(input);
-
-            InfoType type = InfoType.Unknown;
+            var type = InfoType.Unknown;
 
             if (!ctx.IsSuccess)
                 throw new Exception($"The InfoContext failed to parse: {ctx.ErrorReason}");
@@ -174,7 +105,7 @@ namespace Orikivo
                     commands.ForEach(x => parameters = parameters.Concat(GetParameters(x, ctx.Parameter)));
 
                     if (!Check.NotNullOrEmpty(parameters))
-                        throw new ValueNotFoundException("The parameter specified could not be found within any of the commands");
+                        throw new ValueNotFoundException("The parameter specified could not be found within any of the available commands.");
 
                     if (parameters.Count() > 1)
                         throw new MultiMatchException($"The parameter enlisted is specified for multiple commands.");
@@ -479,10 +410,7 @@ namespace Orikivo
         public IEnumerable<ModuleInfo> GetBaseModules(string name)
             => GetBaseModules().Where(m => FilterModule(m, name));
 
-        // remove all visuals on modules with the IgnoreAttribute.
-        public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(x => x is IgnoreAttribute));
-
-        internal IEnumerable<ModuleInfo> InternalModules => _commands.Modules;
+        public IEnumerable<ModuleInfo> Modules => _commands.Modules.Where(x => !x.Attributes.Any(y => y is IgnoreAttribute));
 
         public IEnumerable<ModuleInfo> GetModules(string name)
             => Modules.Where(m => FilterModule(m, name));

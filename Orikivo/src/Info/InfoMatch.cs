@@ -19,7 +19,9 @@ namespace Orikivo
         }
 
         public InfoType Type { get; }
+
         public string Name { get; }
+
         public string Id { get; }
     }
 }

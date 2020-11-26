@@ -49,7 +49,7 @@ namespace Arcadia
                 int level = user.Level;
                 if (level > oldLevel)
                 {
-                    user.Notifier.Append($"Level up! ({LevelViewer.GetLevel(oldLevel, user.Ascent)} to {LevelViewer.GetLevel(level, user.Ascent)})");
+                    user.Notifier.Add($"Level up! ({LevelViewer.GetLevel(oldLevel, user.Ascent)} to {LevelViewer.GetLevel(level, user.Ascent)})");
                 }
             }
 

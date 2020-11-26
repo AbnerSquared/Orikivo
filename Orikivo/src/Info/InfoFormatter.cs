@@ -7,7 +7,6 @@ using Orikivo.Text;
 
 namespace Orikivo
 {
-    // TODO: Create system that automatically loads command and module locale text values into the node class itself by ID search. If none is found, use the compiled names and summaries instead
     public class InfoFormatter
     {
         private const int MAX_COMMAND_DISPLAY = 3;
@@ -18,9 +17,6 @@ namespace Orikivo
         }
 
         protected LocaleProvider Locale { get; }
-
-        public virtual List<GuideNode> OnLoadGuides()
-            => new List<GuideNode>();
 
         public virtual string ViewMenu(InfoService service, BaseUser user = null)
         {
@@ -43,17 +39,17 @@ namespace Orikivo
                 if (tooltips.Count > 1)
                 {
                     panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
-                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**");
                 }
                 else
                 {
-                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+                    panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**");
                     panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
                 }
             }
             else
             {
-                panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**"); // ("> **Help Menu**");
+                panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**");
             }
 
             if (service.Modules.Any())
@@ -70,17 +66,11 @@ namespace Orikivo
 
                     panel.Append($"**{module.Name}**");
 
-                    if (Check.NotNull(module.Subtitle) || module.Commands.Count > 0)
+                    if (module.Commands.Count > 0)
                         panel.Append(": ");
-
-                    if (Check.NotNull(module.Subtitle))
-                        panel.AppendLine(module.Subtitle);
 
                     if (module.Commands.Count > 0)
                     {
-                        if (Check.NotNull(module.Subtitle))
-                            panel.Append("> ");
-
                         int inserted = 0;
 
                         foreach (CommandNode command in Randomizer.Shuffle(module.Commands))
@@ -121,9 +111,11 @@ namespace Orikivo
 
             if (showTooltips)
             {
-                var tooltips = new List<string>(module.Tooltips);
+                var tooltips = new List<string>(module.Tooltips)
+                {
+                    Locale.GetValue("help_tooltip_module", language)
+                };
 
-                tooltips.Add(Locale.GetValue("help_tooltip_module", language));
                 result.AppendLine($"{Format.Tooltip(tooltips)}\n");
             }
 
@@ -141,7 +133,7 @@ namespace Orikivo
 
             if (module.Commands.Count > 0)
             {
-                result.AppendLine($"**{Locale.GetValue("help_command_plural", language)}** (**{module.InnerCount:##,0}**)");
+                result.AppendLine($"**{Locale.GetValue("help_command_plural", language)}** (**{module.TotalCommandCount:##,0}**)");
 
                 result.Append($"> ");
 
@@ -172,15 +164,8 @@ namespace Orikivo
                 {
                     result.Append($"• **{submodule.Name}**");
 
-                    if (Check.NotNull(submodule.Subtitle) || submodule.Commands.Count > 0)
-                    {
+                    if (submodule.Commands.Count > 0)
                         result.Append(": ");
-                    }
-
-                    if (Check.NotNull(submodule.Subtitle))
-                    {
-                        result.AppendLine(module.Subtitle);
-                    }
 
                     if (submodule.Commands.Count > 0)
                     {
@@ -214,7 +199,7 @@ namespace Orikivo
             bool showTooltips = user?.Config.Tooltips ?? true;
             Language language = user?.Config.Language ?? Language.English;
 
-            string summary = Locale.GetValueOrDefault($"{group.Id}_summary", language); //, group.Summary);
+            string summary = Locale.GetValueOrDefault($"{group.Id}_summary", language);
 
             var result = new StringBuilder();
 
@@ -279,9 +264,11 @@ namespace Orikivo
 
                 if (showTooltips)
                 {
-                    var tooltips = new List<string>(command.Tooltips);
+                    var tooltips = new List<string>(command.Tooltips)
+                    {
+                        Locale.GetValue("help_tooltip_overload", language, command.Name)
+                    };
 
-                    tooltips.Add(Locale.GetValue("help_tooltip_overload", language, command.Name));
                     result.AppendLine($"{Format.Tooltip(tooltips)}\n");
                 }
 
@@ -325,7 +312,9 @@ namespace Orikivo
             bool showTooltips = user?.Config.Tooltips ?? true;
             Language language = user?.Config.Language ?? Language.English;
 
-            string summary = Locale.GetValueOrDefault($"{overload.Id}_summary", language); //, overload.Summary);
+            AddExample(overload, language);
+
+            string summary = Locale.GetValueOrDefault($"{overload.Id}_summary", language);
 
             var result = new StringBuilder();
 
@@ -426,7 +415,7 @@ namespace Orikivo
             bool showTooltips = user?.Config.Tooltips ?? true;
             Language language = user?.Config.Language ?? Language.English;
 
-            string summary = Locale.GetValueOrDefault($"{parameter.Id}_summary", language, parameter.Summary); //, parameter.Summary);
+            string summary = Locale.GetValueOrDefault($"{parameter.Id}_summary", language, parameter.Summary);
 
             var result = new StringBuilder();
 
@@ -452,8 +441,8 @@ namespace Orikivo
                 {
                     result.AppendLine($"> **{Locale.GetValue("help_values", language)}**{(parameter.ValueType.GetCustomAttribute<FlagsAttribute>() != null ? $" ({Locale.GetValue("help_flags", language)})" : "")}\n```cs");
 
-                    var names = parameter.ValueType.GetEnumNames();
-                    var values = parameter.ValueType.GetEnumValues();
+                    string[] names = parameter.ValueType.GetEnumNames();
+                    Array values = parameter.ValueType.GetEnumValues();
 
                     for (int i = 0; i < names.Length; i++)
                     {
@@ -468,11 +457,11 @@ namespace Orikivo
             result.AppendLine($"> **{Locale.GetValue("help_command", language)}**: `{parameter.CommandId}`");
 
             // tags
-            if (parameter.Tag != 0)
+            if (parameter.Tags != 0)
             {
                 result.Append($"> **{Locale.GetValue("help_tags", language)}**: ");
                 result.AppendJoin(", ", EnumUtils.GetValues<ParameterTag>()
-                    .Where(t => parameter.Tag.HasFlag(t))
+                    .Where(t => parameter.Tags.HasFlag(t))
                     .Select(t => $"`{t.ToString()}`"));
                 result.AppendLine();
             }
@@ -489,11 +478,35 @@ namespace Orikivo
             return result.ToString();
         }
 
+        private void AddExample(OverloadNode overload, Language language)
+        {
+            var result = new StringBuilder();
+
+            // result.Append(prefix); See if no prefix works better or not
+            result.Append(overload.Name);
+
+            if (overload.Parameters.Count > 0)
+            {
+                result.Append(' ');
+                result.AppendJoin(" ", overload.Parameters.Select(x => GetExampleParam(x, language)));
+            }
+
+            overload.Example = result.ToString();
+        }
+
+        private string GetExampleParam(ParameterNode parameter, Language language)
+        {
+            if (parameter.Tags.HasFlag(ParameterTag.Mentionable))
+                return Locale.GetValue("help_mention_example", language);
+
+            if (parameter.Tags.HasFlag(ParameterTag.Trailing))
+                return Locale.GetValue("help_trail_example", language);
+
+            return Locale.GetValue("help_default_example", language);
+        }
+
         public string ViewContext(ContextNode ctx, BaseUser user = null)
         {
-            bool showTooltips = user?.Config.Tooltips ?? true;
-            Language language = user?.Config.Language ?? Language.English;
-
             return ctx switch
             {
                 ModuleNode m when !string.IsNullOrWhiteSpace(m.Group) => ViewGroup(m, user),

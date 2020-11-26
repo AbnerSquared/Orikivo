@@ -13,7 +13,6 @@ using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
 using Orikivo;
 using Orikivo.Text;
-using EventHandler = Orikivo.EventHandler;
 
 namespace Arcadia
 {
@@ -48,8 +47,8 @@ namespace Arcadia
                     .AddSingleton<InfoService>()
                     .AddSingleton<ArcadeContainer>()
                     .AddSingleton<LogService>()
-                    .AddSingleton<EventHandler>()
                     .AddSingleton<CommandHandler>()
+                    .AddSingleton<EventHandler>()
                     .AddSingleton<CasinoService>();
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;

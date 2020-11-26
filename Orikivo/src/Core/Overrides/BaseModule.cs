@@ -4,18 +4,13 @@ using Discord.Commands;
 using System.Threading.Tasks;
 using Discord.Addons.Collectors;
 using Discord.WebSocket;
-using Orikivo.Desync;
 
 namespace Orikivo
 {
+    // TODO: Replace Discord.Commands entirely
     public abstract class BaseModule<T> : ModuleBase<T>
         where T : SocketCommandContext
     {
-        protected override void BeforeExecute(CommandInfo command)
-        {
-            base.BeforeExecute(command);
-        }
-
         private IDMChannel GetOrCreateDMChannel(IUser user)
             => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
