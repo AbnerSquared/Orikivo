@@ -38,7 +38,7 @@ namespace Arcadia
             [Headers.Recipe] = new Header
             {
                 Title = "Recipes",
-                Icon = "📒"
+                Icon = "🍱"
             },
             [Headers.UserBrowser] = new Header
             {

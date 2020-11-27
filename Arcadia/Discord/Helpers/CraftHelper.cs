@@ -52,12 +52,20 @@ namespace Arcadia
             return Assets.Recipes.Where(x => GetRecipeStatus(user, x) != RecipeStatus.Unknown);
         }
 
-        public static IEnumerable<Recipe> RecipesFor(string itemId)
-            => RecipesFor(ItemHelper.GetItem(itemId));
+        public static IEnumerable<Recipe> GetItemRecipes(string itemId)
+            => GetItemRecipes(ItemHelper.GetItem(itemId));
 
-        public static IEnumerable<Recipe> RecipesFor(Item item)
+        public static IEnumerable<Recipe> GetItemRecipes(Item item)
         {
             return Assets.Recipes.Where(x => x.Result.ItemId == item.Id);
+        }
+
+        public static IEnumerable<Recipe> GetItemRecipes(ArcadeUser user, string itemId)
+            => GetItemRecipes(user, ItemHelper.GetItem(itemId));
+
+        public static IEnumerable<Recipe> GetItemRecipes(ArcadeUser user, Item item)
+        {
+            return Assets.Recipes.Where(x => user.GetVar(x.InternalId) != 0 && x.Result.ItemId == item.Id);
         }
 
         public static Recipe GetRecipe(string id)

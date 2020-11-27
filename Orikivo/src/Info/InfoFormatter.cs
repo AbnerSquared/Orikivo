@@ -44,7 +44,7 @@ namespace Orikivo
                 else
                 {
                     panel.AppendLine($"> **{Locale.GetValue("help_header", language)}**");
-                    panel.AppendLine($"{Format.Tooltip(tooltips)}\n");
+                    panel.AppendLine($"{Format.Tooltip(tooltips)}");
                 }
             }
             else

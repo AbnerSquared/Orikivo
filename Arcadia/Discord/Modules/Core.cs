@@ -68,7 +68,7 @@ namespace Arcadia.Modules
         {
             try
             {
-                await Context.Channel.SendMessageAsync(_info.GetPanel(context, prefix: Context.GetPrefix()));
+                await Context.Channel.SendMessageAsync(_info.GetPanel(context, Context.Account, prefix: Context.GetPrefix()));
             }
             catch (Exception ex)
             {

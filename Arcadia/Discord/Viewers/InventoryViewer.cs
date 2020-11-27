@@ -94,7 +94,7 @@ namespace Arcadia
 
             if (index.HasValue)
             {
-                slot.Append("**Slot {index}**: ");
+                slot.Append($"**Slot {index}**: ");
             }
 
             slot.Append($"`{visibleId}`");

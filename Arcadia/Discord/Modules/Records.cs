@@ -29,19 +29,27 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("recipe")]
-        [Summary("View information about a specific **Recipe**.")]
+        [Command("recipe"), Priority(0)]
+        [Summary("View the crafting requirements for a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewRecipeInfo(Context.Account, recipe));
+            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewRecipe(Context.Account, recipe));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("recipes")]
-        [Summary("View all of your currently known recipes.")]
-        public async Task ViewRecipesAsync()
+        [Command("recipes"), Priority(1)]
+        [Summary("View your known recipe variations for a specific **Item**.")]
+        public async Task ViewRecipeAsync([Name("item_id")]Item item, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account));
+            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewItemRecipes(Context.Account, item, --page));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("recipes"), Priority(0)]
+        [Summary("View all of your currently known recipes.")]
+        public async Task ViewRecipesAsync(int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
