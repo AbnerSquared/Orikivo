@@ -64,11 +64,11 @@ namespace Arcadia.Modules
         [Command("help"), Alias("h")]
         [Summary("A guide to understanding everything **Orikivo Arcade** has to offer.")]
         public async Task HelpAsync(
-            [Remainder, Summary("The **InfoContext** that defines your search.")]string context = null)
+            [Remainder, Summary("The input used to generate a search result.")]string input = null)
         {
             try
             {
-                await Context.Channel.SendMessageAsync(_info.GetPanel(context, Context.Account, prefix: Context.GetPrefix()));
+                await Context.Channel.SendMessageAsync(_info.SearchAndView(input, Context.Account, Context.GetPrefix()));
             }
             catch (Exception ex)
             {

@@ -23,10 +23,10 @@ namespace Arcadia.Modules
         [Summary("View all of your current server invites.")]
         public async Task ViewInvitesAsync(int page = 1)
         {
-            page--;
-            await Context.Channel.SendMessageAsync(SGameViewer.ViewInvites(Context.Account, _games, page));
+            await Context.Channel.SendMessageAsync(SGameViewer.ViewInvites(Context.Account, _games, --page));
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("servers")]
         [Summary("View all currently open game servers.")]
         public async Task ViewServersAsync(int page = 1) // use the page to view through multiple servers, if there is too many to show on one page
@@ -37,7 +37,16 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(SGameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), page - 1)).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(SGameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0), --page)).ConfigureAwait(false);
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [RequireGuild(AccountHandling.ReadOnly)]
+        [Command("localservers")]
+        [Summary("View all currently open game servers in this guild.")]
+        public async Task ViewLocalServersAsync(int page = 1) // use the page to view through multiple servers, if there is too many to show on one page
+        {
+            await Context.Channel.SendMessageAsync(SGameViewer.View(_games.GetServersFor(Context.User.Id, Context.Guild.Id), --page)).ConfigureAwait(false);
         }
 
         [RequireUser]
@@ -67,9 +76,16 @@ namespace Arcadia.Modules
                 }
             }
 
-            await _games.CreateServerAsync(Context.User, Context.Channel, gameId, privacy).ConfigureAwait(false);
+            if (Context.Server != null && _games.GetGuildServerCount(Context.Server.Id) >= Context.Server.Config.GameServerLimit)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many active servers."));
+                return;
+            }
+
+            await _games.CreateServerAsync(Context.User, Context.Channel, gameId, privacy, Context.Guild?.Id ?? 0).ConfigureAwait(false);
         }
 
+        [RequireUser]
         [RequireNoSession]
         [Command("joinserver")]
         [Summary("Join an existing game server.")]
@@ -87,9 +103,30 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, serverId).ConfigureAwait(false);
+            if (Context.Server != null && _games.GetGuildServerCount(Context.Server.Id) >= Context.Server.Config.GameServerLimit)
+            {
+                if (_games.Servers.ContainsKey(serverId))
+                {
+                    foreach (ServerConnection connection in _games.Servers[serverId].Connections.Where(x => x.GuildId == Context.Server.Id))
+                    {
+                        if (await connection.Channel.GetUserAsync(Context.User.Id) != null)
+                        {
+                            bool isSuccess = await _games.JoinServerAsync(Context.User, connection.Channel, serverId, Context.Guild?.Id ?? 0);
+                            await Context.Channel.SendMessageAsync($"> ☑️ You have joined **{_games.Servers[serverId].Name}**. Move over to <#{connection.Channel.Id}>.").ConfigureAwait(false);
+
+                            return;
+                        }
+                    }
+                }
+
+                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                return;
+            }
+
+            await _games.JoinServerAsync(Context.User, Context.Channel, serverId, Context.Guild?.Id ?? 0).ConfigureAwait(false);
         }
 
+        [RequireUser]
         [RequireNoSession]
         [Command("quickjoin"), Priority(0)]
         [Summary("Quickly attempts to finds an available game server to join.")]
@@ -107,9 +144,30 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer()).ConfigureAwait(false);
+            string serverId = _games.GetRandomServer();
+
+            if (Context.Server != null && _games.GetGuildServerCount(Context.Server.Id) >= Context.Server.Config.GameServerLimit)
+            {
+                if (_games.Servers.ContainsKey(serverId))
+                {
+                    foreach (ServerConnection connection in _games.Servers[serverId].Connections.Where(x => x.GuildId == Context.Server.Id))
+                    {
+                        if (await connection.Channel.GetUserAsync(Context.User.Id) != null)
+                        {
+                            await _games.JoinServerAsync(Context.User, connection.Channel, serverId, Context.Guild?.Id ?? 0).ConfigureAwait(false);
+                            return;
+                        }
+                    }
+                }
+
+                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                return;
+            }
+
+            await _games.JoinServerAsync(Context.User, Context.Channel, serverId, Context.Guild?.Id ?? 0).ConfigureAwait(false);
         }
 
+        [RequireUser]
         [RequireNoSession]
         [Command("quickjoin"), Priority(1)]
         [Summary("Quickly finds a server to join for the specified **Game**.")]
@@ -136,7 +194,27 @@ namespace Arcadia.Modules
                 }
             }
 
-            await _games.JoinServerAsync(Context.User, Context.Channel, _games.GetRandomServer(gameId)).ConfigureAwait(false);
+            string serverId = _games.GetRandomServer(gameId);
+
+            if (Context.Server != null && _games.GetGuildServerCount(Context.Server.Id) >= Context.Server.Config.GameServerLimit)
+            {
+                if (_games.Servers.ContainsKey(serverId))
+                {
+                    foreach (ServerConnection connection in _games.Servers[serverId].Connections.Where(x => x.GuildId == Context.Server.Id))
+                    {
+                        if (await connection.Channel.GetUserAsync(Context.User.Id) != null)
+                        {
+                            await _games.JoinServerAsync(Context.User, connection.Channel, serverId, Context.Guild?.Id ?? 0).ConfigureAwait(false);
+                            return;
+                        }
+                    }
+                }
+
+                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                return;
+            }
+
+            await _games.JoinServerAsync(Context.User, Context.Channel, serverId, Context.Guild?.Id ?? 0).ConfigureAwait(false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -155,6 +233,8 @@ namespace Arcadia.Modules
             await server.RemovePlayerAsync(Context.User.Id);
         }
 
+        [RequireUser]
+        [RequireAccess(AccessLevel.Dev)]
         [Command("destroyserver")]
         [Summary("Destroys the specified server.")]
         public async Task DestroyServerAsync([Name("server_id")][Summary("The ID of the server to destroy.")]string serverId)
@@ -175,6 +255,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
         }
 
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("destroysession")]
         [Summary("Destroys the current session for the specified server, if any.")]
         public async Task DestroySessionAsync([Name("server_id")][Summary("The ID of the server to destroy the session for.")]string serverId)
@@ -201,7 +282,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
         }
 
-        [RequireData]
+        [RequireGlobalData]
         [Command("games")]
         [Summary("View the list of all available multiplayer games that a server can play.")]
         public async Task ViewGamesAsync(int page = 1)
@@ -209,7 +290,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(SGameViewer.ViewGames(Context.Data.Data, _games, --page, Context.Account));
         }
 
-        [RequireData]
+        [RequireGlobalData]
         [Command("game")]
         [Summary("View all of the proper details for the specified game.")]
         public async Task ViewGameAsync([Name("game_id")][Summary("The ID of the **Game** to view more information for.")]string gameId, int page = 1)

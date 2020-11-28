@@ -29,8 +29,8 @@ namespace Arcadia
             if (item.Tag.GetFlags().Any(x => x.ToString().Equals(input, StringComparison.OrdinalIgnoreCase)))
                 return true;
 
-            if (Enum.TryParse(input, true, out ItemFilter filter))
-                return MeetsFilter(item, filter);
+            //if (Enum.TryParse(input, true, out ItemFilter filter))
+            //    return MeetsFilter(item, filter);
 
             return item.Name.Contains(input, StringComparison.OrdinalIgnoreCase)
                    || (group?.Name?.Contains(input, StringComparison.OrdinalIgnoreCase)
@@ -38,7 +38,10 @@ namespace Arcadia
                        ?? false);
         }
 
-        private static bool MeetsFilter(Item item, ItemFilter filter)
+        public static bool MeetsFilter(string itemId, ItemFilter filter)
+            => MeetsFilter(ItemHelper.GetItem(itemId), filter);
+
+        public static bool MeetsFilter(Item item, ItemFilter filter)
         {
             return filter switch
             {
@@ -50,6 +53,21 @@ namespace Arcadia
                 ItemFilter.Tradable => ItemHelper.CanTrade(item),
                 ItemFilter.Unique => ItemHelper.IsUnique(item),
                 _ => false
+            };
+        }
+
+        public static string GetFilterIcon(ItemFilter filter)
+        {
+            return filter switch
+            {
+                ItemFilter.Ingredient => "🧂",
+                ItemFilter.Craftable => "📒",
+                ItemFilter.Sellable => "📦",
+                ItemFilter.Buyable => "🛍️",
+                ItemFilter.Usable => "🔹",
+                ItemFilter.Tradable => "📪",
+                ItemFilter.Unique => "🔸",
+                _ => null
             };
         }
 
@@ -109,6 +127,14 @@ namespace Arcadia
                             && x.Value == (long)CatalogStatus.Known);
         }
 
+        public static int GetKnownCount(ArcadeUser user, ItemFilter filter)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
+                            && MeetsFilter(Var.GetKey(x.Key), filter)
+                            && x.Value == (long)CatalogStatus.Known);
+        }
+
         public static int GetVisibleCount(ArcadeUser user)
         {
             return user.Stats
@@ -122,6 +148,15 @@ namespace Arcadia
                 .Count(x =>
                     x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
                     && ItemHelper.GroupOf(Var.GetKey(x.Key)) == itemGroup
+                    && x.Value >= (long)CatalogStatus.Seen);
+        }
+
+        public static int GetVisibleCount(ArcadeUser user, ItemFilter filter)
+        {
+            return user.Stats
+                .Count(x =>
+                    x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
+                    && MeetsFilter(Var.GetKey(x.Key), filter)
                     && x.Value >= (long)CatalogStatus.Seen);
         }
 
@@ -139,6 +174,16 @@ namespace Arcadia
                             && ItemHelper.GroupOf(Var.GetKey(x.Key)) == itemGroup
                             && x.Value == (long)CatalogStatus.Seen);
         }
+
+        public static int GetSeenCount(ArcadeUser user, ItemFilter filter)
+        {
+            return user.Stats
+                .Count(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
+                            && MeetsFilter(Var.GetKey(x.Key), filter)
+                            && x.Value == (long)CatalogStatus.Seen);
+        }
+
+
 
         public static CatalogStatus GetCatalogStatus(ArcadeUser user, string itemId)
         {

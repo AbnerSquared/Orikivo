@@ -10,7 +10,7 @@ namespace Arcadia.Modules
     [Summary("View information about unlocked information and extra statistics.")]
     public class Records : BaseModule<ArcadeContext>
     {
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("memo")]
         [Summary("View a research memo on the specified **Item**.")]
         public async Task ViewMemoAsync(Item item)
@@ -19,7 +19,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("memos")]
         [Summary("View memos about previous research.")]
         public async Task ViewMemosAsync(int page = 1)
@@ -28,12 +28,20 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
-        [RequireUser(AccountHandling.ReadOnly)]
+        [RequireUser]
         [Command("recipe"), Priority(0)]
         [Summary("View the crafting requirements for a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
             await Context.Channel.SendMessageAsync(SRecipeViewer.ViewRecipe(Context.Account, recipe));
+        }
+
+        [RequireUser]
+        [Command("recipes"), Priority(0)]
+        [Summary("View all of your currently known recipes.")]
+        public async Task ViewRecipesAsync(int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -42,14 +50,6 @@ namespace Arcadia.Modules
         public async Task ViewRecipeAsync([Name("item_id")]Item item, int page = 1)
         {
             await Context.Channel.SendMessageAsync(SRecipeViewer.ViewItemRecipes(Context.Account, item, --page));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("recipes"), Priority(0)]
-        [Summary("View all of your currently known recipes.")]
-        public async Task ViewRecipesAsync(int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -87,24 +87,24 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(CatalogViewer.ViewItem(item, CatalogHelper.GetCatalogStatus(Context.Account, item)));
         }
 
-        [Command("statsof")]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Command("statsof")]
         [Summary("View a collection of stats in the specified group.")]
         public async Task GetGroupStatsAsync(string query, int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, --page));
         }
 
-        [Command("stats"), Priority(1)]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Command("statsfor")]
         [Summary("View another user's collection of stats.")]
-        public async Task GetStatsAsync(ArcadeUser user, int page = 1)
+        public async Task GetStatsForAsync(ArcadeUser user, int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.Write(user, false, --page));
         }
 
-        [Command("stats"), Priority(0)]
         [RequireUser(AccountHandling.ReadOnly)]
+        [Command("stats")]
         [Summary("View your current collection of stats.")]
         public async Task GetStatsAsync(int page = 1)
         {
@@ -137,7 +137,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(result);
         }
 
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("merit")]
         [Summary("View information about a **Merit**.")]
         public async Task ViewMeritAsync(Merit merit)
@@ -151,7 +151,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(MeritHelper.ViewMerit(merit, Context.Account));
         }
 
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("merits")]
         [Summary("Search and view all of your known merits.")]
         public async Task ViewMeritsAsync(string query = null, int page = 1)
@@ -164,7 +164,7 @@ namespace Arcadia.Modules
         [Summary("View details about a single **Stat**.")]
         public async Task ViewStatAsync([Name("stat_id")]string id)
         {
-            await Context.Channel.SendMessageAsync(Var.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
+            await Context.Channel.SendMessageAsync(StatHelper.ViewDetails(Context.Account, id, Context.Data.Users.Values.Values));
         }
     }
 }

@@ -125,7 +125,7 @@ namespace Arcadia.Modules
 
         [Session]
         [RequireUser]
-        [RequireData]
+        [RequireGlobalData]
         [Command("shop")]
         [Summary("Enter the specified **Shop**.")]
         public async Task ShopAsync(Shop shop)
@@ -206,7 +206,14 @@ namespace Arcadia.Modules
                     ItemHelper.DataOf(account, item).Data.TradeCount++;
             }
 
+
+            if (account.Config.CanNotify(NotifyAllow.GiftInbound))
+            {
+                account.Notifier.Add($"You have received a gift! Type `inspect {data.TempId}` to learn more.");
+            }
+
             account.Items.Add(data);
+            Context.Data.Users.Save(account); // Save internally since it's not automated
             await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
             Context.Account.AddToVar(Stats.Common.ItemsGifted);
         }

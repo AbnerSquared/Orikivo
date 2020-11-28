@@ -131,6 +131,8 @@ namespace Orikivo
 
             result.AppendLine();
 
+            // var commands = module.Commands.Where(x => !x.Overloads.All(y => y.CanExecute());
+
             if (module.Commands.Count > 0)
             {
                 result.AppendLine($"**{Locale.GetValue("help_command_plural", language)}** (**{module.TotalCommandCount:##,0}**)");
@@ -258,53 +260,49 @@ namespace Orikivo
             bool showTooltips = user?.Config.Tooltips ?? true;
             Language language = user?.Config.Language ?? Language.English;
 
+            if (command.Overloads.Count == 1)
+                return ViewOverload(command.Default, user);
+
+            var result = new StringBuilder();
+
+            if (showTooltips)
+            {
+                var tooltips = new List<string>(command.Tooltips)
+                {
+                    Locale.GetValue("help_tooltip_overload", language, command.Name)
+                };
+
+                result.AppendLine($"{Format.Tooltip(tooltips)}\n");
+            }
+
+            // Group
+            if (Check.NotNull(command.Group))
+            {
+                result.Append(!Check.NotNull(command.Name) ? Format.Bold(command.Group) : $"{command.Group} ");
+            }
+
+            if (Check.NotNull(command.Name))
+            {
+                result.Append(Format.Bold(command.Name));
+            }
+
+            result.AppendLine();
+
+            // Main summary
+            if (Check.NotNull(command.MainSummary))
+            {
+                result.AppendLine($"⇛ {command.MainSummary}");
+            }
+
+            // Write overloads
             if (command.Overloads.Count > 1)
             {
-                var result = new StringBuilder();
-
-                if (showTooltips)
-                {
-                    var tooltips = new List<string>(command.Tooltips)
-                    {
-                        Locale.GetValue("help_tooltip_overload", language, command.Name)
-                    };
-
-                    result.AppendLine($"{Format.Tooltip(tooltips)}\n");
-                }
-
-                // Group
-                if (Check.NotNull(command.Group))
-                {
-                    result.Append(!Check.NotNull(command.Name) ? Format.Bold(command.Group) : $"{command.Group} ");
-                }
-
-                if (Check.NotNull(command.Name))
-                {
-                    result.Append(Format.Bold(command.Name));
-                }
-
-                result.AppendLine();
-
-                // Main summary
-                if (Check.NotNull(command.MainSummary))
-                {
-                    result.AppendLine($"⇛ {command.MainSummary}");
-                }
-
-                // Write overloads
-                if (command.Overloads.Count > 1)
-                {
-                    result
-                        .AppendJoin("\n", command.Overloads.OrderBy(o => o.Index).Select(o => $"> {o.Syntax}"))
-                        .AppendLine();
-                }
-
-                return result.ToString();
+                result
+                    .AppendJoin("\n", command.Overloads.OrderBy(o => o.Index).Select(o => $"> {o.Syntax}"))
+                    .AppendLine();
             }
-            else
-            {
-                return ViewOverload(command.Default);
-            }
+
+            return result.ToString();
         }
 
         public virtual string ViewOverload(OverloadNode overload, BaseUser user = null)

@@ -9,6 +9,7 @@ namespace Orikivo
 {
     public class OverloadNode : ContextNode
     {
+        private readonly CommandInfo _command;
         public OverloadNode(CommandInfo command) : base(command, true)
         {
             Parent = command.Module.Name;
@@ -19,7 +20,11 @@ namespace Orikivo
             // Access = command.Attributes.FirstOrDefault<AccessAttribute>()?.Level;
             //Permissions = ... // This could probably use RequireBotPermissions and RequireUserPermissions
             Parameters = command.Parameters.Select(p => new ParameterNode(p)).ToList();
+            _command = command;
         }
+
+        public bool CanExecute(ICommandContext ctx)
+            => _command.CheckPreconditionsAsync(ctx).ConfigureAwait(false).GetAwaiter().GetResult().IsSuccess;
 
         public string Parent { get; protected set; }
 

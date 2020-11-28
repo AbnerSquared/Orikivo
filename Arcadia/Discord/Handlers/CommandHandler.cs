@@ -115,16 +115,20 @@ namespace Arcadia
 
         private async Task UpdateGuildCount(SocketGuild guild)
         {
+#if DEBUG
+            return;
+#endif
+
             if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
                 return;
 
-            //BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
+            BoatClient ??= new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
             //DblClient ??= new DblClient(_client.CurrentUser.Id, _config["token_dbl"]);
 
             if (DateTime.UtcNow - LastGuildCountUpdate < UpdateCooldown)
                 return;
 
-            //await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
+            await BoatClient.UpdateGuildCountAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
             //await DblClient.UpdateStatsAsync((await _client.Rest.GetGuildsAsync()).Count).ConfigureAwait(false);
             LastGuildCountUpdate = DateTime.UtcNow;
         }
@@ -135,8 +139,8 @@ namespace Arcadia
             if (arg.Author.IsBot)
                 return;
 
-            // Ignore users if they are in a game session
-            if (_games.ReservedUsers.ContainsKey(arg.Author.Id))
+            // ignore any commands in a reserved channel ONLY if the user is currently in a game
+            if (_games.ReservedUsers.ContainsKey(arg.Author.Id) && _games.ReservedChannels.ContainsKey(arg.Channel.Id))
                 return;
 
             // Ignore system messages
@@ -317,44 +321,58 @@ namespace Arcadia
                     ctx.Account.HasBeenNoticed = false;
                 }
 
-                if (ctx.Account.InternalCooldowns.Count > 0)
+                //if (ctx.Account.InternalCooldowns.Count > 0)
+                //{
+                CommandInfo possibleCommand = await FindBestCommand(ctx, argPos);
+
+                if (possibleCommand != null)
                 {
-                    CommandInfo possibleCommand = await FindBestCommand(ctx, argPos);
+                    string id = ContextNode.GetId(possibleCommand);
+                    Console.WriteLine(id);
 
-                    if (possibleCommand != null)
+                    if (ctx.Account.InternalCooldowns.ContainsKey(id))
                     {
-                        string id = ContextNode.GetId(possibleCommand);
-                        Console.WriteLine(id);
-
-                        if (ctx.Account.InternalCooldowns.ContainsKey(id))
+                        if (!(DateTime.UtcNow - ctx.Account.InternalCooldowns[id] >= TimeSpan.Zero))
                         {
-                            if (!(DateTime.UtcNow - ctx.Account.InternalCooldowns[id] >= TimeSpan.Zero))
-                            {
-                                await ctx.Channel.SendMessageAsync(WriteCooldownText(ctx.Account.InternalCooldowns[id], false));
-                                ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
-                                return;
-                            }
-                        }
-
-                        if ((possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null || possibleCommand.Attributes.FirstOrDefault<RequireNoSessionAttribute>() != null)
-                            && ctx.Account.IsInSession)
-                        {
-                            await ctx.Channel.SendMessageAsync(Format.Warning("You are currently in a session."));
+                            await ctx.Channel.SendMessageAsync(WriteCooldownText(ctx.Account.InternalCooldowns[id], false));
                             ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
                             return;
                         }
+                    }
 
-                        if (possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null)
+                    IEnumerable<RequireItemAttribute> requiredItems = possibleCommand.Attributes.OfType<RequireItemAttribute>();
+                    // if (requiredItems.Any() && !requiredItems.All(x => ItemHelper.GetOwnedAmount(ctx.Account, x.ItemId) >= x.Amount)) { }
+
+                    foreach (RequireItemAttribute criterion in requiredItems)
+                    {
+                        if (ItemHelper.GetOwnedAmount(ctx.Account, criterion.ItemId) < criterion.Amount)
                         {
-                            ctx.Account.IsInSession = true;
+                            string message = Check.NotNull(criterion.OnFail) ? criterion.OnFail : Format.Warning($"You are missing a required item (**{ItemHelper.NameOf(criterion.ItemId)}**) needed to use this command.");
+                            await ctx.Channel.SendMessageAsync(message);
+                            return;
                         }
                     }
+
+                    if ((possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null || possibleCommand.Attributes.FirstOrDefault<RequireNoSessionAttribute>() != null)
+                        && ctx.Account.IsInSession)
+                    {
+                        await ctx.Channel.SendMessageAsync(Format.Warning("You are currently in a session."));
+                        ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
+                        return;
+                    }
+
+                    if (possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null)
+                    {
+                        ctx.Account.IsInSession = true;
+                    }
                 }
+                //}
             }
 
             if (ctx.Account != null)
                 ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(GlobalCooldown);
 
+            // TODO: Use the command that was found and execute that instead to reduce command complexity
             if (!string.IsNullOrWhiteSpace(input))
                 await _service.ExecuteAsync(ctx, input, _provider);
             else
@@ -364,6 +382,7 @@ namespace Arcadia
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
             // TODO: Make the specific context exchangeable.
+            //Logger.Debug($"Executed {command.Value?.Name}");
 
             if (!(context is ArcadeContext ctx))
                 throw new Exception("Invalid context provided.");
@@ -386,9 +405,14 @@ namespace Arcadia
                 }
                 else
                 {
-                    // Ignore unknown commands
                     if (result.Error == CommandError.UnknownCommand)
                         return;
+
+                    if (result.Error == CommandError.UnmetPrecondition)
+                    {
+                        await context.Channel.SendMessageAsync(Format.Warning(result.ErrorReason ?? "An unmet precondition was found when executing this command."));
+                        return;
+                    }
 
                     if (result.Error == CommandError.ObjectNotFound)
                     {
@@ -461,7 +485,7 @@ namespace Arcadia
                 ctx.Data.Guilds.TrySave(ctx.Server);
             }
 
-            var requireGlobal = command.Attributes.FirstOrDefault<RequireDataAttribute>();
+            var requireGlobal = command.Attributes.FirstOrDefault<RequireGlobalDataAttribute>();
 
             if (requireGlobal != null)
                 ctx.Data.SaveGlobalData();

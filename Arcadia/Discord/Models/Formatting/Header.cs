@@ -13,9 +13,6 @@
             Subtitle = header.Subtitle;
         }
 
-        // > Icon **Title: Group** Extra
-        // > Subtitle
-
         public string Title { get; set; }
 
         public string Group { get; set; }

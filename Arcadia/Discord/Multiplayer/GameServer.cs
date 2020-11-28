@@ -494,7 +494,7 @@ namespace Arcadia.Multiplayer
             return true;
         }
 
-        public async Task<bool> AddConnectionAsync(IMessageChannel channel, ConnectionProperties properties = null)
+        public async Task<bool> AddConnectionAsync(IMessageChannel channel, ulong? guildId = null, ConnectionProperties properties = null)
         {
             if (Destroyed)
                 throw new Exception("This server has been destroyed");
@@ -506,6 +506,7 @@ namespace Arcadia.Multiplayer
                 return false;
 
             var connection = await ServerConnection.CreateAsync(channel, this, properties);
+            connection.GuildId = guildId;
 
             Connections.Add(connection);
             _manager.ReservedChannels.Add(channel.Id, Id);

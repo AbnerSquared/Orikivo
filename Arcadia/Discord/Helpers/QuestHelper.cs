@@ -334,11 +334,11 @@ namespace Arcadia
             if (!user.Quests.Any(MeetsCriteria))
                 return $"> {Icons.Warning} You have not met the criteria for any currently assigned objectives.";
 
-            IEnumerable<QuestData> complete = user.Quests.Where(MeetsCriteria);
+            List<QuestData> complete = user.Quests.Where(MeetsCriteria).ToList(); // Creates a new copy
 
             var info = new StringBuilder();
 
-            int count = complete.Count();
+            int count = complete.Count;
 
             if (count == 0)
                 throw new Exception("Expected at least 1 completed merit but returned 0");

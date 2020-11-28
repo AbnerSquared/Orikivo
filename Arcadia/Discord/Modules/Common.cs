@@ -103,7 +103,7 @@ namespace Arcadia.Modules
 
                 foreach ((string itemId, int amount) in CraftHelper.GetMissingFromRecipe(Context.Account, recipe))
                 {
-                    notice.AppendLine(SRecipeViewer.WriteRecipeComponent(itemId, amount));
+                    notice.AppendLine(SRecipeViewer.PreviewRecipeComponent(itemId, amount));
                 }
 
                 await Context.Channel.SendMessageAsync(notice.ToString());
@@ -405,45 +405,6 @@ namespace Arcadia.Modules
             }
 
             await Context.Channel.SendMessageAsync($"> Successfully removed **{name}** from your **Card Palette**.");
-        }
-
-        //[RequireUser]
-        //[Command("cardconfig"), Alias("ccfg")]
-        //[Summary("View your current configurations for your **Card**.")]
-        public async Task GetCardConfigAsync()
-        {
-            await Context.Channel.SendMessageAsync(Context.Account.Card.Display());
-        }
-
-
-        //[RequireUser]
-        //[Command("drawcard")]
-        public async Task DrawCardAsync(LayoutType layoutType = LayoutType.Default)
-        {
-            SocketUser user = Context.User;
-            ArcadeUser account = Context.Account;
-
-            try
-            {
-                CardLayout layout = GraphicsService.GetLayout(layoutType);
-
-                using var graphics = new GraphicsService();
-                var details = new CardDetails(account, user, layout.AvatarScale);
-                var properties = CardProperties.Default;
-                properties.Font = account.Card.Font;
-                properties.Palette = account.Card.Palette.Build();
-                properties.Trim = false;
-                properties.Casing = Casing.Upper;
-
-                CardInfo info = CardBuilder.BuildCardInfo(layout, details, properties);
-                System.Drawing.Bitmap card = graphics.DrawCard(info, properties.Deny);
-
-                await Context.Channel.SendImageAsync(card, $"../tmp/{user.Id}_card.png");
-            }
-            catch (Exception ex)
-            {
-                await Context.Channel.CatchAsync(ex);
-            }
         }
 
         [RequireUser]

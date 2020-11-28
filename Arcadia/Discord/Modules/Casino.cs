@@ -40,7 +40,6 @@ namespace Arcadia.Modules
 
             if (wager.Value == 0)
             {
-                // $"> ⚠️ You need to specify a positive amount of **Chips** to bet."
                 await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
                 return;
             }
@@ -63,8 +62,8 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, message).ConfigureAwait(false);
         }
 
-        [Command("gimi")]
         [RequireUser]
+        [Command("gimi")]
         [Summary("An activity that randomly provides curses or blessings.")]
         public async Task GimiAsync()
         {
@@ -79,16 +78,10 @@ namespace Arcadia.Modules
         // NOTE: If this proves to be too much for multi-threading, remove this functionality entirely
         [Session]
         [RequireItem("au_gimi")]
-        [Command("autogimi")] // You need to find a better way to process automation in the background without taking up too many threads
+        [Command("autogimi")] // TODO: Find a better way to process automation in the background without taking up too many threads
         [Summary("Begins an automated run of **Gimi**, up to 100 runs.")]
         public async Task AutoGimiAsync(int times)
         {
-            if (!ItemHelper.HasItem(Context.Account, Ids.Items.AutomatonGimi))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are missing the **Automaton: Gimi** component in order to execute this method."));
-                return;
-            }
-
             await HandleAutoGimiAsync(times).ConfigureAwait(false);
         }
 
@@ -100,7 +93,6 @@ namespace Arcadia.Modules
             long result = 0;
 
             TimeSpan duration = TimeSpan.FromSeconds(times - 1);
-
             Discord.IUserMessage reference = await Context.Channel.SendMessageAsync($"> Gathering results in {Format.Counter(duration.TotalSeconds)}...");
             var gimi = new Gimi(true);
 
@@ -164,44 +156,32 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(Context.Account, message);
         }
 
-        // TODO: Implement a proper cashing out system.
-        /*
-        [RequireUser]
-        [Command("cashout")]
-        [Summary("Convert your chips back into money.")]
-        public async Task CashOutAsync(long amount = 0)
-        {
-
-        }
-        */
-
         [RequireUser]
         [Command("getchips")]
         [Summary("Convert some of your **Orite** into **Chips** for use in casino activities.")]
-        public async Task GetChipsAsync(long amount = 0)
+        public async Task GetChipsAsync(Wager amount = null)
         {
-            if (amount < 0)
+            if (amount == null)
+            {
+                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteGetChips());
+                return;
+            }
+
+            if (amount.Value < 0)
             {
                 await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
                 return;
             }
 
-            if (amount == 0)
-            {
-                // $"> ⚠️ You need to specify a positive amount of **Orite** to convert.
-                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteGetChips());
-                return;
-            }
-
-            if (amount > Context.Account.Balance)
+            if (amount.Value > Context.Account.Balance)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Orite** to convert this amount.");
                 return;
             }
 
-            var chips = MoneyConvert.ToChips(amount);
+            var chips = MoneyConvert.ToChips(amount.Value);
 
-            Context.Account.Take(amount);
+            Context.Account.Take(amount.Value);
             Context.Account.ChipBalance += chips;
             await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips:##,0}**.");
         }

@@ -123,10 +123,10 @@ namespace Arcadia.Multiplayer
         }
 
         // This attempts to join an existing server, if one is present
-        public async Task JoinServerAsync(IUser user, IMessageChannel channel, string serverId)
+        public async Task<bool> JoinServerAsync(IUser user, IMessageChannel channel, string serverId, ulong? guildId = null)
         {
             if (user.IsBot)
-                return;
+                return false;
 
             // if the user is already in a server
             if (ReservedUsers.ContainsKey(user.Id))
@@ -134,8 +134,8 @@ namespace Arcadia.Multiplayer
                 // and the user is in this server
                 if (ReservedUsers[user.Id] == serverId)
                 {
-                    await channel.SendMessageAsync(Format.Warning("You have already joined this server elsewhere."));
-                    return;
+                    await channel.SendMessageAsync(Format.Warning("You have already joined this server elsewhere.")).ConfigureAwait(false);
+                    return false;
                 }
 
                 throw new Exception("Cannot join this server as the user is reserved to a different server");
@@ -160,8 +160,8 @@ namespace Arcadia.Multiplayer
 
             if (server.GetPlayer(user.Id) != null)
             {
-                await channel.SendMessageAsync("You have already joined this server.");
-                return;
+                await channel.SendMessageAsync("You have already joined this server.").ConfigureAwait(false);
+                return false;
             }
 
             switch (server.Privacy)
@@ -169,14 +169,14 @@ namespace Arcadia.Multiplayer
                 case Privacy.Public:
                 case Privacy.Unlisted:
                     await server.AddPlayerAsync(user);
-                    await server.AddConnectionAsync(channel);
+                    await server.AddConnectionAsync(channel, guildId);
                     break;
 
                 case Privacy.Local:
                     if (server.Connections.All(x => x.ChannelId != channel.Id))
                     {
                         await channel.SendMessageAsync(Format.Warning("You can only join this server from where it was initialized."));
-                        break;
+                        return false;
                     }
 
                     await server.AddPlayerAsync(user);
@@ -185,6 +185,8 @@ namespace Arcadia.Multiplayer
                 default:
                     throw new Exception("Unknown privacy state");
             }
+
+            return true;
         }
 
         public GameDetails DetailsOf(string gameId)
@@ -220,8 +222,13 @@ namespace Arcadia.Multiplayer
                 .Draw(server.Name, server.Id, Format.Title(details?.Name ?? server.GameId, details?.Icon), playerCounter);
         }
 
+        public int GetGuildServerCount(ulong guildId)
+        {
+            return Servers.Values.Sum(x => x.Connections.Count(y => y.GuildId == guildId));
+        }
+
         // this starts a new base game server
-        public async Task CreateServerAsync(IUser user, IMessageChannel channel, string gameId = null, Privacy privacy = Privacy.Public)
+        public async Task CreateServerAsync(IUser user, IMessageChannel channel, string gameId = null, Privacy privacy = Privacy.Public, ulong? guildId = null)
         {
             if (user.IsBot)
                 return;
@@ -490,7 +497,31 @@ namespace Arcadia.Multiplayer
 
             // Ignore all bots
             if (user.IsBot)
+            {
+                if (ReservedChannels.ContainsKey(message.Channel.Id))
+                {
+                    if (!Servers.ContainsKey(ReservedChannels[message.Channel.Id]))
+                        return;
+
+                    ServerConnection possibleConnection = Servers[ReservedChannels[message.Channel.Id]]?.GetConnection(message.Channel.Id);
+
+                    if (possibleConnection == null)
+                        return;
+
+                    if (possibleConnection.RefreshCounter > 0)
+                    {
+                        possibleConnection.CurrentMessageCounter++;
+                        Logger.Debug($"{possibleConnection.CurrentMessageCounter}/{possibleConnection.RefreshCounter} refreshes called");
+                        if (possibleConnection.CurrentMessageCounter >= possibleConnection.RefreshCounter)
+                        {
+                            Logger.Debug("Replacing connection content");
+                            await possibleConnection.RefreshAsync();
+                        }
+                    }
+                }
+
                 return;
+            }
 
             if (!ReservedChannels.ContainsKey(message.Channel.Id))
             {

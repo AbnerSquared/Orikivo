@@ -74,6 +74,12 @@ namespace Arcadia
 
             target.Offers.RemoveAll(x => x.Id == offer.Id);
             author.Offers.RemoveAll(x => x.Id == offer.Id);
+
+            if (author.Config.CanNotify(NotifyAllow.OfferAccepted))
+            {
+                author.Notifier.Add($"Your trade offer (`{offer.Id}`) has been accepted.");
+            }
+
             return $"Successfully accepted offer `{offer.Id}` from **{offer.Author.ToString("Unknown User")}**.{(offer.ItemIds.Count > 0 ? $"\nYou have received:\n{string.Join("\n", offer.ItemIds.Select(x => WriteItem(x.Key, x.Value)))}" : "")}";
         }
 
@@ -130,6 +136,11 @@ namespace Arcadia
 
             target.Offers.Add(offer);
             author.Offers.Add(TradeOffer.CloneAsOutbound(offer));
+
+            if (target.Config.CanNotify(NotifyAllow.OfferInbound))
+            {
+                target.Notifier.Add("You have received a new trade offer.");
+            }
 
             return $"Successfully sent **{target.Username}** a trade offer.";
         }

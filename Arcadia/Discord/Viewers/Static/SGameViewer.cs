@@ -31,7 +31,7 @@ namespace Arcadia
                 result.AppendLine();
             }
 
-            int pageCount = Paginate.GetPageCount(gameManager.Games.Count, 5);
+            int pageCount = Paginate.GetPageCount(gameManager.Games.Count, DefaultPageSize);
             page = Paginate.ClampIndex(page, pageCount);
 
             string extra = pageCount > 1 ? $" ({Format.PageCount(page + 1, pageCount)})" : "";
@@ -39,7 +39,7 @@ namespace Arcadia
 
             result.AppendLine($"> **Games**{extra}");
 
-            foreach (GameInfo game in Paginate.GroupAt(gameManager.Games.Values, page, 8))
+            foreach (GameInfo game in Paginate.GroupAt(gameManager.Games.Values, page, DefaultPageSize))
             {
                 string id = game.Details.Name.Equals(game.Id, StringComparison.OrdinalIgnoreCase)
                     ? ""
@@ -110,10 +110,11 @@ namespace Arcadia
         public static string ViewInvites(ArcadeUser user, GameManager games, int page = 0)
         {
             var info = new StringBuilder();
-            info.AppendLine(Locale.GetHeader(Headers.Invites));
+
 
             if (games.Servers.Values.Count(x => x.Invites.Any(i => i.UserId == user.Id)) == 0)
             {
+                info.AppendLine(Locale.GetHeader(Headers.Invites));
                 info.AppendLine("\n> *You have no pending invitations.*");
                 return info.ToString();
             }
@@ -122,6 +123,14 @@ namespace Arcadia
                 .Where(x => x.Invites.Any(i => i.UserId == user.Id))
                 .Select(x => x.Invites.Where(i => i.UserId == user.Id))
                 .SelectMany(x => x);
+
+
+            int pageCount = Paginate.GetPageCount(invites.Count(), 10);
+            page = Paginate.ClampIndex(page, pageCount);
+
+            string counter = Format.PageCount(page + 1, pageCount, "({0})", false);
+
+            info.AppendLine(Locale.GetHeader(Headers.Invites, Check.NotNull(counter) ? counter : null));
 
             foreach (ServerInvite invite in Paginate.GroupAt(invites, page, 10))
                 info.AppendLine(
@@ -135,9 +144,18 @@ namespace Arcadia
             var browser = new StringBuilder();
 
             int pageCount = Paginate.GetPageCount(servers.Count(), pageSize);
-            string extra = pageCount > 1 ? $"({WritePageIndex(page + 1, pageCount)})" : "";
 
-            browser.AppendLine(Locale.GetHeader(Headers.Browser, extra));
+            page = Paginate.ClampIndex(page, pageCount);
+            string extra = Format.PageCount(page + 1, pageCount, "({0})", false);
+            string subtitle = servers.Any() ? $"**{servers.Count():##,0}** available {Format.TryPluralize("server", servers.Count())}" : "There aren't any visible game servers to display.";
+
+            browser.AppendLine(Locale.GetHeader(Headers.Browser, extra, subtitle));
+
+            if (!servers.Any())
+            {
+                // browser.AppendLine("There aren't any visible game servers to display.");
+                return browser.ToString();
+            }
 
             foreach (GameServer server in Paginate.GroupAt(servers, page, pageSize))
                 browser.AppendLine(ViewServerInfo(server));
@@ -151,13 +169,8 @@ namespace Arcadia
 
             lobby.AppendLine(
                 $"\n> {WriteServerName(server.Id, server.Name)} ({WritePlayerCounter(server.Players.Count)})");
-            lobby.AppendLine($"> {WriteGameName(server)}: {WriteActivity(server)}");
+            lobby.AppendLine($"> {(Check.NotNull(server.GetGameDetails().Icon) ? $"{server.GetGameDetails().Icon} " : "")}**{WriteGameName(server)}**: {WriteActivity(server)}");
             return lobby.ToString();
-        }
-
-        private static string WritePageIndex(int page, int pageCount)
-        {
-            return $"Page {page:##,0}/{pageCount:##,0}";
         }
 
         private static string WriteServerName(string id, string name)

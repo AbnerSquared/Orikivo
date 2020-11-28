@@ -13,14 +13,40 @@ namespace Arcadia.Services
         {
             var info = new StringBuilder();
 
-            info.AppendLine("> 🗃️ **Catalog**");
-            info.AppendLine("> Learn about all of the items you have discovered so far.");
-
             if (!CatalogHelper.CanViewCatalog(user))
             {
+                info.AppendLine("> 🗃️ **Catalog**");
                 info.AppendLine("You haven't seen any items yet. Get out there and explore!");
                 return info.ToString();
             }
+
+            if (user.Config.Tooltips)
+            {
+                var tooltips = new List<string>
+                {
+                    "Type `catalog <category | group>` to view your known items in a specific category or group.",
+                    "Type `catalogsearch <input>` to look for a specific item."
+                };
+
+                info.AppendLine(Format.Tooltip(tooltips))
+                    .AppendLine();
+            }
+
+            info.AppendLine("> 🗃️ **Catalog**");
+            info.AppendLine("> Learn about all of the items you have discovered so far.");
+
+            info.AppendLine();
+            info.AppendLine("> **Categories**");
+
+            var categories = new List<string>
+            {
+                "all", "groups"
+            };
+
+            categories.AddRange(EnumUtils.GetValues<ItemFilter>().Select(x => x.ToString().ToLower()));
+
+            info.AppendJoin(" ", categories.OrderBy(x => x).Select(x => $"`{x}`"));
+            info.AppendLine();
 
             foreach (ItemGroup group in Assets.Groups)
             {
@@ -30,8 +56,9 @@ namespace Arcadia.Services
                 if (known == 0 && seen == 0)
                     continue;
 
-                string icon = Check.NotNull(group.Icon) ? $" {group.Icon} " : "  ";
-                info.AppendLine($"\n> `{group.Id}`{icon}**{group.Name}**");
+                string icon = Check.NotNull(group.Icon) ? $"{group.Icon} " : "";
+                string id = group.Id.Equals(group.Name, StringComparison.OrdinalIgnoreCase) ? "" : $"`{group.Id}` ";
+                info.AppendLine($"\n> {id}{icon}**{group.Name}**");
 
                 int count = known == 0 ? seen : known;
                 string term = known == 0 ? "seen" : "known";
@@ -122,7 +149,7 @@ namespace Arcadia.Services
         {
             var result = new TextBody();
             result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
-            result.Header.Group = "All";
+            result.Header.Group = "Groups";
             result.Tooltips.Add(GetTooltip());
 
             List<TextSection> groups = GetVisibleGroups(user).ToList();
@@ -167,6 +194,7 @@ namespace Arcadia.Services
             return info.ToString();
         }
 
+        // TODO: break this down into an easier to handle method
         public static string View(ArcadeUser user, string query, int page = 0)
         {
             if (!Check.NotNull(query))
@@ -178,33 +206,42 @@ namespace Arcadia.Services
             if (query == "groups")
                 return ViewGroups(user, page);
 
-            if (!ItemHelper.GroupExists(query))
-                return Format.Warning("Unable to find the specified group query.");
+            bool canFilter = Enum.TryParse(query, true, out ItemFilter filter);
 
-            int owned = CatalogHelper.GetKnownCount(user, query);
-            int seen = CatalogHelper.GetSeenCount(user, query);
+            if (!ItemHelper.GroupExists(query) && !canFilter)
+            {
+                if (!Assets.Groups.Any(x => Format.Plural(x.Name).Equals(query, StringComparison.OrdinalIgnoreCase)))
+                    return Format.Warning("Unable to find a matching query.");
+            }
+
+            ItemGroup group = ItemHelper.GetGroup(query) ?? Assets.Groups.FirstOrDefault(x => Format.Plural(x.Name).Equals(query, StringComparison.OrdinalIgnoreCase));
+
+            if (!canFilter && group == null)
+            {
+                return Format.Warning("Unable to find a matching query.");
+            }
+
+            int owned = canFilter ? CatalogHelper.GetKnownCount(user, filter) : CatalogHelper.GetKnownCount(user, group.Id);
+            int seen = canFilter ? CatalogHelper.GetSeenCount(user, filter) : CatalogHelper.GetSeenCount(user, group.Id);
 
             // You are not authorized to view this group query.
             if (owned == 0 && seen == 0)
-                return Format.Warning("Unknown group query specified.");
+                return Format.Warning("You do not know of any items within this query.");
 
             var info = new StringBuilder();
 
-            ItemGroup group = ItemHelper.GetGroup(query);
 
             List<Item> entries = Assets.Items
-                .Where(x => x.GroupId == query && CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
+                .Where(x => (canFilter ? CatalogHelper.MeetsFilter(x, filter) : x.GroupId == group.Id) && CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 
-            int pageCount = (int)Math.Ceiling(entries.Count / (double)_pageSize) - 1;
-            page = page < 0 ? 0 : page > pageCount ? pageCount : page;
+            int pageCount = Paginate.GetPageCount(entries.Count, _pageSize);
+            page = Paginate.ClampIndex(page, pageCount);
 
-            int offset = page * _pageSize;
-            int i = 0;
-
-            string baseIcon = group.Icon.Fallback ?? "🗃️";
-            string extra = pageCount > 1 ? $" ({Format.PageCount(page, pageCount)})" : "";
-            info.AppendLine($"> {baseIcon} **Catalog: {group.Name}**{extra}");
+            string baseIcon = (canFilter ? CatalogHelper.GetFilterIcon(filter) : group?.Icon?.ToString() ?? "🗃️") ?? "🗃️";
+            string extra = pageCount > 1 ? $" ({Format.PageCount(page + 1, pageCount)})" : "";
+            string queryName = canFilter ? filter.ToString() : group.Name;
+            info.AppendLine($"> {baseIcon} **Catalog: {queryName}**{extra}");
 
             info.Append("> Discovery: ");
 
@@ -222,11 +259,8 @@ namespace Arcadia.Services
 
             info.AppendLine();
 
-            foreach (Item item in entries.Skip(offset))
+            foreach (Item item in Paginate.GroupAt(entries, page, _pageSize))
             {
-                if (i >= _pageSize)
-                    break;
-
                 CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
 
                 if (status == CatalogStatus.Unknown)
@@ -235,7 +269,6 @@ namespace Arcadia.Services
                 string icon = item.GetIcon() ?? "•";
 
                 info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
-                i++;
             }
 
             return info.ToString();

@@ -12,7 +12,7 @@ namespace Orikivo
             AllowCooldownNotices = true,
             DefaultRoleId = null,
             TrustedRoleId = null,
-            GameServerLimit = 5
+            GameServerLimit = 3
         };
 
         public override ConfigBase GetDefault()

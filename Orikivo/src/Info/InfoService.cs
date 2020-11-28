@@ -32,7 +32,7 @@ namespace Orikivo
             _formatter = formatter;
         }
 
-        public string GetPanel(string input = null, BaseUser user = null, string prefix = "[")
+        public string SearchAndView(string input = null, BaseUser user = null, string prefix = "[")
         {
             if (string.IsNullOrWhiteSpace(input))
                 return _formatter.ViewMenu(this, user);

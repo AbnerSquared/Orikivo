@@ -47,7 +47,7 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(Fallback) && Fallback == value)
                 return true;
 
-            return Aliases.Contains(value);
+            return Aliases?.Contains(value) ?? false;
         }
 
         public static implicit operator Icon(string value)

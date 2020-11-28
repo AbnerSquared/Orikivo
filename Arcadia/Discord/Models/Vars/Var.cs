@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Arcadia.Services;
 using Orikivo;
 using Orikivo.Text;
 
@@ -239,37 +238,6 @@ namespace Arcadia
                    ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(user.GetVar(id))
                    ?? WriteDefault(GetValue(user, id), type);
         }
-
-        // TODO: Move to a static viewer class
-        public static string ViewDetails(ArcadeUser user, string id, in IEnumerable<ArcadeUser> users = null)
-        {
-            if (!user.Stats.ContainsKey(id))
-                return $"> {Icons.Warning} Unknown stat specified.";
-
-            var details = new StringBuilder();
-
-            string name = WriteName(id);
-            string value = WriteValue(user, id);
-            string header = string.IsNullOrWhiteSpace(name) ? $"• `{id}`" : $"`{id}`\n• **{name}**";
-
-            details.AppendLine($"{header} = {value}");
-
-            string summary = GetDefiner(id)?.Summary;
-
-            if (!string.IsNullOrWhiteSpace(summary))
-                details.AppendLine($"> {summary}");
-
-            VarType type = TypeOf(id);
-
-            if ((users?.Any() ?? false) && type == VarType.Stat)
-                details.AppendLine(WriteLeaderboardRank(users, user, id));
-
-            return details.ToString();
-        }
-
-        // TODO: Move to a static viewer class
-        private static string WriteLeaderboardRank(in IEnumerable<ArcadeUser> users, ArcadeUser user, string id)
-            => $"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**";
 
         public static VarGroup GetGroupDefiner(string groupId)
             => Groups.FirstOrDefault(x => x.Id == groupId);

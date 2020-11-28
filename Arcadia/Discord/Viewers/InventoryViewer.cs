@@ -57,7 +57,7 @@ namespace Arcadia
             return (StorageSize)count;
         }
 
-        // Make this method generic for all viewers
+        // TODO: Make this method generic for all viewers
         private static string WriteItemRow(string itemId, ItemData data)
         {
             Item item = ItemHelper.GetItem(itemId);
@@ -85,7 +85,6 @@ namespace Arcadia
             return summary.ToString();
         }
 
-        // NOTE: > **Slot {slot}:** `{id}`/`{unique_id}` {icon} **{name}** [{size}] (x**{count}**)
         private static string DrawRowText(bool exists, bool showSize, string visibleId, string uniqueId, string icon, string name, long size, int count, int? index = null)
         {
             var slot = new StringBuilder();
@@ -116,7 +115,6 @@ namespace Arcadia
             return slot.ToString();
         }
 
-        // > **Slot {slot}:** `{id}`/`{unique_id}` {icon ?? •} **{name}** [{size}] (x**{count}**)
         private static string BuildRowText(int index, string id, ItemData data, bool isPrivate = true)
         {
             bool exists = ItemHelper.Exists(id);
@@ -194,18 +192,17 @@ namespace Arcadia
 
         public static string View(ArcadeUser user, bool isPrivate = true, int page = 0)
         {
-            // set the default capacity if unspecified
             Var.SetIfEmpty(user, Vars.Capacity, 4000);
             var result = new StringBuilder();
 
             List<ItemData> items = isPrivate ? user.Items : user.Items.Where(x => x.Seal == null && ItemHelper.Exists(x.Id)).ToList();
 
             int pageCount = Paginate.GetPageCount(items.Count, _rowSize);
-            result.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetReservedSize(user), pageCount, page, isPrivate ? user.Username : null));
+            result.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetReservedSize(user), pageCount, page, isPrivate ? null : user.Username));
 
             if (items.Count == 0)
             {
-                string onEmpty = isPrivate ? "Your inventory is empty." : "This inventory does not contain any visible items.";
+                string onEmpty = isPrivate ? "Your inventory is empty." : "This inventory does not have any available items for trade.";
                 result.Append($"> *{onEmpty}*");
 
                 return result.ToString();

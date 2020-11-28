@@ -78,7 +78,7 @@ namespace Orikivo
         public StackTraceMode ErrorHandling { get; set; }
 
         /// <summary>
-        /// Gets or sets marker that determines if tooltips will be shown when executing certain commands.
+        /// Gets or sets a marker that determines if tooltips will be shown when executing certain commands.
         /// </summary>
         [JsonIgnore]
         [Description("A marker that determines if tooltips will be shown when executing certain commands.")]

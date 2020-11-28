@@ -479,7 +479,7 @@ namespace Orikivo
             }
 
             if (Check.NotNull(title))
-                result.Append($"> {title}");
+                result.Append($"> {title}\n");
 
             if (Check.NotNull(reason))
                 result.Append($"```{reason}```");

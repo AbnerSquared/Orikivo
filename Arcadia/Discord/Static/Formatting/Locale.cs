@@ -52,7 +52,6 @@ namespace Arcadia
             },
             [Headers.Merits] = new Header
             {
-                //Icon = "🏆",
                 Title = "Merits"
             },
             [Headers.Catalog] = new Header
