@@ -37,13 +37,13 @@ namespace Arcadia
             if (!Exists(data.Id))
                 return true;
 
-            return GetItem(data.Id).AllowedHandles.HasFlag(ItemAllow.Delete);
+            return GetItem(data.Id).Tags.HasFlag(ItemTag.Disposable);
         }
 
         public static bool CanSell(Item item)
         {
             return item.Value > 0
-                && Assets.Shops.Any(s => s.Sell && (item.Tag & s.SellTags) != 0);
+                && Assets.Shops.Any(s => s.Sell && s.AllowedSellGroups.Contains(item.GroupId));
         }
 
         // This just reads the boost multiplier
@@ -107,7 +107,7 @@ namespace Arcadia
             => GetItem(itemId)?.Name ?? itemId;
 
         public static ItemTag GetTag(string itemId)
-            => GetItem(itemId)?.Tag ?? 0;
+            => GetItem(itemId)?.Tags ?? 0;
 
         public static long CreateUniqueId()
             => (DateTime.UtcNow - UniqueIdOffset).Ticks;

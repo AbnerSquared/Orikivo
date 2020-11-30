@@ -150,7 +150,7 @@ namespace Arcadia
 
             result.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, extra));
 
-            foreach (ItemData data in user.Items.Where(x => ItemHelper.Exists(x.Id) && x.Seal == null && (ItemHelper.GetTag(x.Id) & shop.SellTags) != 0))
+            foreach (ItemData data in user.Items.Where(x => ItemHelper.Exists(x.Id) && x.Seal == null && shop.AllowedSellGroups.Contains(ItemHelper.GroupOf(x.Id))))
             {
                 result.AppendLine(WriteItemRow(data.Id, data));
             }

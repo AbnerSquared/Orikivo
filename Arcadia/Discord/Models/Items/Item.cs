@@ -50,9 +50,9 @@ namespace Arcadia
         public List<string> Quotes { get; set; }
 
         /// <summary>
-        /// Represents the set of identifier tags for this <see cref="Item"/>.
+        /// Represents the collection of traits for this <see cref="Item"/>.
         /// </summary>
-        public ItemTag Tag { get; set; }
+        public ItemTag Tags { get; set; }
 
         /// <summary>
         /// Represents the relative rarity for this <see cref="Item"/>.
@@ -68,11 +68,6 @@ namespace Arcadia
         /// Represents the base value of this <see cref="Item"/>.
         /// </summary>
         public long Value { get; set; }
-
-        /// <summary>
-        /// Represents the collection of allowed action handles for this <see cref="Item"/>.
-        /// </summary>
-        public ItemAllow AllowedHandles { get; set; } = ItemAllow.All;
 
         /// <summary>
         /// Represents the storage size of this <see cref="Item"/>.
@@ -134,9 +129,9 @@ namespace Arcadia
         /// </summary>
         public Dictionary<int, string> ResearchTiers { get; set; }
 
-        public bool CanSell => AllowedHandles.HasFlag(ItemAllow.Sell);
+        public bool CanSell => ItemHelper.CanSell(this);
 
-        public bool CanBuy => AllowedHandles.HasFlag(ItemAllow.Buy);
+        public bool CanBuy => ItemHelper.CanBuy(this);
 
         public string GetName()
         {

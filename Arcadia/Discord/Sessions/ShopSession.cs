@@ -21,7 +21,7 @@ namespace Arcadia
             Shop = shop;
             State = ShopState.Enter;
             Catalog = context.Data.Data.GetOrGenerateCatalog(shop, context.Account);
-            List<Vendor> possibleVendors = ShopHelper.GetVendors(ShopHelper.GetUniqueTags(Catalog)).ToList();
+            List<Vendor> possibleVendors = ShopHelper.GetVendors(shop.AllowedSellGroups).ToList();
             Vendor = Check.NotNullOrEmpty(possibleVendors) ? Randomizer.Choose(possibleVendors) : null;
 
             if (!context.Account.CatalogHistory.ContainsKey(shop.Id))
@@ -267,7 +267,7 @@ namespace Arcadia
                         return SessionResult.Continue;
 
                     case "sell":
-                        if (User.Items.Count(x => (ItemHelper.GetTag(x.Id) & Shop.SellTags) != 0) == 0)
+                        if (User.Items.Count(x => Shop.AllowedSellGroups.Contains(ItemHelper.GroupOf(x.Id))) == 0)
                         {
                             State = ShopState.SellEmpty;
                             await UpdateAsync();
@@ -455,7 +455,7 @@ namespace Arcadia
 
         // TODO: Remove this method and use the existing ShopHelper.CanSell() method
         private bool CanSell(Item item)
-            => (item.Tag & Shop.SellTags) != 0;
+            => Shop.AllowedSellGroups.Contains(item.GroupId);
 
         private int ParseAmount(string input, Item item)
         {

@@ -56,9 +56,9 @@ namespace Arcadia
             return user.CatalogHistory[shopId];
         }
 
-        public static IEnumerable<Vendor> GetVendors(ItemTag catalogTags)
+        public static IEnumerable<Vendor> GetVendors(List<string> catalogGroups)
         {
-            return Assets.Vendors.Where(x => (x.PreferredTag & catalogTags) != 0);
+            return Assets.Vendors.Where(x => x.PreferredGroups.Any(catalogGroups.Contains));
         }
 
         // sum together all unique tags
@@ -79,7 +79,7 @@ namespace Arcadia
             if (item == null)
                 throw new Exception("Invalid data instance specified");
 
-            return (item.Tag & shop.SellTags) != 0;
+            return shop.AllowedSellGroups.Contains(ItemHelper.GroupOf(data.Id));
         }
 
         public static string Sell(Shop shop, ItemData data, ArcadeUser user)

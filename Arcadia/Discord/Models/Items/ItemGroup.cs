@@ -25,6 +25,8 @@ namespace Arcadia
         /// </summary>
         public ItemRarity Rarity { get; set; }
 
+        public ItemTag Tags { get; set; }
+
         /// <summary>
         /// Represents the display name of this <see cref="ItemGroup"/>.
         /// </summary>

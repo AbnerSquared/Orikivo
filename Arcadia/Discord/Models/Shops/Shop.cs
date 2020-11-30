@@ -31,7 +31,7 @@ namespace Arcadia
 
         public CurrencyType AllowedCurrency { get; set; }
 
-        public ItemTag SellTags { get; set; }
+        public List<string> AllowedSellGroups { get; set; }
 
         public int? MaxAllowedPurchases { get; set; }
 

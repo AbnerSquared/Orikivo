@@ -29,7 +29,7 @@
 
         public string Name { get; set; }
 
-        public ItemTag PreferredTag { get; set; }
+        public string[] PreferredGroups { get; set; }
 
         public string[] OnEnter { get; set; }
 

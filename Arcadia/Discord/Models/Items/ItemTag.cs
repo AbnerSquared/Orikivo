@@ -3,20 +3,64 @@
 namespace Arcadia
 {
     /// <summary>
-    /// Represents a collection of identifier tags for an <see cref="Item"/>.
+    /// Defines a collection of common traits for an <see cref="Item"/>.
     /// </summary>
     [Flags]
     public enum ItemTag
     {
-        Palette = 1,
-        Summon = 2,
-        Font = 4,
-        Capsule = 8,
-        Tool = 16,
-        Decorator = 32,
-        Automaton = 64,
-        Booster = 128,
-        Ingredient = 256,
-        Pass = 512
+        /// <summary>
+        /// Specifies that this item can be used.
+        /// </summary>
+        Usable = 1,
+
+        /// <summary>
+        /// Specifies that this item can be equipped or held for additional benefits.
+        /// </summary>
+        Equipment = 2,
+
+        /// <summary>
+        /// Specifies that this items stores other item instances.
+        /// </summary>
+        Container = 4,
+
+        /// <summary>
+        /// Specifies that this item is a crafting ingredient.
+        /// </summary>
+        Material = 8,
+
+        /// <summary>
+        /// Specifies that this item modifies how a card is displayed.
+        /// </summary>
+        Decorator = 16,
+
+        /// <summary>
+        /// Specifies that this item can be disposed.
+        /// </summary>
+        Disposable = 32,
+
+        /// <summary>
+        /// Specifies that this item can be sealed.
+        /// </summary>
+        Sealable = 64,
+
+        /// <summary>
+        /// Specifies that this item can be cloned.
+        /// </summary>
+        Cloneable = 128,
+
+        /// <summary>
+        /// Specifies that this item can be renamed.
+        /// </summary>
+        Renamable = 256,
+
+        /// <summary>
+        /// Specifies that this item can be modified.
+        /// </summary>
+        Modifiable = 512,
+
+        /// <summary>
+        /// Specifies that this item can modify attributes.
+        /// </summary>
+        Modifier = 1024
     }
 }

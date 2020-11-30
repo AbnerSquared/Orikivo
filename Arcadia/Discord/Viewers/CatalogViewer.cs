@@ -404,10 +404,10 @@ namespace Arcadia.Services
                 return details.ToString();
             }
 
-            if (item.Tag != 0)
+            if (item.Tags != 0)
             {
                 details.Append($"**#** ");
-                details.AppendJoin(", ", item.Tag.GetFlags().Select(x => $"`{x.ToString().ToLower()}`"));
+                details.AppendJoin(", ", item.Tags.GetFlags().Select(x => $"`{x.ToString().ToLower()}`"));
                 details.AppendLine();
             }
 

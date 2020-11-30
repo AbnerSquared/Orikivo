@@ -386,7 +386,10 @@ namespace Arcadia
             new Vendor
             {
                 Name = "V3-NDR",
-                PreferredTag = ItemTag.Palette,
+                PreferredGroups = new []
+                {
+                    Ids.Groups.Palette
+                },
                 OnEnter = new []
                 {
                     "Welcome.",
@@ -426,7 +429,10 @@ namespace Arcadia
                 Quote = "Purchase font families and text components here.",
                 Allow = ShopAllow.Buy,
                 SellDeduction = 40,
-                SellTags = ItemTag.Font,
+                AllowedSellGroups = new List<string>
+                {
+                    Ids.Groups.Font
+                },
                 AllowedCurrency = CurrencyType.Money,
                 ToVisit = u => u.Level == 10 && Var.All(u, VarOp.GEQ, 2, ShopHelper.GetTierId(Ids.Shops.ChromeCove), ShopHelper.GetTierId(Ids.Shops.TinkerTent)),
                 Catalog = new CatalogGenerator
@@ -464,7 +470,11 @@ namespace Arcadia
                 Quote = "Purchase components and crafting materials here.",
                 Allow = ShopAllow.Buy,
                 SellDeduction = 60,
-                SellTags = ItemTag.Ingredient | ItemTag.Tool,
+                AllowedSellGroups = new List<string>
+                {
+                    Ids.Groups.Component,
+                    Ids.Groups.Tool
+                },
                 Catalog = new CatalogGenerator
                 {
                     Size = 2,
@@ -511,7 +521,10 @@ namespace Arcadia
                 Quote = "Purchase an assortment of boosters here.",
                 Allow = ShopAllow.All,
                 SellDeduction = 50,
-                SellTags = ItemTag.Booster,
+                AllowedSellGroups = new List<string>
+                {
+                    Ids.Groups.Booster
+                },
                 Catalog = new CatalogGenerator
                 {
                     Size = 1,
@@ -604,7 +617,10 @@ namespace Arcadia
                 },
                 Allow = ShopAllow.All,
                 SellDeduction = 50,
-                SellTags = ItemTag.Palette
+                AllowedSellGroups = new List<string>
+                {
+                    Ids.Groups.Palette
+                }
             }
         };
 
@@ -1109,8 +1125,7 @@ namespace Arcadia
                     new RecipeComponent(Ids.Items.ComponentBlendKit, 1)
                 },
                 Result = new RecipeComponent(Ids.Items.PaletteGammaGreen, 1)
-            }
-            ,
+            },
             new Recipe
             {
                 Components = new List<RecipeComponent>
@@ -1153,7 +1168,7 @@ namespace Arcadia
                 Icon = "🉐",
                 Name = "Name Tag",
                 Rarity = ItemRarity.Uncommon,
-                Tag = ItemTag.Tool,
+                Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 750,
                 Size = 50,
                 Usage = new ItemUsage
@@ -1187,7 +1202,7 @@ namespace Arcadia
 
                         Item item = ItemHelper.GetItem(data.Id);
 
-                        if (!(ItemHelper.IsUnique(item) && item.AllowedHandles.HasFlag(ItemAllow.Rename)))
+                        if (!(ItemHelper.IsUnique(item) && item.Tags.HasFlag(ItemTag.Renamable)))
                             return UsageResult.FromError("The specified data instance does not support renaming.");
 
                         if (!VerifyName(name, out string reason))
@@ -1207,7 +1222,7 @@ namespace Arcadia
                 Name = "Gift Catapult",
                 Summary = "Randomly gifts an account with the specified item.",
                 Rarity = ItemRarity.Rare,
-                Tag = ItemTag.Tool,
+                Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1250,
                 Size = 100
             },
@@ -1222,7 +1237,7 @@ namespace Arcadia
                     "It cries with a strong vibrant call of chromacy."
                 },
                 Rarity = ItemRarity.Rare,
-                Tag = ItemTag.Ingredient,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1250,
                 Size = 250
             },
@@ -1230,46 +1245,49 @@ namespace Arcadia
             {
                 Id = Ids.Items.ComponentDimmerKit,
                 GroupId = Ids.Groups.Component,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Rarity = ItemRarity.Rare,
+                Value = 1250,
+                Size = 250,
+
                 Name = "Dimmer Kit",
                 Summary = "A component used to darken the value of a color.",
                 Quotes = new List<string>
                 {
                     "It absorbs every color surrounding it."
-                },
-                Rarity = ItemRarity.Rare,
-                Tag = ItemTag.Ingredient,
-                Value = 1250,
-                Size = 250
+                }
             },
             new Item
             {
                 Id = Ids.Items.ComponentSmearKit,
                 GroupId = Ids.Groups.Component,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Rarity = ItemRarity.Uncommon,
+                Value = 750,
+                Size = 250,
+
                 Name = "Smear Kit",
                 Summary = "Often used to create a hybrid of your favorite colors.",
                 Quotes = new List<string>
                 {
                     "It swings open to reveal two color slots with a churning device in the center."
-                },
-                Rarity = ItemRarity.Uncommon,
-                Tag = ItemTag.Ingredient,
-                Value = 750,
-                Size = 250
+                }
             },
             new Item
             {
                 Id = Ids.Items.ComponentBlendKit,
                 GroupId = Ids.Groups.Component,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Rarity = ItemRarity.Rare,
+                Value = 1000,
+                Size = 250,
+
                 Name = "Blend Kit",
                 Summary = "Used to give way to a brand new color from two existing ones.",
                 Quotes = new List<string>
                 {
                     "It pops open to reveal two color slots that point towards a rapidly spinning motor."
-                },
-                Rarity = ItemRarity.Rare,
-                Tag = ItemTag.Ingredient,
-                Value = 1000,
-                Size = 250
+                }
             },
             new Item
             {
@@ -1282,9 +1300,8 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Automaton,
                 Rarity = ItemRarity.Myth,
-                Tag = ItemTag.Tool | ItemTag.Automaton,
+                Tags = ItemTag.Equipment | ItemTag.Cloneable | ItemTag.Sealable | ItemTag.Renamable,
                 Value = 100000,
-                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Rename,
                 TradeLimit = 0,
                 Size = 1000,
                 OwnLimit = 1
@@ -1299,6 +1316,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Layout,
                 Rarity = ItemRarity.Common,
+                Tags = ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 0,
                 TradeLimit = 0,
                 Size = 10,
@@ -1314,6 +1332,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Layout,
                 Rarity = ItemRarity.Myth,
+                Tags = ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 0,
                 TradeLimit = 0,
                 Size = 10,
@@ -1331,7 +1350,7 @@ namespace Arcadia
                 },
                 Summary = "Wraps an item to seal its contents.",
                 Rarity = ItemRarity.Common,
-                Tag = ItemTag.Tool,
+                Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 25,
                 BypassCriteriaOnTrade = true,
                 Size = 10,
@@ -1403,7 +1422,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Booster,
                 Rarity = ItemRarity.Uncommon,
-                Tag = ItemTag.Booster,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier,
                 Value = 525,
                 BypassCriteriaOnTrade = true,
                 Size = 75,
@@ -1434,7 +1453,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Booster,
                 Rarity = ItemRarity.Uncommon,
-                Tag = ItemTag.Booster,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier,
                 Value = 500,
                 BypassCriteriaOnTrade = true,
                 Size = 75,
@@ -1467,9 +1486,8 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Summon,
                 Rarity = ItemRarity.Myth,
-                Tag = ItemTag.Summon,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Sealable,
                 Value = 750,
-                AllowedHandles = ItemAllow.Clone | ItemAllow.Seal | ItemAllow.Sell,
                 TradeLimit = 0,
                 BypassCriteriaOnTrade = true,
                 Size = 100,
@@ -1524,7 +1542,7 @@ namespace Arcadia
                     "It glows with a shade of green similar to uranium."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1000,
                 Size = 50,
                 BypassCriteriaOnTrade = true,
@@ -1545,7 +1563,7 @@ namespace Arcadia
                     "It thrives in a neon glow of a reddish-purple hue."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1000,
                 Size = 50,
                 BypassCriteriaOnTrade = true,
@@ -1566,7 +1584,7 @@ namespace Arcadia
                     "Crafted with the shades of a Wumpus."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1500,
                 Size = 75,
                 BypassCriteriaOnTrade = true,
@@ -1587,8 +1605,7 @@ namespace Arcadia
                     "It reminds you of a desolate atmosphere, now frozen over."
                 },
                 GroupId = Ids.Groups.Palette,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 6000,
                 Size = 325,
                 BypassCriteriaOnTrade = true,
@@ -1609,7 +1626,7 @@ namespace Arcadia
                     "It refracts a mixture of light blue to white light."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 3000,
                 Size = 75,
                 BypassCriteriaOnTrade = true,
@@ -1630,7 +1647,7 @@ namespace Arcadia
                     "It exudes a wave of citrus in the air."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 2500,
                 Size = 75,
                 BypassCriteriaOnTrade = true,
@@ -1651,8 +1668,7 @@ namespace Arcadia
                     "The citrus wave it once provided sparks under the embers."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 5000,
                 Size = 75,
                 BypassCriteriaOnTrade = true,
@@ -1673,7 +1689,7 @@ namespace Arcadia
                     "It crashes down on land, whispering the secrets of the sea."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 2500,
                 Size = 150,
                 BypassCriteriaOnTrade = true,
@@ -1694,8 +1710,7 @@ namespace Arcadia
                     "It coats itself in a swirl of flexible sugar."
                 },
                 GroupId = Ids.Groups.Palette,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 3500,
                 Size = 150,
                 BypassCriteriaOnTrade = true,
@@ -1716,8 +1731,7 @@ namespace Arcadia
                     "It refracts a mixture of light that absorbs the color of a Wumpus."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tag = ItemTag.Palette | ItemTag.Decorator,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 3500,
                 Size = 175,
                 TradeLimit = 0,
@@ -1738,8 +1752,7 @@ namespace Arcadia
                 {
                     "It gleams a golden radiant of hope."
                 },
-                Tag = ItemTag.Palette | ItemTag.Decorator,
-                AllowedHandles = ItemAllow.Seal,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Sealable,
                 Value = 7500,
                 Size = 400,
                 TradeLimit = 0,
@@ -1755,8 +1768,7 @@ namespace Arcadia
                 {
                     "It preserves the life form of something hidden in the past."
                 },
-                Tag = ItemTag.Palette | ItemTag.Decorator,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 5000,
                 Size = 300,
                 TradeLimit = 0,
@@ -1777,8 +1789,7 @@ namespace Arcadia
                 {
                     "It reminds you of a simpler time, where sweets meant everything."
                 },
-                Tag = ItemTag.Palette | ItemTag.Decorator,
-                AllowedHandles = ItemAllow.Seal | ItemAllow.Sell,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 3000,
                 Size = 350,
                 TradeLimit = 0,
@@ -1799,8 +1810,7 @@ namespace Arcadia
                 {
                     "It absorbs the addiction of desperate gamblers."
                 },
-                Tag = ItemTag.Pass,
-                AllowedHandles = ItemAllow.Seal,
+                Tags = ItemTag.Equipment,
                 Rarity = ItemRarity.Desolate,
                 OwnLimit = 1,
                 TradeLimit = 0
@@ -1815,7 +1825,7 @@ namespace Arcadia
                 },
                 Value = 2500,
                 Currency = CurrencyType.Money,
-                Tag = ItemTag.Font | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Foxtrot))
@@ -1832,7 +1842,7 @@ namespace Arcadia
                 },
                 Value = 2500,
                 Currency = CurrencyType.Money,
-                Tag = ItemTag.Font | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Monori))
@@ -1846,7 +1856,7 @@ namespace Arcadia
                 {
                     "A system default that holds up to this day."
                 },
-                Tag = ItemTag.Font | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 2500,
                 Currency = CurrencyType.Money,
                 Usage = new ItemUsage
@@ -1862,7 +1872,7 @@ namespace Arcadia
                 {
                     "It showcases a sharp range of tiny characters."
                 },
-                Tag = ItemTag.Font | ItemTag.Decorator,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 2500,
                 Currency = CurrencyType.Money,
                 Usage = new ItemUsage
@@ -1880,11 +1890,10 @@ namespace Arcadia
                 {
                     "The contents inside glow with hope."
                 },
-                Tag = ItemTag.Capsule,
+                Tags = ItemTag.Container | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Rarity = ItemRarity.Uncommon,
                 Currency = CurrencyType.Money,
                 Value = 50,
-                AllowedHandles = ItemAllow.Sell,
                 Usage = new ItemUsage
                 {
                     Durability = 1,
@@ -2037,6 +2046,11 @@ namespace Arcadia
             ItemHelper.TakeItem(user, ItemHelper.IdFor(palette.Primary, palette.Secondary));
             user.Card.Palette = palette;
             return result;
+        }
+
+        private static string SetOrSwapLayout(ArcadeUser user, LayoutType layout)
+        {
+            throw new NotImplementedException();
         }
 
         private static bool TryApplyBooster(ArcadeUser user, BoostData booster)
