@@ -58,5 +58,10 @@
         /// Represents the base chance for this <see cref="CatalogEntry"/> to be selected.
         /// </summary>
         public int Weight { get; set; }
+
+        /// <summary>
+        /// Determines the cost scale for this <see cref="CatalogEntry"/>.
+        /// </summary>
+        public float CostScale { get; set; } = 1f;
     }
 }

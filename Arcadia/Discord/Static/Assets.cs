@@ -470,6 +470,14 @@ namespace Arcadia
                 Quote = "Purchase components and crafting materials here.",
                 Allow = ShopAllow.Buy,
                 SellDeduction = 60,
+                CriteriaTiers = new Dictionary<long, List<VarCriterion>>
+                {
+                    [2] = new List<VarCriterion>
+                    {
+                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.TinkerTent), 10),
+                        new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.TinkerTent), 5)
+                    }
+                },
                 AllowedSellGroups = new List<string>
                 {
                     Ids.Groups.Component,
@@ -547,15 +555,21 @@ namespace Arcadia
             },
             new Shop
             {
-                Id = "chrome_cove",
+                Id = Ids.Shops.ChromeCove,
                 Name = "Chromatic Cove",
                 Quote = "The reliable place to purchase color palettes.",
                 CriteriaTiers = new Dictionary<long, List<VarCriterion>>
                 {
                     [2] = new List<VarCriterion>
                     {
-                        new VarCriterion(ShopHelper.GetVisitId("chrome_cove"), 10),
-                        new VarCriterion(ShopHelper.GetTotalBoughtId("chrome_cove"), 5)
+                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.ChromeCove), 10),
+                        new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.ChromeCove), 5)
+                    },
+                    [3] = new List<VarCriterion>
+                    {
+                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.ChromeCove), 20),
+                        new VarCriterion(ShopHelper.GetTotalSpentId(Ids.Shops.ChromeCove), 10000),
+                        new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.ChromeCove), 10)
                     }
                 },
                 Catalog = new CatalogGenerator
@@ -612,6 +626,24 @@ namespace Arcadia
                             Weight = 6,
                             MaxAllowed = 1,
                             RequiredTier = 2
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteAmber,
+                            Weight = 3,
+                            CostScale = 1.25f,
+                            MaxAllowed = 1,
+                            RequiredTier = 2,
+                            ForceAtTier = true
+                        },
+                        new CatalogEntry
+                        {
+                            ItemId = Ids.Items.PaletteTaffy,
+                            Weight = 3,
+                            CostScale = 1.25f,
+                            MaxAllowed = 1,
+                            RequiredTier = 2,
+                            ForceAtTier = true
                         }
                     }
                 },
@@ -1237,7 +1269,7 @@ namespace Arcadia
                     "It cries with a strong vibrant call of chromacy."
                 },
                 Rarity = ItemRarity.Rare,
-                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Value = 1250,
                 Size = 250
             },
@@ -1245,7 +1277,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.ComponentDimmerKit,
                 GroupId = Ids.Groups.Component,
-                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Rarity = ItemRarity.Rare,
                 Value = 1250,
                 Size = 250,
@@ -1261,7 +1293,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.ComponentSmearKit,
                 GroupId = Ids.Groups.Component,
-                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Rarity = ItemRarity.Uncommon,
                 Value = 750,
                 Size = 250,
@@ -1277,7 +1309,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.ComponentBlendKit,
                 GroupId = Ids.Groups.Component,
-                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Material | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Rarity = ItemRarity.Rare,
                 Value = 1000,
                 Size = 250,
@@ -1350,7 +1382,7 @@ namespace Arcadia
                 },
                 Summary = "Wraps an item to seal its contents.",
                 Rarity = ItemRarity.Common,
-                Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Value = 25,
                 BypassCriteriaOnTrade = true,
                 Size = 10,
@@ -1422,7 +1454,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Booster,
                 Rarity = ItemRarity.Uncommon,
-                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier | ItemTag.Orderable,
                 Value = 525,
                 BypassCriteriaOnTrade = true,
                 Size = 75,
@@ -1453,7 +1485,7 @@ namespace Arcadia
                 },
                 GroupId = Ids.Groups.Booster,
                 Rarity = ItemRarity.Uncommon,
-                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier | ItemTag.Orderable,
                 Value = 500,
                 BypassCriteriaOnTrade = true,
                 Size = 75,
@@ -1563,7 +1595,7 @@ namespace Arcadia
                     "It thrives in a neon glow of a reddish-purple hue."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Value = 1000,
                 Size = 50,
                 BypassCriteriaOnTrade = true,
@@ -1647,7 +1679,7 @@ namespace Arcadia
                     "It exudes a wave of citrus in the air."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Value = 2500,
                 Size = 75,
                 BypassCriteriaOnTrade = true,
@@ -1689,7 +1721,7 @@ namespace Arcadia
                     "It crashes down on land, whispering the secrets of the sea."
                 },
                 GroupId = Ids.Groups.Palette,
-                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Orderable,
                 Value = 2500,
                 Size = 150,
                 BypassCriteriaOnTrade = true,
@@ -1929,12 +1961,6 @@ namespace Arcadia
                 Name = "Tool",
                 Rarity = ItemRarity.Uncommon,
                 Summary = "Items that are used on other instances of items."
-            },
-            new ItemGroup
-            {
-                Id = Ids.Groups.Equipment,
-                Name = "Equipment",
-                Summary = "Items that modify or provide effects when equipped."
             },
             new ItemGroup
             {

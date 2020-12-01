@@ -10,10 +10,11 @@ namespace Arcadia
     /// </summary>
     public class ItemCatalog
     {
-        internal ItemCatalog(Dictionary<string, int> itemIds, Dictionary<string, int> discounts)
+        internal ItemCatalog(Dictionary<string, int> itemIds, Dictionary<string, int> discounts, Dictionary<string, long> costs)
         {
             ItemIds = itemIds?.Count > 0 ? itemIds : throw new Exception("Expected catalog to have at least a single item entry but returned empty");
             Discounts = discounts;
+            Costs = costs;
             GeneratedAt = DateTime.UtcNow;
         }
 
@@ -31,15 +32,20 @@ namespace Arcadia
                 ? new Dictionary<string, int>(catalog.Discounts)
                 : new Dictionary<string, int>();
 
+            Costs = catalog.Costs.Count > 0
+                ? new Dictionary<string, long>(catalog.Costs)
+                : new Dictionary<string, long>();
+
             GeneratedAt = catalog.GeneratedAt;
         }
 
         [JsonConstructor]
-        internal ItemCatalog(DateTime generatedAt, Dictionary<string, int> itemIds, Dictionary<string, int> discounts)
+        internal ItemCatalog(DateTime generatedAt, Dictionary<string, int> itemIds, Dictionary<string, int> discounts, Dictionary<string, long> costs)
         {
+            GeneratedAt = generatedAt;
             ItemIds = itemIds;
             Discounts = discounts;
-            GeneratedAt = generatedAt;
+            Costs = costs;
         }
 
         /// <summary>
@@ -59,6 +65,12 @@ namespace Arcadia
         /// </summary>
         [JsonProperty("discounts")]
         public Dictionary<string, int> Discounts { get; }
+
+        /// <summary>
+        /// Represents a collection of unique cost scales for this <see cref="ItemCatalog"/>.
+        /// </summary>
+        [JsonProperty("costs")]
+        public Dictionary<string, long> Costs { get; }
 
         /// <summary>
         /// Represents the total count of items that this <see cref="ItemCatalog"/> contains.

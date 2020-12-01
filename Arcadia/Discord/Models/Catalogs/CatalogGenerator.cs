@@ -92,6 +92,14 @@ namespace Arcadia
                     }
                 }
 
+                if (Math.Abs(entry.CostScale - 1f) > 0.009f)
+                {
+                    long cost = BoostConvert.GetValue(ItemHelper.GetItem(entry.ItemId).Value, entry.CostScale);
+                    reference.Costs.Add(entry.ItemId, cost);
+
+                    Logger.Debug($"Specified unique cost value ({entry.ItemId})");
+                }
+
                 if (!ItemHelper.Exists(entry.ItemId))
                     throw new Exception("The specified item ID could not be found.");
 
@@ -109,7 +117,7 @@ namespace Arcadia
 
             Logger.Debug($"Compiling catalog with {reference.Items.Count} {Format.TryPluralize("entry", reference.Items.Count)}");
 
-            return new ItemCatalog(reference.Items, reference.Discounts);
+            return new ItemCatalog(reference.Items, reference.Discounts, reference.Costs);
         }
 
         public int GetBaseWeight()

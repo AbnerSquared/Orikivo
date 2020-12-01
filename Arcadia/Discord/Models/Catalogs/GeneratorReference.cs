@@ -21,5 +21,7 @@ namespace Arcadia
         internal Dictionary<string, int> Discounts { get; } = new Dictionary<string, int>();
 
         internal Dictionary<string, int> GroupCounters { get; } = new Dictionary<string, int>();
+
+        internal Dictionary<string, long> Costs { get; } = new Dictionary<string, long>();
     }
 }

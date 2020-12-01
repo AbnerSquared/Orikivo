@@ -92,6 +92,7 @@
             internal static readonly string ChromeCove = "chrome_cove";
             internal static readonly string TinkerTent = "tinker_tent";
             internal static readonly string BoostBlight = "boost_blight";
+            internal static readonly string ChipBooth = "chip_booth"; // Redeem prizes for your gambling efforts.
         }
     }
 }

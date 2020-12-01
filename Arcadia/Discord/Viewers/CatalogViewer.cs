@@ -448,6 +448,9 @@ namespace Arcadia.Services
             if (item.CanSell)
                 details.AppendLine("📦 **Sellable**");
 
+            if (item.Tags.HasFlag(ItemTag.Orderable))
+                details.AppendLine("💳 **Orderable**");
+
             string bypass = "";
 
             if (item.BypassCriteriaOnTrade)
