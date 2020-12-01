@@ -19,7 +19,7 @@ namespace Arcadia.Modules
     [Icon("🧮")]
     [Name("Common")]
     [Summary("Generic commands that are commonly used.")]
-    public class Common : BaseModule<ArcadeContext>
+    public class Common : ArcadeModule
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfigurationRoot _config;

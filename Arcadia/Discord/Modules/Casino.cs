@@ -10,7 +10,7 @@ namespace Arcadia.Modules
     [Icon("🎰")]
     [Name("Casino")]
     [Summary("Come and gamble your life away.")]
-    public class Casino : BaseModule<ArcadeContext>
+    public class Casino : ArcadeModule
     {
         private readonly CasinoService _service;
 
@@ -113,8 +113,11 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("doubler"), Alias("double", "dbl")]
-        [Summary("An activity in the **Casino** that grants you a chance at large returns by guessing the dying tick of the machine.")]
-        public async Task DoublerAsync(Wager wager = null, int expectedTick = 1, DoublerWinMethod method = DoublerWinMethod.Below)
+        [Summary("A casino game mode that grants you a chance at large returns by guessing the surviving tick.")]
+        public async Task DoublerAsync(
+            [Summary("The amount of **Chips** to bet for this round.")]Wager wager = null,
+            [Summary("The tick that you think the doubler will stop at.")]int tick = 1,
+            [Summary("The method to use for this round.")]DoublerWinMethod method = DoublerWinMethod.Below)
         {
             if (wager == null)
             {
@@ -142,15 +145,15 @@ namespace Arcadia.Modules
                 return;
             }
 
-            if (expectedTick <= 0)
+            if (tick <= 0)
             {
                 await Context.Channel.SendMessageAsync($"> ⚠️ You have specified an invalid tick. Try something that's above **0**.");
                 return;
             }
 
-            var tick = new Doubler(expectedTick, method);
+            var doubler = new Doubler(tick, method);
 
-            DoublerResult result = tick.Next(wager.Value, Context.Account.GetVar(Stats.Doubler.CurrentLossStreak));
+            DoublerResult result = doubler.Next(wager.Value, Context.Account.GetVar(Stats.Doubler.CurrentLossStreak));
             Message message = result.ApplyAndDisplay(Context.Account);
 
             await Context.Channel.SendMessageAsync(Context.Account, message);
@@ -183,7 +186,7 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount.Value);
             Context.Account.ChipBalance += chips;
-            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount:##,0}** in exchange for **🧩 {chips:##,0}**.");
+            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount.Value:##,0}** in exchange for **🧩 {chips:##,0}**.");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Arcadia.Modules
     [Icon("⚔️")]
     [Name("Multiplayer")]
     [Summary("Come play with others.")]
-    public class Multiplayer : BaseModule<ArcadeContext>
+    public class Multiplayer : ArcadeModule
     {
         private readonly GameManager _games;
 

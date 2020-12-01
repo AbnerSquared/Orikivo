@@ -14,7 +14,7 @@ namespace Arcadia
         public static readonly int MaxTargetOfferCount = 1;
         public static readonly int MaxOfferCount = 5;
 
-        public static string ViewOffers(ArcadeUser user, ArcadeContext ctx)
+        public static string ViewOffers(ArcadeUser user, ArcadeContext ctx, int page = 0)
         {
             var info = new StringBuilder();
             info.AppendLine(Locale.GetHeader(Headers.Offers));

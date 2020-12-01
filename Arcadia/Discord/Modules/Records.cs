@@ -8,7 +8,7 @@ namespace Arcadia.Modules
     [Icon("🖨️")]
     [Name("Records")]
     [Summary("View information about unlocked information and extra statistics.")]
-    public class Records : BaseModule<ArcadeContext>
+    public class Records : ArcadeModule
     {
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("memo")]

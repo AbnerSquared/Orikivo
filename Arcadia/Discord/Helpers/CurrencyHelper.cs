@@ -6,7 +6,19 @@ namespace Arcadia
 {
     public static class CurrencyHelper
     {
-        public static string WriteName(CurrencyType currency, long value)
+        public static long GetBalance(ArcadeUser user, CurrencyType currency)
+        {
+            return currency switch
+            {
+                CurrencyType.Chips => user.ChipBalance,
+                CurrencyType.Money => user.Balance,
+                CurrencyType.Debt => user.Debt,
+                CurrencyType.Tokens => user.TokenBalance,
+                _ => throw new ArgumentException("Unknown currency type")
+            };
+        }
+
+        public static string GetName(CurrencyType currency, long value)
         {
             bool isPlural = value != 0 && value > 1;
             return currency switch
@@ -22,7 +34,7 @@ namespace Arcadia
         public static string WriteCost(long value, CurrencyType currency)
             => value <= 0 ? "**Unknown Cost**" : $"{Icons.IconOf(currency)} **{value:##,0}**"; // {(value == 69 ? "(nice)" : "")}
 
-        public static bool CanApplyBooster(BoostData boost)
+        public static bool CanAddBooster(BoostData boost)
         {
             return (!boost.ExpiresOn.HasValue || !CooldownHelper.IsExpired(boost.ExpiresOn.Value))
                 && (!boost.UsesLeft.HasValue  || boost.UsesLeft > 0);
@@ -35,7 +47,7 @@ namespace Arcadia
 
             foreach (BoostData boost in user.Boosters)
             {
-                if (!CanApplyBooster(boost))
+                if (!CanAddBooster(boost))
                     toRemove.Add(boost);
 
                 if (boost.Type != type)
@@ -58,7 +70,7 @@ namespace Arcadia
             var toRemove = new List<BoostData>();
             foreach (BoostData booster in user.Boosters)
             {
-                if (!CanApplyBooster(booster))
+                if (!CanAddBooster(booster))
                     toRemove.Add(booster);
 
                 if (booster.Type != type)

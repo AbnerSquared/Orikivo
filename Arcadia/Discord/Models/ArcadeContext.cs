@@ -1,17 +1,14 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
 
 namespace Arcadia
 {
-    public class ArcadeContext : SocketCommandContext
+    public sealed class ArcadeContext : BaseCommandContext<ArcadeContainer, BaseGuild, ArcadeUser>
     {
         public ArcadeContext(DiscordSocketClient client, ArcadeContainer data, SocketUserMessage message)
-            : base(client, message)
+            : base(client, data, message)
         {
-            Data = data;
-
             if (Guild != null)
             {
                 GetOrAddGuild(Guild);
@@ -19,37 +16,7 @@ namespace Arcadia
             }
         }
 
-        internal ArcadeContainer Data { get; }
-
-        public ArcadeUser Account
-        {
-            get
-            {
-                Data.Users.TryGet(User.Id, out ArcadeUser user);
-                return user;
-            }
-        }
-
-        public BaseGuild Server
-        {
-            get
-            {
-                if (Guild == null)
-                    return null;
-
-                Data.Guilds.TryGet(Guild.Id, out BaseGuild guild);
-                return guild;
-            }
-            set
-            {
-                if (Guild == null)
-                    return;
-
-                Data.Guilds.AddOrUpdate(Guild.Id, value);
-            }
-        }
-
-        internal ArcadeUser GetOrAddUser(IUser user)
+        public override ArcadeUser GetOrAddUser(IUser user)
         {
             if (!Data.Users.TryGet(user.Id, out ArcadeUser value))
             {
@@ -59,7 +26,8 @@ namespace Arcadia
 
             return value;
         }
-        internal BaseGuild GetOrAddGuild(IGuild guild)
+
+        public override BaseGuild GetOrAddGuild(IGuild guild)
         {
             if (!Data.Guilds.TryGet(guild.Id, out BaseGuild value))
             {
@@ -69,22 +37,5 @@ namespace Arcadia
 
             return value;
         }
-
-        internal void SaveUser(ArcadeUser account)
-        {
-            Data.Users.Save(account);
-        }
-
-        public bool TryGetUser(ulong id, out ArcadeUser account)
-            => Data.Users.TryGet(id, out account);
-
-        public bool TryGetGuild(ulong id, out BaseGuild server)
-            => Data.Guilds.TryGet(id, out server);
-
-        /// <summary>
-        /// Returns the default prefix for the specified command context.
-        /// </summary>
-        public string GetPrefix()
-            => Account?.Config.Prefix ?? Server?.Config.Prefix ?? Constants.DEFAULT_PREFIX;
     }
 }

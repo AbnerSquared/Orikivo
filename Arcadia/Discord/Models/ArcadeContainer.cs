@@ -2,12 +2,10 @@
 
 namespace Arcadia
 {
-    public class ArcadeContainer
+    public class ArcadeContainer : BaseContainer<BaseGuild, ArcadeUser>
     {
         public ArcadeContainer()
         {
-            Users = new JsonContainer<ArcadeUser>(@"..\data\users\");
-            Guilds = new JsonContainer<BaseGuild>(@"..\data\guilds\");
             Data = JsonHandler.Load<ArcadeData>(@"..\data\global.json") ?? new ArcadeData();
 
             // This is used to rename and replace all old vars that were stored
@@ -15,8 +13,6 @@ namespace Arcadia
                 Stats.RenameIds(user);
         }
 
-        public JsonContainer<ArcadeUser> Users { get; }
-        public JsonContainer<BaseGuild> Guilds { get; }
         public ArcadeData Data { get; }
 
         public void SaveGlobalData()

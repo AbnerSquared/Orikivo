@@ -61,6 +61,11 @@ namespace Arcadia
         /// <summary>
         /// Specifies that this item can modify attributes.
         /// </summary>
-        Modifier = 1024
+        Modifier = 1024,
+
+        /// <summary>
+        /// Specifies that this item can be ordered from the catalog.
+        /// </summary>
+        Orderable = 2048
     }
 }

@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcadia.Multiplayer;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Orikivo;
 
 namespace Arcadia.Modules
@@ -12,17 +12,9 @@ namespace Arcadia.Modules
     [Icon("💴")]
     [Name("Economy")]
     [Summary("Commands related to economical features.")]
-    public class Economy : BaseModule<ArcadeContext>
+    public class Economy : ArcadeModule
     {
-        private readonly DiscordSocketClient _client;
-        private readonly IConfigurationRoot _config;
-
-        public Economy(DiscordSocketClient client, IConfigurationRoot config)
-        {
-            _client = client;
-            _config = config;
-        }
-
+        // offer send <user> <outbound> for <inbound>
         [RequireUser]
         [Command("offer")]
         [Summary("Sends a trade offer to the specified user.")]
@@ -36,21 +28,21 @@ namespace Arcadia.Modules
 
             if (!Check.NotNull(input))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You must specify your offer contents."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You must specify your offer contents."));
                 return;
             }
 
             if (!TradeHelper.TryParseOffer(Context.User, user, input, out TradeOffer offer))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("An error has occurred while trying to parse the specified trade offer."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("An error has occurred while trying to parse the specified trade offer."));
                 return;
             }
 
             string result = TradeHelper.SendOffer(Context.Account, account, offer);
-            await Context.Channel.SendMessageAsync(result);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
-        // Instead of using the term 'author' for trade offers, try using 'creator' or 'composer' instead
+        // offer accept <id>
         [RequireUser]
         [Command("offeraccept")]
         [Summary("Accepts the specified trade offer.")]
@@ -74,6 +66,7 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(result);
         }
 
+        // offer decline <id>
         [RequireUser]
         [Command("offerdecline"), Alias("offercancel")]
         [Summary("Declines or cancels the specified trade offer.")]
@@ -94,40 +87,30 @@ namespace Arcadia.Modules
                 throw new Exception("Expected user account to exist from the specified offer");
 
             string result = TradeHelper.DeclineOffer(Context.Account, account, offer);
-            await Context.Channel.SendMessageAsync(result);
+            await Context.Channel.SendMessageAsync(Context.Account, result);
         }
 
+        // offers <page>
         [Command("offers")]
-        [Summary("View all of the possible trade offers requested to you.")]
-        public async Task ViewOffersAsync()
+        [Summary("View all of your active trade offers.")]
+        public async Task ViewOffersAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account, Context));
-        }
-
-        private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
-        {
-            if (reference == null)
-            {
-                await Context.Channel.SendMessageAsync("> **Odd.**\n> The user you seek does not exist in this world.");
-                return true;
-            }
-
-            return false;
+            await Context.Channel.SendMessageAsync(TradeHelper.ViewOffers(Context.Account, Context, --page));
         }
 
         [RequireUser]
         [Command("shops")]
         [Summary("View your collection of available shops to visit.")]
-        public async Task ViewShopsAsync()
+        public async Task ViewShopsAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops(Context.Account));
+            await Context.Channel.SendMessageAsync(ShopHelper.ViewShops(Context.Account, --page));
         }
 
         [Session]
         [RequireUser]
         [RequireGlobalData]
         [Command("shop")]
-        [Summary("Enter the specified **Shop**.")]
+        [Summary("Starts a session for the specified **Shop**.")]
         public async Task ShopAsync(Shop shop)
         {
             var session = new ShopSession(Context, shop);
@@ -135,7 +118,7 @@ namespace Arcadia.Modules
         }
 
         [Command("trade")]
-        [Summary("Attempts to start a trade with the specified user.")]
+        [Summary("Attempts to start a trade session with the specified user.")]
         public async Task TradeAsync(SocketUser user)
         {
             Context.TryGetUser(user.Id, out ArcadeUser account);
@@ -160,7 +143,7 @@ namespace Arcadia.Modules
 
         [Command("gift")]
         [Summary("Attempts to gift an **Item** to the specified user.")]
-        public async Task GiftAsync(SocketUser user, [Name("data_id")][Summary("The specified item data instance to gift.")]string dataId)
+        public async Task GiftAsync([Summary("The user to send your gift to.")]SocketUser user, [Name("data_id")][Summary("The specified item data instance to gift.")]string dataId)
         {
             Context.Data.Users.TryGet(user.Id, out ArcadeUser account);
 
@@ -171,27 +154,23 @@ namespace Arcadia.Modules
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("Could not find a data reference."));
                 return;
             }
 
             if (account.Id == Context.Account.Id)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You can't send a gift to yourself."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You can't send a gift to yourself."));
                 return;
             }
 
             Item item = ItemHelper.GetItem(data.Id);
 
-            // Next, check if the item can be gifted.
             if (!ItemHelper.CanGift(account, data.Id, data))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("This item cannot be gifted."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("This item cannot be gifted."));
                 return;
             }
-
-            // Otherwise, Take the item away from the invoker
-            // If the item has a limited gift count, add one to the gift counter and give it to the user.
 
             Context.Account.Items.Remove(data);
 
@@ -214,8 +193,36 @@ namespace Arcadia.Modules
 
             account.Items.Add(data);
             Context.Data.Users.Save(account); // Save internally since it's not automated
-            await Context.Channel.SendMessageAsync($"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
             Context.Account.AddToVar(Stats.Common.ItemsGifted);
+
+            await Context.Channel.SendMessageAsync(Context.Account, $"> 🎁 Gave **{account.Username}** {(data.Seal != null ? "an item" : $"**{ItemHelper.NameOf(data.Id)}**")}.");
+        }
+
+        [RequireUser]
+        [Command("order")]
+        [Summary("Orders the specified **Item** from your catalog (at a 125% markup value).")]
+        public async Task OrderItemAsync(Item item)
+        {
+            CatalogStatus status = CatalogHelper.GetCatalogStatus(Context.Account, item);
+
+            if (!(item.Tags.HasFlag(ItemTag.Orderable) && status >= CatalogStatus.Known))
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("This item cannot be ordered from the catalog."));
+                return;
+            }
+
+            long cost = BoostConvert.GetValue(item.Value, 1.25f);
+
+            if (!CatalogHelper.CanAfford(Context.Account, cost, item.Currency))
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You cannot afford to order this item."));
+                return;
+            }
+
+            Context.Account.Take(cost, item.Currency);
+            ItemHelper.GiveItem(Context.Account, item);
+
+            await Context.Channel.SendMessageAsync(Context.Account, $"> You have purchased **{item.Name}** from the catalog for {CurrencyHelper.WriteCost(cost, item.Currency)}.");
         }
 
         [RequireUser]
@@ -227,7 +234,7 @@ namespace Arcadia.Modules
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("Could not find a data reference."));
                 return;
             }
 
@@ -241,20 +248,31 @@ namespace Arcadia.Modules
         [Summary("Deletes the specified **Item** from your inventory.")]
         public async Task DeleteItemAsync([Name("data_id")][Summary("The specified item data instance to delete.")]string dataId)
         {
-            var deletable = Context.Account.Items.Where(ItemHelper.CanDelete);
+            IEnumerable<ItemData> disposable = Context.Account.Items.Where(ItemHelper.CanDelete);
 
-            ItemData target = deletable.FirstOrDefault(x =>
+            ItemData target = disposable.FirstOrDefault(x =>
                 (ItemHelper.Exists(x.Id) && (x.Id == dataId || x.Data?.Id == dataId)) || x.TempId == dataId);
 
             if (target == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("An unknown or indestructable data instance was specified."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("An unknown or indestructable data instance was specified."));
                 return;
             }
 
             ItemHelper.DeleteItem(Context.Account, target);
-            // TODO: Set the default names for items to always point at Ids.Items.InternalUnknown
-            await Context.Channel.SendMessageAsync($"> Deleted **{ItemHelper.GetItem(target.Id)?.GetName() ?? ItemHelper.GetItem(Ids.Items.InternalUnknown).Name}** from your inventory pool.");
+            string targetName = ItemHelper.GetItem(target.Id)?.GetName() ?? ItemHelper.GetItem(Ids.Items.InternalUnknown).Name;
+            await Context.Channel.SendMessageAsync(Context.Account, $"> Deleted **{targetName}** from your inventory pool.");
+        }
+
+        private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
+        {
+            if (reference == null)
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, "> **Odd.**\n> The user you seek does not exist in this world.");
+                return true;
+            }
+
+            return false;
         }
     }
 }

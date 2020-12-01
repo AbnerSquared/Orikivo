@@ -12,6 +12,7 @@ namespace Arcadia
     public static class ShopHelper
     {
         internal static readonly int GroupSize = 5;
+        private static readonly int ShopGroupSize = 6;
 
         // TODO: Move these over to the Var class, from which they can be set up as templates instead.
         // *:items_sold
@@ -34,14 +35,11 @@ namespace Arcadia
         public static bool Exists(string shopId)
             => Assets.Shops.Any(x => x.Id == shopId);
 
-        // TODO: Create ExistsFor methods in other helper classes (such as items, merits, etc.)
-        // This is shop that the type readers can falsely let the user know that this merit does not exist, solely for them
         public static bool ExistsFor(ArcadeUser user, string shopId)
             => GetKnownShops(user).Any(x => x.Id == shopId);
 
         public static IEnumerable<Shop> GetKnownShops(ArcadeUser user)
         {
-            // get the variable if not empty; otherwise, attempt to set it to 1 if they can visit
             return Assets.Shops.Where(x => Var.GetOrSet(user, GetTierId(x.Id), (x.ToVisit?.Invoke(user) ?? true) ? 1 : 0) > 0);
         }
 
@@ -61,12 +59,11 @@ namespace Arcadia
             return Assets.Vendors.Where(x => x.PreferredGroups.Any(catalogGroups.Contains));
         }
 
-        // sum together all unique tags
         public static ItemTag GetUniqueTags(ItemCatalog catalog)
         {
             ItemTag unique = 0;
 
-            foreach ((string itemId, int amount) in catalog.ItemIds)
+            foreach ((string itemId, _) in catalog.ItemIds)
                 unique |= ItemHelper.GetTag(itemId);
 
             return unique;
@@ -129,35 +126,52 @@ namespace Arcadia
             return (long)MathF.Floor(value * (1 - discount));
         }
 
-        private static string WriteShopRow(Shop shop)
+        public static string ViewShopSellables(ArcadeUser user, Shop shop)
         {
-            var row = new StringBuilder();
+            var result = new StringBuilder();
 
-            row.AppendLine($"\n> `{shop.Id}` • **{shop.Name}**");
+            string extra = null;
+
+            if (shop.SellDeduction > 0)
+            {
+                extra = $"(**{shop.SellDeduction}**% deduction)";
+            }
+
+            result.AppendLine(Locale.GetHeaderTitle(Headers.Inventory, extra));
+
+            foreach (ItemData data in user.Items.Where(x => ItemHelper.Exists(x.Id) && x.Seal == null && shop.AllowedSellGroups.Contains(ItemHelper.GroupOf(x.Id))))
+            {
+                result.AppendLine(InventoryViewer.PreviewItemStack(data, false));
+            }
+
+            return result.ToString();
+        }
+
+        public static string ViewShops(ArcadeUser user, int page = 0)
+        {
+            IEnumerable<Shop> shops = GetKnownShops(user);
+            int pageCount = Paginate.GetPageCount(shops.Count(), ShopGroupSize);
+            page = Paginate.ClampIndex(page, pageCount);
+            string counter = Format.PageCount(page + 1, pageCount, " ({0})", false);
+            TimeSpan remainder = TimeSpan.FromDays(1) - DateTime.UtcNow.TimeOfDay;
+
+            var info = new StringBuilder($"> 🛒 **Shops**{counter}\n");
+            info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
+
+            foreach (Shop shop in Paginate.GroupAt(shops, page, ShopGroupSize))
+                info.Append($"\n{PreviewShop(shop)}");
+
+            return info.ToString();
+        }
+
+        private static string PreviewShop(Shop shop)
+        {
+            var row = new StringBuilder($"> `{shop.Id}` • **{shop.Name}**\n");
 
             if (!string.IsNullOrWhiteSpace(shop.Quote))
                 row.AppendLine($"> {shop.Quote}");
 
             return row.ToString();
-        }
-
-        // Make sure to incorporate pagination
-        public static string ViewShops(ArcadeUser user)
-        {
-            // Incorporate the user into this
-            // As it determines what shops they can currently view
-
-            var info = new StringBuilder();
-
-            info.AppendLine($"> 🛒 **Shops**");
-
-            TimeSpan remainder = TimeSpan.FromDays(1) - DateTime.UtcNow.TimeOfDay;
-            info.AppendLine($"> All shops will restock in: **{Format.Countdown(remainder)}**");
-
-            foreach (Shop shop in GetKnownShops(user))
-                info.Append(WriteShopRow(shop));
-
-            return info.ToString();
         }
 
         public static long CostOf(Item item, ItemCatalog catalog)
@@ -170,8 +184,7 @@ namespace Arcadia
             return value;
         }
 
-        // This writes the catalog info
-        public static string WriteCatalog(CatalogGenerator generator, ItemCatalog catalog, int page = 0)
+        public static string ViewCatalog(CatalogGenerator generator, ItemCatalog catalog, int page = 0)
         {
             page = Paginate.ClampIndex(page, Paginate.GetPageCount(catalog.Count, GroupSize));
             Paginate.GroupAt(catalog.ItemIds, page, 5);
@@ -181,7 +194,7 @@ namespace Arcadia
             foreach ((string itemId, int amount) in Paginate.GroupAt(catalog.ItemIds, page, GroupSize))//catalog.ItemIds)
             {
                 int discountUpper = catalog.Discounts.ContainsKey(itemId) ? catalog.Discounts[itemId] : 0;
-                info.AppendLine(WriteCatalogEntry(ItemHelper.GetItem(itemId), amount, generator.Entries.Any(x => x.ItemId == itemId && x.IsSpecial), discountUpper));
+                info.AppendLine(PreviewCatalogItem(ItemHelper.GetItem(itemId), amount, generator.Entries.Any(x => x.ItemId == itemId && x.IsSpecial), discountUpper));
             }
 
             return info.ToString();
@@ -215,7 +228,7 @@ namespace Arcadia
             return info.ToString();
         }
 
-        public static string WriteItemValue(Item item, int discount, ShopMode mode, bool showDetails = false)
+        public static string PreviewItem(Item item, int discount, ShopMode mode, bool showDetails = false)
         {
             var cost = new StringBuilder();
             cost.Append($"{Icons.IconOf(item.Currency)} ");
@@ -244,7 +257,7 @@ namespace Arcadia
             return cost.ToString();
         }
 
-        private static string WriteCatalogEntry(Item item, int amount, bool isSpecial, int discountUpper = 0)
+        private static string PreviewCatalogItem(Item item, int amount, bool isSpecial, int discount = 0)
         {
             var entry = new StringBuilder();
 
@@ -265,39 +278,12 @@ namespace Arcadia
             if (Check.NotNullOrEmpty(item.Quotes))
                 entry.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            entry.Append($"> {WriteItemValue(item, discountUpper, ShopMode.Buy, true)} • {InventoryViewer.WriteCapacity(item.Size)}");
+            entry.Append($"> {PreviewItem(item, discount, ShopMode.Buy, true)} • {InventoryViewer.WriteCapacity(item.Size)}");
             return entry.ToString();
         }
 
         public static string NameOf(string shopId)
             => GetShop(shopId).Name;
-
-        public static string GetGenericReply(ShopState state)
-        {
-            return state switch
-            {
-                ShopState.Enter => Vendor.EnterGeneric,
-                ShopState.Buy => Vendor.BuyGeneric,
-                ShopState.BuyDeny => Vendor.BuyDenyGeneric,
-                ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
-                ShopState.BuyFail => Vendor.BuyFailGeneric,
-                ShopState.BuyLimit => Vendor.BuyLimitGeneric,
-                ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
-                ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
-                ShopState.SellInvalid => Vendor.SellInvalidGeneric,
-                ShopState.BuyInvalid => Vendor.BuyInvalidGeneric,
-                ShopState.ViewBuy => Vendor.ViewBuyGeneric,
-                ShopState.Sell => Vendor.SellGeneric,
-                ShopState.ViewSell => Vendor.ViewSellGeneric,
-                ShopState.SellDeny => Vendor.SellDenyGeneric,
-                ShopState.SellEmpty => Vendor.SellEmptyGeneric,
-                ShopState.Exit => Vendor.ExitGeneric,
-                ShopState.Timeout => Vendor.TimeoutGeneric,
-                ShopState.Menu => Vendor.MenuGeneric,
-                ShopState.BuyRemainder => Vendor.BuyRemainderGeneric,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
-            };
-        }
 
         public static string GetVendorReply(Vendor vendor, ShopState state)
         {
@@ -326,6 +312,33 @@ namespace Arcadia
             };
 
             return Check.NotNullOrEmpty(replies) ? Randomizer.Choose(replies) : GetGenericReply(state);
+        }
+
+        private static string GetGenericReply(ShopState state)
+        {
+            return state switch
+            {
+                ShopState.Enter => Vendor.EnterGeneric,
+                ShopState.Buy => Vendor.BuyGeneric,
+                ShopState.BuyDeny => Vendor.BuyDenyGeneric,
+                ShopState.BuyEmpty => Vendor.BuyEmptyGeneric,
+                ShopState.BuyFail => Vendor.BuyFailGeneric,
+                ShopState.BuyLimit => Vendor.BuyLimitGeneric,
+                ShopState.SellNotAllowed => Vendor.SellNotAllowedGeneric,
+                ShopState.SellNotOwned => Vendor.SellNotOwnedGeneric,
+                ShopState.SellInvalid => Vendor.SellInvalidGeneric,
+                ShopState.BuyInvalid => Vendor.BuyInvalidGeneric,
+                ShopState.ViewBuy => Vendor.ViewBuyGeneric,
+                ShopState.Sell => Vendor.SellGeneric,
+                ShopState.ViewSell => Vendor.ViewSellGeneric,
+                ShopState.SellDeny => Vendor.SellDenyGeneric,
+                ShopState.SellEmpty => Vendor.SellEmptyGeneric,
+                ShopState.Exit => Vendor.ExitGeneric,
+                ShopState.Timeout => Vendor.TimeoutGeneric,
+                ShopState.Menu => Vendor.MenuGeneric,
+                ShopState.BuyRemainder => Vendor.BuyRemainderGeneric,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
         }
     }
 }

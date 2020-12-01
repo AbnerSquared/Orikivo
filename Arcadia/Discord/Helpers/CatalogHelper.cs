@@ -10,6 +10,13 @@ namespace Arcadia
         public static string GetCatalogId(string itemId)
             => $"catalog:{itemId}";
 
+        public static bool CanAfford(ArcadeUser user, long cost, CurrencyType currency)
+        {
+            long balance = CurrencyHelper.GetBalance(user, currency);
+
+            return balance >= cost;
+        }
+
         public static IEnumerable<Item> Search(string input)
             => Assets.Items.Where(x => MatchesAny(x, input));
 

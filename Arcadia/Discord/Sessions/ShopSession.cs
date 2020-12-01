@@ -9,7 +9,6 @@ using Discord.WebSocket;
 using Orikivo;
 using Orikivo.Text;
 using Orikivo.Text.Pagination;
-using Format = Orikivo.Format;
 
 namespace Arcadia
 {
@@ -109,7 +108,7 @@ namespace Arcadia
 
             if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
             {
-                body.Append(ShopHelper.WriteCatalog(shop.Catalog, catalog, PageIndex));
+                body.Append(ShopHelper.ViewCatalog(shop.Catalog, catalog, PageIndex));
 
                 if (!HasUpdatedCatalog)
                 {
@@ -124,7 +123,7 @@ namespace Arcadia
             else if (state.EqualsAny(ShopState.ViewSell, ShopState.Sell))
             {
                 body.AppendLine();
-                body.Append(InventoryViewer.ViewShopSellables(user, shop));
+                body.Append(ShopHelper.ViewShopSellables(user, shop));
             }
 
             return body.ToString();

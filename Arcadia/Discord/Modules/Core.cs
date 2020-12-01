@@ -13,7 +13,7 @@ namespace Arcadia.Modules
     [Icon("💽")]
     [Name("Core")]
     [Summary("Contains all root commands for Orikivo Arcade.")]
-    public class Core : BaseModule<ArcadeContext>
+    public class Core : ArcadeModule
     {
         private readonly InfoService _info;
 

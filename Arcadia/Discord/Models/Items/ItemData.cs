@@ -66,7 +66,7 @@ namespace Arcadia
         public string TempId { get; }
 
         /// <summary>
-        /// If true, this <see cref="ItemData"/> stack cannot be used.
+        /// If true, this <see cref="ItemData"/> stack is excluded from use.
         /// </summary>
         [JsonProperty("locked")]
         public bool Locked { get; internal set; }

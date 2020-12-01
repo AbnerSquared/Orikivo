@@ -320,7 +320,7 @@ namespace Orikivo
             {
                 var tooltips = new List<string>(overload.Tooltips);
 
-                if (overload.Parameters.Count > 0)
+                if (overload.Parameters.Count > 0 && overload.Parameters.Any(x => Check.NotNull(x.Summary)))
                 {
                     string commandName = $"{overload.Name}{(overload.Count > 1 ? $"+{overload.Index}" : "")}";
                     tooltips.Add(Locale.GetValue("help_tooltip_parameter", language, commandName));
