@@ -1,5 +1,5 @@
 # Orikivo
-> v**1.0.0rc-1**<br/>
+> v**1.0.0rc-4**<br/>
 
 [![CodeFactor](https://www.codefactor.io/repository/github/abnersquared/orikivo/badge/master?s=b3419a2cbac0938c11c04819f67815eb708833ba)](https://www.codefactor.io/repository/github/abnersquared/orikivo/overview/master)
 
