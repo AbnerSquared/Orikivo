@@ -67,5 +67,11 @@ namespace Arcadia
         /// Specifies that this item can be ordered from the catalog.
         /// </summary>
         Orderable = 2048
+
+        // Specifies that this item can be traded.
+        // Tradable = 4096
+
+        // Specifies that this item can be stacked.
+        // Stackable = 8192
     }
 }

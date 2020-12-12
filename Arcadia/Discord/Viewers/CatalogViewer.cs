@@ -11,29 +11,31 @@ namespace Arcadia.Services
     {
         public static string View(ArcadeUser user)
         {
-            var info = new StringBuilder();
+            var result = new TextBody();
+
+            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
 
             if (!CatalogHelper.CanViewCatalog(user))
             {
-                info.AppendLine("> 🗃️ **Catalog**");
-                info.AppendLine("You haven't seen any items yet. Get out there and explore!");
-                return info.ToString();
+                result.Header.Subtitle = "You haven't seen any items yet. Get out there and explore!";
+                return result.Build(user.Config.Tooltips);
             }
 
-            if (user.Config.Tooltips)
+            result.Tooltips = new List<string>
             {
-                var tooltips = new List<string>
-                {
-                    "Type `catalog <category | group>` to view your known items in a specific category or group.",
-                    "Type `catalogsearch <input>` to look for a specific item."
-                };
+                "Type `catalog <category | group>` to view your known items in a specific category or group.",
+                "Type `catalogsearch <input>` to look for a specific item."
+            };
 
-                info.AppendLine(Format.Tooltip(tooltips))
-                    .AppendLine();
-            }
+            int count = CatalogHelper.GetVisibleCount(user);
 
-            info.AppendLine("> 🗃️ **Catalog**");
-            info.AppendLine("> Learn about all of the items you have discovered so far.");
+            result.Header.Subtitle = count > 0
+                ? $"**{count}** {Format.TryPluralize("item", count)} discovered"
+                : "View your log of discovered items.";
+
+
+            result.Sections.Add(GetCategorySection(user));
+            var info = new StringBuilder();
 
             info.AppendLine();
             info.AppendLine("> **Categories**");
@@ -43,29 +45,60 @@ namespace Arcadia.Services
                 "all", "groups"
             };
 
-            categories.AddRange(EnumUtils.GetValues<ItemFilter>().Select(x => x.ToString().ToLower()));
+            categories.AddRange(EnumUtils.GetValues<ItemTag>().Select(x => x.ToString().ToLower()));
 
             info.AppendJoin(" ", categories.OrderBy(x => x).Select(x => $"`{x}`"));
             info.AppendLine();
 
-            foreach (ItemGroup group in Assets.Groups)
+            if (user.Stats.Any(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)))
+                result.Sections.Add(GetGroupPreviewSection(user));
+
+            return result.Build(user.Config.Tooltips);
+        }
+
+        private static TextSection GetCategorySection(ArcadeUser user)
+        {
+            var categories = new List<string>
             {
-                int known = CatalogHelper.GetKnownCount(user, group.Id);
-                int seen = CatalogHelper.GetSeenCount(user, group.Id);
+                "all", "groups"
+            };
 
-                if (known == 0 && seen == 0)
-                    continue;
+            categories.AddRange(EnumUtils.GetValues<ItemFilter>().Select(x => x.ToString().ToLower()));
 
-                string icon = Check.NotNull(group.Icon) ? $"{group.Icon} " : "";
-                string id = group.Id.Equals(group.Name, StringComparison.OrdinalIgnoreCase) ? "" : $"`{group.Id}` ";
-                info.AppendLine($"\n> {id}{icon}**{group.Name}**");
+            var section = new TextSection
+            {
+                Title = "**Categories**",
+                Content = string.Join(' ', categories.OrderBy(x => x).Select(x => $"`{x}`"))
+            };
 
-                int count = known == 0 ? seen : known;
-                string term = known == 0 ? "seen" : "known";
-                info.AppendLine($"> **{count}** {term} {Format.TryPluralize("entry", count)}");
-            }
+            return section;
+        }
 
-            return info.ToString();
+
+        private static TextSection GetGroupPreviewSection(ArcadeUser user)
+        {
+            var groups = Assets.Groups.Where(x => CatalogHelper.GetVisibleCount(user, x.Id) > 0);
+
+            var section = new TextSection
+            {
+                Title = "**Groups**",
+                Content = string.Join("\n", groups.OrderBy(x => x.Name).Select(x => PreviewGroup(user, x)))
+            };
+
+            return section;
+        }
+
+        private static string PreviewGroup(ArcadeUser user, ItemGroup group)
+        {
+            var result = new StringBuilder();
+            int count = CatalogHelper.GetVisibleCount(user, group.Id);
+
+            string icon = Check.NotNull(group.Icon) ? $"{group.Icon}" : "•";
+            string id = group.Id.Equals(group.Name, StringComparison.OrdinalIgnoreCase) ? "" : $"`{group.Id}` ";
+            result.Append($"{id}{icon} **{group.Name}**");
+            result.Append($" (**{count}** {Format.TryPluralize("entry", count)})");
+
+            return result.ToString();
         }
 
         private static string GetStatusIcon(CatalogStatus status)
@@ -81,7 +114,7 @@ namespace Arcadia.Services
         private static readonly int _pageSize = 8;
 
         private static string GetTooltip()
-            => "Use `item <item_id>` to view more details about an item.";
+            => "Type `item <item_id>` to learn more about an item.";
 
         private static TextList GetGroupSection(string groupId, ArcadeUser user)
         {
@@ -111,38 +144,11 @@ namespace Arcadia.Services
 
         private static string ViewAll(ArcadeUser user, int page = 0)
         {
-            var info = new StringBuilder();
-
-            var result = new TextBody();
-            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
-            result.Header.Group = "All";
-            result.Tooltips.Add(GetTooltip());
-
             var entries = Assets.Items
                 .Where(x => CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
                 .OrderBy(x => x.GetName()).ToList();
 
-            page = Paginate.ClampIndex(page, _pageSize);
-            int pageCount = Paginate.GetPageCount(entries.Count, _pageSize);
-
-            if (pageCount > 1)
-                result.Header.Extra = $"({Format.PageCount(Paginate.ClampIndex(page, pageCount) + 1, pageCount)})";
-
-            foreach (Item item in Paginate.GroupAt(entries, page, _pageSize))
-            {
-                CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
-
-                if (status == CatalogStatus.Unknown)
-                    continue;
-
-                string icon = item.GetIcon() ?? "•";
-
-                info.AppendLine($"> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
-            }
-
-            result.Sections.Add(new TextSection { Content = info.ToString() });
-
-            return result.Build(user.Config.Tooltips);
+            return BuildView(user, entries, "All", null, page);
         }
 
         private static string ViewGroups(ArcadeUser user, int page = 0)
@@ -194,84 +200,118 @@ namespace Arcadia.Services
             return info.ToString();
         }
 
-        // TODO: break this down into an easier to handle method
+        private static string ViewFilter(ArcadeUser user, ItemFilter filter, int page = 0)
+        {
+            List<Item> entries = Assets.Items
+                .Where(x => CatalogHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown && CatalogHelper.MeetsFilter(x, filter))
+                .OrderBy(x => x.GetName()).ToList();
+
+            return BuildView(user, entries, filter.ToString(), CatalogHelper.GetFilterIcon(filter), page);
+        }
+
+        private static string BuildView(ArcadeUser user, List<Item> entries, string title, string icon, int page = 0)
+        {
+            var result = new TextBody();
+
+            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
+            result.Header.Group = title;
+
+            int owned = CatalogHelper.GetKnownCount(user, entries);
+            int seen = CatalogHelper.GetSeenCount(user, entries);
+
+            if (!entries.Any())
+            {
+                result.Header.Subtitle = "You have not discovered any matching items under this category.";
+                return result.Build(user.Config.Tooltips);
+            }
+
+            result.Tooltips.Add(GetTooltip());
+
+            if (seen > 0)
+                result.Tooltips.Add("Items written in italic are items that have only been seen.");
+
+            int pageCount = Paginate.GetPageCount(entries.Count, _pageSize);
+            page = Paginate.ClampIndex(page, pageCount);
+
+            if (pageCount > 1)
+                result.Header.Extra = $"({Format.PageCount(page + 1, pageCount)})";
+
+            result.Header.Icon = Check.NotNull(icon) ? icon : "🗃️";
+            result.Header.Subtitle = GetDiscoverySubtitle(owned, seen);
+
+            result.Sections.Add(new TextSection
+            {
+                Content = string.Join("\n", Paginate.GroupAt(entries, page, _pageSize).Select(x => PreviewItem(user, x)))
+            });
+
+            return result.Build(user.Config.Tooltips);
+        }
+
+        private static string ViewGroup(ArcadeUser user, ItemGroup group, int page = 0)
+        {
+            List<Item> entries = Assets.Items
+                   .Where(x => CatalogHelper.GetCatalogStatus(user, x) > CatalogStatus.Unknown && x.GroupId == group.Id)
+                   .OrderBy(x => x.GetName()).ToList();
+
+            return BuildView(user, entries, group.Name, group.Icon?.ToString(), page);
+        }
+
         public static string View(ArcadeUser user, string query, int page = 0)
         {
             if (!Check.NotNull(query))
                 return View(user);
 
-            if (query == "all")
+            if (query.Equals("all", StringComparison.OrdinalIgnoreCase))
                 return ViewAll(user, page);
 
-            if (query == "groups")
+            if (query.Equals("groups", StringComparison.OrdinalIgnoreCase))
                 return ViewGroups(user, page);
 
-            bool canFilter = Enum.TryParse(query, true, out ItemFilter filter);
+            if (Enum.TryParse(query, true, out ItemFilter filter))
+                return ViewFilter(user, filter, page);
 
-            if (!ItemHelper.GroupExists(query) && !canFilter)
+            var result = new TextBody();
+            result.Header = Locale.GetOrCreateHeader(Headers.Catalog);
+
+            ItemGroup group = ItemHelper.GetGroup(query)
+                ?? Assets.Groups.FirstOrDefault(x => Format.Plural(x.Name).Equals(query, StringComparison.OrdinalIgnoreCase));
+
+            if (group == null)
             {
-                if (!Assets.Groups.Any(x => Format.Plural(x.Name).Equals(query, StringComparison.OrdinalIgnoreCase)))
-                    return Format.Warning("Unable to find a matching query.");
+                result.Header.Subtitle = "The group that was specified does not exist.";
+                return result.Build(user.Config.Tooltips);
             }
 
-            ItemGroup group = ItemHelper.GetGroup(query) ?? Assets.Groups.FirstOrDefault(x => Format.Plural(x.Name).Equals(query, StringComparison.OrdinalIgnoreCase));
+            return ViewGroup(user, group, page);
+        }
 
-            if (!canFilter && group == null)
-            {
-                return Format.Warning("Unable to find a matching query.");
-            }
+        private static string PreviewItem(ArcadeUser user, Item item)
+        {
+            CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
 
-            int owned = canFilter ? CatalogHelper.GetKnownCount(user, filter) : CatalogHelper.GetKnownCount(user, group.Id);
-            int seen = canFilter ? CatalogHelper.GetSeenCount(user, filter) : CatalogHelper.GetSeenCount(user, group.Id);
+            string icon = item.GetIcon() ?? "•";
+            string name = status == CatalogStatus.Seen ? Format.Italics(item.GetName()) : Format.Bold(item.GetName());
 
-            // You are not authorized to view this group query.
-            if (owned == 0 && seen == 0)
-                return Format.Warning("You do not know of any items within this query.");
+            return $"`{item.Id}` {icon} {name}";
+        }
 
-            var info = new StringBuilder();
-
-
-            List<Item> entries = Assets.Items
-                .Where(x => (canFilter ? CatalogHelper.MeetsFilter(x, filter) : x.GroupId == group.Id) && CatalogHelper.GetCatalogStatus(user, x) != CatalogStatus.Unknown)
-                .OrderBy(x => x.GetName()).ToList();
-
-            int pageCount = Paginate.GetPageCount(entries.Count, _pageSize);
-            page = Paginate.ClampIndex(page, pageCount);
-
-            string baseIcon = (canFilter ? CatalogHelper.GetFilterIcon(filter) : group?.Icon?.ToString() ?? "🗃️") ?? "🗃️";
-            string extra = pageCount > 1 ? $" ({Format.PageCount(page + 1, pageCount)})" : "";
-            string queryName = canFilter ? filter.ToString() : group.Name;
-            info.AppendLine($"> {baseIcon} **Catalog: {queryName}**{extra}");
-
-            info.Append("> Discovery: ");
+        private static string GetDiscoverySubtitle(int owned, int seen)
+        {
+            var result = new StringBuilder("Discovery: ");
 
             if (owned > 0 && seen > 0)
             {
-                info.Append($"**{owned:##,0}** owned (**{seen:##,0}** seen)");
+                result.Append($"**{owned:##,0}** owned (**{seen:##,0}** seen)");
             }
             else
             {
                 int counter = owned > 0 ? owned : seen;
                 string counterName = owned > 0 ? "owned" : "seen";
 
-                info.Append($"**{counter:##,0}** {counterName}");
+                result.Append($"**{counter:##,0}** {counterName}");
             }
 
-            info.AppendLine();
-
-            foreach (Item item in Paginate.GroupAt(entries, page, _pageSize))
-            {
-                CatalogStatus status = CatalogHelper.GetCatalogStatus(user, item);
-
-                if (status == CatalogStatus.Unknown)
-                    continue;
-
-                string icon = item.GetIcon() ?? "•";
-
-                info.Append($"\n> {GetStatusIcon(status)} `{item.Id}` {icon} **{item.GetName()}**");
-            }
-
-            return info.ToString();
+            return result.ToString();
         }
 
         public static string InspectItem(ArcadeContext ctx, ArcadeUser user, ItemData data, int index)

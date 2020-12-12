@@ -111,8 +111,14 @@ namespace Arcadia.Modules
         [RequireGlobalData]
         [Command("shop")]
         [Summary("Starts a session for the specified **Shop**.")]
-        public async Task ShopAsync(Shop shop)
+        public async Task ShopAsync(Shop shop = null)
         {
+            if (shop == null)
+            {
+                await Context.Channel.SendMessageAsync($"{Format.Warning("Type `shop <shop_id>` to start a shop session.")}\n\n{ShopHelper.ViewShops(Context.Account)}");
+                return;
+            }
+
             var session = new ShopSession(Context, shop);
             await StartSessionAsync(session);
         }

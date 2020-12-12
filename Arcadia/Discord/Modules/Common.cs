@@ -138,14 +138,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("boosters"), Alias("rates")]
-        [Summary("View all of your currently equipped boosters.")]
-        public async Task ViewBoostersAsync()
-        {
-            await Context.Channel.SendMessageAsync(BoostViewer.Write(Context.Account));
-        }
-
-        [RequireUser]
         [Command("quests"), Alias("missions", "tasks"), Priority(0)]
         [Summary("View all of your currently assigned quests.")]
         public async Task ViewQuestsAsync()
@@ -442,15 +434,6 @@ namespace Arcadia.Modules
             {
                 await Context.Channel.CatchAsync(ex);
             }
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("profile"), Alias("account", "acc", "pf", "user")]
-        [Summary("View a profile.")]
-        public async Task ViewProfileAsync(ArcadeUser user = null)
-        {
-            user ??= Context.Account;
-            await Context.Channel.SendMessageAsync(ProfileViewer.View(user, Context));
         }
     }
 }

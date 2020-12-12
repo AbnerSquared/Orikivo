@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
-using Orikivo.Desync;
 using Orikivo.Text.Pagination;
 using Orikivo.Text;
 
@@ -199,6 +198,12 @@ namespace Arcadia
             if (user.Merits.Any(x => GetMerit(x.Key).Hidden))
                 queries.Add("hidden");
 
+            if (user.Merits.Any())
+                queries.Add("unlocked");
+
+            if (user.Merits.Any(x => x.Value.IsClaimed == true))
+                queries.Add("claimed");
+
             return queries;
         }
 
@@ -232,6 +237,8 @@ namespace Arcadia
                 {
                     "hidden" => m => m.Hidden,
                     "all" => m => true,
+                    "unlocked" => m => HasUnlocked(user, m),
+                    "claimed" => m => user.Merits.ContainsKey(m.Id) && user.Merits[m.Id].IsClaimed == true,
                     _ => null
                 };
             }
@@ -262,7 +269,7 @@ namespace Arcadia
 
         public static string View(ArcadeUser user, string query = null, int page = 0, int pageSize = 5)
         {
-            bool allowTooltips = (user?.Config?.Tooltips ?? true);
+            bool allowTooltips = user.Config.Tooltips;
             var info = new StringBuilder();
 
             bool valid = IsValidQuery(user, query);
@@ -274,7 +281,17 @@ namespace Arcadia
 
                 if (allowTooltips)
                 {
-                    info.AppendLine(Format.Tooltip("Type `merits <category>` to view all of the merits in a specific category."));
+                    var tooltips = new List<string>
+                    {
+                        "Type `merits <category>` to view all of the merits in a specific category."
+                    };
+
+                    if (user.Merits.Any())
+                    {
+                        tooltips.Add("Type `merit recent` to learn about your recently unlocked merit.");
+                    }
+
+                    info.AppendLine(Format.Tooltip(tooltips));
                     info.AppendLine();
                 }
 
@@ -305,7 +322,7 @@ namespace Arcadia
                 if (query.Equals("hidden", StringComparison.OrdinalIgnoreCase))
                     tooltips.Add("All merits in this category are excluded from completion progress.");
 
-                if (group.Any(x => HasUnlocked(user, x)))
+                if (!query.EqualsAny(StringComparison.OrdinalIgnoreCase, "claimed", "unlocked") && group.Any(x => HasUnlocked(user, x)))
                     tooltips.Add("Unlocked merits are marked with `*`.");
 
                 info.AppendLine(Format.Tooltip(tooltips));

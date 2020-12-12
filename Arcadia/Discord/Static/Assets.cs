@@ -106,6 +106,13 @@ namespace Arcadia
                         Weight = 1
                     }
                 }
+            },
+            new LootTable
+            {
+                Id = Ids.Items.CapsuleCasinoI,
+                Entries = new List<LootEntry>
+                {
+                }
             }
         };
 
@@ -568,7 +575,7 @@ namespace Arcadia
                     [3] = new List<VarCriterion>
                     {
                         new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.ChromeCove), 20),
-                        new VarCriterion(ShopHelper.GetTotalSpentId(Ids.Shops.ChromeCove), 10000),
+                        new VarCriterion(ShopHelper.GetTotalSpentId(Ids.Shops.ChromeCove), 7500),
                         new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.ChromeCove), 10)
                     }
                 },
@@ -1835,12 +1842,12 @@ namespace Arcadia
             },
             new Item
             {
-                Id = "ap_mc",
-                GroupId = Ids.Groups.AccessPass,
-                Name = "Midonian Casino",
+                Id = Ids.Items.LicenseInvertedCasino,
+                GroupId = Ids.Groups.License,
+                Name = "Inverted Casino",
                 Quotes = new List<string>
                 {
-                    "It absorbs the addiction of desperate gamblers."
+                    "It harnesses the addiction of desperate gamblers to fuel the risky business."
                 },
                 Tags = ItemTag.Equipment,
                 Rarity = ItemRarity.Desolate,
@@ -2006,13 +2013,13 @@ namespace Arcadia
             },
             new ItemGroup
             {
-                Id = "access_pass",
-                Name = "Access Pass",
-                Prefix = "Access Pass: ",
-                Summary = "Provides access to undisclosed entries.",
+                Id = Ids.Groups.License,
+                Name = "License",
+                Prefix = "License: ",
+                Summary = "A passive tool that grants you access to secret locations or tasks.",
                 Rarity = ItemRarity.Desolate
             },
-            new ItemGroup // Merge passes and automaton to a Passives grouping
+            new ItemGroup
             {
                 Id = "automaton",
                 Icon = "⚙️",

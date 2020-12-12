@@ -667,6 +667,20 @@ namespace Arcadia.Multiplayer.Games
             moves.RemoveAll(GetPossibleMoves(enemy).Contains);
         }
 
+        private bool CanCastle(ChessOwner player)
+        {
+            // Check if the king has moved
+            // Check if the left rook has moved
+            // Check if the right rook has moved
+            // Check to see if the castle moveset puts the king in check
+            // Check if the king is currently in check
+            // Check if the king moves through any tiles that can put the king in check
+            // Check to see if there are any pieces in between the king and the rook it wants to castle with
+            // A left castle moves the king 2 LEFT, and the left rook 3 RIGHT
+            // A right castle moves the king 2 RIGHT, and the right rook 2 LEFT
+            throw new NotImplementedException();
+        }
+
         private List<Coordinate> GetPossibleMoves(ChessOwner player)
         {
             return GetPieces(player).SelectMany(GetBaseMoves).ToList();
@@ -923,6 +937,8 @@ namespace Arcadia.Multiplayer.Games
         public ChessMove LastMove { get; set; }
 
         public List<ChessPiece> Pieces { get; set; }
+
+        public List<ChessMove> Moves { get; set; } = new List<ChessMove>();
 
         public void MovePiece(ChessPiece piece, Coordinate tile)
         {

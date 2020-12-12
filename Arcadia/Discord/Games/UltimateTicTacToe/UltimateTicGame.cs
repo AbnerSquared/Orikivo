@@ -21,6 +21,12 @@ namespace Arcadia.Multiplayer.Games
             AllowSessionJoin = false
         };
 
+        /// <inheritdoc />
+        public override List<GameOption> Options => new List<GameOption>
+        {
+            GameOption.Create("timeout_minutes", "Timeout", 5, "Represents the number of minutes before a match ends.")
+        };
+
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)
         {
             int index = RandomProvider.Instance.Next(1, 3);
@@ -209,7 +215,7 @@ namespace Arcadia.Multiplayer.Games
                 lockedDirection == 0 ? "Unlocked (`set <board> <slot>`)" : $"Locked on Board **{(int)lockedDirection}** (`set <slot>`)");
             content[UltimateTicChannel.Board].Draw();
 
-            ctx.Session.QueueAction(TimeSpan.FromMinutes(2), UltimateTicVars.GetResults);
+            ctx.Session.QueueAction(TimeSpan.FromMinutes(ctx.Session.GetConfigValue<int>("timeout_minutes")), UltimateTicVars.GetResults);
         }
 
         private void GetResults(GameContext ctx)

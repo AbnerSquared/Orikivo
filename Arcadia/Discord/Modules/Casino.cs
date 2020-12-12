@@ -21,7 +21,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("blackjack")]
-        [Summary("A game of 21.")]
+        [Summary("A casino game where your goal is to reach as close to 21 as possible without going over.")]
         public async Task BlackJackAsync(Wager wager)
         {
             await _service.RunBlackJackAsync(Context.Account, Context.Channel, wager).ConfigureAwait(false);
@@ -29,7 +29,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("roulette")]
-        [Summary("A Casino classic. Choose your style of bet and go wild.")]
+        [Summary("A casino classic. Choose your betting style and hope for the best.")]
         public async Task RouletteAsync(RouletteBetMode mode, Wager wager)
         {
             if (wager.Value < 0)
@@ -64,7 +64,7 @@ namespace Arcadia.Modules
 
         [RequireUser]
         [Command("gimi")]
-        [Summary("An activity that randomly provides curses or blessings.")]
+        [Summary("An casino-like activity that randomly provides curses or blessings.")]
         public async Task GimiAsync()
         {
             var gimi = new Gimi();

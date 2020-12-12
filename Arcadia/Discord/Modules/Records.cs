@@ -11,6 +11,23 @@ namespace Arcadia.Modules
     public class Records : ArcadeModule
     {
         [RequireUser(AccountHandling.ReadOnly)]
+        [Command("profile"), Alias("account", "acc", "pf", "user")]
+        [Summary("View a profile.")]
+        public async Task ViewProfileAsync(ArcadeUser user = null)
+        {
+            user ??= Context.Account;
+            await Context.Channel.SendMessageAsync(ProfileViewer.View(user, Context));
+        }
+
+        [RequireUser]
+        [Command("boosters"), Alias("rates")]
+        [Summary("View all of your currently equipped boosters.")]
+        public async Task ViewBoostersAsync()
+        {
+            await Context.Channel.SendMessageAsync(BoostViewer.Write(Context.Account));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("memo")]
         [Summary("View a research memo on the specified **Item**.")]
         public async Task ViewMemoAsync(Item item)

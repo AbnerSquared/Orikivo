@@ -78,6 +78,26 @@ namespace Arcadia
             };
         }
 
+        public static string GetTagIcon(ItemTag tag)
+        {
+            return tag switch
+            {
+                ItemTag.Cloneable => "",
+                ItemTag.Container => "",
+                ItemTag.Decorator => "",
+                ItemTag.Disposable => "",
+                ItemTag.Equipment => "",
+                ItemTag.Material => "",
+                ItemTag.Modifiable => "",
+                ItemTag.Modifier => "",
+                ItemTag.Orderable => "",
+                ItemTag.Renamable => "",
+                ItemTag.Sealable => "",
+                ItemTag.Usable => "",
+                _ => null
+            };
+        }
+
         public static IEnumerable<Item> GetSeenItems(ArcadeUser user)
         {
             return user.Stats
@@ -123,7 +143,19 @@ namespace Arcadia
         {
             return user.Stats
                 .Count(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
-                            && x.Value == (long)CatalogStatus.Known);
+                            && x.Value >= (long)CatalogStatus.Known);
+        }
+
+        public static int GetKnownCount(ArcadeUser user, IEnumerable<Item> entries)
+        {
+            return user.Stats.Where(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase) && entries.Any(y => y.Id == Var.GetKey(x.Key)))
+                .Count(x => x.Value >= (long)CatalogStatus.Known);
+        }
+
+        public static int GetSeenCount(ArcadeUser user, IEnumerable<Item> entries)
+        {
+            return user.Stats.Where(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase) && entries.Any(y => y.Id == Var.GetKey(x.Key)))
+                .Count(x => x.Value == (long)CatalogStatus.Seen);
         }
 
         public static int GetKnownCount(ArcadeUser user, string itemGroup)
@@ -131,7 +163,7 @@ namespace Arcadia
             return user.Stats
                 .Count(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
                             && ItemHelper.GroupOf(Var.GetKey(x.Key)) == itemGroup
-                            && x.Value == (long)CatalogStatus.Known);
+                            && x.Value >= (long)CatalogStatus.Known);
         }
 
         public static int GetKnownCount(ArcadeUser user, ItemFilter filter)
@@ -139,7 +171,7 @@ namespace Arcadia
             return user.Stats
                 .Count(x => x.Key.StartsWith("catalog:", StringComparison.OrdinalIgnoreCase)
                             && MeetsFilter(Var.GetKey(x.Key), filter)
-                            && x.Value == (long)CatalogStatus.Known);
+                            && x.Value >= (long)CatalogStatus.Known);
         }
 
         public static int GetVisibleCount(ArcadeUser user)

@@ -198,7 +198,7 @@ namespace Orikivo
                 header.Append(icon);
 
             string headerTitle = useMarkdown ? Bold(title) : title;
-            header.Append($" {headerTitle}");
+            header.Append($"{headerTitle}");
 
 
             if (Check.NotNull(description))

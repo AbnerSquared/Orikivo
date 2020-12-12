@@ -5,7 +5,9 @@
         internal static class Items
         {
             internal static readonly string InternalUnknown = "$_?";
-            internal static readonly string CapsuleDailyI = "cp_di";
+            internal static readonly string CapsuleDailyI = "cp_daa"; // (stored as aa => Series A, Set I) aa => SERIES_SET
+            internal static readonly string CapsuleCasinoI = "cp_caa";
+            internal static readonly string CapsuleTokenI = "cp_taa";
 
             internal static readonly string LayoutClassic = "ly_cl";
             internal static readonly string LayoutMinimal = "ly_mi";
@@ -65,7 +67,7 @@
             internal static readonly string ComponentSmearKit = "c_sk";
             internal static readonly string ComponentDimmerKit = "c_dk";
             internal static readonly string ComponentNeonKit = "c_nk";
-
+            internal static readonly string LicenseInvertedCasino = "l_ic";
             internal static readonly string InternalSealedItem = "$_seal";
         }
 
@@ -81,6 +83,7 @@
             internal static readonly string Summon = "summon";
             internal static readonly string Automaton = "automaton";
             internal static readonly string AccessPass = "access_pass";
+            internal static readonly string License = "license";
             internal static readonly string Material = "material";
             internal static readonly string Equipment = "equipment";
         }
