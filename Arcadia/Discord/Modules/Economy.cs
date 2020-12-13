@@ -123,7 +123,7 @@ namespace Arcadia.Modules
             await StartSessionAsync(session);
         }
 
-        [Command("trade")]
+        // [Command("trade")]
         [Summary("Attempts to start a trade session with the specified user.")]
         public async Task TradeAsync(SocketUser user)
         {

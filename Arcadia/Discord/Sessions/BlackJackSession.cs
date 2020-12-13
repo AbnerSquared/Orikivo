@@ -348,7 +348,8 @@ namespace Arcadia.Casino
         /// <inheritdoc />
         public override async Task<SessionResult> OnMessageReceivedAsync(SocketMessage message)
         {
-            string input = message.Content;
+            string input = message.Content.ToString();
+            await message.TryDeleteAsync();
 
             if (input == "hit")
             {

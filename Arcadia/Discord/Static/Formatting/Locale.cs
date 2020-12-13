@@ -70,6 +70,12 @@ namespace Arcadia
                 Icon = "🎲",
                 Title = "Server Invites",
                 Subtitle = "Come and join the party!"
+            },
+            [Headers.Leaderboard] = new Header
+            {
+                Icon = "📈",
+                Title = "Leaderboard",
+                Subtitle = "View the leaders of the five primary categories."
             }
         };
 

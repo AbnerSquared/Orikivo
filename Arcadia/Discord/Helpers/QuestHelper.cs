@@ -19,6 +19,21 @@ namespace Arcadia
         public static long GetCriterionGoal(string questId, string statId)
             => GetCriterionGoal(GetQuest(questId), statId);
 
+        private static long GetDefaultValue(QuestDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                QuestDifficulty.Easy => 10,
+                QuestDifficulty.Normal => 20,
+                QuestDifficulty.Hard => 40,
+                QuestDifficulty.Extreme => 80,
+                _ => throw new ArgumentException("An unknown quest difficulty was specified")
+            };
+        }
+
+        public static long GetValue(Quest quest)
+            => quest.Value > 0 ? quest.Value : GetDefaultValue(quest.Difficulty);
+
         public static long GetCriterionGoal(Quest quest, string statId)
         {
             if (quest.Criteria.All(x => x.Id != statId))

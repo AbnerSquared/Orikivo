@@ -13,5 +13,6 @@
         internal static readonly string Catalog = "catalog";
         internal static readonly string Offers = "trade_offers";
         internal static readonly string Invites = "server_invites";
+        internal static readonly string Leaderboard = "leaderboard";
     }
 }

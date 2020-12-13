@@ -115,7 +115,7 @@ namespace Arcadia
             info.AppendLine($"> Rank: **{merit.Rank.ToString()}**");
 
             if (merit.Reward != null)
-                info.Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true));
+                info.AppendLine().Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true));
 
             return info.ToString();
         }
@@ -125,7 +125,8 @@ namespace Arcadia
             if (reward == null)
                 return "";
 
-            var result = new StringBuilder($"> 🎁 **{Format.TryPluralize("Reward", reward.Count)}**");
+            // 🎁
+            var result = new StringBuilder($"> **Completion Reward**"); // Use localization for this..?
 
             if (isClaimed)
                 result.Append(" (Claimed)");

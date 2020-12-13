@@ -40,11 +40,11 @@ namespace Arcadia.Services
         {
             return flag switch
             {
-                LeaderboardQuery.Money => "> 📈 **Leaderboard: Wealth**",
-                LeaderboardQuery.Debt => "> 📈 **Leaderboard: Debt**",
-                LeaderboardQuery.Level => "> 📈 **Leaderboard: Experience**",
-                LeaderboardQuery.Chips => "> 📈 **Leaderboard: Casino**",
-                LeaderboardQuery.Merits => "> 📈 **Leaderboard: Merits**",
+                LeaderboardQuery.Income => "> 📈 **Leaderboard: Income**",
+                LeaderboardQuery.Experience => "> 📈 **Leaderboard: Experience**",
+                LeaderboardQuery.Quest => "> 📈 **Leaderboard: Quest**",
+                LeaderboardQuery.Multiplayer => "> 📈 **Leaderboard: Multiplayer**",
+                LeaderboardQuery.Casino => "> 📈 **Leaderboard: Casino**",
                 _ => "> 📈 **Leaderboards**"
             };
         }
@@ -53,12 +53,12 @@ namespace Arcadia.Services
         {
             return flag switch
             {
-                LeaderboardQuery.Default => "> View the current pioneers of a specific category.",
-                LeaderboardQuery.Money => "> *These are the users that managed to beat all odds.*",
-                LeaderboardQuery.Debt => "> *These are the users with enough debt to make a pool.*",
-                LeaderboardQuery.Level => "> *These are the users dedicated to Orikivo.*",
-                LeaderboardQuery.Chips => "> *These are the users that rule over the **Casino**.*",
-                LeaderboardQuery.Merits => "> *These are the users that have accomplished big things.*",
+                LeaderboardQuery.Default => "> View the leaders of the five primary categories.",
+                LeaderboardQuery.Income => "> *Stability in finance is what these members have mastered.*",
+                LeaderboardQuery.Experience => "> *Those who seek experience shall be known.*",
+                LeaderboardQuery.Quest => "> *Challenges that await these members are no issue.*",
+                LeaderboardQuery.Multiplayer => "> *Gaming is their passion and it shows.*",
+                LeaderboardQuery.Casino => "> *Risk and luck fuel these members.*",
                 _ => ""
             };
         }
@@ -86,11 +86,11 @@ namespace Arcadia.Services
         {
             return flag switch
             {
-                LeaderboardQuery.Money => "The Wealthy",
-                LeaderboardQuery.Debt => "The Cursed",
-                LeaderboardQuery.Level => "The Experienced",
-                LeaderboardQuery.Chips => "The Gambler",
-                LeaderboardQuery.Merits => "The Accolade Hunter",
+                LeaderboardQuery.Income => "The Wealthy",
+                LeaderboardQuery.Experience => "The Wise",
+                LeaderboardQuery.Quest => "The Challenger",
+                LeaderboardQuery.Multiplayer => "The Arcadian",
+                LeaderboardQuery.Casino => "The Predictor",
                 _ => "INVALID_FLAG"
             };
         }
@@ -99,11 +99,11 @@ namespace Arcadia.Services
         {
             return flag switch
             {
-                LeaderboardQuery.Money => "with 💸",
-                LeaderboardQuery.Debt => "with 📃",
-                LeaderboardQuery.Level => "at level",
-                LeaderboardQuery.Chips => "with 🧩",
-                LeaderboardQuery.Merits => "with",
+                LeaderboardQuery.Income => $"with {Icons.Balance}",
+                LeaderboardQuery.Experience => $"with {Icons.Exp}",
+                LeaderboardQuery.Quest => "with ", // {QUEST_POINT_ICON} 104
+                LeaderboardQuery.Multiplayer => "with ", // 96 wins
+                LeaderboardQuery.Casino => $"with {Icons.Chips}",
                 _ => "INVALID_FLAG"
             };
         }
@@ -131,11 +131,11 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardQuery.Money => string.Format(LeaderFormat, title, user.Username, segment, user.Balance.ToString("##,0")),
-                LeaderboardQuery.Debt => string.Format(LeaderFormat, title, user.Username, segment, user.Debt.ToString("##,0")),
-                LeaderboardQuery.Level => string.Format(LeaderFormat, title, user.Username, segment, WriteLevel(user)),
-                LeaderboardQuery.Chips => string.Format(LeaderFormat, title, user.Username, segment, user.ChipBalance.ToString("##,0")),
-                LeaderboardQuery.Merits => string.Format(LeaderBaseFormat, title, user.Username, segment, $"**{MeritHelper.GetScore(user)}**m"),
+                LeaderboardQuery.Income => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyIncome).ToString("##,0")),
+                LeaderboardQuery.Experience => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyExp).ToString("##,0")),
+                LeaderboardQuery.Quest => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyQuests).ToString("##,0")),
+                LeaderboardQuery.Multiplayer => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyArcade).ToString("##,0")),
+                LeaderboardQuery.Casino => string.Format(LeaderBaseFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyCasino).ToString("##,0")), // $"**{MeritHelper.GetScore(user)}**m")
                 _ => "INVALID_FLAG"
             };
         }
@@ -147,11 +147,11 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardQuery.Money => string.Format(UserFormat, user.Username, "💸", user.Balance.ToString("##,0")),
-                LeaderboardQuery.Debt => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
-                LeaderboardQuery.Level => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
-                LeaderboardQuery.Chips => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
-                LeaderboardQuery.Merits => string.Format(CustomBaseFormat, user.Username, $"**{MeritHelper.GetScore(user)}**m"),
+                LeaderboardQuery.Income => string.Format(UserFormat, user.Username, "💸", user.Balance.ToString("##,0")),
+                LeaderboardQuery.Experience => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
+                LeaderboardQuery.Quest => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
+                LeaderboardQuery.Multiplayer => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
+                LeaderboardQuery.Casino => string.Format(CustomBaseFormat, user.Username, $"**{MeritHelper.GetScore(user)}**m"),
                 LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetVar(statId)),
                 _ => "INVALID_FLAG"
             };
@@ -187,7 +187,7 @@ namespace Arcadia.Services
             }
             else
             {
-                leaderboard.Append($"> *Here are the users filtered for `{StatId}`*");
+                leaderboard.Append($"> *Here are the leaders from the following stat: `{StatId}`*");
 
                 if (Sort != LeaderboardSort.Least)
                     leaderboard.Append(".");
@@ -203,14 +203,15 @@ namespace Arcadia.Services
             if (Flag == LeaderboardQuery.Default)
             {
                 leaderboard.AppendLine();
-                leaderboard.AppendLine("> **Categories**\n> `money` `chips` `debt` `merits` `level`");
+                leaderboard.AppendLine("> **Categories**\n"); // Find a better name than categories??
+                leaderboard.AppendJoin(" ", EnumUtils.GetValues<LeaderboardQuery>().Where(x => !x.EqualsAny(LeaderboardQuery.Default, LeaderboardQuery.Custom)).Select(x => $"`{x.ToString().ToLower()}`").OrderBy(x => x[1..]));
                 leaderboard.AppendLine();
-                leaderboard.AppendLine("**Leaders**");
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Money, GetLeader(users, LeaderboardQuery.Money, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Debt, GetLeader(users, LeaderboardQuery.Debt, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Chips, GetLeader(users, LeaderboardQuery.Chips, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Merits, GetLeader(users, LeaderboardQuery.Merits, Sort)));
-                leaderboard.Append(WriteLeader(LeaderboardQuery.Level, GetLeader(users, LeaderboardQuery.Level, Sort))); // Levels aren't implemented yet.
+                leaderboard.AppendLine("> **Leaders**");
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Income, GetLeader(users, LeaderboardQuery.Income, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Experience, GetLeader(users, LeaderboardQuery.Experience, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Multiplayer, GetLeader(users, LeaderboardQuery.Multiplayer, Sort)));
+                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Casino, GetLeader(users, LeaderboardQuery.Casino, Sort)));
+                leaderboard.Append(WriteLeader(LeaderboardQuery.Quest, GetLeader(users, LeaderboardQuery.Quest, Sort))); // Levels aren't implemented yet.
             }
             else
             {
@@ -240,11 +241,11 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardQuery.Money => user.Balance,
-                LeaderboardQuery.Debt => user.Debt,
-                LeaderboardQuery.Level => user.Ascent * 100 + user.Level,
-                LeaderboardQuery.Chips => user.ChipBalance,
-                LeaderboardQuery.Merits => MeritHelper.GetScore(user),
+                LeaderboardQuery.Income => user.GetVar(Vars.MonthlyIncome),
+                LeaderboardQuery.Experience => user.GetVar(Vars.MonthlyExp),
+                LeaderboardQuery.Quest => user.GetVar(Vars.MonthlyQuests), // user.Ascent * 100 + user.Level,
+                LeaderboardQuery.Multiplayer => user.GetVar(Vars.MonthlyArcade),
+                LeaderboardQuery.Casino => user.GetVar(Vars.MonthlyCasino), // MeritHelper.GetScore(user),
                 LeaderboardQuery.Custom => user.GetVar(statId),
                 _ => 0
             };

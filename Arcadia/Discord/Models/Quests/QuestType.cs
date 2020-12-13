@@ -2,10 +2,10 @@
 {
     public enum QuestType
     {
-        // Requires a user to participate.
-        User = 1,
+        // These can only be assigned once per quest assignment period.
+        Quest = 1,
 
-        // Requires a guild to participate.
-        Guild = 2
+        // These can always be re-assigned at any point.
+        Challenge = 2
     }
 }

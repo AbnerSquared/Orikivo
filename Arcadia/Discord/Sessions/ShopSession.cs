@@ -106,7 +106,7 @@ namespace Arcadia
         {
             var body = new StringBuilder();
 
-            if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy))
+            if (state.EqualsAny(ShopState.ViewBuy, ShopState.Buy, ShopState.BuyFail, ShopState.BuyInvalid))
             {
                 body.Append(ShopHelper.ViewCatalog(shop.Catalog, catalog, PageIndex));
 
@@ -120,7 +120,7 @@ namespace Arcadia
                     HasUpdatedCatalog = true;
                 }
             }
-            else if (state.EqualsAny(ShopState.ViewSell, ShopState.Sell))
+            else if (state.EqualsAny(ShopState.ViewSell, ShopState.Sell, ShopState.SellInvalid, ShopState.SellNotAllowed, ShopState.SellNotOwned))
             {
                 body.AppendLine();
                 body.Append(ShopHelper.ViewShopSellables(user, shop));
@@ -129,6 +129,7 @@ namespace Arcadia
             return body.ToString();
         }
 
+        // TODO: Simplify shop states
         // TODO: Place in ShopHelper
         // TODO: This needs to include the `next` `previous` `first` `last` `goto <page>` base on page count
         public static string GetMenuActions(ShopState state)

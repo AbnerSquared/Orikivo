@@ -9,5 +9,12 @@
         internal static readonly string Capacity = "var:capacity";
         internal static readonly string LastBought = "var:last_bought";
         internal static readonly string BoosterLimit = "var:booster_limit";
+        internal static readonly string MonthlyIncome = "monthly:income";
+        internal static readonly string MonthlyExp = "monthly:exp";
+        internal static readonly string MonthlyQuests = "monthly:quests";
+        internal static readonly string MonthlyArcade = "monthly:multiplayer";
+        internal static readonly string MonthlyCasino = "monthly:casino";
+        internal static readonly string CurrentMonth = "var:current_month";
+        internal static readonly string OrderLimit = "var:order_limit";
     }
 }

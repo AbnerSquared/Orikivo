@@ -305,7 +305,7 @@ namespace Arcadia
                 {
                     new VarCriterion(Stats.Common.DailyStreak, 7)
                 },
-                Type = QuestType.User,
+                Type = QuestType.Quest,
                 Reward = new Reward
                 {
                     Money = 105,
@@ -343,7 +343,7 @@ namespace Arcadia
                     new VarCriterion(Stats.Roulette.TimesPlayed, 10),
                     new VarCriterion(Stats.BlackJack.TimesPlayed, 10)
                 },
-                Type = QuestType.User,
+                Type = QuestType.Quest,
                 Reward = new Reward
                 {
                     Money = 20,
@@ -361,7 +361,7 @@ namespace Arcadia
                     new VarCriterion(Stats.Gimi.TimesPlayed, 25),
                     new VarCriterion(Stats.Doubler.TimesPlayed, 25)
                 },
-                Type = QuestType.User,
+                Type = QuestType.Quest,
                 Reward = new Reward
                 {
                     Money = 25,
@@ -379,7 +379,7 @@ namespace Arcadia
                     new VarCriterion(Stats.Trivia.TimesPlayed, 5),
                     new VarCriterion(Stats.Trivia.TimesWon, 1)
                 },
-                Type = QuestType.User,
+                Type = QuestType.Quest,
                 Reward = new Reward
                 {
                     Money = 25,

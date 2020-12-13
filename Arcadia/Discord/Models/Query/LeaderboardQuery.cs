@@ -5,11 +5,11 @@
     public enum LeaderboardQuery
     {
         Default = 0,
-        Money = 1,
-        Debt = 2,
-        Level = 3,
-        Chips = 4,
-        Merits = 5,
+        Income = 1,
+        Experience = 2,
+        Quest = 3,
+        Multiplayer = 4,
+        Casino = 5,
         Custom = 6 // This allows for leaderboards by stats
     }
 }
