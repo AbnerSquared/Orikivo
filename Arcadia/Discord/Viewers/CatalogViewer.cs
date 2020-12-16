@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orikivo;
+using Orikivo.Text;
 using Orikivo.Text.Pagination;
 
 namespace Arcadia.Services
@@ -24,7 +25,7 @@ namespace Arcadia.Services
             result.Tooltips = new List<string>
             {
                 "Type `catalog <category | group>` to view your known items in a specific category or group.",
-                "Type `catalogsearch <input>` to look for a specific item."
+                "Type `catalog search:<input>` to look for a specific item."
             };
 
             int count = CatalogHelper.GetVisibleCount(user);
@@ -260,6 +261,18 @@ namespace Arcadia.Services
         {
             if (!Check.NotNull(query))
                 return View(user);
+
+            if (query.StartsWith("search:", StringComparison.OrdinalIgnoreCase))
+            {
+                var reader = new StringReader(query);
+                reader.Skip(7);
+                reader.SkipWhiteSpace();
+
+                if (!reader.CanRead())
+                    return Format.Warning("Failed to specify a search term (`catalog search:<input>`).");
+
+                return Search(user, reader.GetRemaining(), page);
+            }
 
             if (query.Equals("all", StringComparison.OrdinalIgnoreCase))
                 return ViewAll(user, page);

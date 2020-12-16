@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Orikivo;
 using System;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Formatters;
@@ -193,12 +194,14 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
         }
 
-        [RequireUser]
+        [RequireUser(AccountHandling.ReadOnly)]
         [Command("level"), Alias("exp", "ascent", "lv", "xp")]
-        [Summary("View your current level and experience.")]
-        public async Task ViewLevelAsync()
+        [Summary("View a user's current experience.")]
+        public async Task ViewLevelAsync(ArcadeUser user = null)
         {
-            await Context.Channel.SendMessageAsync(LevelViewer.View(Context.Account));
+            user ??= Context.Account;
+
+            await Context.Channel.SendMessageAsync(LevelViewer.View(user, !user.Equals(Context.Account)));
         }
 
         /*

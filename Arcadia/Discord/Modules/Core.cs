@@ -62,7 +62,7 @@ namespace Arcadia.Modules
 
         [DoNotNotify]
         [Command("help"), Alias("h")]
-        [Summary("A guide to understanding everything **Orikivo Arcade** has to offer.")]
+        [Summary("A service used to understand everything **Orikivo Arcade** has to offer.")]
         public async Task HelpAsync(
             [Remainder, Summary("The input used to generate a search result.")]string input = null)
         {

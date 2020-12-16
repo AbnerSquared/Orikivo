@@ -1191,13 +1191,24 @@ namespace Arcadia
             },
             new Item
             {
+                Id = Ids.Items.InternalPackage,
+                GroupId = "$",
+                Icon = "📦",
+                Name = "Package",
+                Quotes = new List<string>
+                {
+                    "An sealed container received from the catalog."
+                }
+            },
+            new Item
+            {
                 Id = Ids.Items.InternalUnknown,
                 GroupId = "$",
                 Name = "Unknown Cluster",
                 Quotes = new List<string>
                 {
                     "This item no longer seems to be of this world.",
-                    "The noise it emits resembles a garbled signal."
+                    "It emits a garbled signal."
                 }
             },
             new Item

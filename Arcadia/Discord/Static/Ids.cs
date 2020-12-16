@@ -69,6 +69,7 @@
             internal static readonly string ComponentNeonKit = "c_nk";
             internal static readonly string LicenseInvertedCasino = "l_ic";
             internal static readonly string InternalSealedItem = "$_seal";
+            internal static readonly string InternalPackage = "$_pkg";
         }
 
         internal static class Groups

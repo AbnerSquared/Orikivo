@@ -20,6 +20,19 @@ namespace Arcadia
             && (Assets.Groups.Any(x => x.Id == id)
             || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
 
+        public static ItemData CreateData(Item item, int amount = 1, string sealId = null)
+        {
+            if (!Check.NotNull(sealId))
+            {
+                return new ItemData(item.Id, amount);
+            }
+
+            if (!Exists(sealId))
+                throw new ArgumentException("Could not find an item reference for the specified seal ID");
+
+            return new ItemData(item.Id, false, amount, IsUnique(item) ? CreateUniqueData(item) : null, new ItemSealData(sealId));
+        }
+
         // item.Value > 0
         // TODO: Include user to determine if they can buy the item based on their current progress
         public static bool CanBuy(Item item)
@@ -738,6 +751,11 @@ namespace Arcadia
                 currentAmount = item.OwnLimit.Value;
             }
             */
+        }
+
+        internal static void AddItem(ArcadeUser user, ItemData data)
+        {
+            user.Items.Add(data);
         }
 
         internal static void AddItem(ArcadeUser user, string itemId, int amount = 1)

@@ -205,10 +205,26 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("orders")]
+        [Summary("View all of your currently active orders.")]
+        public async Task ViewOrdersAsync(int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(CatalogHelper.ViewOrders(Context.Account, --page));
+        }
+
+        [RequireUser]
         [Command("order")]
         [Summary("Orders the specified **Item** from your catalog (at a 125% markup value).")]
         public async Task OrderItemAsync(Item item)
         {
+            long orderLimit = Var.GetOrSet(Context.Account, Vars.OrderLimit, 3);
+
+            if (CatalogHelper.GetOrderCount(Context.Account) >= orderLimit)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning("You already have too many active orders. Please wait."));
+                return;
+            }
+
             CatalogStatus status = CatalogHelper.GetCatalogStatus(Context.Account, item);
 
             if (!(item.Tags.HasFlag(ItemTag.Orderable) && status >= CatalogStatus.Known))
@@ -225,10 +241,11 @@ namespace Arcadia.Modules
                 return;
             }
 
+            CatalogHelper.TryAddOrder(Context.Account, item);
             Context.Account.Take(cost, item.Currency);
             ItemHelper.GiveItem(Context.Account, item);
 
-            await Context.Channel.SendMessageAsync(Context.Account, $"> You have purchased **{item.Name}** from the catalog for {CurrencyHelper.WriteCost(cost, item.Currency)}.");
+            await Context.Channel.SendMessageAsync(Context.Account, $"> You have placed an order for **{item.Name}** ({CurrencyHelper.WriteCost(cost, item.Currency)}).");
         }
 
         [RequireUser]

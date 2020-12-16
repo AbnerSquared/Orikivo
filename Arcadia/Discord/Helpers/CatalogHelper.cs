@@ -1,10 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Orikivo;
+using Orikivo.Text;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
+    public class Order
+    {
+        public string Id { get; set; }
+
+        public int Position => CatalogHelper.GetOrderPosition(Id);
+
+        public Item Item { get; set; }
+
+        public DateTime DeliverAt { get; set; }
+    }
+
     public static class CatalogHelper
     {
         public static string GetCatalogId(string itemId)
@@ -78,24 +92,181 @@ namespace Arcadia
             };
         }
 
-        public static string GetTagIcon(ItemTag tag)
+        private static string GetOrderId(string itemId, int position)
+            => $"order:{itemId}#{position}";
+
+        public static string ViewOrders(ArcadeUser user, int page = 0)
         {
-            return tag switch
+            var result = new TextBody();
+
+            int orderCount = GetOrderCount(user);
+
+            result.Header = new Header
             {
-                ItemTag.Cloneable => "",
-                ItemTag.Container => "",
-                ItemTag.Decorator => "",
-                ItemTag.Disposable => "",
-                ItemTag.Equipment => "",
-                ItemTag.Material => "",
-                ItemTag.Modifiable => "",
-                ItemTag.Modifier => "",
-                ItemTag.Orderable => "",
-                ItemTag.Renamable => "",
-                ItemTag.Sealable => "",
-                ItemTag.Usable => "",
-                _ => null
+                Title = "Orders",
+                Icon = "📦",
+                Subtitle = $"Active Orders: **{orderCount:##,0}**"
             };
+
+            // result.Tooltips.Add("Type `ordercancel <position>` to cancel an active order.");
+
+            result.Sections.Add(GetOrderSection(user, page));
+
+            return result.Build(user.Config.Tooltips);
+        }
+
+        private static readonly int OrderSectionSize = 5;
+
+        private static TextSection GetOrderSection(ArcadeUser user, int page = 0)
+        {
+            var content = new StringBuilder();
+
+            page = Paginate.ClampIndex(page, Paginate.GetPageCount(GetOrderCount(user), OrderSectionSize));
+
+            foreach (Order order in Paginate.GroupAt(GetOrders(user), page, OrderSectionSize))
+            {
+                content.AppendLine(ViewOrder(order)).AppendLine();
+            }
+
+            return new TextSection
+            {
+                Content = content.ToString()
+            };
+        }
+
+        private static string ViewOrder(Order order)
+        {
+            var result = new StringBuilder();
+
+            // #**{order.Position + 1}**
+            result.AppendLine($"> {ViewItemName(order.Item)}");
+            result.Append($"> Arrives in **{Format.Countdown(order.DeliverAt - DateTime.UtcNow)}**");
+
+            return result.ToString();
+        }
+
+        private static string ViewItemName(Item item)
+        {
+            return $"{item.GetIcon() ?? "•"} **{item.Name}**";
+        }
+
+        public static IEnumerable<Order> GetOrders(ArcadeUser user)
+        {
+            return user.Stats
+                .Where(x => x.Key.StartsWith("order:", StringComparison.OrdinalIgnoreCase)
+                    && ItemHelper.Exists(Var.GetKey(x.Key).Split('#')[0]))
+                .Select(x => new Order
+                {
+                    Id = x.Key,
+                    Item = ItemHelper.GetItem(Var.GetKey(x.Key).Split('#')[0]),
+                    DeliverAt = new DateTime(x.Value)
+                })
+                .OrderBy(x => x.DeliverAt);
+        }
+
+        public static int GetOrderCount(ArcadeUser user)
+        => user.Stats.Count(x => x.Key.StartsWith("order:", StringComparison.OrdinalIgnoreCase)
+                    && ItemHelper.Exists(Var.GetKey(x.Key).Split('#')[0]));
+
+        public static void TryCompleteOrders(ArcadeUser user)
+        {
+            bool updateOrders = false;
+            int completedOrders = 0;
+
+            foreach (Order order in GetOrders(user))
+            {
+                bool isComplete = TryCompleteOrder(user, order, false);
+
+                updateOrders |= isComplete;
+
+                if (isComplete)
+                    completedOrders++;
+            }
+
+            if (completedOrders > 0 && user.Config.Notifier.HasFlag(NotifyAllow.ItemInbound))
+            {
+                if (completedOrders == 1)
+                    user.Notifier.Add("An order has been delivered!");
+                else
+                {
+                    user.Notifier.Add($"{completedOrders:##,0} orders have been delivered!");
+                }
+            }
+
+            if (updateOrders && GetOrderCount(user) > 0)
+                UpdateOrderPositions(user);
+        }
+
+        private static bool TryCompleteOrder(ArcadeUser user, Order order, bool notify = true)
+        {
+            if (!CooldownHelper.IsExpired(order.DeliverAt))
+                return false;
+
+            Var.Clear(user, order.Id); // Remove this order from the list
+            ItemData package = ItemHelper.CreateData(order.Item, 1, Ids.Items.InternalPackage);
+            ItemHelper.AddItem(user, package);
+
+            if (notify && user.Config.Notifier.HasFlag(NotifyAllow.ItemInbound))
+                user.Notifier.Add("An order has been delivered!");
+
+            return true;
+
+        }
+
+        internal static double GetOrderHours(ItemRarity rarity)
+            => (int)rarity * 12;
+
+        internal static int GetOrderPosition(string orderId)
+        {
+            if (!Check.NotNull(orderId))
+                throw new ArgumentException("Expected a non-empty string instance");
+
+            var reader = new StringReader(orderId);
+
+            reader.SkipUntil('#', true);
+
+            return int.Parse(reader.GetRemaining());
+        }
+
+        private static void UpdateOrderPositions(ArcadeUser user)
+        {
+            int i = 0;
+            int offset = 0;
+
+            foreach ((string id, _) in user.Stats.Where(x => x.Key.StartsWith("order:", StringComparison.OrdinalIgnoreCase)
+                    && ItemHelper.Exists(Var.GetKey(x.Key).Split('#')[0])).OrderBy(y => GetOrderPosition(y.Key)))
+            {
+                int position = GetOrderPosition(id);
+
+                if (i == 0)
+                    offset = position;
+
+                if (offset == 0)
+                    return;
+
+                string newId = $"{id.Split('#')[0]}#{position - offset}";
+                Var.Rename(user, id, newId);
+
+                i++;
+            }
+        }
+
+        public static bool TryAddOrder(ArcadeUser user, Item item)
+        {
+            // Attempt to clear out any completed orders
+            TryCompleteOrders(user);
+
+            int activeOrderCount = GetOrderCount(user);
+
+            // Prohibit new orders if there is already too many orders
+            if (activeOrderCount >= Var.GetValue(user, Vars.OrderLimit))
+                return false;
+
+            long deliveryTime = DateTime.UtcNow.AddHours(GetOrderHours(item.Rarity)).Ticks;
+
+            user.SetVar(GetOrderId(item.Id, GetOrderCount(user)), deliveryTime);
+
+            return true;
         }
 
         public static IEnumerable<Item> GetSeenItems(ArcadeUser user)

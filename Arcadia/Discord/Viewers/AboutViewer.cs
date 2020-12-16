@@ -26,6 +26,7 @@ namespace Arcadia.Modules
             result.AppendLine("> **Web Portal**");
             result.AppendLine("• **Website** (**Beta**): <https://abnersquared.github.io/Orikivo.Web/>");
             result.AppendLine("• **Invite URL**: <https://abnersquared.github.io/Orikivo.Web/invites/arcadia>");
+            result.AppendLine("• **Privacy Policy**: <https://github.com/AbnerSquared/Orikivo/blob/v1.0.0rc-1/PRIVACY_POLICY.md>");
 
             // result.AppendLine();
             // result.AppendLine("> **Acknowledgements**");

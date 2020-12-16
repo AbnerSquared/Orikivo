@@ -78,7 +78,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("catalogsearch")]
+        // [Command("catalogsearch")]
         [Summary("Search through the item catalog to look for a specific **Item**.")]
         public async Task CatalogSearchAsync([Remainder]string input)
         {

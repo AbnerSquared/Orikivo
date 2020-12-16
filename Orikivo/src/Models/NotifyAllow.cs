@@ -16,6 +16,7 @@ namespace Orikivo
         Invite = 32,
         Level = 64,
         Research = 128,
-        Daily = 256
+        Daily = 256,
+        ItemInbound = 512
     }
 }
