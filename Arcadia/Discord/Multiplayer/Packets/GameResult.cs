@@ -15,21 +15,21 @@ namespace Arcadia.Multiplayer
         // This also includes specified configuration values
         public IReadOnlyList<GameProperty> SessionProperties { get; internal set; }
 
-        public IReadOnlyDictionary<ulong, PlayerResult> PlayerResults { get; internal set; }
+        public IReadOnlyDictionary<ulong, PlayerResult> Players { get; internal set; }
 
         public TimeSpan SessionDuration { get; internal set; }
 
         public PlayerResult GetPlayerResult(ulong userId)
         {
-            return PlayerResults.FirstOrDefault(u => u.Key == userId).Value;
+            return Players.FirstOrDefault(u => u.Key == userId).Value;
         }
 
         public void Apply(ArcadeContainer container, string bonusGameId)
         {
-            if (PlayerResults == null)
+            if (Players == null)
                 return;
 
-            foreach ((ulong userId, PlayerResult result) in PlayerResults)
+            foreach ((ulong userId, PlayerResult result) in Players)
             {
                 if (!container.Users.TryGet(userId, out ArcadeUser user))
                     continue;

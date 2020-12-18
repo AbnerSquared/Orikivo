@@ -17,37 +17,46 @@ namespace Arcadia
             => MeetsCriterion(GetQuest(questId), statId, current);
 
         public static long GetCriterionGoal(string questId, string statId)
-            => GetCriterionGoal(GetQuest(questId), statId);
+            => GetCriterionGoal(GetQuest(questId).Criteria.First(x => x.Id == statId));
 
-        private static long GetDefaultValue(QuestDifficulty difficulty)
+        private static string GetDifficultyName(int difficulty)
         {
+            if (difficulty >= 5)
+                return "Impossible";
+
             return difficulty switch
             {
-                QuestDifficulty.Easy => 10,
-                QuestDifficulty.Normal => 20,
-                QuestDifficulty.Hard => 40,
-                QuestDifficulty.Extreme => 80,
-                _ => throw new ArgumentException("An unknown quest difficulty was specified")
+                4 => "Extreme",
+                3 => "Hard",
+                2 => "Normal",
+                1 => "Easy",
+                _ => "Very Easy"
             };
+        }
+
+        private static readonly long DifficultyScalar = 10;
+        private static readonly long QuestPointBase = 2;
+
+        private static long GetDefaultValue(int difficulty)
+        {
+            if (difficulty <= 0)
+                return DifficultyScalar;
+
+            return (long)(DifficultyScalar * Math.Pow(QuestPointBase, difficulty - 1));
         }
 
         public static long GetValue(Quest quest)
             => quest.Value > 0 ? quest.Value : GetDefaultValue(quest.Difficulty);
 
         public static long GetCriterionGoal(Quest quest, string statId)
-        {
-            if (quest.Criteria.All(x => x.Id != statId))
-                throw new Exception("Expected to find criterion ID but returned null");
+            => GetCriterionGoal(quest.Criteria.First(x => x.Id == statId));
 
-            return quest.Criteria.First(x => x.Id == statId).ExpectedValue;
-        }
-
-        public static bool MeetsCriterion(Quest quest, string statId, long current)
+        public static bool MeetsCriterion(Quest quest, string criterionId, long current)
         {
-            if (quest.Criteria.All(x => x.Id != statId))
+            if (quest.Criteria.All(x => x.Id != criterionId))
                 return false;
 
-            return current >= quest.Criteria.First(x => x.Id == statId).ExpectedValue;
+            return current >= GetCriterionGoal(quest.Criteria.First(x => x.Id == criterionId));
         }
 
         public static bool CanAssign(ArcadeUser user)
@@ -125,7 +134,7 @@ namespace Arcadia
             {
                 Quest toAssign = Randomizer.Choose(assignable);
                 user.Quests.Add(new QuestData(toAssign));
-                info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({toAssign.Difficulty.ToString()})");
+                info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({GetDifficultyName(toAssign.Difficulty)})");
             }
 
             TimeSpan amountToSkip = AssignCooldown - ((AssignCooldown / user.GetVar(Stats.Common.QuestCapacity)) * available);
@@ -162,16 +171,16 @@ namespace Arcadia
         }
 
         // 0% complete.
-        private static string GetProgress(QuestData data)
+        private static string GetProgress(ArcadeUser user, QuestData data)
         {
             Quest quest = GetQuest(data.Id);
 
             long sum = 0;
             long total = 0;
-            foreach (VarCriterion criterion in quest.Criteria)
+            foreach (Criterion criterion in quest.Criteria)
             {
-                sum += data.Progress[criterion.Id];
-                total += criterion.ExpectedValue;
+                sum += GetCriterionValue(user, data, criterion);
+                total += GetCriterionGoal(criterion);
             }
 
             return $"**{RangeF.Convert(0, total, 0, 100, sum):##,0}**% complete";
@@ -304,16 +313,21 @@ namespace Arcadia
 
             var info = new StringBuilder();
 
-            info.AppendLine($"> **Objective: {quest.Name}** • {quest.Difficulty.ToString()} (Slot {index + 1})");
-            info.AppendLine($"> {GetProgress(slot)}\n");
+            info.AppendLine($"> **Objective: {quest.Name}** • {GetDifficultyName(quest.Difficulty)} (Slot {index + 1})");
+            info.AppendLine($"> {GetProgress(user, slot)}\n");
 
             info.AppendLine("> **Tasks**");
 
-            foreach (VarCriterion criterion in quest.Criteria)
+            foreach (Criterion criterion in quest.Criteria)
             {
-                string bullet = criterion.ExpectedValue == slot.Progress[criterion.Id] ? "✓" : "•";
+                if (!slot.Progress.ContainsKey(criterion.Id))
+                {
+                    throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
+                }
 
-                info.AppendLine($"> {bullet} `{criterion.Id}` (**{slot.Progress[criterion.Id]}**/{criterion.ExpectedValue})");
+                string bullet = slot.Progress[criterion.Id].Complete ? "✓" : "•";
+
+                info.AppendLine($"> {bullet} `{criterion.Id}` (**{GetCriterionValue(user, slot, criterion)}** / **{GetCriterionGoal(criterion)}**)");
             }
 
             info.AppendLine($"\n> **{Format.TryPluralize("Reward", GetUniqueCount(quest.Reward))}**");
@@ -322,34 +336,58 @@ namespace Arcadia
             return info.ToString();
         }
 
-        public static bool MeetsCriteria(QuestData data)
+        private static long GetCriterionValue(ArcadeUser user, QuestData data, Criterion criterion)
+        {
+            if (!data.Progress.ContainsKey(criterion.Id))
+            {
+                throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
+            }
+
+            return criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
+                    : data.Progress[criterion.Id].Complete ? 1 : 0;
+        }
+
+        private static long GetCriterionGoal(Criterion criterion)
+        {
+            return criterion is VarCriterion varCriterion ? varCriterion.ExpectedValue : 1;
+        }
+
+        public static bool MeetsCriteria(ArcadeUser user, QuestData data)
         {
             Quest quest = GetQuest(data.Id);
 
             if (quest == null)
                 throw new Exception("Expected to find a parent quest but returned null");
 
-            foreach (VarCriterion criterion in quest.Criteria)
+            foreach (Criterion criterion in quest.Criteria)
             {
-                long current = data.Progress[criterion.Id];
+                if (!data.Progress.ContainsKey(criterion.Id))
+                {
+                    throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
+                }
 
-                if (current < criterion.ExpectedValue)
+                // If the key isn't found, it means that the criterion is not judged by a blank slate, but instead the current value
+                long current = criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
+                    : data.Progress[criterion.Id].Complete ? 1 : 0;
+
+                long goal = criterion is VarCriterion varCriterion ? varCriterion.ExpectedValue : 1;
+
+                if (current < goal)
                     return false;
             }
 
             return true;
         }
 
-
         public static string CompleteAndDisplay(ArcadeUser user)
         {
             if (user.Quests.Count == 0)
                 return $"> {Icons.Warning} You do not have any currently assigned objectives.";
 
-            if (!user.Quests.Any(MeetsCriteria))
+            if (!user.Quests.Any(x => MeetsCriteria(user, x)))
                 return $"> {Icons.Warning} You have not met the criteria for any currently assigned objectives.";
 
-            List<QuestData> complete = user.Quests.Where(MeetsCriteria).ToList(); // Creates a new copy
+            List<QuestData> complete = user.Quests.Where(x => MeetsCriteria(user, x)).ToList(); // Creates a new copy
 
             var info = new StringBuilder();
 
@@ -365,7 +403,7 @@ namespace Arcadia
 
                 user.Quests.Remove(completed);
                 user.AddToVar(Stats.Common.TotalCompletedQuests);
-                info.AppendLine($"> **{quest.Name}** ({quest.Difficulty})");
+                info.AppendLine($"> **{quest.Name}** ({GetDifficultyName(quest.Difficulty)})");
                 info.AppendLine($"> {Icons.Complete} You have completed an objective!\n");
                 info.AppendLine("> You have been rewarded:");
                 info.AppendLine(WriteReward(quest.Reward));
@@ -396,7 +434,7 @@ namespace Arcadia
             foreach (QuestData data in user.Quests)
             {
                 Quest quest = GetQuest(data.Id);
-                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** ({GetProgress(data)})");
+                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** ({GetProgress(user, data)})");
 
                 if (Check.NotNull(quest.Summary))
                     result.AppendLine($"> {quest.Summary}");

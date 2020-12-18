@@ -961,7 +961,7 @@ namespace Arcadia.Multiplayer.Games
                 playerResults.Add(playerId, toUpdate);
             }
 
-            result.PlayerResults = playerResults;
+            result.Players = playerResults;
             FinalizeResult(result, session);
             return result;
         }

@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
-using Orikivo.Desync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Arcadia.Graphics;
-using Arcadia.Multiplayer;
 using Discord;
 using Orikivo;
 
@@ -150,28 +148,37 @@ namespace Arcadia
 
         internal void SetQuestProgress(string id)
         {
-            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
-                return;
-
             long value = GetVar(id);
 
-            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]));
-            data.Progress[id] = value;
+            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value)))
+                return;
 
-            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
-                data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value));
+            data.Progress[id].Value = value;
+
+            // When a criterion is met, it might be better to remove it from the Quest data
+            // When viewing a quest with a missing criterion, it is automatically assumed to be completed already
+
+            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id].Value ?? value))
+            {
+                data.Progress[id].Complete = true;
+                data.Progress[id].Value = null;
+            }
         }
 
         internal void AddToQuestProgress(string id, long amount)
         {
-            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id])))
+            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !x.Progress[id].Complete && x.Progress[id].Value.HasValue && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id].Value.Value)))
                 return;
 
-            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]));
-            data.Progress[id] += amount;
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !x.Progress[id].Complete && x.Progress[id].Value.HasValue && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id].Value.Value));
+            data.Progress[id].Value += amount;
 
-            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id]))
-                data.Progress[id] = QuestHelper.GetCriterionGoal(data.Id, id);
+            if (QuestHelper.MeetsCriterion(data.Id, id, data.Progress[id].Value.Value))
+            {
+                data.Progress[id].Complete = true;
+                data.Progress[id].Value = null;
+            }
         }
 
         public void SetVar(string id, long value)

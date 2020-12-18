@@ -151,7 +151,7 @@ namespace Arcadia
             foreach (Challenge challenge in user.Challenges
                 .Where(x => !x.Value.Complete)
                 .Select(x => GetChallenge(x.Key))
-                .Where(x => x.Triggers == CriteriaTriggers.Game))
+                .Where(x => x.Triggers == CriterionTriggers.Game))
             {
                 if (challenge.Criterion.Judge(new CriterionContext(user, result)))
                 {

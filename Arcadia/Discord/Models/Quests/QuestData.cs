@@ -11,20 +11,27 @@ namespace Arcadia
     {
         public QuestData(Quest quest)
         {
-            var progress = new Dictionary<string, long>();
+            var progress = new Dictionary<string, CriterionData>();
 
-            foreach (VarCriterion criterion in quest.Criteria)
-                progress.Add(criterion.Id, 0);
+            foreach (Criterion criterion in quest.Criteria)
+            {
+                var data = new CriterionData();
+
+                if (criterion is VarCriterion varCriterion && varCriterion.JudgeAsNew)
+                    data.Value = 0;
+
+                progress.Add(criterion.Id, data);
+            }
 
             Id = quest.Id;
             Progress = progress;
         }
 
         [JsonConstructor]
-        internal QuestData(string id, Dictionary<string, long> progress)
+        internal QuestData(string id, Dictionary<string, CriterionData> progress)
         {
             Id = id;
-            Progress = progress ?? new Dictionary<string, long>();
+            Progress = progress ?? new Dictionary<string, CriterionData>();
         }
 
         [JsonProperty("id")]
@@ -34,6 +41,6 @@ namespace Arcadia
         /// Keeps track of all of the required criterion for a <see cref="Quest"/>.
         /// </summary>
         [JsonProperty("progress")]
-        public Dictionary<string, long> Progress { get; }
+        public Dictionary<string, CriterionData> Progress { get; }
     }
 }

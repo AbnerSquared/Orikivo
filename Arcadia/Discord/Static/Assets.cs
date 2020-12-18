@@ -52,7 +52,7 @@ namespace Arcadia
         {
             new LootTable
             {
-                Id = Ids.Items.CapsuleDailyI,
+                Id = Ids.Items.CapsuleDaily1,
                 Entries = new List<LootEntry>
                 {
                     new LootEntry
@@ -109,6 +109,58 @@ namespace Arcadia
             },
             new LootTable
             {
+                Id = Ids.Items.CapsuleDaily2,
+                Entries = new List<LootEntry>
+                {
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteGammaGreen,
+                        Weight = 3
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteCrimson,
+                        Weight = 2
+                    },
+                    new LootEntry
+                    {
+                        Money = 25,
+                        Weight = 12
+                    },
+                    new LootEntry
+                    {
+                        Money = 50,
+                        Weight = 15
+                    },
+                    new LootEntry
+                    {
+                        Money = 75,
+                        Weight = 23
+                    },
+                    new LootEntry
+                    {
+                        Money = 100,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.BoosterOriteBooster,
+                        Weight = 4
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteOceanic,
+                        Weight = 3
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteLemon,
+                        Weight = 3
+                    }
+                }
+            },
+            new LootTable
+            {
                 Id = Ids.Items.CapsuleCasinoI,
                 Entries = new List<LootEntry>
                 {
@@ -157,7 +209,7 @@ namespace Arcadia
                 Id = "task_trivia:001",
                 Name = "Play a game of **Trivia** (5 question minimum)",
                 Difficulty = 0,
-                Triggers = CriteriaTriggers.Game,
+                Triggers = CriterionTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -175,7 +227,7 @@ namespace Arcadia
                             throw new Exception("Expected game property but does not exist");
 
                         return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
-                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                        && ctx.Result.Players.ContainsKey(ctx.User.Id);
                     }
                 }
             },
@@ -184,7 +236,7 @@ namespace Arcadia
                 Id = "task_trivia:002",
                 Name = "Play a game of **Trivia** (10 question minimum)",
                 Difficulty = 1,
-                Triggers = CriteriaTriggers.Game,
+                Triggers = CriterionTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -202,7 +254,7 @@ namespace Arcadia
                             throw new Exception("Expected game property but does not exist");
 
                         return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 10
-                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                        && ctx.Result.Players.ContainsKey(ctx.User.Id);
                     }
                 }
             },
@@ -211,7 +263,7 @@ namespace Arcadia
                 Id = "task_trivia:003",
                 Name = "Play a game of **Trivia** (15 question minimum)",
                 Difficulty = 2,
-                Triggers = CriteriaTriggers.Game,
+                Triggers = CriterionTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -229,7 +281,7 @@ namespace Arcadia
                             throw new Exception("Expected game property but does not exist");
 
                         return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 15
-                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                        && ctx.Result.Players.ContainsKey(ctx.User.Id);
                     }
                 }
             },
@@ -238,7 +290,7 @@ namespace Arcadia
                 Id = "task_trivia:004",
                 Name = "Play a game of **Trivia** (20 question minimum)",
                 Difficulty = 3,
-                Triggers = CriteriaTriggers.Game,
+                Triggers = CriterionTriggers.Game,
                 Criterion = new Criterion
                 {
                     Judge = delegate (CriterionContext ctx)
@@ -256,7 +308,7 @@ namespace Arcadia
                             throw new Exception("Expected game property but does not exist");
 
                         return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 20
-                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id);
+                        && ctx.Result.Players.ContainsKey(ctx.User.Id);
                     }
                 }
             },
@@ -285,9 +337,9 @@ namespace Arcadia
                             return false;
 
                         return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
-                        && ctx.Result.PlayerResults.ContainsKey(ctx.User.Id)
-                        && ctx.Result.PlayerResults.Count >= 2
-                        && ctx.Result.PlayerResults.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
+                        && ctx.Result.Players.ContainsKey(ctx.User.Id)
+                        && ctx.Result.Players.Count >= 2
+                        && ctx.Result.Players.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
                     }
                 }
             }
@@ -300,12 +352,12 @@ namespace Arcadia
                 Id = "quest:weekly_attendance",
                 Name = "Weekly Attendance",
                 Summary = "Ensure your status for a week.",
-                Difficulty = QuestDifficulty.Normal,
-                Criteria = new List<VarCriterion>
+                Difficulty = 2,
+                Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Common.DailyStreak, 7)
                 },
-                Type = QuestType.Quest,
+                Type = QuestType.Daily,
                 Reward = new Reward
                 {
                     Money = 105,
@@ -337,13 +389,13 @@ namespace Arcadia
                 Id = "quest:low_stakes",
                 Name = "Low Stakes",
                 Summary = "The Casino has some classics for you to participate in.",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
+                Difficulty = 1,
+                Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Roulette.TimesPlayed, 10),
                     new VarCriterion(Stats.BlackJack.TimesPlayed, 10)
                 },
-                Type = QuestType.Quest,
+                Type = QuestType.Daily,
                 Reward = new Reward
                 {
                     Money = 20,
@@ -355,13 +407,13 @@ namespace Arcadia
                 Id = "quest:casino_field_day",
                 Name = "Casino Field Day",
                 Summary = "It's a wonderful day to gamble your happiness away!",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
+                Difficulty = 1,
+                Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Gimi.TimesPlayed, 25),
                     new VarCriterion(Stats.Doubler.TimesPlayed, 25)
                 },
-                Type = QuestType.Quest,
+                Type = QuestType.Daily,
                 Reward = new Reward
                 {
                     Money = 25,
@@ -373,13 +425,13 @@ namespace Arcadia
                 Id = "quest:trivial_pursuit",
                 Name = "Trivial Pursuit",
                 Summary = "Test your brain power and push through.",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
+                Difficulty = 1,
+                Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Trivia.TimesPlayed, 5),
                     new VarCriterion(Stats.Trivia.TimesWon, 1)
                 },
-                Type = QuestType.Quest,
+                Type = QuestType.Daily,
                 Reward = new Reward
                 {
                     Money = 25,
@@ -1837,7 +1889,7 @@ namespace Arcadia
                 Name = "Chocolate",
                 Quotes = new List<string>
                 {
-                    "It reminds you of a simpler time, where sweets meant everything."
+                    "It reminds you of a simpler time where sweets meant everything."
                 },
                 Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 3000,
@@ -1888,7 +1940,7 @@ namespace Arcadia
                 Quotes = new List<string>
                 {
                     "It resists the automation of auto-width characters.",
-                    "It translates scripture at the speed of sound when left near a typography port."
+                    "It used to translate scripture at the speed of sound back in the past."
                 },
                 Value = 2500,
                 Currency = CurrencyType.Money,
@@ -1932,16 +1984,16 @@ namespace Arcadia
             },
             new Item
             {
-                Id = Ids.Items.CapsuleDailyI,
+                Id = Ids.Items.CapsuleDaily1,
                 Icon = "🏮",
                 Name = "Daily Capsule I",
-                Summary = "A sealed goodie bag for checking in on a daily basis.",
+                Summary = "A small goodie bag with a ribbon of hope.",
                 Quotes = new List<string>
                 {
                     "The contents inside glow with hope."
                 },
                 Tags = ItemTag.Container | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
-                Rarity = ItemRarity.Uncommon,
+                Rarity = ItemRarity.Common,
                 Currency = CurrencyType.Money,
                 Value = 50,
                 Usage = new ItemUsage
@@ -1951,7 +2003,29 @@ namespace Arcadia
                     DeleteMode = DeleteMode.Break
                 },
                 TradeLimit = 0
-
+            },
+            new Item
+            {
+                Id = Ids.Items.CapsuleDaily1,
+                Icon = "🏮",
+                Name = "Daily Capsule II",
+                Summary = "A heartfelt goodie bag with a bronze seal.",
+                Quotes = new List<string>
+                {
+                    "The contents inside glow with hope."
+                },
+                Tags = ItemTag.Container | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Rarity = ItemRarity.Uncommon,
+                Currency = CurrencyType.Money,
+                Value = 100,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    // TODO: Add a custom property for capsules called roll count, which can be modified by a export cloning kit to add another roll count
+                    Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
+                    DeleteMode = DeleteMode.Break
+                },
+                TradeLimit = 0
             }
         };
 

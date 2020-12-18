@@ -5,7 +5,8 @@
         internal static class Items
         {
             internal static readonly string InternalUnknown = "$_?";
-            internal static readonly string CapsuleDailyI = "cp_daa"; // (stored as aa => Series A, Set I) aa => SERIES_SET
+            internal static readonly string CapsuleDaily1 = "cp_daa"; // (stored as aa => Series A, Set I) aa => SERIES_SET
+            internal static readonly string CapsuleDaily2 = "cp_dab";
             internal static readonly string CapsuleCasinoI = "cp_caa";
             internal static readonly string CapsuleTokenI = "cp_taa";
 

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Arcadia
+﻿namespace Arcadia
 {
+    // Daily challenges offer bigger rewards and take up quest slots, but smaller challenges can become available
+    // Once you complete all of the daily quests
+    // TODO: Remove this class and rename Quest to Challenge
     /// <summary>
     /// Represents a basic objective.
     /// </summary>
@@ -15,7 +15,7 @@ namespace Arcadia
         // You want the difficulty to increase as the user completes more challenge sets
         // For each set completed, increase the cap of where the difficulty cuts off.
 
-        public CriteriaTriggers Triggers { get; set; }
+        public CriterionTriggers Triggers { get; set; }
 
         public Criterion Criterion { get; internal set; }
     }

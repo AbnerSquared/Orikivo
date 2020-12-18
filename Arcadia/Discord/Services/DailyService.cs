@@ -63,7 +63,7 @@ namespace Arcadia.Services
 
                 case DailyResultFlag.Bonus:
                     color = GammaPalette.Glass[Gamma.Max];
-                    ItemHelper.GiveItem(user, Ids.Items.CapsuleDailyI);
+                    ItemHelper.GiveItem(user, Ids.Items.CapsuleDaily1);
                     // reward += Bonus;
                     break;
             }

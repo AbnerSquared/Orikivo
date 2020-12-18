@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 namespace Arcadia
 {
-    public class Quest
+    // Daily challenges offer bigger rewards and take up quest slots, but smaller challenges can become available
+    // Once you complete all of the daily quests
+    /// <summary>
+    /// Represents a generic objective.
+    /// </summary>
+    public class Quest // Rename to challenge when possible
     {
         public string Id { get; set; }
 
@@ -11,23 +16,17 @@ namespace Arcadia
 
         public string Summary { get; set; }
 
-        public QuestDifficulty Difficulty { get; set; }
-
-        // This is used for challenges, find a way to merge with quest difficulties
-        internal int InnerDifficulty { get; set; } = 0;
+        public int Difficulty { get; set; }
 
         public QuestType Type { get; set; }
 
         // Amount of monthly quest points given on completion
+        // If unspecified, this is automatically assigned based on difficulty
         public long Value { get; set; } = 0;
 
-        // This is the trigger call for this quest to be judged
-        public CriteriaTriggers Triggers { get; set; }
-
-        // The requirements needed to assign this quest
         public Func<ArcadeUser, bool> ToAssign { get; set; }
 
-        public List<VarCriterion> Criteria { get; internal set; } = new List<VarCriterion>();
+        public List<Criterion> Criteria { get; internal set; } = new List<Criterion>();
 
         public Reward Reward { get; set; }
 

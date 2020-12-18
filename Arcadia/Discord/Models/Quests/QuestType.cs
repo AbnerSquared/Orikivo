@@ -3,7 +3,7 @@
     public enum QuestType
     {
         // These can only be assigned once per quest assignment period.
-        Quest = 1,
+        Daily = 1,
 
         // These can always be re-assigned at any point.
         Challenge = 2
