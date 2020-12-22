@@ -70,12 +70,12 @@ namespace Arcadia
             if (item.Usage == null)
                 throw new Exception("Expected item usage to be specified but returned null");
 
-            string statGroup = item.Usage?.CooldownMode switch
+            string statGroup = item.Usage?.CooldownTarget switch
             {
-                CooldownMode.Instance => uniqueId ?? throw new Exception("Expected a unique item reference but was unspecified"),
-                CooldownMode.Item => itemId,
-                CooldownMode.Group => item.GroupId ?? throw new Exception("Expected an item group but was empty"),
-                CooldownMode.Global => "global",
+                CooldownTarget.Instance => uniqueId ?? throw new Exception("Expected a unique item reference but was unspecified"),
+                CooldownTarget.Item => itemId,
+                CooldownTarget.Group => item.GroupId ?? throw new Exception("Expected an item group but was empty"),
+                CooldownTarget.Global => "global",
                 _ => null
             };
 
@@ -278,11 +278,11 @@ namespace Arcadia
                 return true;
 
             // is this item left behind when the durability is broken?
-            if (item.Usage.Durability.HasValue && !item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+            if (item.Usage.Durability.HasValue && !item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
                 return true;
 
             // does this item have a cooldown that is applied to the instance of an item?
-            if (item.Usage.Cooldown.HasValue && item.Usage.CooldownMode == CooldownMode.Instance)
+            if (item.Usage.Cooldown.HasValue && item.Usage.CooldownTarget == CooldownTarget.Instance)
                 return true;
 
             return false;
@@ -628,7 +628,7 @@ namespace Arcadia
                 // If the item is broken
                 if (data.Data.Durability <= 0)
                 {
-                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
                     {
                         user.Items.Remove(data);
                         return UsageResult.FromError(Format.Warning("This item is broken and will be removed."));
@@ -650,7 +650,7 @@ namespace Arcadia
             {
                 if (data.Data != null)
                 {
-                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
                     {
                         // if it's going to be deleted on use, remove it
                         if (data.Data.Durability - 1 <= 0)
@@ -667,7 +667,7 @@ namespace Arcadia
                 {
                     if (item.Usage.Durability == 1)
                     {
-                        if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                        if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
                         {
                             data.StackCount -= 1;
 
@@ -683,18 +683,18 @@ namespace Arcadia
             // Apply item cooldowns
             if (item.Usage.Cooldown.HasValue)
             {
-                if (item.Usage.CooldownMode == CooldownMode.Instance)
+                if (item.Usage.CooldownTarget == CooldownTarget.Instance)
                 {
                     if (data.Data == null)
                         throw new Exception("Expected an item to be unique");
 
                     data.Data.LastUsed = DateTime.UtcNow;
                 }
-                else if (item.Usage.CooldownMode == CooldownMode.Group)
+                else if (item.Usage.CooldownTarget == CooldownTarget.Group)
                 {
                     user.SetVar($"{item.GroupId}:last_used", DateTime.UtcNow.Ticks);
                 }
-                else if (item.Usage.CooldownMode == CooldownMode.Item)
+                else if (item.Usage.CooldownTarget == CooldownTarget.Item)
                 {
                     // finally, if all of the checks pass, use up the item.
                     user.SetVar(GetCooldownId(item.Id), DateTime.UtcNow.Ticks);
@@ -806,8 +806,8 @@ namespace Arcadia
             {
                 Durability = item.Usage?.Durability,
                 // ExpiresOn = (item.Usage?.ExpiryTrigger ?? 0)
-                ExpiresOn = (item.Usage?.ExpiryTrigger ?? 0) == ExpiryTrigger.Own && (item.Usage?.Expiry.HasValue ?? false)
-                ? DateTime.UtcNow.Add(item.Usage.Expiry.Value)
+                ExpiresOn = (item.Usage?.ExpireTriggers ?? 0) == ExpireTriggers.Own && (item.Usage?.Timer.HasValue ?? false)
+                ? DateTime.UtcNow.Add(item.Usage.Timer.Value)
                 : (DateTime?)null
             };
 
@@ -818,9 +818,9 @@ namespace Arcadia
             return data;
         }
 
-        private static DateTime? GetExpiry(TimeSpan duration, ExpiryTrigger trigger)
+        private static DateTime? GetExpiry(TimeSpan duration, ExpireTriggers trigger)
         {
-            if (trigger == ExpiryTrigger.Own)
+            if (trigger == ExpireTriggers.Own)
                 return DateTime.UtcNow.Add(duration);
 
             return null;

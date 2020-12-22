@@ -390,7 +390,7 @@ namespace Arcadia.Services
 
             if (item.Usage != null)
             {
-                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteMode.Break)
+                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteTriggers.Break)
                     details.AppendLine($"🥪 **Consumable**");
                 else if (item.Usage.Durability.HasValue && isUnique)
                     details.AppendLine($"❤️ **Durability**: {item.Usage.Durability.Value - data.Data.Durability ?? 0}");
@@ -539,14 +539,14 @@ namespace Arcadia.Services
                 if (item.Usage.Action != null)
                     details.AppendLine("🔹 **Usable**");
 
-                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteMode.Break)
+                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteTriggers.Break)
                     details.AppendLine($"🥪 **Consumable**");
                 else
                 {
                     string removeOn = "";
 
 
-                    if (item.Usage.DeleteMode.HasFlag(DeleteMode.Break))
+                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
                         removeOn = " - Removed on break";
 
                     if (item.Usage.Durability.HasValue)
@@ -555,27 +555,27 @@ namespace Arcadia.Services
                     }
                 }
 
-                if (item.Usage.Expiry.HasValue)
+                if (item.Usage.Timer.HasValue)
                 {
-                    string expiryHandle = item.Usage.ExpiryTrigger switch
+                    string expiryHandle = item.Usage.ExpireTriggers switch
                     {
-                        ExpiryTrigger.Use => " - Starts when first used",
-                        ExpiryTrigger.Own => " - Starts when owned",
-                        ExpiryTrigger.Trade => " - Starts when traded or gifted",
+                        ExpireTriggers.Use => " - Starts when first used",
+                        ExpireTriggers.Own => " - Starts when owned",
+                        ExpireTriggers.Trade => " - Starts when traded or gifted",
                         _ => ""
                     };
 
-                    details.AppendLine($"💀 **Expiry:** {Format.LongCounter(item.Usage.Expiry.Value)}{expiryHandle}");
+                    details.AppendLine($"💀 **Expiry:** {Format.LongCounter(item.Usage.Timer.Value)}{expiryHandle}");
                 }
 
                 if (item.Usage.Cooldown.HasValue)
                 {
-                    string cooldownHandle = item.Usage.CooldownMode switch
+                    string cooldownHandle = item.Usage.CooldownTarget switch
                     {
-                        CooldownMode.Global => " - For all items",
-                        CooldownMode.Group => " - For this item group only",
-                        CooldownMode.Item => " - For this item only",
-                        CooldownMode.Instance => " - For this instance only",
+                        CooldownTarget.Global => " - For all items",
+                        CooldownTarget.Group => " - For this item group only",
+                        CooldownTarget.Item => " - For this item only",
+                        CooldownTarget.Instance => " - For this instance only",
                         _ => ""
                     };
 

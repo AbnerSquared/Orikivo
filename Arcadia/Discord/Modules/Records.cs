@@ -5,7 +5,7 @@ using Orikivo;
 
 namespace Arcadia.Modules
 {
-    [Icon("🖨️")]
+    [Icon("🖨")]
     [Name("Records")]
     [Summary("View information about unlocked information and extra statistics.")]
     public class Records : ArcadeModule

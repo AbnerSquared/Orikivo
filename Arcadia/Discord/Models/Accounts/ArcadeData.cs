@@ -17,12 +17,13 @@ namespace Arcadia
 
         [JsonConstructor]
         internal ArcadeData(ulong logChannelId, Dictionary<string, ItemCatalog> catalogs,
-            string bonusGameId, DateTime bonusAssignedAt)
+            string bonusGameId, DateTime bonusAssignedAt, long currentMonthYear)
         {
             LogChannelId = logChannelId;
             Catalogs = catalogs ?? new Dictionary<string, ItemCatalog>();
             BonusGameId = bonusGameId;
             BonusAssignedAt = bonusAssignedAt;
+            CurrentMonthYear = currentMonthYear;
         }
 
         [JsonProperty("log_channel_id")]
@@ -36,6 +37,10 @@ namespace Arcadia
 
         [JsonProperty("bonus_assigned_at")]
         internal DateTime BonusAssignedAt { get; set; }
+
+        [JsonProperty("current_month_year")] // stored in ticks, stores only month and year
+        // Once the month/year that is stored is different, reset everything that is monthly
+        public long CurrentMonthYear { get; internal set; }
 
         public string GetOrAssignBonusGame(GameManager games)
         {

@@ -3,10 +3,10 @@
 namespace Arcadia
 {
     /// <summary>
-    /// Represents a collection of triggers for an <see cref="Item"/> expiry.
+    /// Represents a collection of expiration triggers for an <see cref="Item"/>.
     /// </summary>
     [Flags]
-    public enum ExpiryTrigger
+    public enum ExpireTriggers
     {
         /// <summary>
         /// Expiration starts when an <see cref="Item"/> is first placed into an inventory.

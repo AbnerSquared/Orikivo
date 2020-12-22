@@ -1,9 +1,9 @@
 ﻿namespace Arcadia
 {
     /// <summary>
-    /// Represents a collection of cooldown variations for an <see cref="Arcadia.Item"/> that is used.
+    /// Defines a collection of cooldown targets for an <see cref="Arcadia.Item"/>.
     /// </summary>
-    public enum CooldownMode
+    public enum CooldownTarget
     {
         /// <summary>
         /// Cooldowns are applied to the unique instance of an item.

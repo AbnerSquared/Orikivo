@@ -43,9 +43,7 @@ namespace Arcadia.Multiplayer
                 foreach (ItemUpdatePacket packet in result.Items)
                     ItemHelper.GiveItem(user, packet.Id, packet.Amount);
 
-                if (user.GetVar(Stats.Multiplayer.LastGamePlayed) == 0)
-                    user.SetVar(Stats.Multiplayer.LastGamePlayed, DateTime.UtcNow.Ticks);
-
+                Var.SetIfEmpty(user, Stats.Multiplayer.LastGamePlayed, DateTime.UtcNow.Ticks);
                 var lastGamePlayed = new DateTime(user.GetVar(Stats.Multiplayer.LastGamePlayed));
                 user.SetVar(Stats.Multiplayer.LastGamePlayed, DateTime.UtcNow.Ticks);
 

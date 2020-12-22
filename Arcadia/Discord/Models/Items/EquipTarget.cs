@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum EquipType
+    public enum EquipTarget
     {
         Layout = 1,
         Font = 2,

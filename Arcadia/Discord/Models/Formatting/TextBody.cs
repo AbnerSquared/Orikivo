@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Orikivo.Text;
+using System.Collections.Generic;
 
 namespace Arcadia
 {
     public class TextBody
     {
+        public Language Language { get; set; } = Language.English;
+
         public List<string> Tooltips { get; set; } = new List<string>();
 
         public Header Header { get; set; }

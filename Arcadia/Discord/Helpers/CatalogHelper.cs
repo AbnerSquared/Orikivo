@@ -265,7 +265,7 @@ namespace Arcadia
             long deliveryTime = DateTime.UtcNow.AddHours(GetOrderHours(item.Rarity)).Ticks;
 
             user.SetVar(GetOrderId(item.Id, GetOrderCount(user)), deliveryTime);
-
+            user.AddToVar(Stats.Common.ItemsOrdered);
             return true;
         }
 
@@ -444,7 +444,7 @@ namespace Arcadia
 
             return item.Usage.Durability.HasValue
                    || item.Usage.Cooldown.HasValue
-                   || item.Usage.Expiry.HasValue;
+                   || item.Usage.Timer.HasValue;
         }
     }
 }

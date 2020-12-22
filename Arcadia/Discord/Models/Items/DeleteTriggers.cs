@@ -3,10 +3,10 @@
 namespace Arcadia
 {
     /// <summary>
-    /// Specifies a collection of delete triggers for an <see cref="Item"/>.
+    /// Specifies a collection of deletion triggers for an <see cref="Item"/>.
     /// </summary>
     [Flags]
-    public enum DeleteMode
+    public enum DeleteTriggers
     {
         /// <summary>
         /// The <see cref="Item"/> is deleted when it is broken (durability is 0).

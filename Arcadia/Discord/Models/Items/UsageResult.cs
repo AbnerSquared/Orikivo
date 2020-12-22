@@ -14,7 +14,7 @@ namespace Arcadia
         /// <param name="cooldown">The cooldown duration to apply on the <see cref="Item"/> that was used.</param>
         /// <param name="message">The message to display.</param>
         /// <param name="mode">The cooldown mode to apply on the <see cref="Item"/> that was used.</param>
-        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, string message = null, CooldownMode? mode = null)
+        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, string message = null, CooldownTarget? mode = null)
         {
             return new UsageResult(message, true)
             {
@@ -29,7 +29,7 @@ namespace Arcadia
         /// <param name="cooldown">The cooldown duration to apply on the <see cref="Item"/> that was used.</param>
         /// <param name="message">The message to display.</param>
         /// <param name="mode">The cooldown mode to apply on the <see cref="Item"/> that was used.</param>
-        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, Message message = null, CooldownMode? mode = null)
+        public static UsageResult FromSuccessCooldown(TimeSpan cooldown, Message message = null, CooldownTarget? mode = null)
         {
             return new UsageResult(message, true)
             {
@@ -104,6 +104,6 @@ namespace Arcadia
         /// <summary>
         /// Represents the cooldown mode for the <see cref="Item"/> that was used (optional).
         /// </summary>
-        public CooldownMode? CooldownMode { get; internal set; }
+        public CooldownTarget? CooldownMode { get; internal set; }
     }
 }

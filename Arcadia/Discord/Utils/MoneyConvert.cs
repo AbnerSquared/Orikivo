@@ -6,7 +6,7 @@ namespace Arcadia
     public static class MoneyConvert
     {
         public const double MoneyToChip = 1 / ChipToMoney;
-        public const double ChipToMoney = 0.67;
+        public const double ChipToMoney = 0.50;
         public const double TokenToMoney = 10;
 
         public static long ToChips(long money)

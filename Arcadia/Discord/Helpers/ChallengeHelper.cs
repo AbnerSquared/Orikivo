@@ -19,7 +19,7 @@ namespace Arcadia
 
             long minDifficulty = 0; // This will be changed later to increase up to the highest known bound
             long maxDifficulty = 1 + completedSets;
-            var challenges = Assets.Challenges.Where(x => x.Difficulty >= minDifficulty && x.Difficulty <= maxDifficulty);
+            var challenges = Assets.Challenges.Where(x => x.Difficulty >= minDifficulty && x.Difficulty <= maxDifficulty); // Assets.Quests.Where(x => x.Type == QuestType.Challenge && x.Difficulty >= minDifficulty && x.Difficulty <= maxDifficulty); // Assets.Challenges.Where(x => x.Difficulty >= minDifficulty && x.Difficulty <= maxDifficulty);
 
             return Randomizer.ChooseMany(challenges, SetSize);
         }

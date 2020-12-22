@@ -103,7 +103,7 @@ namespace Arcadia.Modules
         [Summary("Updates the guild option to the specified value.")]
         public async Task SetGuildOptionAsync([Summary("The ID of the option to update.")]string id, [Summary("The new value to set for this option.")]string value)
         {
-            if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != Constants.DevId)
+            if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != Orikivo.Constants.DevId)
             {
                 await Context.Channel.SendMessageAsync(Format.Warning("You do not have authority to update guild options."));
                 return;

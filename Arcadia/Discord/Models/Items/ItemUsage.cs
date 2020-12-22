@@ -20,24 +20,24 @@ namespace Arcadia
         public int? Durability { get; set; }
 
         /// <summary>
-        /// Represents the duration that the <see cref="Item"/> is unusable when used.
+        /// Defines the length of time that the <see cref="Item"/> is disabled when used.
         /// </summary>
         public TimeSpan? Cooldown { get; set; }
 
         /// <summary>
-        /// Represents the cooldown mode for this <see cref="Item"/>.
+        /// Specifies the cooldown target for this <see cref="Item"/>.
         /// </summary>
-        public CooldownMode CooldownMode { get; set; } = CooldownMode.Item;
+        public CooldownTarget CooldownTarget { get; set; } = CooldownTarget.Item;
 
         /// <summary>
-        /// Represents the duration that this <see cref="Item"/> is usable.
+        /// Represents the length of time that this <see cref="Item"/> can be used.
         /// </summary>
-        public TimeSpan? Expiry { get; set; }
+        public TimeSpan? Timer { get; set; }
 
         /// <summary>
-        /// Represents the expiration trigger for this <see cref="Item"/>.
+        /// Specifies the expiration starting triggers for this <see cref="Item"/>.
         /// </summary>
-        public ExpiryTrigger ExpiryTrigger { get; set; } = ExpiryTrigger.Own;
+        public ExpireTriggers ExpireTriggers { get; set; } = ExpireTriggers.Own;
 
         /// <summary>
         /// Represents the method that is invoked when an <see cref="Item"/> is used.
@@ -50,8 +50,8 @@ namespace Arcadia
         public Action<ArcadeUser> OnBreak { get; set; }
 
         /// <summary>
-        /// Represents the mode of deletion for this <see cref="Item"/>.
+        /// Specifies the deletion triggers for this <see cref="Item"/>.
         /// </summary>
-        public DeleteMode DeleteMode { get; set; } = DeleteMode.Break;
+        public DeleteTriggers DeleteMode { get; set; } = DeleteTriggers.Break;
     }
 }

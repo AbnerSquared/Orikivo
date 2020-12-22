@@ -311,42 +311,181 @@ namespace Arcadia
                         && ctx.Result.Players.ContainsKey(ctx.User.Id);
                     }
                 }
-            },
-            new Challenge
-            {
-                Id = "task_trivia:011",
-                Name = "Win a game of **Trivia** (2 player & 5 question minimum)",
-                Difficulty = 1,
-                Criterion = new Criterion
-                {
-                    Judge = delegate (CriterionContext ctx)
-                    {
-                        if (ctx.User == null)
-                            throw new Exception("Expected ArcadeUser but is unspecified");
-
-                        if (ctx.Result == null)
-                            throw new Exception("Expected GameResult but is unspecified");
-
-                        if (ctx.Result.GameId != "trivia")
-                            return false;
-
-                        if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
-                            throw new Exception("Expected game property but does not exist");
-
-                        if (ctx.Result.GetPlayerResult(ctx.User.Id) == null)
-                            return false;
-
-                        return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
-                        && ctx.Result.Players.ContainsKey(ctx.User.Id)
-                        && ctx.Result.Players.Count >= 2
-                        && ctx.Result.Players.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
-                    }
-                }
             }
         };
 
         public static readonly HashSet<Quest> Quests = new HashSet<Quest>
         {
+            new Quest
+            {
+                Id = "quest:trivia_001",
+                Name = "Trivia Solo 5Q",
+                Summary = "Play a game of 5 question **Trivia**.",
+                Difficulty = 0,
+                Type = QuestType.Challenge,
+                Criteria = new List<Criterion>
+                {
+                    new Criterion
+                    {
+                        Id = "trivia:play_5q",
+                        Triggers = CriterionTriggers.Game,
+                        Judge = delegate (CriterionContext ctx)
+                        {
+                            if (ctx.User == null)
+                                throw new Exception("Expected ArcadeUser but is unspecified");
+
+                            if (ctx.Result == null)
+                                throw new Exception("Expected GameResult but is unspecified");
+
+                            if (ctx.Result.GameId != "trivia")
+                                return false;
+
+                            if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                                throw new Exception("Expected game property but does not exist");
+
+                            return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
+                            && ctx.Result.Players.ContainsKey(ctx.User.Id);
+                        }
+                    }
+                }
+            },
+            new Quest
+            {
+                Id = "quest:trivia_002",
+                Name = "Trivia Solo 10Q",
+                Summary = "Play a game of 10 question **Trivia**.",
+                Difficulty = 1,
+                Type = QuestType.Challenge,
+                Criteria = new List<Criterion>
+                {
+                    new Criterion
+                    {
+                        Id = "trivia:play_10q",
+                        Triggers = CriterionTriggers.Game,
+                        Judge = delegate (CriterionContext ctx)
+                        {
+                            if (ctx.User == null)
+                                throw new Exception("Expected ArcadeUser but is unspecified");
+
+                            if (ctx.Result == null)
+                                throw new Exception("Expected GameResult but is unspecified");
+
+                            if (ctx.Result.GameId != "trivia")
+                                return false;
+
+                            if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                                throw new Exception("Expected game property but does not exist");
+
+                            return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 10
+                            && ctx.Result.Players.ContainsKey(ctx.User.Id);
+                        }
+                    }
+                }
+            },
+            new Quest
+            {
+                Id = "quest:trivia_003",
+                Name = "Trivia Solo 15Q",
+                Summary = "Play a game of 15 question **Trivia**.",
+                Difficulty = 2,
+                Type = QuestType.Challenge,
+                Criteria = new List<Criterion>
+                {
+                    new Criterion
+                    {
+                        Id = "trivia:play_15q",
+                        Triggers = CriterionTriggers.Game,
+                        Judge = delegate (CriterionContext ctx)
+                        {
+                            if (ctx.User == null)
+                                throw new Exception("Expected ArcadeUser but is unspecified");
+
+                            if (ctx.Result == null)
+                                throw new Exception("Expected GameResult but is unspecified");
+
+                            if (ctx.Result.GameId != "trivia")
+                                return false;
+
+                            if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                                throw new Exception("Expected game property but does not exist");
+
+                            return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 15
+                            && ctx.Result.Players.ContainsKey(ctx.User.Id);
+                        }
+                    }
+                }
+            },
+            new Quest
+            {
+                Id = "quest:trivia_004",
+                Name = "Trivia Solo 20Q",
+                Summary = "Play a game of 20 question **Trivia**.",
+                Difficulty = 2,
+                Type = QuestType.Challenge,
+                Criteria = new List<Criterion>
+                {
+                    new Criterion
+                    {
+                        Id = "trivia:play_20q",
+                        Triggers = CriterionTriggers.Game,
+                        Judge = delegate (CriterionContext ctx)
+                        {
+                            if (ctx.User == null)
+                                throw new Exception("Expected ArcadeUser but is unspecified");
+
+                            if (ctx.Result == null)
+                                throw new Exception("Expected GameResult but is unspecified");
+
+                            if (ctx.Result.GameId != "trivia")
+                                return false;
+
+                            if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                                throw new Exception("Expected game property but does not exist");
+
+                            return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 20
+                            && ctx.Result.Players.ContainsKey(ctx.User.Id);
+                        }
+                    }
+                }
+            },
+            new Quest
+            {
+                Id = "quest:trivia_011",
+                Name = "Trivia Duel 5Q",
+                Summary = "Win a game of 5 question **Trivia** with at least 2 players.",
+                Difficulty = 1,
+                Type = QuestType.Challenge,
+                Criteria = new List<Criterion>
+                {
+                    new Criterion
+                    {
+                        Id = "trivia:win_2p5q",
+                        Triggers = CriterionTriggers.Game,
+                        Judge = delegate (CriterionContext ctx)
+                        {
+                            if (ctx.User == null)
+                                throw new Exception("Expected ArcadeUser but is unspecified");
+
+                            if (ctx.Result == null)
+                                throw new Exception("Expected GameResult but is unspecified");
+
+                            if (ctx.Result.GameId != "trivia")
+                                return false;
+
+                            if (!ctx.Result.ValueExists(TriviaConfig.QuestionCount))
+                                throw new Exception("Expected game property but does not exist");
+
+                            if (ctx.Result.GetPlayerResult(ctx.User.Id) == null)
+                                return false;
+
+                            return ctx.Result.ValueOf<int>(TriviaConfig.QuestionCount) >= 5
+                            && ctx.Result.Players.ContainsKey(ctx.User.Id)
+                            && ctx.Result.Players.Count >= 2
+                            && ctx.Result.Players.Values.OrderByDescending(p => p.ValueOf<int>(TriviaVars.Score)).First() == ctx.Result.GetPlayerResult(ctx.User.Id);
+                        }
+                    }
+                }
+            },
             new Quest
             {
                 Id = "quest:weekly_attendance",
@@ -1276,7 +1415,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteMode.Break,
+                    DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         if (!Check.NotNull(ctx.Input))
@@ -1459,7 +1598,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteMode.Break,
+                    DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         if (!Check.NotNull(ctx.Input))
@@ -1531,7 +1670,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteMode.Break,
+                    DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostType.Debt, -0.2f, TimeSpan.FromHours(12), 20);
@@ -1562,7 +1701,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteMode.Break,
+                    DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostType.Money, 0.2f, TimeSpan.FromHours(12), 20);
@@ -1604,7 +1743,7 @@ namespace Arcadia
                 {
                     Durability = 1,
                     Cooldown = TimeSpan.FromDays(3),
-                    DeleteMode = DeleteMode.Break,
+                    DeleteMode = DeleteTriggers.Break,
                     Action = delegate (UsageContext ctx)
                     {
                         if (ctx.Input.ToLower() == "recover")
@@ -1620,7 +1759,7 @@ namespace Arcadia
                                 ctx.User.Give(ctx.User.LastFundsLost.Value, ctx.User.LastFundsLost.Currency);
                                 return UsageResult.FromSuccessCooldown(TimeSpan.FromDays(4),
                                     "> Your funds have been recovered from the abyss.",
-                                    CooldownMode.Item);
+                                    CooldownTarget.Item);
                             }
 
                             return UsageResult.FromSuccess("> After several attempted hours of recovery, your funds fade into the darkness.");
@@ -1652,7 +1791,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1673,7 +1812,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1694,7 +1833,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1715,7 +1854,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Polarity)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1736,7 +1875,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1757,7 +1896,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Lemon)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1778,7 +1917,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Crimson, PaletteType.Lemon))),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -1799,7 +1938,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Oceanic)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1820,7 +1959,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Taffy)),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -1841,7 +1980,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Wumpite, PaletteType.Glass))),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -1878,7 +2017,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Amber))),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -1899,7 +2038,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Chocolate))),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2000,7 +2139,7 @@ namespace Arcadia
                 {
                     Durability = 1,
                     Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 TradeLimit = 0
             },
@@ -2023,7 +2162,7 @@ namespace Arcadia
                     Durability = 1,
                     // TODO: Add a custom property for capsules called roll count, which can be modified by a export cloning kit to add another roll count
                     Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
-                    DeleteMode = DeleteMode.Break
+                    DeleteMode = DeleteTriggers.Break
                 },
                 TradeLimit = 0
             }

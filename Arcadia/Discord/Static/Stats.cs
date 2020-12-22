@@ -41,7 +41,8 @@ namespace Arcadia
 
         internal static class Common
         {
-            internal static readonly string QuestCapacity = "var:quest_capacity";
+            internal static readonly string QuestCapacity = "var:quest_capacity"; // Rename to var:quest_limit
+            internal static readonly string TotalCompletedSpecials = "quest:total_completed_specials";
             internal static readonly string TotalCompletedQuests = "quest:total_completed";
             internal static readonly string TotalAssignedQuests = "quest:total_assigned";
             internal static readonly string LastAssignedQuest = "quest:last_assigned";
@@ -63,6 +64,7 @@ namespace Arcadia
             internal static readonly string ItemsGifted = "generic:items_gifted";
             internal static readonly string ItemsCrafted = "generic:items_crafted";
             internal static readonly string ItemsBought = "generic:items_bought";
+            internal static readonly string ItemsOrdered = "generic:items_ordered";
             internal static readonly string TimesUpgraded = "generic:times_upgraded";
             internal static readonly string BoostersUsed = "generic:boosters_used";
 

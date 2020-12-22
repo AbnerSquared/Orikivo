@@ -112,7 +112,7 @@ namespace Arcadia
             if (hasUnlocked)
                     info.AppendLine($"> Unlocked: {Format.FullTime(user.Merits[merit.Id].UnlockedAt, '.')}");
 
-            info.AppendLine($"> Rank: **{merit.Rank.ToString()}**");
+            info.AppendLine($"> Rank: **{merit.Rank}**");
 
             if (merit.Reward != null)
                 info.AppendLine().Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true));
