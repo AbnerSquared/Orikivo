@@ -1,0 +1,29 @@
+{
+    "width": 8,
+    "height": 8,
+    "padding":
+    {
+        "right": 1
+    },
+    "tag": 0,
+    "sheets":
+    {
+        "0": "foxtrot_0.png",
+        "1": "foxtrot_1.png"
+    },
+    "empties":
+    [
+            {
+                "chars": ["​", " ", "⠀"],
+                "width": 4
+            }
+    ],
+    "customs":
+    [
+            {
+                "chars": ["g", "j", "p", "q", "y"],
+                "offset_y": 2
+            }
+    ],
+    "hide_bad_unicode": true
+}

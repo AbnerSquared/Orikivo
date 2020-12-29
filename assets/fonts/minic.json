@@ -1,0 +1,22 @@
+{
+    "width": 4,
+    "height": 4,
+    "padding":
+    {
+        "right": 1
+    },
+    "tag": 0,
+    "sheets":
+    {
+        "0": "minic_0.png",
+	"1": "minic_0.png"
+    },
+    "empties":
+    [
+            {
+                "chars": ["​", " ", "⠀"],
+                "width": 2
+            }
+    ],
+    "hide_bad_unicode": true
+}

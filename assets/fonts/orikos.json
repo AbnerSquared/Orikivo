@@ -1,0 +1,36 @@
+{
+    "width": 8,
+    "height": 8,
+    "padding":
+    {
+        "right": 1
+    },
+    "tag": 2,
+    "sheets":
+    {
+        "0": "orikos_0.png",
+        "1": "orikos_0.png",
+        "2": "orikos_2.png",
+        "3": "orikos_3.png",
+        "4": "orikos_4.png",
+        "5": "orikos_5.png",
+        "6": "orikos_6.png",
+        "7": "orikos_7.png",
+        "8": "orikos_8.png",
+        "9": "orikos_9.png",
+        "10": "orikos_10.png",
+        "11": "orikos_11.png",
+        "12": "orikos_12.png",
+        "13": "orikos_13.png",
+        "14": "orikos_14.png",
+        "15": "orikos_15.png"
+    },
+    "empties":
+    [
+            {
+                "chars": ["​", " ", "⠀"],
+                "width": 4
+            }
+    ],
+    "hide_bad_unicode": true
+}

@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
   </ItemGroup>
 
