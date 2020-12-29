@@ -12,12 +12,12 @@ while [ $choice -eq 6 ]; do
 	read choice
 	if [ $choice -eq 1 ]; then
 		echo "Downloading pre-requisites for Arcadia. Please wait..."
-		wget -N https://github.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_install_preq.sh && bash "$root/arcadia_install_preq.sh"
+		wget -N https://raw.githubusercontent.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_install_preq.sh && bash "$root/arcadia_install_preq.sh"
 		bash "$root/arcadia_linux_install.sh"
 	else
 		if [ $choice -eq 2 ]; then
 			echo "Downloading Arcadia. Please wait..."
-			wget -N https://github.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_canary_updater.sh && bash "$root/arcadia_canary_updater.sh"
+			wget -N https://raw.githubusercontent.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_canary_updater.sh && bash "$root/arcadia_canary_updater.sh"
 			bash "$root/arcadia_linux_install.sh"
 		else
 			if [ $choice -eq 3 ]; then
@@ -45,7 +45,7 @@ while [ $choice -eq 6 ]; do
 			else 
 				if [ $choice -eq 4 ]; then
 					echo "Now running Arcadia..."
-					wget -N https://github.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_run.sh && bash "$root/arcadia_run.sh"
+					wget -N https://raw.githubusercontent.com/AbnerSquared/Orikivo/tree/v1.0.0rc-1/scripts/arcadia_run.sh && bash "$root/arcadia_run.sh"
 					echo "Arcadia instance stopped."
 					sleep 2s
 					bash "$root/arcadia_linux_install.sh"
