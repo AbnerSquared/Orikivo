@@ -22,6 +22,13 @@ namespace Arcadia.Modules
             _info = info;
         }
 
+        [Command("stop")]
+        [RequireAccess(AccessLevel.Dev)]
+        public async Task StopAsync()
+        {
+            Environment.Exit(0);
+        }
+
         // [Id("")]: For use in locale.
         [DoNotNotify]
         [Command("about")]
