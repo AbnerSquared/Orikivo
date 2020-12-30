@@ -17,9 +17,10 @@ else
 fi
 
 root=$(pwd)
-tempd=Arcadia_TMP
+tempd=OrikivoTemp
 rm -r "$tempd" 1>/dev/null 2>&1
 mkdir "$tempd"
+cd "$tempd"
 
 echo "Downloading Arcadia. Please wait..."
 git clone -b v1.0.0rc-1 --recursive --depth 1 https://github.com/AbnerSquared/Orikivo
@@ -36,8 +37,7 @@ echo "Successfully built Arcadia. Now moving files..."
 
 cd "$root"
 
-if [ ! -d Orikivo ]
-then
+if [ ! -d Orikivo ]; then
 	mv "$tempd"/Orikivo Orikivo
 else
 	rm -rf Orikivo_old 1>/dev/null 2>&1
@@ -57,3 +57,4 @@ else
 	cd "$root"
 	rm "$root/arcadia_canary_updater.sh"
 	exit 0
+fi
