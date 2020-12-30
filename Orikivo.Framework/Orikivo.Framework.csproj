@@ -6,21 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Entities\**" />
-    <Compile Remove="Extensions\**" />
-    <Compile Remove="Overrides\**" />
-    <Compile Remove="Typereaders\**" />
-    <EmbeddedResource Remove="Entities\**" />
-    <EmbeddedResource Remove="Extensions\**" />
-    <EmbeddedResource Remove="Overrides\**" />
-    <EmbeddedResource Remove="Typereaders\**" />
-    <None Remove="Entities\**" />
-    <None Remove="Extensions\**" />
-    <None Remove="Overrides\**" />
-    <None Remove="Typereaders\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20200718.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0-preview.7.20364.11" />

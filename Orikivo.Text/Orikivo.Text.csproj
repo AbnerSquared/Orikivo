@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
+    <ProjectReference Include="../Orikivo.Drawing/Orikivo.Drawing.csproj" />
   </ItemGroup>
 
 </Project>

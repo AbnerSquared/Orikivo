@@ -48,11 +48,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Orikivo.Desync\Orikivo.Desync.csproj" />
-    <ProjectReference Include="..\Orikivo.Drawing\Orikivo.Drawing.csproj" />
-    <ProjectReference Include="..\Orikivo.Framework\Orikivo.Framework.csproj" />
-    <ProjectReference Include="..\Orikivo.Net\Orikivo.Net.csproj" />
-    <ProjectReference Include="..\Orikivo.Text\Orikivo.Text.csproj" />
+    <ProjectReference Include="../Orikivo.Desync/Orikivo.Desync.csproj" />
+    <ProjectReference Include="../Orikivo.Drawing/Orikivo.Drawing.csproj" />
+    <ProjectReference Include="../Orikivo.Framework/Orikivo.Framework.csproj" />
+    <ProjectReference Include="../Orikivo.Net/Orikivo.Net.csproj" />
+    <ProjectReference Include="../Orikivo.Text/Orikivo.Text.csproj" />
   </ItemGroup>
 
   <ItemGroup>

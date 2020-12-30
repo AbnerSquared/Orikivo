@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo", "Orikivo\Orikivo.csproj", "{0F1F10C1-F166-4D56-B8E7-D41279EDC987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo", "Orikivo/Orikivo.csproj", "{0F1F10C1-F166-4D56-B8E7-D41279EDC987}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "Orikivo.Text\Orikivo.Text.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Text", "Orikivo.Text/Orikivo.Text.csproj", "{7F29CC85-5182-4F0D-B651-16B02A045E1F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Drawing", "Orikivo.Drawing\Orikivo.Drawing.csproj", "{8FEAF130-8F97-4273-BA10-EB5C1C6D43BA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Framework", "Orikivo.Framework\Orikivo.Framework.csproj", "{51299661-4488-4C63-B777-F0DBE8C1FAA3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Net", "Orikivo.Net\Orikivo.Net.csproj", "{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Net", "Orikivo.Net/Orikivo.Net.csproj", "{6A323FAF-4B09-454F-9329-CA4F8BA7C4D7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcadia", "Arcadia\Arcadia.csproj", "{A8787620-57EB-4D24-9B10-B33F782CCE1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcadia", "Arcadia/Arcadia.csproj", "{A8787620-57EB-4D24-9B10-B33F782CCE1D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcadia.Tests", "Arcadia.Tests\Arcadia.Tests.csproj", "{C6C702E8-4145-4930-977E-C00DC3D28E94}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Desync", "Orikivo.Desync\Orikivo.Desync.csproj", "{C20B2260-7C4D-408D-A807-524C75690E78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orikivo.Desync", "Orikivo.Desync/Orikivo.Desync.csproj", "{C20B2260-7C4D-408D-A807-524C75690E78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
