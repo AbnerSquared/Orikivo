@@ -43,7 +43,7 @@ else
 	rm -rf Orikivo_old 1>/dev/null 2>&1
 	mv -fT Orikivo Orikivo_old 1>/dev/null 2>&1
 	mv "$tempd"/Orikivo Orikivo
-	cp -f "$root/Orikivo_old/config.json" "$root/Orikivo/config.json" 1>/dev/null 2>&1
+	cp -f "$root/Orikivo_old/Arcadia/config.json" "$root/Orikivo/Arcadia/config.json" 1>/dev/null 2>&1
 	echo "Copied configuration."
 	cp -RT "$root/Orikivo_old/Arcadia/bin" "$root/Orikivo/Arcadia/bin" 1>/dev/null 2>&1
 	cp -RT "$root/Orikivo_old/Arcadia/bin/Release/data" "$root/Orikivo/Arcadia/bin/Release/data" 1>/dev/null 2>&1
