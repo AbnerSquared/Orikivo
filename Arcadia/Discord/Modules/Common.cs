@@ -435,7 +435,7 @@ namespace Arcadia.Modules
             }
             catch (Exception ex)
             {
-                await Context.Channel.CatchAsync(ex);
+                await Context.Channel.CatchAsync(ex, Context.Account.Config.ErrorHandling);
             }
         }
     }
