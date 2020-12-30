@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Boats.NET" Version="2.0.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
     <PackageReference Include="OpenTDB.Net" Version="1.0.0" />
     <PackageReference Include="Discord.Addons.Collectors" Version="1.0.0" />
   </ItemGroup>
