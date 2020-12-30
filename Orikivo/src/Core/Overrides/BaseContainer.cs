@@ -11,8 +11,8 @@
     {
         public BaseContainer()
         {
-            Users = new JsonContainer<TUser>(@"..\data\users\");
-            Guilds = new JsonContainer<TGuild>(@"..\data\guilds\");
+            Users = new JsonContainer<TUser>(@"bin/Release/data/users/");
+            Guilds = new JsonContainer<TGuild>(@"bin/Release/data/guilds/");
         }
 
         public JsonContainer<TUser> Users { get; }

@@ -11,7 +11,8 @@ fi
 
 cd "$root/Orikivo"
 dotnet restore
-dotnet build -c Release
+echo "Restored Arcadia."
+dotnet build --configuration Release
 
 # Copy configuration file over to the build results
 cd "$root"
@@ -21,7 +22,7 @@ echo "Resolved config.json and placed in build directory."
 cd "$root/Orikivo/Arcadia"
 
 echo "Starting Arcadia. Please wait..."
-dotnet run -c Release
+dotnet run --configuration Release
 echo "Done!"
 
 cd "$root"
