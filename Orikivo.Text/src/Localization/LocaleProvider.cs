@@ -9,7 +9,7 @@ namespace Orikivo.Text
 {
     public class LocaleProvider
     {
-        private static readonly string DefaultPath = @"..\assets\locale\";
+        private static readonly string DefaultPath = @"bin/Release/assets/locale/";
 
         public LocaleProvider()
         {
