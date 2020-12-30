@@ -51,7 +51,7 @@ else
 	cp -RT "$root/Orikivo/assets" "$root/Orikivo/Arcadia/bin/Release/assets" 1>/dev/null 2>&1
 	echo "Copied assets."
 
-	rm -r "$tempd"
+	rm -r "$tempd" 1>/dev/null 2>&1
 	echo "Successfully updated Arcadia."
 
 	cd "$root"
