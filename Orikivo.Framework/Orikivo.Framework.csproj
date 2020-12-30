@@ -6,6 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Entities/**" />
+    <Compile Remove="Extensions/**" />
+    <EmbeddedResource Remove="Entities/**" />
+    <EmbeddedResource Remove="Extensions/**" />
+    <None Remove="Entities/**" />
+    <None Remove="Extensions/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20200718.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.2.0-eap" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0-preview.7.20364.11" />
