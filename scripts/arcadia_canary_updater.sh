@@ -1,6 +1,6 @@
 echo "Updating Arcadia..."
 
-if hash git 1>dev/null 2>&1
+if hash git 1>/dev/null 2>&1
 then
 	echo "Found Git."
 else
@@ -8,7 +8,7 @@ else
 	exit 1
 fi
 
-if hash dotnet 1>dev/null 2>&1
+if hash dotnet 1>/dev/null 2>&1
 then
 	echo "Found .NET SDK."
 else
@@ -18,7 +18,7 @@ fi
 
 root=$(pwd)
 tempd=Arcadia_TMP
-rm -r "$tempd" 1>dev/null 2>&1
+rm -r "$tempd" 1>/dev/null 2>&1
 mkdir "$tempd"
 
 echo "Downloading Arcadia. Please wait..."
