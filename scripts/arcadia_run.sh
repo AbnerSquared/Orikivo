@@ -16,6 +16,7 @@ dotnet build -c Release
 # Copy configuration file over to the build results
 cd "$root"
 cp -f "$root/Orikivo/config.json" "$root/Orikivo/Arcadia/bin/Release/netcoreapp3.1" 2>/dev/null
+echo "Resolved config.json and placed in build directory."
 
 cd "$root/Orikivo/Arcadia"
 
