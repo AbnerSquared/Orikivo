@@ -219,6 +219,7 @@ namespace Orikivo
 
             if (allowTooltips && properties.Any())
             {
+                // TODO: Re-position tooltips to be handled by the localization helpers
                 var tooltips = new List<string>
                 {
                     "If an ID is unspecified, you can use their name instead as input.",

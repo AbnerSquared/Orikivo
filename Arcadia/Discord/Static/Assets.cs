@@ -1673,14 +1673,14 @@ namespace Arcadia
                     DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
-                        var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostType.Debt, -0.2f, TimeSpan.FromHours(12), 20);
+                        var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostTarget.Debt, -0.2f, TimeSpan.FromHours(12), 20);
 
                         if (!TryApplyBooster(ctx.User, booster))
                             return UsageResult.FromError("> You already have too many active modifiers.");
 
                         return UsageResult.FromSuccess("> The **Debt Blocker** opens up, revealing a crystal clear shield that surrounds you.");
                     },
-                    OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 5))
+                    OnBreak = user => user.Boosters.Add(new BoostData(BoostTarget.Debt, 0.1f, 5))
                 },
                 OwnLimit = 2
             },
@@ -1704,7 +1704,7 @@ namespace Arcadia
                     DeleteMode = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
-                        var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostType.Money, 0.2f, TimeSpan.FromHours(12), 20);
+                        var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostTarget.Money, 0.2f, TimeSpan.FromHours(12), 20);
 
                         if (!TryApplyBooster(ctx.User, booster))
                             return UsageResult.FromError("> You already have too many active modifiers.");

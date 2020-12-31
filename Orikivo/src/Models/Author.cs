@@ -23,6 +23,7 @@ namespace Orikivo
             Name = name;
         }
 
+        // TODO: This constructor isn't that useful, and it makes this class require the Discord namespace
         /// <summary>
         /// Initializes a new <see cref="Author"/> from a specified <see cref="IUser"/>.
         /// </summary>

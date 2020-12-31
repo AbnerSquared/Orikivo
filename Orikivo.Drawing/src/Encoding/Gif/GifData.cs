@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Orikivo.Drawing.Encoding.Gif
 {
+    // TODO: Orikivo does NOT need anything related to decoding GIFs.
+    // This can be moved to a separate repository focused on decoding, named:
+    // Orikivo.Drawing.Decoding.Gif
     internal static class StreamExtensions
     {
         public static void WriteInt32Byte(this Stream stream, int value)

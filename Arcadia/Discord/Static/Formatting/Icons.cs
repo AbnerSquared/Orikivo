@@ -2,14 +2,14 @@
 {
     internal static class Icons
     {
-        internal static string IconOf(BoostType type)
+        internal static string IconOf(BoostTarget type)
         {
             return type switch
             {
-                BoostType.Money => Balance,
-                BoostType.Debt => Debt,
-                BoostType.Chips => Chips,
-                BoostType.Voting => Tokens,
+                BoostTarget.Money => Balance,
+                BoostTarget.Debt => Debt,
+                BoostTarget.Chips => Chips,
+                BoostTarget.Voting => Tokens,
                 _ => Unknown
             };
         }

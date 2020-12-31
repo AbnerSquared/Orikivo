@@ -40,7 +40,7 @@ namespace Arcadia
                 && (!boost.UsesLeft.HasValue  || boost.UsesLeft > 0);
         }
 
-        public static float GetBoostMultiplier(ArcadeUser user, BoostType type)
+        public static float GetBoostMultiplier(ArcadeUser user, BoostTarget type)
         {
             float rate = 1f;
             var toRemove = new List<BoostData>();
@@ -60,7 +60,7 @@ namespace Arcadia
             return rate < 0 ? 0 : rate;
         }
 
-        public static long BoostValue(ArcadeUser user, long value, BoostType type, bool isNegative = false)
+        public static long BoostValue(ArcadeUser user, long value, BoostTarget type, bool isNegative = false)
         {
             float rate = 1;
 

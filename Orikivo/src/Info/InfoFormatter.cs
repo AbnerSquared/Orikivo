@@ -7,6 +7,7 @@ using Orikivo.Text;
 
 namespace Orikivo
 {
+    // TODO: Find a better way to handle localization
     public class InfoFormatter
     {
         private const int MAX_COMMAND_DISPLAY = 3;

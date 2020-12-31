@@ -49,7 +49,7 @@ namespace Arcadia.Casino
                     else
                     {
                         Var.Clear(user, Stats.Gimi.CurrentGoldStreak);
-                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostTarget.Money);
                     }
 
                     user.Give(Reward);
@@ -71,7 +71,7 @@ namespace Arcadia.Casino
                     else
                     {
                         Var.Clear(user, Stats.Gimi.CurrentCurseStreak);
-                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostTarget.Money);
                     }
 
                     user.Take(Reward);
@@ -119,7 +119,7 @@ namespace Arcadia.Casino
                     else
                     {
                         Var.Clear(user, Stats.Gimi.CurrentGoldStreak);
-                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostTarget.Money);
                     }
                     long debt = user.Debt;
                     user.Give(Reward);
@@ -162,7 +162,7 @@ namespace Arcadia.Casino
                     else
                     {
                         Var.Clear(user, Stats.Gimi.CurrentCurseStreak);
-                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostType.Money);
+                        Reward = CurrencyHelper.BoostValue(user, Reward, BoostTarget.Money);
                     }
 
                     long balance = user.Balance;

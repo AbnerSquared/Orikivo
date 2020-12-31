@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum BoostType
+    public enum BoostTarget
     {
         Money = 1,
         Voting = 2,

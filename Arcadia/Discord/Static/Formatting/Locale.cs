@@ -143,6 +143,18 @@ namespace Arcadia
         public static string BuildHeader(Header header)
             => GetHeaderText(!string.IsNullOrWhiteSpace(header.Group) ? $"{header.Title}: {header.Group}" : header.Title, header.Icon, header.Subtitle, header.Extra);
 
+        public static Header CreateHeader(string title, string group = null, string extra = null, string icon = null, string subtitle = null)
+        {
+            return new Header()
+            {
+                Title = title,
+                Group = group,
+                Extra = extra,
+                Icon = icon,
+                Subtitle = subtitle
+            };
+        }
+
         private static string GetHeaderText(string title, string icon = "", string subtitle = "", string extra = "")
         {
             if (!Check.NotNull(title))

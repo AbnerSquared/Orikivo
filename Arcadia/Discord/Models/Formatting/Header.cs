@@ -1,5 +1,10 @@
 ﻿namespace Arcadia
 {
+    /*
+     NOTE: Formatting for a header is written as:
+     > Icon **Title: Group** Extra
+     > Subtitle 
+    */
     public class Header
     {
         public Header() { }

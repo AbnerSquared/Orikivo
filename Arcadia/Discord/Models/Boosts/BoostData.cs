@@ -5,7 +5,7 @@ namespace Arcadia
 {
     public class BoostData
     {
-        public BoostData(string itemId, BoostType type, float rate, TimeSpan? duration = null, int? useLimit = null)
+        public BoostData(string itemId, BoostTarget type, float rate, TimeSpan? duration = null, int? useLimit = null)
         {
             ParentId = itemId;
             Type = type;
@@ -17,21 +17,21 @@ namespace Arcadia
             UsesLeft = useLimit;
         }
 
-        public BoostData(BoostType type, float rate, TimeSpan duration)
+        public BoostData(BoostTarget type, float rate, TimeSpan duration)
         {
             Type = type;
             Rate = rate;
             ExpiresOn = DateTime.UtcNow.Add(duration);
         }
 
-        public BoostData(BoostType type, float rate, int useLimit)
+        public BoostData(BoostTarget type, float rate, int useLimit)
         {
             Type = type;
             Rate = rate;
             UsesLeft = useLimit;
         }
 
-        public BoostData(BoostType type, float rate, TimeSpan duration, int useLimit)
+        public BoostData(BoostTarget type, float rate, TimeSpan duration, int useLimit)
         {
             Type = type;
             Rate = rate;
@@ -40,7 +40,7 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal BoostData(string parentId, BoostType type, float rate, DateTime? expiresOn, int? usesLeft)
+        internal BoostData(string parentId, BoostTarget type, float rate, DateTime? expiresOn, int? usesLeft)
         {
             ParentId = parentId;
             Type = type;
@@ -54,7 +54,7 @@ namespace Arcadia
 
         // If the type doesn't matter, this can be ignored
         [JsonProperty("type")]
-        public BoostType Type { get; }
+        public BoostTarget Type { get; }
 
         // the rate of the booster
         [JsonProperty("rate")]

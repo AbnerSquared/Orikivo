@@ -46,7 +46,7 @@ namespace Arcadia
 
         public static string GetReply(DoublerResultFlag flag, ArcadeUser user = null, DoublerResult result = null)
         {
-            IEnumerable<CasinoReply> replies = GetReplies(flag);
+            IEnumerable<CasinoReply> replies = Doubly;
 
             if (user != null && result != null)
             {
@@ -106,15 +106,6 @@ namespace Arcadia
                 _ => null
             };
 
-        private static CasinoReply[] GetReplies(DoublerResultFlag flag)
-            => flag switch
-            {
-                DoublerResultFlag.Win => TickWin,
-                DoublerResultFlag.Exact => TickExact,
-                DoublerResultFlag.Lose => TickLoss,
-                _ => null
-            };
-
         private static string[] GetReplies(DailyResultFlag flag)
             => flag switch
             {
@@ -136,12 +127,20 @@ namespace Arcadia
 
         public static readonly CasinoReply[] Curse =
         {
-            "Experience oblivion.",
-            "The moonlight burns through your funds.",
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is GimiResult g && g.Flag == GimiResultFlag.Curse,
+                Content = "Experience oblivion."
+            },
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is GimiResult g && g.Flag == GimiResultFlag.Curse,
+                Content = "The moonlight burns through your funds."
+            },
             new CasinoReply
             {
                 Content = "Pocket Lawyer can't save you this time.",
-                Criteria = (user, result) => ItemHelper.GetCooldownRemainder(user, Ids.Items.PocketLawyer)?.Ticks > 0,
+                Criteria = (user, result) => result is GimiResult g && g.Flag == GimiResultFlag.Curse && ItemHelper.GetCooldownRemainder(user, Ids.Items.PocketLawyer)?.Ticks > 0,
                 Priority = 1
             },
             "The moon has risen.",
@@ -184,11 +183,6 @@ namespace Arcadia
             "I guess they can't all be winners.",
             "Yikes!",
             "Sorry, lad. I can't host myself for free.",
-            /*new CasinoReply // Not a fan of this one.
-            {
-                Content = "The **E** in your name stands for empty. Just like your wallet.",
-                Criteria = (user, result) => user.Username.ToLower().StartsWith('e')
-            },*/
             new CasinoReply
             {
                 Content = "Maximum losses obtained.",
@@ -251,12 +245,17 @@ namespace Arcadia
             "Here's something you might like."
         };
 
-        public static readonly CasinoReply[] TickWin =
+        public static readonly CasinoReply[] Doubly =
         {
-            "Nicely done!",
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is DoublerResult t && t.Flag == DoublerResultFlag.Win,
+                Content = "Nicely done!"
+            },
             new CasinoReply
             {
                 Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Win
                                              && t.Multiplier > 5,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
@@ -268,7 +267,8 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Criteria = (user, result) => result is DoublerResult,
+                Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Win,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
                     if (!(result is DoublerResult t))
@@ -277,14 +277,14 @@ namespace Arcadia
                     return $"The machine stopped at **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}.";
                 }
             },
-        };
-
-        public static readonly CasinoReply[] TickExact =
-        {
-            "Now that was a clean guess.",
             new CasinoReply
             {
-                Criteria = (user, result) => result is DoublerResult,
+                Criteria = (user, result) => result is DoublerResult t && t.Flag == DoublerResultFlag.Exact,
+                Content = "Now that was a clean guess."
+            },
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is DoublerResult t && t.Flag == DoublerResultFlag.Exact,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
                     if (!(result is DoublerResult t))
@@ -293,15 +293,16 @@ namespace Arcadia
                     return $"The machine stopped at exactly **{t.ActualTick}** {Format.TryPluralize("tick", t.ActualTick)}. Good guessing!";
                 }
             },
-        };
-
-        public static readonly CasinoReply[] TickLoss =
-        {
-            "Ouch. Sorry about that.",
             new CasinoReply
             {
-                Criteria = (user, result) => result is DoublerResult tResult
-                                             && tResult.ActualTick > 0,
+                Criteria = (user, result) => result is DoublerResult t && t.Flag == DoublerResultFlag.Lose,
+                Content = "Ouch. Sorry about that."
+            },
+            new CasinoReply
+            {
+                Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Lose
+                                             && t.ActualTick > 0,
                 Writer = delegate(ArcadeUser user, ICasinoResult result)
                 {
                     if (!(result is DoublerResult t))
@@ -327,18 +328,22 @@ namespace Arcadia
             },
             new CasinoReply
             {
+                Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Lose,
                 Writer = (user, result) => $"You missed a chance to win {Icons.Chips} **{result.Reward:##,0}**."
             },
             new CasinoReply
             {
-                Content = "This machine has flat-lined at the start.",
+                Content = "This machine was already dead.",
                 Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Lose
                                              && t.ActualTick == 0
             },
             new CasinoReply
             {
                 Content = "You were off by a single tick.",
                 Criteria = (user, result) => result is DoublerResult t
+                                             && t.Flag == DoublerResultFlag.Lose
                                              && Math.Abs(t.ActualTick - t.ExpectedTick) == 1
             }
         };

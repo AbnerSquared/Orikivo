@@ -12,13 +12,13 @@ namespace Arcadia.Modules
 
             current.AppendLine($"> **Current Rates**");
 
-            foreach (BoostType type in EnumUtils.GetValues<BoostType>())
+            foreach (BoostTarget type in EnumUtils.GetValues<BoostTarget>())
                 current.AppendLine($"> {WriteCurrentRate(user, type)}");
 
             return current.ToString();
         }
 
-        public static string WriteCurrentRate(ArcadeUser user, BoostType type)
+        public static string WriteCurrentRate(ArcadeUser user, BoostTarget type)
         {
             float rate = CurrencyHelper.GetBoostMultiplier(user, type);
             return $"{Icons.IconOf(type)} {Format.Percent(rate)}";
@@ -46,7 +46,7 @@ namespace Arcadia.Modules
             return info.ToString();
         }
 
-        public static bool IsNegative(float rate, BoostType type)
+        public static bool IsNegative(float rate, BoostTarget type)
         {
             //if (type == BoosterType.Debt)
             //    return rate > 0;

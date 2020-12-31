@@ -13,4 +13,9 @@ namespace Arcadia
 
         public CriterionTriggers Triggers { get; set; }
     }
+
+    public interface ICriterion<in T>
+    {
+        bool Judge(T reference);
+    }
 }
