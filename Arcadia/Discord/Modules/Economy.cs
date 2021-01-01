@@ -6,6 +6,7 @@ using Arcadia.Multiplayer;
 using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
@@ -14,6 +15,12 @@ namespace Arcadia.Modules
     [Summary("Commands related to economical features.")]
     public class Economy : ArcadeModule
     {
+        private readonly LocaleProvider _locale;
+        public Economy(LocaleProvider locale)
+        {
+            _locale = locale;
+        }
+
         // offer send <user> <outbound> for <inbound>
         [RequireUser]
         [Command("offer")]
@@ -28,13 +35,13 @@ namespace Arcadia.Modules
 
             if (!Check.NotNull(input))
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You must specify your offer contents."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_empty_offer", Context.Account.Config.Language)));
                 return;
             }
 
             if (!TradeHelper.TryParseOffer(Context.User, user, input, out TradeOffer offer))
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("An error has occurred while trying to parse the specified trade offer."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_offer_parse_failed", Context.Account.Config.Language)));
                 return;
             }
 
@@ -50,7 +57,7 @@ namespace Arcadia.Modules
         {
             if (Context.Account.Offers.All(x => x.Id != offerId))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_unknown_offer", Context.Account.Config.Language)));
                 return;
             }
 
@@ -74,7 +81,7 @@ namespace Arcadia.Modules
         {
             if (Context.Account.Offers.All(x => x.Id != offerId))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find an offer with the specified ID."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_unknown_offer", Context.Account.Config.Language)));
                 return;
             }
 
@@ -115,7 +122,7 @@ namespace Arcadia.Modules
         {
             if (shop == null)
             {
-                await Context.Channel.SendMessageAsync($"{Format.Warning("Type `shop <shop_id>` to start a shop session.")}\n\n{ShopHelper.ViewShops(Context.Account)}");
+                await Context.Channel.SendMessageAsync($"{Format.Warning(_locale.GetValue("warning_shop_unspecified", Context.Account.Config.Language))}\n\n{ShopHelper.ViewShops(Context.Account)}");
                 return;
             }
 
@@ -134,7 +141,7 @@ namespace Arcadia.Modules
 
             if (Context.Account.IsInSession)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in another active session."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_is_in_session", Context.Account.Config.Language)));
                 return;
             }
 
@@ -160,13 +167,13 @@ namespace Arcadia.Modules
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
                 return;
             }
 
             if (account.Id == Context.Account.Id)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You can't send a gift to yourself."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_gift_target_self", Context.Account.Config.Language)));
                 return;
             }
 
@@ -174,7 +181,7 @@ namespace Arcadia.Modules
 
             if (!ItemHelper.CanGift(account, data.Id, data))
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("This item cannot be gifted."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_invalid_gift", Context.Account.Config.Language)));
                 return;
             }
 
@@ -221,7 +228,7 @@ namespace Arcadia.Modules
 
             if (CatalogHelper.GetOrderCount(Context.Account) >= orderLimit)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You already have too many active orders. Please wait."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_order_overflow", Context.Account.Config.Language)));
                 return;
             }
 
@@ -229,7 +236,7 @@ namespace Arcadia.Modules
 
             if (!(item.Tags.HasFlag(ItemTag.Orderable) && status >= CatalogStatus.Known))
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("This item cannot be ordered from the catalog."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_order_not_allowed", Context.Account.Config.Language)));
                 return;
             }
 
@@ -237,7 +244,8 @@ namespace Arcadia.Modules
 
             if (!CatalogHelper.CanAfford(Context.Account, cost, item.Currency))
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You cannot afford to order this item."));
+                await Context.Channel.SendMessageAsync(Context.Account,
+                    Format.Warning(_locale.GetValue("warning_order_not_afford", Context.Account.Config.Language)));
                 return;
             }
 
@@ -245,7 +253,9 @@ namespace Arcadia.Modules
             Context.Account.Take(cost, item.Currency);
             ItemHelper.GiveItem(Context.Account, item);
 
-            await Context.Channel.SendMessageAsync(Context.Account, $"> You have placed an order for **{item.Name}** ({CurrencyHelper.WriteCost(cost, item.Currency)}).");
+            await Context.Channel.SendMessageAsync(Context.Account,
+                _locale.GetValue("order_success", Context.Account.Config.Language, Format.Bold(item.Name), CurrencyHelper.WriteCost(cost, item.Currency)));
+                // $"> You have placed an order for **{item.Name}** ({CurrencyHelper.WriteCost(cost, item.Currency)}).");
         }
 
         [RequireUser]
@@ -257,7 +267,7 @@ namespace Arcadia.Modules
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("Could not find a data reference."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
                 return;
             }
 
@@ -278,20 +288,20 @@ namespace Arcadia.Modules
 
             if (target == null)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("An unknown or indestructable data instance was specified."));
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning(_locale.GetValue("warning_invalid_delete_target", Context.Account.Config.Language)));
                 return;
             }
 
             ItemHelper.DeleteItem(Context.Account, target);
             string targetName = ItemHelper.GetItem(target.Id)?.GetName() ?? ItemHelper.GetItem(Ids.Items.InternalUnknown).Name;
-            await Context.Channel.SendMessageAsync(Context.Account, $"> Deleted **{targetName}** from your inventory pool.");
+            await Context.Channel.SendMessageAsync(Context.Account, $"> {_locale.GetValue("delete_success", Context.Account.Config.Language, Format.Bold(targetName))}");
         }
 
         private async Task<bool> CatchEmptyAccountAsync(ArcadeUser reference)
         {
             if (reference == null)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, "> **Odd.**\n> The user you seek does not exist in this world.");
+                await Context.Channel.SendMessageAsync(Context.Account, $"> **Odd.**\n> {_locale.GetValue("warning_account_not_found", Context.Account.Config.Language)}");
                 return true;
             }
 

@@ -25,19 +25,19 @@ namespace Arcadia.Modules
 
             if (wager.Value < 0)
             {
-                await channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                await channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", invoker.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", invoker.Config.Language)}\"*");
                 return;
             }
 
             if (wager.Value == 0)
             {
-                await channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                await channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_empty_wager", invoker.Config.Language)));
                 return;
             }
 
             if (wager.Value > invoker.ChipBalance)
             {
-                await channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
+                await channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_wager", invoker.Config.Language)));
                 return;
             }
 

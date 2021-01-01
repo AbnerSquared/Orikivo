@@ -115,10 +115,6 @@ namespace Arcadia
 
         private async Task UpdateGuildCount(SocketGuild guild)
         {
-#if DEBUG
-            return;
-#endif
-
             if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
                 return;
 

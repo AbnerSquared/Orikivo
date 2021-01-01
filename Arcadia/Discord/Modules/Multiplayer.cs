@@ -3,6 +3,7 @@ using Discord.Commands;
 using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Multiplayer;
+using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
@@ -12,10 +13,12 @@ namespace Arcadia.Modules
     public class Multiplayer : ArcadeModule
     {
         private readonly GameManager _games;
+        private readonly LocaleProvider _locale;
 
-        public Multiplayer(GameManager games)
+        public Multiplayer(GameManager games, LocaleProvider locale)
         {
             _games = games;
+            _locale = locale;
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -33,7 +36,7 @@ namespace Arcadia.Modules
         {
             if (!_games.GetServersFor(Context.User.Id, Context.Guild?.Id ?? 0).Any())
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("There aren't any public game servers to show.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_empty_servers", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -57,13 +60,13 @@ namespace Arcadia.Modules
         {
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_active_server", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedChannels.ContainsKey(Context.Channel.Id))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("This channel is already dedicated to a server.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_channel_reserved", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -71,14 +74,14 @@ namespace Arcadia.Modules
             {
                 if (!_games.Games.ContainsKey(gameId))
                 {
-                    await Context.Channel.SendMessageAsync(Format.Warning("Unable to initialize a server for the specified game mode.")).ConfigureAwait(false);
+                    await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_server_invalid_game", Context.Account.Config.Language))).ConfigureAwait(false);
                     return;
                 }
             }
 
             if (Context.Server != null && _games.GetGuildServerCount(Context.Server.Id) >= Context.Server.Config.GameServerLimit)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many active servers."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_guild_server_overflow", Context.Account.Config.Language)));
                 return;
             }
 
@@ -93,13 +96,13 @@ namespace Arcadia.Modules
         {
             if (string.IsNullOrWhiteSpace(serverId))
             {
-                await Context.Channel.SendMessageAsync("You have to specify a server ID.").ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(_locale.GetValue("warning_server_invalid_id", Context.Account.Config.Language)).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_active_server", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -119,7 +122,7 @@ namespace Arcadia.Modules
                     }
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_guild_server_overflow", Context.Account.Config.Language)));
                 return;
             }
 
@@ -134,13 +137,13 @@ namespace Arcadia.Modules
         {
             if (_games.Servers.Count == 0)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Unable to find any available servers.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_server_criteria_failed", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_active_server", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -160,7 +163,7 @@ namespace Arcadia.Modules
                     }
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_guild_server_overflow", Context.Account.Config.Language)));
                 return;
             }
 
@@ -175,13 +178,13 @@ namespace Arcadia.Modules
         {
             if (_games.Servers.Count == 0)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Unable to find any available servers.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_server_criteria_failed", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
             if (_games.ReservedUsers.ContainsKey(Context.User.Id))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are already in a server.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_active_server", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -189,7 +192,7 @@ namespace Arcadia.Modules
             {
                 if (!_games.Games.ContainsKey(gameId))
                 {
-                    await Context.Channel.SendMessageAsync(Format.Warning("An invalid game mode was specified.")).ConfigureAwait(false);
+                    await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_game", Context.Account.Config.Language))).ConfigureAwait(false);
                     return;
                 }
             }
@@ -210,7 +213,7 @@ namespace Arcadia.Modules
                     }
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning("This guild already has too many server connections."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_guild_server_overflow", Context.Account.Config.Language)));
                 return;
             }
 
@@ -226,7 +229,7 @@ namespace Arcadia.Modules
 
             if (server == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are not in a game server."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_not_in_server", Context.Account.Config.Language)));
                 return;
             }
 
@@ -241,7 +244,7 @@ namespace Arcadia.Modules
         {
             if (Context.User.Id != Orikivo.Constants.DevId)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are not the developer of this bot.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_dev", Context.Account.Config.Language))).ConfigureAwait(false);
                 return;
             }
 
@@ -252,7 +255,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_server", Context.Account.Config.Language))).ConfigureAwait(false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -266,7 +269,7 @@ namespace Arcadia.Modules
                 {
                     if (Context.User.Id != _games.Servers[serverId].HostId && Context.User.Id != Orikivo.Constants.DevId)
                     {
-                        await Context.Channel.SendMessageAsync(Format.Warning("You are not the server host or the developer of this bot.")).ConfigureAwait(false);
+                        await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_server_authority", Context.Account.Config.Language))).ConfigureAwait(false);
                         return;
                     }
 
@@ -275,11 +278,11 @@ namespace Arcadia.Modules
                     return;
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning($"The server #`{serverId}` does not have an existing session to destroy.")).ConfigureAwait(false);
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_destroy_target_missing_session", Context.Account.Config.Language, $"#`{serverId}`"))).ConfigureAwait(false);
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find the specified server.")).ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_server", Context.Account.Config.Language))).ConfigureAwait(false);
         }
 
         [RequireGlobalData]

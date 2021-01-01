@@ -4,6 +4,7 @@ using Orikivo;
 using System.Threading.Tasks;
 using Arcadia.Casino;
 using Arcadia.Multiplayer;
+using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
@@ -13,10 +14,12 @@ namespace Arcadia.Modules
     public class Casino : ArcadeModule
     {
         private readonly CasinoService _service;
+        private readonly LocaleProvider _locale;
 
-        public Casino(CasinoService service)
+        public Casino(CasinoService service, LocaleProvider locale)
         {
             _service = service;
+            _locale = locale;
         }
 
         [RequireUser]
@@ -34,25 +37,25 @@ namespace Arcadia.Modules
         {
             if (wager.Value < 0)
             {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                await Context.Channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*");
                 return;
             }
 
             if (wager.Value == 0)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You need to specify a positive amount of **Chips** to bet.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_empty_wager", Context.Account.Config.Language)));
                 return;
             }
 
             if (wager.Value > Context.Account.ChipBalance)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_wager", Context.Account.Config.Language)));
                 return;
             }
 
             if (wager.Value > Roulette.MaxWager)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ The maximum wager for **Roulette** is {Icons.Chips} **{Roulette.MaxWager:##,0}**.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_wager_cap", Context.Account.Config.Language, Format.Bold("Roulette"), CurrencyHelper.WriteCost(Roulette.MaxWager, CurrencyType.Chips))));
                 return;
             }
 
@@ -128,7 +131,7 @@ namespace Arcadia.Modules
 
             if (wager.Value < 0)
             {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                await Context.Channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*");
                 return;
             }
 
@@ -141,13 +144,13 @@ namespace Arcadia.Modules
 
             if (wager.Value > Context.Account.ChipBalance)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Chips** to bet with.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_wager", Context.Account.Config.Language)));
                 return;
             }
 
             if (tick <= 0)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You have specified an invalid tick. Try something that's above **0**.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_tick", Context.Account.Config.Language)));
                 return;
             }
 
@@ -172,13 +175,13 @@ namespace Arcadia.Modules
 
             if (amount.Value < 0)
             {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                await Context.Channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*");
                 return;
             }
 
             if (amount.Value > Context.Account.Balance)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Orite** to convert this amount.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_convert", Context.Account.Config.Language, Format.Bold("Orite"))));
                 return;
             }
 
@@ -186,7 +189,7 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount.Value);
             Context.Account.ChipBalance += chips;
-            await Context.Channel.SendMessageAsync($"> You have traded in **💸 {amount.Value:##,0}** in exchange for **🧩 {chips:##,0}**.");
+            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount.Value, CurrencyType.Money), CurrencyHelper.WriteCost(chips, CurrencyType.Chips))}");
         }
     }
 }

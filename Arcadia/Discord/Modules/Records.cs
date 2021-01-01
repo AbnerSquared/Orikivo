@@ -2,6 +2,7 @@
 using Arcadia.Services;
 using Discord.Commands;
 using Orikivo;
+using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
@@ -10,6 +11,13 @@ namespace Arcadia.Modules
     [Summary("View information about unlocked information and extra statistics.")]
     public class Records : ArcadeModule
     {
+        private readonly LocaleProvider _locale;
+
+        public Records(LocaleProvider locale)
+        {
+            _locale = locale;
+        }
+
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("profile"), Alias("account", "acc", "pf", "user")]
         [Summary("View a profile.")]
@@ -84,7 +92,7 @@ namespace Arcadia.Modules
         {
             if (!Check.NotNull(input))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You must specify a reference for the catalog to use."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_search_unspecified", Context.Account.Config.Language)));
                 return;
             }
 
@@ -161,7 +169,7 @@ namespace Arcadia.Modules
         {
             if (!MeritHelper.HasUnlocked(Context.Account, merit) && merit.Hidden)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You are not authorized to view this merit."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_merit_not_authorized", Context.Account.Config.Language)));
                 return;
             }
 

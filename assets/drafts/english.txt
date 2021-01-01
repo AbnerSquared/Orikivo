@@ -569,54 +569,7 @@ stat_unknown: An unknown stat was specified.
 
 // DO: warning_{id}_optional for easily getting locale text.
 
-warning_negative_wager: You can't specify a negative value.
-warning_negative_wager_subtitle: I know what you were trying to do.
-warning_empty_wager: You need to specify a positive amount of Chips to bet.
-warning_missing_wager: You don't have enough Chips to bet with.
-warning_wager_cap: The maximum wager for {} is {}.
-warning_missing_item: You are missing the {} component in order to execute this method.
-warning_invalid_tick: You have specified an invalid tick. Try something that's larger than 0.
-warning_missing_convert: You don't have enough {} to convert this amount.
-warning_craft_unknown_error: An unknown error has occurred when crafting this recipe.
-warning_invalid_data_reference: Could not find a data instance.
-warning_inventory_empty: You do not have any items in your inventory.
-warning_item_not_owned: You do not own this item.
-warning_palette_not_equipped: You don't currently have a palette equipped.
-warning_invalid_user: The user you seek doesn't exist in this world.
-warning_invalid_changelog: Unable to find a previous changelog to reference.
-warning_missing_authority: You do not have authority to execute this command.
-warning_empty_offer: You must specify your offer contents.
-warning_offer_parse_failed: An error has occurred while trying to parse the specified trade offer.
-warning_unknown_offer: Could not find an offer with the specified ID.
-warning_active_session: You are already in another active session.
-warning_gift_target_self: You can't send a gift to yourself.
-warning_invalid_gift: This item cannot be gifted.
-warning_invalid_delete_target: An unknown or indestructable data instance was given.
-warning_empty_servers: There aren't any public game servers to show.
-warning_active_server: You are already in a server.
-warning_channel_reserved: This channel is already dedicated to a server.
-warning_guild_server_overflow: This guild already has too many open game servers active.
-warning_server_invalid_game: Unable to initialize a server for the specified game mode.
-warning_server_invalid_id: You have to specify a server ID.
-warning_server_criteria_failed: Unable to find any available servers.
-warning_invalid_game: An invalid game mode was specified.
-warning_missing_dev: You are not the developer of this bot.
-warning_missing_server_authority: You are not the server host or the developer of this bot.
-warning_destroy_target_missing_session: The server {} does not have an existing session to destroy.
-warning_invalid_server: Unable to find the specified server.
-warning_catalog_empty_reference: You must specify a reference for the catalog to use.
-warning_merit_not_authorized: You are not authorized to view this merit.
-warning_server_joined_external: You have already joined this server elsewhere.
-warning_server_joined: You have already joined this server.
-warning_server_joined_local: You can only join this server from where it was initialized.
-warning_account_not_found: The user you seek doesn't exist in this world.
-warning_item_not_found: I couldn't find an **Item** under that ID.
-warning_merit_not_found: Could not find a Merit with the specified ID.
-warning_quest_not_found: Could not find a Quest with the specified ID.
-warning_recipe_not_found: I couldn't find a **Recipe** under that ID.
-warning_shop_not_found: I couldn't find a **Shop** under that ID.
-warning_invoker_account_unspecified: The executing user does not have an account.
-warning_invalid_wager: An invalid wager input was given.
+
 
 autogimi_gather: Gathering results in {}...
 autogimi_result_header: The results are in!

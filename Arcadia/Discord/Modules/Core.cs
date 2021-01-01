@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Format = Orikivo.Format;
+using Orikivo.Text;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -16,10 +17,12 @@ namespace Arcadia.Modules
     public class Core : ArcadeModule
     {
         private readonly InfoService _info;
+        private readonly LocaleProvider _locale;
 
-        public Core(InfoService info)
+        public Core(InfoService info, LocaleProvider locale)
         {
             _info = info;
+            _locale = locale;
         }
 
         [Command("stop")]
@@ -57,7 +60,7 @@ namespace Arcadia.Modules
                 }
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning("Unable to find a previous changelog to reference."));
+            await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_changelog", Context.Account.Config.Language)));
         }
 
         [DoNotNotify]
@@ -112,7 +115,7 @@ namespace Arcadia.Modules
         {
             if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != Orikivo.Constants.DevId)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You do not have authority to update guild options."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_option_authority", Context.Account.Config.Language)));
                 return;
             }
 

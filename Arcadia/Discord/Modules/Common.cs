@@ -24,11 +24,13 @@ namespace Arcadia.Modules
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfigurationRoot _config;
+        private readonly LocaleProvider _locale;
 
-        public Common(DiscordSocketClient client, IConfigurationRoot config)
+        public Common(DiscordSocketClient client, IConfigurationRoot config, LocaleProvider locale)
         {
             _client = client;
             _config = config;
+            _locale = locale;
         }
 
         [RequireUser]
@@ -99,8 +101,8 @@ namespace Arcadia.Modules
             {
                 var notice = new StringBuilder();
 
-                notice.AppendLine(Format.Warning("You are unable to craft this recipe."));
-                notice.AppendLine("\n> **Missing Components**");
+                notice.AppendLine(Format.Warning(_locale.GetValue("craft_fail_missing_header", Context.Account.Config.Language)));
+                notice.AppendLine($"\n> **{_locale.GetValue("craft_fail_missing_subtitle", Context.Account.Config.Language)}**");
 
                 foreach ((string itemId, int amount) in CraftHelper.GetMissingFromRecipe(Context.Account, recipe))
                 {
@@ -116,9 +118,9 @@ namespace Arcadia.Modules
                 var result = new StringBuilder();
 
                 result.AppendLine($"> 📑 **{ItemHelper.NameOf(recipe.Result.ItemId)}**{(recipe.Result.Amount > 1 ? $" (x**{recipe.Result.Amount:##,0}**)" : "")}");
-                result.AppendLine("> Successfully crafted an item!");
+                result.AppendLine($"> {_locale.GetValue("craft_success_header", Context.Account.Config.Language)}");
 
-                result.AppendLine("\n> **Losses**");
+                result.AppendLine($"\n> **{_locale.GetValue("craft_success_losses", Context.Account.Config.Language)}**");
 
                 foreach ((string itemId, int amount) in recipe.Components)
                 {
@@ -134,7 +136,7 @@ namespace Arcadia.Modules
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning("An unknown error has occured when crafting this recipe."));
+            await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_craft_unknown_error", Context.Account.Config.Language)));
 
         }
 
@@ -254,7 +256,7 @@ namespace Arcadia.Modules
         {
             if (amount < 0)
             {
-                await Context.Channel.SendMessageAsync($"> 👁️ You can't specify a **negative** value.\n> *\"I know what you were trying to do.\"*");
+                await Context.Channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*");
                 return;
             }
 
@@ -267,7 +269,7 @@ namespace Arcadia.Modules
 
             if (amount > Context.Account.TokenBalance)
             {
-                await Context.Channel.SendMessageAsync($"> ⚠️ You don't have enough **Tokens** to convert this amount.");
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_convert", Context.Account.Config.Language, Format.Bold("Tokens"))));
                 return;
             }
 
@@ -275,7 +277,7 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount, CurrencyType.Tokens);
             Context.Account.Give(money, CurrencyType.Money);
-            await Context.Channel.SendMessageAsync($"> You have traded in **{Icons.Tokens} {amount:##,0}** in exchange for **{Icons.Balance} {money:##,0}**.");
+            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount, CurrencyType.Tokens), CurrencyHelper.WriteCost(money, CurrencyType.Money))}");
         }
 
         [RequireUser]
@@ -296,7 +298,7 @@ namespace Arcadia.Modules
 
             if (data == null)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data instance."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
                 return;
             }
 
@@ -318,7 +320,7 @@ namespace Arcadia.Modules
         {
             if (Context.Account.Items.Count == 0)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You do not have any items in your inventory."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_inventory_empty", Context.Account.Config.Language)));
                 return;
             }
 
@@ -343,11 +345,11 @@ namespace Arcadia.Modules
             {
                 if (ItemHelper.Exists(dataId))
                 {
-                    await Context.Channel.SendMessageAsync(Format.Warning("You do not own this item."));
+                    await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_item_not_owned", Context.Account.Config.Language)));
                     return;
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning("Could not find a data instance."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
                 return;
             }
 
@@ -395,11 +397,11 @@ namespace Arcadia.Modules
 
             if (!ItemHelper.RemovePalette(Context.Account))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning("You don't have a palette currently equipped."));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_palette_not_equipped", Context.Account.Config.Language)));
                 return;
             }
 
-            await Context.Channel.SendMessageAsync($"> Successfully removed **{name}** from your **Card Palette**.");
+            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("card_remove_success", Context.Account.Config.Language, Format.Bold(name), Format.Bold("Card Palette"))}");
         }
 
         [RequireUser]
@@ -412,7 +414,7 @@ namespace Arcadia.Modules
 
             if (account == null)
             {
-                await Context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> The user you seek doesn't exist in this world.");
+                await Context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> {_locale.GetValue("warning_account_not_found", Context.Account.Config.Language)}");
                 return;
             }
 
