@@ -2145,7 +2145,7 @@ namespace Arcadia
             },
             new Item
             {
-                Id = Ids.Items.CapsuleDaily1,
+                Id = Ids.Items.CapsuleDaily2,
                 Icon = "🏮",
                 Name = "Daily Capsule II",
                 Summary = "A heartfelt goodie bag with a bronze seal.",
