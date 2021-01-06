@@ -405,7 +405,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("card")]
+        // [Command("card")]
         [Summary("View a user's or your own current **Card**.")]
         public async Task GetCardAsync(SocketUser user = null)
         {
