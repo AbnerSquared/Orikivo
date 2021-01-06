@@ -89,7 +89,7 @@ namespace Arcadia.Modules
             if (Check.NotNull(Context.Account.EraseConfirmKey) && code == Context.Account.EraseConfirmKey)
             {
                 Context.Data.Users.Delete(Context.Account);
-                await Context.Channel.SendMessageAsync("> All of your data has been successfully erased.\n> Wait. Who are you?");
+                await Context.Channel.SendMessageAsync("> All of your data has been successfully erased.");
                 return;
             }
 
@@ -109,8 +109,10 @@ namespace Arcadia.Modules
 
             int itemCount = Context.Account.Items.Sum(x => x.Count);
             result.AppendLine($"Once you erase your account, **ALL** data will be completely deleted. Please keep this in mind.\nThis includes:");
-            result.AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)")
-                .AppendLine($"• Your current level ({LevelViewer.View(Context.Account)}")
+            result
+                .AppendLine($"• Your wallet ({CurrencyHelper.WriteCost(Context.Account.Balance, CurrencyType.Money)})")
+                .AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)")
+                .AppendLine($"• Your current level ({LevelViewer.GetLevel(Context.Account.Level, Context.Account.Ascent)}")
                 .AppendLine($"• Your inventory (**{itemCount}** {Format.TryPluralize("item", itemCount)})")
                 .AppendLine($"• Your stats");
 

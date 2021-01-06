@@ -458,11 +458,8 @@ namespace Arcadia
                 Logger.Debug("User updated. Now saving...");
                 ctx.Data.Users.TrySave(ctx.Account);
             }
-            else if (!JsonHandler.JsonExists<ArcadeUser>(ctx.User.Id))
+            else if (ctx.Account != null && !JsonHandler.JsonExists<ArcadeUser>(ctx.User.Id))
             {
-                if (ctx.Account == null)
-                    ctx.GetOrAddUser(ctx.User);
-
                 ctx.Data.Users.TrySave(ctx.Account);
             }
 
@@ -473,7 +470,7 @@ namespace Arcadia
             {
                 ctx.Data.Guilds.TrySave(ctx.Server);
             }
-            else if (!JsonHandler.JsonExists<BaseGuild>(ctx.Guild.Id))
+            else if (ctx.Guild != null && ctx.Server != null && !JsonHandler.JsonExists<BaseGuild>(ctx.Guild.Id))
             {
                 if (ctx.Guild == null)
                     ctx.GetOrAddGuild(ctx.Guild);
