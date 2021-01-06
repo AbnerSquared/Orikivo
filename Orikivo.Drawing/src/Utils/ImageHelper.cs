@@ -373,7 +373,7 @@ namespace Orikivo.Drawing
             {
                 var result = new Bitmap(width, height);
 
-                result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+                //result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
                 using Graphics g = Graphics.FromImage(result);
                 using var wrap = new ImageAttributes();
