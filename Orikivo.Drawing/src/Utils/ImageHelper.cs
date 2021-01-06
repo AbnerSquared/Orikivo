@@ -369,24 +369,32 @@ namespace Orikivo.Drawing
 
         public static Bitmap SetSize(Bitmap image, int width, int height)
         {
-            var result = new Bitmap(width, height);
+            try
+            {
+                var result = new Bitmap(width, height);
 
-            result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+                result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
-            using Graphics g = Graphics.FromImage(result);
-            using var wrap = new ImageAttributes();
+                using Graphics g = Graphics.FromImage(result);
+                using var wrap = new ImageAttributes();
 
-            g.CompositingMode = CompositingMode.SourceCopy;
-            g.CompositingQuality = CompositingQuality.HighQuality;
-            g.InterpolationMode = InterpolationMode.NearestNeighbor;
-            g.SmoothingMode = SmoothingMode.None;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            wrap.SetWrapMode(WrapMode.TileFlipXY);
+                g.CompositingMode = CompositingMode.SourceCopy;
+                g.CompositingQuality = CompositingQuality.HighQuality;
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.SmoothingMode = SmoothingMode.None;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                wrap.SetWrapMode(WrapMode.TileFlipXY);
 
-            var destination = new Rectangle(0, 0, width, height);
-            g.DrawImage(image, destination, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrap);
+                var destination = new Rectangle(0, 0, width, height);
+                g.DrawImage(image, destination, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrap);
 
-            return result;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                throw e;
+            }
         }
 
         public static Bitmap Scale(Bitmap image, float widthScale, float heightScale)
