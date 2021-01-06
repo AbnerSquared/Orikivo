@@ -433,7 +433,7 @@ namespace Arcadia.Modules
                 CardInfo info = CardBuilder.BuildCardInfo(layout, details, properties);
                 System.Drawing.Bitmap card = graphics.DrawCard(info, properties.Deny);
 
-                await Context.Channel.SendImageAsync(card, $"../tmp/{user.Id}_card.png");
+                await Context.Channel.SendImageAsync(card, $@"bin/Release/tmp/{user.Id}_card.png");
             }
             catch (Exception ex)
             {
