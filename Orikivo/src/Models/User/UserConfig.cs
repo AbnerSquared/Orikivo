@@ -32,7 +32,13 @@ namespace Orikivo
             return flag;
         }
 
-        public UserConfig() { }
+        public UserConfig()
+        {
+            Notifier = NotifyAllow.Merit | NotifyAllow.Cooldown | NotifyAllow.OfferAccepted | NotifyAllow.OfferInbound | NotifyAllow.GiftInbound | NotifyAllow.Invite | NotifyAllow.Level | NotifyAllow.Research | NotifyAllow.Daily | NotifyAllow.ItemInbound;
+            Prefix = null;
+            Tooltips = true;
+            Language = Language.English;
+        }
 
         [JsonConstructor]
         internal UserConfig(string prefix, NotifyAllow notifier, UserFlag flag, Language language)
