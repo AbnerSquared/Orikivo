@@ -454,8 +454,20 @@ namespace Orikivo.Drawing
         public static Bitmap GetHttpImage(string url)
         {
             using (var webClient = new WebClient())
-                using (Stream stream = webClient.OpenRead(url))
-                    return new Bitmap(stream);
+            {
+                try
+                {
+                    using (Stream stream = webClient.OpenRead(url))
+                    {
+                        return new Bitmap(stream);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    throw e;
+                }
+            }
         }
 
         public static void Save(Image image, string path, ImageFormat format, bool dispose = true)

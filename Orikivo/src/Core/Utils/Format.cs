@@ -322,7 +322,7 @@ namespace Orikivo
 
             int i = GetCounterRange(ticks);
 
-            string counter = $"{GetCounterLength(ticks, i)}:##,0.##";
+            string counter = $"{GetCounterLength(ticks, i):##,0.##}";
 
             if (useMarkdown)
                 counter = Bold(counter);

@@ -233,7 +233,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         [Action("get_results")]
-        private void GetResults(GameContext ctx)
+        public void GetResults(GameContext ctx)
         {
             // set all currently playing connection to frequency 12
             foreach (ServerConnection connection in ctx.Server.Connections.Where(x => x.State == GameState.Playing))

@@ -86,7 +86,7 @@ namespace Arcadia.Multiplayer
         {
             // in: GameContext, out: void
             // Assure that the parameters specified are of GameContext, which return void
-            return GetType().GetMethods().Where(x => x.GetCustomAttribute<ActionAttribute>() != null).Select(x => CreateGameAction(this, x));
+            return OnBuildActions() ?? GetType().GetMethods().Where(x => x.GetCustomAttribute<ActionAttribute>() != null).Select(x => CreateGameAction(this, x));
         }
 
         private static GameAction CreateGameAction(object callback, MethodInfo method)
@@ -114,7 +114,7 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// When specified, handling collection all of the required actions for this <see cref="GameBase"/>.
         /// </summary>
-        public abstract List<GameAction> OnBuildActions();
+        public virtual List<GameAction> OnBuildActions() => null;
 
         /// <summary>
         /// When specified, handles collecting all of the required criteria for this <see cref="GameBase"/>.
