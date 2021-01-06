@@ -16,6 +16,11 @@ echo "Installing Git..."
 sudo apt-get install git -y
 echo "Installing .NET Core SDK 3.1..."
 sudo apt-get install dotnet-sdk-3.1 -y
+sudo apt-get install libgdiplus -y
+sudo cd /user/lib
+sudo ln -s libgdiplus.so gdiplus.dll
+apt-get install libc6-dev libx11-dev
+rm -rf /var/lib/apt/lists/*
 
 cd "$root"
 rm "$root/arcadia_install_preq.sh"
