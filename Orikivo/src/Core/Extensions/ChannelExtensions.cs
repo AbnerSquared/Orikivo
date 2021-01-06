@@ -128,6 +128,9 @@ namespace Orikivo
             bool isSpoiler = false,
             AllowedMentions allowedMentions = null)
         {
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
             using (image)
                 ImageHelper.Save(image, path, GetImageFormat(format));
 

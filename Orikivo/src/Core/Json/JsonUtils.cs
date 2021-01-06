@@ -7,12 +7,12 @@ namespace Orikivo
         internal static string GetDirectoryIndex<T>()
         {
             if (typeof(T) == typeof(BaseUser))
-                return Directory.CreateDirectory(@"..\data\users\").FullName;
+                return Directory.CreateDirectory(@"bin/Release/data/users/").FullName;
 
             if (typeof(T) == typeof(BaseGuild))
-                return Directory.CreateDirectory(@"..\data\guilds\").FullName;
+                return Directory.CreateDirectory(@"bin/Release/data/guilds/").FullName;
 
-            return Directory.CreateDirectory(@"..\data\").FullName;
+            return Directory.CreateDirectory(@"bin/Release/data/").FullName;
         }
     }
 }
