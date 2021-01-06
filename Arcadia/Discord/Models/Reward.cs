@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using Arcadia.Services;
 using Orikivo;
-using Orikivo.Desync;
 
 namespace Arcadia
 {
@@ -38,26 +38,34 @@ namespace Arcadia
             if (Money > 0)
                 user.Give(Money);
 
-            ulong oldExp = user.Exp;
-
+            
             if (Exp > 0)
-               user.Exp += Exp;
-
-            if (user.Config.Notifier.HasFlag(NotifyAllow.Level))
-            {
-                int oldLevel = ExpConvert.AsLevel(oldExp, user.Ascent);
-                int level = user.Level;
-                if (level > oldLevel)
-                {
-                    user.Notifier.Add($"Level up! ({LevelViewer.GetLevel(oldLevel, user.Ascent)} to {LevelViewer.GetLevel(level, user.Ascent)})");
-                }
-            }
+                user.GiveExp(Exp);
 
             if (!Check.NotNullOrEmpty(ItemIds))
                 return;
 
             foreach ((string itemId, int amount) in ItemIds)
                 ItemHelper.GiveItem(user, itemId, amount);
+        }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder();
+
+            if (Money > 0)
+                result.AppendLine($"> {CurrencyHelper.WriteCost(Money, CurrencyType.Money)} {CurrencyHelper.GetName(CurrencyType.Money, Money)}");
+
+            if (Exp > 0)
+                result.AppendLine($"> {Icons.Exp} **{Exp:##,0}** Experience");
+
+            if (Check.NotNullOrEmpty(ItemIds))
+            {
+                foreach ((string itemId, int amount) in ItemIds)
+                    result.AppendLine($"> {ItemHelper.GetPreview(itemId, amount)}");
+            }
+
+            return result.ToString();
         }
     }
 }

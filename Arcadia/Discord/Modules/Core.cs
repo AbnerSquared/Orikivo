@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Discord;
 using Format = Orikivo.Format;
 using Orikivo.Text;
+using System.Text;
+using Arcadia.Services;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
@@ -30,6 +32,91 @@ namespace Arcadia.Modules
         public async Task StopAsync()
         {
             Environment.Exit(0);
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("guilderase")]
+        [Summary("Deletes all data **Orikivo Arcade** stores from this server.")]
+        public async Task EraseGuildAsync(string code = null)
+        {
+            if (Context.Account.Id != Context.Server.OwnerId && Context.Account.Id != Orikivo.Constants.DevId)
+            {
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_option_authority", Context.Account.Config.Language)));
+                return;
+            }
+
+            if (Context.Server == null)
+            {
+                await Context.Channel.SendMessageAsync("This server does not have any data stored on **Orikivo Arcade**.");
+                return;
+            }
+
+            if (Check.NotNull(Context.Account.EraseGuildKey) && code == Context.Account.EraseGuildKey)
+            {
+                Context.Data.Guilds.Delete(Context.Server);
+                await Context.Channel.SendMessageAsync("> All server configuration data has been erased.");
+                return;
+            }
+
+            var result = new StringBuilder();
+
+            if (!Check.NotNull(Context.Account.EraseGuildKey) || code != Context.Account.EraseGuildKey)
+            {
+                Context.Account.EraseGuildKey = KeyBuilder.Generate(12);
+
+                if (code != Context.Account.EraseGuildKey)
+                    result.AppendLine(Format.Warning("You have incorrectly specified the erase code.")).AppendLine();
+            }
+
+            result.AppendLine($"Once you erase server data, **ALL** server configuration data will be deleted. Please keep in mind that guild data is created the moment any of these commands are executed:")
+                .AppendLine("`guildoption` `guildoptions`").AppendLine()
+                .AppendLine("This is because configuration options are updated when using these commands.")
+                .AppendLine($"To confirm deletion, type `guilderase {Context.Account.EraseGuildKey}`.");
+
+            await Context.Channel.SendMessageAsync(result.ToString());
+        }
+
+        [Command("erase")]
+        [Summary("Clear all of your data from **Orikivo Arcade**.")]
+        public async Task EraseAsync(string code = null)
+        {
+            if (Context.Account == null)
+            {
+                await Context.Channel.SendMessageAsync("> You do not have any data stored on **Orikivo Arcade**.");
+                return;
+            }
+
+            if (Check.NotNull(Context.Account.EraseConfirmKey) && code == Context.Account.EraseConfirmKey)
+            {
+                Context.Data.Users.Delete(Context.Account);
+                await Context.Channel.SendMessageAsync("> All of your data has been successfully erased.\n> Wait. Who are you?");
+                return;
+            }
+
+            var result = new StringBuilder();
+
+            if (!Check.NotNull(Context.Account.EraseConfirmKey) || code != Context.Account.EraseConfirmKey)
+            {
+                Context.Account.EraseConfirmKey = KeyBuilder.Generate(12);
+                
+                if (code != Context.Account.EraseConfirmKey)
+                result.AppendLine(Format.Warning("You have incorrectly specified the erase code.")).AppendLine();
+            }
+
+            result.AppendLine($"> **Erase Data**")
+                  .AppendLine($"> Confirmation Code: `{Context.Account.EraseConfirmKey}`")
+                  .AppendLine();
+
+            int itemCount = Context.Account.Items.Sum(x => x.Count);
+            result.AppendLine($"Once you erase your account, **ALL** data will be completely deleted. Please keep this in mind.\nThis includes:");
+            result.AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)")
+                .AppendLine($"• Your current level ({LevelViewer.View(Context.Account)}")
+                .AppendLine($"• Your inventory (**{itemCount}** {Format.TryPluralize("item", itemCount)})")
+                .AppendLine($"• Your stats");
+
+            result.AppendLine($"Likewise, if you're still certain, you can erase your account by typing `erase {Context.Account.EraseConfirmKey}`");
+
+            await Context.Channel.SendMessageAsync(result.ToString());
         }
 
         // [Id("")]: For use in locale.

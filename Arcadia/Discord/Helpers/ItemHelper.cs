@@ -20,6 +20,14 @@ namespace Arcadia
             && (Assets.Groups.Any(x => x.Id == id)
             || Assets.Groups.Any(x => x.Icon?.Equals(id) ?? false));
 
+        public static string GetPreview(string itemId, int amount)
+        {
+            string icon = IconOf(itemId) ?? "•";
+            string name = Check.NotNull(icon) ? GetBaseName(itemId) : NameOf(icon);
+            string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
+            return $"`{itemId}` {icon} **{name}**{counter}";
+        }
+
         public static ItemData CreateData(Item item, int amount = 1, string sealId = null)
         {
             if (!Check.NotNull(sealId))

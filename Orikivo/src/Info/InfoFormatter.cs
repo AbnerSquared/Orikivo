@@ -401,7 +401,7 @@ namespace Orikivo
                 result.AppendLine($"> **{Locale.GetValue("help_access", language)}**: **{overload.Access.Value.ToString()}**");
 
             if (overload.Cooldown.HasValue)
-                result.AppendLine($"> **{Locale.GetValue("help_cooldown", language)}**: {Format.LongCounter(overload.Cooldown.Value)}");
+                result.AppendLine($"> **{Locale.GetValue("help_cooldown", language)}**: {Format.Counter(overload.Cooldown.Value)}");
 
             if (Check.NotNull(overload.Example))
                 result.Append($"> **{Locale.GetValue("help_example", language)}**: `{overload.Example}`");

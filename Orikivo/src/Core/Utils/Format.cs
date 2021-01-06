@@ -313,74 +313,28 @@ namespace Orikivo
         public static string Subscript(string value)
             => SetUnicodeMap(value, UnicodeMap.Subscript);
 
-        public static string LongCounter(TimeSpan remaining, bool useMarkdown = true)
+        public static string Counter(TimeSpan remaining, bool useMarkdown = true, bool useFullSuffix = true)
         {
-            double milliseconds = remaining.TotalMilliseconds;
+            long ticks = Math.Abs(remaining.Ticks);
 
-            if (milliseconds < 0)
-                milliseconds *= -1;
+            if (ticks == 0)
+                throw new ArgumentException("Cannot format a counter for an empty TimeSpan");
 
-            double upper = milliseconds;
-            int i = 0;
+            int i = GetCounterRange(ticks);
 
-            while (upper > GetNextDenominator(i))
-            {
-                upper /= GetNextDenominator(i);
+            string counter = $"{GetCounterLength(ticks, i)}:##,0.##";
 
-                if (i < 7)
-                    i++;
-                else
-                    break;
-            }
+            if (useMarkdown)
+                counter = Bold(counter);
 
-            string markdown = useMarkdown ? "**" : "";
-            return $"{markdown}{upper:##,0.##}{markdown} {GetCounterSuffix(i, true)}";
+            return $"{counter} {GetCounterSuffix(i, useFullSuffix)}";
         }
 
         // 70 => 1.06m
-        public static string Counter(double seconds, bool useMarkdown = true)
-        {
-            if (seconds < 0)
-                seconds *= -1;
+        public static string Counter(double seconds, bool useMarkdown = true, bool useFullSuffix = true)
+            => Counter(TimeSpan.FromSeconds(seconds), useMarkdown, useFullSuffix);
 
-            double upper = seconds;
-            int i = 1;
-
-            while (upper > GetNextDenominator(i))
-            {
-                upper /= GetNextDenominator(i);
-
-                if (i < 7)
-                    i++;
-                else
-                    break;
-            }
-
-            string value = $"{upper:##,0.##}";
-            return $"{(useMarkdown ? Bold(value) : value)}{GetCounterSuffix(i)}";
-        }
-
-        public static string RawCounter(double milliseconds)
-        {
-            if (milliseconds < 0)
-                milliseconds *= -1;
-
-            double upper = milliseconds;
-            int i = 0;
-
-            while (upper > GetNextDenominator(i))
-            {
-                upper /= GetNextDenominator(i);
-
-                if (i < 7)
-                    i++;
-                else
-                    break;
-            }
-
-            return $"{upper:##,0.##}{GetCounterSuffix(i)}";
-        }
-
+        // TODO: This can probably be simplified even further
         // 92399 => 92.3k
         public static string Condense(long value, out NumberGroup group, bool ignoreZeros = true)
         {
@@ -558,6 +512,11 @@ namespace Orikivo
             return SetCasing(result, casing);
         }
 
+        public static string TryPluralize(string word, string plural, bool predicate)
+        {
+            return predicate ? plural : word;
+        }
+
         private static Casing GetCasing(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -725,17 +684,55 @@ namespace Orikivo
             };
         }
 
-        private static double GetNextDenominator(int upperIndex)
+        private static long GetCounterLength(long ticks, int index)
         {
-            return upperIndex switch
+            long denominator = index switch
             {
-                7 => 12,
-                6 => 30.44,
-                5 => 7,
-                4 => 24,
-                0 => 1000,
-                _ => 60
+                7 => TicksPerYear,
+                6 => TicksPerMonth,
+                5 => TicksPerWeek,
+                4 => TimeSpan.TicksPerDay,
+                3 => TimeSpan.TicksPerHour,
+                2 => TimeSpan.TicksPerMinute,
+                1 => TimeSpan.TicksPerSecond,
+                _ => TimeSpan.TicksPerMillisecond
             };
+
+            return ticks / denominator;
+        }
+
+        private static readonly long TicksPerYear = (long)Math.Floor(TimeSpan.TicksPerDay * 365.25D);
+        private static readonly long TicksPerMonth = (long)Math.Floor(TimeSpan.TicksPerDay * 30.44D);
+        private static readonly long TicksPerWeek = TimeSpan.TicksPerDay * 7;
+
+        private static int GetCounterRange(long ticks, bool useRounding = false)
+        {
+            if (useRounding)
+            {
+                if (ticks >= TicksPerYear)
+                    return 7;
+
+                if (ticks >= TicksPerMonth)
+                    return 6;
+
+
+                if (ticks >= TicksPerWeek)
+                    return 5;
+            }
+
+            if (ticks >= TimeSpan.TicksPerDay)
+                return 4;
+
+            if (ticks >= TimeSpan.TicksPerHour)
+                return 3;
+
+            if (ticks >= TimeSpan.TicksPerMinute)
+                return 2;
+
+            if (ticks >= TimeSpan.TicksPerSecond)
+                return 1;
+
+            return 0;
         }
     }
 }

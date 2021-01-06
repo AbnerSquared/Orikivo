@@ -24,7 +24,7 @@ namespace Arcadia
             return currency switch
             {
                 CurrencyType.Chips => Format.TryPluralize("Chip", isPlural),
-                CurrencyType.Money => Format.TryPluralize("Orite", isPlural),
+                CurrencyType.Money => "Orite",
                 CurrencyType.Debt => "Debt",
                 CurrencyType.Tokens => Format.TryPluralize("Token", isPlural),
                 _ => "UNKNOWN_CURRENCY"
@@ -32,7 +32,16 @@ namespace Arcadia
         }
 
         public static string WriteCost(long value, CurrencyType currency)
-            => value <= 0 ? "**Unknown Cost**" : $"{Icons.IconOf(currency)} **{value:##,0}**"; // {(value == 69 ? "(nice)" : "")}
+        {
+            DateTime now = DateTime.UtcNow;
+            string cost = value <= 0
+                ? $"{Icons.IconOf(currency)} **Unknown Cost**"
+                : $"{Icons.IconOf(currency)} **{value:##,0}**";
+
+            bool canUseJoke = now.Month == 4 && now.Day == 1 && value == 69;
+
+            return canUseJoke ? $"{cost} (nice)" : cost;
+        }
 
         public static bool CanAddBooster(BoostData boost)
         {

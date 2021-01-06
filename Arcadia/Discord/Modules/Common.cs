@@ -153,7 +153,7 @@ namespace Arcadia.Modules
         [Summary("View the currently assigned objective on the specified slot.")]
         public async Task ViewQuestAsync(int slot)
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.ViewSlot(Context.Account, --slot));
+            await Context.Channel.SendMessageAsync(QuestHelper.InspectQuest(Context.Account, --slot));
         }
 
         [RequireUser]
@@ -169,7 +169,7 @@ namespace Arcadia.Modules
         [Summary("Toss the specified quest you are currently working on.")]
         public async Task TossQuestAsync(int slot)
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, --slot));
+            await Context.Channel.SendMessageAsync(QuestHelper.SkipQuest(Context.Account, --slot));
         }
 
         [RequireUser]

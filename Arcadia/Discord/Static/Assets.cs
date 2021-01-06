@@ -144,6 +144,11 @@ namespace Arcadia
                     },
                     new LootEntry
                     {
+                        Money = 250,
+                        Weight = 1
+                    },
+                    new LootEntry
+                    {
                         ItemId = Ids.Items.BoosterOriteBooster,
                         Weight = 4
                     },
@@ -322,7 +327,7 @@ namespace Arcadia
                 Name = "Trivia Solo 5Q",
                 Summary = "Play a game of 5 question **Trivia**.",
                 Difficulty = 0,
-                Type = QuestType.Challenge,
+                Type = QuestType.Daily,
                 Criteria = new List<Criterion>
                 {
                     new Criterion
@@ -355,7 +360,7 @@ namespace Arcadia
                 Name = "Trivia Solo 10Q",
                 Summary = "Play a game of 10 question **Trivia**.",
                 Difficulty = 1,
-                Type = QuestType.Challenge,
+                Type = QuestType.Daily,
                 Criteria = new List<Criterion>
                 {
                     new Criterion
@@ -388,7 +393,7 @@ namespace Arcadia
                 Name = "Trivia Solo 15Q",
                 Summary = "Play a game of 15 question **Trivia**.",
                 Difficulty = 2,
-                Type = QuestType.Challenge,
+                Type = QuestType.Daily,
                 Criteria = new List<Criterion>
                 {
                     new Criterion
@@ -421,7 +426,7 @@ namespace Arcadia
                 Name = "Trivia Solo 20Q",
                 Summary = "Play a game of 20 question **Trivia**.",
                 Difficulty = 2,
-                Type = QuestType.Challenge,
+                Type = QuestType.Daily,
                 Criteria = new List<Criterion>
                 {
                     new Criterion
@@ -491,7 +496,7 @@ namespace Arcadia
                 Id = "quest:weekly_attendance",
                 Name = "Weekly Attendance",
                 Summary = "Ensure your status for a week.",
-                Difficulty = 2,
+                Difficulty = 4,
                 Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Common.DailyStreak, 7)
@@ -549,8 +554,10 @@ namespace Arcadia
                 Difficulty = 1,
                 Criteria = new List<Criterion>
                 {
-                    new VarCriterion(Stats.Gimi.TimesPlayed, 25),
-                    new VarCriterion(Stats.Doubler.TimesPlayed, 25)
+                    new VarCriterion(Stats.Gimi.TimesPlayed, 8),
+                    new VarCriterion(Stats.Doubler.TimesPlayed, 8),
+                    new VarCriterion(Stats.Roulette.TimesPlayed, 8),
+                    new VarCriterion(Stats.BlackJack.TimesPlayed, 8)
                 },
                 Type = QuestType.Daily,
                 Reward = new Reward

@@ -44,7 +44,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [RequireGuild(AccountHandling.ReadOnly)]
         [Command("localservers")]
         [Summary("View all currently open game servers in this guild.")]
         public async Task ViewLocalServersAsync(int page = 1) // use the page to view through multiple servers, if there is too many to show on one page

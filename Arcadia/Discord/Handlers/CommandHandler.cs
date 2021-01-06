@@ -227,7 +227,7 @@ namespace Arcadia
             var text = new StringBuilder();
 
             text.AppendLine($"> 🔻 {(isGlobal ? "You are executing commands too quickly." : "This command is on cooldown.")}");
-            text.AppendLine($"> {(isGlobal ? "Please wait" : "You can execute it in")} {Format.LongCounter(DateTime.UtcNow - expiry)}.");
+            text.AppendLine($"> {(isGlobal ? "Please wait" : "You can execute it in")} {Format.Counter(DateTime.UtcNow - expiry)}.");
 
             return text.ToString();
         }

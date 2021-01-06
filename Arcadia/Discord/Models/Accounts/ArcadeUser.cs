@@ -5,6 +5,7 @@ using System.Linq;
 using Arcadia.Graphics;
 using Discord;
 using Orikivo;
+using Arcadia.Services;
 
 namespace Arcadia
 {
@@ -136,6 +137,12 @@ namespace Arcadia
 
         [JsonIgnore] public Wager LastFundsLost { get; set; }
 
+        [JsonIgnore]
+        public string EraseGuildKey { get; set; }
+
+        [JsonIgnore]
+        public string EraseConfirmKey { get; set; }
+
         private string _cardGenKey;
         [JsonIgnore]
         public string CardGenKey => _cardGenKey ??= KeyBuilder.Generate(6);
@@ -218,6 +225,24 @@ namespace Arcadia
         {
             previous = GetVar(id);
             AddToVar(id, amount);
+        }
+
+        public void GiveExp(ulong amount)
+        {
+            ulong previous = Exp;
+
+            Exp += amount;
+
+            if (Config.Notifier.HasFlag(NotifyAllow.Level))
+            {
+                int oldLevel = ExpConvert.AsLevel(previous, Ascent);
+                int level = Level;
+
+                if (level > oldLevel)
+                {
+                    Notifier.Add($"Level up! ({LevelViewer.GetLevel(oldLevel, Ascent)} to {LevelViewer.GetLevel(level, Ascent)})");
+                }
+            }
         }
 
         public void Give(long value, CurrencyType currency = CurrencyType.Money)

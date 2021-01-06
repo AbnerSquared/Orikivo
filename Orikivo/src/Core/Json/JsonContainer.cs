@@ -53,6 +53,15 @@ namespace Orikivo
                 JsonHandler.SaveEntity(value, _directory);
         }
 
+        public void Delete(TEntity value)
+        {
+            if (value == null)
+                throw new ArgumentException("Expected to specify an entity");
+
+            JsonHandler.DeleteEntity(value, _directory);
+            Values.TryRemove(value.Id, out _);
+        }
+
         public void TrySave(TEntity value)
         {
             if (value != null)

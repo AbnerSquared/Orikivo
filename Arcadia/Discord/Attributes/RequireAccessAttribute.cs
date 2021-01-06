@@ -65,12 +65,15 @@ namespace Orikivo
             => Constants.DevId == userId;
 
         private bool CheckOwner(ulong userId, ArcadeContext ctx)
-            => DevOverride ? CheckDev(userId) : ctx.Server.OwnerId == userId;
+            => DevOverride ? CheckDev(userId) : ctx.Guild?.OwnerId == userId;
 
         private bool CheckInherit(ulong userId, ArcadeContext ctx)
         {
             if (DevOverride)
                 return CheckDev(userId);
+
+            if (ctx.Server == null)
+                return false;
 
             if (ctx.Server.Config.TrustedRoleId.HasValue)
             {

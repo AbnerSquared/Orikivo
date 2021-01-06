@@ -10,11 +10,44 @@ namespace Arcadia
     public static class QuestHelper
     {
         public static readonly long DefaultQuestCapacity = 2;
-        public static readonly TimeSpan AssignCooldown = TimeSpan.FromHours(24);
-        public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(4);
+        public static readonly TimeSpan AssignCooldown = TimeSpan.FromHours(6);
+        public static readonly TimeSpan SkipCooldown = TimeSpan.FromHours(2);
+        private static readonly long DifficultyScalar = 10;
+        private static readonly long QuestPointBase = 2;
+        private static readonly long BaseMoneyReward = 20;
+        private static readonly long MoneyDifficultyScale = 10;
+        private static readonly long BaseExpReward = 15;
+        private static readonly long ExpDifficultyScale = 5;
 
         public static bool MeetsCriterion(string questId, string statId, long current)
             => MeetsCriterion(GetQuest(questId), statId, current);
+
+        public static bool MeetsCriteria(ArcadeUser user, QuestData data)
+        {
+            Quest quest = GetQuest(data.Id);
+
+            if (quest == null)
+                throw new Exception("Expected to find a parent quest but returned null");
+
+            foreach (Criterion criterion in quest.Criteria)
+            {
+                if (!data.Progress.ContainsKey(criterion.Id))
+                {
+                    throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
+                }
+
+                // If the key isn't found, it means that the criterion is not judged by a blank slate, but instead the current value
+                long current = criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
+                    : data.Progress[criterion.Id].Complete ? 1 : 0;
+
+                long goal = criterion is VarCriterion varCriterion ? varCriterion.ExpectedValue : 1;
+
+                if (current < goal)
+                    return false;
+            }
+
+            return true;
+        }
 
         public static long GetCriterionGoal(string questId, string statId)
             => GetCriterionGoal(GetQuest(questId).Criteria.First(x => x.Id == statId));
@@ -34,10 +67,26 @@ namespace Arcadia
             };
         }
 
-        private static readonly long DifficultyScalar = 10;
-        private static readonly long QuestPointBase = 2;
+        private static long GetBaseMoney(int difficulty)
+        {
+            return BaseMoneyReward + (MoneyDifficultyScale * difficulty);
+        }
 
-        private static long GetDefaultValue(int difficulty)
+        private static ulong GetBaseExp(int difficulty)
+        {
+            return (ulong)(BaseExpReward + (ExpDifficultyScale * difficulty));
+        }
+
+        private static Reward GetDefaultReward(int difficulty)
+        {
+            return new Reward
+            {
+                Money = GetBaseMoney(difficulty),
+                Exp = GetBaseExp(difficulty)
+            };
+        }
+
+        private static long GetDefaultWorth(int difficulty)
         {
             if (difficulty <= 0)
                 return DifficultyScalar;
@@ -45,8 +94,8 @@ namespace Arcadia
             return (long)(DifficultyScalar * Math.Pow(QuestPointBase, difficulty - 1));
         }
 
-        public static long GetValue(Quest quest)
-            => quest.Value > 0 ? quest.Value : GetDefaultValue(quest.Difficulty);
+        public static long GetWorth(Quest quest)
+            => quest.Value > 0 ? quest.Value : GetDefaultWorth(quest.Difficulty);
 
         public static long GetCriterionGoal(Quest quest, string statId)
             => GetCriterionGoal(quest.Criteria.First(x => x.Id == statId));
@@ -94,7 +143,7 @@ namespace Arcadia
                 return;
 
             if (!HasAnyAssignable(user))
-                throw new ArgumentException("The specified user does not have any assignable quests they can use.");
+                throw new ArgumentException("The specified user does not have any assignable quests.");
 
             IEnumerable<Quest> assignable = GetAssignable(user);
 
@@ -111,23 +160,21 @@ namespace Arcadia
             Var.SetIfEmpty(user, Stats.Common.QuestCapacity, DefaultQuestCapacity);
 
             if (!CanAssign(user))
-            {
-                return new Message($"> 🚫 You have already been assigned your daily objectives.\n> Check back in **{Format.Countdown(StatHelper.GetRemainder(user, Stats.Common.LastAssignedQuest, AssignCooldown))}**.");
-            }
+                return new Message(Format.Warning("You are asking for quests too quickly!") + $"\n> Check back in **{Format.Countdown(StatHelper.GetRemainder(user, Stats.Common.LastAssignedQuest, AssignCooldown))}**.");           
 
             if (!HasAnyAssignable(user))
-                return new Message($"> 🚫 You do not meet the criteria to be assigned an objective.");
+                return new Message(Format.Warning("There isn't any available quests for you at the moment. Come back later."));
 
             IEnumerable<Quest> assignable = GetAssignable(user);
 
             long available = GetCurrentCapacity(user);
 
             if (available == 0)
-                return new Message($"> 🚫 You don't currently have any room to be assigned any new objectives.");
+                return new Message(Format.Warning("You don't have any room to be assigned new quests!"));
 
             var info = new StringBuilder();
 
-            info.AppendLine($"> {Icons.Assign} You have been assigned new objectives!");
+            info.AppendLine($"> {Icons.Assign} You have been assigned {(available == 1 ? "a new quest" : $"**{available}** quests")}!");
 
             // If you want to allow for preservation of existing quests, ignore ones already specified
             for (int i = 0; i < available; i++)
@@ -137,12 +184,17 @@ namespace Arcadia
                 info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({GetDifficultyName(toAssign.Difficulty)})");
             }
 
-            TimeSpan amountToSkip = AssignCooldown - ((AssignCooldown / user.GetVar(Stats.Common.QuestCapacity)) * available);
+            TimeSpan amountToSkip = GetSkipDuration(user.GetVar(Stats.Common.QuestCapacity), available);
 
             user.SetVar(Stats.Common.LastAssignedQuest, DateTime.UtcNow.Add(amountToSkip).Ticks);
             user.AddToVar(Stats.Common.TotalAssignedQuests, available);
 
             return new Message(info.ToString());
+        }
+
+        private static TimeSpan GetSkipDuration(long questCapacity, long available)
+        {
+            return AssignCooldown - ((AssignCooldown / questCapacity) * available);
         }
 
         private static long GetCurrentCapacity(ArcadeUser user)
@@ -170,8 +222,7 @@ namespace Arcadia
             return quests.FirstOrDefault();
         }
 
-        // 0% complete.
-        private static string GetProgress(ArcadeUser user, QuestData data)
+        private static string GetQuestCompletion(ArcadeUser user, QuestData data)
         {
             Quest quest = GetQuest(data.Id);
 
@@ -184,27 +235,12 @@ namespace Arcadia
             }
 
             return $"**{RangeF.Convert(0, total, 0, 100, sum):##,0}**% complete";
-
-        }
-
-        private static int GetUniqueCount(Reward reward)
-        {
-            int count = reward.ItemIds?.Count ?? 0;
-
-            if (reward.Money > 0)
-                count++;
-
-            if (reward.Exp > 0)
-                count++;
-
-            return count;
         }
 
         private static Reward SumRewards(IEnumerable<Reward> rewards)
         {
             var sum = new Reward();
 
-            // Sum up all of the rewards together
             foreach (Reward reward in rewards)
             {
                 if (reward == null)
@@ -218,39 +254,7 @@ namespace Arcadia
             return sum;
         }
 
-        public static string WriteRewards(IEnumerable<Reward> rewards)
-        {
-            // Write the finalized reward
-            return WriteReward(SumRewards(rewards));
-        }
-
-        public static string WriteReward(Reward reward)
-        {
-            var info = new StringBuilder();
-
-            if (reward.Money > 0)
-            {
-                info.AppendLine($"> • {Icons.Balance} **{reward.Money:##,0}**");
-            }
-
-            if (reward.Exp > 0)
-            {
-                info.AppendLine($"> • {Icons.Exp} **{reward.Exp:##,0}**");
-            }
-
-            if (!Check.NotNullOrEmpty(reward.ItemIds))
-                return info.ToString();
-
-            foreach ((string itemId, int amount) in reward.ItemIds)
-            {
-                string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
-                info.AppendLine($"> • {ItemHelper.IconOf(itemId)}{ItemHelper.NameOf(itemId)}{counter}");
-            }
-
-            return info.ToString();
-        }
-
-        private static QuestData GetSlot(ArcadeUser user, int index, bool clamp = true)
+        private static QuestData GetQuestAt(ArcadeUser user, int index, bool clamp = true)
         {
             if (clamp)
             {
@@ -261,16 +265,15 @@ namespace Arcadia
             return user.Quests.ElementAtOrDefault(index);
         }
 
-        public static string TossSlot(ArcadeUser user, int index)
+        public static string SkipQuest(ArcadeUser user, int index)
         {
-            QuestData slot = GetSlot(user, index);
+            QuestData slot = GetQuestAt(user, index);
 
             if (slot == null)
-                return $"> {Icons.Warning} There isn't an assigned objective in this slot.";
+                return Format.Warning("There isn't a quest at that slot.\n\n") + View(user);
 
-            if (user.GetVar(Stats.Common.LastSkippedQuest) > 0)
-                if (StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest) >= SkipCooldown)
-                    return $"> {Icons.Warning} You have skipped an objective too recently. Try again in {Format.Countdown(SkipCooldown - StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest))}.";
+            if (user.GetVar(Stats.Common.LastSkippedQuest) > 0 && StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest) >= SkipCooldown)
+                    return $"> {Icons.Warning} You already skipped a quest too recently. Try again in {Format.Countdown(SkipCooldown - StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest))}.";
 
             Quest quest = GetQuest(slot.Id);
 
@@ -288,33 +291,33 @@ namespace Arcadia
             {
                 TimeSpan toSkip = (AssignCooldown - since) / 2; // skip 50% of the remaining time
                 user.SetVar(Stats.Common.LastAssignedQuest, new DateTime(user.GetVar(Stats.Common.LastAssignedQuest)).Add(toSkip).Ticks);
+
+                return $"> {Icons.Skip} You have skipped **{quest.Name}** and reduced your assign cooldown by {Format.Counter(toSkip)}.";
             }
 
-            return $"> 🗑️ You have declined the **{quest.Name}** objective.";
+            return $"> {Icons.Skip} You have skipped **{quest.Name}**.";
         }
 
-        //public static string ViewQuest(string questId)
-        //    => ViewQuest(GetQuest(questId));
-
-        public static string ViewSlot(ArcadeUser user, int index)
+        public static string InspectQuest(ArcadeUser user, int index)
         {
             int capacity = (int)Var.GetOrSet(user, Stats.Common.QuestCapacity, DefaultQuestCapacity);
             index = index < 0 ? 0 : index >= capacity ? capacity - 1 : index;
 
-            QuestData slot = GetSlot(user, index, false);
+            QuestData slot = GetQuestAt(user, index, false);
 
             if (slot == null)
-                return $"> {Icons.Warning} There isn't an assigned objective in this slot.";
+                return Format.Warning("There isn't a quest at that slot.\n\n") + View(user);
 
             Quest quest = GetQuest(slot.Id);
+            Reward reward = quest.Reward ?? GetDefaultReward(quest.Difficulty);
 
             if (quest == null)
                 throw new Exception("Expected to find a parent quest but returned null");
 
             var info = new StringBuilder();
 
-            info.AppendLine($"> **Objective: {quest.Name}** • {GetDifficultyName(quest.Difficulty)} (Slot {index + 1})");
-            info.AppendLine($"> {GetProgress(user, slot)}\n");
+            info.AppendLine($"> **{quest.Name}** • {GetDifficultyName(quest.Difficulty)} (Slot {index + 1})");
+            info.AppendLine($"> {GetQuestCompletion(user, slot)}\n");
 
             info.AppendLine("> **Tasks**");
 
@@ -326,12 +329,13 @@ namespace Arcadia
                 }
 
                 string bullet = slot.Progress[criterion.Id].Complete ? "✓" : "•";
+                string name = Check.NotNull(criterion.Name) ? criterion.Name : $"`{criterion.Id}`";
 
-                info.AppendLine($"> {bullet} `{criterion.Id}` (**{GetCriterionValue(user, slot, criterion)}** / **{GetCriterionGoal(criterion)}**)");
+                info.AppendLine($"> {bullet} {name} (**{GetCriterionValue(user, slot, criterion)}** / **{GetCriterionGoal(criterion)}**)");
             }
 
-            info.AppendLine($"\n> **{Format.TryPluralize("Reward", GetUniqueCount(quest.Reward))}**");
-            info.AppendLine(WriteReward(quest.Reward));
+            info.AppendLine($"\n> **Completion {Format.TryPluralize("Reward", reward.Count)}**");
+            info.AppendLine(reward.ToString());
 
             return info.ToString();
         }
@@ -352,74 +356,47 @@ namespace Arcadia
             return criterion is VarCriterion varCriterion ? varCriterion.ExpectedValue : 1;
         }
 
-        public static bool MeetsCriteria(ArcadeUser user, QuestData data)
-        {
-            Quest quest = GetQuest(data.Id);
-
-            if (quest == null)
-                throw new Exception("Expected to find a parent quest but returned null");
-
-            foreach (Criterion criterion in quest.Criteria)
-            {
-                if (!data.Progress.ContainsKey(criterion.Id))
-                {
-                    throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
-                }
-
-                // If the key isn't found, it means that the criterion is not judged by a blank slate, but instead the current value
-                long current = criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
-                    : data.Progress[criterion.Id].Complete ? 1 : 0;
-
-                long goal = criterion is VarCriterion varCriterion ? varCriterion.ExpectedValue : 1;
-
-                if (current < goal)
-                    return false;
-            }
-
-            return true;
-        }
-
         public static string CompleteAndDisplay(ArcadeUser user)
         {
             if (user.Quests.Count == 0)
-                return $"> {Icons.Warning} You do not have any currently assigned objectives.";
+                return Format.Warning("You do not have any quests assigned to you. Type `assign` to get started!");
 
             if (!user.Quests.Any(x => MeetsCriteria(user, x)))
-                return $"> {Icons.Warning} You have not met the criteria for any currently assigned objectives.";
+                return Format.Warning("You have not met the criteria for any of your quests.");
 
-            List<QuestData> complete = user.Quests.Where(x => MeetsCriteria(user, x)).ToList(); // Creates a new copy
+            List<QuestData> completed = user.Quests.Where(x => MeetsCriteria(user, x)).ToList(); // Creates a new copy
 
             var info = new StringBuilder();
 
-            int count = complete.Count;
+            if (completed.Count == 0)
+                throw new Exception("Expected to find a completed quest but returned empty");
 
-            if (count == 0)
-                throw new Exception("Expected at least 1 completed merit but returned 0");
+            user.Quests.RemoveAll(x => completed.Contains(x));
+            long points = completed.Sum(x => GetWorth(GetQuest(x.Id)));
+            Reward sum = SumRewards(completed.Select(x => GetQuest(x.Id).Reward ?? GetDefaultReward(GetQuest(x.Id).Difficulty)));
 
-            if (count == 1)
-            {
-                QuestData completed = complete.FirstOrDefault();
-                Quest quest = GetQuest(completed.Id);
+            info.AppendLine(GetCompletionHeader(ref completed))
+                .AppendLine("> Here is your reward:")
+                .AppendLine(sum.ToString());
 
-                user.Quests.Remove(completed);
-                user.AddToVar(Stats.Common.TotalCompletedQuests);
-                info.AppendLine($"> **{quest.Name}** ({GetDifficultyName(quest.Difficulty)})");
-                info.AppendLine($"> {Icons.Complete} You have completed an objective!\n");
-                info.AppendLine("> You have been rewarded:");
-                info.AppendLine(WriteReward(quest.Reward));
-                quest.Reward.Apply(user);
-                return info.ToString();
-            }
-
-            user.Quests.RemoveAll(x => complete.Contains(x));
-            Reward sum = SumRewards(complete.Select(x => GetQuest(x.Id)?.Reward));
-            info.AppendLine($"> {Icons.Complete} You have completed **{count}** objectives!\n");
-            info.AppendLine("> You have been rewarded:");
-            info.AppendLine(WriteReward(sum));
-            user.AddToVar(Stats.Common.TotalCompletedQuests, count);
+            user.AddToVar(Stats.Common.TotalCompletedQuests, completed.Count);
+            Var.Add(user, points, Vars.QuestPoints, Vars.MonthlyQuests);
             sum.Apply(user);
 
             return info.ToString();
+        }
+        
+        private static string GetCompletionHeader(ref List<QuestData> completed)
+        {
+            if (completed.Count == 1)
+            {
+                QuestData data = completed.First();
+                Quest quest = GetQuest(data.Id);
+
+                return $"> {Format.Bold(quest.Name)} ({GetDifficultyName(quest.Difficulty)})\n> {Icons.Complete} You have fulfilled this quest!\n";
+            }
+
+            return $"> {Icons.Complete} You have fulfilled **{completed.Count:##,0}** quests!\n";
         }
 
         public static string View(ArcadeUser user)
@@ -427,14 +404,14 @@ namespace Arcadia
             Var.SetIfEmpty(user, Stats.Common.QuestCapacity, DefaultQuestCapacity);
             var result = new StringBuilder();
 
-            result.AppendLine("> 🧧 **Objectives**");
-            result.AppendLine("> View your currently assigned tasks.");
+            result.AppendLine($"> {Icons.Quests} **Quests**");
+            result.AppendLine($"> Quest Points Earned: **{Vars.QuestPoints}** (**{Vars.MonthlyQuests}** this month)");
 
             int i = 0;
             foreach (QuestData data in user.Quests)
             {
                 Quest quest = GetQuest(data.Id);
-                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** ({GetProgress(user, data)})");
+                result.AppendLine($"\n> **Slot {i + 1}: {quest.Name}** ({GetQuestCompletion(user, data)})");
 
                 if (Check.NotNull(quest.Summary))
                     result.AppendLine($"> {quest.Summary}");
@@ -444,7 +421,7 @@ namespace Arcadia
 
             if (i == 0)
             {
-                result.AppendLine($"> {Icons.Warning} You do not have any currently assigned objectives.");
+                result.AppendLine(Format.Warning("You do not have any quests assigned to you. Type `assign` to get started!"));
             }
 
             return result.ToString();

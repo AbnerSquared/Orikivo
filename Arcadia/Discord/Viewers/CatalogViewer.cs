@@ -401,14 +401,14 @@ namespace Arcadia.Services
                 if (DateTime.UtcNow - data.Data.ExpiresOn.Value >= TimeSpan.Zero)
                     details.AppendLine("💀 **Expired**");
                 else
-                    details.AppendLine($"💀 Expires in {Format.LongCounter(data.Data.ExpiresOn.Value - DateTime.UtcNow)}");
+                    details.AppendLine($"💀 Expires in {Format.Counter(data.Data.ExpiresOn.Value - DateTime.UtcNow)}");
             }
 
             if (isUnique)
             {
                 TimeSpan? remainder = ItemHelper.GetCooldownRemainder(user, data.Id, data.Data.Id);
                 if (remainder.HasValue)
-                    details.AppendLine($"🕘 Usable in {Format.LongCounter(remainder.Value)}");
+                    details.AppendLine($"🕘 Usable in {Format.Counter(remainder.Value)}");
             }
 
             if (isUnique && (data.Data.Properties.Count > 0 || Check.NotNull(data.Data.Name)))
@@ -565,7 +565,7 @@ namespace Arcadia.Services
                         _ => ""
                     };
 
-                    details.AppendLine($"💀 **Expiry:** {Format.LongCounter(item.Usage.Timer.Value)}{expiryHandle}");
+                    details.AppendLine($"💀 **Expiry:** {Format.Counter(item.Usage.Timer.Value)}{expiryHandle}");
                 }
 
                 if (item.Usage.Cooldown.HasValue)
@@ -579,7 +579,7 @@ namespace Arcadia.Services
                         _ => ""
                     };
 
-                    details.AppendLine($"🕘 **Cooldown:** {Format.LongCounter(item.Usage.Cooldown.Value)}{cooldownHandle}");
+                    details.AppendLine($"🕘 **Cooldown:** {Format.Counter(item.Usage.Cooldown.Value)}{cooldownHandle}");
                 }
             }
 

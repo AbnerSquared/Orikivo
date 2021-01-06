@@ -120,7 +120,7 @@ namespace Arcadia.Graphics
             Bitmap result = card.BuildAndDispose();
             stopwatch.Stop();
 
-            Logger.Debug($"Card generated in {Format.RawCounter(stopwatch.ElapsedMilliseconds)}.");
+            Logger.Debug($"Card generated in {stopwatch.ElapsedMilliseconds} milliseconds.");
 
             return result;
         }

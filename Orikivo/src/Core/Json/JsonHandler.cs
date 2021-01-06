@@ -40,6 +40,18 @@ namespace Orikivo
             Save(obj, directory, string.Format(JsonFrame, obj.Id), serializer);
         }
 
+        public static void DeleteEntity<T>(T obj, string directory)
+            where T : IJsonModel
+        {
+            Delete($"{directory}{string.Format(JsonFrame, obj.Id)}");
+        }
+
+        public static void Delete(string path)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+
         private static string GetDirectory(string directory)
         {
             return Directory.CreateDirectory(directory).FullName;

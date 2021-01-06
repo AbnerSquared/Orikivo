@@ -163,7 +163,7 @@ namespace Arcadia
             }
 
             info.AppendLine($"> `{offer.Id}` {(offer.Type == OfferType.Inbound ? $"**From: {offer.Author.ToString("Unknown User")}**" : $"**To: {offer.Target.ToString("Unknown User")}**")}");
-            info.AppendLine($"> Expires in {Format.LongCounter(TimeSpan.FromHours(24) - (DateTime.UtcNow - offer.CreatedAt))}");
+            info.AppendLine($"> Expires in {Format.Counter(TimeSpan.FromHours(24) - (DateTime.UtcNow - offer.CreatedAt))}");
             if (offer.ItemIds.Count > 0)
             {
                 info.AppendLine("**Offers**:");

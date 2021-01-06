@@ -44,6 +44,8 @@
         internal static readonly string Inventory = "📂";
         internal static readonly string Gift = "🎁";
         internal static readonly string Notice = "🔔";
+        internal static readonly string Skip = "⏭️";
+        internal static readonly string Quests = "📜";
 
         private const string CLOCK_1 = "🕐";
         private const string CLOCK_2 = "🕑";
