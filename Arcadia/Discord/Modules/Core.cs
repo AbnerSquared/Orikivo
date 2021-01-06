@@ -99,8 +99,8 @@ namespace Arcadia.Modules
             {
                 Context.Account.EraseConfirmKey = KeyBuilder.Generate(12);
                 
-                if (code != Context.Account.EraseConfirmKey)
-                result.AppendLine(Format.Warning("You have incorrectly specified the erase code.")).AppendLine();
+                if (Check.NotNull(code) && code != Context.Account.EraseConfirmKey)
+                    result.AppendLine(Format.Warning("You have incorrectly specified the erase code.")).AppendLine();
             }
 
             result.AppendLine($"> **Erase Data**")
@@ -108,15 +108,23 @@ namespace Arcadia.Modules
                   .AppendLine();
 
             int itemCount = Context.Account.Items.Sum(x => x.Count);
-            result.AppendLine($"Once you erase your account, **ALL** data will be completely deleted. Please keep this in mind.\nThis includes:");
-            result
-                .AppendLine($"• Your wallet ({CurrencyHelper.WriteCost(Context.Account.Balance, CurrencyType.Money)})")
-                .AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)")
-                .AppendLine($"• Your current level ({LevelViewer.GetLevel(Context.Account.Level, Context.Account.Ascent)}")
-                .AppendLine($"• Your inventory (**{itemCount}** {Format.TryPluralize("item", itemCount)})")
-                .AppendLine($"• Your stats");
+            result.AppendLine($"Once you erase your account, **ALL** data will be completely deleted. Please keep this in mind. This includes:");
 
-            result.AppendLine($"Likewise, if you're still certain, you can erase your account by typing `erase {Context.Account.EraseConfirmKey}`");
+            if (Context.Account.Balance > 0)
+                result.AppendLine($"• Your wallet ({CurrencyHelper.WriteCost(Context.Account.Balance, CurrencyType.Money)})");
+
+            if (Context.Account.Merits.Count > 0)
+                result.AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)");
+
+            if (Context.Account.Level > 0)
+                result.AppendLine($"• Your current level ({LevelViewer.GetLevel(Context.Account.Level, Context.Account.Ascent)})");
+
+            if (Context.Account.Items.Count > 0)
+                result.AppendLine($"• Your inventory (**{itemCount}** {Format.TryPluralize("item", itemCount)})");
+            
+            result.AppendLine($"• Your stats");
+
+            result.AppendLine($"\nLikewise, if you're still certain, you can erase your account by typing `erase {Context.Account.EraseConfirmKey}`");
 
             await Context.Channel.SendMessageAsync(result.ToString());
         }
