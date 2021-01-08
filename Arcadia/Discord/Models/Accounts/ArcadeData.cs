@@ -53,6 +53,12 @@ namespace Arcadia
             return BonusGameId;
         }
 
+        public long GetMonthYear()
+        {
+            DateTime now = DateTime.UtcNow;
+            return (now.Year * 12) + now.Month;
+        }
+
         public ItemCatalog GetOrGenerateCatalog(Shop shop, ArcadeUser user = null)
         {
             if (Catalogs.ContainsKey(shop.Id)

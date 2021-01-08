@@ -97,6 +97,14 @@ namespace Arcadia
                 Summary = "This determines how many items you are able to hold at a time.",
                 DefaultValue = 4000,
                 ValueWriter = InventoryViewer.WriteCapacity
+            },
+            new Var
+            {
+                Id = Stats.Multiplayer.LastGamePlayed,
+                Name = "Last Game Played",
+                Type = VarType.Time,
+                Summary = "Represents the last time (in UTC) from which you played a multiplayer game.",
+                ValueWriter = (ticks) => Format.Date(new DateTime(ticks))
             }
         };
 

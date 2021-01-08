@@ -169,7 +169,7 @@ namespace Arcadia.Modules
         [Summary("Toss the specified quest you are currently working on.")]
         public async Task TossQuestAsync(int slot)
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.SkipQuest(Context.Account, --slot));
+            await Context.Channel.SendMessageAsync(QuestHelper.SkipAndDisplay(Context.Account, --slot));
         }
 
         [RequireUser]

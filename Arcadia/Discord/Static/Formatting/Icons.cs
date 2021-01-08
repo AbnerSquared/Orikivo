@@ -46,6 +46,7 @@
         internal static readonly string Notice = "🔔";
         internal static readonly string Skip = "⏭️";
         internal static readonly string Quests = "📜";
+        internal static readonly string Challenges = "🧧";
 
         private const string CLOCK_1 = "🕐";
         private const string CLOCK_2 = "🕑";

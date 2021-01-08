@@ -7,6 +7,7 @@
             internal static readonly string InternalUnknown = "$_?";
             internal static readonly string CapsuleDaily1 = "cp_daa"; // (stored as aa => Series A, Set I) aa => SERIES_SET
             internal static readonly string CapsuleDaily2 = "cp_dab";
+            internal static readonly string CapsuleDaily3 = "cp_dac";
             internal static readonly string CapsuleCasinoI = "cp_caa";
             internal static readonly string CapsuleTokenI = "cp_taa";
 
@@ -62,6 +63,7 @@
             internal static readonly string ToolGiftWrap = "t_gw";
             internal static readonly string BoosterDebtBlocker = "b_db";
             internal static readonly string BoosterOriteBooster = "b_ob";
+            internal static readonly string BoosterDaily = "b_ddb";
             internal static readonly string AutomatonGimi = "au_gimi";
             internal static readonly string PocketLawyer = "su_pl";
             internal static readonly string ComponentBlendKit = "c_bk";

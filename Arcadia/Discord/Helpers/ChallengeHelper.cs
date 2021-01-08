@@ -144,6 +144,24 @@ namespace Arcadia
             if (user.Challenges.Count == 0)
                 return;
 
+            var ctx = new CriterionContext(user, result);
+
+            foreach (Quest quest in user.Quests
+                .Where(x => QuestHelper.MeetsCriteria(user, x))
+                .Select(x => QuestHelper.GetQuest(x.Id))
+                .Where(x => x.Criteria.Any(y => y.Triggers == CriterionTriggers.Game)))
+            {
+                
+                foreach (Criterion criterion in quest.Criteria)
+                {
+                    if (criterion.Judge(ctx))
+                    {
+                        user.Quests.First(x => x.Id == quest.Id).Progress[criterion.Id].Complete = true;
+                    }
+                }
+            }
+
+            /*
             // No need to check challenges if they are all completed
             if (user.Challenges.All(x => x.Value.Complete))
                 return;
@@ -158,6 +176,7 @@ namespace Arcadia
                     user.Challenges[challenge.Id].Complete = true;
                 }
             }
+            */
         }
 
         public static void SetChallengeProgress(ArcadeUser user, string id, long value)

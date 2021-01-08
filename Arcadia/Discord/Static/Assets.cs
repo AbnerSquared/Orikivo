@@ -166,6 +166,63 @@ namespace Arcadia
             },
             new LootTable
             {
+                Id = Ids.Items.CapsuleDaily3,
+                Entries = new List<LootEntry>
+                {
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteGammaGreen,
+                        Weight = 4
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteCrimson,
+                        Weight = 5
+                    },
+                    new LootEntry
+                    {
+                        Money = 50,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        Money = 75,
+                        Weight = 35
+                    },
+                    new LootEntry
+                    {
+                        Money = 100,
+                        Weight = 25
+                    },
+                    new LootEntry
+                    {
+                        Money = 250,
+                        Weight = 5
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.BoosterOriteBooster,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteOceanic,
+                        Weight = 4
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.BoosterDaily,
+                        Weight = 1
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PaletteLemon,
+                        Weight = 5
+                    }
+                }
+            },
+            new LootTable
+            {
                 Id = Ids.Items.CapsuleCasinoI,
                 Entries = new List<LootEntry>
                 {
@@ -1689,7 +1746,35 @@ namespace Arcadia
                     },
                     OnBreak = user => user.Boosters.Add(new BoostData(BoostTarget.Debt, 0.1f, 5))
                 },
-                OwnLimit = 2
+                OwnLimit = 99
+            },
+            new Item
+            {
+                Id = Ids.Items.BoosterDaily,
+                Name = "Daily Influence",
+                Summary = "A booster that heavily amplifies the Orite you receive from dailies.",
+                Quotes = new List<string>
+                {
+                    "It shows that you know your way around perfect attendance."
+                },
+                GroupId = Ids.Groups.Booster,
+                Rarity = ItemRarity.Rare,
+                Tags = ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable | ItemTag.Modifier,
+                Value = 1000,
+                Size = 150,
+                Usage = new ItemUsage
+                {
+                    Action = delegate(UsageContext ctx)
+                    {
+                        var booster = new BoostData(Ids.Items.BoosterDaily, BoostTarget.Daily, 1, (TimeSpan?)null, 30);
+
+                        if (!TryApplyBooster(ctx.User, booster))
+                            return UsageResult.FromError("> You already have too many active modifiers.");
+
+                        return UsageResult.FromSuccess("The influence of this slip is carefully fused with your attendance slip.");
+                    }
+                },
+                OwnLimit = 5
             },
             new Item
             {
@@ -1720,7 +1805,7 @@ namespace Arcadia
                     }
                     // OnBreak = user => user.Boosters.Add(new BoostData(BoostType.Debt, 0.1f, 20))
                 },
-                OwnLimit = 2
+                OwnLimit = 99
             },
             new Item
             {
@@ -2132,7 +2217,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.CapsuleDaily1,
                 Icon = "🏮",
-                Name = "Daily Capsule I",
+                Name = "Daily Capsule A1",
                 Summary = "A small goodie bag with a ribbon of hope.",
                 Quotes = new List<string>
                 {
@@ -2154,7 +2239,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.CapsuleDaily2,
                 Icon = "🏮",
-                Name = "Daily Capsule II",
+                Name = "Daily Capsule A2",
                 Summary = "A heartfelt goodie bag with a bronze seal.",
                 Quotes = new List<string>
                 {
@@ -2164,6 +2249,29 @@ namespace Arcadia
                 Rarity = ItemRarity.Uncommon,
                 Currency = CurrencyType.Money,
                 Value = 100,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    // TODO: Add a custom property for capsules called roll count, which can be modified by a export cloning kit to add another roll count
+                    Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
+                    DeleteMode = DeleteTriggers.Break
+                },
+                TradeLimit = 0
+            },
+            new Item
+            {
+                Id = Ids.Items.CapsuleDaily3,
+                Icon = "🏮",
+                Name = "Daily Capsule A3",
+                Summary = "A carefully sealed bag enclosed with silver casing.",
+                Quotes = new List<string>
+                {
+                    "The container protects something valuable."
+                },
+                Tags = ItemTag.Container | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
+                Rarity = ItemRarity.Rare,
+                Currency = CurrencyType.Money,
+                Value = 250,
                 Usage = new ItemUsage
                 {
                     Durability = 1,
