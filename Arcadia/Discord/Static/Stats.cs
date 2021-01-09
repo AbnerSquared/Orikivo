@@ -47,6 +47,7 @@ namespace Arcadia
             internal static readonly string TotalAssignedQuests = "quest:total_assigned";
             internal static readonly string LastAssignedQuest = "quest:last_assigned";
             internal static readonly string LastSkippedQuest = "quest:last_skipped";
+            internal static readonly string QuestCompletedDaily = "quest:completed_daily";
 
             internal static readonly string TotalMoney = "generic:total_money";
             internal static readonly string TotalChips = "generic:total_chips";

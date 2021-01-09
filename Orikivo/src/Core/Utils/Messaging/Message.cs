@@ -16,7 +16,7 @@ namespace Orikivo
         {
             if (Check.NotNull(builder.Embedder))
             {
-                Text = "";
+                Text = builder.BaseContent ?? "";
                 var embed = new EmbedBuilder();
                 embed.Description = builder.Content;
 

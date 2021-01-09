@@ -24,24 +24,33 @@ namespace Arcadia
             Var.SetIfEmpty(user, Stats.Common.QuestCapacity, DefaultQuestCapacity);
             var result = new StringBuilder();
 
+            if (user.Config.Tooltips)
+            {
+                if (user.Quests.Count != 0)
+                    result.AppendLine(Format.Tooltip("Type `quests <slot>` to inspect a quest in a specific slot."))
+                        .AppendLine();
+            }
+
             result.AppendLine($"> {Icons.Quests} **Quests**");
-            result.AppendLine($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}** (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month)");
+            result.AppendLine($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}** (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month\n");
 
             int i = 0;
             foreach (QuestData data in user.Quests)
             {
                 Quest quest = GetQuest(data.Id);
                 result.AppendLine($"> **Slot {i + 1}: {quest.Name}** ({GetQuestCompletion(user, data)})");
-
-                //if (Check.NotNull(quest.Summary))
-                //    result.AppendLine($"> {quest.Summary}");
-
                 i++;
             }
 
             if (i == 0)
             {
-                result.AppendLine(Format.Warning("You do not have any quests assigned to you. Type `assign` to get started!"));
+                if (CanAssign(user))
+                    result.AppendLine(Format.Warning("You do not have any quests assigned to you. Type `assign` to get started!"));
+                else
+                {
+                    TimeSpan remainder = StatHelper.GetRemainder(user, Stats.Common.LastAssignedQuest, AssignCooldown);
+                    result.AppendLine($"> You have completed all of your quests for now. Check back in **{Format.Countdown(remainder)}**.");
+                }
             }
 
             //result.AppendLine($"> {Icons.Challenges} **Challenges**");

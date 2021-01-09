@@ -9,7 +9,7 @@
                 BoostTarget.Money => Balance,
                 BoostTarget.Debt => Debt,
                 BoostTarget.Chips => Chips,
-                BoostTarget.Voting => Tokens,
+                BoostTarget.Vote => Tokens,
                 _ => Unknown
             };
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Orikivo;
 using Orikivo.Desync;
+using Orikivo.Text.Pagination;
 
 namespace Arcadia.Services
 {
@@ -17,12 +18,38 @@ namespace Arcadia.Services
             return Math.Max(0, user.GetVar(CatalogHelper.GetCatalogId(itemId)) - 2);
         }
 
+        private static IEnumerable<Item> GetItemsWithMemos(ArcadeUser user)
+        {
+            return Assets.Items.Where(item => GetResearchTier(user, item.Id) > 0 && !string.IsNullOrWhiteSpace(item.Memo));
+        }
+
+        private static readonly int MaxMemoLength = 5;
+
         public static string ViewMemos(ArcadeUser user, int page = 0)
         {
             var details = new StringBuilder();
 
             details.AppendLine($"> 📠 **Memos**");
-            details.AppendLine("This is an upcoming feature. Stay tuned.");
+
+            IEnumerable<Item> memoItems = GetItemsWithMemos(user);
+
+            if (!memoItems.Any())
+            {
+                details.AppendLine("> You haven't written any memos for the items you know about.");
+
+                return details.ToString();
+            }
+
+
+            details.AppendLine($"> Memos Written: **{memoItems.Count():##,0}**\n");
+
+            int pageCount = Paginate.GetPageCount(memoItems.Count(), MaxMemoLength);
+            page = Paginate.ClampIndex(page, pageCount);
+
+            foreach (Item item in Paginate.GroupAt(memoItems, page, MaxMemoLength))
+            {
+                details.AppendLine($"> `{item.Id}` • **{item.Name}**");
+            }
 
             return details.ToString();
         }

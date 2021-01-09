@@ -25,6 +25,9 @@ namespace Orikivo
             IsTTS = isTts;
         }
 
+        [JsonIgnore]
+        public string BaseContent { get; set; }
+
         [JsonProperty("content")]
         public string Content { get; set; }
 
