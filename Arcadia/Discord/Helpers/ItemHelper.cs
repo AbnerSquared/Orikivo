@@ -28,6 +28,13 @@ namespace Arcadia
             return $"`{itemId}` {icon} **{name}**{counter}";
         }
 
+        // TODO: Return a dictionary of ITEM_ID, AMOUNT (Only items that are currently marked as active [EquipSlot is NOT 0])
+        // Returns all items that are activated from the trigger
+        public static IEnumerable<ItemData> ActivateTrigger(ArcadeUser user, UsageTriggers triggers, string triggerId)
+        {
+            return user.Items.Where(x => GetItem(x.Id).Usage?.Triggers.HasFlag(triggers) ?? false);
+        }
+
         public static ItemData CreateData(Item item, int amount = 1, string sealId = null)
         {
             if (!Check.NotNull(sealId))
@@ -286,7 +293,7 @@ namespace Arcadia
                 return true;
 
             // is this item left behind when the durability is broken?
-            if (item.Usage.Durability.HasValue && !item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
+            if (item.Usage.Durability.HasValue && !item.Usage.DeleteTriggers.HasFlag(DeleteTriggers.Break))
                 return true;
 
             // does this item have a cooldown that is applied to the instance of an item?
@@ -636,7 +643,7 @@ namespace Arcadia
                 // If the item is broken
                 if (data.Data.Durability <= 0)
                 {
-                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
+                    if (item.Usage.DeleteTriggers.HasFlag(DeleteTriggers.Break))
                     {
                         user.Items.Remove(data);
                         return UsageResult.FromError(Format.Warning("This item is broken and will be removed."));
@@ -658,7 +665,7 @@ namespace Arcadia
             {
                 if (data.Data != null)
                 {
-                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
+                    if (item.Usage.DeleteTriggers.HasFlag(DeleteTriggers.Break))
                     {
                         // if it's going to be deleted on use, remove it
                         if (data.Data.Durability - 1 <= 0)
@@ -675,7 +682,7 @@ namespace Arcadia
                 {
                     if (item.Usage.Durability == 1)
                     {
-                        if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
+                        if (item.Usage.DeleteTriggers.HasFlag(DeleteTriggers.Break))
                         {
                             data.StackCount -= 1;
 

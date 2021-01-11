@@ -19,6 +19,7 @@ namespace Arcadia
         // The rate to modify this property by
         public float Rate { get; set; }
 
+        // TODO: Remove this property
         // The duration of this modifier's effects. If both use count and duration are unspecified, the value is permanently applied to the base value.
         public TimeSpan? Duration { get; set; }
 

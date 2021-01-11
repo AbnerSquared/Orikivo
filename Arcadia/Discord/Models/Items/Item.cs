@@ -105,12 +105,6 @@ namespace Arcadia
         /// </summary>
         public ItemUsage Usage { get; set; }
 
-        // NOTE: This is only going to be used in cases where an item needs to be removed, since this is a direct way to manage that.
-        /// <summary>
-        /// Represents the method that is invoked to mark this <see cref="Item"/> as expired.
-        /// </summary>
-        public Func<bool> ToExpire { get; set; }
-
         /// <summary>
         /// Represents a collection of custom properties for this <see cref="Item"/>.
         /// </summary>

@@ -81,9 +81,6 @@ namespace Arcadia.Modules
             info.AppendLine($"> **{WriteName(booster)}**");
             info.AppendLine($"> {WriteEffect(booster)}");
 
-            if (booster.ExpiresOn.HasValue)
-                info.AppendLine(WriteExpiry(booster.ExpiresOn.Value));
-
             if (booster.UsesLeft.HasValue)
                 info.AppendLine(WriteUseCounter(booster.UsesLeft.Value));
 
@@ -95,9 +92,5 @@ namespace Arcadia.Modules
             return $"**Breaks in {usesLeft:##,0} {Format.TryPluralize("use", usesLeft)}**";
         }
 
-        private static string WriteExpiry(DateTime expiresOn)
-        {
-            return $"**Expires in {Format.Counter((DateTime.UtcNow - expiresOn).TotalSeconds, false)}**";
-        }
     }
 }

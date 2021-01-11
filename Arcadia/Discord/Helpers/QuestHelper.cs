@@ -32,7 +32,7 @@ namespace Arcadia
             }
 
             result.AppendLine($"> {Icons.Quests} **Quests**");
-            result.AppendLine($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}** (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month\n");
+            result.AppendLine($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}** (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month)\n");
 
             int i = 0;
             foreach (QuestData data in user.Quests)
@@ -96,7 +96,7 @@ namespace Arcadia
                 string bullet = slot.Progress[criterion.Id].Complete ? "✓" : "•";
                 string name = Check.NotNull(criterion.Name) ? criterion.Name : $"`{criterion.Id}`";
 
-                info.AppendLine($"> {bullet} {name} (**{GetCriterionValue(user, slot, criterion)}** / **{GetCriterionGoal(criterion)}**)");
+                info.AppendLine($"> {bullet} {name} (**{GetCriterionValue(user, slot, criterion)}**/**{GetCriterionGoal(criterion)}**)");
             }
 
             info.AppendLine($"\n> **Completion {Format.TryPluralize("Reward", reward.Count)}**");
@@ -126,12 +126,14 @@ namespace Arcadia
 
             info.AppendLine($"> {Icons.Assign} You have been assigned {(available == 1 ? "a new quest" : $"**{available}** quests")}!");
 
+            int preCount = user.Quests.Count;
+
             // If you want to allow for preservation of existing quests, ignore ones already specified
             for (int i = 0; i < available; i++)
             {
                 Quest toAssign = Randomizer.Choose(assignable);
                 user.Quests.Add(new QuestData(toAssign));
-                info.AppendLine($"**Slot {i + 1}: {toAssign.Name}** ({GetDifficultyName(toAssign.Difficulty)})");
+                info.AppendLine($"**Slot {preCount + i + 1}: {toAssign.Name}** ({GetDifficultyName(toAssign.Difficulty)})");
             }
 
             TimeSpan amountToSkip = GetSkipDuration(user.GetVar(Stats.Common.QuestCapacity), available);
@@ -179,8 +181,8 @@ namespace Arcadia
             if (slot == null)
                 return Format.Warning("There isn't a quest at that slot.\n\n") + View(user);
 
-            if (user.GetVar(Stats.Common.LastSkippedQuest) > 0 && StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest) >= SkipCooldown)
-                return $"> {Icons.Warning} You already skipped a quest too recently. Try again in {Format.Countdown(SkipCooldown - StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest))}.";
+            if (!CanSkip(user))
+                return $"> {Icons.Warning} You already skipped a quest too recently. Try again in {Format.Countdown(StatHelper.GetRemainder(user, Stats.Common.LastSkippedQuest, SkipCooldown))}.";
 
             Quest quest = GetQuest(slot.Id);
 
@@ -241,6 +243,10 @@ namespace Arcadia
                 {
                     throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
                 }
+                else if (data.Progress[criterion.Id].Complete)
+                {
+                    continue;
+                }
 
                 // If the key isn't found, it means that the criterion is not judged by a blank slate, but instead the current value
                 long current = criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
@@ -277,6 +283,13 @@ namespace Arcadia
             TimeSpan since = StatHelper.SinceLast(user, Stats.Common.LastAssignedQuest);
 
             return since >= AssignCooldown && user.Quests.Count <= user.GetVar(Stats.Common.QuestCapacity);
+        }
+
+        public static bool CanSkip(ArcadeUser user)
+        {
+            TimeSpan since = StatHelper.SinceLast(user, Stats.Common.LastSkippedQuest);
+
+            return user.GetVar(Stats.Common.LastSkippedQuest) == 0 || since >= SkipCooldown;
         }
 
         public static bool CanAssign(ArcadeUser user, Quest quest)
@@ -372,6 +385,8 @@ namespace Arcadia
             {
                 throw new ArgumentException("Expected to find the specified quest criterion to be stored in the progress dictionary");
             }
+            else if (data.Progress[criterion.Id].Complete)
+                return GetCriterionGoal(criterion);
 
             return criterion is VarCriterion ? data.Progress[criterion.Id].Value.GetValueOrDefault(user.GetVar(criterion.Id))
                     : data.Progress[criterion.Id].Complete ? 1 : 0;

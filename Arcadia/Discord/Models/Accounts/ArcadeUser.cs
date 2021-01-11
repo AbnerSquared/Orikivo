@@ -157,10 +157,10 @@ namespace Arcadia
         {
             long value = GetVar(id);
 
-            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value)))
+            if (!Quests.Any(x => x.Progress.ContainsKey(id) && !x.Progress[id].Complete && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value)))
                 return;
 
-            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value));
+            QuestData data = Quests.First(x => x.Progress.ContainsKey(id) && !x.Progress[id].Complete && !QuestHelper.MeetsCriterion(x.Id, id, x.Progress[id]?.Value ?? value));
             data.Progress[id].Value = value;
 
             // When a criterion is met, it might be better to remove it from the Quest data

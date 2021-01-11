@@ -20,8 +20,11 @@ namespace Arcadia
         internal static string GetTotalSoldId(string shopId)
             => $"{shopId}:items_sold";
 
+        internal static string GetUniqueVisitId(string shopId)
+            => $"{shopId}:total_unique_visits"; // AMount of times visited on each unique day
+
         internal static string GetVisitId(string shopId)
-            => $"{shopId}:total_unique_visits";
+            => $"{shopId}:total_visits"; // Amount of times a shop was visited
 
         internal static string GetTotalBoughtId(string shopId)
             => $"{shopId}:items_bought";

@@ -13,6 +13,7 @@ namespace Arcadia
         public ArcadeData()
         {
             Catalogs = new Dictionary<string, ItemCatalog>();
+            CurrentMonthYear = GetMonthYear();
         }
 
         [JsonConstructor]

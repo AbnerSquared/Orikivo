@@ -38,13 +38,14 @@ namespace Arcadia.Services
 
         private static string GetHeader(LeaderboardQuery flag)
         {
+            string icon = GetLeaderIcon(flag);
             return flag switch
             {
-                LeaderboardQuery.Income => "> 📈 **Leaderboard: Income**",
-                LeaderboardQuery.Experience => "> 📈 **Leaderboard: Experience**",
-                LeaderboardQuery.Quest => "> 📈 **Leaderboard: Quest**",
-                LeaderboardQuery.Multiplayer => "> 📈 **Leaderboard: Multiplayer**",
-                LeaderboardQuery.Casino => "> 📈 **Leaderboard: Casino**",
+                LeaderboardQuery.Income => $"> {icon} **Leaderboard: Income**",
+                LeaderboardQuery.Experience => $"> {icon} **Leaderboard: Experience**",
+                LeaderboardQuery.Quest => $"> {icon} **Leaderboard: Quest**",
+                LeaderboardQuery.Multiplayer => $"> {icon} **Leaderboard: Multiplayer**",
+                LeaderboardQuery.Casino => $"> {icon} **Leaderboard: Casino**",
                 _ => "> 📈 **Leaderboards**"
             };
         }
@@ -82,6 +83,19 @@ namespace Arcadia.Services
             return position + 1;
         }
 
+        private static string GetLeaderIcon(LeaderboardQuery flag)
+        {
+            return flag switch
+            {
+                LeaderboardQuery.Income => "🪙",
+                LeaderboardQuery.Experience => "🧠",
+                LeaderboardQuery.Quest => "🏟️",
+                LeaderboardQuery.Multiplayer => "🪃",
+                LeaderboardQuery.Casino => "🎯",
+                _ => "INVALID_FLAG"
+            };
+        }
+
         private static string GetUserTitle(LeaderboardQuery flag)
         {
             return flag switch
@@ -101,8 +115,8 @@ namespace Arcadia.Services
             {
                 LeaderboardQuery.Income => $"with {Icons.Balance}",
                 LeaderboardQuery.Experience => $"with {Icons.Exp}",
-                LeaderboardQuery.Quest => "with ", // {QUEST_POINT_ICON} 104
-                LeaderboardQuery.Multiplayer => "with ", // 96 wins
+                LeaderboardQuery.Quest => "with", // {QUEST_POINT_ICON} 104
+                LeaderboardQuery.Multiplayer => "with", // 96 wins
                 LeaderboardQuery.Casino => $"with {Icons.Chips}",
                 _ => "INVALID_FLAG"
             };
@@ -117,7 +131,7 @@ namespace Arcadia.Services
         // This is only on LeaderboardFlag.Default
         private static string WriteLeader(LeaderboardQuery flag, ArcadeUser user, bool allowEmptyValues = false)
         {
-            var title = GetUserTitle(flag);
+            var title = $"{GetLeaderIcon(flag)} {GetUserTitle(flag)}";
             var segment = GetFlagSegment(flag);
 
 
@@ -167,6 +181,26 @@ namespace Arcadia.Services
             return level;
         }
 
+        private static string GetMonthName(int month)
+        {
+            return month switch
+            {
+                1 => "January",
+                2 => "February",
+                3 => "March",
+                4 => "April",
+                5 => "May",
+                6 => "June",
+                7 => "July",
+                8 => "August",
+                9 => "September",
+                10 => "October",
+                11 => "November",
+                12 => "December",
+                _ => throw new ArgumentException("The specified month is out of the possible range")
+            };
+        }
+
         public string Write(ArcadeUser user, in IEnumerable<ArcadeUser> users, int page = 0)
         {
             var leaderboard = new StringBuilder();
@@ -181,6 +215,18 @@ namespace Arcadia.Services
 
             leaderboard.AppendLine(GetHeader(Flag));
 
+            if (Flag == LeaderboardQuery.Default)
+            {
+                DateTime now = DateTime.UtcNow;
+                int year = now.Year;
+                int month = now.Month;
+                int day = now.Day;
+                int daysInMonth = DateTime.DaysInMonth(year, month);
+                int remainder = daysInMonth - day;
+                string remaining = $"**{remainder:##,0}** {Format.TryPluralize("day", remainder)} until a new cycle";
+                string quote = $"> **{GetMonthName(month)} {year}** ({remaining})";
+                leaderboard.Append(quote);
+            }
             if (Flag != LeaderboardQuery.Custom)
             {
                 leaderboard.Append(GetHeaderQuote(Flag));
@@ -203,9 +249,9 @@ namespace Arcadia.Services
             if (Flag == LeaderboardQuery.Default)
             {
                 leaderboard.AppendLine();
-                leaderboard.AppendLine("> **Categories**\n"); // Find a better name than categories??
+                leaderboard.AppendLine("> **Categories**"); // Find a better name than categories??
                 leaderboard.AppendJoin(" ", EnumUtils.GetValues<LeaderboardQuery>().Where(x => !x.EqualsAny(LeaderboardQuery.Default, LeaderboardQuery.Custom)).Select(x => $"`{x.ToString().ToLower()}`").OrderBy(x => x[1..]));
-                leaderboard.AppendLine();
+                leaderboard.AppendLine().AppendLine();
                 leaderboard.AppendLine("> **Leaders**");
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Income, GetLeader(users, LeaderboardQuery.Income, Sort)));
                 leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Experience, GetLeader(users, LeaderboardQuery.Experience, Sort)));

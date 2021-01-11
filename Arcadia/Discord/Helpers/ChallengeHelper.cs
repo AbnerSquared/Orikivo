@@ -139,29 +139,37 @@ namespace Arcadia
 
         // New challenges cannot be given until the entire set is completed.
 
+        private static IEnumerable<Quest> GetActiveQuests(ArcadeUser user)
+        {
+            return user.Quests
+                .Where(x => !QuestHelper.MeetsCriteria(user, x))
+                .Select(x => QuestHelper.GetQuest(x.Id));
+        }
+
         public static void UpdateChallengeProgress(ArcadeUser user, GameResult result)
         {
-            if (user.Challenges.Count == 0)
+            if (user.Quests.Count == 0)
                 return;
 
             var ctx = new CriterionContext(user, result);
 
-            foreach (Quest quest in user.Quests
-                .Where(x => QuestHelper.MeetsCriteria(user, x))
-                .Select(x => QuestHelper.GetQuest(x.Id))
-                .Where(x => x.Criteria.Any(y => y.Triggers == CriterionTriggers.Game)))
+            // Get the first matching quest
+            // TODO: Get the best matching quest
+            Quest target = GetActiveQuests(user).Where(x => x.Criteria.Any(y => y.Triggers == CriterionTriggers.Game)).FirstOrDefault();
+
+            if (target == null)
+                return;
+
+            foreach (Criterion criterion in target.Criteria)
             {
-                
-                foreach (Criterion criterion in quest.Criteria)
+                if (criterion.Judge(ctx))
                 {
-                    if (criterion.Judge(ctx))
-                    {
-                        user.Quests.First(x => x.Id == quest.Id).Progress[criterion.Id].Complete = true;
-                    }
+                    user.Quests.First(x => x.Id == target.Id).Progress[criterion.Id].Complete = true;
                 }
             }
+        }
 
-            /*
+        /*
             // No need to check challenges if they are all completed
             if (user.Challenges.All(x => x.Value.Complete))
                 return;
@@ -177,7 +185,6 @@ namespace Arcadia
                 }
             }
             */
-        }
 
         public static void SetChallengeProgress(ArcadeUser user, string id, long value)
         {

@@ -45,8 +45,7 @@ namespace Arcadia
 
         public static bool CanAddBooster(BoostData boost)
         {
-            return (!boost.ExpiresOn.HasValue || !CooldownHelper.IsExpired(boost.ExpiresOn.Value))
-                && (!boost.UsesLeft.HasValue  || boost.UsesLeft > 0);
+            return (!boost.UsesLeft.HasValue  || boost.UsesLeft > 0);
         }
 
         public static float GetBoostMultiplier(ArcadeUser user, BoostTarget type)

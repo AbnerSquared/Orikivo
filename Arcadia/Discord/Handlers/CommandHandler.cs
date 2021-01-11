@@ -361,12 +361,14 @@ namespace Arcadia
                     {
                         ctx.Account.IsInSession = true;
                     }
+
+                    if (ctx.Account != null)
+                        ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(GlobalCooldown);
                 }
                 //}
             }
 
-            if (ctx.Account != null)
-                ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(GlobalCooldown);
+            
 
             // TODO: Use the command that was found and execute that instead to reduce command complexity
             if (!string.IsNullOrWhiteSpace(input))

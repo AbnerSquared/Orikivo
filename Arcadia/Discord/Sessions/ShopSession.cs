@@ -29,7 +29,7 @@ namespace Arcadia
             if (!context.Account.CatalogHistory[shop.Id].HasVisited)
             {
                 context.Account.CatalogHistory[shop.Id].HasVisited = true;
-                context.Account.AddToVar(ShopHelper.GetVisitId(shop.Id));
+                context.Account.AddToVar(ShopHelper.GetUniqueVisitId(shop.Id));
             }
 
             Var.SetIfEmpty(context.Account, ShopHelper.GetTierId(shop.Id), 1);

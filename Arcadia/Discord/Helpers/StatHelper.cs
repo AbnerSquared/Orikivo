@@ -36,8 +36,6 @@ namespace Arcadia
                 && Var.GetGroup(x.Key) == group)
                 .OrderBy(x => x.Key);
 
-        private static int GetPageCount(ArcadeUser user, int pageSize)
-            => (int) Math.Ceiling(GetVisibleStats(user).Count() / (double) pageSize);
         // 35 / 25 => 1.23
 
         public static string GetRandomStat(ArcadeUser user, IEnumerable<string> chosen)

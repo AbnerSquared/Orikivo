@@ -34,7 +34,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("challenges")]
+        //[Command("challenges")]
         [Summary("View your current challenge set.")]
         public async Task ViewChallengesAsync()
         {
@@ -43,7 +43,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("submit")]
+        //[Command("submit")]
         [Summary("Submit your challenge set for completion.")]
         public async Task SubmitChallengesAsync()
         {
@@ -165,8 +165,8 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("toss")]
-        [Summary("Toss the specified quest you are currently working on.")]
+        [Command("skip")]
+        [Summary("Skip the specified **Quest** you are currently working on.")]
         public async Task TossQuestAsync(int slot)
         {
             await Context.Channel.SendMessageAsync(QuestHelper.SkipAndDisplay(Context.Account, --slot));

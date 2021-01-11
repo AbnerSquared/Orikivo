@@ -736,7 +736,7 @@ namespace Arcadia
                 {
                     [2] = new List<VarCriterion>
                     {
-                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.TinkerTent), 10),
+                        new VarCriterion(ShopHelper.GetUniqueVisitId(Ids.Shops.TinkerTent), 10),
                         new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.TinkerTent), 5)
                     }
                 },
@@ -824,12 +824,12 @@ namespace Arcadia
                 {
                     [2] = new List<VarCriterion>
                     {
-                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.ChromeCove), 10),
+                        new VarCriterion(ShopHelper.GetUniqueVisitId(Ids.Shops.ChromeCove), 10),
                         new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.ChromeCove), 5)
                     },
                     [3] = new List<VarCriterion>
                     {
-                        new VarCriterion(ShopHelper.GetVisitId(Ids.Shops.ChromeCove), 20),
+                        new VarCriterion(ShopHelper.GetUniqueVisitId(Ids.Shops.ChromeCove), 20),
                         new VarCriterion(ShopHelper.GetTotalSpentId(Ids.Shops.ChromeCove), 7500),
                         new VarCriterion(ShopHelper.GetTotalBoughtId(Ids.Shops.ChromeCove), 10)
                     }
@@ -1479,7 +1479,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteTriggers.Break,
+                    DeleteTriggers = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         if (!Check.NotNull(ctx.Input))
@@ -1662,7 +1662,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteTriggers.Break,
+                    DeleteTriggers = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
                         if (!Check.NotNull(ctx.Input))
@@ -1734,10 +1734,10 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteTriggers.Break,
+                    DeleteTriggers = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
-                        var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostTarget.Debt, -0.2f, TimeSpan.FromHours(12), 20);
+                        var booster = new BoostData(Ids.Items.BoosterDebtBlocker, BoostTarget.Debt, -0.2f, 20);
 
                         if (!TryApplyBooster(ctx.User, booster))
                             return UsageResult.FromError("> You already have too many active modifiers.");
@@ -1752,7 +1752,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.BoosterDaily,
                 Name = "Daily Influence",
-                Summary = "A booster that heavily amplifies the Orite you receive from dailies.",
+                Summary = "Boosts the Orite you receive from dailies by 100%.", // "A booster that heavily amplifies the Orite you receive from dailies.",
                 Quotes = new List<string>
                 {
                     "It shows that you know your way around perfect attendance."
@@ -1766,13 +1766,14 @@ namespace Arcadia
                 {
                     Action = delegate(UsageContext ctx)
                     {
-                        var booster = new BoostData(Ids.Items.BoosterDaily, BoostTarget.Daily, 1, (TimeSpan?)null, 30);
+                        var booster = new BoostData(Ids.Items.BoosterDaily, BoostTarget.Money, 1, 30);
 
                         if (!TryApplyBooster(ctx.User, booster))
                             return UsageResult.FromError("> You already have too many active modifiers.");
 
                         return UsageResult.FromSuccess("The influence of this slip is carefully fused with your attendance slip.");
-                    }
+                    },
+                    EquipTarget = EquipTarget.Charm
                 },
                 OwnLimit = 5
             },
@@ -1780,6 +1781,7 @@ namespace Arcadia
             {
                 Id = Ids.Items.BoosterOriteBooster,
                 Name = "Orite Booster",
+                Summary = "Boosts any income related to Orite by 20%.",
                 Quotes = new List<string>
                 {
                     "It amplifies the value of Orite when given close exposure."
@@ -1793,10 +1795,12 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Durability = 1,
-                    DeleteMode = DeleteTriggers.Break,
+                    DeleteTriggers = DeleteTriggers.Break,
                     Action = delegate(UsageContext ctx)
                     {
-                        var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostTarget.Money, 0.2f, TimeSpan.FromHours(12), 20);
+                        // TODO: Instead of applying a boost data, mark the ITEM DATA INSTANCE as equipped in a slot.
+                        // You can then call a trigger, which will return all equipped items that activate from that trigger
+                        var booster = new BoostData(Ids.Items.BoosterOriteBooster, BoostTarget.Money, 0.2f, 20);
 
                         if (!TryApplyBooster(ctx.User, booster))
                             return UsageResult.FromError("> You already have too many active modifiers.");
@@ -1835,7 +1839,7 @@ namespace Arcadia
                 {
                     Durability = 1,
                     Cooldown = TimeSpan.FromDays(3),
-                    DeleteMode = DeleteTriggers.Break,
+                    DeleteTriggers = DeleteTriggers.Break,
                     Action = delegate (UsageContext ctx)
                     {
                         if (ctx.Input.ToLower() == "recover")
@@ -1883,7 +1887,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1904,7 +1908,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1925,7 +1929,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1946,7 +1950,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Polarity)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1967,7 +1971,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -1988,7 +1992,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Lemon)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2009,7 +2013,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Crimson, PaletteType.Lemon))),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2030,7 +2034,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Oceanic)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2051,7 +2055,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Taffy)),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -2072,7 +2076,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Wumpite, PaletteType.Glass))),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -2109,7 +2113,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Amber))),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2130,7 +2134,7 @@ namespace Arcadia
                 Usage = new ItemUsage
                 {
                     Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Chocolate))),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2231,7 +2235,7 @@ namespace Arcadia
                 {
                     Durability = 1,
                     Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 TradeLimit = 0
             },
@@ -2254,7 +2258,7 @@ namespace Arcadia
                     Durability = 1,
                     // TODO: Add a custom property for capsules called roll count, which can be modified by a export cloning kit to add another roll count
                     Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 TradeLimit = 0
             },
@@ -2277,7 +2281,7 @@ namespace Arcadia
                     Durability = 1,
                     // TODO: Add a custom property for capsules called roll count, which can be modified by a export cloning kit to add another roll count
                     Action = ctx => GetLoot(ctx.User, ctx.Item, ctx.Item.Id, 1),
-                    DeleteMode = DeleteTriggers.Break
+                    DeleteTriggers = DeleteTriggers.Break
                 },
                 TradeLimit = 0
             }

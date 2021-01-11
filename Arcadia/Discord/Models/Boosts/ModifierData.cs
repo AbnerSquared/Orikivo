@@ -49,6 +49,7 @@ namespace Arcadia
 
         public float Rate { get; }
 
+        // TODO: Remove this property
         public DateTime? ExpiresOn { get; }
 
         public int? UsesLeft { get; internal set; }

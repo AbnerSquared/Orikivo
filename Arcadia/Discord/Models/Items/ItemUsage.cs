@@ -29,15 +29,35 @@ namespace Arcadia
         /// </summary>
         public CooldownTarget CooldownTarget { get; set; } = CooldownTarget.Item;
 
+        // TODO: Remove this property
         /// <summary>
         /// Represents the length of time that this <see cref="Item"/> can be used.
         /// </summary>
         public TimeSpan? Timer { get; set; }
 
+        // If unspecified, do not allow equipping
+        /// <summary>
+        /// Represents the equipment target that this <see cref="Item"/> is placed in (optional).
+        /// </summary>
+        public EquipTarget? EquipTarget { get; set; }
+
+        /// <summary>
+        /// Represents the size of this <see cref="Item"/> when equipped (optional).
+        /// </summary>
+        public EquipSize EquipSize { get; set; } = EquipSize.Small;
+
+        // TODO: Remove this property
         /// <summary>
         /// Specifies the expiration starting triggers for this <see cref="Item"/>.
         /// </summary>
         public ExpireTriggers ExpireTriggers { get; set; } = ExpireTriggers.Own;
+
+        /// <summary>
+        /// Specifies the set of triggers that will automatically activate this <see cref="Item"/>.
+        /// </summary>
+        public UsageTriggers Triggers { get; set; }
+
+        public string TriggerId { get; set; }
 
         /// <summary>
         /// Represents the method that is invoked when an <see cref="Item"/> is used.
@@ -52,6 +72,6 @@ namespace Arcadia
         /// <summary>
         /// Specifies the deletion triggers for this <see cref="Item"/>.
         /// </summary>
-        public DeleteTriggers DeleteMode { get; set; } = DeleteTriggers.Break;
+        public DeleteTriggers DeleteTriggers { get; set; } = DeleteTriggers.Break;
     }
 }

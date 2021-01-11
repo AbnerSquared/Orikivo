@@ -36,6 +36,12 @@ namespace Arcadia
         Chips = 8,
 
         /// <summary>
+        /// Targets experience received.
+        /// </summary>
+        Exp = 16
+
+        /*
+        /// <summary>
         /// Targets income related to dailies.
         /// </summary>
         Daily = 16,
@@ -49,5 +55,6 @@ namespace Arcadia
         /// Targets income related to challenges.
         /// </summary>
         Challenge = 64
+            */
     }
 }

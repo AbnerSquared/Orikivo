@@ -13,9 +13,9 @@ namespace Arcadia.Services
         public static readonly TimeSpan Cooldown = TimeSpan.FromHours(24);
         public static readonly TimeSpan Reset = TimeSpan.FromHours(48);
 
-        private static readonly int DefaultBaseWeight = 50;
+        private static readonly int DefaultBaseWeight = 40;
         private static readonly int DefaultDecayRate = 5;
-        private static readonly int DefaultDecayCap = 10;
+        private static readonly int DefaultDecayCap = 5;
         private static readonly int CommonBaseRate = 50;
         private static readonly int CommonMinStart = 1; // Starts on the first consecutive bonus
         private static readonly int UncommonMinStart = 3; // Starts on the 3rd consecutive bonus
@@ -105,13 +105,13 @@ namespace Arcadia.Services
         private static string ShowStreakCounter(ArcadeUser user)
         {
             long streak = user.GetVar(Stats.Common.DailyStreak);
-            string counter = streak < 5 ? "" : $"> **{streak:##,0}** Consecutive Dailies\n> ";
+            string counter = streak < 5 ? "" : $"> **{streak:##,0}** Consecutive Dailies\n";
             long remainder = BonusInterval - (user.GetVar(Stats.Common.DailyStreak) % BonusInterval);
 
             if (remainder == 1)
-                return $"{counter}You will receive a **Bonus** on your next daily!";
+                return $"{counter}> You will receive a **Bonus** on your next daily!";
 
-            return $"{counter}{remainder} {Format.TryPluralize("day", remainder != 1)} until your next **Bonus**!";
+            return $"{counter}> {remainder} {Format.TryPluralize("day", remainder != 1)} until the next **Bonus**";
         }
 
         private static string ShowStreakReset(ArcadeUser user)
@@ -125,7 +125,34 @@ namespace Arcadia.Services
         {
             long bonusCount = (long)Math.Floor(dailyStreak / (double) 5);
 
-            return $"> You have reached your {Format.Ordinal((int)bonusCount)} {(bonusCount > 1 ? "consecutive" : "")} bonus! You were given:\n{reward.ToString()}";
+            return $"> You have reached your {GetStreakOrdinal((int)bonusCount)} {(bonusCount > 1 ? "consecutive " : "")}bonus!\n> You have been rewarded with:\n{reward.ToString()}";
+        }
+
+        private static string GetStreakOrdinal(int bonusCount)
+        {
+            return bonusCount switch
+            {
+                1 => "first",
+                2 => "second",
+                3 => "third",
+                4 => "fourth",
+                5 => "fifth",
+                6 => "sixth",
+                7 => "seventh",
+                8 => "eighth",
+                9 => "ninth",
+                10 => "tenth",
+                11 => "eleventh",
+                12 => "twelveth",
+                13 => "thirteenth",
+                14 => "fourteenth",
+                15 => "fifteenth",
+                16 => "sixteenth",
+                17 => "seventeenth",
+                18 => "eightteenth",
+                19 => "ninteenth",
+                _ => Format.Ordinal(bonusCount)
+            };
         }
 
         public static Message ApplyAndDisplay(ArcadeUser user, DailyResultFlag flag)
@@ -183,7 +210,7 @@ namespace Arcadia.Services
 
             embedder.Color = color;
             embedder.Header = $"**{icon} {header}**";
-            message.BaseContent = footer;
+            message.BaseContent = $"{footer}\n ";
             message.Content = $"*\"{Replies.GetReply(flag)}\"*";
             message.Embedder = embedder;
 

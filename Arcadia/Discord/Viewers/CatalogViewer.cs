@@ -390,7 +390,7 @@ namespace Arcadia.Services
 
             if (item.Usage != null)
             {
-                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteTriggers.Break)
+                if (item.Usage.Durability == 1 && item.Usage.DeleteTriggers == DeleteTriggers.Break)
                     details.AppendLine($"🥪 **Consumable**");
                 else if (item.Usage.Durability.HasValue && isUnique)
                     details.AppendLine($"❤️ **Durability**: {item.Usage.Durability.Value - data.Data.Durability ?? 0}");
@@ -539,14 +539,14 @@ namespace Arcadia.Services
                 if (item.Usage.Action != null)
                     details.AppendLine("🔹 **Usable**");
 
-                if (item.Usage.Durability == 1 && item.Usage.DeleteMode == DeleteTriggers.Break)
+                if (item.Usage.Durability == 1 && item.Usage.DeleteTriggers == DeleteTriggers.Break)
                     details.AppendLine($"🥪 **Consumable**");
                 else
                 {
                     string removeOn = "";
 
 
-                    if (item.Usage.DeleteMode.HasFlag(DeleteTriggers.Break))
+                    if (item.Usage.DeleteTriggers.HasFlag(DeleteTriggers.Break))
                         removeOn = " - Removed on break";
 
                     if (item.Usage.Durability.HasValue)
