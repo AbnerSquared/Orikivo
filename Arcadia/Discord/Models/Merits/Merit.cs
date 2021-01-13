@@ -3,6 +3,7 @@ using Arcadia.Models;
 
 namespace Arcadia
 {
+
     /// <summary>
     /// Represents an achievement.
     /// </summary>
@@ -18,7 +19,7 @@ namespace Arcadia
 
         public string LockQuote { get; internal set; }
 
-        public MeritTag Tag { get; internal set; }
+        public MeritTag Tags { get; internal set; }
 
         public MeritRank Rank { get; internal set; }
 

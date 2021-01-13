@@ -39,6 +39,7 @@
 
             // Greens
             internal static readonly string PaletteGammaGreen = "p_gg";
+            internal static readonly string PaletteFadedGreen = "p_fg";
 
             // Blues
             internal static readonly string PaletteOceanic = "p_oc";

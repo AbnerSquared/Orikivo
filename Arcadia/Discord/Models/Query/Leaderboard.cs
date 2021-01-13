@@ -6,9 +6,127 @@ using Orikivo;
 
 namespace Arcadia.Services
 {
+    public static class RankViewer
+    {
+        private static readonly int ElementLimit = 10;
+
+        private static string GetSectionIcon(RankSection section)
+        {
+            return section switch
+            {
+                RankSection.Income => "🪙",
+                RankSection.Experience => "🧠",
+                RankSection.Quest => "🏟️",
+                RankSection.Multiplayer => "🪃",
+                RankSection.Casino => "🎯",
+                _ => Icons.Unknown
+            };
+        }
+
+        private static string GetSectionTitle(RankSection section)
+        {
+            return section switch
+            {
+                RankSection.Income => "The Wealthy",
+                RankSection.Experience => "The Wise",
+                RankSection.Quest => "The Challenger",
+                RankSection.Multiplayer => "The Arcadian",
+                RankSection.Casino => "The Predictor",
+                _ => "INVALID_FLAG"
+            };
+        }
+
+        private static string GetDefaultHeader()
+            => "📈 **Leaderboards**";
+
+        private static string GetHeader(RankSection section)
+        {
+            if (section == 0)
+                return GetDefaultHeader();
+
+            return $"{GetSectionIcon(section)} Leaderboard: {section.ToString()}";
+        }
+
+        private static string GetSectionSubtitle(RankSection flag)
+        {
+            string subtitle = flag switch
+            {
+                RankSection.Income => "Stability in finance is what these members have mastered.",
+                RankSection.Experience => "Those who seek experience shall be known.",
+                RankSection.Quest => "Challenges that await these members are no issue.",
+                RankSection.Multiplayer => "Gaming is their passion and it shows.",
+                RankSection.Casino => "Risk and luck fuel these members.",
+                _ => ""
+            };
+
+            if (!string.IsNullOrWhiteSpace(subtitle))
+                return Format.Italics(subtitle);
+
+            return subtitle;
+        }
+    }
+
+
     public class Leaderboard
     {
-        public Leaderboard(LeaderboardQuery flag, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
+        private static readonly int ElementLimit = 10;
+
+        private static string GetSectionIcon(RankSection section)
+        {
+            return section switch
+            {
+                RankSection.Income => "🪙",
+                RankSection.Experience => "🧠",
+                RankSection.Quest => "🏟️",
+                RankSection.Multiplayer => "🪃",
+                RankSection.Casino => "🎯",
+                _ => Icons.Unknown
+            };
+        }
+
+        private static string GetSectionTitle(RankSection section)
+        {
+            return section switch
+            {
+                RankSection.Income => "The Wealthy",
+                RankSection.Experience => "The Wise",
+                RankSection.Quest => "The Challenger",
+                RankSection.Multiplayer => "The Arcadian",
+                RankSection.Casino => "The Predictor",
+                _ => "INVALID_FLAG"
+            };
+        }
+
+        private static string GetDefaultHeader()
+            => "📈 **Leaderboards**";
+
+        private static string GetHeader(RankSection section)
+        {
+            if (section == 0)
+                return GetDefaultHeader();
+
+            return $"{GetSectionIcon(section)} Leaderboard: {section.ToString()}";
+        }
+
+        private static string GetSectionSubtitle(RankSection flag)
+        {
+            string subtitle = flag switch
+            {
+                RankSection.Income => "Stability in finance is what these members have mastered.",
+                RankSection.Experience => "Those who seek experience shall be known.",
+                RankSection.Quest => "Challenges that await these members are no issue.",
+                RankSection.Multiplayer => "Gaming is their passion and it shows.",
+                RankSection.Casino => "Risk and luck fuel these members.",
+                _ => ""
+            };
+
+            if (!string.IsNullOrWhiteSpace(subtitle))
+                return Format.Italics(subtitle);
+
+            return subtitle;
+        }
+
+        public Leaderboard(RankSection flag, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
         {
             Flag = flag;
             Sort = sort;
@@ -18,14 +136,14 @@ namespace Arcadia.Services
 
         public Leaderboard(string statId, LeaderboardSort sort, bool allowEmptyValues = false, int pageSize = 10)
         {
-            Flag = LeaderboardQuery.Custom;
+            Flag = RankSection.Custom;
             StatId = statId;
             Sort = sort;
             AllowEmptyValues = allowEmptyValues;
             PageSize = pageSize;
         }
 
-        public LeaderboardQuery Flag { get; } // If none is specified, just show the leaders of each flag
+        public RankSection Flag { get; } // If none is specified, just show the leaders of each flag
         public LeaderboardSort Sort { get; }
 
         // The STAT to compare.
@@ -36,33 +154,7 @@ namespace Arcadia.Services
 
         public int PageSize { get; set; }
 
-        private static string GetHeader(LeaderboardQuery flag)
-        {
-            string icon = GetLeaderIcon(flag);
-            return flag switch
-            {
-                LeaderboardQuery.Income => $"> {icon} **Leaderboard: Income**",
-                LeaderboardQuery.Experience => $"> {icon} **Leaderboard: Experience**",
-                LeaderboardQuery.Quest => $"> {icon} **Leaderboard: Quest**",
-                LeaderboardQuery.Multiplayer => $"> {icon} **Leaderboard: Multiplayer**",
-                LeaderboardQuery.Casino => $"> {icon} **Leaderboard: Casino**",
-                _ => "> 📈 **Leaderboards**"
-            };
-        }
-
-        private static string GetHeaderQuote(LeaderboardQuery flag)
-        {
-            return flag switch
-            {
-                LeaderboardQuery.Default => "> View the leaders of the five primary categories.",
-                LeaderboardQuery.Income => "> *Stability in finance is what these members have mastered.*",
-                LeaderboardQuery.Experience => "> *Those who seek experience shall be known.*",
-                LeaderboardQuery.Quest => "> *Challenges that await these members are no issue.*",
-                LeaderboardQuery.Multiplayer => "> *Gaming is their passion and it shows.*",
-                LeaderboardQuery.Casino => "> *Risk and luck fuel these members.*",
-                _ => ""
-            };
-        }
+        
 
         public static int GetPosition(in IEnumerable<ArcadeUser> users, ArcadeUser user, string statId)
         {
@@ -83,41 +175,17 @@ namespace Arcadia.Services
             return position + 1;
         }
 
-        private static string GetLeaderIcon(LeaderboardQuery flag)
-        {
-            return flag switch
-            {
-                LeaderboardQuery.Income => "🪙",
-                LeaderboardQuery.Experience => "🧠",
-                LeaderboardQuery.Quest => "🏟️",
-                LeaderboardQuery.Multiplayer => "🪃",
-                LeaderboardQuery.Casino => "🎯",
-                _ => "INVALID_FLAG"
-            };
-        }
+        
 
-        private static string GetUserTitle(LeaderboardQuery flag)
+        private static string GetFlagSegment(RankSection flag)
         {
             return flag switch
             {
-                LeaderboardQuery.Income => "The Wealthy",
-                LeaderboardQuery.Experience => "The Wise",
-                LeaderboardQuery.Quest => "The Challenger",
-                LeaderboardQuery.Multiplayer => "The Arcadian",
-                LeaderboardQuery.Casino => "The Predictor",
-                _ => "INVALID_FLAG"
-            };
-        }
-
-        private static string GetFlagSegment(LeaderboardQuery flag)
-        {
-            return flag switch
-            {
-                LeaderboardQuery.Income => $"with {Icons.Balance}",
-                LeaderboardQuery.Experience => $"with {Icons.Exp}",
-                LeaderboardQuery.Quest => "with", // {QUEST_POINT_ICON} 104
-                LeaderboardQuery.Multiplayer => "with", // 96 wins
-                LeaderboardQuery.Casino => $"with {Icons.Chips}",
+                RankSection.Income => $"with {Icons.Balance}",
+                RankSection.Experience => $"with {Icons.Exp}",
+                RankSection.Quest => "with", // {QUEST_POINT_ICON} 104
+                RankSection.Multiplayer => "with", // 96 wins
+                RankSection.Casino => $"with {Icons.Chips}",
                 _ => "INVALID_FLAG"
             };
         }
@@ -129,9 +197,9 @@ namespace Arcadia.Services
         private static readonly string CustomFormat = "**{0}** ... **{1}**";
 
         // This is only on LeaderboardFlag.Default
-        private static string WriteLeader(LeaderboardQuery flag, ArcadeUser user, bool allowEmptyValues = false)
+        private static string WriteLeader(RankSection flag, ArcadeUser user, bool allowEmptyValues = false)
         {
-            var title = $"{GetLeaderIcon(flag)} {GetUserTitle(flag)}";
+            var title = $"{GetSectionIcon(flag)} {GetSectionTitle(flag)}";
             var segment = GetFlagSegment(flag);
 
 
@@ -145,59 +213,29 @@ namespace Arcadia.Services
 
             return flag switch
             {
-                LeaderboardQuery.Income => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyIncome).ToString("##,0")),
-                LeaderboardQuery.Experience => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyExp).ToString("##,0")),
-                LeaderboardQuery.Quest => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyQuests).ToString("##,0")),
-                LeaderboardQuery.Multiplayer => string.Format(LeaderFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyArcade).ToString("##,0")),
-                LeaderboardQuery.Casino => string.Format(LeaderBaseFormat, title, user.Username, segment, user.GetVar(Vars.MonthlyCasino).ToString("##,0")), // $"**{MeritHelper.GetScore(user)}**m")
+                RankSection.Income => string.Format(LeaderFormat, title, user.Username, segment, $"{Icons.Balance} **{user.GetVar(Vars.MonthlyIncome).ToString("##,0")}**"),
+                RankSection.Experience => string.Format(LeaderFormat, title, user.Username, segment, $"{Icons.Exp} **{user.GetVar(Vars.MonthlyExp).ToString("##,0")} XP**"),
+                RankSection.Quest => string.Format(LeaderFormat, title, user.Username, segment, $"**{user.GetVar(Vars.MonthlyQuests).ToString("##,0")} QP**"),
+                RankSection.Multiplayer => string.Format(LeaderFormat, title, user.Username, segment, $"**{user.GetVar(Vars.MonthlyArcade).ToString("##,0")} AP**"),
+                RankSection.Casino => string.Format(LeaderBaseFormat, title, user.Username, segment, $"{Icons.Chips} **{user.GetVar(Vars.MonthlyCasino).ToString("##,0")}**"),
                 _ => "INVALID_FLAG"
             };
         }
 
-        private static string WriteUser(LeaderboardQuery flag, ArcadeUser user, string statId = null)
+        private static string WriteUser(RankSection flag, ArcadeUser user, string statId = null)
         {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardQuery.Custom)
+            if (string.IsNullOrWhiteSpace(statId) && flag == RankSection.Custom)
                 throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
 
             return flag switch
             {
-                LeaderboardQuery.Income => string.Format(UserFormat, user.Username, "💸", user.Balance.ToString("##,0")),
-                LeaderboardQuery.Experience => string.Format(UserFormat, user.Username, "📃", user.Debt.ToString("##,0")),
-                LeaderboardQuery.Quest => string.Format(UserFormat, user.Username, "Level", WriteLevel(user)),
-                LeaderboardQuery.Multiplayer => string.Format(UserFormat, user.Username, "🧩", user.ChipBalance.ToString("##,0")),
-                LeaderboardQuery.Casino => string.Format(CustomBaseFormat, user.Username, $"**{MeritHelper.GetScore(user)}**m"),
-                LeaderboardQuery.Custom => string.Format(CustomFormat, user.Username, user.GetVar(statId)),
+                RankSection.Income => string.Format(UserFormat, user.Username, Icons.Balance, $"**{user.GetVar(Vars.MonthlyIncome).ToString("##,0")}**"),
+                RankSection.Experience => string.Format(UserFormat, user.Username, Icons.Exp, $"**{user.GetVar(Vars.MonthlyExp).ToString("##,0")} XP**"),
+                RankSection.Quest => string.Format(CustomBaseFormat, user.Username, $"**{user.GetVar(Vars.MonthlyQuests).ToString("##,0")} QP**"),
+                RankSection.Multiplayer => string.Format(CustomBaseFormat, user.Username, $"**{user.GetVar(Vars.MonthlyArcade).ToString("##,0")} AP**"),
+                RankSection.Casino => string.Format(CustomBaseFormat, user.Username, $"{Icons.Chips} **{user.GetVar(Vars.MonthlyCasino).ToString("##,0")}**"),
+                RankSection.Custom => string.Format(CustomFormat, user.Username, user.GetVar(statId)),
                 _ => "INVALID_FLAG"
-            };
-        }
-
-        private static string WriteLevel(ArcadeUser user)
-        {
-            string level = $"{user.Level}";
-
-            if (user.Ascent > 0)
-                level = $"{user.Ascent}." + level;
-
-            return level;
-        }
-
-        private static string GetMonthName(int month)
-        {
-            return month switch
-            {
-                1 => "January",
-                2 => "February",
-                3 => "March",
-                4 => "April",
-                5 => "May",
-                6 => "June",
-                7 => "July",
-                8 => "August",
-                9 => "September",
-                10 => "October",
-                11 => "November",
-                12 => "December",
-                _ => throw new ArgumentException("The specified month is out of the possible range")
             };
         }
 
@@ -206,7 +244,7 @@ namespace Arcadia.Services
             var leaderboard = new StringBuilder();
             bool allowTooltips = user.Config.Tooltips;
 
-            if (allowTooltips && Flag == LeaderboardQuery.Default)
+            if (allowTooltips && Flag == RankSection.Default)
             {
                 leaderboard
                     .AppendLine(Format.Tooltip("Type `leaderboard <category | stat>` to view a specific leaderboard."))
@@ -215,7 +253,7 @@ namespace Arcadia.Services
 
             leaderboard.AppendLine(GetHeader(Flag));
 
-            if (Flag == LeaderboardQuery.Default)
+            if (Flag == RankSection.Default)
             {
                 DateTime now = DateTime.UtcNow;
                 int year = now.Year;
@@ -224,12 +262,12 @@ namespace Arcadia.Services
                 int daysInMonth = DateTime.DaysInMonth(year, month);
                 int remainder = daysInMonth - day;
                 string remaining = $"**{remainder:##,0}** {Format.TryPluralize("day", remainder)} until a new cycle";
-                string quote = $"> **{GetMonthName(month)} {year}** ({remaining})";
+                string quote = $"> **{Format.GetMonthName(month)} {year}** ({remaining})";
                 leaderboard.Append(quote);
             }
-            if (Flag != LeaderboardQuery.Custom)
+            else if (Flag != RankSection.Custom)
             {
-                leaderboard.Append(GetHeaderQuote(Flag));
+                leaderboard.Append(GetSectionSubtitle(Flag));
             }
             else
             {
@@ -239,25 +277,25 @@ namespace Arcadia.Services
                     leaderboard.Append(".");
             }
 
-            if (Sort == LeaderboardSort.Least && Flag != LeaderboardQuery.Default)
+            if (Sort == LeaderboardSort.Least && Flag != RankSection.Default)
             {
                 leaderboard.Append(" (**Ascending**).");
             }
 
             leaderboard.AppendLine();
 
-            if (Flag == LeaderboardQuery.Default)
+            if (Flag == RankSection.Default)
             {
                 leaderboard.AppendLine();
                 leaderboard.AppendLine("> **Categories**"); // Find a better name than categories??
-                leaderboard.AppendJoin(" ", EnumUtils.GetValues<LeaderboardQuery>().Where(x => !x.EqualsAny(LeaderboardQuery.Default, LeaderboardQuery.Custom)).Select(x => $"`{x.ToString().ToLower()}`").OrderBy(x => x[1..]));
+                leaderboard.AppendJoin(" ", EnumUtils.GetValues<RankSection>().Where(x => !x.EqualsAny(RankSection.Default, RankSection.Custom)).Select(x => $"`{x.ToString().ToLower()}`").OrderBy(x => x[1..]));
                 leaderboard.AppendLine().AppendLine();
                 leaderboard.AppendLine("> **Leaders**");
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Income, GetLeader(users, LeaderboardQuery.Income, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Experience, GetLeader(users, LeaderboardQuery.Experience, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Multiplayer, GetLeader(users, LeaderboardQuery.Multiplayer, Sort)));
-                leaderboard.AppendLine(WriteLeader(LeaderboardQuery.Casino, GetLeader(users, LeaderboardQuery.Casino, Sort)));
-                leaderboard.Append(WriteLeader(LeaderboardQuery.Quest, GetLeader(users, LeaderboardQuery.Quest, Sort))); // Levels aren't implemented yet.
+                leaderboard.AppendLine(WriteLeader(RankSection.Income, GetLeader(users, RankSection.Income, Sort)));
+                leaderboard.AppendLine(WriteLeader(RankSection.Experience, GetLeader(users, RankSection.Experience, Sort)));
+                leaderboard.AppendLine(WriteLeader(RankSection.Multiplayer, GetLeader(users, RankSection.Multiplayer, Sort)));
+                leaderboard.AppendLine(WriteLeader(RankSection.Casino, GetLeader(users, RankSection.Casino, Sort)));
+                leaderboard.Append(WriteLeader(RankSection.Quest, GetLeader(users, RankSection.Quest, Sort))); // Levels aren't implemented yet.
             }
             else
             {
@@ -268,10 +306,10 @@ namespace Arcadia.Services
             return leaderboard.ToString();
         }
 
-        private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, LeaderboardQuery flag, LeaderboardSort sort)
+        private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, RankSection flag, LeaderboardSort sort)
             => SortUsers(users, flag, sort).First();
 
-        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, LeaderboardQuery flag, LeaderboardSort sort, string statId = null)
+        private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, RankSection flag, LeaderboardSort sort, string statId = null)
         { 
             return sort switch
             {
@@ -280,24 +318,24 @@ namespace Arcadia.Services
             };
         }
 
-        private static long GetValue(ArcadeUser user, LeaderboardQuery flag, string statId = null)
+        private static long GetValue(ArcadeUser user, RankSection flag, string statId = null)
         {
-            if (string.IsNullOrWhiteSpace(statId) && flag == LeaderboardQuery.Custom)
+            if (string.IsNullOrWhiteSpace(statId) && flag == RankSection.Custom)
                 throw new ArgumentException("Cannot use a custom flag if the stat is unspecified.");
 
             return flag switch
             {
-                LeaderboardQuery.Income => user.GetVar(Vars.MonthlyIncome),
-                LeaderboardQuery.Experience => user.GetVar(Vars.MonthlyExp),
-                LeaderboardQuery.Quest => user.GetVar(Vars.MonthlyQuests), // user.Ascent * 100 + user.Level,
-                LeaderboardQuery.Multiplayer => user.GetVar(Vars.MonthlyArcade),
-                LeaderboardQuery.Casino => user.GetVar(Vars.MonthlyCasino), // MeritHelper.GetScore(user),
-                LeaderboardQuery.Custom => user.GetVar(statId),
+                RankSection.Income => user.GetVar(Vars.MonthlyIncome),
+                RankSection.Experience => user.GetVar(Vars.MonthlyExp),
+                RankSection.Quest => user.GetVar(Vars.MonthlyQuests), // user.Ascent * 100 + user.Level,
+                RankSection.Multiplayer => user.GetVar(Vars.MonthlyArcade),
+                RankSection.Casino => user.GetVar(Vars.MonthlyCasino), // MeritHelper.GetScore(user),
+                RankSection.Custom => user.GetVar(statId),
                 _ => 0
             };
         }
 
-        private static string WriteUsers(in IEnumerable<ArcadeUser> users, int offset, int capacity, LeaderboardQuery flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
+        private static string WriteUsers(in IEnumerable<ArcadeUser> users, int offset, int capacity, RankSection flag, LeaderboardSort sort, bool allowEmptyValues = false, string statId = null)
         {
             if (users.Count() <= offset)
                 throw new ArgumentException("The specified offset is larger than the amount of users specified.");
@@ -318,7 +356,7 @@ namespace Arcadia.Services
             }
 
             if (i == 0)
-                return "No users were provided for this leaderboard.";
+                return "This leaderboard is empty. You could be the first!";
 
             return result.ToString();
         }

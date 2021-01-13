@@ -151,10 +151,10 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("leaderboard"), Alias("top"), Priority(1)]
         [Summary("View the current pioneers of a specific category.")]
-        public async Task GetLeaderboardAsync(LeaderboardQuery flag = LeaderboardQuery.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
+        public async Task GetLeaderboardAsync(RankSection flag = RankSection.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
         {
-            if (flag == LeaderboardQuery.Custom)
-                flag = LeaderboardQuery.Default;
+            if (flag == RankSection.Custom)
+                flag = RankSection.Default;
 
             var board = new Leaderboard(flag, sort);
             string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);

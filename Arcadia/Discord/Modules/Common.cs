@@ -124,12 +124,12 @@ namespace Arcadia.Modules
 
                 foreach ((string itemId, int amount) in recipe.Components)
                 {
-                    string icon = ItemHelper.IconOf(itemId);
+                    string icon = ItemHelper.GetIconOrDefault(itemId);
 
                     if (!Check.NotNull(icon))
                         icon = "•";
 
-                    result.AppendLine($"{icon} **{ItemHelper.NameOf(itemId)}**{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}");
+                    result.AppendLine($"{icon} **{ItemHelper.NameOf(itemId)}**{Format.ElementCount(amount, false)}");
                 }
 
                 await Context.Channel.SendMessageAsync(result.ToString());

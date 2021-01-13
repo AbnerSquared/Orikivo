@@ -355,7 +355,7 @@ namespace Arcadia.Services
             }
             else
             {
-                string sealIcon = ItemHelper.IconOf(data.Seal.ReferenceId);
+                string sealIcon = ItemHelper.GetIconOrDefault(data.Seal.ReferenceId);
                 details.AppendLine($"> {(Check.NotNull(sealIcon) ? $"{sealIcon} " : "")}**{ItemHelper.NameOf(data.Seal.ReferenceId)}**");
             }
 

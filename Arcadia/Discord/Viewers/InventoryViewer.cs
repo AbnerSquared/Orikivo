@@ -47,7 +47,7 @@ namespace Arcadia
             Item item = ItemHelper.GetItem(data.Id) ?? ItemHelper.GetItem(Ids.Items.InternalUnknown);
 
             string visibleId = !exists || data.Seal != null ? data.TempId : data.Id;
-            string icon = ItemHelper.IconOf(data);
+            string icon = ItemHelper.GetIconOrDefault(data);
 
             if (!Check.NotNull(icon))
                 icon = "•";

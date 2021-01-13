@@ -308,7 +308,7 @@ namespace Arcadia
                         return SessionResult.Continue;
                     }
 
-                    ItemData selectedItem = ItemHelper.DataOf(account, input);
+                    ItemData selectedItem = ItemHelper.FindItemData(account, input);
 
                     if (!ItemHelper.CanTrade(input, selectedItem))
                     {
@@ -371,7 +371,7 @@ namespace Arcadia
         private static string WriteItem(string itemId, int amount)
         {
             Item item = ItemHelper.GetItem(itemId);
-            string icon = ItemHelper.IconOf(itemId);
+            string icon = ItemHelper.GetIconOrDefault(itemId);
             string name = Check.NotNull(icon) ? item.Name : item.GetName();
             return $"{(Check.NotNull(icon) ? $"{icon} " : "• ")}{name}{(amount > 1 ? $" (x**{amount:##,0}**)" : "")}";
         }

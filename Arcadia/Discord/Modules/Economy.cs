@@ -195,7 +195,7 @@ namespace Arcadia.Modules
                 bool hasGiftCounter = data.Data?.TradeCount.HasValue ?? false;
 
                 if (hasGiftCounter)
-                    ItemHelper.DataOf(account, item).Data.TradeCount++;
+                    ItemHelper.FindItemData(account, item).Data.TradeCount++;
             }
 
 

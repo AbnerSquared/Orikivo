@@ -70,7 +70,7 @@ namespace Arcadia
                     .AddEnumTypeReader<CardGroup>()
                     .AddEnumTypeReader<Gamma>()
                     .AddEnumTypeReader<BorderEdge>()
-                    .AddEnumTypeReader<LeaderboardQuery>()
+                    .AddEnumTypeReader<RankSection>()
                     .AddEnumTypeReader<LeaderboardSort>()
                     .AddEnumTypeReader<DoublerWinMethod>()
                     .AddEnumTypeReader<StackTraceMode>()

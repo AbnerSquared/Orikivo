@@ -2,7 +2,7 @@
 {
     // This could possibly be used instead so that it's easier to filter out stuff
 
-    public enum LeaderboardQuery
+    public enum RankSection
     {
         Default = 0,
         Income = 1,

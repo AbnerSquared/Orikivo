@@ -15,6 +15,12 @@ namespace Arcadia
     // -- This will be stored locally in the future, so do what you can now.
     public static class Assets
     {
+        // This is used with Deresin, an item that can restore the original style of an existing item
+        internal static readonly Dictionary<string, string> DegradeMap = new Dictionary<string, string>
+        {
+            [Ids.Items.PaletteGammaGreen] = Ids.Items.PaletteFadedGreen
+        };
+
         public static readonly HashSet<Guide> Guides = new HashSet<Guide>
         {
             new Guide
@@ -390,6 +396,7 @@ namespace Arcadia
                     new Criterion
                     {
                         Id = "trivia:play_5q",
+                        Name = "Play **Trivia** (**5** Questions)",
                         Triggers = CriterionTriggers.Game,
                         Judge = delegate (CriterionContext ctx)
                         {
@@ -423,6 +430,7 @@ namespace Arcadia
                     new Criterion
                     {
                         Id = "trivia:play_10q",
+                        Name = "Play **Trivia** (**10** Questions)",
                         Triggers = CriterionTriggers.Game,
                         Judge = delegate (CriterionContext ctx)
                         {
@@ -456,6 +464,7 @@ namespace Arcadia
                     new Criterion
                     {
                         Id = "trivia:play_15q",
+                        Name = "Play **Trivia** (**15** Questions)",
                         Triggers = CriterionTriggers.Game,
                         Judge = delegate (CriterionContext ctx)
                         {
@@ -489,6 +498,7 @@ namespace Arcadia
                     new Criterion
                     {
                         Id = "trivia:play_20q",
+                        Name = "Play **Trivia** (**20** Questions)",
                         Triggers = CriterionTriggers.Game,
                         Judge = delegate (CriterionContext ctx)
                         {
@@ -522,6 +532,7 @@ namespace Arcadia
                     new Criterion
                     {
                         Id = "trivia:win_2p5q",
+                        Name = "Win first place in **Trivia** (**5** Questions)",
                         Triggers = CriterionTriggers.Game,
                         Judge = delegate (CriterionContext ctx)
                         {
@@ -557,6 +568,9 @@ namespace Arcadia
                 Criteria = new List<Criterion>
                 {
                     new VarCriterion(Stats.Common.DailyStreak, 7)
+                    {
+                        Name = "Maintain a daily streak of **7** days"
+                    }
                 },
                 Type = QuestType.Daily,
                 Reward = new Reward
@@ -565,26 +579,7 @@ namespace Arcadia
                     Exp = 500
                 }
             },
-            /*
-            new Quest
-            {
-                Id = "quest:new_dusk", // New Moon // Full Moon // Honoring Kent
-                Name = "New Dusk",
-                Summary = "The night falls, giving way to new dangers.",
-                Difficulty = QuestDifficulty.Easy,
-                Criteria = new List<VarCriterion>
-                {
-                    new VarCriterion(WolfStats.TimesPlayed, 3),
-                    new VarCriterion(WolfStats.TimesWon, 1)
-                },
-                Type = QuestType.User,
-                Reward = new Reward
-                {
-                    Money = 25,
-                    Exp = 5
-                }
-            },
-            */
+            
             new Quest
             {
                 Id = "quest:low_stakes",
@@ -593,8 +588,14 @@ namespace Arcadia
                 Difficulty = 1,
                 Criteria = new List<Criterion>
                 {
-                    new VarCriterion(Stats.Roulette.TimesPlayed, 10),
+                    new VarCriterion(Stats.Roulette.TimesPlayed, 10)
+                    {
+                        Name = "Play **10** rounds of **Roulette**"
+                    },
                     new VarCriterion(Stats.BlackJack.TimesPlayed, 10)
+                    {
+                        Name = "Play **10** rounds of **Blackjack**"
+                    },
                 },
                 Type = QuestType.Daily,
                 Reward = new Reward
@@ -611,10 +612,22 @@ namespace Arcadia
                 Difficulty = 1,
                 Criteria = new List<Criterion>
                 {
-                    new VarCriterion(Stats.Gimi.TimesPlayed, 8),
-                    new VarCriterion(Stats.Doubler.TimesPlayed, 8),
-                    new VarCriterion(Stats.Roulette.TimesPlayed, 8),
-                    new VarCriterion(Stats.BlackJack.TimesPlayed, 8)
+                    new VarCriterion(Stats.Gimi.TimesPlayed, 6)
+                    {
+                        Name = "Play **6** rounds of **Gimi**"
+                    },
+                    new VarCriterion(Stats.Doubler.TimesPlayed, 6)
+                    {
+                        Name = "Play **6** rounds of **Doubly**"
+                    },
+                    new VarCriterion(Stats.Roulette.TimesPlayed, 6)
+                    {
+                        Name = "Play **6** rounds of **Roulette**"
+                    },
+                    new VarCriterion(Stats.BlackJack.TimesPlayed, 6)
+                    {
+                        Name = "Play **6** rounds of **Blackjack**"
+                    }
                 },
                 Type = QuestType.Daily,
                 Reward = new Reward
@@ -631,8 +644,14 @@ namespace Arcadia
                 Difficulty = 1,
                 Criteria = new List<Criterion>
                 {
-                    new VarCriterion(Stats.Trivia.TimesPlayed, 5),
+                    new VarCriterion(Stats.Trivia.TimesPlayed, 5)
+                    {
+                        Name = "Play **5** games of **Trivia**"
+                    },
                     new VarCriterion(Stats.Trivia.TimesWon, 1)
+                    {
+                        Name = "Win a game of **Trivia**"
+                    },
                 },
                 Type = QuestType.Daily,
                 Reward = new Reward
@@ -925,11 +944,11 @@ namespace Arcadia
                 Id = "currency:tidal_taxes",
                 Icon = "🌊",
                 Name = "Tidal Taxes",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                LockQuote = "Drown in debt.",
-                Quote = "You have asserted your side against currency, reaching over 10,000 in applied debt.",
+                LockQuote = "Drown in the currency that prevents hope.",
+                Quote = $"Reached {Icons.Debt} **10,000** at one point.",
                 Criteria = user => user.Debt >= 10000
             },
             new Merit
@@ -937,11 +956,11 @@ namespace Arcadia
                 Id = "currency:raging_riches",
                 Icon = "🔥",
                 Name = "Raging Riches",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                LockQuote = "Bathe in Orite.",
-                Quote = "You have grown to love money, reaching over 10,000 in Orite.",
+                LockQuote = "Bathe yourself in **Orite**.",
+                Quote = $"Reached {Icons.Balance} **10,000** at one point.",
                 Criteria = user => user.Balance >= 10000
             },
             new Merit
@@ -949,11 +968,11 @@ namespace Arcadia
                 Id = "currency:chip_collector",
                 Icon = "💰",
                 Name = "Chip Collector",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                LockQuote = "Beat the casino.",
-                Quote = "You have beaten the odds of the casino, reaching over 10,000 in gambling chips.",
+                LockQuote = "Go against the odds of the casino.",
+                Quote = $"Reached {Icons.Chips} **10,000** at one point.",
                 Criteria = user => user.ChipBalance >= 10000
             },
             new Merit
@@ -961,11 +980,11 @@ namespace Arcadia
                 Id = "exp:freshly_grown",
                 Icon = "🌱",
                 Name = "Freshly Grown",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 25,
-                LockQuote = "Your level means nothing.",
-                Quote = "You have escaped the depths, achieving your 10th firmware upgrade.",
+                LockQuote = "You have escaped the depths of the commonfolk, reaching a new tier of firmware.",// "Your level means nothing.",
+                Quote = "Reached v**0.10**.",
                 Criteria = user => user.Level >= 10
             },
             new Merit
@@ -973,11 +992,11 @@ namespace Arcadia
                 Id = "exp:rising_rookie",
                 Icon = "🌾",
                 Name = "Rising Rookie",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Silver,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 50,
-                LockQuote = "Your level has not yet proved your worth.",
-                Quote = "You have climbed up wild lands, reaching your 25th firmware upgrade.",
+                LockQuote = "Climb up wild lands and make yourself known.", // "Your level has not yet proved your worth.",
+                Quote = "Reached v**0.25**",
                 Criteria = user => user.Level >= 25
             },
             new Merit
@@ -985,11 +1004,11 @@ namespace Arcadia
                 Id = "exp:astral_advocate",
                 Icon = "🎋",
                 Name = "Astral Advocate",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                LockQuote = "Your level status must reach for the clouds.",
-                Quote = "You have reached what many consider the limit, reaching your 50th firmware upgrade.",
+                LockQuote = "Reach what many consider the limit.",// "Your level status must reach for the clouds.",
+                Quote = "Reached v**0.50**",
                 Criteria = user => user.Level >= 50
             },
             new Merit
@@ -997,11 +1016,11 @@ namespace Arcadia
                 Id = "exp:space_veteran",
                 Icon = "🌸",
                 Name = "Celestial Veteran",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Platinum,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 250,
-                LockQuote = "Your level status must reach for the stars.",
-                Quote = "You have reached the stars, achieving your 100th firmware upgrade.",
+                LockQuote = "Strive past the moon.",
+                Quote = "Reached v**0.100**.",
                 Criteria = user => user.Level >= 100
             },
             new Merit
@@ -1009,32 +1028,32 @@ namespace Arcadia
                 Id = "common:prisma_infusion",
                 Icon = "🌈",
                 Name = "Prisma Infusion",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Diamond,
+                Tags = MeritTag.Secret,
                 Score = 500,
-                Quote = "You have collected every single color available.",
-                Hidden = true
+                LockQuote = "Reveal the secrets of the prismatic horizon.",
+                Quote = "Collected all known colors."
             },
             new Merit
             {
                 Id = "common:color_theory",
                 Icon = "🟧",
                 Name = "Color Theory",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Silver,
                 Score = 25,
-                Quote = "You have created a new color from existing colors.",
-                Hidden = true
+                LockQuote = "Reveal a new piece of the color wheel.",
+                Quote = "Blended two colors together to create a new color."
             },
             new Merit
             {
                 Id = "common:tinkerer",
                 Icon = "🔨",
                 Name = "Tinker Tot",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 5,
-                Quote = "You have crafted an item for the first time.",
+                LockQuote = "Grab your materials and make something new.",
+                Quote = "Crafted an item.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsCrafted) > 0
             },
             new Merit
@@ -1042,10 +1061,10 @@ namespace Arcadia
                 Id = "common:trade_beginner",
                 Icon = "🔂",
                 Name = "Trading Beginner",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 5,
-                Quote = "You have traded with another user for the first time.",
+                Quote = "Traded with another user.",
                 Criteria = user => user.GetVar(Stats.Common.TimesTraded) > 0
             },
             new Merit
@@ -1053,10 +1072,11 @@ namespace Arcadia
                 Id = "common:bronze_heart",
                 Icon = "🤎",
                 Name = "Bronze Heart",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 5,
-                Quote = "You were a kind soul and gave someone else an item of your own.",
+                LockQuote = "You are a kind and giving entity.",
+                Quote = "Gifted an item.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 0
             },
             new Merit
@@ -1064,10 +1084,11 @@ namespace Arcadia
                 Id = "common:silver_heart",
                 Icon = "🤍",
                 Name = "Silver Heart",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Silver,
+                Tags = MeritTag.Milestone,
                 Score = 50,
-                Quote = "You have been a good person and gifted over 100 items to plenty of people.",
+                LockQuote = "Your heart grows with generosity.",
+                Quote = "Gifted over **100** items away.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 100
             },
             new Merit
@@ -1075,22 +1096,23 @@ namespace Arcadia
                 Id = "common:golden_heart",
                 Icon = "💛",
                 Name = "Golden Heart",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 50,
-                Quote = "You have given over 500 items to plenty of people.",
-                Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 500,
-                Hidden = true
+                LockQuote = "Your giving heart must radiate gold.",
+                Quote = "Gifted over **500** items away.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 500
             },
             new Merit
             {
                 Id = "common:ignition",
                 Icon = "🕯️",
                 Name = "Ignition",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 5,
-                Quote = "You have equipped your first booster.",
+                LockQuote = "Light the fuse to boost.",
+                Quote = "Activated a booster.",
                 Criteria = user => user.Boosters.Count > 0
             },
             new Merit
@@ -1098,73 +1120,74 @@ namespace Arcadia
                 Id = "common:progress_pioneer",
                 Icon = "🚝",
                 Name = "Progression Pioneer",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Diamond,
+                Tags = MeritTag.Exclusive | MeritTag.Secret,
                 Score = 100,
-                Quote = "You were there at the start, carving the path to the future.",
-                Hidden = true
+                LockQuote = "You may not have always been, but your contribution is still noted.",
+                Quote = "You were there at the start, carving the path to the future."
             },
             new Merit
             {
                 Id = "casino:liquidation",
                 Name = "Liquidation",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
                 Score = 5,
-                Quote = "Your requests have been met with gold.",
+                LockQuote = "Your requests have been met with liquid assets.",
+                Quote = "You were given gold in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesGold) > 0
             },
             new Merit
             {
                 Id = "casino:deprivation",
                 Name = "Deprivation",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
                 Score = 5,
-                Quote = "Your greed has led you to perish under the moonlight.",
+                LockQuote = "Your greed has led you to perish under the moonlight.",
+                Quote = "You were cursed in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesCursed) > 0
             },
             new Merit
             {
                 Id = "casino:golden_touch",
                 Name = "Golden Touch",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Secret,
                 Score = 50,
-                Quote = "Midas must have gifted you with his abilities.",
-                Criteria = user => user.GetVar(Stats.Gimi.LongestGold) >= 2,
-                Hidden = true
+                LockQuote = "Midas has blessed you with riches.",
+                Quote = "You were given gold twice in a row in **Gimi**.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestGold) >= 2
             },
             new Merit
             {
                 Id = "casino:pandoras_box",
                 Name = "Pandora's Box",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Secret,
                 Score = 50,
-                Quote = "Your ruthless requests released the worst of this world.",
-                Criteria = user => user.GetVar(Stats.Gimi.LongestCurse) >= 2,
-                Hidden = true
+                LockQuote = "Your ruthless requests released the worst of this world.",
+                Quote = "You were cursed twice in a row in **Gimi**.",
+                Criteria = user => user.GetVar(Stats.Gimi.LongestCurse) >= 2
             },
             new Merit
             {
                 Id = "casino:lucky_guesses",
-                Name = "Lucky Guessing",
-                Tag = MeritTag.Casino,
+                Name = "Doubly Doubt",
                 Rank = MeritRank.Silver,
+                Tags = MeritTag.Secret,
                 Score = 25,
-                Quote = "Guessing the exact tick 3 times in a row is quite the feat.",
-                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 3,
-                Hidden = true
+                LockQuote = "Accuracy and consistency is needed in **Doubly**.",
+                Quote = "You have won 3 rounds of **Doubly** in a row, where the dying tick was your exact guess.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 3
             },
             new Merit
             {
                 Id = "casino:gimi_beginner",
                 Name = "Gimi Beginner",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 10,
-                Quote = "You have requested funds 100 times.",
+                LockQuote = "Your addiction shall soon be revealed.",
+                Quote = "Played **100** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 100
             },
             new Merit
@@ -1172,10 +1195,11 @@ namespace Arcadia
                 Id = "casino:gimi_clover",
                 Icon = "☘️",
                 Name = "Clover of Gimi",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Secret,
                 Score = 10,
-                Quote = "You have won over 20 times in a row in Gimi.",
+                LockQuote = "This clover symbolizes luck, as you shall soon see.",
+                Quote = "Won over **20** times in a row playing **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestWin) >= 20,
                 Hidden = true
             },
@@ -1184,10 +1208,11 @@ namespace Arcadia
                 Id = "casino:gimi_curse",
                 Icon = "🧿",
                 Name = "Curse of Gimi",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Secret,
                 Score = 10,
-                Quote = "You have lost over 20 times in a row in Gimi.",
+                LockQuote = "It seems a curse of negated luck hovers close.",
+                Quote = "Lost over **20** times in a row playing **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestLoss) >= 20,
                 Hidden = true
             },
@@ -1196,58 +1221,60 @@ namespace Arcadia
                 Id = "casino:tick_clover",
                 Icon = "☘️",
                 Name = "Clover of Doubler",
-                Tag = MeritTag.Casino,
-                Rank = MeritRank.Bronze,
-                Score = 10,
-                Quote = "You have won over 20 times in a row in Doubler.",
-                Criteria = user => user.GetVar(Stats.Doubler.LongestWin) >= 20,
-                Hidden = true
+                Rank = MeritRank.Silver,
+                Tags = MeritTag.Secret,
+                Score = 25,
+                LockQuote = "Moderate luck is needed in **Doubly**.",
+                Quote = "Won over **20** times in a row in **Doubly**.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWin) >= 20
             },
             new Merit
             {
                 Id = "casino:tick_exact_clover",
                 Icon = "🏵️",
                 Name = "Golden Clover of Doubler",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Secret,
                 Score = 50,
-                Quote = "You have won over 20 times in a row in Doubler while guessing the exact tick.",
-                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 20,
-                Hidden = true
+                LockQuote = "Extreme luck is needed in **Doubly**.",
+                Quote = "Won over **20** times in a row in **Doubly**, guessing the exact tick.",
+                Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 20
             },
             new Merit
             {
                 Id = "casino:tick_beginner",
                 Name = "Doubler Beginner",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 10,
-                Quote = "You have attempted to double your chips 100 times.",
+                Quote = "Played **100** rounds of **Doubly**.",
                 Criteria = user => user.GetVar(Stats.Doubler.TimesPlayed) >= 100
             },
             new Merit
             {
                 Id = "casino:gimi_advocate",
                 Name = "Gimi Advocate",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Silver,
+                Tags = MeritTag.Milestone,
                 Score = 25,
-                Quote = "Despite all of the losses, you've kept requesting 1,000 times at this point.",
+                LockQuote = "Despite the possible financial ruin, you keep playing.",
+                Quote = "Played **1,000** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 1000
             },
             new Merit
             {
                 Id = "casino:gimi_expert",
                 Name = "Gimi Expert",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 50,
-                Quote = "The addiction of your quest for wealth is starting to scare me after 5,000 times.",
+                LockQuote = "The addiction for the wealth you seek scares me.",
+                Quote = "Played **5,000** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 5000,
-                Hidden = true,
                 Reward = new Reward
                 {
-                    Money = 100
+                    Money = 1000,
+                    Exp = 2000
                 }
             },
             new Merit
@@ -1255,14 +1282,16 @@ namespace Arcadia
                 Id = "casino:gimi_maniac",
                 Icon = "⚗️",
                 Name = "Gimi Maniac",
-                Tag = MeritTag.Casino,
                 Rank = MeritRank.Diamond,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 250,
-                Quote = "No matter what anyone said, you kept going 10,000 times over.",
+                LockQuote = "You have reached the end of the road. Blessings and curses are part of your life now.",
+                Quote = "Played **10,000** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 10000,
-                Hidden = true,
                 Reward = new Reward
                 {
+                    Money = 250,
+                    Exp = 4000,
                     ItemIds = new Dictionary<string, int>
                     {
                         [Ids.Items.AutomatonGimi] = 1
@@ -1274,10 +1303,11 @@ namespace Arcadia
                 Id = "common:weekly_worker",
                 Icon = "✨",
                 Name = "Weekly Worker",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
+                Tags = MeritTag.Milestone,
                 Score = 7,
-                Quote = "You've stopped by for 7 days, making your name known.",
+                LockQuote = "Maybe if you stopped by a bit more often, I'd get to know you better.",
+                Quote = "Maintained a daily streak for **7** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 7
             },
             new Merit
@@ -1285,10 +1315,11 @@ namespace Arcadia
                 Id = "common:monthly_advocate",
                 Icon = "⭐",
                 Name = "Monthly Advocate",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone,
                 Score = 30,
-                Quote = "30 days have passed, and you have yet to miss a single one.",
+                LockQuote = "You've been becoming a lot more active, and I like to see that.",
+                Quote = "Maintained a daily streak for **30** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 30
             },
             new Merit
@@ -1296,36 +1327,38 @@ namespace Arcadia
                 Id = "common:daily_automaton",
                 Icon = "💫",
                 Name = "Daily Automaton",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Platinum,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                Quote = "You're still here. Even after 100 days.",
-                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 100,
-                Hidden = true
+                LockQuote = "You're still here. For that, I am grateful.",
+                Quote = "Maintained a daily streak for **100** days.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 100
             },
             new Merit
             {
                 Id = "common:perfect_attendance",
                 Icon = "🌟",
                 Name = "Perfect Attendance",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Diamond,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 365,
-                Quote = "For an entire year, day by day, you checked in and made yourself noticed.",
-                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 365,
-                Hidden = true
+                LockQuote = "You were always here when it was needed.",
+                Quote = "Maintained a daily streak for *365** days.",
+                Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 365
             },
             new Merit
             {
                 Id = "common:escaping_trouble",
                 Icon = "☎️",
                 Name = "Escaping Trouble",
-                Tag = MeritTag.Common,
                 Rank = MeritRank.Bronze,
                 Score = 10,
-                Quote = "With a quick call from the mini debt guardian, your troubles fade into the void.",
+                LockQuote = "With a simple call to the guardian of debt, your troubles will soon fade into the void.",
+                Quote = "Used a **Pocket Lawyer** to remove any excess debt.",
+                // TODO: Make sure that the user's debt was changed as well
+                // Could be a trigger activation that is specified in the item usage
                 Criteria = user => user.GetVar($"{Ids.Items.PocketLawyer}:times_used") >= 1
-            } // TODO: Create automatic item stat tracking
+            } // Create a merit for recovering funds from a heavy loss
         };
 
         public static readonly HashSet<Recipe> Recipes = new HashSet<Recipe>
@@ -2487,7 +2520,7 @@ namespace Arcadia
 
         private static string GetItemPreview(string itemId, int amount)
         {
-            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string icon = ItemHelper.GetIconOrDefault(itemId) ?? "•";
             string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(itemId);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";

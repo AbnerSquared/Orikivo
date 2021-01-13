@@ -22,7 +22,7 @@ namespace Arcadia
 
         public static string GetPreview(string itemId, int amount)
         {
-            string icon = IconOf(itemId) ?? "•";
+            string icon = GetIconOrDefault(itemId) ?? "•";
             string name = Check.NotNull(icon) ? GetBaseName(itemId) : NameOf(icon);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";
@@ -247,7 +247,7 @@ namespace Arcadia
                 return null;
             }
 
-            string itemId = isUniqueId ? ItemOf(user, dataId).Id : dataId;
+            string itemId = isUniqueId ? FindItem(user, dataId).Id : dataId;
             string uniqueId = isUniqueId ? dataId : null;
 
             bool isUnique = IsUnique(itemId);
@@ -259,10 +259,10 @@ namespace Arcadia
                 if (!Check.NotNull(uId))
                     return null;
 
-                return DataOf(user, itemId, uId);
+                return FindItemData(user, itemId, uId);
             }
 
-            return DataOf(user, itemId, uniqueId);
+            return FindItemData(user, itemId, uniqueId);
         }
 
         public static bool RemovePalette(ArcadeUser user)
@@ -365,7 +365,7 @@ namespace Arcadia
             if (data.Seal != null)
                 return NameOf(data.Seal.ReferenceId);
 
-            string icon = IconOf(data);
+            string icon = GetIconOrDefault(data);
 
             if (Check.NotNull(icon))
                 return GetBaseName(data.Id);
@@ -381,21 +381,20 @@ namespace Arcadia
             return item.GroupId;
         }
 
-        public static string IconOf(string itemId)
-            => GetItem(itemId)?.GetIcon() ?? "";
+        public static string GetIconOrDefault(string itemId, string fallback = "")
+            => GetItem(itemId)?.GetIcon() ?? fallback;
 
-        public static string IconOf(ItemData data)
+        public static string GetIconOrDefault(ItemData data, string fallback = "")
         {
-            if (data.Seal != null)
-                return IconOf(data.Seal.ReferenceId);
+            string itemId = data.Seal?.ReferenceId ?? data.Id;
 
-            return IconOf(data.Id);
+            return GetIconOrDefault(itemId, fallback);
         }
 
         public static long SizeOf(string itemId)
             => GetItem(itemId)?.Size ?? 0;
 
-        public static Item ItemOf(ArcadeUser user, string uniqueId)
+        public static Item FindItem(ArcadeUser user, string uniqueId)
         {
             if (user.Items.All(x => x.Data?.Id != uniqueId))
                 return null;
@@ -403,15 +402,15 @@ namespace Arcadia
             return GetItem(user.Items.FirstOrDefault(x => x.Data?.Id == uniqueId)?.Id);
         }
 
-        public static ItemData DataOf(ArcadeUser user, string itemId, string uniqueId = null)
+        public static ItemData FindItemData(ArcadeUser user, string itemId, string uniqueId = null)
         {
             return user.Items.FirstOrDefault(x =>
                 (!string.IsNullOrWhiteSpace(uniqueId) ? x.Data?.Id == uniqueId && x.Id == itemId : x.Id == itemId)
                 && x.Seal == null);
         }
 
-        public static ItemData DataOf(ArcadeUser user, Item item, string uniqueId = null)
-            => DataOf(user, item.Id, uniqueId);
+        public static ItemData FindItemData(ArcadeUser user, Item item, string uniqueId = null)
+            => FindItemData(user, item.Id, uniqueId);
 
         public static void TakeItem(ArcadeUser user, string itemId, int amount = 1)
             => TakeItem(user, GetItem(itemId), amount);
@@ -605,7 +604,7 @@ namespace Arcadia
                 // If the item has requirements to unlock
                 if (Check.NotNullOrEmpty(data.Seal.ToUnlock))
                 {
-                    foreach ((string id, VarProgress progress) in data.Seal.ToUnlock)
+                    foreach ((_, VarProgress progress) in data.Seal.ToUnlock)
                         if (progress.Current < progress.Required)
                             return UsageResult.FromError(Format.Warning("You have not met all of the criteria needed to open this seal."));
                 }
@@ -622,7 +621,7 @@ namespace Arcadia
                     data.Seal = null;
                 }
 
-                return UsageResult.FromSuccess($"> You have released the seal to discover:\n{IconOf(data.Id) ?? "•"} **{GetBaseName(data.Id)}**");
+                return UsageResult.FromSuccess($"> You have released the seal to discover:\n{GetIconOrDefault(data.Id) ?? "•"} **{GetBaseName(data.Id)}**");
             }
 
             // If the item has unique properties
@@ -733,10 +732,10 @@ namespace Arcadia
         }
 
         public static UsageResult UseItem(ArcadeUser user, Item item, string uniqueId, string input = null)
-            => UseItem(user, DataOf(user, item.Id, uniqueId), input);
+            => UseItem(user, FindItemData(user, item.Id, uniqueId), input);
 
         public static UsageResult UseItem(ArcadeUser user, string itemId, string uniqueId, string input)
-            => UseItem(user, DataOf(user, itemId, uniqueId), input);
+            => UseItem(user, FindItemData(user, itemId, uniqueId), input);
 
         public static UsageResult UseItem(ArcadeUser user, string dataId, string input = null)
             => UseItem(user, GetItemData(user, dataId), input);
@@ -831,14 +830,6 @@ namespace Arcadia
                 data.TradeCount = 0;
 
             return data;
-        }
-
-        private static DateTime? GetExpiry(TimeSpan duration, ExpireTriggers trigger)
-        {
-            if (trigger == ExpireTriggers.Own)
-                return DateTime.UtcNow.Add(duration);
-
-            return null;
         }
 
         private static string GetBestUniqueId(ArcadeUser user, string itemId)

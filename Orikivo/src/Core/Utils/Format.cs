@@ -117,12 +117,14 @@ namespace Orikivo
             return $"> {text}";
         }
 
-        public static string ObjectCount(int count, bool showOnSingle = true)
+        public static string ElementCount(int count, bool showOnSingle = true, bool pad = true)
         {
             if (!showOnSingle && count <= 1)
                 return "";
 
-            return $"(x**{count:##,0}**)";
+            string padding = pad ? " " : "";
+
+            return $"{padding}(x**{count:##,0}**)";
         }
 
         public static string PageCount(int current, int count, string format = null, bool showOnSingle = true)
@@ -301,6 +303,26 @@ namespace Orikivo
 
         public static string Countdown(TimeSpan remaining)
             => remaining.ToString(@"hh\:mm\:ss");
+
+        public static string GetMonthName(int month)
+        {
+            return month switch
+            {
+                1 => "January",
+                2 => "February",
+                3 => "March",
+                4 => "April",
+                5 => "May",
+                6 => "June",
+                7 => "July",
+                8 => "August",
+                9 => "September",
+                10 => "October",
+                11 => "November",
+                12 => "December",
+                _ => throw new ArgumentException("The specified month is out of the possible range")
+            };
+        }
 
         public static string Percent(double rate)
         {

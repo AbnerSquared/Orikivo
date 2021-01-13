@@ -93,7 +93,7 @@ namespace Arcadia
 
         private static string GetItemPreview(string itemId, int amount)
         {
-            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string icon = ItemHelper.GetIconOrDefault(itemId) ?? "•";
             string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";

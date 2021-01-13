@@ -573,7 +573,7 @@ namespace Arcadia
         private Item GetItemFromInventory(string itemId)
         {
             if (User.Items.Any(x => x.Data != null && x.Data.Id == itemId))
-                return ItemHelper.ItemOf(User, itemId);
+                return ItemHelper.FindItem(User, itemId);
 
             if (User.Items.All(x => x.Id != itemId))
                 return null;

@@ -16,6 +16,15 @@ namespace Arcadia
             public static readonly string MultipleMerits = "There were multiple merits given for the specified ID";
         }
 
+        // B   S   G   P    D
+        // 10, 25, 50, 100, 250
+        public static int GetDefaultScore(int rank)
+        {
+
+
+            return 10 * (2 * Math.Max(rank - 1, 0));
+        }
+
         public static Merit GetMerit(string id)
         {
             IEnumerable<Merit> merits = Assets.Merits.Where(x => x.Id == id);
@@ -63,6 +72,9 @@ namespace Arcadia
         private static string GetQuote(Merit merit, bool isUnlocked = false)
         {
             string quote = !Check.NotNull(merit.LockQuote) || isUnlocked ? merit.Quote : merit.LockQuote;
+
+            if (!isUnlocked && merit.Tags.HasFlag(MeritTag.Secret) && !Check.NotNull(merit.LockQuote))
+                quote = "Unlock this merit to learn more.";
 
             if (Check.NotNull(quote))
             {
@@ -114,15 +126,15 @@ namespace Arcadia
 
             info.AppendLine($"> Rank: **{merit.Rank}**");
 
-            if (merit.Reward != null)
-                info.AppendLine().Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true));
+            if (merit.Reward != null || merit.Tags.HasFlag(MeritTag.Secret))
+                info.AppendLine().Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true, merit.Tags.HasFlag(MeritTag.Secret)));
 
             return info.ToString();
         }
 
-        private static string ViewReward(Reward reward, bool isClaimed = false)
+        private static string ViewReward(Reward reward, bool isClaimed = false, bool isSecret = false)
         {
-            if (reward == null)
+            if (reward == null && !isSecret)
                 return "";
 
             // 🎁
@@ -132,6 +144,11 @@ namespace Arcadia
                 result.Append(" (Claimed)");
 
             result.AppendLine();
+
+            if (!isClaimed && isSecret)
+            {
+                result.Append("> Unlock this merit to view the possible rewards");
+            }
 
             if (reward.Money > 0)
                 result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)} Orite");
@@ -170,7 +187,7 @@ namespace Arcadia
                 return $"The directory of all known milestones.";
 
             string icon = Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•";
-            return $"Last Unlocked: {icon} **{merit.Name}** (**{merit.Score:##,0}**m)";
+            return $"Recently Unlocked: {icon} **{merit.Name}** (**{merit.Score:##,0}**m)";
         }
 
         private static MeritTag GetAvailableTags()
@@ -178,7 +195,7 @@ namespace Arcadia
             MeritTag tag = 0;
 
             foreach (Merit merit in Assets.Merits)
-                tag |= merit.Tag;
+                tag |= merit.Tags;
 
             return tag;
         }
@@ -229,7 +246,7 @@ namespace Arcadia
             Func<Merit, bool> comparer;
 
             if (!isNumber && Enum.TryParse(query, true, out MeritTag tag))
-                comparer = x => x.Tag.HasFlag(tag);
+                comparer = x => x.Tags.HasFlag(tag);
             else if (!isNumber && Enum.TryParse(query, true, out MeritRank rank))
                 comparer = x => x.Rank == rank;
             else
@@ -251,9 +268,12 @@ namespace Arcadia
         {
             return query switch
             {
-                "hidden" => "Milestones that hide in the depths.",
+                "hidden" => "Objectives that hide in the depths.",
                 "common" => "Common accomplishments for beginners to tackle.",
-                "casino" => "Milestones given only to the lucky.",
+                "casino" => "Achievements given only to the lucky.",
+                "exclusive" => "Rare and limited accolades.",
+                "secret" => "Accomplishments that shall soon be revealed.",
+                "milestone" => "Merits that will arrive in due time.",
                 _ => "You lack the spirit of greatness. Get out there and start hunting."
             };
         }
@@ -514,7 +534,7 @@ namespace Arcadia
         // TODO: Move item previews over to ItemViewer instead to be used as a common base
         private static string GetItemPreview(string itemId, int amount)
         {
-            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string icon = ItemHelper.GetIconOrDefault(itemId) ?? "•";
             string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(icon);
             string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
             return $"`{itemId}` {icon} **{name}**{counter}";

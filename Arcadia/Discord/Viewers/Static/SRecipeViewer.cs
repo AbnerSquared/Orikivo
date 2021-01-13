@@ -115,7 +115,7 @@ namespace Arcadia.Services
         public static string PreviewRecipeComponent(string itemId, int amount, int ownedAmount = 0)
         {
             string bullet = ownedAmount >= amount ? "✓ " : "";
-            string icon = ItemHelper.IconOf(itemId) ?? "•";
+            string icon = ItemHelper.GetIconOrDefault(itemId) ?? "•";
             string counter = amount > 1 ? $" (x{amount:##,0})" : "";
             return $"> {bullet}`{itemId}` {icon} **{ItemHelper.GetBaseName(itemId)}**{counter}";
         }
