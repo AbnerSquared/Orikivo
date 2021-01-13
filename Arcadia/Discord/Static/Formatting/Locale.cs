@@ -83,6 +83,9 @@ namespace Arcadia
         {
             var result = new StringBuilder();
 
+            if (Check.NotNull(template.Warning))
+                result.AppendLine(Format.Warning(template.Warning)).AppendLine();
+
             if (template.Tooltips.Count > 0 && allowTooltips)
                 result.AppendLine(Format.Tooltip(template.Tooltips)).AppendLine();
 

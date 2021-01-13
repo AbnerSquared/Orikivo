@@ -19,5 +19,15 @@ namespace Orikivo
                     yield return flag;
             }
         }
+
+        public static IEnumerable<string> GetFlagNames<TEnum>(this TEnum @enum)
+            where TEnum : Enum
+        {
+            foreach (TEnum flag in GetValues(@enum))
+            {
+                if (@enum.HasFlag(flag))
+                    yield return flag.ToString();
+            }
+        }
     }
 }

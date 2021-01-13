@@ -105,13 +105,13 @@ namespace Arcadia.Services
         private static string ShowStreakCounter(ArcadeUser user)
         {
             long streak = user.GetVar(Stats.Common.DailyStreak);
-            string counter = streak < 5 ? "" : $"> **{streak:##,0}** Consecutive Dailies\n";
+            string counter = $"> Current Streak: **{streak:##,0}**\n";
             long remainder = BonusInterval - (user.GetVar(Stats.Common.DailyStreak) % BonusInterval);
 
             if (remainder == 1)
-                return $"{counter}> You will receive a **Bonus** on your next daily!";
+                return $"{counter}> Next Bonus: **Up Next!**";
 
-            return $"{counter}> {remainder} {Format.TryPluralize("day", remainder != 1)} until the next **Bonus**";
+            return $"{counter}> Next Bonus: **{remainder} {Format.TryPluralize("Day", remainder != 1)}**";
         }
 
         private static string ShowStreakReset(ArcadeUser user)

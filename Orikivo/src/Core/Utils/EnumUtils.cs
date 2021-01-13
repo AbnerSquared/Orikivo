@@ -31,6 +31,10 @@ namespace Orikivo
             where TEnum : Enum
             => typeof(TEnum).GetEnumValues().Cast<TEnum>().ToList();
 
+        public static List<string> GetValueNames<TEnum>()
+            where TEnum : Enum
+            => GetValues<TEnum>().Select(x => x.ToString()).ToList();
+
         public static ExtensionType? GetUrlExtension(string url)
         {
             if (string.IsNullOrWhiteSpace(url))

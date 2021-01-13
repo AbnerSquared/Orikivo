@@ -263,6 +263,12 @@ namespace Arcadia.Modules
         [Summary("Sells the specified **Item** to the desired **Shop**.")]
         public async Task SellItemAsync([Name("data_id")][Summary("The specified item data instance to sell.")]string dataId, [Summary("The **Shop** to sell your **Item** to.")]Shop shop)
         {
+            if (!Context.Account.Items.Any())
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You don't have anything in your inventory that can be sold."));
+                return;
+            }
+
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
 
             if (data == null)
@@ -281,7 +287,14 @@ namespace Arcadia.Modules
         [Summary("Deletes the specified **Item** from your inventory.")]
         public async Task DeleteItemAsync([Name("data_id")][Summary("The specified item data instance to delete.")]string dataId)
         {
+
             IEnumerable<ItemData> disposable = Context.Account.Items.Where(ItemHelper.CanDelete);
+
+            if (!disposable.Any())
+            {
+                await Context.Channel.SendMessageAsync(Context.Account, Format.Warning("You don't have anything in your inventory that can be deleted."));
+                return;
+            }
 
             ItemData target = disposable.FirstOrDefault(x =>
                 (ItemHelper.Exists(x.Id) && (x.Id == dataId || x.Data?.Id == dataId)) || x.TempId == dataId);

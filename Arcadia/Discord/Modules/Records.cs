@@ -86,20 +86,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        // [Command("catalogsearch")]
-        [Summary("Search through the item catalog to look for a specific **Item**.")]
-        public async Task CatalogSearchAsync([Remainder]string input)
-        {
-            if (!Check.NotNull(input))
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_search_unspecified", Context.Account.Config.Language)));
-                return;
-            }
-
-            await Context.Channel.SendMessageAsync(CatalogViewer.Search(Context.Account, input));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
         [Command("item")]
         [Summary("Provides details about the specified **Item**, if it has been previously discovered.")]
         public async Task ViewItemAsync([Summary("The **Item** to view more information about.")]Item item)
@@ -113,7 +99,7 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("statsof")]
+        [Command("statgroup")]
         [Summary("View a collection of stats in the specified group.")]
         public async Task GetGroupStatsAsync(string query, int page = 1)
         {
@@ -137,29 +123,11 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("leaderboard"), Alias("top"), Priority(0)]
-        [Summary("Filters a custom leaderboard based on a specified **Stat**.")]
-        public async Task GetLeaderboardAsync([Name("stat_id")]string statId, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
+        [Command("leaderboard"), Alias("top")]
+        [Summary("View the current set of leaders.")]
+        public async Task GetLeaderboardAsync(string query = null, int page = 1)
         {
-            var board = new Leaderboard(statId, sort);
-            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
-
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        // TODO: Implement enum value listings
-        [RequireUser(AccountHandling.ReadOnly)]
-        [Command("leaderboard"), Alias("top"), Priority(1)]
-        [Summary("View the current pioneers of a specific category.")]
-        public async Task GetLeaderboardAsync(RankSection flag = RankSection.Default, LeaderboardSort sort = LeaderboardSort.Most, int page = 1)
-        {
-            if (flag == RankSection.Custom)
-                flag = RankSection.Default;
-
-            var board = new Leaderboard(flag, sort);
-            string result = board.Write(Context.Account, Context.Data.Users.Values.Values, --page);
-
-            await Context.Channel.SendMessageAsync(result);
+            await Context.Channel.SendMessageAsync(LeaderboardViewer.View(Context.Account, Context.Data.Users.Values.Values, --page, query));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]

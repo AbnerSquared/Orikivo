@@ -14,6 +14,27 @@ namespace Arcadia
             Exp = 0;
         }
 
+        public Reward(IEnumerable<Reward> rewards)
+        {
+            var itemIds = new Dictionary<string, int>();
+            long money = 0;
+            ulong exp = 0;
+
+            foreach (Reward reward in rewards)
+            {
+                if (reward == null)
+                    continue;
+
+                money += reward.Money;
+                exp += reward.Exp;
+                itemIds.AddOrConcat(reward.ItemIds);
+            }
+
+            ItemIds = itemIds;
+            Money = money;
+            Exp = exp;
+        }
+
         public Dictionary<string, int> ItemIds { get; set; }
         public long Money { get; set; }
         public ulong Exp { get; set; }
@@ -33,12 +54,25 @@ namespace Arcadia
             return count;
         }
 
+        /// <summary>
+        /// Adds the content from the specified <see cref="Reward"/> to this instance.
+        /// </summary>
+        public void Add(Reward reward)
+        {
+            if (reward == null)
+                return;
+
+            ItemIds.AddOrConcat(reward.ItemIds);
+
+            Money += reward.Money;
+            Exp += reward.Exp;
+        }
+
         public void Apply(ArcadeUser user)
         {
             if (Money > 0)
                 user.Give(Money);
 
-            
             if (Exp > 0)
                 user.GiveExp(Exp);
 

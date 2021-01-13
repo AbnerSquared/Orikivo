@@ -105,7 +105,37 @@ namespace Arcadia
                 Type = VarType.Time,
                 Summary = "Represents the last time (in UTC) from which you played a multiplayer game.",
                 ValueWriter = (ticks) => Format.Date(new DateTime(ticks))
-            }
+            },
+            new Var
+            {
+                Id = Vars.MonthlyArcade,
+                Type = VarType.Stat,
+                ValueWriter = v => $"**{v.ToString("##,0")} AP**"
+            },
+            new Var
+            {
+                Id = Vars.MonthlyCasino,
+                Type = VarType.Stat,
+                ValueWriter = v => $"{Icons.Chips} **{v.ToString("##,0")}**"
+            },
+            new Var
+            {
+                Id = Vars.MonthlyExp,
+                Type = VarType.Stat,
+                ValueWriter = v => $"{Icons.Exp} **{v.ToString("##,0")} XP**"
+            },
+            new Var
+            {
+                Id = Vars.MonthlyIncome,
+                Type = VarType.Stat,
+                ValueWriter = v => $"{Icons.Balance} **{v.ToString("##,0")}**"
+            },
+            new Var
+            {
+                Id = Vars.MonthlyQuests,
+                Type = VarType.Stat,
+                ValueWriter = v => $"**{v.ToString("##,0")} QP**"
+            },
         };
 
         public static readonly List<VarGroup> Groups = new List<VarGroup>

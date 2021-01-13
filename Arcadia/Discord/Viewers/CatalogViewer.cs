@@ -472,16 +472,16 @@ namespace Arcadia.Services
                 details.AppendLine();
 
             details.AppendLine("> **Details**");
-            details.AppendLine($"ID: `{item.Id}`");
+            details.AppendLine($"> ID: `{item.Id}`");
 
             if (Check.NotNull(item.GroupId))
-                details.AppendLine($"Group: **{ItemHelper.GetGroup(item.GroupId).Name}** ({ItemHelper.GetGroup(item.GroupId).Rarity.ToString()})");
+                details.AppendLine($"> Group: **{ItemHelper.GetGroup(item.GroupId).Name}** ({ItemHelper.GetGroup(item.GroupId).Rarity.ToString()})");
 
             details.AppendLine("\n> **Marketing**");
-            details.AppendLine($"Rarity: **{item.Rarity.ToString()}** (Relative)");
+            details.AppendLine($"> Rarity: **{item.Rarity.ToString()}** (Relative)");
 
             if (item.Value > 0)
-                details.AppendLine($"Value: {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
+                details.AppendLine($"> Valued at {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
 
             if (item.Size > 0)
                 details.AppendLine($"Storage Size: {InventoryViewer.WriteCapacity(item.Size)}");

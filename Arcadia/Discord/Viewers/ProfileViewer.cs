@@ -26,7 +26,7 @@ namespace Arcadia
                     string icon = user.Balance > 0 ? Icons.Balance : Icons.Debt;
                     long value = user.Balance > 0 ? user.Balance : user.Debt;
                     string id = user.Balance > 0 ? Vars.Balance : Vars.Debt;
-                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, id);
+                    int position = LeaderboardViewer.FindPosition(ctx.Data.Users.Values.Values, user, id);
                     string pos = "";
                     if (position < 4)
                         pos = $" (#**{position:##,0}** global)";
@@ -36,7 +36,7 @@ namespace Arcadia
 
                 if (user.ChipBalance > 0)
                 {
-                    int position = Leaderboard.GetPosition(ctx.Data.Users.Values.Values, user, Vars.Chips);
+                    int position = LeaderboardViewer.FindPosition(ctx.Data.Users.Values.Values, user, Vars.Chips);
                     string pos = "";
                     if (position < 4)
                         pos = $" (#**{position:##,0}** global)";

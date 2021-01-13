@@ -56,6 +56,8 @@ namespace Arcadia
 
         public List<string> Tooltips { get; set; } = new List<string>();
 
+        public string Warning { get; set; }
+
         public Header Header { get; set; }
 
         public List<TextSection> Sections { get; set; } = new List<TextSection>();

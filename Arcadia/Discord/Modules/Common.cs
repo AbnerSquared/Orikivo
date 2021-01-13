@@ -193,7 +193,7 @@ namespace Arcadia.Modules
         [Summary("Attempt to claim the specified **Merit**.")]
         public async Task ClaimAsync(string meritId = null)
         {
-            await Context.Channel.SendMessageAsync(MeritHelper.Claim(Context.Account, meritId));
+            await Context.Channel.SendMessageAsync(MeritHelper.ClaimAndDisplay(Context.Account, meritId));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]

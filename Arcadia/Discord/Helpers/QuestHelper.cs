@@ -45,7 +45,10 @@ namespace Arcadia
             if (i == 0)
             {
                 if (CanAssign(user))
-                    result.AppendLine(Format.Warning("You do not have any quests assigned to you. Type `assign` to get started!"));
+                {
+                    string notice = user.GetVar(Stats.Common.TotalCompletedQuests) > 0 ? "You have new quests available. Type `assign` to get started." : "You do not have any quests assigned to you. Type `assign` to get started!";
+                    result.AppendLine(Format.Warning(notice));
+                }
                 else
                 {
                     TimeSpan remainder = StatHelper.GetRemainder(user, Stats.Common.LastAssignedQuest, AssignCooldown);

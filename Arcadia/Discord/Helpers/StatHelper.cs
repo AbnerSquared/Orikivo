@@ -154,6 +154,6 @@ namespace Arcadia
 
         // TODO: Move to a static viewer class
         private static string WriteLeaderboardRank(in IEnumerable<ArcadeUser> users, ArcadeUser user, string id)
-            => $"> **Global Leaderboard Rank**: **{Leaderboard.GetPosition(users, user, id):##,0}** out of **{users.Count():##,0}**";
+            => $"> **Global Leaderboard Rank**: **{LeaderboardViewer.FindPosition(users, user, id):##,0}** out of **{users.Count():##,0}**";
     }
 }
