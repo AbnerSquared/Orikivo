@@ -83,20 +83,30 @@ namespace Arcadia
         {
             var result = new StringBuilder();
 
-            if (Check.NotNull(template.Warning))
-                result.AppendLine(Format.Warning(template.Warning)).AppendLine();
+            bool hasWarning = Check.NotNull(template.Warning);
+            bool hasTips = template.Tooltips.Count > 0 && allowTooltips;
 
-            if (template.Tooltips.Count > 0 && allowTooltips)
-                result.AppendLine(Format.Tooltip(template.Tooltips)).AppendLine();
+            if (hasWarning)
+                result.AppendLine(Format.Warning(template.Warning));
+
+            if (hasTips)
+            {
+                if (hasWarning)
+                    result.AppendLine();
+
+                result.AppendLine(Format.Tooltip(template.Tooltips));
+            }
+
+            if (hasTips || hasWarning)
+                result.AppendLine();
 
             if (Check.NotNull(template.Header))
-                result.AppendLine(BuildHeader(template.Header));
+                result.AppendLine(BuildHeader(template.Header)).AppendLine();
 
             IEnumerable<string> sections = template?.Sections.Select(x => x.Build()).ToList();
 
             if (Check.NotNullOrEmpty(sections))
             {
-                result.AppendLine();
                 result.AppendJoin("\n", sections);
             }
 

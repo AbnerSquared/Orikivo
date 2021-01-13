@@ -101,7 +101,7 @@ namespace Arcadia.Services
         {
             var title = $"{GetSectionIcon(section)} {GetSectionTitle(section)}";
 
-            if (!allowEmptyValues && GetRawValue(user, section) == 0)
+            if (user == null || !allowEmptyValues && GetRawValue(user, section) == 0)
                 return $"> {title}: **Nobody!**";
 
             return $"> {title}: **{user.Username}** with {Var.WriteValue(user, GetSectionId(section))}";
@@ -122,7 +122,7 @@ namespace Arcadia.Services
             => $"**{user.Username}**: {Var.WriteValue(user, statId)}";
 
         private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, string statId)
-            => SortUsers(users, statId).First();
+            => SortUsers(users, statId).FirstOrDefault();
 
         private static string PreviewLeaders(IEnumerable<ArcadeUser> users)
         {
@@ -195,7 +195,7 @@ namespace Arcadia.Services
 
             var result = new TextBody();
 
-            result.WithHeader("");
+            result.WithHeader("Leaderboards", icon: DefaultIcon, subtitle: GetCycleSubtitle());
 
             result.AppendTip("Type `leaderboard <section | stat>` to view a specific leaderboard.");
 

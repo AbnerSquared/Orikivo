@@ -144,7 +144,7 @@ namespace Arcadia
             var result = new StringBuilder($"> **Completion Reward**");
 
             if (isSecret && !isClaimed)
-                return result.Append("\n> Unlock this merit to view possible rewards").ToString();
+                return result.Append("\n> Unlock this merit to view possible rewards!").ToString();
 
             if (reward == null)
                 return "";
@@ -327,6 +327,8 @@ namespace Arcadia
             header.Subtitle = GetQuerySubtitle(user, query, ref merits);
             header.Group = query.ToString(Casing.Pascal);
 
+            result.WithHeader(header);
+
             bool allowTooltips = user.Config.Tooltips;
 
             IEnumerable<Merit> elements = Paginate.GroupAt(merits, page, PageLength);
@@ -339,7 +341,7 @@ namespace Arcadia
             if (!query.EqualsAny(StringComparison.OrdinalIgnoreCase, "claimed", "unlocked") && elements.Any(x => HasUnlocked(user, x)))
                 result.AppendTip("Unlocked merits are marked with `*`.");
 
-            result.WithSection(null, string.Join("\n", elements.Select(x => PreviewMerit(x, user))));
+            result.WithSection(null, string.Join("\n\n", elements.Select(x => PreviewMerit(x, user))));
 
             return result.Build(user.Config.Tooltips);
         }
