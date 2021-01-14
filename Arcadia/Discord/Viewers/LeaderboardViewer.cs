@@ -133,7 +133,7 @@ namespace Arcadia.Services
             => WriteUser(user, GetSectionId(section));
 
         private static string WriteUser(ArcadeUser user, string statId)
-            => $"**{user.Username}**: {Var.WriteValue(user, statId)}";
+            => $"> **{user.Username}**: {Var.WriteValue(user, statId)}";
 
         private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, string statId)
             => SortUsers(users, statId).FirstOrDefault();
@@ -167,9 +167,6 @@ namespace Arcadia.Services
 
         private static string WriteUsers(in IEnumerable<ArcadeUser> sorted, int page, string statId)
         {
-            if (!Check.NotNullOrEmpty(sorted))
-                return "";
-
             int pageCount = Paginate.GetPageCount(sorted.Count(), PageLength);
             page = Paginate.ClampIndex(page, pageCount);
 
@@ -211,13 +208,14 @@ namespace Arcadia.Services
                     header.Extra = null;
                 }
 
-                header.Subtitle = isSection ? "This section is empty." : "This stat isn't stored by anyone. Perhaps it was a typo?";
+                header.Subtitle = isSection ? "This section is empty." : "This stat isn't found on any user.";
+            }
+            else
+            {
+                result.WithSection(null, WriteUsers(sorted, page, statId));
             }
 
             result.WithHeader(header);
-
-            if (!Check.NotNullOrEmpty(sorted))
-                result.WithSection(null, WriteUsers(sorted, page, statId));
 
             return result.Build(user.Config.Tooltips);
         }

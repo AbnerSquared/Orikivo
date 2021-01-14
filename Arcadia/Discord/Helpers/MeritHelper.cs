@@ -107,7 +107,7 @@ namespace Arcadia
             if (hidden)
                 result = Format.Spoiler(result);
 
-            return result;
+            return $"> {result}";
         }
 
         public static string ViewMerit(Merit merit, ArcadeUser user = null)
