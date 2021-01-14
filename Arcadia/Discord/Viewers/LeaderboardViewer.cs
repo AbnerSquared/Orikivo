@@ -197,7 +197,7 @@ namespace Arcadia.Services
                 Title = isSection ? GetSectionName(section) : "Leaderboard",
                 Icon = isSection ? GetSectionIcon(section) : DefaultIcon,
                 Extra = isSection ? counter : $"(for `{(query.Replace("`", "\\`"))}`) {counter}",
-                Subtitle = isSection ? GetSectionSubtitle(section) : GetPositionSubtitle(user, sorted, statId)
+                Subtitle = isSection ? GetSectionSubtitle(section) : !Check.NotNullOrEmpty(sorted) ? "This stat isn't stored on anyone." : GetPositionSubtitle(user, sorted, statId)
             };
 
             if (!Check.NotNullOrEmpty(sorted))
@@ -208,7 +208,7 @@ namespace Arcadia.Services
                     header.Extra = null;
                 }
 
-                header.Subtitle = isSection ? "This section is empty." : "This stat isn't found on any user.";
+                header.Subtitle = isSection ? "This section is empty." : "This stat isn't stored on anyone.";
             }
             else
             {
