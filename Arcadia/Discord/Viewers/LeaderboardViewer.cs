@@ -187,7 +187,7 @@ namespace Arcadia.Services
 
             var result = new TextBody();
 
-            if (!isSection)
+            if (!isSection && Check.NotNullOrEmpty(sorted))
                 result.AppendTip("This leaderboard is unranked.");
 
             string counter = Format.PageCount(page, pageCount, "({0})", false);
