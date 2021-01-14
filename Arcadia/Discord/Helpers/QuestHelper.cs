@@ -80,14 +80,14 @@ namespace Arcadia
 
             var info = new StringBuilder();
 
-            info.AppendLine($"> **{quest.Name}**");
+            info.AppendLine($"> **{quest.Name}** (in **Slot {index + 1}**)");
 
             if (Check.NotNull(quest.Summary))
                 info.AppendLine($"> {quest.Summary}\n");
 
-            info.AppendLine($"> {GetDifficultyName(quest.Difficulty)} (Slot {index + 1}) • {GetQuestCompletion(user, slot)}\n");
+            //info.AppendLine($"> {GetDifficultyName(quest.Difficulty)} () • {GetQuestCompletion(user, slot)}\n");
 
-            info.AppendLine("> **Tasks**");
+            info.AppendLine($"> **Tasks** ({GetQuestCompletion(user, slot)})");
 
             foreach (Criterion criterion in quest.Criteria)
             {

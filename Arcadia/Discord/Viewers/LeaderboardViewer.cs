@@ -52,7 +52,7 @@ namespace Arcadia.Services
             };
 
             if (!string.IsNullOrWhiteSpace(subtitle))
-                return Format.Italics(subtitle);
+                return $"\"{subtitle}\"";
 
             return subtitle;
         }
@@ -174,8 +174,8 @@ namespace Arcadia.Services
             {
                 Title = isSection ? "Leaderboard" : "Leaderboards:",
                 Icon = isSection ? GetSectionIcon(section) : DefaultIcon,
-                Extra = isSection ? $"`{Format.Sanitize(query)}` {counter}" : counter,
-                Subtitle = isSection ? GetSectionSubtitle(section) : GetPositionSubtitle(user, sorted, GetSectionId(section))
+                Extra = isSection ? counter : $"`{Format.Sanitize(query)}` {counter}",
+                Subtitle = isSection ? GetSectionSubtitle(section) : GetPositionSubtitle(user, sorted, statId)
             };
 
             if (isSection)

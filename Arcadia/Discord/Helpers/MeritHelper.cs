@@ -101,8 +101,10 @@ namespace Arcadia
             bool allowTooltips = user?.Config?.Tooltips ?? true;
             bool hasUnlocked = user != null && HasUnlocked(user, merit);
 
-            if (merit.Criteria == null)
-                info.AppendLine(Format.Warning("This is an exclusive merit."));
+            if (merit.Tags.HasFlag(MeritTag.Exclusive))
+                info.AppendLine(Format.Warning("This is an exclusive merit.")).AppendLine();
+
+            bool hasTooltips = false;
 
             if (allowTooltips)
             {
@@ -112,13 +114,15 @@ namespace Arcadia
                     tooltips.Add($"Type `claim {merit.Id}` to claim this merit.");
 
                 if (merit.Hidden)
-                    tooltips.Add("This merit is excluded from completion progress.");
+                    tooltips.Add("Hidden merits do not count towards completion.");
 
-                info.AppendLine(Format.Tooltip(tooltips));
+                hasTooltips = tooltips.Any();
+
+                if (hasTooltips)
+                {
+                    info.AppendLine(Format.Tooltip(tooltips)).AppendLine();
+                }
             }
-
-            if (merit.Criteria == null || (allowTooltips && (merit.Hidden || user != null && CanClaim(user, merit))))
-                info.AppendLine();
 
             info.AppendLine(GetPreview(merit));
 
@@ -269,6 +273,7 @@ namespace Arcadia
                 "exclusive" => "Rare and limited accolades.",
                 "secret" => "Accomplishments that shall soon be revealed.",
                 "milestone" => "Merits that will arrive in due time.",
+                "unlocked" => "\"That's quite the collection you have.\"",
                 _ => "You lack the spirit of greatness. Get out there and start hunting."
             };
         }
@@ -279,7 +284,7 @@ namespace Arcadia
 
             return merits.Count == 0
                 ? "This category does not contain any merits."
-                : ownCount == 0 ? GetSummary(query)
+                : ownCount == 0 || query == "unlocked" ? GetSummary(query)
                 : $"Completion: {Format.Percent(ownCount / (double)merits.Count)}";
         }
 
