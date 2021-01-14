@@ -16,11 +16,14 @@ namespace Arcadia
             public static readonly string MultipleMerits = "There were multiple merits given for the specified ID";
         }
 
+        private static readonly int BaseScoreTier = 10;
+        private static readonly int RankPower = 2;
+
         // B   S   G   P    D
         // 10, 25, 50, 100, 250
         public static int GetDefaultScore(int rank)
         {
-            return 10 * (2 * Math.Max(rank - 1, 0));
+            return BaseScoreTier * (RankPower * Math.Max(rank - 1, 0));
         }
 
         public static Merit GetMerit(string id)
@@ -64,35 +67,47 @@ namespace Arcadia
         public static long GetWorth(Merit merit)
             => merit.Score <= 0 ? GetDefaultScore((int)merit.Rank) : merit.Score;
 
-        public static string GetScoreCounter(ArcadeUser user)
-        {
-            return $"(**{GetScore(user)}**m)";
-        }
+        private static string DrawCounter(long score)
+            => $"(**{score:##,0}**m)";
 
         private static string GetPreview(Merit merit)
-        {
-            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
-            return $"> {icon} **{merit.Name}** (**{merit.Score:##,0}**m)";
-        }
+            => $"> {GetIconOrDefault(merit, "•")} **{merit.Name}** {DrawCounter(merit.Score)}";
+
+        private static bool CanShowQuote(Merit merit, bool isUnlocked)
+            => isUnlocked || IsSecret(merit) || Check.NotNull(merit.LockQuote);
 
         private static string GetQuote(Merit merit, bool isUnlocked = false)
         {
-            string quote = !Check.NotNull(merit.LockQuote) || isUnlocked ? merit.Quote : merit.LockQuote;
+            string quote = (isUnlocked || !Check.NotNull(merit.LockQuote))
+                ? merit.Quote
+                : merit.LockQuote;
 
-            if (!isUnlocked && merit.Tags.HasFlag(MeritTag.Secret) && !Check.NotNull(merit.LockQuote))
+            if (!CanShowQuote(merit, isUnlocked))
                 quote = "Unlock this merit to learn more.";
 
-            if (Check.NotNull(quote))
-            {
-                string display = $"\"{quote}\"";
+            if (string.IsNullOrWhiteSpace(quote))
+                return "";
 
-                if (merit.Hidden)
-                    display = Format.Spoiler(display);
+            return DrawQuote(quote, isUnlocked && IsSecret(merit));
+        }
 
-                return $"> {display}";
-            }
+        public static bool IsSecret(Merit merit)
+            => merit.Tags.HasFlag(MeritTag.Secret);
 
-            return "";
+        public static bool IsExclusive(Merit merit)
+            => merit.Tags.HasFlag(MeritTag.Exclusive);
+
+        public static bool IsMilestone(Merit merit)
+            => merit.Tags.HasFlag(MeritTag.Milestone);
+
+        private static string DrawQuote(string quote, bool hidden)
+        {
+            string result = $"\"{quote}\"";
+
+            if (hidden)
+                result = Format.Spoiler(result);
+
+            return result;
         }
 
         public static string ViewMerit(Merit merit, ArcadeUser user = null)
@@ -104,8 +119,6 @@ namespace Arcadia
             if (merit.Tags.HasFlag(MeritTag.Exclusive))
                 info.AppendLine(Format.Warning("This is an exclusive merit.")).AppendLine();
 
-            bool hasTooltips = false;
-
             if (allowTooltips)
             {
                 var tooltips = new List<string>();
@@ -116,9 +129,7 @@ namespace Arcadia
                 if (merit.Hidden)
                     tooltips.Add("Hidden merits do not count towards completion.");
 
-                hasTooltips = tooltips.Any();
-
-                if (hasTooltips)
+                if (tooltips.Any())
                 {
                     info.AppendLine(Format.Tooltip(tooltips)).AppendLine();
                 }
@@ -145,7 +156,8 @@ namespace Arcadia
 
         private static string ViewReward(Reward reward, bool isClaimed = false, bool isSecret = false)
         {
-            var result = new StringBuilder($"> **Completion Reward**");
+            bool isPlural = !isSecret && reward != null && reward.Count > 1;
+            var result = new StringBuilder($"> **Completion {Format.TryPluralize("Reward", "Rewards", isPlural)}**");
 
             if (isSecret && !isClaimed)
                 return result.Append("\n> Unlock this merit to view possible rewards!").ToString();
@@ -163,11 +175,19 @@ namespace Arcadia
             return result.ToString();
         }
 
+        private static string GetUnlockMarker(bool hasUnlocked)
+            => hasUnlocked ? "\\*" : "";
+
         public static string PreviewMerit(Merit merit, ArcadeUser user = null)
         {
-            string icon = (Check.NotNull(merit.Icon) ? $"{merit.Icon}" : "•");
-            return $"> `{merit.Id}`\n> {icon} **{merit.Name}**{(user != null && HasUnlocked(user, merit) ? "\\*" : "")} (**{merit.Score:##,0}**m)";
+            string icon = GetIconOrDefault(merit, "•");
+            bool isUnlocked = user != null && HasUnlocked(user, merit);
+
+            return DrawMeritPreview(merit.Id, icon, merit.Name, merit.Score, isUnlocked);
         }
+
+        private static string DrawMeritPreview(string id, string icon, string name, long score, bool isUnlocked)
+            => $"> `{id}`\n> {icon} **{name}**{GetUnlockMarker(isUnlocked)} {DrawCounter(score)}";
 
         public static Merit GetNewestUnlocked(ArcadeUser user)
         {
@@ -178,9 +198,7 @@ namespace Arcadia
         }
 
         public static string GetIconOrDefault(Merit merit, string fallback = "")
-        {
-            return merit.Icon ?? fallback;
-        }
+            => merit.Icon ?? fallback;
 
         private static string GetRecentMeritSubtitle(ArcadeUser user)
         {
@@ -189,7 +207,7 @@ namespace Arcadia
             if (merit == null)
                 return $"A directory of accomplishments.";
 
-            return $"Recently Unlocked: {GetIconOrDefault(merit, "•")} **{merit.Name}** (**{GetWorth(merit):##,0}**m)";
+            return $"Recently Unlocked: {GetIconOrDefault(merit, "•")} **{merit.Name}** {DrawCounter(GetWorth(merit))}";
         }
 
         private static MeritTag GetActiveTags()
@@ -296,7 +314,7 @@ namespace Arcadia
             var result = new TextBody();
 
             var header = Locale.GetOrCreateHeader(Headers.Merits);
-            header.Extra = GetScoreCounter(user);
+            header.Extra = DrawCounter(GetScore(user));
             header.Subtitle = GetRecentMeritSubtitle(user);
 
             result.WithHeader(header);
@@ -328,7 +346,7 @@ namespace Arcadia
             page = Paginate.ClampIndex(page, pageCount);
 
             var header = Locale.GetOrCreateHeader(Headers.Merits);
-            header.Extra = Format.PageCount(page, pageCount, "({0})", false);
+            header.Extra = Format.PageCount(page + 1, pageCount, "({0})", false);
             header.Subtitle = GetQuerySubtitle(user, query, ref merits);
             header.Group = query.ToString(Casing.Pascal);
 
@@ -411,35 +429,31 @@ namespace Arcadia
                 user.Notifier.Add(WriteUnlockNotice(merit));
         }
 
+        private static string DrawBasePreview(Merit merit)
+            => DrawBasePreview(GetIconOrDefault(merit, "•"), merit.Name, GetWorth(merit));
+
+        private static string DrawBasePreview(string icon, string name, long score)
+            => $"{icon} **{name}** {DrawCounter(score)}";
+
         private static string WriteUnlockNotice(Merit merit)
-            => $"Merit unlocked: **{merit.Name}** (**{GetWorth(merit)}**m)";
+            => $"Merit unlocked: {DrawBasePreview(merit)}";
 
         public static IEnumerable<Merit> GetClaimable(ArcadeUser user)
             => Assets.Merits.Where(x => CanClaim(user, x.Id));
 
         public static string ClaimAndDisplay(ArcadeUser user, string input)
         {
-            if (!Check.NotNull(input))
+            if (string.IsNullOrWhiteSpace(input))
             {
                 IEnumerable<Merit> claimable = GetClaimable(user);
 
                 if (!Check.NotNullOrEmpty(claimable))
                     return Format.Warning("You don't have any merits you can claim.");
 
-                var result = new StringBuilder();
-
-                if (user.Config.Tooltips)
-                {
-                    result
-                        .AppendLine(Format.Tooltip("Type `claim all` to claim all available merits."))
-                        .AppendLine();
-                }
-
-                result
-                    .AppendLine($"> **Claimable Merits**\n")
-                    .AppendJoin("\n", GetClaimable(user).Select(x => PreviewMerit(x, user)));
-
-                return result.ToString();
+                return new TextBody()
+                    .AppendTip("Type `claim all` to claim all available merits.")
+                    .WithSection(null, DrawClaimSection(ref claimable, user))
+                    .Build(user.Config.Tooltips);
             }
 
             if (input.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -451,20 +465,32 @@ namespace Arcadia
             return ClaimAndDisplay(user, GetMerit(input));
         }
 
+        private static string DrawClaimSection(ref IEnumerable<Merit> claimable, ArcadeUser user)
+        {
+            var result = new StringBuilder();
+
+            return result.AppendLine($"> {Format.Bold("Claimable Merits")}")
+                .AppendLine()
+                .AppendJoin("\n", claimable.Select(x => PreviewMerit(x, user)))
+                .ToString();
+        }
+
         public static string ClaimAndDisplay(ArcadeUser user, Merit merit)
         {
+            string name = Format.Bold(merit.Name);
+
             if (HasUnlocked(user, merit) && user.Merits[merit.Id]?.IsClaimed == true)
-                return Format.Warning($"You have already claimed **{merit.Name}**.");
+                return Format.Warning($"You have already claimed {name}.");
 
             if (merit.Reward == null)
-                return Format.Warning($"There are no rewards assigned to **{merit.Name}**.");
+                return Format.Warning($"There are no rewards assigned to {name}.");
 
             if (!CanClaim(user, merit))
-                return Format.Warning($"You are unable to claim **{merit.Name}**.");
+                return Format.Warning($"You are unable to claim {name}.");
 
             var result = new StringBuilder();
 
-            result.AppendLine($"> You have claimed **{merit.Name}** and received:")
+            result.AppendLine($"> You have claimed {name} and received:")
                 .Append(merit.Reward.ToString());
 
             merit.Reward.Apply(user);
@@ -489,9 +515,11 @@ namespace Arcadia
 
             var result = new StringBuilder();
 
-            string claimCount = $"**{toClaim.Count():##,0} {Format.TryPluralize("merit", toClaim.Count())}**";
+            string claimCount = Format.WordCounter("merit", toClaim.Count);
+            long scoreWorth = toClaim.Sum(x => GetWorth(x));
 
             result.AppendLine($"> You have claimed {claimCount} and received:")
+                //.AppendLine($"> **{scoreWorth:##,0}**m")
                 .Append(reward.ToString());
 
             reward.Apply(user);

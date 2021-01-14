@@ -5,7 +5,7 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Services
 {
-    public class DailyService
+    public static class DailyService
     {
         public static readonly long Reward = 15;
         public static readonly long DefaultBonus = 25;
@@ -96,11 +96,14 @@ namespace Arcadia.Services
                 }
             }
 
-            if ((streak + 1) % BonusInterval == 0)
+            if (IsBonusUpNext(streak))
                 return DailyResultFlag.Bonus;
 
             return DailyResultFlag.Success;
         }
+
+        public static bool IsBonusUpNext(long streak)
+            => (streak + 1) % BonusInterval == 0;
 
         private static string ShowStreakCounter(ArcadeUser user)
         {
@@ -121,9 +124,12 @@ namespace Arcadia.Services
             return $"> Your consecutive streak of **{streak:##,0}** has ended.";
         }
 
+        public static long GetBonusStreak(long dailyStreak)
+            => (long)Math.Floor(dailyStreak / (double)BonusInterval);
+
         private static string ShowStreakBonus(long dailyStreak, Reward reward)
         {
-            long bonusCount = (long)Math.Floor(dailyStreak / (double) 5);
+            long bonusCount = GetBonusStreak(dailyStreak);
 
             return $"> You have reached your {GetStreakOrdinal((int)bonusCount)} {(bonusCount > 1 ? "consecutive " : "")}bonus!\n> You have been rewarded with:\n{reward.ToString()}";
         }
@@ -211,7 +217,7 @@ namespace Arcadia.Services
             embedder.Color = color;
             embedder.Header = $"**{icon} {header}**";
             message.BaseContent = $"{footer}\n ";
-            message.Content = $"*\"{Replies.GetReply(flag)}\"*";
+            message.Content = $"\"{Replies.GetReply(flag, user)}\"";
             message.Embedder = embedder;
 
             return message.Build();

@@ -150,20 +150,20 @@ namespace Arcadia
         // TODO: Place in ShopHelper
         public static string WriteBuyNotice(Item item, int amount, long cost)
         {
-            var notice = new StringBuilder();
-            notice.AppendLine($"> 🧾 You have purchased an item.");
-            // notice.AppendLine($"> 🧾 You have purchased {(amount > 1 ? $"**{amount:##,0}**" : "an")} {Format.TryPluralize("item", amount)}.");
-            notice.Append("• ");
+            long costSum = amount > 1 ? cost * amount : cost;
 
-            string icon = item.GetIcon();
+            var notice = new StringBuilder();
+            notice.AppendLine($"> 🧾 **Transaction Complete*** (for {CurrencyHelper.WriteCost(costSum, item.Currency)})");
+            
+            notice.Append("> ");
+
+            string icon = ItemHelper.GetIconOrDefault(item.Id, "");
 
             if (!string.IsNullOrWhiteSpace(icon))
                 notice.Append($"{icon} ");
 
-            notice.Append($"{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())} ... ");
-            long costSum = amount > 1 ? cost * amount : cost;
-            notice.Append($"{Icons.IconOf(item.Currency)} **{costSum:##,0}**\n\n");
-
+            notice.Append($"**{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())}**");
+        
             return notice.ToString();
         }
 
@@ -554,7 +554,7 @@ namespace Arcadia
         {
             return currency switch
             {
-                CurrencyType.Money => User.Balance,
+                CurrencyType.Money => Math.Max(User.Balance - User.Debt, 0),
                 CurrencyType.Chips => User.ChipBalance,
                 CurrencyType.Tokens => User.TokenBalance,
                 CurrencyType.Debt => User.Debt,

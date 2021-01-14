@@ -275,7 +275,10 @@ namespace Arcadia
                     return;
 
                 case CurrencyType.Debt:
-                    Take(value, CurrencyType.Money);
+                    if (Config.AutoPayDebt)
+                        Take(value, CurrencyType.Money);
+                    else
+                        Debt += value;
                     return;
 
                 default:

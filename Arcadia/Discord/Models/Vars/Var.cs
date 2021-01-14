@@ -215,6 +215,9 @@ namespace Arcadia
             }
         };
 
+        public static bool Judge(ArcadeUser user, string id, Func<long, bool> judge)
+            => judge?.Invoke(user.GetVar(id)) ?? true;
+
         public static long GetValue(ArcadeUser user, string id)
         {
             return GetDefiner(id)?.ValueGetter?.Invoke(user) ?? (user.Stats.TryGetValue(id, out long value) ? value : 0);

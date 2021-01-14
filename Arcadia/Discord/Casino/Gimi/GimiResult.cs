@@ -189,7 +189,7 @@ namespace Arcadia.Casino
                 type += ' ';
 
             string header = $"**{type}{icon} {value:##,0}**";
-            string content = $"*\"{quote}\"*";
+            string content = $"\"{quote}\"";
 
             embedder.Header = header;
             embedder.Color = color;

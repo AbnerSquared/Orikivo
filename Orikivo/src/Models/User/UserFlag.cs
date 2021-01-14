@@ -4,6 +4,6 @@
     public enum UserFlag
     {
         Tooltips = 1,
-        Debug = 2
+        AutoPayDebt = 2
     }
 }

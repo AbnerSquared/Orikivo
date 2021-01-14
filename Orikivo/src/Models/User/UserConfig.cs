@@ -13,21 +13,22 @@ namespace Orikivo
             Notifier = 0,
             Prefix = null,
             Tooltips = true,
+            AutoPayDebt = true,
             Language = Language.English
         };
 
         public override ConfigBase GetDefault()
             => Default;
 
-        private static UserFlag GetFlagValue(bool tooltips, bool debug)
+        private static UserFlag GetFlagValue(bool tooltips, bool autoPayDebt)
         {
             UserFlag flag = 0;
 
             if (tooltips)
                 flag |= UserFlag.Tooltips;
 
-            if (debug)
-                flag |= UserFlag.Debug;
+            if (autoPayDebt)
+                flag |= UserFlag.AutoPayDebt;
 
             return flag;
         }
@@ -37,6 +38,7 @@ namespace Orikivo
             Notifier = NotifyAllow.Merit | NotifyAllow.Cooldown | NotifyAllow.OfferAccepted | NotifyAllow.OfferInbound | NotifyAllow.GiftInbound | NotifyAllow.Invite | NotifyAllow.Level | NotifyAllow.Research | NotifyAllow.Daily | NotifyAllow.ItemInbound;
             Prefix = null;
             Tooltips = true;
+            AutoPayDebt = true;
             Language = Language.English;
         }
 
@@ -94,6 +96,18 @@ namespace Orikivo
         {
             get => Flag.HasFlag(UserFlag.Tooltips);
             set => Flag = value ? Flag | UserFlag.Tooltips : Flag & ~UserFlag.Tooltips;
+        }
+
+        [JsonIgnore]
+        [Id("autopay")]
+        [Title("Auto Pay Debt")]
+        [Description("Determines if debt is automatically paid off using your available funds.")]
+        [Details("This option is useful to prevent the possibility of being marked by **ORS**.",
+            "If this option is disabled, debt will only be paid off by future income instead of what you currently have.")]
+        public bool AutoPayDebt
+        {
+            get => Flag.HasFlag(UserFlag.AutoPayDebt);
+            set => Flag = value ? Flag | UserFlag.AutoPayDebt : Flag & ~UserFlag.AutoPayDebt;
         }
 
         [Id("language")]

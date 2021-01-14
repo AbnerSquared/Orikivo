@@ -11,7 +11,7 @@ namespace Arcadia.Services
     {
         private static readonly int PageLength = 8;
 
-        private static readonly string DefaultIcon = "📈";
+        private static readonly string DefaultIcon = "🎖️";
 
         private static string GetSectionIcon(LeaderSection section)
         {
@@ -26,7 +26,20 @@ namespace Arcadia.Services
             };
         }
 
-        private static string GetSectionTitle(LeaderSection section)
+        private static string GetSectionName(LeaderSection section)
+        {
+            return section switch
+            {
+                LeaderSection.Income => "The Field of Wealth",
+                LeaderSection.Experience => "Wisdom's Canyon",
+                LeaderSection.Quest => "Challenger's Approach",
+                LeaderSection.Multiplayer => "The Arcade",
+                LeaderSection.Casino => "The Prediction Pool",
+                _ => "REDACTED"
+            };
+        }
+
+        private static string GetSectionCall(LeaderSection section)
         {
             return section switch
             {
@@ -65,7 +78,10 @@ namespace Arcadia.Services
             int day = now.Day;
             int daysInMonth = DateTime.DaysInMonth(year, month);
             int remainder = daysInMonth - day;
-            string remaining = $"**{remainder:##,0}** {Format.TryPluralize("day", remainder)} until a new cycle";
+
+            string remaining = remainder == 0
+                ? $"A new cycle begins in {Format.Countdown(TimeSpan.FromHours(24).Subtract(TimeSpan.FromHours(now.Hour)))}"
+                : $"**{remainder:##,0} {Format.TryPluralize("Day", remainder)}** until a new cycle";
             return $"**{Format.GetMonthName(month)} {year}** ({remaining})";
         }
 
@@ -99,12 +115,10 @@ namespace Arcadia.Services
 
         private static string WriteLeader(ArcadeUser user, LeaderSection section, bool allowEmptyValues = false)
         {
-            var title = $"{GetSectionIcon(section)} {GetSectionTitle(section)}";
-
             if (user == null || !allowEmptyValues && GetRawValue(user, section) == 0)
-                return $"> {title}: **Nobody!**";
+                return "";
 
-            return $"> {title}: **{user.Username}** with {Var.WriteValue(user, GetSectionId(section))}";
+            return $"> Leading: **{user.Username}** with {Var.WriteValue(user, GetSectionId(section))}";
         }
 
         private static IEnumerable<ArcadeUser> SortUsers(IEnumerable<ArcadeUser> users, string statId, bool allowEmptyValues = false)
@@ -124,18 +138,26 @@ namespace Arcadia.Services
         private static ArcadeUser GetLeader(IEnumerable<ArcadeUser> users, string statId)
             => SortUsers(users, statId).FirstOrDefault();
 
-        private static string PreviewLeaders(IEnumerable<ArcadeUser> users)
+        private static string DrawSectionPreviews(IEnumerable<ArcadeUser> users)
         {
             return new StringBuilder()
-                .AppendJoin("\n", EnumUtils.GetValues<LeaderSection>().Select(x => WriteLeader(GetLeader(users, GetSectionId(x)), x)))
+                .AppendJoin("\n\n", EnumUtils.GetValues<LeaderSection>().Select(x => DrawSection(x, users)))
                 .ToString();
         }
 
-        private static string PreviewSections()
+        private static string DrawSection(LeaderSection section, IEnumerable<ArcadeUser> users)
         {
-            return new StringBuilder()
-                .AppendJoin(" ", EnumUtils.GetValues<LeaderSection>().Select(x => $"`{x.ToString().ToLower()}`").OrderBy(x => x[1..]))
-                .ToString();
+            var result = new StringBuilder();
+
+            result.AppendLine($"> `{section.ToString().ToLower()}`")
+                .Append($"> {GetSectionIcon(section)} **{GetSectionName(section)}**");
+
+            ArcadeUser leader = GetLeader(users, GetSectionId(section));
+
+            if (leader != null)
+                result.AppendLine().Append(WriteLeader(leader, section));
+
+            return result.ToString();
         }
 
         private static string GetPositionSubtitle(ArcadeUser user, IEnumerable<ArcadeUser> users, string statId)
@@ -146,7 +168,7 @@ namespace Arcadia.Services
         private static string WriteUsers(in IEnumerable<ArcadeUser> sorted, int page, string statId)
         {
             if (!Check.NotNullOrEmpty(sorted))
-                return "This leaderboard is empty.";
+                return "";
 
             int pageCount = Paginate.GetPageCount(sorted.Count(), PageLength);
             page = Paginate.ClampIndex(page, pageCount);
@@ -158,6 +180,9 @@ namespace Arcadia.Services
         {
             bool isSection = Enum.TryParse(query, true, out LeaderSection section);
             string statId = isSection ? GetSectionId(section) : query;
+
+            if (!isSection && !Var.IsType(statId, VarType.Stat))
+                return Format.Warning("The variable that you specify is not a stat.");
 
             IEnumerable<ArcadeUser> sorted = SortUsers(users, statId);
             int pageCount = Paginate.GetPageCount(sorted.Count(), PageLength);
@@ -172,18 +197,27 @@ namespace Arcadia.Services
 
             var header = new Header
             {
-                Title = isSection ? "Leaderboard" : "Leaderboards:",
+                Title = isSection ? GetSectionName(section) : "Leaderboard",
                 Icon = isSection ? GetSectionIcon(section) : DefaultIcon,
-                Extra = isSection ? counter : $"`{Format.Sanitize(query)}` {counter}",
+                Extra = isSection ? counter : $"(for `{(query.Replace("`", "\\`"))}`) {counter}",
                 Subtitle = isSection ? GetSectionSubtitle(section) : GetPositionSubtitle(user, sorted, statId)
             };
 
-            if (isSection)
-                header.Group = section.ToString();
+            if (!Check.NotNullOrEmpty(sorted))
+            {
+                if (!isSection)
+                {
+                    header.Title = "Leaderboards";
+                    header.Extra = null;
+                }
 
-            result
-                .WithHeader(header)
-                .WithSection(null, WriteUsers(sorted, page, statId));
+                header.Subtitle = isSection ? "This section is empty." : "This stat isn't stored by anyone. Perhaps it was a typo?";
+            }
+
+            result.WithHeader(header);
+
+            if (!Check.NotNullOrEmpty(sorted))
+                result.WithSection(null, WriteUsers(sorted, page, statId));
 
             return result.Build(user.Config.Tooltips);
         }
@@ -199,8 +233,7 @@ namespace Arcadia.Services
 
             result.AppendTip("Type `leaderboard <section | stat>` to view a specific leaderboard.");
 
-            result.WithSection("**Sections**", PreviewSections())
-                .WithSection("**Leaders**", PreviewLeaders(users));
+            result.WithSection(null, DrawSectionPreviews(users));
                 
             return result.Build(user.Config.Tooltips);
         }

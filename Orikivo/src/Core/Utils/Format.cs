@@ -26,6 +26,8 @@ namespace Orikivo
 
         public static string Number(long value, string icon = null)
         {
+
+
             if (string.IsNullOrWhiteSpace(icon))
                 return $"**{value:##,0}**";
 
@@ -43,7 +45,7 @@ namespace Orikivo
             var result = new StringBuilder();
 
             if (Check.NotNull(header))
-                result.Append($"> **{header}**");
+                result.Append($"> {Bold(header)}");
 
             result.AppendJoin("\n", elements.Select(x => $"{bullet} {x}"));
 
@@ -66,7 +68,7 @@ namespace Orikivo
             var result = new StringBuilder();
 
             result
-                .AppendLine("> 🛠️ **Tips**")
+                .AppendLine($"> 🛠️ {Bold("Tips")}")
                 .AppendJoin("\n", tooltips.Select(x => $"• {x}"));
 
             return result.ToString();
@@ -140,9 +142,31 @@ namespace Orikivo
             return counter;
         }
 
+        public static string WordCounter(string word, int count, bool useMarkdown = true)
+        {
+            string counter = $"{count:##,0}";
+            string value = TryPluralize(word, count);
+
+            if (useMarkdown)
+                counter = Bold(counter);
+
+            return $"{counter} {value}";
+        }
+
+        public static string WordCounter(string singular, string plural, int count, bool useMarkdown = true)
+        {
+            string counter = $"{count:##,0}";
+            string value = TryPluralize(singular, plural, count);
+
+            if (useMarkdown)
+                counter = Bold(counter);
+
+            return $"{counter} {value}";
+        }
+
         public static string BlockQuote(string text)
         {
-            if (!Check.NotNull(text))
+            if (string.IsNullOrWhiteSpace(text))
                 return text;
 
             return $">>> {text}";
@@ -196,21 +220,29 @@ namespace Orikivo
         {
             var header = new StringBuilder("> ");
 
-            if (Check.NotNull(icon))
+            if (!string.IsNullOrWhiteSpace(icon))
                 header.Append(icon);
 
-            string headerTitle = useMarkdown ? Bold(title) : title;
+            string headerTitle = title;
+
+            if (useMarkdown)
+                headerTitle = Bold(headerTitle);
+
             header.Append($"{headerTitle}");
 
-
-            if (Check.NotNull(description))
+            if (!string.IsNullOrWhiteSpace(description))
                 header.Append($"\n> {description}");
 
             return header.ToString();
         }
 
         public static string Title(string title, string icon = null)
-            => $"{(!string.IsNullOrWhiteSpace(icon) ?  $"{icon} " : "")}**{title}**";
+        {
+            if (!string.IsNullOrWhiteSpace(icon))
+                icon = $"{icon} ";
+            
+            return $"{icon}{Bold(title)}";
+        }
 
         public static string Warning(string text)
             => $"> ⚠️ {text}";
@@ -412,14 +444,26 @@ namespace Orikivo
             return result.ToString();
         }
 
-        public static string Ordinal(int i)
+        public static string Ordinal(int i, bool useMarkdown = false)
+        {
+            string number = Separate(i);
+
+            if (useMarkdown)
+                number = Bold(number);
+
+            string suffix = GetOrdinalSuffix(i);
+
+            return $"{number}{suffix}";
+        }
+
+        private static string GetOrdinalSuffix(int i)
         {
             return GetLastDigit(i) switch
             {
-                '1' => $"{Separate(i)}st",
-                '2' => $"{Separate(i)}nd",
-                '3' => $"{Separate(i)}rd",
-                _ => $"{Separate(i)}th",
+                '1' => $"st",
+                '2' => $"nd",
+                '3' => $"rd",
+                _ => $"th",
             };
         }
 
@@ -520,6 +564,9 @@ namespace Orikivo
             return SetCasing(result, casing);
         }
 
+        public static string TryPluralize(string singular, string plural, int count)
+            => TryPluralize(singular, plural, count != 1);
+
         public static string TryPluralize(string word, bool predicate)
         {
             if (string.IsNullOrWhiteSpace(word))
@@ -534,9 +581,9 @@ namespace Orikivo
             return SetCasing(result, casing);
         }
 
-        public static string TryPluralize(string word, string plural, bool predicate)
+        public static string TryPluralize(string singular, string plural, bool predicate)
         {
-            return predicate ? plural : word;
+            return predicate ? plural : singular;
         }
 
         private static Casing GetCasing(string input)
