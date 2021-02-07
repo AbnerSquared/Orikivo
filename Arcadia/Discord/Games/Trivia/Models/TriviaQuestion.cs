@@ -5,6 +5,20 @@ namespace Arcadia.Multiplayer.Games
 {
     public class TriviaQuestion
     {
+        public static TriviaQuestion CreateTrueFalse(string question, TriviaTopic topic, TriviaDifficulty difficulty, bool answerResult)
+        {
+            string correct = answerResult ? "True" : "False";
+            string incorrect = answerResult ? "False" : "True";
+            return new TriviaQuestion(question, topic, difficulty, correct, incorrect);
+        }
+
+        public static TriviaQuestion CreateTrueFalse(string question, string topic, TriviaDifficulty difficulty, bool answerResult)
+        {
+            string correct = answerResult ? "True" : "False";
+            string incorrect = answerResult ? "False" : "True";
+            return new TriviaQuestion(question, topic, difficulty, correct, incorrect);
+        }
+
         internal static int GetQuestionValue(TriviaDifficulty difficulty)
         {
             return difficulty switch
@@ -67,5 +81,13 @@ namespace Arcadia.Multiplayer.Games
         public List<TriviaAnswer> Answers { get; set; } = new List<TriviaAnswer>();
 
         public TriviaDifficulty Difficulty { get; set; }
+
+        public TriviaResponse Response { get; set; } = TriviaResponse.Multiple;
+    }
+
+    public enum TriviaResponse
+    {
+        Multiple = 1,
+        Boolean = 2
     }
 }

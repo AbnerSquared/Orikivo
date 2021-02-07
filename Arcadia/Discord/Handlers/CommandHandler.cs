@@ -368,13 +368,22 @@ namespace Arcadia
                 //}
             }
 
-            
+            if (ctx.Account.GetVar(Vars.CurrentMonthYear) != ctx.Data.Data.CurrentMonthYear)
+            {
+                ctx.Account.SetVar(Vars.CurrentMonthYear, ctx.Data.Data.CurrentMonthYear);
+                await ClearMonthlyData(ctx.Account);
+            }
 
             // TODO: Use the command that was found and execute that instead to reduce command complexity
             if (!string.IsNullOrWhiteSpace(input))
                 await _service.ExecuteAsync(ctx, input, _provider);
             else
                 await _service.ExecuteAsync(ctx, argPos, _provider);
+        }
+
+        private async Task ClearMonthlyData(ArcadeUser user)
+        {
+            Var.ClearAll(user, x => x.Key.StartsWith("monthly", StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)

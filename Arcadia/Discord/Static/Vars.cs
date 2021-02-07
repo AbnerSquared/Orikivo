@@ -17,7 +17,7 @@
         internal static readonly string MonthlyQuests = "monthly:quests";
         internal static readonly string MonthlyArcade = "monthly:multiplayer";
         internal static readonly string MonthlyCasino = "monthly:casino";
-        internal static readonly string CurrentMonth = "var:current_month";
+        internal static readonly string CurrentMonthYear = "var:current_month_year";
         internal static readonly string OrderLimit = "var:order_limit";
         internal static readonly string QuestPoints = "var:quest_points";
     }

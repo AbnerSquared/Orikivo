@@ -215,6 +215,7 @@ namespace Arcadia.Multiplayer.Games
                     CurrentQuestion.Question);
 
             // select only 3 random answers and shuffle with the correct answer in there
+
             CurrentAnswers = Randomizer.Shuffle(Randomizer
                 .ChooseMany(CurrentQuestion.Answers.Where(x => !x.IsCorrect), Math.Min(3, CurrentQuestion.Answers.Count(x => !x.IsCorrect)))
                 .Append(CurrentQuestion.Answers.First(x => x.IsCorrect)));

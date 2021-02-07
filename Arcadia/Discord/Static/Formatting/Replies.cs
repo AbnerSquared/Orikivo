@@ -177,6 +177,8 @@ namespace Arcadia
             "Huh. Who would've known I could even give out this much?",
             "You have been blessed.",
             "Use that lawyer wisely. They have a strong benefit.",
+            "Looks like the lawyer took note.",
+            "It's shiny. It's golden. What's not to like?",
             new CasinoReply
             {
                 Content = "I see that you are truly golden now.",
@@ -185,7 +187,7 @@ namespace Arcadia
             },
             new CasinoReply
             {
-                Content = "You managed to land back-to-back golden income...",
+                Content = "You managed to land a back-to-back golden income...",
                 Criteria = (user, result) => user.GetVar(Stats.Gimi.CurrentGoldStreak) > 1,
                 Priority = 1
             }
@@ -193,6 +195,9 @@ namespace Arcadia
 
         public static readonly CasinoReply[] Win =
         {
+            "I hope you're being wise with your income.",
+            "*psst* I got you something.",
+            "Spreading joy is a fun pastime.",
             "A little bit of **Orite** can go far in life.",
             "Your wish has been granted.",
             "Hope is a powerful emotion.",
@@ -377,12 +382,13 @@ namespace Arcadia
             "Please go find something better to do.",
             "Don't worry. I have already made sure you checked in today.",
             "I already took care of you.",
-            "Greed is a road nobody should walk on."
+            "Greed is a road nobody should walk on.",
+            "You need to find some hobbies."
         };
 
         public static readonly BaseReply<DailyResultFlag>[] DailyBonus =
         {
-            "You have achieved true consistency.",
+            "I applaud your consistency.",
             "Glad to see you could make it.",
             "Here's something you might like.",
             "You keep the wheel turning and I'll deliver.",

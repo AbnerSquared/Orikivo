@@ -996,6 +996,18 @@ namespace Arcadia
             },
             new Merit
             {
+                Id = "currency:chip_big_win",
+                Icon = Icons.Chips,
+                Name = "Go Big Or Go Home",
+                Rank = MeritRank.Platinum,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Score = 250,
+                LockQuote = "Take a large portion of the casino with you.",
+                Quote = $"Won over {Icons.Chips} **10,000** at once.",
+                Criteria = user => user.GetVar(Stats.Common.MostChipsRound) >= 10000
+            },
+            new Merit
+            {
                 Id = "exp:freshly_grown",
                 Icon = "🌱",
                 Name = "Freshly Grown",
@@ -1008,13 +1020,68 @@ namespace Arcadia
             },
             new Merit
             {
+                Id = "common:rapid_routine",
+                Name = "Rapid Routine",
+                Rank = MeritRank.Silver,
+                Tags = MeritTag.Secret,
+                Score = 30,
+                LockQuote = "Complete plenty of quests in a short amount of time.",
+                Quote = "Earned over **100**q in a single leaderboard cycle.",
+                Criteria = user => user.GetVar(Vars.MonthlyQuests) >= 100
+            },
+            new Merit
+            {
+                Id = "common:wise_jury",
+                Name = "Wise Jury",
+                Rank = MeritRank.Silver,
+                Score = 20,
+                Tags = MeritTag.Secret,
+                LockQuote = "Use **Pocket Lawyer** when you need it the most.",
+                Quote = $"Used **Pocket Lawyer** to forfeit over {Icons.Debt} **1,000**",
+            },
+            new Merit
+            {
+                Id = "casino:ten_five",
+                Name = "Ten Point Five",
+                Rank = MeritRank.Silver,
+                Tags = MeritTag.Secret,
+                Score = 25,
+                LockQuote = "Perfect the art of **Blackjack**",
+                Quote = "Played a session of **Blackjack** and won two split hands with exactly **21**."
+            },
+            new Merit
+            {
+                Id = "arcade:trivia_newcomer",
+                Icon = "📰",
+                Name = "Trivia Newcomer",
+                Tags = MeritTag.Milestone,
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                LockQuote = "Get familiar with **Trivia**.",
+                Quote = "Played **5** games of **Trivia**.",
+                Criteria = user => user.GetVar(Stats.Trivia.TimesPlayed) >= 5
+            },
+            new Merit
+            {
+                Id = "arcade:trivia_legend",
+                Icon = "🗞️",
+                Name = "Trivia Legend",
+                Rank = MeritRank.Gold,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Score = 50,
+                LockQuote = "Win enough times in **Trivia** to prove yourself.",
+                Quote = "Won **100** games of **Trivia**.",
+                Criteria = user => user.GetVar(Stats.Trivia.TimesWon) >= 100
+            },
+            new Merit
+            {
                 Id = "exp:rising_rookie",
                 Icon = "🌾",
                 Name = "Rising Rookie",
                 Rank = MeritRank.Silver,
                 Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 50,
-                LockQuote = "Climb up wild lands and make yourself known.", // "Your level has not yet proved your worth.",
+                LockQuote = "Climb up wild lands and make yourself known.",
                 Quote = "Reached v**0.25**",
                 Criteria = user => user.Level >= 25
             },
@@ -1026,7 +1093,7 @@ namespace Arcadia
                 Rank = MeritRank.Gold,
                 Tags = MeritTag.Milestone | MeritTag.Secret,
                 Score = 100,
-                LockQuote = "Reach what many consider the limit.",// "Your level status must reach for the clouds.",
+                LockQuote = "Reach what many consider the limit.",
                 Quote = "Reached v**0.50**",
                 Criteria = user => user.Level >= 50
             },
@@ -1041,6 +1108,16 @@ namespace Arcadia
                 LockQuote = "Strive past the moon.",
                 Quote = "Reached v**0.100**.",
                 Criteria = user => user.Level >= 100
+            },
+            new Merit
+            {
+                Id = "exp:transcend",
+                Name = "Transcendant",
+                Rank = MeritRank.Diamond,
+                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Score = 500,
+                LockQuote = "Reach a new plane of experience.",
+                Quote = "Ascended for the first time."
             },
             new Merit
             {
@@ -1067,7 +1144,7 @@ namespace Arcadia
             {
                 Id = "common:tinkerer",
                 Icon = "🔨",
-                Name = "Tinker Tot",
+                Name = "Newfound Craft",
                 Rank = MeritRank.Bronze,
                 Tags = MeritTag.Milestone,
                 Score = 5,
@@ -1130,7 +1207,7 @@ namespace Arcadia
                 Rank = MeritRank.Bronze,
                 Tags = MeritTag.Milestone,
                 Score = 5,
-                LockQuote = "Light the fuse to boost.",
+                LockQuote = "Light the fuse and fly away.",
                 Quote = "Activated a booster.",
                 Criteria = user => user.Boosters.Count > 0
             },
@@ -1239,7 +1316,7 @@ namespace Arcadia
             {
                 Id = "casino:tick_clover",
                 Icon = "☘️",
-                Name = "Clover of Doubler",
+                Name = "Doubly's Clover",
                 Rank = MeritRank.Silver,
                 Tags = MeritTag.Secret,
                 Score = 25,
@@ -1251,7 +1328,7 @@ namespace Arcadia
             {
                 Id = "casino:tick_exact_clover",
                 Icon = "🏵️",
-                Name = "Golden Clover of Doubler",
+                Name = "Doubly's Golden Clover",
                 Rank = MeritRank.Gold,
                 Tags = MeritTag.Secret,
                 Score = 50,
@@ -1373,11 +1450,46 @@ namespace Arcadia
                 Rank = MeritRank.Bronze,
                 Score = 10,
                 LockQuote = "With a simple call to the guardian of debt, your troubles will soon fade into the void.",
-                Quote = "Used a **Pocket Lawyer** to remove any excess debt.",
+                Quote = "Used a **Pocket Lawyer** to escape debt.",
                 // TODO: Make sure that the user's debt was changed as well
                 // Could be a trigger activation that is specified in the item usage
                 Criteria = user => user.GetVar($"{Ids.Items.PocketLawyer}:times_used") >= 1
-            } // Create a merit for recovering funds from a heavy loss
+            }, // Create a merit for recovering funds from a heavy loss
+            new Merit
+            {
+                Id = "common:shop_super",
+                Icon = "🛒",
+                Name = "Shopping Supreme",
+                Rank = MeritRank.Silver,
+                Tags = MeritTag.Milestone,
+                Score = 40,
+                LockQuote = "Spend some time (and money) with the shopkeepers.",
+                Quote = $"Bought over {Icons.Balance} **10,000** worth of items from shops.",
+                Criteria = user => user.GetVar(Stats.Common.TotalSpentShops) >= 10000
+            },
+
+            new Merit
+            {
+                Id = "common:shop_buy",
+                Icon = "🧾",
+                Name = "Consumer Delight",
+                Rank = MeritRank.Silver,
+                Tags = MeritTag.Milestone,
+                Score = 25,
+                LockQuote = "Quantity is more important than cost here.",
+                Quote = $"Bought over **250** items.",
+                Criteria = user => user.GetVar(Stats.Common.ItemsBought) >= 250
+            },
+            new Merit
+            {
+                Id = "common:arcade_scholar",
+                Icon = "🎓",
+                Name = "Arcadian Scholar",
+                Rank = MeritRank.Bronze,
+                Score = 5,
+                LockQuote = "Read up and learn.",
+                Quote = "Read all of the guides."
+            }
         };
 
         public static readonly HashSet<Recipe> Recipes = new HashSet<Recipe>
@@ -1515,7 +1627,7 @@ namespace Arcadia
                 Quotes = new List<string>
                 {
                     "This item no longer seems to be of this world.",
-                    "It emits a garbled signal."
+                    "The cluster emits a worn frequency."
                 }
             },
             new Item

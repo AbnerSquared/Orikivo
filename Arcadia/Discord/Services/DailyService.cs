@@ -198,6 +198,7 @@ namespace Arcadia.Services
                     // TODO: Use the daily streak to determine the bonus reward to give
                     Reward bonus = GetBonus(dailyStreak);
                     footer = ShowStreakBonus(dailyStreak, bonus);
+                    bonus.Apply(user);
                     // reward += Bonus;
                     break;
             }

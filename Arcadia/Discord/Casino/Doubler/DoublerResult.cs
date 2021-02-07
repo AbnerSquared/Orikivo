@@ -51,6 +51,7 @@ namespace Arcadia.Casino
 
                     user.AddToVar(Stats.Doubler.TimesWon);
                     user.AddToVar(Stats.Doubler.TotalWon, Reward);
+                    Var.SetIfGreater(user, Stats.Common.MostChipsRound, Reward);
 
                     if (ExpectedTick == ActualTick)
                         user.AddToVar(Stats.Doubler.TimesWonExact);

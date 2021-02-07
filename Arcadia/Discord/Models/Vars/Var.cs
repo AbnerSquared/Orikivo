@@ -500,6 +500,22 @@ namespace Arcadia
             user.SetVar(id, 0);
         }
 
+        // return amount removed
+        public static int ClearAll(ArcadeUser user, Func<KeyValuePair<string, long>, bool> predicate)
+        {
+            int amount = 0;
+            foreach (KeyValuePair<string, long> stat in user.Stats)
+            {
+                if (predicate.Invoke(stat))
+                {
+                    user.Stats.Remove(stat.Key);
+                    amount++;
+                }
+            }
+
+            return amount;
+        }
+
         public static void Clear(ArcadeUser user, params string[] ids)
         {
             foreach (string id in ids)

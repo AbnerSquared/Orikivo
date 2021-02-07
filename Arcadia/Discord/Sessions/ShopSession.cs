@@ -361,6 +361,7 @@ namespace Arcadia
                 long cost = GetCost(item, amount);
                 // Take the money from the user
                 Take(cost, item.Currency);
+                User.AddToVar(Stats.Common.TotalSpentShops, cost);
                 // Add the money spent to the total spent count
                 Var.AddToValue(User, ShopHelper.GetTotalSpentId(Shop.Id), cost);
                 RemoveFromCatalog(item, amount);

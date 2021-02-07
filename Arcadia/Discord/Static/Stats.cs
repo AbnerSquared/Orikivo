@@ -56,6 +56,7 @@ namespace Arcadia
 
             internal static readonly string MostMoney = "generic:most_money";
             internal static readonly string MostChips = "generic:most_chips";
+            internal static readonly string MostChipsRound = "generic:most_chips_round";
             internal static readonly string MostTokens = "generic:most_tokens";
             internal static readonly string MostDebt = "generic:most_debt";
 
@@ -65,6 +66,7 @@ namespace Arcadia
             internal static readonly string ItemsGifted = "generic:items_gifted";
             internal static readonly string ItemsCrafted = "generic:items_crafted";
             internal static readonly string ItemsBought = "generic:items_bought";
+            internal static readonly string TotalSpentShops = "generic:total_spent_shops";
             internal static readonly string ItemsOrdered = "generic:items_ordered";
             internal static readonly string TimesUpgraded = "generic:times_upgraded";
             internal static readonly string BoostersUsed = "generic:boosters_used";

@@ -443,6 +443,7 @@ namespace Arcadia.Casino
 
                     Invoker.AddToVar(Stats.BlackJack.TimesWon);
                     Invoker.Give(Wager, CurrencyType.Chips);
+                    Var.SetIfGreater(Invoker, Stats.Common.MostChipsRound, Wager);
                 }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
                     Invoker.Take(Wager, CurrencyType.Chips);

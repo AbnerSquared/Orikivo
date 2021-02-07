@@ -56,8 +56,11 @@ namespace Arcadia.Casino
             }
 
             if (IsSuccess)
+            {
                 user.ChipBalance += Reward;
+                Var.SetIfGreater(user, Stats.Common.MostChipsRound, Reward);
 
+            }
             result.AppendLine($"> **Roulette**");
             result.AppendLine($"> Betting on **{HumanizeBet(Mode)}**");
 

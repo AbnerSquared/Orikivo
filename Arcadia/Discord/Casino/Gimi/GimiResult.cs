@@ -53,6 +53,7 @@ namespace Arcadia.Casino
                     }
 
                     user.Give(Reward);
+                    Var.SetIfGreater(user, Stats.Common.MostChipsRound, Reward);
                     break;
 
                 case GimiResultFlag.Lose:
