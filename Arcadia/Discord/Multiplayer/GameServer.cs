@@ -309,17 +309,31 @@ namespace Arcadia.Multiplayer
                     if (reactions.Any())
                     {
                         DisplayBroadcast broadcast = GetBroadcast(GameState.Waiting);
-                        broadcast.Content.ValueOverride = DrawLoadScreen(details.Icon, details.Name, details.LoadingTips);
-                        await UpdateAsync();
-                        IEnumerable<ServerConnection> connections = GetConnectionsToBroadcast(broadcast);
                         
+                        IEnumerable<ServerConnection> connections = GetConnectionsToBroadcast(broadcast);
+                        bool showLoad = false;
+
                         foreach (ReactionInput reaction in reactions)
                         {
                             foreach (ServerConnection connection in connections)
-                                await connection.Message.AddReactionAsync(reaction.Emote).ConfigureAwait(false);
+                            {
+                                if (!connection.Message.Reactions.ContainsKey(reaction.Emote))
+                                {
+                                    if (!showLoad)
+                                    {
+                                        showLoad = true;
+                                        broadcast.Content.ValueOverride = DrawLoadScreen(details.Icon, details.Name, details.LoadingTips);
+                                        await UpdateAsync().ConfigureAwait(false);
+                                    }
+
+                                    await connection.Message.AddReactionAsync(reaction.Emote).ConfigureAwait(false);
+
+                                }
+                            }
                         }
 
-                        broadcast.Content.ValueOverride = null;
+                        if (showLoad)
+                            broadcast.Content.ValueOverride = null;
                     }
 
                     await _manager.GetGame(GameId).BuildAsync(this);
