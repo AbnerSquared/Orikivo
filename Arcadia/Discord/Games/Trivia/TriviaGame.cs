@@ -327,7 +327,7 @@ namespace Arcadia.Multiplayer.Games
         }
 
         private static bool HasAllPlayersAnswered(GameSession session)
-            => session.ValueOf<int>(TriviaVars.TotalAnswered) == session.Players.Count;
+            => session.ValueOf<int>(TriviaVars.PlayersAnswered) == session.Players.Count;
 
         private static bool MostPlayersWantRematch(GameSession session)
             => session.ValueOf<int>("rematch_requests") >= (session.Players.Count / 2);
