@@ -22,6 +22,8 @@ namespace Arcadia.Casino
 
         public long Risk { get; }
 
+        public bool WonGold { get; private set; } = false;
+
         public void Apply(ArcadeUser user)
         {
             Var.Add(user, 1, Stats.Gimi.TimesPlayed);
@@ -41,7 +43,10 @@ namespace Arcadia.Casino
                         ItemHelper.GiveItem(user, Ids.Items.PocketLawyer);
 
                         if (RandomProvider.Instance.Next(0, 1001) == 1000)
+                        {
                             ItemHelper.GiveItem(user, Ids.Items.PaletteGold);
+                            WonGold = true;
+                        }
 
                         Var.Add(user, 1, Stats.Gimi.TimesGold, Stats.Gimi.CurrentGoldStreak);
                         Var.SetIfGreater(user, Stats.Gimi.LongestGold, Stats.Gimi.CurrentGoldStreak);

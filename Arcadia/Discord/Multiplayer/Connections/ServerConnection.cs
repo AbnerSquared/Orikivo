@@ -88,7 +88,7 @@ namespace Arcadia.Multiplayer
 
         public IMessageChannel Channel { get; private set; }
 
-        private IUserMessage Message { get; set; }
+        internal IUserMessage Message { get; set; }
 
         public int Frequency { get; set; }
 
@@ -145,6 +145,16 @@ namespace Arcadia.Multiplayer
 
             if (DeleteMessages)
                 await Message.TryDeleteAsync();
+        }
+
+        public DisplayBroadcast GetBroadcast()
+        {
+            return State switch
+            {
+                GameState.Watching => Server?.GetSpectatorBroadcast(),
+                GameState.Playing => Server?.GetBroadcast(Frequency),
+                _ => Server?.GetBroadcast(State)
+            };
         }
 
         public async Task RefreshAsync(bool replacePrevious = false)

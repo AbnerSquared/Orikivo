@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OpenTDB;
 using Orikivo.Framework;
 using Format = Orikivo.Format;
+using Discord;
 
 namespace Arcadia.Multiplayer.Games
 {
@@ -336,45 +337,12 @@ namespace Arcadia.Multiplayer.Games
 
         public override List<GameCriterion> OnBuildRules(List<PlayerData> players)
         {
-            var rules = new List<GameCriterion>();
-
-            // 'has_all_players_answered'
-            // This rule simply checks to see if: 'players_voted' == Players.Count
-            var hasAllPlayersAnswered = new GameCriterion("has_all_players_answered", HasAllPlayersAnswered)
+            return new List<GameCriterion>
             {
-                Id = "has_all_players_answered",
-                Criterion = delegate(GameSession session)
-                {
-                    return session.ValueOf<int>("players_answered") == session.Players.Count;
-                }
+                new GameCriterion("has_all_players_answered", HasAllPlayersAnswered),
+                new GameCriterion("most_players_want_rematch", MostPlayersWantRematch),
+                new GameCriterion("has_answered_all_questions", HasAnsweredAllQuestions)
             };
-
-
-            // 'most_players_want_rematch'
-            // This rule checks to see if: 'rematch_requests' is >= (Players.Count / 2)
-            var mostPlayersWantRematch = new GameCriterion
-            {
-                Id = "most_players_want_rematch",
-                Criterion = delegate(GameSession session)
-                {
-                    return session.ValueOf<int>("rematch_requests") >= (session.Players.Count / 2);
-                }
-            };
-
-            var hasAnsweredAllQuestions = new GameCriterion
-            {
-                Id = "has_answered_all_questions",
-                Criterion = delegate (GameSession session)
-                {
-                    return session.ValueOf<int>("current_question") == session.GetConfigValue<int>("questioncount");
-                }
-            };
-
-            rules.Add(hasAllPlayersAnswered);
-            rules.Add(mostPlayersWantRematch);
-            rules.Add(hasAnsweredAllQuestions);
-
-            return rules;
         }
 
         [Property("rematch_vote_count")]
@@ -491,6 +459,153 @@ namespace Arcadia.Multiplayer.Games
                     }, 
 
                      */
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇦"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = false,
+                        RequireOnMessage = true,
+                        OnExecute = delegate(InputContext ctx)
+                        {
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
+
+                            if (data.ValueOf<bool>("has_answered"))
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(0);
+
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
+
+                            if (answerSelected.IsCorrect)
+                            {
+                                data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇧"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = false,
+                        RequireOnMessage = true,
+                        OnExecute = delegate(InputContext ctx)
+                        {
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
+
+                            if (data.ValueOf<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 2)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(1);
+
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
+
+                            if (answerSelected.IsCorrect)
+                            {
+                                data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇨"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = false,
+                        RequireOnMessage = true,
+                        OnExecute = delegate(InputContext ctx)
+                        {
+                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
+
+                            if (data.ValueOf<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 3)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(2);
+
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
+
+                            if (answerSelected.IsCorrect)
+                            {
+                                data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            ctx.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
+                            ctx.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
+                    new ReactionInput
+                    {
+                        Emote = new Emoji("🇩"),
+                        Handling = ReactionHandling.Any,
+                        UpdateOnExecute = false,
+                        RequireOnMessage = true,
+                        OnExecute = delegate(InputContext ctx)
+                        {
+                            var data = ctx.Server.Session.DataOf(ctx.Invoker.Id);
+
+                            if (data.ValueOf<bool>("has_answered"))
+                                return;
+
+                            int answerCount = CurrentAnswers.Count();
+
+                            if (answerCount < 4)
+                                return;
+
+                            var answerSelected = CurrentAnswers.ElementAt(3);
+
+                            data.SetValue("has_answered", true);
+                            data.SetValue("is_correct", answerSelected.IsCorrect);
+
+                            if (answerSelected.IsCorrect)
+                            {
+                                data.AddToValue("streak", 1);
+                                data.AddToValue(TriviaVars.TotalCorrect, 1);
+                            }
+                            else
+                            {
+                                data.ResetProperty("streak");
+                            }
+
+                            ctx.Server.Session.AddToValue("players_answered", 1);
+                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
+                            ctx.Server.Session.InvokeAction("try_get_question_result");
+                        }
+                    },
                     new TextInput
                     {
                         Name = "a",

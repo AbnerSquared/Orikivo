@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Arcadia.Models;
 using Orikivo;
@@ -26,6 +27,14 @@ namespace Arcadia.Multiplayer
         public GameDetails Details { get; }
 
         public IReadOnlyList<GameOption> Options { get; }
+
+        public List<IInput> GetInputs(GameServer server)
+        {
+            if (!(Activator.CreateInstance(BaseType) is GameBase game))
+                throw new Exception("Expected base type of info to be a GameBase");
+
+            return game.OnBuildBroadcasts(game.OnBuildPlayers(server.Players)).SelectMany(x => x.Inputs).ToList();
+        }
 
         /// <summary>
         /// Builds the <see cref="GameSession"/> for this <see cref="GameBase"/> on the specified <see cref="GameServer"/>.

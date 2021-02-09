@@ -16,7 +16,7 @@ namespace Orikivo
         private IDMChannel GetOrCreateDMChannel(IUser user)
             => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-        protected async Task StartSessionAsync(MessageSession session, TimeSpan? timeout = null)
+        protected async Task RunSessionAsync(MessageSession session, TimeSpan? timeout = null)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace Orikivo
         public async Task<IUserMessage> WhisperAsync(Message message, RequestOptions options = null, AllowedMentions allowedMentions = null)
             => await WhisperAsync(Context.User, message, options, allowedMentions);
 
-        public new async Task<IUserMessage> ReplyAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+        public async Task<IUserMessage> ReplyAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
         {
             return await Context.Channel.SendMessageAsync(Context.Account, text, isTTS, embed, options, allowedMentions);
         }

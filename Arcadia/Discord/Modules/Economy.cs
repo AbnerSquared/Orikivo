@@ -127,7 +127,7 @@ namespace Arcadia.Modules
             }
 
             var session = new ShopSession(Context, shop);
-            await StartSessionAsync(session);
+            await RunSessionAsync(session);
         }
 
         // [Command("trade")]
@@ -148,7 +148,7 @@ namespace Arcadia.Modules
             Context.Account.IsInSession = true;
 
             var session = new TradeSession(Context, account);
-            await StartSessionAsync(session, TimeSpan.FromSeconds(20));
+            await RunSessionAsync(session, TimeSpan.FromSeconds(20));
             Context.Account.IsInSession = false;
             account.IsInSession = true;
         }

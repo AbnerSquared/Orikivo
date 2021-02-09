@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Orikivo.Framework;
 using Format = Orikivo.Format;
+using System.Text;
 
 namespace Arcadia.Multiplayer
 {
@@ -71,6 +72,28 @@ namespace Arcadia.Multiplayer
             editing["game_config"].Draw(
                 Options.Select(x => $"{x.Name}: **{x.Value}**"),
                 _manager.DetailsOf(GameId).Name);
+        }
+
+        private string DrawLoadScreen(string gameIcon, string gameName, List<string> loadingTips = null)
+        {
+            var screen = new StringBuilder("> ");
+
+            if (!string.IsNullOrWhiteSpace(gameIcon))
+                screen.Append($"{gameIcon} ");
+
+            screen.Append($"**{gameName}** is being set up!");
+
+            if (!Check.NotNullOrEmpty(loadingTips))
+            {
+                screen.AppendLine().Append("> Please wait...");
+            }
+            else
+            {
+                string tip = Randomizer.Choose(loadingTips);
+                screen.AppendLine().AppendLine().AppendLine($"> **Tip**").Append($"> {tip}");
+            }
+
+            return screen.ToString();
         }
 
         private void DrawConsole()
@@ -279,6 +302,26 @@ namespace Arcadia.Multiplayer
             {
                 try
                 {
+                    GameInfo info = _manager.GetGame(GameId);
+
+                    IEnumerable<ReactionInput> reactions = info.GetInputs(this).Where(x => x is ReactionInput r && r.RequireOnMessage).Select(x => x as ReactionInput);
+                    
+                    if (reactions.Any())
+                    {
+                        DisplayBroadcast broadcast = GetBroadcast(GameState.Waiting);
+                        broadcast.Content.ValueOverride = DrawLoadScreen(details.Icon, details.Name, details.LoadingTips);
+                        await UpdateAsync();
+                        IEnumerable<ServerConnection> connections = GetConnectionsToBroadcast(broadcast);
+                        
+                        foreach (ReactionInput reaction in reactions)
+                        {
+                            foreach (ServerConnection connection in connections)
+                                await connection.Message.AddReactionAsync(reaction.Emote).ConfigureAwait(false);
+                        }
+
+                        broadcast.Content.ValueOverride = null;
+                    }
+
                     await _manager.GetGame(GameId).BuildAsync(this);
                     return true;
                 }
@@ -712,6 +755,15 @@ namespace Arcadia.Multiplayer
                 throw new Exception("This server has been destroyed");
 
             return Broadcasts.FirstOrDefault(x => x.State == state);
+        }
+
+        public IEnumerable<ServerConnection> GetConnectionsToBroadcast(DisplayBroadcast broadcast)
+        {
+            foreach (ServerConnection connection in Connections)
+            {
+                if (connection.GetBroadcast() == broadcast)
+                    yield return connection;
+            }
         }
 
         public void SetStateFrequency(GameState state, int frequency)

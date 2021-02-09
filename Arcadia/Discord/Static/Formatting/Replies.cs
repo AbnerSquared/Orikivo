@@ -182,7 +182,7 @@ namespace Arcadia
             new CasinoReply
             {
                 Content = "I see that you are truly golden now.",
-                Criteria = (user, result) => user.Items.Any(x => x.Id == Ids.Items.PaletteGold),
+                Criteria = (user, result) => result is GimiResult g && g.WonGold,
                 Priority = 1
             },
             new CasinoReply
