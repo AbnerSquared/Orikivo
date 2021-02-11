@@ -239,6 +239,8 @@ namespace Orikivo.Drawing
                             if (n < 0)
                                 continue;
 
+                            //Console.WriteLine($"{m} ({minX}/{maxX}) || {n} ({minY}/{maxY})");
+
                             if (!validPoints.Contains((m, n)))
                             {
                                 if (pixels[m, n].A == 0)

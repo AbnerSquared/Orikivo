@@ -321,7 +321,7 @@ namespace Arcadia
                 //{
                 CommandInfo possibleCommand = await FindBestCommand(ctx, argPos);
 
-                if (possibleCommand != null)
+                if (possibleCommand != null && ctx.Account != null)
                 {
                     string id = ContextNode.GetId(possibleCommand);
                     Console.WriteLine(id);
@@ -343,14 +343,17 @@ namespace Arcadia
                     {
                         if (ItemHelper.GetOwnedAmount(ctx.Account, criterion.ItemId) < criterion.Amount)
                         {
-                            string message = Check.NotNull(criterion.OnFail) ? criterion.OnFail : Format.Warning($"You are missing a required item (**{ItemHelper.NameOf(criterion.ItemId)}**) needed to use this command.");
+                            string message = Check.NotNull(criterion.OnFail)
+                                ? criterion.OnFail
+                                : Format.Warning($"You are missing a required item (**{ItemHelper.NameOf(criterion.ItemId)}**) needed to use this command.");
                             await ctx.Channel.SendMessageAsync(message);
                             return;
                         }
                     }
 
-                    if ((possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null || possibleCommand.Attributes.FirstOrDefault<RequireNoSessionAttribute>() != null)
-                        && ctx.Account.IsInSession)
+                    if ((possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null
+                        || possibleCommand.Attributes.FirstOrDefault<RequireNoSessionAttribute>() != null)
+                        && ctx.Account != null && ctx.Account.IsInSession)
                     {
                         await ctx.Channel.SendMessageAsync(Format.Warning("You are currently in a session."));
                         ctx.Account.GlobalCooldown = DateTime.UtcNow.Add(CommandNoticeCooldown);
@@ -359,7 +362,8 @@ namespace Arcadia
 
                     if (possibleCommand.Attributes.FirstOrDefault<SessionAttribute>() != null)
                     {
-                        ctx.Account.IsInSession = true;
+                        if (ctx.Account != null)
+                            ctx.Account.IsInSession = true;
                     }
 
                     if (ctx.Account != null)
@@ -368,7 +372,7 @@ namespace Arcadia
                 //}
             }
 
-            if (ctx.Account.GetVar(Vars.CurrentMonthYear) != ctx.Data.Data.CurrentMonthYear)
+            if (ctx.Account != null && ctx.Account.GetVar(Vars.CurrentMonthYear) != ctx.Data.Data.CurrentMonthYear)
             {
                 ctx.Account.SetVar(Vars.CurrentMonthYear, ctx.Data.Data.CurrentMonthYear);
                 await ClearMonthlyData(ctx.Account);

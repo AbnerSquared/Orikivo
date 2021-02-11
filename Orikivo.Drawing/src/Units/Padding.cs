@@ -47,7 +47,7 @@ namespace Orikivo.Drawing
             && Bottom == 0
             && Right == 0;
 
-        public readonly Padding Clone()
+        public Padding Clone()
             => new Padding(Left, Right, Top, Bottom);
 
         public static implicit operator Padding(int lrtb)
