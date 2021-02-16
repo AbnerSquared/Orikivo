@@ -7,6 +7,273 @@ using Orikivo.Drawing;
 
 namespace Arcadia.Multiplayer.Games
 {
+    // Rank == X
+    // File == Y
+
+    public enum Piece
+    {
+        Pawn = 1,
+        Knight = 2,
+        Bishop = 3,
+        Rook = 4,
+        Queen = 5,
+        King = 6
+    }
+
+    public enum PieceColor
+    {
+        White = 8,
+        Black = 16
+    }
+
+    public class Tile
+    {
+        internal Tile(int index, int piece)
+        {
+            Index = index;
+            RawValue = piece;
+            Piece = (Piece) (piece & PieceBitMask);
+            Color = (PieceColor) (piece & ColorBitMask);
+        }
+
+        public const int ColorBitMask = 24; // 11000
+        public const int PieceBitMask = 7; // 00111
+
+        public static int GetTileIndex(int rank, int file)
+        {
+            return rank * 8 + file;
+        }
+
+        private static int GetTileRank(int index)
+        {
+            int rank = 0;
+            while (index >= 8)
+            {
+                rank++;
+                index -= 8;
+            }
+
+            return rank;
+        }
+
+        public int Rank => GetTileRank(Index);
+
+        public int File => Index - GetTileRank(Index);
+
+        public int Index;
+
+        public Piece Piece;
+
+        public PieceColor Color;
+
+        public int RawValue;
+
+        public bool IsEmpty => Piece == 0;
+    }
+
+    public enum TileDirection
+    {
+        North = 1,
+        South = 2,
+        West = 3,
+        East = 4,
+        Northwest = 5,
+        Southeast = 6,
+        Northeast = 7,
+        Southwest = 8
+    }
+
+    public class Board
+    {
+        private const int TileMin = 0;
+        private const int TileMax = 63;
+        //                                                N   S   W   E   NW  SE  NE  SW
+        public static readonly int[] DirectionOffsets = { 8, -8, -1,  1,   7, -7,  9, -9 };
+        public int[] Tiles; // The index in the array represents position, while the element specified at the index represents the piece stored, saved as color + piece.
+        private int[][] DistToEdge;
+        public List<Move> Moves; // Collection of moves made so far
+
+        public IEnumerable<Tile> GetActiveTiles()
+        {
+            return Tiles.Select((x, i) => new Tile(x, i)).Where(x => !x.IsEmpty);
+        }
+
+        private void ComputeTileDirLengths()
+        {
+            for (int file = 0; file < 8; file++)
+            {
+                for (int rank = 0; rank < 8; rank++)
+                {
+                    int north = 7 - rank;
+                    int south = rank;
+                    int west = file;
+                    int east = 7 - file;
+
+                    int tileIndex = rank * 8 + file;
+
+                    DistToEdge[tileIndex] = new int[]
+                    {
+                        north,
+                        south,
+                        west,
+                        east,
+                        Math.Min(north, west),
+                        Math.Min(south, east),
+                        Math.Min(north, east),
+                        Math.Min(south, west)
+                    };
+                }
+            }
+        }
+
+        // This is excluding possibility of pieces being at those indexes
+        public int[] GetKnightMoveIndexes(int index)
+        {
+            return new int[]
+            {
+                index + 15,
+                index + 17,
+                index + 10,
+                index - 6,
+                index - 15,
+                index - 17,
+                index - 10,
+                index + 6
+            }.Where(x => x >= 0 && x <= 63).ToArray();
+        }
+
+        public int[] GetPawnMoveIndexes(int index)
+        {
+            // Can only move diagonal if:
+            // - there is an enemy piece on those tiles
+            // - an enemy pawn moved forward 2 tiles to bypass being attacked right before your turn (en passant)
+            
+            // Can only move forward 2 if:
+            // - There are no pieces blocking the tiles leading up to it
+            // - It is the pawn's first move (white pawns start at F=1, and black pawns start at F=6
+
+            // Otherwise, it can only move forward 1 if:
+            // - There are no pieces blocking the tile
+
+            // If a pawn reaches the other side, they can be promoted into any piece they wish (queen being the default)
+            // - for white pawns, it is F=7
+            // - for black pawns, it is F=0
+
+            return new int[]
+            {
+
+            };
+        }
+
+        public Tile Peek(int rank, int file)
+        {
+            int index = Tile.GetTileIndex(rank, file);
+
+            if (index < 0 && index > 63)
+                throw new Exception("Specified tile index is out of bounds");
+
+            return new Tile(index, Tiles[index]);
+        }
+
+        public Tile Peek(int index)
+        {
+            if (index < 0 && index > 63)
+                throw new Exception("Specified tile index is out of bounds");
+
+            return new Tile(index, Tiles[index]);
+        }
+
+        public IEnumerable<Tile> GetPieces(PieceColor color)
+        {
+            return Tiles.Select((x, i) => new Tile(i, x)).Where(x => x.Color == color && !x.IsEmpty);
+        }
+
+        // Get the indexes of all of the possible moves that a selected tile can execute
+        public int[] GetMoveIndexes(Tile tile)
+        {
+            if (tile.IsEmpty)
+                return new int[] { };
+
+            PieceColor enemy = tile.Color == PieceColor.Black ? PieceColor.White : PieceColor.Black;
+            throw new NotImplementedException();
+        }
+
+        // This returns all possible move indexes for directional pieces
+        // IF the board was empty.
+        // This is used for kings, queens, bishops, and rooks
+        public List<int> GetDirMoveIndexes(Tile tile)
+        {
+            int startDirIndex = tile.Piece == Piece.Bishop ? 4 : 0;
+            int endDirIndex = tile.Piece == Piece.Rook ? 4 : 8;
+
+            int[] distToEdge = DistToEdge[tile.Index];
+            List<int> moveIndexes = new List<int>();
+            for (int dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++)
+            {
+                int dirOffset = DirectionOffsets[dirIndex];
+                int dist = distToEdge[dirIndex];
+
+                if (tile.Piece == Piece.King) // Limit the max distance to 1 for kings
+                {
+                    dist = Math.Max(1, dist);
+                }
+
+                for (int i = 0; i < dist; ++i)
+                {
+                    int targetIndex = tile.Index + (dirOffset * dist);
+                    Tile target = Peek(targetIndex);
+
+                    if (!target.IsEmpty)
+                    {
+                        if (target.Color != tile.Color) // If the targeting piece is not ours
+                            moveIndexes.Add(dirOffset * dist); // Add that tile to the move indexes
+                        
+                        break; // And stop adding the rest since it is now blocked by a piece
+                    }
+
+                    moveIndexes.Add(dirOffset * dist);
+                }
+            }
+
+            return moveIndexes;
+        }
+
+        public int[] GetPsuedoLegalMoveIndexes(Tile tile, int[] moveIndexes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Move(Tile tile, int newIndex)
+        {
+            var move = new Move
+            {
+                RawPieceValue = tile.RawValue,
+                OldIndex = tile.Index,
+                NewIndex = newIndex,
+                RawPieceCaptured = Tiles[newIndex],
+                RawPieceResult = tile.RawValue
+            };
+
+            Tiles[tile.Index] = 0;
+            Tiles[newIndex] = tile.RawValue;
+        }
+
+        public Move UndoMove()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class Move
+    {
+        public int RawPieceValue; // Raw ID of the piece that moved
+        public int OldIndex; // Old index of the original piece
+        public int NewIndex; // New index of the original piece
+        public int RawPieceCaptured; // Raw ID of the piece that was originally at the new index
+        public int RawPieceResult; // Finalized ID of the piece at the new index (usually the same as RawPieceValue)
+        public Move[] Extra; // Any extra moves that may have resulted from this move (castling is an example of this)
+    }
+
     public class ChessBoard
     {
         public ChessBoard()
@@ -300,6 +567,7 @@ namespace Arcadia.Multiplayer.Games
             };
         }
 
+        // Parses chess input d8 f4
         public static string GetPosition(int x, int y)
         {
             if (x > Max || x < Min || y > Max || y < Min)
