@@ -120,18 +120,21 @@ namespace Arcadia
         private static IEnumerable<(string, int)> GetStatGroupCounts(ArcadeUser user)
         {
             var groups = new List<(string, int)>();
+            var addedGroups = new List<string>();
 
             foreach ((string id, long value) in user.Stats)
             {
                 if (!Var.IsGroupDefined(Var.GetGroup(id)))
                     continue;
 
-                if (!groups.Any(x => x.Item1 == Var.GetGroup(id)))
+                if (!addedGroups.Contains(Var.GetGroup(id)))
                 {
                     int count = user.Stats.Count(y => Var.GetGroup(y.Key) == Var.GetGroup(id));
+                    
                     if (count > 0)
                         groups.Add((Var.HumanizeGroup(id), count));
 
+                    addedGroups.Add(Var.GetGroup(id));
                     continue;
                 }
             }
