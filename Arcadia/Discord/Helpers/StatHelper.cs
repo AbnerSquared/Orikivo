@@ -83,7 +83,7 @@ namespace Arcadia
 
             IEnumerable<KeyValuePair<string, long>> stats = GetGroupStats(user, group);
 
-            if (!stats.Any())
+            if (!stats.Any() || group == null)
                 return Format.Warning("The stat group you specified doesn't exist.");
 
             VarGroup groupInfo = Var.GetGroupDefiner(group);
