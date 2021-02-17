@@ -47,56 +47,104 @@ namespace Arcadia
                 && !ShopHelper.Exists(Var.GetGroup(x))
                 && (Check.NotNullOrEmpty(chosen) ? !chosen.Contains(x) : true)));
 
-        public static string WriteFor(ArcadeUser user, string query, int page = 0, int pageSize = 15)
+        private static string ViewBase(ArcadeUser user, int page = 0)
         {
-            VarGroup group = Var.GetGroupDefiner(query);
-
-            if (group == null)
-                return Format.Warning("Unable to find the specified stat group.");
-
+            bool showTooltips = user.Config.Tooltips;
             var result = new StringBuilder();
 
-            if (group.Writer != null)
+            if (showTooltips)
             {
-                result.AppendLine($"> **Stats: {group.Name}**");
-                result.AppendLine(group.Writer.Invoke(user));
-                return result.ToString();
+                List<string> tips = new List<string>
+                {
+                    "Type `stats all` to view a list of all stats being tracked.",
+                    "Type `stats <group>` to view all of the stats in a specific group.",
+                    "Type `stats <id>` to view a specific stat."
+                };
+
+                result.AppendLine(Format.Tooltip(tips))
+                    .AppendLine();
             }
 
-            var stats = GetGroupStats(user, group.Id).ToList();
-            int pageCount = Paginate.GetPageCount(stats.Count, pageSize);
-            page = Paginate.ClampIndex(page, pageCount);
-
-            string counter = null;
-
-            if (pageCount > 1)
-                counter = $" ({Format.PageCount(page + 1, pageCount)})";
-
-            result.AppendLine($"> **Stats: {group.Name}**{counter}");
-
-            int i = 0;
-
-            foreach ((string id, long value) in Paginate.GroupAt(stats, page, pageSize))
+            result.AppendLine("> **Statistics**")
+                .AppendLine($"Stats Tracked: {user.Stats.Count}")
+                .AppendLine();
+            
+            foreach ((string group, int count) in GetStatGroupCounts(user))
             {
-                if (i >= pageSize)
-                    break;
-
-                result.AppendLine($"`{id}`: {value}");
-                i++;
+                result.AppendLine($"> **{group}** (**{count:##,0}** {Format.TryPluralize("entry", "entries", count)}");
             }
-
-            if (i == 0)
-                result.AppendLine("An invalid group was specified or an unknown error has occurred.");
 
             return result.ToString();
         }
 
-        public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, int pageSize = 25)
+        public static string ViewGroup(ArcadeUser user, string group, int page = 0, bool isSelf = true)
+        {
+            var result = new StringBuilder();
+
+            IEnumerable<KeyValuePair<string, long>> stats = GetGroupStats(user, group);
+
+            if (!stats.Any())
+                return Format.Warning("The stat group you specified doesn't exist.");
+
+            VarGroup groupInfo = Var.GetGroupDefiner(group);
+            if (groupInfo != null && groupInfo.Writer != null)
+            {
+                result.AppendLine($"> **Stats: {Var.HumanizeGroup(groupInfo.Id)}**");
+                result.AppendLine(groupInfo.Writer?.Invoke(user));
+                return result.ToString();
+            }
+
+            int pageCount = Paginate.GetPageCount(stats.Count(), 10);
+            page = Paginate.ClampIndex(page, pageCount);
+
+            string counter = "";
+
+            if (pageCount > 1)
+                counter = $" ({Format.PageCount(page + 1, pageCount)})";
+
+            result.AppendLine($"> **Stats: {Var.HumanizeGroup(group)}**{counter}");
+
+            if (pageCount > 1)
+                result.AppendLine();
+
+            foreach ((string id, long value) in Paginate.GroupAt(stats, page, 10))
+            {
+                string name = Var.HumanizeKey(id);
+                string valueText = Var.WriteValue(id, value);
+                result.AppendLine($"• {name}: **{valueText}**");
+            }
+
+            return result.ToString();
+        }
+
+        private static IEnumerable<(string, int)> GetStatGroupCounts(ArcadeUser user)
+        {
+            return user.Stats.Select(x => (Var.HumanizeGroup(x.Key), user.Stats.Count(x => Var.EqualsGroup(x.Key, Var.GetGroup(x.Key)))))
+                .Where(x => x.Item2 > 0);
+        }
+
+        public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, string input = null)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                if (isSelf)
+                    return ViewBase(user, page);
+                else
+                    return ViewAll(user, isSelf, page);
+            }
+                
+            if (input.Equals("all", StringComparison.OrdinalIgnoreCase))
+                return ViewAll(user, isSelf, page);
+
+            return ViewGroup(user, input, page, isSelf);
+        }
+
+        public static string ViewAll(ArcadeUser user, bool isSelf, int page = 0)
         {
             var result = new StringBuilder();
 
             List<KeyValuePair<string, long>> stats = GetVisibleStats(user).ToList();
-            int pageCount = Paginate.GetPageCount(stats.Count, pageSize);
+            int pageCount = Paginate.GetPageCount(stats.Count, 20);
             page = Paginate.ClampIndex(page, pageCount);
 
             string counter = null;
@@ -106,24 +154,35 @@ namespace Arcadia
 
 
             result.AppendLine(Locale.GetHeader(Headers.Stat, counter, group: isSelf ? null : user.Username));
-
             result.AppendLine();
 
-            int offset = page * pageSize;
-            int i = 0;
-            foreach ((string id, long value) in stats.Skip(offset))
+            foreach ((string id, long value) in Paginate.GroupAt(stats, page, 20))
             {
-                if (i >= pageSize)
-                    break;
-
-                result.AppendLine($"`{id}`: {value}");
-                i++;
+                string name = Var.HumanizeKey(id);
+                string valueText = Var.WriteValue(id, value);
+                result.AppendLine($"• {name}: **{valueText}**");
             }
 
-            if (i == 0)
+            if (stats.Count == 0)
                 result.Append("> There doesn't seem to be any visible stats here.");
 
             return result.ToString();
+        }
+
+        public static void AppendViewIterator<T>(IEnumerable<T> collection, ref StringBuilder content, Action<T, StringBuilder> actionPerElement, string contentIfEmpty = null)
+        {
+            if (!collection.Any())
+            {
+                if (string.IsNullOrWhiteSpace(contentIfEmpty))
+                    content.Append(contentIfEmpty);
+
+                return;
+            }
+
+            foreach (T element in collection)
+            {
+                actionPerElement.Invoke(element, content);
+            }
         }
 
         public static string ViewDetails(ArcadeUser user, string id, in IEnumerable<ArcadeUser> users = null)
@@ -133,7 +192,7 @@ namespace Arcadia
 
             var details = new StringBuilder();
 
-            string name = Var.WriteName(id);
+            string name = Var.Humanize(id);
             string value = Var.WriteValue(user, id);
             string header = string.IsNullOrWhiteSpace(name) ? $"• `{id}`" : $"`{id}`\n• **{name}**";
 

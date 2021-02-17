@@ -129,6 +129,17 @@ namespace Orikivo.Text.Pagination
             return Clamp(0, pageSize, collectionSize - offset);
         }
 
+        public static string DrawPageCounter(int collectionSize, int page, int pageSize, bool showOnSingle = false, string fmt = "{0}")
+        {
+            int pageCount = GetPageCount(collectionSize, pageSize);
+            page = ClampIndex(page, pageCount);
+
+            if (!showOnSingle && pageCount == 1)
+                return null;
+
+            return string.Format(fmt, $"Page **{page + 1}** of **{pageCount}**");
+        }
+
         public static int ClampIndex(int page, int pageCount)
         {
             return page < 0 ? 0 : page >= pageCount ? pageCount - 1 : page;

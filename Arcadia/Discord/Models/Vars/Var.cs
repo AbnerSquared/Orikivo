@@ -266,9 +266,13 @@ namespace Arcadia
             return user.Stats.Count;
         }
 
-        public static string WriteName(string id)
+        public static string WriteValue(string id, long value)
         {
-            return GetDefiner(id)?.Name ?? Humanize(id);
+            VarType type = TypeOf(id);
+
+            return GetDefiner(id)?.ValueWriter?.Invoke(value)
+                   ?? GetGroupDefiner(GetGroup(id))?.ValueWriter?.Invoke(value)
+                   ?? WriteDefault(value, type);
         }
 
         public static string WriteValue(ArcadeUser user, string id)
@@ -565,12 +569,24 @@ namespace Arcadia
             if (!IsValid(id))
                 return ""; // throw new ArgumentException("Invalid ID specified");
 
+            string name = GetDefiner(id)?.Name;
+
+            if (!string.IsNullOrWhiteSpace(name))
+                return name;
+
             string key = GetKey(id);
             return $"{HumanizeGroup(id)}{Delimiter} {HumanizePartial(key)}";
         }
 
+        public static string HumanizeKey(string id)
+        {
+            string key = GetKey(id);
+
+            return HumanizePartial(key);
+        }
+
         // TODO: Move to a static viewer class
-        private static string HumanizeGroup(string id)
+        public static string HumanizeGroup(string id)
         {
             string group = GetGroup(id);
 

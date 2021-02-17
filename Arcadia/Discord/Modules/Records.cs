@@ -99,14 +99,6 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("statgroup")]
-        [Summary("View a collection of stats in the specified group.")]
-        public async Task GetGroupStatsAsync(string query, int page = 1)
-        {
-            await Context.Channel.SendMessageAsync(StatHelper.WriteFor(Context.Account, query, --page));
-        }
-
-        [RequireUser(AccountHandling.ReadOnly)]
         [Command("statsfor")]
         [Summary("View another user's collection of stats.")]
         public async Task GetStatsForAsync(ArcadeUser user, int page = 1)
@@ -115,11 +107,19 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("stats")]
+        [Command("stats"), Priority(0)]
         [Summary("View your current collection of stats.")]
         public async Task GetStatsAsync(int page = 1)
         {
             await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, page: --page));
+        }
+
+        [RequireUser(AccountHandling.ReadOnly)]
+        [Command("stats"), Priority(1)]
+        [Summary("View your current stats for a specific group.")]
+        public async Task GetStatsAsync(string input, int page = 1)
+        {
+            await Context.Channel.SendMessageAsync(StatHelper.Write(Context.Account, true, --page, input));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]

@@ -59,7 +59,7 @@ namespace Arcadia
             details.AppendLine($"\n> **Random Statistics**");
 
             foreach (string stat in randomStats)
-                details.AppendLine($"> **{Var.WriteName(stat)}**: {Var.WriteValue(user, stat)}");
+                details.AppendLine($"> **{Var.Humanize(stat)}**: {Var.WriteValue(user, stat)}");
 
             return details.ToString();
         }
