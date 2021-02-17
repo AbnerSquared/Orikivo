@@ -119,8 +119,24 @@ namespace Arcadia
 
         private static IEnumerable<(string, int)> GetStatGroupCounts(ArcadeUser user)
         {
-            return user.Stats.Select(x => (Var.HumanizeGroup(x.Key), user.Stats.Count(x => Var.EqualsGroup(x.Key, Var.GetGroup(x.Key)))))
-                .Where(x => x.Item2 > 0);
+            var groups = new List<(string, int)>();
+
+            foreach ((string id, long value) in user.Stats)
+            {
+                if (!groups.Any(x => x.Item1 == Var.GetGroup(id)))
+                {
+                    int count = user.Stats.Count(y => Var.GetGroup(y.Key) == Var.GetGroup(id));
+                    if (count > 0)
+                        groups.Add((Var.GetGroup(id), count));
+
+                    continue;
+                }
+            }
+
+            return groups;
+
+            //return user.Stats.Select(x => (Var.HumanizeGroup(x.Key), user.Stats.Count(x => Var.EqualsGroup(x.Key, Var.GetGroup(x.Key)))))
+                //.Where(x => x.Item2 > 0);
         }
 
         public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, string input = null)

@@ -590,7 +590,7 @@ namespace Arcadia
         {
             string group = GetGroup(id);
 
-            if (IsTemplate(id) && GetTemplateType(id) != TemplateType.Any)
+            if (group != null && IsTemplate(id) && GetTemplateType(id) != TemplateType.Any)
             {
                 return GetTemplateType(id) switch
                 {
