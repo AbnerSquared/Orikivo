@@ -604,7 +604,7 @@ namespace Arcadia
         }
 
         // TODO: Move to a static viewer class
-        private static string HumanizePartial(string input)
+        public static string HumanizePartial(string input)
         {
             var reader = new StringReader(input);
             var text = new StringBuilder();

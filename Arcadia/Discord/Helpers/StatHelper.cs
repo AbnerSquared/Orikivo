@@ -71,7 +71,7 @@ namespace Arcadia
             
             foreach ((string group, int count) in GetStatGroupCounts(user))
             {
-                result.AppendLine($"> **{group}** (**{count:##,0}** {Format.TryPluralize("entry", "entries", count)}");
+                result.AppendLine($"> **{group}** (**{count:##,0}** {Format.TryPluralize("entry", "entries", count)})");
             }
 
             return result.ToString();
@@ -89,7 +89,7 @@ namespace Arcadia
             VarGroup groupInfo = Var.GetGroupDefiner(group);
             if (groupInfo != null && groupInfo.Writer != null)
             {
-                result.AppendLine($"> **Stats: {Var.HumanizeGroup(groupInfo.Id)}**");
+                result.AppendLine($"> **Stats: {Var.HumanizePartial(group)}**");
                 result.AppendLine(groupInfo.Writer?.Invoke(user));
                 return result.ToString();
             }
@@ -102,7 +102,7 @@ namespace Arcadia
             if (pageCount > 1)
                 counter = $" ({Format.PageCount(page + 1, pageCount)})";
 
-            result.AppendLine($"> **Stats: {Var.HumanizeGroup(group)}**{counter}");
+            result.AppendLine($"> **Stats: {Var.HumanizePartial(group)}**{counter}");
 
             if (pageCount > 1)
                 result.AppendLine();
