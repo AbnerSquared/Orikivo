@@ -123,11 +123,14 @@ namespace Arcadia
 
             foreach ((string id, long value) in user.Stats)
             {
+                if (!Var.IsGroupDefined(Var.GetGroup(id)))
+                    continue;
+
                 if (!groups.Any(x => x.Item1 == Var.GetGroup(id)))
                 {
                     int count = user.Stats.Count(y => Var.GetGroup(y.Key) == Var.GetGroup(id));
                     if (count > 0)
-                        groups.Add((Var.GetGroup(id), count));
+                        groups.Add((Var.HumanizeGroup(id), count));
 
                     continue;
                 }

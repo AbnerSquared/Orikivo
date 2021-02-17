@@ -595,6 +595,7 @@ namespace Arcadia
                 return GetTemplateType(id) switch
                 {
                     TemplateType.Item => ItemHelper.Exists(group) ? ItemHelper.NameOf(group) : $"`{group}`",
+                    TemplateType.Shop => ShopHelper.Exists(group) ? ShopHelper.NameOf(group) : $"`{group}`",
                     _ => HumanizePartial(group)
                 };
             }
