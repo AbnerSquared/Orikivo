@@ -48,6 +48,10 @@
         internal static readonly string Skip = "⏭️";
         internal static readonly string Quests = "📜";
         internal static readonly string Challenges = "🧧";
+        internal static readonly string Perk = "⚔️";
+        internal static readonly string Equipment = "🛡️";
+        internal static readonly string Boosters = "🔥";
+        internal static readonly string Card = "🎴";
 
         private const string CLOCK_1 = "🕐";
         private const string CLOCK_2 = "🕑";

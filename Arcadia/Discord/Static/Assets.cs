@@ -251,6 +251,17 @@ namespace Arcadia
                 Id = Ids.Items.CapsuleCasinoI,
                 Entries = new List<LootEntry>
                 {
+                    new LootEntry
+                    {
+                        Money = 25,
+                        Currency = CurrencyType.Debt,
+                        Weight = 10
+                    },
+                    new LootEntry
+                    {
+                        ItemId = Ids.Items.PocketLawyer,
+                        Weight = 5
+                    }
                 }
             }
         };
@@ -1674,7 +1685,7 @@ namespace Arcadia
                         if (!(ItemHelper.IsUnique(item) && item.Tags.HasFlag(ItemTag.Renamable)))
                             return UsageResult.FromError("The specified data instance does not support renaming.");
 
-                        if (!VerifyName(name, out string reason))
+                        if (!ValidateCustomName(name, out string reason))
                             return UsageResult.FromError(reason);
 
                         data.Data.Name = name;
@@ -2621,43 +2632,13 @@ namespace Arcadia
             result.AppendLine($"> **{capsule.Name}**");
             result.AppendLine($"> You have opened this capsule to reveal:\n");
 
-            result.Append(ViewReward(reward));
+            result.Append(reward.ToString());
             reward.Apply(user);
 
             return UsageResult.FromSuccess(result.ToString());
         }
 
-        private static string ViewReward(Reward reward)
-        {
-            if (reward == null)
-                return "";
-
-            var result = new StringBuilder();
-
-            if (reward.Money > 0)
-                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)} Orite");
-
-            // if (reward.Exp > 0)
-            //     result.AppendLine($"> {Icons.Exp} **{reward.Exp:##,0}**");
-
-            if (Check.NotNullOrEmpty(reward.ItemIds))
-            {
-                foreach ((string itemId, int amount) in reward.ItemIds)
-                    result.AppendLine($"> {GetItemPreview(itemId, amount)}");
-            }
-
-            return result.ToString();
-        }
-
-        private static string GetItemPreview(string itemId, int amount)
-        {
-            string icon = ItemHelper.GetIconOrDefault(itemId) ?? "•";
-            string name = Check.NotNull(icon) ? ItemHelper.GetBaseName(itemId) : ItemHelper.NameOf(itemId);
-            string counter = amount > 1 ? $" (x**{amount:##,0}**)" : "";
-            return $"`{itemId}` {icon} **{name}**{counter}";
-        }
-
-        private static bool VerifyName(string name, out string reason)
+        private static bool ValidateCustomName(string name, out string reason)
         {
             reason = "";
 

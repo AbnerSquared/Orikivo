@@ -13,6 +13,7 @@ namespace Arcadia
     public class Var
     {
         public static readonly char Placeholder = '*';
+        public static readonly char Subgroup = '/';
         public static readonly char Delimiter = ':';
         public static readonly char TextDelimiter = '_';
 
@@ -110,13 +111,13 @@ namespace Arcadia
             {
                 Id = Vars.MonthlyArcade,
                 Type = VarType.Stat,
-                ValueWriter = v => $"**{v.ToString("##,0")} AP**"
+                ValueWriter = v => $"**{v:##,0} AP**"
             },
             new Var
             {
                 Id = Vars.MonthlyCasino,
                 Type = VarType.Stat,
-                ValueWriter = v => $"{Icons.Chips} **{v.ToString("##,0")}**"
+                ValueWriter = v => $"{Icons.Chips} **{v:##,0}**"
             },
             new Var
             {
@@ -152,13 +153,20 @@ namespace Arcadia
                 Id = "var",
                 Name = "Attribute",
                 Summary = "This is a generic collection of variables primarily used to track custom attributes.",
-                Type = VarType.Attribute
+                Type = VarType.Attribute,
+                Visible = false
             },
             new VarGroup
             {
                 Id = "catalog",
                 Name = "Catalog Status",
                 Summary = "This is a collection of variables used to track an item's known status.",
+                Type = VarType.Attribute
+            },
+            new VarGroup
+            {
+                Id = "multiplayer",
+                Name = "Multiplayer",
                 Type = VarType.Attribute
             },
             new VarGroup
@@ -180,7 +188,8 @@ namespace Arcadia
                 Id = "cooldown",
                 Name = "Cooldown",
                 Summary = "This is a group of variables used to track cooldowns.",
-                Type = VarType.Time
+                Type = VarType.Time,
+                Visible = false
             },
             new VarGroup
             {

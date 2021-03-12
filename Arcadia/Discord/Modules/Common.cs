@@ -34,6 +34,14 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
+        [Command("equipment")]
+        [Summary("View all of your equipped items.")]
+        public async Task ViewEquipmentAsync()
+        {
+            await Context.Channel.SendMessageAsync(EquipHelper.View(Context.Account));
+        }
+
+        [RequireUser]
         //[Command("challenges")]
         [Summary("View your current challenge set.")]
         public async Task ViewChallengesAsync()

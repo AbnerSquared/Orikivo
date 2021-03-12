@@ -15,6 +15,8 @@
         // If specified, overrides the item ID
         public long Money { get; set; } // Replace with Wager thing
 
+        public CurrencyType Currency { get; set; } = CurrencyType.Money;
+
         public int Weight { get; set; }
     }
 }

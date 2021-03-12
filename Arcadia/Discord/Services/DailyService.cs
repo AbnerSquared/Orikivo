@@ -196,8 +196,8 @@ namespace Arcadia.Services
                 case DailyResultFlag.Bonus:
                     color = GammaPalette.Glass[Gamma.Max];
                     // TODO: Use the daily streak to determine the bonus reward to give
-                    Reward bonus = GetBonus(dailyStreak);
-                    footer = ShowStreakBonus(dailyStreak, bonus);
+                    Reward bonus = GetBonus(dailyStreak + 1);
+                    footer = ShowStreakBonus(dailyStreak + 1, bonus);
                     bonus.Apply(user);
                     // reward += Bonus;
                     break;
@@ -206,8 +206,7 @@ namespace Arcadia.Services
             if (flag != DailyResultFlag.Cooldown)
             {
                 user.SetVar(CooldownVars.Daily, DateTime.UtcNow.Ticks);
-                user.AddToVar(Stats.Common.DailyStreak);
-                user.AddToVar(Stats.Common.TimesDaily);
+                Var.Add(user, 1, Stats.Common.DailyStreak, Stats.Common.TimesDaily);
                 Var.SetIfGreater(user, Stats.Common.LongestDailyStreak, Stats.Common.DailyStreak);
                 user.Give(reward);
             }

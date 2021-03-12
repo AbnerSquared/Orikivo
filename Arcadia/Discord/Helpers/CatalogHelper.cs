@@ -8,6 +8,7 @@ using Orikivo.Text.Pagination;
 
 namespace Arcadia
 {
+
     public class Order
     {
         public string Id { get; set; }

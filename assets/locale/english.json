@@ -15,6 +15,7 @@
   "casino.doubler(method_summary": "The guessing method to use for this round.",
   "casino.getchips(_summary": "Convert some of your **Orite** into **Chips** for use in casino activities.",
   "common.challenges(_summary": "View your current challenge set.",
+  "common.equipment(_summary": "View all of your equipped items.",
   "common.submit(_summary": "Submit your challenge set for completion.",
   "common.researchinfo(_summary": "View details about the research progress of an **Item**.",
   "common.research+0(_summary": "View the current progress of your research.",

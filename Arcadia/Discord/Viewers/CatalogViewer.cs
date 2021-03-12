@@ -31,7 +31,7 @@ namespace Arcadia.Services
             int count = CatalogHelper.GetVisibleCount(user);
 
             result.Header.Subtitle = count > 0
-                ? $"**{count}** {Format.TryPluralize("item", count)} discovered"
+                ? $"Items Discovered: **{count:##,0}**"
                 : "View your log of discovered items.";
 
 

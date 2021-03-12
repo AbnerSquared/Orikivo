@@ -82,6 +82,7 @@ namespace Arcadia
 
         internal static class Multiplayer
         {
+            internal static readonly string GamesPaidDaily = "multiplayer:games_paid_daily";
             internal static readonly string GamesPlayedDaily = "multiplayer:games_played_daily";
             internal static readonly string GamesPlayed = "multiplayer:games_played";
             internal static readonly string LastGamePlayed = "multiplayer:last_game_played";

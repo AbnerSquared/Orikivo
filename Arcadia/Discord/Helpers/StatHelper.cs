@@ -66,7 +66,7 @@ namespace Arcadia
             }
 
             result.AppendLine("> **Statistics**")
-                .AppendLine($"Stats Tracked: {user.Stats.Count}")
+                .AppendLine($"Stats Tracked: **{user.Stats.Count}**")
                 .AppendLine();
             
             foreach ((string group, int count) in GetStatGroupCounts(user))
@@ -124,7 +124,12 @@ namespace Arcadia
 
             foreach ((string id, long value) in user.Stats)
             {
-                if (!Var.IsGroupDefined(Var.GetGroup(id)))
+                string groupId = Var.GetGroup(id);
+
+                if (!Var.IsGroupDefined(groupId))
+                    continue;
+
+                if (!(Var.Groups.FirstOrDefault(x => x.Id == groupId)?.Visible ?? true))
                     continue;
 
                 if (!addedGroups.Contains(Var.GetGroup(id)))
@@ -140,9 +145,6 @@ namespace Arcadia
             }
 
             return groups;
-
-            //return user.Stats.Select(x => (Var.HumanizeGroup(x.Key), user.Stats.Count(x => Var.EqualsGroup(x.Key, Var.GetGroup(x.Key)))))
-                //.Where(x => x.Item2 > 0);
         }
 
         public static string Write(ArcadeUser user, bool isSelf = true, int page = 0, string input = null)
@@ -172,7 +174,7 @@ namespace Arcadia
             string counter = null;
 
             if (pageCount > 1)
-                counter = $" ({Format.PageCount(page + 1, pageCount)})";
+                counter = $"({Format.PageCount(page + 1, pageCount)})";
 
 
             result.AppendLine(Locale.GetHeader(Headers.Stat, counter, group: isSelf ? null : user.Username));
@@ -181,8 +183,13 @@ namespace Arcadia
             foreach ((string id, long value) in Paginate.GroupAt(stats, page, 20))
             {
                 string name = Var.HumanizeKey(id);
+                string group = Var.HumanizeGroup(id);
+
                 string valueText = Var.WriteValue(id, value);
-                result.AppendLine($"• {name}: **{valueText}**");
+
+                string groupInfo = !string.IsNullOrWhiteSpace(group) ? group : "";
+
+                result.AppendLine($"• {name} ({groupInfo}): **{valueText}**");
             }
 
             if (stats.Count == 0)

@@ -15,5 +15,7 @@ namespace Arcadia
         public Func<long, string> ValueWriter { get; set; }
 
         public Func<ArcadeUser, string> Writer { get; set; }
+
+        public bool Visible { get; set; } = true;
     }
 }

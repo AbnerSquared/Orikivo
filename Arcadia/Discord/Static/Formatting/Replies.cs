@@ -46,7 +46,11 @@ namespace Arcadia
 
         public static string GetReply(DailyResultFlag flag, ArcadeUser user)
         {
-            BaseReply<DailyResultFlag>[] replies = GetReplies(flag);
+            IEnumerable<BaseReply<DailyResultFlag>> replies = GetReplies(flag);
+
+            // Apply criteria
+            replies = replies.Where(x => (x.Criteria?.Invoke(user, flag) ?? true) == true);
+
             return (Check.NotNullOrEmpty(replies) ? Randomizer.Choose(replies).ToString(user, flag) : GetGeneric(flag));
         }
 
@@ -354,7 +358,7 @@ namespace Arcadia
             },
             new BaseReply<DailyResultFlag>
             {
-                Content = "I Hope you're having a good day! I understand that times get tough.",
+                Content = "I hope you're having a good day! I know that times can get tough.",
                 Criteria = (user, result) => user.GetVar(Stats.Common.DailyStreak) >= 10,
             },
             new BaseReply<DailyResultFlag>
