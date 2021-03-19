@@ -161,7 +161,8 @@ namespace Arcadia
                 Id = "catalog",
                 Name = "Catalog Status",
                 Summary = "This is a collection of variables used to track an item's known status.",
-                Type = VarType.Attribute
+                Type = VarType.Attribute,
+                Visible = false
             },
             new VarGroup
             {

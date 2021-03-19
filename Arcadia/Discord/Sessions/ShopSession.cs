@@ -153,7 +153,7 @@ namespace Arcadia
             long costSum = amount > 1 ? cost * amount : cost;
 
             var notice = new StringBuilder();
-            notice.AppendLine($"> 🧾 **Transaction Complete*** (for {CurrencyHelper.WriteCost(costSum, item.Currency)})");
+            notice.AppendLine($"> 🧾 **Transaction Complete** (for {CurrencyHelper.WriteCost(costSum, item.Currency)})");
             
             notice.Append("> ");
 
@@ -162,7 +162,9 @@ namespace Arcadia
             if (!string.IsNullOrWhiteSpace(icon))
                 notice.Append($"{icon} ");
 
-            notice.Append($"**{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())}**");
+            notice
+                .Append($"**{(!string.IsNullOrWhiteSpace(icon) ? item.Name : item.GetName())}**")
+                .AppendLine();
         
             return notice.ToString();
         }

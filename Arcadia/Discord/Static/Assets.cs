@@ -1470,7 +1470,7 @@ namespace Arcadia
             {
                 Id = "common:shop_super",
                 Icon = "🛒",
-                Name = "Shopping Supreme",
+                Name = "Shopping Supremecy",
                 Rank = MeritRank.Silver,
                 Tags = MeritTag.Milestone,
                 Score = 40,

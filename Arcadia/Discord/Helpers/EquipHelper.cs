@@ -29,7 +29,7 @@ namespace Arcadia
             result.AppendLine($"> {Icons.Card} **Card**");
             result.AppendLine($" • **Layout**: {user.Card.Layout.ToString()}");
             result.AppendLine($" • **Font**: {user.Card.Font.ToString()}");
-            result.Append($" • **Color Palette: {user.Card.Palette.ToString()}**");
+            result.Append($" • **Color Palette**: {user.Card.Palette.ToString()}");
 
             return result.ToString();
         }
