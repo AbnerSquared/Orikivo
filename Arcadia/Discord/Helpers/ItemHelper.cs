@@ -35,6 +35,37 @@ namespace Arcadia
             return user.Items.Where(x => GetItem(x.Id).Usage?.Triggers.HasFlag(triggers) ?? false);
         }
 
+        public static IEnumerable<ItemData> GetEquipped(ArcadeUser user, EquipTarget equipTarget)
+        {
+            return user.Items.Where(x => x.EquipSlot == equipTarget);
+        }
+
+        public static int GetEquipCount(ArcadeUser user, EquipTarget equipTarget)
+        {
+            if (equipTarget == EquipTarget.Booster)
+                return user.Boosters.Count();
+
+            return user.Items.Count(x => x.EquipSlot == equipTarget);
+        }
+
+        public static long GetEquipLimit(ArcadeUser user, EquipTarget target)
+        {
+            return target switch
+            {
+                EquipTarget.Layout => 1,
+                EquipTarget.Palette => 1,
+                EquipTarget.Font => 1,
+                EquipTarget.Charm => Var.GetOrSet(user, Vars.CharmSize, 1),
+                EquipTarget.Booster => Var.GetOrSet(user, Vars.BoosterLimit, 1),
+                _ => throw new Exception("An unknown equip target was specified")
+            };
+        }
+
+        public static bool CanEquip(ArcadeUser user, EquipTarget target)
+        {
+            return (GetEquipCount(user, target) + 1) > GetEquipLimit(user, target);
+        }
+
         public static ItemData CreateData(Item item, int amount = 1, string sealId = null)
         {
             if (!Check.NotNull(sealId))
@@ -45,7 +76,7 @@ namespace Arcadia
             if (!Exists(sealId))
                 throw new ArgumentException("Could not find an item reference for the specified seal ID");
 
-            return new ItemData(item.Id, false, amount, IsUnique(item) ? CreateUniqueData(item) : null, new ItemSealData(sealId));
+            return new ItemData(item.Id, false, amount, IsUnique(item) ? CreateUniqueData(item) : null, new ItemSealData(sealId), null);
         }
 
         // item.Value > 0
@@ -267,10 +298,12 @@ namespace Arcadia
 
         public static bool RemovePalette(ArcadeUser user)
         {
+            // TODO: Remove CardConfig and detect equipped palette from ItemData.EquipSlot
+
             if (user.Card.Palette == PaletteType.Default)
                 return false;
 
-            GiveItem(user, IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
+            // GiveItem(user, IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
             user.Card.Palette = PaletteType.Default;
             return true;
         }
@@ -335,6 +368,7 @@ namespace Arcadia
             {
                 PaletteType.GammaGreen => Ids.Items.PaletteGammaGreen,
 
+                PaletteType.Crimson when secondary == PaletteType.Lemon => Ids.Items.PaletteBurntLemon,
                 PaletteType.Crimson => Ids.Items.PaletteCrimson,
 
                 PaletteType.Glass when secondary == PaletteType.Wumpite => Ids.Items.PaletteGlossyWumpite,
@@ -342,6 +376,14 @@ namespace Arcadia
 
                 PaletteType.Wumpite when secondary == PaletteType.Glass => Ids.Items.PaletteGlossyWumpite,
                 PaletteType.Wumpite => Ids.Items.PaletteWumpite,
+
+                PaletteType.Polarity => Ids.Items.PalettePolarity,
+                PaletteType.Oceanic => Ids.Items.PaletteOceanic,
+                PaletteType.Taffy => Ids.Items.PaletteTaffy,
+                PaletteType.Chocolate => Ids.Items.PaletteChocolate,
+                PaletteType.Amber => Ids.Items.PaletteAmber,
+                PaletteType.Lemon when secondary == PaletteType.Crimson => Ids.Items.PaletteBurntLemon,
+                PaletteType.Lemon => Ids.Items.PaletteLemon,
                 _ => null
             };
         }

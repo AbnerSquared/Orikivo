@@ -2061,8 +2061,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Common,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.GammaGreen)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2082,8 +2083,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Common,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Crimson)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2103,8 +2105,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Uncommon,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Wumpite)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2124,8 +2127,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Myth,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Polarity)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2145,8 +2149,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Glass)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2166,8 +2171,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Lemon)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2187,8 +2193,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Crimson, PaletteType.Lemon))),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2208,8 +2215,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Oceanic)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 10
             },
@@ -2229,8 +2237,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, PaletteType.Taffy)),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -2250,8 +2259,9 @@ namespace Arcadia
                 Rarity =  ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Wumpite, PaletteType.Glass))),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 5
             },
@@ -2287,8 +2297,9 @@ namespace Arcadia
                 Rarity = ItemRarity.Myth,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Amber))),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2308,8 +2319,9 @@ namespace Arcadia
                 Rarity = ItemRarity.Rare,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapPalette(ctx.User, new ColorPalette(PaletteType.Chocolate))),
-                    DeleteTriggers = DeleteTriggers.Break
+                    EquipTarget = EquipTarget.Palette,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
+                    //DeleteTriggers = DeleteTriggers.Break
                 },
                 OwnLimit = 2
             },
@@ -2340,7 +2352,8 @@ namespace Arcadia
                 Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Foxtrot))
+                    EquipTarget = EquipTarget.Font,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
                 }
             },
             new Item
@@ -2357,7 +2370,8 @@ namespace Arcadia
                 Tags = ItemTag.Equipment | ItemTag.Decorator | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Monori))
+                    EquipTarget = EquipTarget.Font,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
                 }
             },
             new Item
@@ -2373,7 +2387,8 @@ namespace Arcadia
                 Currency = CurrencyType.Money,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Orikos))
+                    EquipTarget = EquipTarget.Font,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
                 }
             },
             new Item
@@ -2389,7 +2404,8 @@ namespace Arcadia
                 Currency = CurrencyType.Money,
                 Usage = new ItemUsage
                 {
-                    Action = ctx => UsageResult.FromSuccess(SetOrSwapFont(ctx.User, FontType.Delta))
+                    EquipTarget = EquipTarget.Font,
+                    Action = ctx => UsageResult.FromSuccess(EquipItem(ctx.User, ctx.Data))
                 }
             },
             new Item
@@ -2582,6 +2598,170 @@ namespace Arcadia
             return result;
         }
 
+        private static string UpdateFont(ArcadeUser user, FontType font, string currentId, string previousId)
+        {
+            string currentName = string.IsNullOrWhiteSpace(currentId) ? "Default" : ItemHelper.GetBaseName(currentId);
+
+            if (user.Card.Font == font)
+                return Format.Warning($"You already have **{currentName}** equipped as your **Card Font**.");
+
+            string result = $"> 📟 Equipped **{currentName}** to your **Card Font**.";
+
+            if (!string.IsNullOrWhiteSpace(previousId))
+            {
+                result = $"📟 Swapped out **{ItemHelper.GetBaseName(previousId)}** with **{currentName}** for your **Card Font**.";
+            }
+
+            user.Card.Font = font;
+            return result;
+        }
+
+        private static string GetEquipOverflowText(EquipTarget target)
+        {
+            return target switch
+            {
+                EquipTarget.Booster => "You already have too many active boosters.",
+                EquipTarget.Charm => "You already have too many charms equipped.",
+                EquipTarget.Tool => "You already have too many tools equipped.",
+                _ => throw new Exception("An unspecified equip target was defined")
+            };
+        }
+
+        private static string EquipItem(ArcadeUser user, ItemData item)
+        {
+            EquipTarget? possibleTarget = ItemHelper.GetItem(item.Id)?.Usage?.EquipTarget;
+
+            if (!possibleTarget.HasValue)
+                return Format.Warning("This item cannot be equipped.");
+
+            EquipTarget target = possibleTarget.Value;
+
+            if (target.EqualsAny(EquipTarget.Font, EquipTarget.Layout, EquipTarget.Palette))
+            {
+                ItemData equipped = ItemHelper.GetEquipped(user, target)?.FirstOrDefault();
+
+                if (equipped == item)
+                    return Format.Warning("This item is already equipped.");
+
+                if (equipped != null)
+                {
+                    equipped.EquipSlot = null;
+                }
+
+                return target switch
+                {
+                    EquipTarget.Palette => UpdatePalette(user, GetColorData(item.Id), item.Id, equipped?.Id),
+                    EquipTarget.Font => UpdateFont(user, GetFontData(item.Id), item.Id, equipped?.Id),
+                    EquipTarget.Layout => UpdateLayout(user, GetLayoutData(item.Id), item.Id, equipped?.Id),
+                };
+
+            }
+
+            int count = ItemHelper.GetEquipCount(user, target);
+            long limit = ItemHelper.GetEquipLimit(user, target);
+
+            if (count + 1 > limit)
+            {
+                return GetEquipOverflowText(target);
+            }
+
+            if (target == EquipTarget.Booster)
+                return TryApplyBooster(user, GetBoostData(item.Id)) ? "You have applied a booster." : "You already have too many active boosters.";
+
+
+            item.EquipSlot = target;
+            return $"You have equipped **{ItemHelper.GetBaseName(item.Id)}**";
+        }
+
+        private static BoostData GetBoostData(string boostId)
+        {
+            return boostId switch
+            {
+                "b_ddb" => new BoostData(Ids.Items.BoosterDaily, BoostTarget.Money, 1, 30),
+                "b_db" => new BoostData(Ids.Items.BoosterDebtBlocker, BoostTarget.Debt, -0.2f, 20),
+                "b_ob" => new BoostData(Ids.Items.BoosterOriteBooster, BoostTarget.Money, 0.2f, 20),
+                _ => throw new Exception("An unknown booster was specified")
+            };
+        }
+
+        private static FontType GetFontData(string fontId)
+        {
+            return fontId switch
+            {
+                "f_de" => FontType.Delta,
+                "f_or" => FontType.Orikos,
+                "f_ft" => FontType.Foxtrot,
+                "f_mo" => FontType.Monori,
+                _ => FontType.Orikos
+            };
+        }
+
+        private static LayoutType GetLayoutData(string layoutId)
+        {
+            return layoutId switch
+            {
+                "ly_mi" => LayoutType.Micro,
+                "ly_cl" => LayoutType.Default,
+                _ => LayoutType.Default
+            };
+        }
+
+        private static ColorPalette GetColorData(string paletteId)
+        {
+            return paletteId switch
+            {
+                "p_cr" => PaletteType.Crimson,
+                "p_am" => PaletteType.Amber,
+                "p_le" => PaletteType.Lemon,
+                "p_ch" => PaletteType.Chocolate,
+                "p_ta" => PaletteType.Taffy,
+                "p_gg" => PaletteType.GammaGreen,
+                "p_oc" => PaletteType.Oceanic,
+                "p_wu" => PaletteType.Wumpite,
+                "p_po" => PaletteType.Polarity,
+                "p_gl" => PaletteType.Glass,
+                "p_bule" => new ColorPalette(PaletteType.Crimson, PaletteType.Lemon),
+                "p_glwu" => new ColorPalette(PaletteType.Glass, PaletteType.Wumpite),
+                _ => PaletteType.Default
+            };
+        }
+
+        private static string UpdatePalette(ArcadeUser user, ColorPalette palette, string currentId, string previousId)
+        {
+            string currentName = string.IsNullOrWhiteSpace(currentId) ? "Default" : ItemHelper.GetBaseName(currentId);
+
+            if (user.Card.Palette == palette)
+                return Format.Warning($"You already have **{currentName}** equipped on your **Card Palette**.");
+
+            string result = $"> 📟 Equipped **{currentName}** to your **Card Palette**.";
+
+            if (!string.IsNullOrWhiteSpace(previousId))
+            {
+                result = $"📟 Swapped out **{ItemHelper.GetBaseName(previousId)}** with **{currentName}** for your **Card Palette**.";
+            }
+
+            user.Card.Palette = palette;
+            return result;
+        }
+
+        private static string UpdateLayout(ArcadeUser user, LayoutType layout, string currentId, string previousId)
+        {
+            string currentName = string.IsNullOrWhiteSpace(currentId) ? "Default" : ItemHelper.GetBaseName(currentId);
+
+            if (user.Card.Layout == layout)
+                return Format.Warning($"You already have **{currentName}** equipped as your **Card Layout**.");
+
+            string result = $"> 📟 Equipped **{currentName}** for your **Card Layout**.";
+
+            if (!string.IsNullOrWhiteSpace(previousId))
+            {
+                result = $"📟 Swapped out **{ItemHelper.GetBaseName(previousId)}** with **{currentName}** for your **Card Layout**.";
+            }
+
+            user.Card.Layout = layout;
+            return result;
+        }
+
         private static string SetOrSwapPalette(ArcadeUser user, ColorPalette palette)
         {
             if (user.Card.Palette == palette)
@@ -2590,18 +2770,13 @@ namespace Arcadia
             string result = $"> 📟 Equipped **{ItemHelper.NameFor(palette.Primary, palette.Secondary)}** to your **Card Palette**.";
             if (user.Card.Palette.Primary != PaletteType.Default)
             {
-                ItemHelper.GiveItem(user, ItemHelper.IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
+                // ItemHelper.GiveItem(user, ItemHelper.IdFor(user.Card.Palette.Primary, user.Card.Palette.Secondary));
                 result = $"📟 Swapped out **{ItemHelper.NameFor(user.Card.Palette.Primary, user.Card.Palette.Secondary)}** with **{ItemHelper.NameFor(palette.Primary, palette.Secondary)}** for your **Card Palette**.";
             }
 
             ItemHelper.TakeItem(user, ItemHelper.IdFor(palette.Primary, palette.Secondary));
             user.Card.Palette = palette;
             return result;
-        }
-
-        private static string SetOrSwapLayout(ArcadeUser user, LayoutType layout)
-        {
-            throw new NotImplementedException();
         }
 
         private static bool TryApplyBooster(ArcadeUser user, BoostData booster)

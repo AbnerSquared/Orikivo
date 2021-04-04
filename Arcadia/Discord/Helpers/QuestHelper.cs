@@ -32,7 +32,14 @@ namespace Arcadia
             }
 
             result.AppendLine($"> {Icons.Quests} **Quests**");
-            result.AppendLine($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}** (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month)\n");
+            result.Append($"> Quest Points Earned: **{user.GetVar(Vars.QuestPoints):##,0}**");
+
+            if (user.GetVar(Vars.QuestPoints) > 0)
+            {
+                result.Append($" (**{user.GetVar(Vars.MonthlyQuests):##,0}** this month)");
+            }
+
+            result.AppendLine("\n");
 
             int i = 0;
             foreach (QuestData data in user.Quests)

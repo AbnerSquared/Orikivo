@@ -216,9 +216,12 @@ namespace Arcadia
             if (!Stats.ContainsKey(id))
                 SetVar(id, amount);
             else
+            {
                 Stats[id] += amount;
+                AddToQuestProgress(id, amount);
+            }
 
-            AddToQuestProgress(id, amount);
+            
         }
 
         public void AddToVar(string id, long amount, out long previous)

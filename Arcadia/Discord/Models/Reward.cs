@@ -9,10 +9,10 @@ namespace Arcadia
     {
         public Reward()
         {
-            ItemIds = new Dictionary<string, int>();
-            Wagers = new Dictionary<CurrencyType, long>();
-            Money = 0;
-            Exp = 0;
+            //ItemIds = new Dictionary<string, int>();
+            //Wagers = new Dictionary<CurrencyType, long>();
+            //Money = 0;
+            //Exp = 0;
         }
 
         public Reward(IEnumerable<Reward> rewards)
@@ -34,12 +34,13 @@ namespace Arcadia
             }
 
             ItemIds = itemIds;
+            Wagers = wagers;
             Money = money;
             Exp = exp;
         }
 
-        public Dictionary<string, int> ItemIds { get; set; }
-        public Dictionary<CurrencyType, long> Wagers { get; set; }
+        public Dictionary<string, int> ItemIds { get; set; } = new Dictionary<string, int>();
+        public Dictionary<CurrencyType, long> Wagers { get; set; } = new Dictionary<CurrencyType, long>();
         public long Money
         {
             get
@@ -55,7 +56,7 @@ namespace Arcadia
                     Wagers[CurrencyType.Money] = value;
             }
         }
-        public ulong Exp { get; set; }
+        public ulong Exp { get; set; } = 0;
 
         public int Count => GetCount();
 
@@ -97,7 +98,7 @@ namespace Arcadia
             if (Exp > 0)
                 user.GiveExp(Exp);
 
-            if (!Check.NotNullOrEmpty(Wagers))
+            if (Check.NotNullOrEmpty(Wagers))
             {
                 foreach ((CurrencyType currency, long amount) in Wagers)
                 {
@@ -105,7 +106,7 @@ namespace Arcadia
                 }
             }
 
-            if (!Check.NotNullOrEmpty(ItemIds))
+            if (Check.NotNullOrEmpty(ItemIds))
             {
                 foreach ((string itemId, int amount) in ItemIds)
                     ItemHelper.GiveItem(user, itemId, amount);

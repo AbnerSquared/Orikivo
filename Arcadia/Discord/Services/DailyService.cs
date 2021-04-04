@@ -29,7 +29,7 @@ namespace Arcadia.Services
         private static readonly int UncommonGrowthRate = 2;
         private static readonly int RareGrowthRate = 1;
         // GROWTH, DECAY
-        private static Reward GetBonus(long dailyStreak)
+        public static Reward GetBonus(long dailyStreak)
         {
             int bonusStreak = (int)(Math.Floor(dailyStreak / (double)BonusInterval) - 1);
 
@@ -127,11 +127,11 @@ namespace Arcadia.Services
         public static long GetBonusStreak(long dailyStreak)
             => (long)Math.Floor(dailyStreak / (double)BonusInterval);
 
-        private static string ShowStreakBonus(long dailyStreak, Reward reward)
+        public static string ShowStreakBonus(long dailyStreak, Reward reward)
         {
             long bonusCount = GetBonusStreak(dailyStreak);
 
-            return $"> You have reached your {GetStreakOrdinal((int)bonusCount)} {(bonusCount > 1 ? "consecutive " : "")}bonus!\n> You have been rewarded with:\n{reward.ToString()}";
+            return $"> ⭐ **You have reached your {GetStreakOrdinal((int)bonusCount)} {(bonusCount > 1 ? "consecutive " : "")}bonus!**\n> You were rewarded:\n{reward.ToString()}";
         }
 
         private static string GetStreakOrdinal(int bonusCount)

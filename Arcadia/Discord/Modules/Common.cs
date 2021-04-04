@@ -413,10 +413,18 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        // [Command("card")]
+        [Command("card")]
         [Summary("View a user's or your own current **Card**.")]
         public async Task GetCardAsync(SocketUser user = null)
         {
+            bool canRender = Environment.OSVersion.Platform == PlatformID.Win32NT;
+
+            if (!canRender)
+            {
+                await Context.Channel.SendMessageAsync($"> {Icons.Warning} Due to current rendering issues, cards are disabled on **Unix** operating systems.");
+                return;
+            }
+
             user ??= Context.User;
             Context.TryGetUser(user.Id, out ArcadeUser account);
 

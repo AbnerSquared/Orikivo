@@ -25,6 +25,7 @@ namespace Arcadia
             {
                 return new Reward
                 {
+                    Wagers = wagers,
                     ItemIds = results
                 };
             }

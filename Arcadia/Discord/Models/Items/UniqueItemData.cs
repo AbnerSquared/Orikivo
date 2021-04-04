@@ -17,7 +17,7 @@ namespace Arcadia
 
         [JsonConstructor]
         internal UniqueItemData(string id, string name, int? durability, DateTime? expiresOn,
-            DateTime? lastUsed, int? tradeCount, EquipTarget? equipSlot,
+            DateTime? lastUsed, int? tradeCount,
             Dictionary<string, ItemPropertyData> properties)
         {
             Id = id;
@@ -26,7 +26,6 @@ namespace Arcadia
             ExpiresOn = expiresOn;
             LastUsed = lastUsed;
             TradeCount = tradeCount;
-            EquipSlot = equipSlot;
             Properties = properties;
         }
 
@@ -66,12 +65,6 @@ namespace Arcadia
         /// </summary>
         [JsonProperty("trade_count")]
         public int? TradeCount { get; internal set; }
-
-        /// <summary>
-        /// Represents the slot that this <see cref="UniqueItemData"/> is equipped in (optional).
-        /// </summary>
-        [JsonProperty("equip_slot")]
-        public EquipTarget? EquipSlot { get; internal set; }
 
         // This is everything that the item is keeping track of
         /// <summary>

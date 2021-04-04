@@ -40,7 +40,7 @@ namespace Arcadia
         }
 
         [JsonConstructor]
-        internal ItemData(string id, bool locked, int? stackCount, UniqueItemData data, ItemSealData seal)
+        internal ItemData(string id, bool locked, int? stackCount, UniqueItemData data, ItemSealData seal, EquipTarget? equipSlot)
         {
             Id = id;
             TempId = KeyBuilder.Generate(5);
@@ -48,6 +48,7 @@ namespace Arcadia
             StackCount = stackCount;
             Data = data;
             Seal = seal;
+            EquipSlot = equipSlot;
         }
 
         /// <summary>
@@ -88,5 +89,11 @@ namespace Arcadia
         /// </summary>
         [JsonProperty("seal")]
         public ItemSealData Seal { get; internal set; }
+
+        /// <summary>
+        /// Represents the slot that this <see cref="ItemData"/> is active in (optional).
+        /// </summary>
+        [JsonProperty("equip_slot")]
+        public EquipTarget? EquipSlot { get; internal set; }
     }
 }

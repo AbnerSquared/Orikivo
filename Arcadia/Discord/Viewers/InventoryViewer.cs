@@ -165,7 +165,7 @@ namespace Arcadia
 
             if (exists)
             {
-                if (showSize)
+                if (showSize && size > 0)
                     slot.Append($" [{WriteCapacity(size)}]");
 
                 if (count > 1)
