@@ -428,322 +428,53 @@ namespace Arcadia.Multiplayer.Games
                 },
                 Inputs = new List<IInput>
                 {
-                    /*
                     new ReactionInput
                     {
                         Emote = new Emoji("🇦"),
                         Handling = ReactionHandling.Any,
-                        UpdateOnExecute = true,
-                        RequireOnMessage = true
+                        RequireOnMessage = true,
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 0)
                     },
                     new ReactionInput
                     {
                         Emote = new Emoji("🇧"),
                         Handling = ReactionHandling.Any,
-                        UpdateOnExecute = true,
-                        RequireOnMessage = true
+                        RequireOnMessage = true,
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 1)
                     },
                     new ReactionInput
                     {
                         Emote = new Emoji("🇨"),
                         Handling = ReactionHandling.Any,
-                        UpdateOnExecute = true,
-                        RequireOnMessage = true
+                        RequireOnMessage = true,
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 2)
                     },
                     new ReactionInput
                     {
                         Emote = new Emoji("🇩"),
                         Handling = ReactionHandling.Any,
-                        UpdateOnExecute = true,
-                        RequireOnMessage = true
-                    }, 
-
-                     */
-                    new ReactionInput
-                    {
-                        Emote = new Emoji("🇦"),
-                        Handling = ReactionHandling.Any,
-                        UpdateOnExecute = false,
                         RequireOnMessage = true,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(0);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
-                    },
-                    new ReactionInput
-                    {
-                        Emote = new Emoji("🇧"),
-                        Handling = ReactionHandling.Any,
-                        UpdateOnExecute = false,
-                        RequireOnMessage = true,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 2)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(1);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
-                    },
-                    new ReactionInput
-                    {
-                        Emote = new Emoji("🇨"),
-                        Handling = ReactionHandling.Any,
-                        UpdateOnExecute = false,
-                        RequireOnMessage = true,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 3)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(2);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
-                    },
-                    new ReactionInput
-                    {
-                        Emote = new Emoji("🇩"),
-                        Handling = ReactionHandling.Any,
-                        UpdateOnExecute = false,
-                        RequireOnMessage = true,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Server.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 4)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(3);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Server.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
-                            ctx.Server.Session.InvokeAction("try_get_question_result");
-                        }
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 3)
                     },
                     new TextInput
                     {
                         Name = "a",
-                        UpdateOnExecute = false,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(0);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 0)
                     },
                     new TextInput
                     {
                         Name = "b",
-                        UpdateOnExecute = false,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 2)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(1);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 1)
                     },
                     new TextInput
                     {
                         Name = "c",
-                        UpdateOnExecute = false,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 3)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(2);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
-                            ctx.Session.InvokeAction("try_get_question_result");
-                        }
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 2)
                     },
                     new TextInput
                     {
                         Name = "d",
-                        UpdateOnExecute = false,
-                        OnExecute = delegate(InputContext ctx)
-                        {
-                            var data = ctx.Server.Session.DataOf(ctx.Invoker.Id);
-
-                            if (data.ValueOf<bool>("has_answered"))
-                                return;
-
-                            int answerCount = CurrentAnswers.Count();
-
-                            if (answerCount < 4)
-                                return;
-
-                            var answerSelected = CurrentAnswers.ElementAt(3);
-
-                            data.SetValue("has_answered", true);
-                            data.SetValue("is_correct", answerSelected.IsCorrect);
-
-                            if (answerSelected.IsCorrect)
-                            {
-                                data.AddToValue("streak", 1);
-                                data.AddToValue(TriviaVars.TotalCorrect, 1);
-                            }
-                            else
-                            {
-                                data.ResetProperty("streak");
-                            }
-
-                            ctx.Server.Session.AddToValue("players_answered", 1);
-                            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
-                            ctx.Server.Session.InvokeAction("try_get_question_result");
-                        }
+                        OnExecute = (InputContext ctx) => SetPlayerAnswer(ctx, 3)
                     }
                 }
             };
@@ -842,6 +573,33 @@ namespace Arcadia.Multiplayer.Games
             displays.Add(results);
 
             return displays;
+        }
+
+        private void SetPlayerAnswer(InputContext ctx, int index)
+        {
+            var data = ctx.Server.Session.DataOf(ctx.Invoker.Id);
+
+            if ((index + 1) > CurrentAnswers.Count())
+                return;
+
+            var answerSelected = CurrentAnswers.ElementAt(index);
+
+            data.SetValue("has_answered", true);
+            data.SetValue("is_correct", answerSelected.IsCorrect);
+
+            if (answerSelected.IsCorrect)
+            {
+                data.AddToValue("streak", 1);
+                data.AddToValue(TriviaVars.TotalCorrect, 1);
+            }
+            else
+            {
+                data.ResetProperty("streak");
+            }
+
+            ctx.Server.Session.AddToValue("players_answered", 1);
+            data.SetValue("answer_position", ctx.Server.Session.ValueOf<int>("players_answered"));
+            ctx.Server.Session.InvokeAction("try_get_question_result");
         }
 
         public override List<PlayerData> OnBuildPlayers(in IEnumerable<Player> players)

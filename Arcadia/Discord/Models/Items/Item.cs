@@ -24,6 +24,8 @@ namespace Arcadia
         /// </summary>
         public string GroupId { get; set; }
 
+        public ItemGroup Group => ItemHelper.GetGroup(GroupId);
+
         /// <summary>
         /// Represents the base name of this <see cref="Item"/>.
         /// </summary>

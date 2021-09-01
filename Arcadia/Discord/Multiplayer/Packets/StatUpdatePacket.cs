@@ -5,14 +5,14 @@ namespace Arcadia.Multiplayer
 {
     public class StatUpdatePacket
     {
-        public StatUpdatePacket(string id, long value, StatUpdateType type = StatUpdateType.Update)
+        public StatUpdatePacket(string id, long value, StatUpdateType type = StatUpdateType.Add)
         {
             Id = id;
             Value = value;
             Type = type;
         }
 
-        public StatUpdatePacket(string id, string valueId, StatUpdateType type = StatUpdateType.Update)
+        public StatUpdatePacket(string id, string valueId, StatUpdateType type = StatUpdateType.Add)
         {
             Id = id;
             ValueId = valueId;
@@ -43,7 +43,7 @@ namespace Arcadia.Multiplayer
         {
             switch(type)
             {
-                case StatUpdateType.Update:
+                case StatUpdateType.Add:
                     user.AddToVar(a, b);
                     break;
                 case StatUpdateType.Set:

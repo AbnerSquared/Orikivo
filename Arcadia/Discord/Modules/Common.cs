@@ -125,17 +125,14 @@ namespace Arcadia.Modules
             {
                 var result = new StringBuilder();
 
-                result.AppendLine($"> 📑 **{ItemHelper.NameOf(recipe.Result.ItemId)}**{(recipe.Result.Amount > 1 ? $" (x**{recipe.Result.Amount:##,0}**)" : "")}");
+                result.AppendLine($"> 📑 **{ItemHelper.NameOf(recipe.Result.ItemId)}**{Format.ElementCount(recipe.Result.Amount, false, true)}");
                 result.AppendLine($"> {_locale.GetValue("craft_success_header", Context.Account.Config.Language)}");
 
                 result.AppendLine($"\n> **{_locale.GetValue("craft_success_losses", Context.Account.Config.Language)}**");
 
                 foreach ((string itemId, int amount) in recipe.Components)
                 {
-                    string icon = ItemHelper.GetIconOrDefault(itemId);
-
-                    if (!Check.NotNull(icon))
-                        icon = "•";
+                    string icon = ItemHelper.GetIconOrDefault(itemId, "•");
 
                     result.AppendLine($"{icon} **{ItemHelper.NameOf(itemId)}**{Format.ElementCount(amount, false)}");
                 }
@@ -297,28 +294,37 @@ namespace Arcadia.Modules
             await Context.Channel.SendMessageAsync(DailyService.ApplyAndDisplay(Context.Account, result));
         }
 
+        public Message UseItem(ArcadeUser invoker, ItemData data, string input = null)
+        {
+            if (data == null)
+                return new Message(Format.Warning(_locale.GetValue("warning_invalid_data_reference", invoker.Config.Language)));
+
+            UsageResult result = ItemHelper.UseItem(Context.Account, data, input);
+
+            return result.Message ?? new Message(Format.Warning($"You have used **{ItemHelper.NameOf(data.Id)}**"));
+        }
+
         [RequireUser]
         [Command("use")]
         [Summary("Uses the specified **Item** by its internal or unique ID.")]
         public async Task UseItemAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId, [Remainder]string input = null)
         {
-            ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
+            await Context.Channel.SendMessageAsync(UseItem(Context.Account, ItemHelper.GetItemData(Context.Account, dataId), input));
+        }
 
-            if (data == null)
+        public Message ViewSlot(ArcadeUser invoker, int slot)
+        {
+            if (invoker.Items.Count == 0)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
-                return;
+                return new Message(Format.Warning(_locale.GetValue("warning_inventory_empty", Context.Account.Config.Language)));
             }
 
-            UsageResult result = ItemHelper.UseItem(Context.Account, data, input);
-
-            if (result.Message != null)
+            if (--slot >= invoker.Items.Count)
             {
-                await Context.Channel.SendMessageAsync(Context.Account, result.Message);
-                return;
+                return new Message(Format.Warning("This index is out of bounds."));
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning($"You have used **{ItemHelper.NameOf(data.Id)}**."));
+            return new Message(CatalogViewer.InspectItem(Context, invoker, invoker.Items[slot], slot));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -326,19 +332,7 @@ namespace Arcadia.Modules
         [Summary("Inspect a specific **Item** slot in your inventory.")]
         public async Task ViewInventorySlotAsync([Name("slot_index")]int slot)
         {
-            if (Context.Account.Items.Count == 0)
-            {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_inventory_empty", Context.Account.Config.Language)));
-                return;
-            }
-
-            slot--;
-
-            Math.Clamp(slot, 0, Context.Account.Items.Count - 1);
-
-            ItemData data = Context.Account.Items[slot];
-
-            await Context.Channel.SendMessageAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot));
+            await Context.Channel.SendMessageAsync(ViewSlot(Context.Account, slot));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -419,11 +413,12 @@ namespace Arcadia.Modules
         {
             bool canRender = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
+            /*
             if (!canRender)
             {
                 await Context.Channel.SendMessageAsync($"> {Icons.Warning} Due to current rendering issues, cards are disabled on **Unix** operating systems.");
                 return;
-            }
+            }*/
 
             user ??= Context.User;
             Context.TryGetUser(user.Id, out ArcadeUser account);

@@ -2,7 +2,8 @@
 {
     public enum InputType
     {
-        Text,
-        Reaction
+        Text = 1,
+        Reaction = 2,
+        Button = 3
     }
 }

@@ -1,14 +1,11 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
-using Orikivo;
 using Orikivo.Framework;
 using Orikivo.Text;
 
 namespace Arcadia.Multiplayer
 {
-    // This is the context used to help handle input
-
     // an action
     public class TextInput : IInput
     {

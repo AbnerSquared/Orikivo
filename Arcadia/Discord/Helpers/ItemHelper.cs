@@ -424,7 +424,11 @@ namespace Arcadia
         }
 
         public static string GetIconOrDefault(string itemId, string fallback = "")
-            => GetItem(itemId)?.GetIcon() ?? fallback;
+        {
+            string icon = GetItem(itemId)?.GetIcon();
+
+            return string.IsNullOrWhiteSpace(icon) ? fallback : icon;
+        }
 
         public static string GetIconOrDefault(ItemData data, string fallback = "")
         {

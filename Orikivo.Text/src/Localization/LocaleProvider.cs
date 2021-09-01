@@ -3,10 +3,30 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace Orikivo.Text
 {
+    public class ContentBuilder
+    {
+        private StringBuilder _builder = new StringBuilder();
+        private readonly LocaleProvider _provider;
+
+        public ContentBuilder(LocaleProvider provider, Language language)
+        {
+            _provider = provider;
+            _language = language;
+        }
+
+        private Language _language;
+
+        //public ContentBuilder AppendKey(string key, params object[] args)
+        //{
+       //     _builder.Append(_provider.GetValue(key, _language));
+        //}
+    }
+
     public class LocaleProvider
     {
         private static readonly string DefaultPath = @"bin/Release/assets/locale/";
