@@ -45,7 +45,7 @@ namespace Arcadia
                 && Var.TypeOf(x) == VarType.Stat
                 && !ItemHelper.Exists(Var.GetGroup(x))
                 && !ShopHelper.Exists(Var.GetGroup(x))
-                && (Check.NotNullOrEmpty(chosen) ? !chosen.Contains(x) : true)));
+                && (!Check.NotNullOrEmpty(chosen) || !chosen.Contains(x))));
 
         private static string ViewBase(ArcadeUser user, int page = 0)
         {

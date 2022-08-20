@@ -30,6 +30,7 @@ namespace Arcadia.Graphics
 
         public FillInfo BackgroundFill { get; internal set; }
 
+        // TODO: These methods can be made internal
         public static int GetOffsetX(ComponentInfo info, Cursor cursor, ComponentReference previous)
         {
             int x = 0;

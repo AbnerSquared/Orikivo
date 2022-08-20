@@ -124,7 +124,8 @@ namespace Arcadia
         [JsonIgnore]
         public Dictionary<string, DateTime> InternalCooldowns { get; } = new Dictionary<string, DateTime>();
 
-        [JsonIgnore] public List<TradeOffer> Offers { get; } = new List<TradeOffer>();
+        [JsonIgnore]
+        public List<TradeOffer> Offers { get; } = new List<TradeOffer>();
 
         [JsonIgnore]
         public DateTime? GlobalCooldown { get; set; }
@@ -135,7 +136,8 @@ namespace Arcadia
         [JsonIgnore]
         public bool HasBeenNoticed { get; set; } = false;
 
-        [JsonIgnore] public Wager LastFundsLost { get; set; }
+        [JsonIgnore]
+        public Wager LastFundsLost { get; set; }
 
         [JsonIgnore]
         public string EraseGuildKey { get; set; }
@@ -144,6 +146,7 @@ namespace Arcadia
         public string EraseConfirmKey { get; set; }
 
         private string _cardGenKey;
+
         [JsonIgnore]
         public string CardGenKey => _cardGenKey ??= KeyBuilder.Generate(6);
 

@@ -72,7 +72,7 @@ namespace Arcadia.Graphics
 
             CardComponent component = info.Type switch
             {
-                ComponentType.Solid => BuildSolidTarget(info, details, properties), // throw new NotImplementedException("Solids have not been implemented yet"),
+                ComponentType.Solid => BuildSolidTarget(info, details, properties),
                 ComponentType.Text => BuildTextTarget(info, details, properties),
                 ComponentType.Icon => BuildIconTarget(info, details, properties),
                 ComponentType.Image => BuildImageTarget(info, details, properties),

@@ -179,7 +179,7 @@ namespace Arcadia.Services
 
                     color = GammaPalette.Amber[Gamma.Max];
                     header = Format.Countdown(rem);
-                    icon = Icons.GetClock(time.Hour);
+                    icon = Icons.GetAnalogTime(time.Hour);
                     footer = ShowStreakCounter(user);
                     break;
 

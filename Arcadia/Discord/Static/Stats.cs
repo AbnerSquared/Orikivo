@@ -10,6 +10,8 @@ namespace Arcadia
     /// </summary>
     internal static class Stats
     {
+        // TODO: Store Orikivo's version to all user accounts
+        // In this case, we can check their version, and if it's outdated, run their account through the RenameIds function
         private static readonly Dictionary<string, string[]> Replacements = new Dictionary<string, string[]>
         {
             ["generic:items_crafted"] = new []{ "generic:times_crafted" }

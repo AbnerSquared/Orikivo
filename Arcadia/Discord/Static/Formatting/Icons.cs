@@ -66,7 +66,7 @@
         private const string CLOCK_11 = "🕚";
         private const string CLOCK_12 = "🕛";
 
-        public static string GetClock(int hour)
+        public static string GetAnalogTime(int hour)
         {
             switch (hour)
             {

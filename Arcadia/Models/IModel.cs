@@ -3,6 +3,7 @@
     public interface IModel
     {
         object Id { get; }
+
         string Name { get; }
     }
 

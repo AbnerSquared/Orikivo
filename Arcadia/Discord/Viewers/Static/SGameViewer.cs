@@ -53,11 +53,10 @@ namespace Arcadia
 
         public static string ViewGame(GameInfo game, int page = 0, ArcadeUser user = null)
         {
-            bool allowTooltips = user?.Config?.Tooltips ?? true;
-
             if (game == null)
                 return Format.Warning("An unknown game was specified.");
 
+            bool allowTooltips = user?.Config?.Tooltips ?? true;
             var result = new StringBuilder();
 
             if (game.Details.CanSpectate)
@@ -71,9 +70,7 @@ namespace Arcadia
             }
 
             result.AppendLine();
-
-            result.AppendLine(
-                $"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
+            result.AppendLine($"> {Format.Title(game.Details.Name, game.Details.Icon)} ({(game.Details.RequiredPlayers == game.Details.PlayerLimit ? $"**{game.Details.RequiredPlayers}**" : $"**{game.Details.RequiredPlayers}** to **{game.Details.PlayerLimit}**")} players)");
 
             if (Check.NotNull(game.Details.Summary))
             {

@@ -71,4 +71,3 @@ namespace Orikivo
             => $"{Username}#{Discriminator}";
     }
 }
-

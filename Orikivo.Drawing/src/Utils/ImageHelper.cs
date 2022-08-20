@@ -798,24 +798,20 @@ namespace Orikivo.Drawing
 
             if (background != Color.Empty)
             {
-                using (var backBrush = new SolidBrush(background))
-                {
-                    Rectangle backClip = GetBackClip(width, height, fillLength, direction);
-                    g.SetClip(backClip);
-                    g.FillRectangle(backBrush, backClip);
-                    g.ResetClip();
-                }
+                using var backBrush = new SolidBrush(background);
+                Rectangle backClip = GetBackClip(width, height, fillLength, direction);
+                g.SetClip(backClip);
+                g.FillRectangle(backBrush, backClip);
+                g.ResetClip();
             }
 
             if (foreground != Color.Empty)
             {
-                using (var foreBrush = new SolidBrush(foreground))
-                {
-                    Rectangle foreClip = GetForeClip(width, height, fillLength, direction);
-                    g.SetClip(foreClip);
-                    g.FillRectangle(foreBrush, foreClip);
-                    g.ResetClip();
-                }
+                using var foreBrush = new SolidBrush(foreground);
+                Rectangle foreClip = GetForeClip(width, height, fillLength, direction);
+                g.SetClip(foreClip);
+                g.FillRectangle(foreBrush, foreClip);
+                g.ResetClip();
             }
 
             return result;
@@ -873,6 +869,7 @@ namespace Orikivo.Drawing
             var pixels = new Grid<Color>(width, height, from);
             bool flip = (Direction.Up | Direction.Left).HasFlag(direction);
 
+            // This is a nightmare to read
             for (int i = GetLowerBound(width, height, direction); flip ? i > 0 : i < GetUpperBound(width, height, direction); i += flip ? -1 : 1)
             {
                 int length = (Direction.Left | Direction.Right).HasFlag(direction) ? width : height;
@@ -925,9 +922,10 @@ namespace Orikivo.Drawing
         public static Bitmap CreateArgbBitmap(Color[,] colors)
             => CreateBitmap(colors);
 
+        // Use the timer as a TEST CASE
         private static Bitmap CreateBitmapFromHandle(Color[,] colors)
         {
-            var timer = Stopwatch.StartNew();
+            // var timer = Stopwatch.StartNew();
             int width = colors.GetLength(1);
             int height = colors.GetLength(0);
 
@@ -943,15 +941,15 @@ namespace Orikivo.Drawing
 
             Bitmap result = handle.Bitmap.Clone(new Rectangle(0, 0, width, height), handle.Bitmap.PixelFormat);
 
-            timer.Stop();
-            Console.WriteLine($"Bitmap created with handle in {timer.ElapsedTicks} ticks");
+            // timer.Stop();
+            // Console.WriteLine($"Bitmap created with handle in {timer.ElapsedTicks} ticks");
 
             return result;
         }
 
         private static Bitmap CreateBitmap(Color[,] colors, bool isArgb = true)
         {
-            var timer = Stopwatch.StartNew();
+            // var timer = Stopwatch.StartNew();
             int width = colors.GetLength(1);
             int height = colors.GetLength(0);
 
@@ -975,9 +973,7 @@ namespace Orikivo.Drawing
                     {
                         Color color = colors[y, x / bitsPerPixel];
 
-                        if (isArgb)
-                            row[x + 3] = color.A;
-
+                        if (isArgb) row[x + 3] = color.A;
                         row[x + 2] = color.R;
                         row[x + 1] = color.G;
                         row[x] = color.B;
@@ -987,8 +983,8 @@ namespace Orikivo.Drawing
                 bmp.UnlockBits(source);
             }
 
-            timer.Stop();
-            Console.WriteLine($"Bitmap created in {timer.ElapsedTicks} ticks");
+            // timer.Stop();
+            // Console.WriteLine($"Bitmap created in {timer.ElapsedTicks} ticks");
 
             return bmp;
         }
@@ -1183,7 +1179,7 @@ namespace Orikivo.Drawing
                     lumenColors.Add(match);
             }
 
-            Console.WriteLine(string.Join(" ", lumenColors));
+            Console.WriteLine($"Lumen Color Count: {string.Join(" ", lumenColors)}");
 
             return lumenColors.Count;
         }

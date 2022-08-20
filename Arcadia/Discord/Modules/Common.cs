@@ -411,7 +411,7 @@ namespace Arcadia.Modules
         [Summary("View a user's or your own current **Card**.")]
         public async Task GetCardAsync(SocketUser user = null)
         {
-            bool canRender = Environment.OSVersion.Platform == PlatformID.Win32NT;
+            // bool canRender = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
             /*
             if (!canRender)

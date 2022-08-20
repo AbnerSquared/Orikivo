@@ -3,12 +3,10 @@ using System.Collections.Generic;
 
 namespace Arcadia
 {
-    // Daily challenges offer bigger rewards and take up quest slots, but smaller challenges can become available
-    // Once you complete all of the daily quests
     /// <summary>
     /// Represents a generic objective.
     /// </summary>
-    public class Quest // Rename to challenge when possible
+    public class Quest
     {
         public string Id { get; set; }
 

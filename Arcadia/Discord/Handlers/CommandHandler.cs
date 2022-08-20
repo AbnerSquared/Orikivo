@@ -227,7 +227,7 @@ namespace Arcadia
             var text = new StringBuilder();
 
             text.AppendLine($"> 🔻 {(isGlobal ? "You are executing commands too quickly." : "This command is on cooldown.")}");
-            text.AppendLine($"> {(isGlobal ? "Please wait" : "You can execute it in")} {Format.Counter(DateTime.UtcNow - expiry)}.");
+            text.AppendLine($"> {(isGlobal ? "Please wait" : "Try again in")} {Format.Counter(DateTime.UtcNow - expiry)}.");
 
             return text.ToString();
         }
@@ -427,7 +427,7 @@ namespace Arcadia
 
                     if (result.Error == CommandError.ObjectNotFound)
                     {
-                        await context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> {result.ErrorReason ?? "An unknown error has occurred."}");
+                        await context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> {result.ErrorReason ?? "The object specified could not be found by the typereader."}");
                         return;
                     }
 

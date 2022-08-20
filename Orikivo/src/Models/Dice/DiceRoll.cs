@@ -8,6 +8,7 @@ namespace Orikivo
     /// </summary>
     public class DiceRoll
     {
+        // TODO: These constructors could most likely be internalized, we don't need other people to use this class
         /// <summary>
         /// Initializes a new <see cref="DiceRoll"/> with a specified <see cref="Orikivo.Dice"/> and result.
         /// </summary>

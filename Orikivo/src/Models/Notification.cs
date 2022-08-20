@@ -31,7 +31,7 @@ namespace Orikivo
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="string"/> that represents the content that this <see cref="Notification"/> will display.
+        /// Returns a <see cref="string"/> that represents the content that this <see cref="Notification"/> will display.
         /// </summary>
         [JsonProperty("content")]
         public string Content { get; }
