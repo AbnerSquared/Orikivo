@@ -80,10 +80,21 @@ namespace Orikivo.Text
             return _string[_cursor++];
         }
 
-        // Get the set of chars at the cursor + length.
+        // Returns a span of chars at the cursor + length.
         public string Read(int len)
         {
-            return _string[_cursor..(_cursor + len)];
+            _cursor += len;
+            return _string[(_cursor - len).._cursor];
+        }
+
+        public char? TryRead()
+        {
+            return CanRead() ? Read() : (char?)null;
+        }
+
+        public string TryRead(int len)
+        {
+            return CanRead(len) ? Read(len) : null;
         }
 
         public string GetRead()
@@ -94,6 +105,11 @@ namespace Orikivo.Text
         public string GetRemaining()
         {
             return _string[_cursor..];
+        }
+
+        public bool CanRead()
+        {
+            return CanRead(1);
         }
 
         public bool CanRead(int len)
@@ -111,28 +127,20 @@ namespace Orikivo.Text
             return GetRemaining().StartsWith(text);
         }
 
-        public bool CanRead()
-        {
-            return CanRead(1);
-        }
-
+        // Move the cursor 1
         public void Skip()
         {
             _cursor++;
         }
 
+        // Move the cursor a specified amount
         public void Skip(int len)
         {
             _cursor += len;
         }
 
-        public void SkipWhiteSpace()
-        {
-            while (CanRead() && char.IsWhiteSpace(Peek()))
-                Skip();
-        }
-
-        public void SkipUntil(char terminator, bool skipTerminator = false)
+        // Move the cursor until a terminator char is found
+        public void SkipUntil(char terminator, bool skipTerminator = true)
         {
             while (CanRead() && Peek() != terminator)
                 Skip();
@@ -146,6 +154,78 @@ namespace Orikivo.Text
             throw new System.Exception("Expected terminator");
         }
 
+        public string ReadUntil(char terminator)
+        {
+            var result = new StringBuilder();
+            bool escaped = false;
+
+            while (CanRead())
+            {
+                char c = Read();
+
+                if (escaped)
+                {
+                    if (c == terminator || c == SYNTAX_ESCAPE)
+                    {
+                        result.Append(c);
+                        escaped = false;
+                    }
+                    else
+                    {
+                        _cursor--;
+                        throw new System.Exception("Invalid escape");
+                    }
+                }
+                else if (c == SYNTAX_ESCAPE)
+                {
+                    escaped = true;
+                }
+                else if (c == terminator)
+                {
+                    return result.ToString();
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+
+            throw new System.Exception("Expected terminator");
+        }
+
+        public bool Contains(char c)
+        {
+            while (CanRead())
+            {
+                if (Read() == c)
+                    return true;
+            }
+
+            return false;
+        }
+
+        // Checks for the specific character and skips
+        public void Expect(char c, string message = null)
+        {
+            if (!CanRead())
+                throw new System.Exception("StringReader cannot read any more characters");
+
+            if (Peek() != c)
+                throw new System.Exception(message ?? $"Expected char '{c}'");
+
+            Skip();
+        }
+
+        // TODO: The rest of these can be considered extensions to StringReader, as they work off of the core methods
+
+        // Move the cursor until a non-whitespace character is found
+        public void SkipWhiteSpace()
+        {
+            while (CanRead() && char.IsWhiteSpace(Peek()))
+                Skip();
+        }
+
+        // Read until a non-numerical value is specified
         public string ReadNumber(out int start)
         {
             start = _cursor;
@@ -205,45 +285,6 @@ namespace Orikivo.Text
             throw new System.Exception("Invalid Double value");
         }
 
-        public string ReadUntil(char terminator)
-        {
-            var result = new StringBuilder();
-            bool escaped = false;
-
-            while (CanRead())
-            {
-                char c = Read();
-
-                if (escaped)
-                {
-                    if (c == terminator || c == SYNTAX_ESCAPE)
-                    {
-                        result.Append(c);
-                        escaped = false;
-                    }
-                    else
-                    {
-                        _cursor--;
-                        throw new System.Exception("Invalid escape");
-                    }
-                }
-                else if (c == SYNTAX_ESCAPE)
-                {
-                    escaped = true;
-                }
-                else if (c == terminator)
-                {
-                    return result.ToString();
-                }
-                else
-                {
-                    result.Append(c);
-                }
-            }
-
-            throw new System.Exception("Expected terminator");
-        }
-
         public string ReadString()
         {
             if (!CanRead())
@@ -289,26 +330,6 @@ namespace Orikivo.Text
                 _cursor = start;
                 throw new System.Exception("Invalid boolean value");
             }
-        }
-
-        public bool Contains(char c)
-        {
-            while (CanRead())
-            {
-                if (Read() == c)
-                    return true;
-            }
-
-            return false;
-        }
-
-
-        public void Expect(char c, string message = null)
-        {
-            if (!CanRead() || Peek() != c)
-                throw new System.Exception(message ?? $"Expected char '{c}'");
-
-            Skip();
         }
     }
 }

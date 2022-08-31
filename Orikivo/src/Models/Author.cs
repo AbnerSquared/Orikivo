@@ -1,5 +1,4 @@
-﻿using Discord;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Orikivo
 {
@@ -8,28 +7,16 @@ namespace Orikivo
     /// </summary>
     public class Author
     {
+        /// <summary>
+        /// Initializes a new <see cref="Author"/>.
+        /// </summary>
+        /// <param name="name">The name of the <see cref="Author"/> to use.</param>
+        /// <param name="id">The unique identifier of this <see cref="Author"/>, if the object came from a Discord user.</param>
         [JsonConstructor]
-        internal Author(string name, ulong? id)
+        public Author(string name, ulong? id = null)
         {
             Name = name;
             Id = id;
-        }
-
-        /// <summary>
-        /// Initializes an <see cref="Author"/> with a specified name.
-        /// </summary>
-        public Author(string name)
-        {
-            Name = name;
-        }
-
-        // TODO: This constructor isn't that useful, and it makes this class require the Discord namespace
-        /// <summary>
-        /// Initializes a new <see cref="Author"/> from a specified <see cref="IUser"/>.
-        /// </summary>
-        public Author(IUser user) : this(user.Username)
-        {
-            Id = user.Id;
         }
 
         /// <summary>
@@ -44,13 +31,14 @@ namespace Orikivo
         [JsonProperty("id")]
         public ulong? Id { get; }
 
+        // TODO: This method seems pointless to specify a fallback string if a default one is already specified?
         /// <summary>
         /// Returns a string that represents this <see cref="Author"/>.
         /// </summary>
         /// <param name="fallback">The fallback name to use if the name is unspecified.</param>
         public string ToString(string fallback)
         {
-            return string.IsNullOrWhiteSpace(Name) ? fallback ?? "Unknown Author" : Name;
+            return string.IsNullOrWhiteSpace(Name) ? fallback ?? Constants.AUTHOR_UNKNOWN : Name;
         }
     }
 }

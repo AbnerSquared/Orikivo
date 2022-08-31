@@ -733,7 +733,7 @@ namespace Arcadia
 
             var reader = new StringReader(id);
 
-            reader.SkipUntil(Delimiter, true);
+            reader.SkipUntil(Delimiter);
 
             return reader.GetRemaining();
         }

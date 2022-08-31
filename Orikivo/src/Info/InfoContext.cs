@@ -116,7 +116,7 @@ namespace Orikivo
             // If a parameter is specified AND the type (if specified) is not a command
             if (ctx.Type.GetValueOrDefault(InfoType.Command) != InfoType.Command && Check.NotNull(m.Groups[6].Value))
             {
-                ctx.ErrorReason = $"{ctx.Type.ToString()}s do not support parameters.";
+                ctx.ErrorReason = $"{ctx.Type}s do not support parameters.";
                 return ctx;
             }
 

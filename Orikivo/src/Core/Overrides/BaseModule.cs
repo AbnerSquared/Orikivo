@@ -14,7 +14,7 @@ namespace Orikivo
         where TContext : BaseCommandContext<TContainer, TGuild, TUser>
     {
         private IDMChannel GetOrCreateDMChannel(IUser user)
-            => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            => user.CreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         protected async Task RunSessionAsync(MessageSession session, TimeSpan? timeout = null)
         {

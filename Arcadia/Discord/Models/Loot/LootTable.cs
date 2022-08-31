@@ -51,10 +51,12 @@ namespace Arcadia
                             wagers[entry.Currency] += entry.Money;
                         }
                     }
-                    else if (!results.TryAdd(entry.ItemId, 1))
+                    else if (!string.IsNullOrWhiteSpace(entry.ItemId) && !results.TryAdd(entry.ItemId, 1))
                     {
                         results[entry.ItemId]++;
                     }
+
+                    // If there is no item specified in the entry, it will be considered as NOTHING
 
                     break;
                 }

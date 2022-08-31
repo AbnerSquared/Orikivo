@@ -28,13 +28,14 @@ namespace Arcadia.Services
         private static readonly int CommonGrowthRate = 5;
         private static readonly int UncommonGrowthRate = 2;
         private static readonly int RareGrowthRate = 1;
+
         // GROWTH, DECAY
         public static Reward GetBonus(long dailyStreak)
         {
             int bonusStreak = (int)(Math.Floor(dailyStreak / (double)BonusInterval) - 1);
 
 
-            int defaultWeight = DefaultBaseWeight - Math.Min((DefaultDecayRate * Math.Max(bonusStreak, 0)), DefaultDecayCap);
+            int defaultWeight = DefaultBaseWeight - Math.Min(DefaultDecayRate * Math.Max(bonusStreak, 0), DefaultDecayCap);
             int commonWeight = GetWeighedChance(bonusStreak, CommonBaseRate, CommonMinStart, CommonGrowthRate, CommonGrowthCap);
             int uncommonWeight = GetWeighedChance(bonusStreak, UncommonBaseRate, UncommonMinStart, UncommonGrowthRate, UncommonGrowthCap);
             int rareWeight = GetWeighedChance(bonusStreak, RareBaseRate, RareMinStart, RareGrowthRate, RareGrowthCap);
@@ -72,7 +73,7 @@ namespace Arcadia.Services
         private static int GetWeighedChance(double streak, double baseRate, double minStart, double growthRate, double growthCap)
         {
             if (streak >= minStart)
-                return (int)(baseRate + Math.Min((growthRate * Math.Max((streak - minStart), 0)), growthCap));
+                return (int)(baseRate + Math.Min(growthRate * Math.Max(streak - minStart, 0), growthCap));
 
             return 0;
         }

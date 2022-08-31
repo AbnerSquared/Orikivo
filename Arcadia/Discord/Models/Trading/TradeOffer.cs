@@ -13,8 +13,8 @@ namespace Arcadia
 
         public TradeOffer(Discord.IUser user, Discord.IUser target)
         {
-            Author = new Author(user);
-            Target = new Author(target);
+            Author = new Author(user.Username, user.Id);
+            Target = new Author(target.Username, target.Id);
             CreatedAt = DateTime.UtcNow;
             Id = KeyBuilder.Generate(5);
         }

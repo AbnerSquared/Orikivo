@@ -5,5 +5,7 @@
         public const string DEFAULT_PREFIX = "[";
         public static readonly ulong DevId = 181605794159001601;
         public static readonly ulong SupportId = 456195057373020160;
+
+        public static readonly string AUTHOR_UNKNOWN = "Unknown Author";
     }
 }

@@ -50,6 +50,7 @@ namespace Arcadia
         }
     }
 
+    // TODO: Include LocaleProvide for the ability to automatically parse localized string keys into their corresponding text
     public class TextBody
     {
         public Language Language { get; set; } = Language.English;

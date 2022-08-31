@@ -235,7 +235,7 @@ namespace Arcadia
                     if (amount <= 0)
                         amount = 1;
 
-                    arg = arg.Substring(0, arg.Length - (arg.Length - (arg.IndexOf(',') + 1)));
+                    arg = arg[..^(arg.Length - (arg.IndexOf(',') + 1))];
                 }
 
                 if (!ItemHelper.Exists(arg))

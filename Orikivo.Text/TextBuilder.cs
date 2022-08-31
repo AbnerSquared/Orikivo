@@ -4,6 +4,7 @@ using Orikivo.Text.Pagination;
 
 namespace Orikivo.Text
 {
+    // TODO: This builder needs to be reformed to handle auto-pagination
     public class TextBuilder
     {
         private readonly StringBuilder _builder;

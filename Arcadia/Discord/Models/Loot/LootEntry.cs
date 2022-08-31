@@ -18,5 +18,7 @@
         public CurrencyType Currency { get; set; } = CurrencyType.Money;
 
         public int Weight { get; set; }
+
+        public StackRange StackSize { get; set; } = 1;
     }
 }

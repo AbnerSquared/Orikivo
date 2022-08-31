@@ -26,8 +26,6 @@ namespace Orikivo
 
         public static string Number(long value, string icon = null)
         {
-
-
             if (string.IsNullOrWhiteSpace(icon))
                 return $"**{value:##,0}**";
 
@@ -119,6 +117,7 @@ namespace Orikivo
             return $"> {text}";
         }
 
+        // TODO: Replace pad with a prepend value
         public static string ElementCount(int count, bool showOnSingle = true, bool pad = true)
         {
             if (!showOnSingle && count <= 1)
@@ -456,6 +455,7 @@ namespace Orikivo
             return $"{number}{suffix}";
         }
 
+        // TODO: Handle ordinal suffixes for higher numbers
         private static string GetOrdinalSuffix(int i)
         {
             return GetLastDigit(i) switch
@@ -492,11 +492,8 @@ namespace Orikivo
             var result = new StringBuilder();
 
             // NOTE: If the error is embedded, the reaction is placed on the title.
-            if (!isEmbedded)
-            {
-                if (Check.NotNull(reaction))
-                    result.AppendLine($"> {Bold(reaction)}");
-            }
+            if (!isEmbedded && Check.NotNull(reaction))
+                result.AppendLine($"> {Bold(reaction)}");
 
             if (Check.NotNull(title))
                 result.Append($"> {title}\n");
@@ -631,6 +628,8 @@ namespace Orikivo
         // TODO: Handle upper case words
         private static string Pluralize(string word, bool isFormal = false)
         {
+            StringComparison comparer = StringComparison.Ordinal;
+
             // no point in trying if the word doesn't exist.
             if (string.IsNullOrWhiteSpace(word))
                 return word;
@@ -649,7 +648,7 @@ namespace Orikivo
                 return UniquePlurals[input];
 
             // if the specified word is shorter than 3 letters, just return it with an s.
-            if (input.Length < 3 || input.EndsWith("nth", StringComparison.Ordinal)) // substitute; not official formatting
+            if (input.Length < 3 || input.EndsWith("nth", comparer)) // substitute; not official formatting
                 return word + "s";
 
             // regular nouns => word + s
@@ -673,39 +672,39 @@ namespace Orikivo
                 return word[..^suffix.Length] + "ves";
             }
 
-            if (input.EndsWith("y", StringComparison.Ordinal))
+            if (input.EndsWith("y", comparer))
             {
                 // ^2 == word.Length - 2
                 if (IsConsonant(input[^2]))
                     return word[..^1] + "ies";
             }
 
-            if (input.EndsWith("o", StringComparison.Ordinal))
+            if (input.EndsWith("o", comparer))
             {
                 // this is where implementing exceptions for specific words come into play.
                 return word + "es";
             }
 
             // radius => radii
-            if (input.EndsWith("us", StringComparison.Ordinal))
+            if (input.EndsWith("us", comparer))
                 // word[0..^2] == word.Substring(0, word.Length - 2)
                 // this is selecting the range of characters FROM 0 TO word.Length - 2
                 return word[..^2] + "i";
 
             // criterion => criteria
-            if (input.EndsWithAny(StringComparison.Ordinal, "ion", "ton"))
+            if (input.EndsWithAny(comparer, "ion", "ton"))
                 return word[..^2] + "a";
 
             // axis => axes
-            if (input.EndsWith("is", StringComparison.Ordinal))
+            if (input.EndsWith("is", comparer))
                 return word[..^2] + "es";
 
             // datum => data
-            if (input.EndsWith("um", StringComparison.Ordinal))
+            if (input.EndsWith("um", comparer))
                 return word[..^2] + "a";
 
             // this might not be right, but it's worth a shot
-            if (input.EndsWith("ies", StringComparison.Ordinal))
+            if (input.EndsWith("ies", comparer))
                 return word;
 
             return word + "s";

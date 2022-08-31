@@ -21,6 +21,7 @@ namespace Orikivo.Text
         public bool Exists(string id)
             => Nodes.Any(x => x.Id == id);
 
+        // TODO: Throw an exception instead of an invalid string
         public string GetString(string id, params object[] args)
             => GetNode(id)?.ToString(args) ?? "INVALID_LOCALE";
     }

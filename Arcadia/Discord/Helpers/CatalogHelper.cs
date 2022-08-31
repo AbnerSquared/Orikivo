@@ -109,7 +109,10 @@ namespace Arcadia
                 Subtitle = $"Active Orders: **{orderCount:##,0}**"
             };
 
-            // result.Tooltips.Add("Type `ordercancel <position>` to cancel an active order.");
+            if (orderCount > 0)
+            {
+                result.Tooltips.Add("Type `ordercancel <position>` to cancel an active order.");
+            }
 
             result.Sections.Add(GetOrderSection(user, page));
 
@@ -224,7 +227,7 @@ namespace Arcadia
 
             var reader = new StringReader(orderId);
 
-            reader.SkipUntil('#', true);
+            reader.SkipUntil('#');
 
             return int.Parse(reader.GetRemaining());
         }

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 
 namespace Orikivo.Text
 {
+    // TODO: Find a place to put this
     public class ContentBuilder
     {
         private StringBuilder _builder = new StringBuilder();
@@ -54,6 +55,8 @@ namespace Orikivo.Text
         public LocaleBank GetBank(Language language)
             => Banks.FirstOrDefault(x => x.Language == language);
 
+        // TODO: Throw an exception instead of an invalid string
+        // TODO: Should GetString or GetValue be the method name standard?
         public string GetValue(string id, Language language = Language.English, params object[] args)
         {
             return GetBank(language)?.GetNode(id)?.ToString(args) ?? "INVALID_LOCALE";
@@ -61,6 +64,8 @@ namespace Orikivo.Text
 
         public string GetValueOrDefault(string id, Language language = Language.English, string defaultValue = "INVALID_LOCALE")
             => GetBank(language)?.GetNode(id)?.ToString() ?? defaultValue;
+
+        // TODO: Find a better location to place JSON serialization
 
         private static JsonSerializerSettings DefaultSerializerSettings
             => new JsonSerializerSettings
@@ -70,6 +75,7 @@ namespace Orikivo.Text
                 Formatting = Formatting.Indented
             };
 
+        // TODO: A generic JsonSerializer should be used instead, but that would create reverse dependency (Orikivo.Text relying on Orikivo)
         private static T Load<T>(string path, JsonSerializer serializer = null, bool throwOnEmpty = false)
         {
             if (!File.Exists(path))

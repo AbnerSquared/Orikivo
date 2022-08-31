@@ -8,9 +8,10 @@ namespace Orikivo.Text.Pagination
     {
         private readonly string _defaultValue;
 
+        // TODO: Find a way to reference the elements without having to cast as a List
         internal Page(int offset, IEnumerable<T> elements, string defaultValue = null)
         {
-            Elements = elements.ToList(); // This might need to be tweaked to prevent .ToList().
+            Elements = elements.ToList();
             Offset = offset;
             _defaultValue = defaultValue;
         }

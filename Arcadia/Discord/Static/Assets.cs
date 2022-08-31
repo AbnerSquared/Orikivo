@@ -10,6 +10,23 @@ using Orikivo.Text;
 
 namespace Arcadia
 {
+    public class StackRange
+    {
+        public StackRange(int min = 1, int max = 1)
+        {
+            Min = min;
+            Max = max;
+        }
+
+        public int Min { get; set; } = 1;
+        public int Max { get; set; } = 1;
+
+        public static implicit operator StackRange(int value)
+        {
+            return new StackRange(value, value);
+        }
+    }
+
     // NOTE: Using this as a means to figure out what to unlock on Orikivo Arcade is frowned upon.
     // Nonetheless, I can't stop you, so do what you will. :(
     // -- This will be stored locally in the future, so do what you can now.
