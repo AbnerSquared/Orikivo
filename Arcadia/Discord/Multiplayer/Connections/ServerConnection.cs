@@ -12,7 +12,7 @@ namespace Arcadia.Multiplayer
         public static async Task<ServerConnection> CreateAsync(Player player, ConnectionProperties properties = null)
         {
             properties ??= ConnectionProperties.Default;
-            PlayerChannel channel = await player.GetOrCreateChannelAsync();
+            PlayerChannel channel = await player.GetChannelAsync();
             Logger.Debug($"Creating connection with ID of {channel.Id} for {player.User.Id}");
             IUserMessage message = await channel.SendAsync(Check.NotNull(properties.ContentOverride) ? properties.ContentOverride?.ToString() : $"> ⚠️ Could not find a channel at the specified frequency ({properties.Frequency}).");
 
@@ -23,7 +23,7 @@ namespace Arcadia.Multiplayer
             {
                 Server = player.Server,
                 RefreshRate = TimeSpan.FromSeconds(1),
-                Type = ConnectionType.Direct,
+                Type = ConnectionType.User,
                 RefreshCounter = 4,
                 BlockInput = false,
                 UserId = player.User.Id,
@@ -82,6 +82,7 @@ namespace Arcadia.Multiplayer
         public ulong? GuildId { get; set; }
 
         public ulong UserId { get; set; }
+
         public ulong ChannelId { get; set; }
 
         public ulong MessageId { get; set; }

@@ -1,9 +1,6 @@
 ﻿using Discord;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Discord.Net;
-using Orikivo;
 
 namespace Arcadia.Multiplayer
 {
@@ -17,7 +14,6 @@ namespace Arcadia.Multiplayer
             Server = server;
             User = user;
             JoinedAt = DateTime.UtcNow;
-            //Channel = user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -52,68 +48,14 @@ namespace Arcadia.Multiplayer
         /// </summary>
         public GameServer Server { get; }
 
-        /// <summary>
-        /// Gets the direct message channel for this <see cref="Player"/>, if any.
-        /// </summary>
-        public PlayerChannel PlayerChannel { get; private set; }
+        internal PlayerChannel PlayerChannel { get; private set; }
 
         /// <summary>
         /// Gets or creates the direct message channel for this <see cref="Player"/>.
         /// </summary>
-        public async Task<PlayerChannel> GetOrCreateChannelAsync()
+        public async Task<PlayerChannel> GetChannelAsync()
         {
             return PlayerChannel ??= await PlayerChannel.CreateAsync(User);
-        }
-    }
-
-    public class Connection : Receiver
-    {
-        public int Frequency { get; set; }
-        public DisplayContent Content { get; set; }
-        public InputController Controller { get; set; }
-    }
-
-    public class InputController
-    {
-        public List<IInput> Inputs { get; set; }
-
-        public bool Disabled { get; set; }
-    }
-
-    public class Receiver
-    {
-        public IMessageChannel Channel { get; protected set; }
-
-        public IUserMessage Message { get; private set; }
-
-        // Determines if this receiver is included in the update pool or not
-        public bool Disabled { get; internal set; }
-
-        public bool CanSendMessages { get; protected set; } = true;
-
-        public async Task<IUserMessage> UpdateAsync(string content, bool replacePrevious = false)
-        {
-            if (!CanSendMessages)
-                return null;
-
-            try
-            {
-                if (Message != null && !replacePrevious)
-                {
-                    await Message.ModifyAsync(content);
-                }
-                else
-                {
-                    Message = await Channel.SendMessageAsync(content);
-                }
-
-                return Message;
-            }
-            catch (HttpException error) when (error.DiscordCode == 50007)
-            {
-                CanSendMessages = false;
-                return null;
-            }
         }
     }
 }

@@ -17,16 +17,6 @@ namespace Arcadia.Multiplayer
         /// </summary>
         DateTime CreatedAt { get; }
 
-        /// <summary>
-        /// Represents the message that this connection references.
-        /// </summary>
-        IUserMessage Message { get; }
-
-        /// <summary>
-        /// Represents the channel that this connection is bound to.
-        /// </summary>
-        IMessageChannel Channel { get; }
-
         // Deletes the message for this connection and clears all of them
         Task DestroyAsync();
 

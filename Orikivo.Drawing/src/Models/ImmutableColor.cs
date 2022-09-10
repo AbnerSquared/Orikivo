@@ -379,18 +379,6 @@ namespace Orikivo.Drawing
         }
 
         /// <summary>
-        /// Returns the index of the closest matching index of the specified <see cref="ImmutableColor"/> from a <see cref="GammaPalette"/>.
-        /// </summary>
-        public static int ClosestMatchAt(ImmutableColor value, GammaPalette colors)
-            => ClosestMatchAt(value, colors.Values);
-
-        /// <summary>
-        /// Returns the closest matching <see cref="ImmutableColor"/> for the specified value from a <see cref="GammaPalette"/>.
-        /// </summary>
-        public static ImmutableColor ClosestMatch(ImmutableColor value, GammaPalette colors)
-            => ClosestMatch(value, colors.Values);
-
-        /// <summary>
         /// Initializes a new <see cref="ImmutableColor"/> from a raw RGBA value.
         /// </summary>
         [JsonConstructor]

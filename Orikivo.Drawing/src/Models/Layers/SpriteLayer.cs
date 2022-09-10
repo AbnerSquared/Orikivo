@@ -11,6 +11,6 @@ namespace Orikivo.Drawing
         public Sprite Sprite { get; set; }
 
         protected override Bitmap GetBaseImage()
-            => Sprite.GetImage();
+            => Sprite.Load();
     }
 }

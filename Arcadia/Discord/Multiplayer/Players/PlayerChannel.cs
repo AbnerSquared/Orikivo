@@ -1,11 +1,8 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Orikivo;
 using Orikivo.Framework;
-using Format = Orikivo.Format;
 
 namespace Arcadia.Multiplayer
 {
@@ -16,7 +13,8 @@ namespace Arcadia.Multiplayer
     {
         public static async Task<PlayerChannel> CreateAsync(IUser user)
         {
-            IMessageChannel channel = await user.GetOrCreateDMChannelAsync();
+            // TODO: Use correct method to get a DM channel
+            IMessageChannel channel = await user.CreateDMChannelAsync();
             return new PlayerChannel(channel, user);
         }
 
@@ -87,7 +85,7 @@ namespace Arcadia.Multiplayer
                 PreviousMessage = await Source.SendMessageAsync(text);
                 return PreviousMessage;
             }
-            catch (HttpException error) when (error.DiscordCode == 50007)
+            catch (HttpException error) when (error.DiscordCode == DiscordErrorCode.CannotSendMessageToUser) // 50007
             {
                 Logger.Debug($"Unable to send message to user {Recipient.Id} as their direct message channel is disabled");
                 Disabled = true;

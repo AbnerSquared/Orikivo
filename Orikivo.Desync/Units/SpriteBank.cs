@@ -39,7 +39,7 @@ namespace Orikivo.Desync
 
         public Bitmap GetImage(string id)
         {
-            return GetSprite(id).GetImage();
+            return GetSprite(id).Load();
         }
 
         public Sprite GetSprite(string id)

@@ -24,7 +24,7 @@ namespace Arcadia.Multiplayer
             return
                 GetType()
                     .GetProperties()
-                    .Where(x => CustomAttributeExtensions.GetCustomAttribute<PropertyAttribute>((MemberInfo) x) != null)
+                    .Where(x => CustomAttributeExtensions.GetCustomAttribute<PropertyAttribute>(x) != null)
                     .Select(x => GameProperty.Create(x.GetCustomAttribute<PropertyAttribute>()?.Id, x.GetValue(this), true))
                     .ToList();
         }
@@ -34,9 +34,11 @@ namespace Arcadia.Multiplayer
         /// </summary>
         public void Reset()
         {
+            var defaultBase = GetDefault();
+
             foreach (PropertyInfo property in GetType().GetProperties())
             {
-                property.SetValue(this, property.GetValue(GetDefault()));
+                property.SetValue(this, property.GetValue(defaultBase));
             }
         }
     }

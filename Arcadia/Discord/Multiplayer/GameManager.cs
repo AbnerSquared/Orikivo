@@ -29,9 +29,11 @@ namespace Arcadia.Multiplayer
 
             _client.ChannelDestroyed += OnChannelDestroyed;
 
+            // TODO: Update with ICacheable methods
             _client.ReactionAdded += OnReactionAdded;
             _client.ReactionRemoved += OnReactionRemoved;
 
+            // TODO: Update with ICacheable methods
             _client.MessageReceived += OnMessageReceived;
             _client.MessageDeleted += OnMessageDeleted;
             _client.LatencyUpdated += HandleIdleServers;
@@ -1416,7 +1418,7 @@ namespace Arcadia.Multiplayer
             }
             else
             {
-                connection.DeleteMessages = connection.Type == ConnectionType.Direct;
+                connection.DeleteMessages = connection.Type == ConnectionType.User;
             }
 
             Logger.Debug($"Ensured deletion state as {connection.DeleteMessages}");

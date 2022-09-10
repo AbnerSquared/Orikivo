@@ -43,13 +43,13 @@ namespace Orikivo.Desync
                 using (Bitmap bg = new Bitmap("../assets/npcs/npc_frame.png"))
                     ImageHelper.ClipAndDrawImage(g, bg, new Point(0, 0));
 
-                using (Bitmap body = Body.Value.GetImage())
+                using (Bitmap body = Body.Value.Load())
                     ImageHelper.ClipAndDrawImage(g, body, Body.GetOffset());
 
-                using (Bitmap head = Head.Value.GetImage())
+                using (Bitmap head = Head.Value.Load())
                     ImageHelper.ClipAndDrawImage(g, head, Head.GetOffset());
 
-                using (Bitmap face = GetReactionOrDefault(tone).Value.GetImage())
+                using (Bitmap face = GetReactionOrDefault(tone).Value.Load())
                     ImageHelper.ClipAndDrawImage(g, face, DefaultFaceOffset);
             }
 

@@ -113,9 +113,7 @@ namespace Arcadia.Multiplayer
             if (a == null || b == null)
                 return;
 
-            int oldPos = a.Position;
-            a.Position = b.Position;
-            b.Position = oldPos;
+            (b.Position, a.Position) = (a.Position, b.Position);
         }
 
         public IComponent this[string id]

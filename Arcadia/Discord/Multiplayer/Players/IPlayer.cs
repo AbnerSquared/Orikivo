@@ -1,16 +1,13 @@
 ﻿using System;
-using Discord;
+using Arcadia.Models;
 
 namespace Arcadia.Multiplayer
 {
     /// <summary>
     /// Represents a generic player.
     /// </summary>
-    public interface IPlayer
+    public interface IPlayer : IModel<ulong>
     {
-        // Make the multiplayer system platform-independant
-        IUser User { get; }
-
         /// <summary>
         /// Represents the time at which this player joined.
         /// </summary>

@@ -31,7 +31,7 @@ namespace Arcadia.Multiplayer
         public List<IInput> GetInputs(GameServer server)
         {
             if (!(Activator.CreateInstance(BaseType) is GameBase game))
-                throw new Exception("Expected base type of info to be a GameBase");
+                throw new Exception("Expected GameBase type reference");
 
             return game.OnBuildBroadcasts(game.OnBuildPlayers(server.Players)).SelectMany(x => x.Inputs).ToList();
         }

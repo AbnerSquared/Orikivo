@@ -532,7 +532,7 @@ namespace Arcadia.Multiplayer
             if (player.Server.Id != Id)
                 return false;
 
-            PlayerChannel channel = await player.GetOrCreateChannelAsync();
+            PlayerChannel channel = await player.GetChannelAsync();
 
             if (GetConnection(channel.Id) != null)
                 return true;
@@ -584,9 +584,6 @@ namespace Arcadia.Multiplayer
             if (connection == null)
                 return false;
 
-            //if (Session != null)
-            //    DestroyCurrentSession();
-
             Connections.Remove(connection);
             _manager.ReservedChannels.Remove(channelId);
 
@@ -604,6 +601,7 @@ namespace Arcadia.Multiplayer
             return true;
         }
 
+        // Replace bool with GameTaskResult
         public async Task<bool> AddPlayerAsync(IUser user)
         {
             if (Destroyed)
@@ -654,7 +652,7 @@ namespace Arcadia.Multiplayer
 
                 if (Check.NotNull(reason))
                 {
-                    PlayerChannel channel = await player.GetOrCreateChannelAsync();
+                    PlayerChannel channel = await player.GetChannelAsync();
                     await channel.SendAsync($"You were removed from the server.\nReason: {reason}");
                 }
             }
@@ -706,7 +704,7 @@ namespace Arcadia.Multiplayer
 
             if (Check.NotNull(reason))
             {
-                PlayerChannel channel = await player.GetOrCreateChannelAsync();
+                PlayerChannel channel = await player.GetChannelAsync();
                 await channel.SendAsync($"You were removed from the server.\nReason: {reason}");
             }
 
@@ -893,7 +891,7 @@ namespace Arcadia.Multiplayer
 
             foreach (ServerConnection connection in Connections)
             {
-                Logger.Debug($"Refreshing {connection.ChannelId} - {connection.State.ToString()}");
+                Logger.Debug($"Refreshing {connection.ChannelId} - {connection.State}");
 
                 try
                 {

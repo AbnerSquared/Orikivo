@@ -19,7 +19,7 @@ namespace Orikivo.Drawing
             CropHeight = cropHeight;
             CropWidth = cropWidth;
 
-            using Bitmap source = GetImage();
+            using Bitmap source = Load();
 
             if (source.Width % CropWidth != 0)
                 throw new ArgumentException("The crop width specified leaves a remainder width.", nameof(cropWidth));
@@ -94,7 +94,7 @@ namespace Orikivo.Drawing
             SheetOverride crop = Overrides.FirstOrDefault(x => x.Row == row && x.Column == column) ?? SheetOverride.Empty;
 
             if (RowCount == 1 && ColumnCount == 1)
-                return GetImage();
+                return Load();
 
             return ImageHelper.Crop(Path,
                 (CropWidth * (column - 1)) + crop.OffsetX,

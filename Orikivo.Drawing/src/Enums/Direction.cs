@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Orikivo.Drawing
+﻿namespace Orikivo.Drawing
 {
-    [Flags]
+    [System.Flags]
     public enum Direction
     {
         Left = 1,

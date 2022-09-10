@@ -1111,7 +1111,7 @@ namespace Orikivo.Drawing
                     for (int x = 0; x < sourceWidth; x += bitsPerPixel)
                     {
                         var color = new ImmutableColor(row[x + 2], row[x + 1], row[x], row[x + 3]);
-                        Color match = ImmutableColor.ClosestMatch(color, colors);
+                        Color match = ImmutableColor.ClosestMatch(color, colors.Values);
 
                         row[x + 2] = match.R;
                         row[x + 1] = match.G;

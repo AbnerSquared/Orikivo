@@ -19,7 +19,7 @@ namespace Orikivo.Drawing
             if (!File.Exists(Path))
                 throw new System.Exception("The specified path does not point to an existing file.");
 
-            using (Bitmap source = GetImage())
+            using (Bitmap source = Load())
             {
                 Width = source.Width;
                 Height = source.Height;
@@ -53,7 +53,7 @@ namespace Orikivo.Drawing
         /// <summary>
         /// Loads the <see cref="Bitmap"/> referenced from this <see cref="Sprite"/>.
         /// </summary>
-        public Bitmap GetImage()
+        public Bitmap Load()
             => new Bitmap(Path);
     }
 }

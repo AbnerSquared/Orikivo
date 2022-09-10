@@ -4,7 +4,7 @@ using Orikivo.Text;
 namespace Orikivo
 {
     /// <summary>
-    /// Represents the configuration for a <see cref="User"/>.
+    /// Represents the configuration for a <see cref="BaseUser"/>.
     /// </summary>
     public class UserConfig : ConfigBase
     {

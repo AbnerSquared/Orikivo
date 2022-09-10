@@ -20,6 +20,6 @@ namespace Arcadia.Multiplayer
         /// <summary>
         /// Represents an <see cref="IConnection"/> that originated from an <see cref="IUser"/>.
         /// </summary>
-        Direct = 2
+        User = 2
     }
 }
