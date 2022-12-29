@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace Orikivo
 {
-    public class JsonContainer<TEntity> // : IDataContainer<IJsonModel>
+    public class JsonContainer<TEntity>
         where TEntity : IJsonModel
     {
         private readonly string _directory;

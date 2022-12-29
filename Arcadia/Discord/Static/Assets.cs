@@ -10,22 +10,6 @@ using Orikivo.Text;
 
 namespace Arcadia
 {
-    public class StackRange
-    {
-        public StackRange(int min = 1, int max = 1)
-        {
-            Min = min;
-            Max = max;
-        }
-
-        public int Min { get; set; } = 1;
-        public int Max { get; set; } = 1;
-
-        public static implicit operator StackRange(int value)
-        {
-            return new StackRange(value, value);
-        }
-    }
 
     // NOTE: Using this as a means to figure out what to unlock on Orikivo Arcade is frowned upon.
     // Nonetheless, I can't stop you, so do what you will. :(
@@ -984,413 +968,413 @@ namespace Arcadia
             }
         };
 
-        public static readonly HashSet<Merit> Merits = new HashSet<Merit>
+        public static readonly HashSet<Badge> Merits = new HashSet<Badge>
         {
-            new Merit
+            new Badge
             {
                 Id = "currency:tidal_taxes",
                 Icon = "🌊",
                 Name = "Tidal Taxes",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "Drown in the currency that prevents hope.",
                 Quote = $"Reached {Icons.Debt} **10,000** at one point.",
                 Criteria = user => user.Debt >= 10000
             },
-            new Merit
+            new Badge
             {
                 Id = "currency:raging_riches",
                 Icon = "🔥",
                 Name = "Raging Riches",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "Bathe yourself in **Orite**.",
                 Quote = $"Reached {Icons.Balance} **10,000** at one point.",
                 Criteria = user => user.Balance >= 10000
             },
-            new Merit
+            new Badge
             {
                 Id = "currency:chip_collector",
                 Icon = "💰",
                 Name = "Chip Collector",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "Go against the odds of the casino.",
                 Quote = $"Reached {Icons.Chips} **10,000** at one point.",
                 Criteria = user => user.ChipBalance >= 10000
             },
-            new Merit
+            new Badge
             {
                 Id = "currency:chip_big_win",
                 Icon = Icons.Chips,
                 Name = "Go Big Or Go Home",
-                Rank = MeritRank.Platinum,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Platinum,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 250,
                 LockQuote = "Take a large portion of the casino with you.",
                 Quote = $"Won over {Icons.Chips} **10,000** at once.",
                 Criteria = user => user.GetVar(Stats.Common.MostChipsRound) >= 10000
             },
-            new Merit
+            new Badge
             {
                 Id = "exp:freshly_grown",
                 Icon = "🌱",
                 Name = "Freshly Grown",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 25,
                 LockQuote = "You have escaped the depths of the commonfolk, reaching a new tier of firmware.",// "Your level means nothing.",
                 Quote = "Reached v**0.10**.",
                 Criteria = user => user.Level >= 10
             },
-            new Merit
+            new Badge
             {
                 Id = "common:rapid_routine",
                 Name = "Rapid Routine",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Secret,
                 Score = 30,
                 LockQuote = "Complete plenty of quests in a short amount of time.",
                 Quote = "Earned over **100**q in a single leaderboard cycle.",
                 Criteria = user => user.GetVar(Vars.MonthlyQuests) >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "common:wise_jury",
                 Name = "Wise Jury",
-                Rank = MeritRank.Silver,
+                Rank = BadgeRank.Silver,
                 Score = 20,
-                Tags = MeritTag.Secret,
+                Tags = BadgeTag.Secret,
                 LockQuote = "Use **Pocket Lawyer** when you need it the most.",
                 Quote = $"Used **Pocket Lawyer** to forfeit over {Icons.Debt} **1,000**",
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:ten_five",
                 Name = "Ten Point Five",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Secret,
                 Score = 25,
                 LockQuote = "Perfect the art of **Blackjack**",
                 Quote = "Played a session of **Blackjack** and won two split hands with exactly **21**."
             },
-            new Merit
+            new Badge
             {
                 Id = "arcade:trivia_newcomer",
                 Icon = "📰",
                 Name = "Trivia Newcomer",
-                Tags = MeritTag.Milestone,
-                Rank = MeritRank.Bronze,
+                Tags = BadgeTag.Milestone,
+                Rank = BadgeRank.Bronze,
                 Score = 5,
                 LockQuote = "Get familiar with **Trivia**.",
                 Quote = "Played **5** games of **Trivia**.",
                 Criteria = user => user.GetVar(Stats.Trivia.TimesPlayed) >= 5
             },
-            new Merit
+            new Badge
             {
                 Id = "arcade:trivia_legend",
                 Icon = "🗞️",
                 Name = "Trivia Legend",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Win enough times in **Trivia** to prove yourself.",
                 Quote = "Won **100** games of **Trivia**.",
                 Criteria = user => user.GetVar(Stats.Trivia.TimesWon) >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "exp:rising_rookie",
                 Icon = "🌾",
                 Name = "Rising Rookie",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Climb up wild lands and make yourself known.",
                 Quote = "Reached v**0.25**",
                 Criteria = user => user.Level >= 25
             },
-            new Merit
+            new Badge
             {
                 Id = "exp:astral_advocate",
                 Icon = "🎋",
                 Name = "Astral Advocate",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "Reach what many consider the limit.",
                 Quote = "Reached v**0.50**",
                 Criteria = user => user.Level >= 50
             },
-            new Merit
+            new Badge
             {
                 Id = "exp:space_veteran",
                 Icon = "🌸",
                 Name = "Celestial Veteran",
-                Rank = MeritRank.Platinum,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Platinum,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 250,
                 LockQuote = "Strive past the moon.",
                 Quote = "Reached v**0.100**.",
                 Criteria = user => user.Level >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "exp:transcend",
                 Name = "Transcendant",
-                Rank = MeritRank.Diamond,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Diamond,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 500,
                 LockQuote = "Reach a new plane of experience.",
                 Quote = "Ascended for the first time."
             },
-            new Merit
+            new Badge
             {
                 Id = "common:prisma_infusion",
                 Icon = "🌈",
                 Name = "Prisma Infusion",
-                Rank = MeritRank.Diamond,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Diamond,
+                Tags = BadgeTag.Secret,
                 Score = 500,
                 LockQuote = "Reveal the secrets of the prismatic horizon.",
                 Quote = "Collected all known colors."
             },
-            new Merit
+            new Badge
             {
                 Id = "common:color_theory",
                 Icon = "🟧",
                 Name = "Color Theory",
-                Rank = MeritRank.Silver,
+                Rank = BadgeRank.Silver,
                 Score = 25,
                 LockQuote = "Reveal a new piece of the color wheel.",
                 Quote = "Blended two colors together to create a new color."
             },
-            new Merit
+            new Badge
             {
                 Id = "common:tinkerer",
                 Icon = "🔨",
                 Name = "Newfound Craft",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 5,
                 LockQuote = "Grab your materials and make something new.",
                 Quote = "Crafted an item.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsCrafted) > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "common:trade_beginner",
                 Icon = "🔂",
                 Name = "Trading Beginner",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 5,
                 Quote = "Traded with another user.",
                 Criteria = user => user.GetVar(Stats.Common.TimesTraded) > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "common:bronze_heart",
                 Icon = "🤎",
                 Name = "Bronze Heart",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 5,
                 LockQuote = "You are a kind and giving entity.",
                 Quote = "Gifted an item.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "common:silver_heart",
                 Icon = "🤍",
                 Name = "Silver Heart",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Milestone,
                 Score = 50,
                 LockQuote = "Your heart grows with generosity.",
                 Quote = "Gifted over **100** items away.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 100
             },
-            new Merit
+            new Badge
             {
                 Id = "common:golden_heart",
                 Icon = "💛",
                 Name = "Golden Heart",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Your giving heart must radiate gold.",
                 Quote = "Gifted over **500** items away.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsGifted) > 500
             },
-            new Merit
+            new Badge
             {
                 Id = "common:ignition",
                 Icon = "🕯️",
                 Name = "Ignition",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 5,
                 LockQuote = "Light the fuse and fly away.",
                 Quote = "Activated a booster.",
                 Criteria = user => user.Boosters.Count > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "common:progress_pioneer",
                 Icon = "🚝",
                 Name = "Progression Pioneer",
-                Rank = MeritRank.Diamond,
-                Tags = MeritTag.Exclusive | MeritTag.Secret,
+                Rank = BadgeRank.Diamond,
+                Tags = BadgeTag.Exclusive | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "You may not have always been, but your contribution is still noted.",
                 Quote = "You were there at the start, carving the path to the future."
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:liquidation",
                 Name = "Liquidation",
-                Rank = MeritRank.Bronze,
+                Rank = BadgeRank.Bronze,
                 Score = 5,
                 LockQuote = "Your requests have been met with liquid assets.",
                 Quote = "You were given gold in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesGold) > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:deprivation",
                 Name = "Deprivation",
-                Rank = MeritRank.Bronze,
+                Rank = BadgeRank.Bronze,
                 Score = 5,
                 LockQuote = "Your greed has led you to perish under the moonlight.",
                 Quote = "You were cursed in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesCursed) > 0
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:golden_touch",
                 Name = "Golden Touch",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Midas has blessed you with riches.",
                 Quote = "You were given gold twice in a row in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestGold) >= 2
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:pandoras_box",
                 Name = "Pandora's Box",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Your ruthless requests released the worst of this world.",
                 Quote = "You were cursed twice in a row in **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestCurse) >= 2
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:lucky_guesses",
                 Name = "Doubly Doubt",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Secret,
                 Score = 25,
                 LockQuote = "Accuracy and consistency is needed in **Doubly**.",
                 Quote = "You have won 3 rounds of **Doubly** in a row, where the dying tick was your exact guess.",
                 Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 3
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_beginner",
                 Name = "Gimi Beginner",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 10,
                 LockQuote = "Your addiction shall soon be revealed.",
                 Quote = "Played **100** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_clover",
                 Icon = "☘️",
                 Name = "Clover of Gimi",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Secret,
                 Score = 10,
                 LockQuote = "This clover symbolizes luck, as you shall soon see.",
                 Quote = "Won over **20** times in a row playing **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestWin) >= 20,
                 Hidden = true
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_curse",
                 Icon = "🧿",
                 Name = "Curse of Gimi",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Secret,
                 Score = 10,
                 LockQuote = "It seems a curse of negated luck hovers close.",
                 Quote = "Lost over **20** times in a row playing **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.LongestLoss) >= 20,
                 Hidden = true
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:tick_clover",
                 Icon = "☘️",
                 Name = "Doubly's Clover",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Secret,
                 Score = 25,
                 LockQuote = "Moderate luck is needed in **Doubly**.",
                 Quote = "Won over **20** times in a row in **Doubly**.",
                 Criteria = user => user.GetVar(Stats.Doubler.LongestWin) >= 20
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:tick_exact_clover",
                 Icon = "🏵️",
                 Name = "Doubly's Golden Clover",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "Extreme luck is needed in **Doubly**.",
                 Quote = "Won over **20** times in a row in **Doubly**, guessing the exact tick.",
                 Criteria = user => user.GetVar(Stats.Doubler.LongestWinExact) >= 20
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:tick_beginner",
                 Name = "Doubler Beginner",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 10,
                 Quote = "Played **100** rounds of **Doubly**.",
                 Criteria = user => user.GetVar(Stats.Doubler.TimesPlayed) >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_advocate",
                 Name = "Gimi Advocate",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Milestone,
                 Score = 25,
                 LockQuote = "Despite the possible financial ruin, you keep playing.",
                 Quote = "Played **1,000** rounds of **Gimi**.",
                 Criteria = user => user.GetVar(Stats.Gimi.TimesPlayed) >= 1000
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_expert",
                 Name = "Gimi Expert",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 50,
                 LockQuote = "The addiction for the wealth you seek scares me.",
                 Quote = "Played **5,000** rounds of **Gimi**.",
@@ -1401,13 +1385,13 @@ namespace Arcadia
                     Exp = 2000
                 }
             },
-            new Merit
+            new Badge
             {
                 Id = "casino:gimi_maniac",
                 Icon = "⚗️",
                 Name = "Gimi Maniac",
-                Rank = MeritRank.Diamond,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Diamond,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 250,
                 LockQuote = "You have reached the end of the road. Blessings and curses are part of your life now.",
                 Quote = "Played **10,000** rounds of **Gimi**.",
@@ -1422,60 +1406,60 @@ namespace Arcadia
                     }
                 }
             },
-            new Merit
+            new Badge
             {
                 Id = "common:weekly_worker",
                 Icon = "✨",
                 Name = "Weekly Worker",
-                Rank = MeritRank.Bronze,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Bronze,
+                Tags = BadgeTag.Milestone,
                 Score = 7,
                 LockQuote = "Maybe if you stopped by a bit more often, I'd get to know you better.",
                 Quote = "Maintained a daily streak for **7** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 7
             },
-            new Merit
+            new Badge
             {
                 Id = "common:monthly_advocate",
                 Icon = "⭐",
                 Name = "Monthly Advocate",
-                Rank = MeritRank.Gold,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Gold,
+                Tags = BadgeTag.Milestone,
                 Score = 30,
                 LockQuote = "You've been becoming a lot more active, and I like to see that.",
                 Quote = "Maintained a daily streak for **30** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 30
             },
-            new Merit
+            new Badge
             {
                 Id = "common:daily_automaton",
                 Icon = "💫",
                 Name = "Daily Automation",
-                Rank = MeritRank.Platinum,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Platinum,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 100,
                 LockQuote = "You're still here. For that, I am grateful.",
                 Quote = "Maintained a daily streak for **100** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 100
             },
-            new Merit
+            new Badge
             {
                 Id = "common:perfect_attendance",
                 Icon = "🌟",
                 Name = "Perfect Attendance",
-                Rank = MeritRank.Diamond,
-                Tags = MeritTag.Milestone | MeritTag.Secret,
+                Rank = BadgeRank.Diamond,
+                Tags = BadgeTag.Milestone | BadgeTag.Secret,
                 Score = 365,
                 LockQuote = "You were always here when it was needed.",
                 Quote = "Maintained a daily streak for *365** days.",
                 Criteria = user => user.GetVar(Stats.Common.LongestDailyStreak) >= 365
             },
-            new Merit
+            new Badge
             {
                 Id = "common:escaping_trouble",
                 Icon = "☎️",
                 Name = "Escaping Trouble",
-                Rank = MeritRank.Bronze,
+                Rank = BadgeRank.Bronze,
                 Score = 10,
                 LockQuote = "With a simple call to the guardian of debt, your troubles will soon fade into the void.",
                 Quote = "Used a **Pocket Lawyer** to escape debt.",
@@ -1483,37 +1467,37 @@ namespace Arcadia
                 // Could be a trigger activation that is specified in the item usage
                 Criteria = user => user.GetVar($"{Ids.Items.PocketLawyer}:times_used") >= 1
             }, // Create a merit for recovering funds from a heavy loss
-            new Merit
+            new Badge
             {
                 Id = "common:shop_super",
                 Icon = "🛒",
                 Name = "Shopping Supremecy",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Milestone,
                 Score = 40,
                 LockQuote = "Spend some time (and money) with the shopkeepers.",
                 Quote = $"Bought over {Icons.Balance} **10,000** worth of items from shops.",
                 Criteria = user => user.GetVar(Stats.Common.TotalSpentShops) >= 10000
             },
 
-            new Merit
+            new Badge
             {
                 Id = "common:shop_buy",
                 Icon = "🧾",
                 Name = "Consumer Delight",
-                Rank = MeritRank.Silver,
-                Tags = MeritTag.Milestone,
+                Rank = BadgeRank.Silver,
+                Tags = BadgeTag.Milestone,
                 Score = 25,
                 LockQuote = "Quantity is more important than cost here.",
                 Quote = $"Bought over **250** items.",
                 Criteria = user => user.GetVar(Stats.Common.ItemsBought) >= 250
             },
-            new Merit
+            new Badge
             {
                 Id = "common:arcade_scholar",
                 Icon = "🎓",
                 Name = "Arcadian Scholar",
-                Rank = MeritRank.Bronze,
+                Rank = BadgeRank.Bronze,
                 Score = 5,
                 LockQuote = "Read up and learn.",
                 Quote = "Read all of the guides."
@@ -1721,7 +1705,45 @@ namespace Arcadia
                 Rarity = ItemRarity.Rare,
                 Tags = ItemTag.Equipment | ItemTag.Usable | ItemTag.Cloneable | ItemTag.Disposable | ItemTag.Sealable,
                 Value = 1250,
-                Size = 100
+                Size = 100,
+                Usage = new ItemUsage
+                {
+                    Durability = 1,
+                    DeleteTriggers = DeleteTriggers.Break,
+                    Action = delegate(UsageContext ctx)
+                    {
+                        if (!Check.NotNull(ctx.Input))
+                            return UsageResult.FromError("An item data instance must be specified.");
+
+                        var reader = new StringReader(ctx.Input);
+
+                        if (!reader.CanRead())
+                            return UsageResult.FromError("An item data instance must be specified.");
+
+                        string id = reader.ReadUnquotedString();
+
+                        // The amount to wrap. If unspecified, the default is 1.
+                        int amount = 1;
+
+                        if (reader.CanRead())
+                        {
+                            reader.SkipWhiteSpace();
+                            int.TryParse(reader.ReadUnquotedString(), out amount);
+                        }
+
+                        ItemData data = ItemHelper.GetItemData(ctx.User, id);
+
+                        if (data == null)
+                            return  UsageResult.FromError("An unknown data instance was specified.");
+
+                        if (amount < 0)
+                            amount = 1;
+                        else if (amount > data.Count)
+                            amount = data.Count;
+
+                        return UsageResult.FromSuccess($"> Successfully sent.");
+                    }
+                }
             },
             new Item
             {

@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,9 +40,13 @@ namespace Orikivo.Framework
         /// </summary>
         public ServiceCollection Services { get; }
 
-        public Dictionary<Type, TypeReader> TypeReaders { get; set; } = new Dictionary<Type, TypeReader>();
+        public Dictionary<Type, Discord.Commands.TypeReader> TypeReaders { get; set; } = new Dictionary<Type, Discord.Commands.TypeReader>();
+
+        public Dictionary<Type, Discord.Interactions.TypeReader> InteractionTypeReaders { get; set; } = new Dictionary<Type, Discord.Interactions.TypeReader>();
 
         public List<Type> Modules { get; set; } = new List<Type>();
+
+        public InteractionServiceConfig InteractionConfig { get; set; }
 
         public DiscordSocketConfig SocketConfig { get; set; }
 
@@ -61,10 +66,10 @@ namespace Orikivo.Framework
             Config.SetBasePath(directory);
         }
 
-        public ClientBuilder AddTypeReader<T>(TypeReader reader)
+        public ClientBuilder AddTypeReader<T>(Discord.Commands.TypeReader reader)
             => AddTypeReader(typeof(T), reader);
 
-        public ClientBuilder AddTypeReader(Type type, TypeReader reader)
+        public ClientBuilder AddTypeReader(Type type, Discord.Commands.TypeReader reader)
         {
             if (!TypeReaders.TryAdd(type, reader))
                 TypeReaders[type] = reader;

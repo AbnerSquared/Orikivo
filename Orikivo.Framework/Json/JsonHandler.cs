@@ -58,7 +58,6 @@ namespace Orikivo.Framework.Json
         /// <param name="path">The local path to save to.</param>
         public static void Save(object obj, string path, JsonSerializer serializer = null)
         {
-            // path = GetDirectory() + path;
             using (StreamWriter stream = File.CreateText(path))
             {
                 using (JsonWriter writer = new JsonTextWriter(stream))
@@ -152,7 +151,7 @@ namespace Orikivo.Framework.Json
         }
 
         public static string GetCurrentFilePath(string key)
-            => GetCurrentDirectory() + string.Format(JsonFrame, key);
+            => GetCurrentDirectory() + key + ".json";
 
         public static bool JsonExists(string path)
             => File.Exists(GetCurrentFilePath(path));

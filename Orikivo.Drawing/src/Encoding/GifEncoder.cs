@@ -36,9 +36,9 @@ namespace Orikivo.Drawing.Encoding
         private const long COLOR_BLOCK_LENGTH = 768; // 256 entries / 3
 
         private bool _isFirstImage = true;
-        private int? _width;
-        private int? _height;
-        private int? _repeatCount;
+        private readonly int? _width;
+        private readonly int? _height;
+        private readonly int? _repeatCount;
         private readonly Stream _stream;
 
         public TimeSpan FrameLength { get; set; }

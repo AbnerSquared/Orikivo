@@ -508,18 +508,6 @@ namespace Orikivo.Drawing
             return null;
         }
 
-        private static readonly Size Bounds16_9 = new Size(400, 225);
-        private static readonly Size Bounds4_3 = new Size(400, 300);
-        private static readonly Size Bounds1_1 = new Size(300, 300);
-        private static readonly Size Bounds1_2 = new Size(400, 200);
-        private static readonly Size Bounds2_1 = new Size(150, 300);
-
-        private static readonly Size Thumbs16_9 = new Size(80, 45);
-        private static readonly Size Thumbs4_3 = new Size(80, 60);
-        private static readonly Size Thumbs1_1 = new Size(80, 80);
-        private static readonly Size Thumbs1_2 = new Size(80, 40);
-        private static readonly Size Thumbs2_1 = new Size(40, 80);
-
         // TODO: Implement OuterColor and InnerColor
         public static Bitmap SetBorder(Bitmap target, Bitmap mask, int thickness, BorderEdge edge = BorderEdge.Outside, BorderAllow allow = BorderAllow.All)
         {
@@ -1229,23 +1217,6 @@ namespace Orikivo.Drawing
             }
 
             return bmp;
-        }
-
-        /// <summary>
-        /// Returns the size of the specified <see cref="ImageRatio"/> and <see cref="DiscordMedia"/>.
-        /// </summary>
-        public static Size GetRatioDims(ImageRatio ratio, DiscordMedia media)
-        {
-            bool isThumb = media == DiscordMedia.Thumbnail;
-            return ratio switch
-            {
-                ImageRatio.Widescreen => isThumb ? Thumbs16_9 : Bounds16_9,
-                ImageRatio.Wide => isThumb ? Thumbs2_1 : Bounds2_1,
-                ImageRatio.Rectangle => isThumb ? Thumbs4_3 : Bounds4_3,
-                ImageRatio.Square => isThumb ? Thumbs1_1 : Bounds1_1,
-                ImageRatio.Tall => isThumb ? Thumbs1_2 : Bounds1_2,
-                _ => throw new ArgumentException("The ratio type specified is not a valid ratio.")
-            };
         }
 
         // TODO: Determine if this method works the same as Drawable.Build()

@@ -27,9 +27,7 @@
         {
             get
             {
-                if (_transform is null)
-                    _transform = ImageTransform.Default;
-
+                _transform ??= ImageTransform.Default;
                 return _transform;
             }
             set => _transform = value;

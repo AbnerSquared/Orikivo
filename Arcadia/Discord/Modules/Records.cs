@@ -58,7 +58,7 @@ namespace Arcadia.Modules
         [Summary("View the crafting requirements for a specific **Recipe**.")]
         public async Task ViewRecipeAsync([Name("recipe_id")]Recipe recipe)
         {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewRecipe(Context.Account, recipe));
+            await Context.Channel.SendMessageAsync(RecipeViewer.ViewRecipe(Context.Account, recipe));
         }
 
         [RequireUser]
@@ -66,7 +66,7 @@ namespace Arcadia.Modules
         [Summary("View all of your currently known recipes.")]
         public async Task ViewRecipesAsync(int page = 1)
         {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.View(Context.Account, --page));
+            await Context.Channel.SendMessageAsync(RecipeViewer.View(Context.Account, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -74,7 +74,7 @@ namespace Arcadia.Modules
         [Summary("View your known recipe variations for a specific **Item**.")]
         public async Task ViewRecipeAsync([Name("item_id")]Item item, int page = 1)
         {
-            await Context.Channel.SendMessageAsync(SRecipeViewer.ViewItemRecipes(Context.Account, item, --page));
+            await Context.Channel.SendMessageAsync(RecipeViewer.ViewItemRecipes(Context.Account, item, --page));
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
@@ -133,7 +133,7 @@ namespace Arcadia.Modules
         [RequireUser(AccountHandling.ReadOnly)]
         [Command("merit")]
         [Summary("View information about a **Merit**.")]
-        public async Task ViewMeritAsync(Merit merit)
+        public async Task ViewMeritAsync(Badge merit)
         {
             if (!MeritHelper.HasUnlocked(Context.Account, merit) && merit.Hidden)
             {

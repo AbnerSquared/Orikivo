@@ -3,17 +3,6 @@
 namespace Arcadia
 {
     [Flags]
-    public enum BoostType
-    {
-        Orite = 1, // Boosts Orite
-        Chips = 2, // Boosts Chips
-        Debt = 4, // Boosts Debt
-        Tokens = 8, // Boosts Tokens
-        Exp = 16, // Boosts Exp
-        All = Orite | Chips | Debt | Tokens | Exp // Boosts any of the types
-    }
-
-    [Flags]
     public enum BoostTarget
     {
         /// <summary>

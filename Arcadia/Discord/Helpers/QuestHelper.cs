@@ -307,7 +307,7 @@ namespace Arcadia
             if (!CanAssign(user))
                 return false;
 
-            return quest.ToAssign == null || quest.ToAssign(user);
+            return quest.Requirements == null || quest.Requirements(user);
         }
 
         public static bool Exists(string questId)
@@ -463,9 +463,9 @@ namespace Arcadia
         }
 
         private static bool HasAnyAssignable(ArcadeUser user)
-            => Assets.Quests.Any(quest => quest.ToAssign == null || quest.ToAssign(user));
+            => Assets.Quests.Any(quest => quest.Requirements == null || quest.Requirements(user));
 
         private static IEnumerable<Quest> GetAssignable(ArcadeUser user)
-            => Assets.Quests.Where(quest => quest.ToAssign == null || quest.ToAssign(user));
+            => Assets.Quests.Where(quest => quest.Requirements == null || quest.Requirements(user));
     }
 }

@@ -22,7 +22,7 @@ namespace Arcadia
         // If unspecified, this is automatically assigned based on difficulty
         public long Value { get; set; } = 0;
 
-        public Func<ArcadeUser, bool> ToAssign { get; set; }
+        public Func<ArcadeUser, bool> Requirements { get; set; }
 
         public List<Criterion> Criteria { get; internal set; } = new List<Criterion>();
 

@@ -55,9 +55,7 @@ namespace Arcadia
         /// <summary>
         /// Specifies the set of triggers that will automatically activate this <see cref="Item"/>.
         /// </summary>
-        public UsageTriggers Triggers { get; set; }
-
-        public string TriggerId { get; set; }
+        public UsageTrigger Triggers { get; set; }
 
         /// <summary>
         /// Represents the method that is invoked when an <see cref="Item"/> is used.

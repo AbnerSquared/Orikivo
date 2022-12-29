@@ -1,6 +1,6 @@
 ﻿namespace Arcadia
 {
-    public enum UsageTriggers
+    public enum UsageTrigger
     {
         Game = 1,
         Casino = 2,

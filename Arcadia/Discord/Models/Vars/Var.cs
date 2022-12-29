@@ -123,19 +123,19 @@ namespace Arcadia
             {
                 Id = Vars.MonthlyExp,
                 Type = VarType.Stat,
-                ValueWriter = v => $"{Icons.Exp} **{v.ToString("##,0")} XP**"
+                ValueWriter = v => $"{Icons.Exp} **{v:##,0} XP**"
             },
             new Var
             {
                 Id = Vars.MonthlyIncome,
                 Type = VarType.Stat,
-                ValueWriter = v => $"{Icons.Balance} **{v.ToString("##,0")}**"
+                ValueWriter = v => $"{Icons.Balance} **{v:##,0}**"
             },
             new Var
             {
                 Id = Vars.MonthlyQuests,
                 Type = VarType.Stat,
-                ValueWriter = v => $"**{v.ToString("##,0")} QP**"
+                ValueWriter = v => $"**{v:##,0} QP**"
             },
         };
 
@@ -514,7 +514,6 @@ namespace Arcadia
             user.SetVar(id, 0);
         }
 
-        // return amount removed
         public static int ClearAll(ArcadeUser user, Func<KeyValuePair<string, long>, bool> predicate)
         {
             int amount = 0;

@@ -14,8 +14,8 @@ namespace Orikivo
             base.BeforeExecute(command);
         }
 
-        private IDMChannel GetOrCreateDMChannel(IUser user)
-            => user.GetOrCreateDMChannelAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        private IDMChannel GetOrCreateDMChannel(IUser user, RequestOptions options = null)
+            => user.CreateDMChannelAsync(options).ConfigureAwait(false).GetAwaiter().GetResult();
 
         /// <summary>
         /// Sends a direct message to the specified user.

@@ -7,50 +7,23 @@ namespace Arcadia
     /// </summary>
     public class ModifierData
     {
-        public ModifierData(long amount, TimeSpan duration)
+        public ModifierData(long amount, int? useCount = null)
         {
             Amount = amount;
-            ExpiresOn = DateTime.UtcNow.Add(duration);
-        }
-
-        public ModifierData(float rate, TimeSpan duration)
-        {
-            Rate = rate;
-            ExpiresOn = DateTime.UtcNow.Add(duration);
-        }
-
-        public ModifierData(long amount, int useCount)
-        {
-            Amount = amount;
+            Rate = 1.0f;
             UsesLeft = useCount;
         }
 
-        public ModifierData(float rate, int useCount)
+        public ModifierData(float rate, int? useCount = null)
         {
+            Amount = 0;
             Rate = rate;
-            UsesLeft = useCount;
-        }
-
-        public ModifierData(long amount, TimeSpan duration, int useCount)
-        {
-            Amount = amount;
-            ExpiresOn = DateTime.UtcNow.Add(duration);
-            UsesLeft = useCount;
-        }
-
-        public ModifierData(float rate, TimeSpan duration, int useCount)
-        {
-            Rate = rate;
-            ExpiresOn = DateTime.UtcNow.Add(duration);
             UsesLeft = useCount;
         }
 
         public long Amount { get; }
 
         public float Rate { get; }
-
-        // TODO: Remove this property
-        public DateTime? ExpiresOn { get; }
 
         public int? UsesLeft { get; internal set; }
     }

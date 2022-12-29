@@ -26,9 +26,9 @@ namespace Arcadia
             return BaseScoreTier * (RankPower * Math.Max(rank - 1, 0));
         }
 
-        public static Merit GetMerit(string id)
+        public static Badge GetMerit(string id)
         {
-            IEnumerable<Merit> merits = Assets.Merits.Where(x => x.Id == id);
+            IEnumerable<Badge> merits = Assets.Merits.Where(x => x.Id == id);
 
             if (merits.Count() > 1)
                 throw new MultiMatchException(Errors.MultipleMerits);
@@ -36,10 +36,10 @@ namespace Arcadia
             return Assets.Merits.FirstOrDefault(x => x.Id == id);
         }
 
-        public static MeritData GetEmptyData()
-            => new MeritData(DateTime.UtcNow);
+        public static BadgeData GetEmptyData()
+            => new BadgeData(DateTime.UtcNow);
 
-        public static bool HasUnlocked(ArcadeUser user, Merit merit)
+        public static bool HasUnlocked(ArcadeUser user, Badge merit)
             => user.Merits.ContainsKey(merit.Id);
 
         public static bool HasUnlocked(ArcadeUser user, string meritId)
@@ -57,26 +57,26 @@ namespace Arcadia
 
             foreach (string id in user.Merits.Keys)
             {
-                Merit merit = GetMerit(id);
+                Badge merit = GetMerit(id);
                 score += GetWorth(merit);
             }
 
             return score;
         }
 
-        public static long GetWorth(Merit merit)
+        public static long GetWorth(Badge merit)
             => merit.Score <= 0 ? GetDefaultScore((int)merit.Rank) : merit.Score;
 
         private static string DrawCounter(long score)
             => $"(**{score:##,0}**m)";
 
-        private static string GetPreview(Merit merit)
+        private static string GetPreview(Badge merit)
             => $"> {GetIconOrDefault(merit, "•")} **{merit.Name}** {DrawCounter(merit.Score)}";
 
-        private static bool CanShowQuote(Merit merit, bool isUnlocked)
+        private static bool CanShowQuote(Badge merit, bool isUnlocked)
             => isUnlocked || IsSecret(merit) || Check.NotNull(merit.LockQuote);
 
-        private static string GetQuote(Merit merit, bool isUnlocked = false)
+        private static string GetQuote(Badge merit, bool isUnlocked = false)
         {
             string quote = (isUnlocked || !Check.NotNull(merit.LockQuote))
                 ? merit.Quote
@@ -91,14 +91,14 @@ namespace Arcadia
             return DrawQuote(quote, isUnlocked && IsSecret(merit));
         }
 
-        public static bool IsSecret(Merit merit)
-            => merit.Tags.HasFlag(MeritTag.Secret);
+        public static bool IsSecret(Badge merit)
+            => merit.Tags.HasFlag(BadgeTag.Secret);
 
-        public static bool IsExclusive(Merit merit)
-            => merit.Tags.HasFlag(MeritTag.Exclusive);
+        public static bool IsExclusive(Badge merit)
+            => merit.Tags.HasFlag(BadgeTag.Exclusive);
 
-        public static bool IsMilestone(Merit merit)
-            => merit.Tags.HasFlag(MeritTag.Milestone);
+        public static bool IsMilestone(Badge merit)
+            => merit.Tags.HasFlag(BadgeTag.Milestone);
 
         private static string DrawQuote(string quote, bool hidden)
         {
@@ -110,13 +110,13 @@ namespace Arcadia
             return $"> {result}";
         }
 
-        public static string ViewMerit(Merit merit, ArcadeUser user = null)
+        public static string ViewMerit(Badge merit, ArcadeUser user = null)
         {
             var info = new StringBuilder();
             bool allowTooltips = user?.Config?.Tooltips ?? true;
             bool hasUnlocked = user != null && HasUnlocked(user, merit);
 
-            if (merit.Tags.HasFlag(MeritTag.Exclusive))
+            if (merit.Tags.HasFlag(BadgeTag.Exclusive))
                 info.AppendLine(Format.Warning("This is an exclusive merit.")).AppendLine();
 
             if (allowTooltips)
@@ -147,9 +147,9 @@ namespace Arcadia
 
             info.AppendLine($"> Rank: **{merit.Rank}**");
 
-            if (merit.Reward != null || merit.Tags.HasFlag(MeritTag.Secret))
+            if (merit.Reward != null || merit.Tags.HasFlag(BadgeTag.Secret))
                 info.AppendLine()
-                    .Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true, merit.Tags.HasFlag(MeritTag.Secret)));
+                    .Append(ViewReward(merit.Reward, hasUnlocked && user.Merits[merit.Id]?.IsClaimed == true, merit.Tags.HasFlag(BadgeTag.Secret)));
 
             return info.ToString();
         }
@@ -178,7 +178,7 @@ namespace Arcadia
         private static string GetUnlockMarker(bool hasUnlocked)
             => hasUnlocked ? "\\*" : "";
 
-        public static string PreviewMerit(Merit merit, ArcadeUser user = null)
+        public static string PreviewMerit(Badge merit, ArcadeUser user = null)
         {
             string icon = GetIconOrDefault(merit, "•");
             bool isUnlocked = user != null && HasUnlocked(user, merit);
@@ -189,7 +189,7 @@ namespace Arcadia
         private static string DrawMeritPreview(string id, string icon, string name, long score, bool isUnlocked)
             => $"> `{id}`\n> {icon} **{name}**{GetUnlockMarker(isUnlocked)} {DrawCounter(score)}";
 
-        public static Merit GetNewestUnlocked(ArcadeUser user)
+        public static Badge GetNewestUnlocked(ArcadeUser user)
         {
             if (user.Merits.Count == 0)
                 return null;
@@ -197,12 +197,12 @@ namespace Arcadia
             return GetMerit(user.Merits.OrderByDescending(x => x.Value.UnlockedAt).First().Key);
         }
 
-        public static string GetIconOrDefault(Merit merit, string fallback = "")
+        public static string GetIconOrDefault(Badge merit, string fallback = "")
             => merit.Icon ?? fallback;
 
         private static string GetRecentMeritSubtitle(ArcadeUser user)
         {
-            Merit merit = GetNewestUnlocked(user);
+            Badge merit = GetNewestUnlocked(user);
 
             if (merit == null)
                 return $"A directory of accomplishments.";
@@ -210,11 +210,11 @@ namespace Arcadia
             return $"Recently Unlocked: {GetIconOrDefault(merit, "•")} **{merit.Name}** {DrawCounter(GetWorth(merit))}";
         }
 
-        private static MeritTag GetActiveTags()
+        private static BadgeTag GetActiveTags()
         {
-            MeritTag tag = 0;
+            BadgeTag tag = 0;
 
-            foreach (Merit merit in Assets.Merits)
+            foreach (Badge merit in Assets.Merits)
                 tag |= merit.Tags;
 
             return tag;
@@ -228,7 +228,7 @@ namespace Arcadia
             };
 
             queries.AddRange(GetActiveTags().GetFlagNames().Select(x => x.ToLower()));
-            queries.AddRange(EnumUtils.GetValueNames<MeritRank>().Select(x => x.ToLower()));
+            queries.AddRange(EnumUtils.GetValueNames<BadgeRank>().Select(x => x.ToLower()));
 
             if (user.Merits.Any(x => GetMerit(x.Key).Hidden))
                 queries.Add("hidden");
@@ -255,16 +255,16 @@ namespace Arcadia
             return GetQueryValues(user).Contains(query);
         }
 
-        private static IEnumerable<Merit> GetVisible(ArcadeUser user, string query)
+        private static IEnumerable<Badge> GetVisible(ArcadeUser user, string query)
         {
 
             bool isNumber = int.TryParse(query, out int number);
 
-            Func<Merit, bool> comparer;
+            Func<Badge, bool> comparer;
 
-            if (!isNumber && Enum.TryParse(query, true, out MeritTag tag))
+            if (!isNumber && Enum.TryParse(query, true, out BadgeTag tag))
                 comparer = x => x.Tags.HasFlag(tag);
-            else if (!isNumber && Enum.TryParse(query, true, out MeritRank rank))
+            else if (!isNumber && Enum.TryParse(query, true, out BadgeRank rank))
                 comparer = x => x.Rank == rank;
             else
             {
@@ -296,7 +296,7 @@ namespace Arcadia
             };
         }
 
-        private static string GetQuerySubtitle(ArcadeUser user, string query, ref List<Merit> merits)
+        private static string GetQuerySubtitle(ArcadeUser user, string query, ref List<Badge> merits)
         {
             int ownCount = merits.Count(x => HasUnlocked(user, x));
 
@@ -336,7 +336,7 @@ namespace Arcadia
 
         private static string ViewQuery(ArcadeUser user, string query, int page = 0)
         {
-            List<Merit> merits = GetVisible(user, query)
+            List<Badge> merits = GetVisible(user, query)
                    .OrderBy(x => x.Name)
                    .ToList();
 
@@ -354,7 +354,7 @@ namespace Arcadia
 
             bool allowTooltips = user.Config.Tooltips;
 
-            IEnumerable<Merit> elements = Paginate.GroupAt(merits, page, PageLength);
+            IEnumerable<Badge> elements = Paginate.GroupAt(merits, page, PageLength);
 
             result.AppendTip("Type `merit <id>` to view more details about a specific merit.");
 
@@ -373,9 +373,9 @@ namespace Arcadia
         {
             bool canNotify = user.Config.Notifier.HasFlag(NotifyAllow.Merit);
 
-            foreach (Merit merit in Assets.Merits.Where(x => CanUnlock(user, x)))
+            foreach (Badge merit in Assets.Merits.Where(x => CanUnlock(user, x)))
             {
-                user.Merits.Add(merit.Id, new MeritData(DateTime.UtcNow));
+                user.Merits.Add(merit.Id, new BadgeData(DateTime.UtcNow));
 
                 if (canNotify)
                     user.Notifier.Add(WriteUnlockNotice(merit));
@@ -385,7 +385,7 @@ namespace Arcadia
         public static bool CanView(ArcadeUser user, string meritId)
             => CanView(user, GetMerit(meritId) ?? throw new ArgumentException(Errors.UnknownMerit));
 
-        public static bool CanView(ArcadeUser user, Merit merit)
+        public static bool CanView(ArcadeUser user, Badge merit)
         {
             return !merit.Hidden
                 || HasUnlocked(user, merit);
@@ -394,7 +394,7 @@ namespace Arcadia
         public static bool CanUnlock(ArcadeUser user, string meritId)
             => CanUnlock(user, GetMerit(meritId) ?? throw new ArgumentException(Errors.UnknownMerit));
 
-        public static bool CanUnlock(ArcadeUser user, Merit merit)
+        public static bool CanUnlock(ArcadeUser user, Badge merit)
         {
             return merit.Criteria != null
                 && merit.Criteria(user)
@@ -407,7 +407,7 @@ namespace Arcadia
         public static bool CanClaim(ArcadeUser user, string meritId)
             => CanClaim(user, GetMerit(meritId) ?? throw new ArgumentException(Errors.UnknownMerit));
 
-        public static bool CanClaim(ArcadeUser user, Merit merit)
+        public static bool CanClaim(ArcadeUser user, Badge merit)
         {
             return HasUnlocked(user, merit)
                 && user.Merits[merit.Id].IsClaimed != true
@@ -417,7 +417,7 @@ namespace Arcadia
         public static void Unlock(ArcadeUser user, string meritId)
             => Unlock(user, GetMerit(meritId) ?? throw new ArgumentException(Errors.UnknownMerit));
 
-        public static void Unlock(ArcadeUser user, Merit merit)
+        public static void Unlock(ArcadeUser user, Badge merit)
         {
             if (!CanUnlock(user, merit))
                 return;
@@ -429,23 +429,23 @@ namespace Arcadia
                 user.Notifier.Add(WriteUnlockNotice(merit));
         }
 
-        private static string DrawBasePreview(Merit merit)
+        private static string DrawBasePreview(Badge merit)
             => DrawBasePreview(GetIconOrDefault(merit, "•"), merit.Name, GetWorth(merit));
 
         private static string DrawBasePreview(string icon, string name, long score)
             => $"{icon} **{name}** {DrawCounter(score)}";
 
-        private static string WriteUnlockNotice(Merit merit)
+        private static string WriteUnlockNotice(Badge merit)
             => $"Merit unlocked: {DrawBasePreview(merit)}";
 
-        public static IEnumerable<Merit> GetClaimable(ArcadeUser user)
+        public static IEnumerable<Badge> GetClaimable(ArcadeUser user)
             => Assets.Merits.Where(x => CanClaim(user, x.Id));
 
         public static string ClaimAndDisplay(ArcadeUser user, string input)
         {
             if (string.IsNullOrWhiteSpace(input))
             {
-                IEnumerable<Merit> claimable = GetClaimable(user);
+                IEnumerable<Badge> claimable = GetClaimable(user);
 
                 if (!Check.NotNullOrEmpty(claimable))
                     return Format.Warning("You don't have any merits you can claim.");
@@ -465,7 +465,7 @@ namespace Arcadia
             return ClaimAndDisplay(user, GetMerit(input));
         }
 
-        private static string DrawClaimSection(ref IEnumerable<Merit> claimable, ArcadeUser user)
+        private static string DrawClaimSection(ref IEnumerable<Badge> claimable, ArcadeUser user)
         {
             var result = new StringBuilder();
 
@@ -475,7 +475,7 @@ namespace Arcadia
                 .ToString();
         }
 
-        public static string ClaimAndDisplay(ArcadeUser user, Merit merit)
+        public static string ClaimAndDisplay(ArcadeUser user, Badge merit)
         {
             string name = Format.Bold(merit.Name);
 
@@ -504,10 +504,10 @@ namespace Arcadia
             if (!CanClaim(user))
                 return Format.Warning("You don't have any merits that can be claimed.");
 
-            List<Merit> toClaim = GetClaimable(user).ToList();
+            List<Badge> toClaim = GetClaimable(user).ToList();
             var reward = new Reward();
 
-            foreach (Merit merit in toClaim)
+            foreach (Badge merit in toClaim)
             {
                 reward.Add(merit.Reward);
                 user.Merits[merit.Id].IsClaimed = true;

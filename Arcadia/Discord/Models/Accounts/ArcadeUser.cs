@@ -20,7 +20,7 @@ namespace Arcadia
             Exp = 0;
             Ascent = 0;
             Stats = new Dictionary<string, long>();
-            Merits = new Dictionary<string, MeritData>();
+            Merits = new Dictionary<string, BadgeData>();
             Boosters = new List<BoostData>();
             Challenges = new Dictionary<string, ChallengeData>();
             Quests = new List<QuestData>();
@@ -38,7 +38,7 @@ namespace Arcadia
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
             ulong exp, int ascent, Dictionary<string, long> stats,
-            Dictionary<string, MeritData> merits, List<BoostData> boosters, Dictionary<string, ChallengeData> challenges,
+            Dictionary<string, BadgeData> merits, List<BoostData> boosters, Dictionary<string, ChallengeData> challenges,
             List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
@@ -46,7 +46,7 @@ namespace Arcadia
             Exp = exp;
             Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
-            Merits = merits ?? new Dictionary<string, MeritData>();
+            Merits = merits ?? new Dictionary<string, BadgeData>();
             Boosters = boosters ?? new List<BoostData>();
             Challenges = challenges ?? new Dictionary<string, ChallengeData>();
             Quests = quests ?? new List<QuestData>();
@@ -101,7 +101,7 @@ namespace Arcadia
         public Dictionary<string, long> Stats { get; }
 
         [JsonProperty("merits")]
-        public Dictionary<string, MeritData> Merits { get; }
+        public Dictionary<string, BadgeData> Merits { get; }
 
         [JsonProperty("boosters")]
         public List<BoostData> Boosters { get; }

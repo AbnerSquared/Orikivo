@@ -201,14 +201,6 @@ namespace Orikivo
             return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
         }
 
-        /// <summary>
-        /// Gets the URL bound to this voice channel to allow users to participate in screen sharing.
-        /// </summary>
-        public static string GetUrl(this IVoiceChannel channel)
-        {
-            return Format.GetVoiceChannelUrl(channel.GuildId, channel.Id);
-        }
-
         private static string GetStackTrace(string stackTrace, StackTraceMode traceMode, int messageLength)
         {
             if (traceMode == StackTraceMode.None || string.IsNullOrWhiteSpace(stackTrace))

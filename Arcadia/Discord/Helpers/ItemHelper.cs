@@ -30,7 +30,7 @@ namespace Arcadia
 
         // TODO: Return a dictionary of ITEM_ID, AMOUNT (Only items that are currently marked as active [EquipSlot is NOT 0])
         // Returns all items that are activated from the trigger
-        public static IEnumerable<ItemData> ActivateTrigger(ArcadeUser user, UsageTriggers triggers, string triggerId)
+        public static IEnumerable<ItemData> ActivateTrigger(ArcadeUser user, UsageTrigger triggers, string triggerId)
         {
             return user.Items.Where(x => GetItem(x.Id).Usage?.Triggers.HasFlag(triggers) ?? false);
         }

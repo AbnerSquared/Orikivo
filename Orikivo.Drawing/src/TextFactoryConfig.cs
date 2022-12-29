@@ -13,9 +13,6 @@ namespace Orikivo.Drawing
 
         public bool UseCache { get; set; }
 
-        // TODO: Implement CacheSize instead
-        // public int CacheSize { get; set; }
-
         public List<FontFace> Fonts { get; set; }
 
         public char[][][][] CharMap { get; set; }

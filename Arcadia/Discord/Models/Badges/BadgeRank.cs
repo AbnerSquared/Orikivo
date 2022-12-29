@@ -1,9 +1,9 @@
 ﻿namespace Arcadia
 {
     /// <summary>
-    /// Represents the difficulty of a <see cref="Merit"/>.
+    /// Represents the difficulty of a <see cref="Badge"/>.
     /// </summary>
-    public enum MeritRank
+    public enum BadgeRank
     {
         Bronze = 1,
         Silver = 2,

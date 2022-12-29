@@ -56,7 +56,7 @@ namespace Arcadia
 
                 builder
                     .AddTypeReader<Item>(new ItemTypeReader())
-                    .AddTypeReader<Merit>(new MeritTypeReader())
+                    .AddTypeReader<Badge>(new BadgeTypeReader())
                     .AddTypeReader<Recipe>(new RecipeTypeReader())
                     .AddTypeReader<Quest>(new QuestTypeReader())
                     .AddTypeReader<Shop>(new ShopTypeReader())

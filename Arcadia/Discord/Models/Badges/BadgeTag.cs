@@ -3,10 +3,10 @@
 namespace Arcadia
 {
     /// <summary>
-    /// Defines a collection of traits that a <see cref="Merit"/> can have.
+    /// Defines a collection of traits that a <see cref="Badge"/> can have.
     /// </summary>
     [Flags]
-    public enum MeritTag
+    public enum BadgeTag
     {
         /// <summary>
         /// The merit specified is marked as a milestone.

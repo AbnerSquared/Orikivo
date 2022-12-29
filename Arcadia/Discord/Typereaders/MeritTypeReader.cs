@@ -4,7 +4,7 @@ using Discord.Commands;
 
 namespace Arcadia
 {
-    public sealed class MeritTypeReader : TypeReader
+    public sealed class BadgeTypeReader : TypeReader
     {
         public override Task<TypeReaderResult> ReadAsync(ICommandContext ctx, string input, IServiceProvider provider)
         {
@@ -13,7 +13,7 @@ namespace Arcadia
 
             if (input.Equals("recent", StringComparison.OrdinalIgnoreCase))
             {
-                Merit newest = MeritHelper.GetNewestUnlocked(context.Account);
+                Badge newest = MeritHelper.GetNewestUnlocked(context.Account);
 
                 if (newest == null)
                 {

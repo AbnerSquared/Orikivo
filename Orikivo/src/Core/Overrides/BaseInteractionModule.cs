@@ -1,17 +1,17 @@
 ﻿using System;
 using Discord;
-using Discord.Commands;
 using System.Threading.Tasks;
 using Discord.Addons.Collectors;
 using Discord.WebSocket;
+using Discord.Interactions;
 
 namespace Orikivo
 {
-    public abstract class BaseModule<TContext, TContainer, TGuild, TUser> : ModuleBase<TContext>
+    public abstract class BaseInteractionModule<TContext, TContainer, TGuild, TUser> : InteractionModuleBase<TContext>
         where TGuild : BaseGuild
         where TUser : BaseUser
         where TContainer : BaseContainer<TGuild, TUser>
-        where TContext : BaseCommandContext<TContainer, TGuild, TUser>
+        where TContext : BaseInteractionContext<TContainer, TGuild, TUser>
     {
         private IDMChannel GetOrCreateDMChannel(IUser user, RequestOptions options = null)
             => user.CreateDMChannelAsync(options).ConfigureAwait(false).GetAwaiter().GetResult();

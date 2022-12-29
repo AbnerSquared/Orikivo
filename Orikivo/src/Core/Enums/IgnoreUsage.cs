@@ -2,7 +2,7 @@
 {
     public enum IgnoreUsage
     {
-        Parent = 1, // If the pare
+        Parent = 1,
         All = 2
     }
 }

@@ -8,13 +8,6 @@ using Orikivo.Text;
 
 namespace Arcadia.Modules
 {
-    public class ServiceResult
-    {
-        public Message Message { get; set; }
-
-        public bool IsSuccess { get; set; }
-    }
-
     public class CasinoService
     {
         private readonly MessageCollector _collector;

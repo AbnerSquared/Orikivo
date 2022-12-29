@@ -1,4 +1,6 @@
-﻿namespace Arcadia
+﻿using Orikivo;
+
+namespace Arcadia
 {
     /// <summary>
     /// Represents information for an <see cref="Arcadia.Item"/> usage.
@@ -23,6 +25,8 @@
         /// Represents the user that invoked this usage.
         /// </summary>
         public ArcadeUser User { get; }
+
+        public ArcadeContainer Container { get; }
 
         /// <summary>
         /// Represents the raw input that was specified for this usage.
