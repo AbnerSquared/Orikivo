@@ -371,7 +371,7 @@ namespace Arcadia.Multiplayer
                     if (!(input is ReactionInput))
                         continue;
 
-                    InputResult result = input.TryParse(new Input { Reaction = reaction.Emote, Flag = flag });
+                    InputResult result = input.TryParse(new InputResponse { Reaction = reaction.Emote, Flag = flag });
 
                     if (result.IsSuccess)
                     {
@@ -886,7 +886,7 @@ namespace Arcadia.Multiplayer
                             }
                             catch (HttpException error)
                             {
-                                if (error.DiscordCode.GetValueOrDefault(0) != 50007)
+                                if (error.DiscordCode.GetValueOrDefault(0) != DiscordErrorCode.CannotSendMessageToUser)
                                     throw;
 
                                 Logger.Debug($"[{Format.Time(DateTime.UtcNow)}] Unable to send message to user {target.Id} as their direct message channel is disabled");

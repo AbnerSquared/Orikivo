@@ -31,10 +31,5 @@ namespace Orikivo.Drawing
 
         [JsonProperty("offset_y")]
         public int? OffsetY { get; }
-
-        public Point? GetOffset()
-            => (OffsetX.HasValue || OffsetY.HasValue) ?
-            (Point?) new Point(OffsetX.GetValueOrDefault(0), OffsetY.GetValueOrDefault(0))
-            : null;
     }
 }

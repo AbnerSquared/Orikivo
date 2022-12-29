@@ -7,7 +7,7 @@ namespace Orikivo.Drawing
     {
         public Dictionary<float, Color> Markers { get; set; } = new Dictionary<float, Color>();
 
-        public GradientColorHandling ColorHandling { get; set; } = GradientColorHandling.Blend;
+        public GradientColorMode ColorHandling { get; set; } = GradientColorMode.Blend;
         public int Width { get; set; }
         public int Height { get; set; }
         public Direction Direction { get; set; } = Direction.Right;

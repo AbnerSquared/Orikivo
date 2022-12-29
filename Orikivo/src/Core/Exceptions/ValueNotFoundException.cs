@@ -12,10 +12,7 @@ namespace Orikivo
             Input = input;
         }
 
-        public ValueNotFoundException(string message = "") : base(message)
-        {
-
-        }
+        public ValueNotFoundException(string message = "") : base(message) { }
 
         public string Input { get; }
     }

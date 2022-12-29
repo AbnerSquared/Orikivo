@@ -16,7 +16,7 @@ namespace Arcadia.Multiplayer
 
         public bool RequirePlayer { get; set; }
 
-        public InputResult TryParse(Input input)
+        public InputResult TryParse(InputResponse input)
         {
             throw new NotImplementedException();
         }

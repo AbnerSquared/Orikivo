@@ -19,12 +19,12 @@ namespace Orikivo
 
         public ExtensionType Extension { get; }
 
-        public async Task<OriWebResult> GetContentAsync()
+        public async Task<WebResult> GetContentAsync()
         {
             if (string.IsNullOrWhiteSpace(Url))
                 return null;
 
-            using var client = new OriWebClient();
+            using var client = new WebClient();
             return await client.RequestAsync(Url);
         }
     }

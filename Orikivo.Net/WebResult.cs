@@ -3,9 +3,9 @@ using System.Net.Http;
 
 namespace Orikivo.Net
 {
-    public class OriWebResult
+    public class WebResult
     {
-        public OriWebResult(HttpResponseMessage response)
+        public WebResult(HttpResponseMessage response)
         {
             IsSuccess = response.IsSuccessStatusCode;
             Content = response.Content;
@@ -18,9 +18,9 @@ namespace Orikivo.Net
         public string RawContent => Content.ReadAsStringAsync().Result;
     }
 
-    public class OriWebResult<T>
+    public class WebResult<T>
     {
-        public OriWebResult(HttpResponseMessage response)
+        public WebResult(HttpResponseMessage response)
         {
             IsSuccess = response.IsSuccessStatusCode;
             Content = response.Content;

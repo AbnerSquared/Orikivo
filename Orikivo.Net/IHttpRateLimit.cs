@@ -6,6 +6,6 @@ namespace Orikivo.Net
     {
         Task<bool> CanRequestAsync(HttpMethod requestType, string url);
 
-        Task OnSuccessAsync(OriWebResult result);
+        Task OnSuccessAsync(WebResult result);
     }
 }

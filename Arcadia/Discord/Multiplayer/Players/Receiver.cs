@@ -5,7 +5,7 @@ using Orikivo;
 
 namespace Arcadia.Multiplayer
 {
-    public class Receiver : IReceiver
+    public class ReceiverOLD //: IReceiver
     {
         public IMessageChannel Channel { get; protected set; }
 

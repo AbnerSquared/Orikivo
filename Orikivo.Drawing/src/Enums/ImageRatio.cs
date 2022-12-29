@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Drawing
 {
+    // TODO: Move to Arcadia.Graphics
     /// <summary>
     /// Defines common ratios for an image.
     /// </summary>

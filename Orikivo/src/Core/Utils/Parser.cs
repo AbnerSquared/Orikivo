@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#pragma warning disable CS1998
-
 namespace Orikivo
 {
-    // TODO: Implement string being null (ex. if someone types "null", you set the string to null)
     /// <summary>
     /// Represents a parser for <see cref="Type"/> values.
     /// </summary>
@@ -14,10 +11,7 @@ namespace Orikivo
         /// <summary>
         /// Represents the collection of custom parsers that are bound to a <see cref="Type"/>.
         /// </summary>
-        public static readonly Dictionary<Type, TypeParser> Parsers = new Dictionary<Type, TypeParser>
-            {
-                //[typeof(GammaColor)] = new GammaColorTypeParser()
-            };
+        public static readonly Dictionary<Type, TypeParser> Parsers = new Dictionary<Type, TypeParser>();
 
         public static bool TryParseSByte(string input, out sbyte result)
             => sbyte.TryParse(input, out result);

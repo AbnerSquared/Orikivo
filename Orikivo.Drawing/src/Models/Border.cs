@@ -1,14 +1,14 @@
 ﻿namespace Orikivo.Drawing
 {
-    /// <summary>
-    /// Represents the data of a line that surrounds an image.
-    /// </summary>
+    // TODO: Replace generic thickness with Padding class to allow custom thicknesses on any edges
+    //       This can also replace the BorderAllow enum, since marking an edge with thickness 0 is the same as leaving it blank
     public class Border
     {
-        // this is used to know what sides are drawn with this border.
         public BorderAllow Allow { get; set; } = BorderAllow.All;
 
         public BorderEdge Edge { get; set; } = BorderEdge.Outside;
+
+        public Padding lrtb { get; set; }
 
         public System.Drawing.Color Color { get; set; }
 

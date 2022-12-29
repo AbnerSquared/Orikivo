@@ -90,8 +90,9 @@ namespace Arcadia.Graphics
                 {
                     Palette = info.Palette,
                     Padding = info.Padding,
-                    Margin = info.Margin
-                }.WithScale(info.Scale)
+                    Margin = info.Margin,
+                    Scale = GetScale(info.Scale)
+                }
             };
 
             if (info.Border != null && info.Border.Thickness > 0)
@@ -132,9 +133,9 @@ namespace Arcadia.Graphics
             return SetOpacityMask(mask, bar, mode);
         }
 
-        public Bitmap SetGradientMask(Bitmap mask, GammaPalette palette, Direction direction = Direction.Right, GradientColorHandling colorHandling = GradientColorHandling.Snap, MaskingMode mode = MaskingMode.Set)
+        public Bitmap SetGradientMask(Bitmap mask, GammaPalette palette, Direction direction = Direction.Right, GradientColorMode colorMode = GradientColorMode.Snap, MaskingMode mode = MaskingMode.Set)
         {
-            Bitmap gradient = ImageHelper.CreateGradient(palette, mask.Width, mask.Height, direction, colorHandling);
+            Bitmap gradient = ImageHelper.CreateGradient(palette, mask.Width, mask.Height, direction, colorMode);
             return SetOpacityMask(mask, gradient, mode);
         }
 
@@ -142,6 +143,40 @@ namespace Arcadia.Graphics
         {
             Grid<float> mask = ImageHelper.GetOpacityMask(reference);
             return ImageHelper.SetOpacityMask(target, mask, mode);
+        }
+
+        private static readonly Size Bounds16_9 = new Size(400, 225);
+        private static readonly Size Bounds4_3 = new Size(400, 300);
+        private static readonly Size Bounds1_1 = new Size(300, 300);
+        private static readonly Size Bounds1_2 = new Size(400, 200);
+        private static readonly Size Bounds2_1 = new Size(150, 300);
+
+        private static readonly Size Thumbs16_9 = new Size(80, 45);
+        private static readonly Size Thumbs4_3 = new Size(80, 60);
+        private static readonly Size Thumbs1_1 = new Size(80, 80);
+        private static readonly Size Thumbs1_2 = new Size(80, 40);
+        private static readonly Size Thumbs2_1 = new Size(40, 80);
+
+        /// <summary>
+        /// Returns the size of the specified <see cref="ImageRatio"/> and <see cref="DiscordMedia"/>.
+        /// </summary>
+        public static Size GetRatioDims(ImageRatio ratio, DiscordMedia media)
+        {
+            bool isThumb = media == DiscordMedia.Thumbnail;
+            return ratio switch
+            {
+                ImageRatio.Widescreen => isThumb ? Thumbs16_9 : Bounds16_9,
+                ImageRatio.Wide => isThumb ? Thumbs2_1 : Bounds2_1,
+                ImageRatio.Rectangle => isThumb ? Thumbs4_3 : Bounds4_3,
+                ImageRatio.Square => isThumb ? Thumbs1_1 : Bounds1_1,
+                ImageRatio.Tall => isThumb ? Thumbs1_2 : Bounds1_2,
+                _ => throw new ArgumentException("The ratio type specified is not a valid ratio.")
+            };
+        }
+
+        private static Vector2 GetScale(ImageScale scale)
+        {
+            return new Vector2((int) scale, (int) scale);
         }
 
         public void Dispose()

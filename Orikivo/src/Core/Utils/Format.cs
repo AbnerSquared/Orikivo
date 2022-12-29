@@ -14,7 +14,6 @@ namespace Orikivo
     {
         private const string GROUP_FORMATTING = "##,0.###";
         private static readonly string[] SensitiveCharacters = { "\\", "*", "_", "~", "`", "|", ">" };
-        public static readonly string VoiceChannelUrlFormat = "https://discordapp.com/channels/{0}/{1}";
 
         public static bool IsSensitive(string text)
             => text.ContainsAny("\\", "*", "_", "~", "`", "|", ">");
@@ -512,9 +511,6 @@ namespace Orikivo
             return result.ToString();
         }
 
-        public static string GetVoiceChannelUrl(ulong guildId, ulong voiceChannelId)
-            => string.Format(VoiceChannelUrlFormat, guildId, voiceChannelId);
-
         public static string SetUnicodeMap(string value, UnicodeMap type)
         {
             Dictionary<char, char> map = type switch
@@ -625,7 +621,6 @@ namespace Orikivo
             return SetCasing(result, casing);
         }
 
-        // TODO: Handle upper case words
         private static string Pluralize(string word, bool isFormal = false)
         {
             StringComparison comparer = StringComparison.Ordinal;

@@ -1,5 +1,6 @@
 ﻿namespace Orikivo.Drawing
 {
+    // TODO: Move to Arcadia.Graphics
     /// <summary>
     /// Represents a level of brightness for a <see cref="GammaPalette"/>.
     /// </summary>

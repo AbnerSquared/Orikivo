@@ -1,7 +1,7 @@
 ﻿namespace Orikivo.Drawing
 {
     /// <summary>
-    /// Represents the index of a char that correlates with a character grid.
+    /// Represents an index for a character in a character map.
     /// </summary>
     public struct CharIndex
     {

@@ -828,10 +828,10 @@ namespace Arcadia.Multiplayer.Games
                 var toUpdate = new PlayerResult
                 {
                     Stats = stats,
-                    Exp = CalculateExp(session, player)
+                    Exp = CalculateExp(session, player),
+                    PlayerProperties = player.Properties
                 };
 
-                toUpdate.PlayerProperties = player.Properties;
                 playerResults.Add(playerId, toUpdate);
             }
 

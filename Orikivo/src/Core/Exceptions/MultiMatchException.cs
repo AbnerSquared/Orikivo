@@ -9,9 +9,7 @@ namespace Orikivo
     public class MultiMatchException : Exception
     {
         public IEnumerable<object> Matches { get; }
-        public MultiMatchException(string message = "") : base(message)
-        {
-        }
+        public MultiMatchException(string message = "") : base(message) { }
 
         public MultiMatchException(string message, IEnumerable<object> matches) : base(message)
         {

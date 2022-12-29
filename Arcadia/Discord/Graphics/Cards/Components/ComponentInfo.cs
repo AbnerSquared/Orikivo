@@ -60,7 +60,7 @@ namespace Arcadia.Graphics
         /// Determines how size specifications are handled for this component.
         /// </summary>
         [JsonProperty("size_handling")]
-        public SizeHandling SizeHandling { get; set; } = SizeHandling.Ignore;
+        public ComponentSizeMode SizeHandling { get; set; } = ComponentSizeMode.Ignore;
 
         /// <summary>
         /// Defines the default fill information of this component.

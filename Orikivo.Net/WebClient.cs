@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Orikivo.Net
 {
-    public class OriWebClient : IDisposable
+    public class WebClient : IDisposable
     {
-        public static OriWebClient Default = new OriWebClient();
+        public static WebClient Default = new WebClient();
 
         private static HttpClient DefaultHttpClient
         {
@@ -25,17 +25,17 @@ namespace Orikivo.Net
 
         public HttpRequestHeaders Headers => _client.DefaultRequestHeaders;
 
-        public OriWebClient()
+        public WebClient()
         {
             _client = DefaultHttpClient;
         }
 
-        public OriWebClient(string address) : this()
+        public WebClient(string address) : this()
         {
             SetBaseAddress(address);
         }
 
-        public OriWebClient(string address, bool ensured) : this(address)
+        public WebClient(string address, bool ensured) : this(address)
         {
             _ensured = ensured;
         }
@@ -52,40 +52,40 @@ namespace Orikivo.Net
         public void AddRequestHeader(string header, string value)
             => _client.DefaultRequestHeaders.Add(header, value);
 
-        public async Task<OriWebResult<T>> RequestAsync<T>(string url)
+        public async Task<WebResult<T>> RequestAsync<T>(string url)
             => await RequestAsync<T>(new Uri(url));
 
-        public async Task<OriWebResult<T>> RequestAsync<T>(Uri uri)
+        public async Task<WebResult<T>> RequestAsync<T>(Uri uri)
         {
             HttpResponseMessage response = await _client.GetAsync(uri);
-            return new OriWebResult<T>(response);
+            return new WebResult<T>(response);
         }
 
-        public async Task<OriWebResult> RequestAsync(string url)
+        public async Task<WebResult> RequestAsync(string url)
             => await RequestAsync(new Uri(url));
 
-        public async Task<OriWebResult> RequestAsync(Uri uri)
+        public async Task<WebResult> RequestAsync(Uri uri)
         {
             HttpResponseMessage response = await _client.GetAsync(uri);
-            return new OriWebResult(response);
+            return new WebResult(response);
         }
 
-        public async Task<OriWebResult> GetAsync(string url = "")
+        public async Task<WebResult> GetAsync(string url = "")
             => await SendAsync(HttpMethod.GET, url);
 
-        public async Task<OriWebResult> DeleteAsync(string url = "")
+        public async Task<WebResult> DeleteAsync(string url = "")
             => await SendAsync(HttpMethod.DELETE, url);
 
-        public async Task<OriWebResult> PostAsync(string url = "", string value = null)
+        public async Task<WebResult> PostAsync(string url = "", string value = null)
             => await SendAsync(HttpMethod.POST, url, value);
 
-        public async Task<OriWebResult> PatchAsync(string url = "", string value = null)
+        public async Task<WebResult> PatchAsync(string url = "", string value = null)
             => await SendAsync(HttpMethod.PATCH, url, value);
 
-        public async Task<OriWebResult> PutAsync(string url = "", string value = null)
+        public async Task<WebResult> PutAsync(string url = "", string value = null)
             => await SendAsync(HttpMethod.PUT, url, value);
 
-        public async Task<OriWebResult> SendAsync(HttpMethod requestType, string url = "", string value = null)
+        public async Task<WebResult> SendAsync(HttpMethod requestType, string url = "", string value = null)
         {
             url.TrimStart('/');
             System.Net.Http.HttpMethod method = new System.Net.Http.HttpMethod(requestType.ToString());
@@ -102,7 +102,7 @@ namespace Orikivo.Net
             }
         }
 
-        public async Task<OriWebResult> SendAsync(HttpRequestMessage request)
+        public async Task<WebResult> SendAsync(HttpRequestMessage request)
         {
             HttpResponseMessage response = await _client.SendAsync(request);
 
@@ -112,7 +112,7 @@ namespace Orikivo.Net
                     throw new HttpRequestException($"{request.RequestUri} is currently prohibited due to a ratelimit.");
             }
 
-            OriWebResult result = new OriWebResult(response);
+            WebResult result = new WebResult(response);
             
             if (result.IsSuccess)
             {

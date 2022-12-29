@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -39,10 +38,10 @@ namespace Orikivo.Drawing
         {
             Color alpha = alphaColor ?? Color.Empty;
 
-            Grid<Color> pixels = ImageHelper.GetPixelData(bmp);
+            Grid<Color> pixels = GetPixelData(bmp);
             pixels.SetEachValue((pixel, x, y) => pixel.Equals(alpha) ? color : pixel);
 
-            return ImageHelper.CreateArgbBitmap(pixels.Values);
+            return CreateArgbBitmap(pixels.Values);
         }
 
         public static ColorMap[] CreateColorTable(Color[] fromColors, Color[] toColors)
@@ -90,14 +89,9 @@ namespace Orikivo.Drawing
             => SetColorMap(bmp, CreateColorTable(from.Values.Zip(to.Values, (x, y) => ((Color)x, (Color)y)).ToArray()));
 
         public static bool IsEmptyOrNull(Bitmap bmp)
-        {
-            if (bmp == null)
-                return true;
+            => (bmp == null) || GetPixelData(bmp).All(x => x.A == 0);
 
-            return GetPixelData(bmp).All(x => x.A == 0);
-        }
-
-        internal static int GetNonEmptyWidth(Bitmap bmp)
+        internal static int GetBoundingWidth(Bitmap bmp)
         {
             if (bmp == null)
                 return 0;
@@ -124,7 +118,7 @@ namespace Orikivo.Drawing
             return nonEmptyLen;
         }
 
-        internal static int GetNonEmptyHeight(Bitmap bmp)
+        internal static int GetBoundingHeight(Bitmap bmp)
         {
             if (bmp == null)
                 return 0;
@@ -151,8 +145,8 @@ namespace Orikivo.Drawing
             return nonEmptyLen;
         }
 
-        public static Size GetNonEmptySize(Bitmap bmp)
-            => new Size(GetNonEmptyWidth(bmp), GetNonEmptyHeight(bmp));
+        public static Size GetBoundingBox(Bitmap bmp)
+            => new Size(GetBoundingWidth(bmp), GetBoundingHeight(bmp));
 
         public static Bitmap DrawOutline(Bitmap target, int thickness, Bitmap mask, bool drawOnNew = false)
         {
@@ -163,13 +157,14 @@ namespace Orikivo.Drawing
                 throw new ArgumentException("The specified outline mask does not match the dimensions of the target image");
 
             Grid<Color> pixels = GetPixelData(target);
-            Color alpha = Color.Empty;// Color.FromArgb(0, 0, 0, 0);
-            List<(int, int)> validPoints = GetOutlinePoints(ref pixels, ref alpha, thickness);
+            Color alpha = Color.Empty;
+            List<(int, int)> validPoints = GetOutlinePixels(ref pixels, ref alpha, thickness);
 
             Grid<Color> maskPixels = GetPixelData(mask);
             if (drawOnNew)
             {
                 /*
+                 This is more optimized, but there's currently an issue with it
                 var handle = new ImageHandle(target.Width, target.Height);
 
                 foreach ((int x, int y) in validPoints)
@@ -191,7 +186,6 @@ namespace Orikivo.Drawing
 
             foreach ((int x, int y) in validPoints)
             {
-                // Console.WriteLine($"Set outline pixel at {x}, {y}");
                 pixels.SetValue(maskPixels[x, y], x, y);
             }
 
@@ -207,7 +201,7 @@ namespace Orikivo.Drawing
             //return result;
         }
 
-        private static List<(int, int)> GetOutlinePoints(ref Grid<Color> pixels, ref Color alpha, int thickness)
+        private static List<(int, int)> GetOutlinePixels(ref Grid<Color> pixels, ref Color alpha, int thickness)
         {
             var validPoints = new List<(int px, int py)>();
 
@@ -261,7 +255,7 @@ namespace Orikivo.Drawing
         {
             Grid<Color> pixels = GetPixelData(target);
             Color alpha = alphaColor ?? Color.Empty;
-            List<(int, int)> validPoints = GetOutlinePoints(ref pixels, ref alpha, thickness);
+            List<(int, int)> validPoints = GetOutlinePixels(ref pixels, ref alpha, thickness);
 
             if (drawOnNew)
             {
@@ -305,8 +299,8 @@ namespace Orikivo.Drawing
 
         public static Bitmap Crop(string localPath, int x, int y, int width, int height)
         {
-            using (Bitmap bmp = new Bitmap(localPath))
-                return Crop(bmp, x, y, width, height);
+            using Bitmap bmp = new Bitmap(localPath);
+            return Crop(bmp, x, y, width, height);
         }
 
         public static Bitmap Crop(Bitmap bmp, int x, int y, int width, int height, bool dispose = false)
@@ -323,7 +317,7 @@ namespace Orikivo.Drawing
         }
 
         public static Bitmap Trim(Bitmap bmp, bool dispose = false)
-            => Crop(bmp, new Rectangle(0, 0, GetNonEmptyWidth(bmp), GetNonEmptyHeight(bmp)), dispose);
+            => Crop(bmp, new Rectangle(0, 0, GetBoundingWidth(bmp), GetBoundingHeight(bmp)), dispose);
 
         public static Bitmap Rotate(Bitmap bmp, AngleF angle, Point? axis = null)
         {
@@ -375,8 +369,6 @@ namespace Orikivo.Drawing
             {
                 var result = new Bitmap(width, height);
 
-                //result.SetResolution(image.HorizontalResolution, image.VerticalResolution);
-
                 using Graphics g = Graphics.FromImage(result);
                 using var wrap = new ImageAttributes();
 
@@ -400,7 +392,7 @@ namespace Orikivo.Drawing
         }
 
         public static Bitmap Scale(Bitmap image, float widthScale, float heightScale)
-            => SetSize(image, (int)Floor(image.Width * widthScale), (int)Floor(image.Height * heightScale));
+            => SetSize(image, (int) Floor(image.Width * widthScale), (int) Floor(image.Height * heightScale));
 
         public static Bitmap SetOpacity(Bitmap image, float opacity)
         {
@@ -435,18 +427,18 @@ namespace Orikivo.Drawing
 
             var position = new Point((int) Floor(mX), (int) Floor(mY));
 
-            if (position.X < 0 || position.X > viewport.Width ||
-                position.Y < 0 || position.Y > viewport.Height)
+            if (position.X < 0
+                || position.X > viewport.Width
+                || position.X + edited.Width > viewport.Width
+                || position.Y < 0
+                || position.Y > viewport.Height
+                || position.Y + edited.Height > viewport.Height)
             {
-                if (position.X < 0 || position.X + edited.Width > viewport.Width ||
-                    position.Y < 0 || position.Y + edited.Height > viewport.Height)
-                {
-                    Rectangle clip = ClampRectangle(Point.Empty, viewport, position, edited.Size);
-                    using Bitmap crop = Crop(edited, clip);
+                Rectangle clip = ClampRectangle(Point.Empty, viewport, position, edited.Size);
+                using Bitmap crop = Crop(edited, clip);
 
-                    ClipAndDrawImage(g, crop, position);
-                    return result;
-                }
+                ClipAndDrawImage(g, crop, position);
+                return result;
             }
 
             ClipAndDrawImage(g, edited, position);
@@ -460,23 +452,20 @@ namespace Orikivo.Drawing
             return SetOpacity(rotated, opacity);
         }
 
-        // TODO: Determine file type before making it a Bitmap.
         public static Bitmap GetHttpImage(string url)
         {
-            using (var webClient = new WebClient())
+            using var webClient = new WebClient();
+            // TODO: Determine file type before reading the stream.
+
+            try
             {
-                try
-                {
-                    using (Stream stream = webClient.OpenRead(url))
-                    {
-                        return new Bitmap(stream);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                    throw e;
-                }
+                using Stream stream = webClient.OpenRead(url);
+                return new Bitmap(stream);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                throw e;
             }
         }
 
@@ -584,6 +573,29 @@ namespace Orikivo.Drawing
             ClipAndDrawImage(g, border, 0, 0);
 
             return result;
+        }
+
+        private static BorderDims GetBorderDims(int width, int height, int top, int left, int bottom, int right, BorderEdge edge)
+        {
+            int maxInnerLength = (int)Math.Floor(width / (double)2);
+
+            var dims = new BorderDims
+            {
+                TopInnerLength = Math.Min(maxInnerLength, GetInnerLength(top, edge)),
+                LeftInnerLength = Math.Min(maxInnerLength, GetInnerLength(left, edge)),
+                BottomInnerLength = Math.Min(maxInnerLength, GetInnerLength(bottom, edge)),
+                RightInnerLength = Math.Min(maxInnerLength, GetInnerLength(right, edge)),
+                TopOuterLength = GetOuterLength(top, edge),
+                LeftOuterLength = GetOuterLength(left, edge),
+                BottomOuterLength = GetOuterLength(bottom, edge),
+                RightOuterLength = GetOuterLength(right, edge),
+                MaxInnerLength = (int) Math.Floor(width / (double) 2)
+            };
+
+            dims.ImageWidth = width + dims.LeftOuterLength + dims.RightOuterLength;
+            dims.ImageHeight = height + dims.TopOuterLength + dims.BottomOuterLength;
+
+            return dims;
         }
 
         private static BorderDims GetBorderDims(int baseWidth, int baseHeight, int thickness, BorderEdge edge, BorderAllow allow)
@@ -750,6 +762,7 @@ namespace Orikivo.Drawing
             return GetOpacityMask(result);
         }
 
+        // Create ImageFactory class for these methods
         public static Bitmap CreateSolid(Color color, int width, int height, Padding padding)
         {
             var result = new Bitmap(width + padding.Width, height + padding.Height);
@@ -882,7 +895,7 @@ namespace Orikivo.Drawing
         }
 
         // TODO: Implement angled gradient generation (AngleF angle)
-        public static Bitmap CreateGradient(Dictionary<float, Color> markers, int width, int height, Direction direction = Direction.Right, GradientColorHandling colorHandling = GradientColorHandling.Blend)
+        public static Bitmap CreateGradient(Dictionary<float, Color> markers, int width, int height, Direction direction = Direction.Right, GradientColorMode colorHandling = GradientColorMode.Blend)
         {
             var pixels = new Grid<Color>(width, height, GetInitialColor(markers));
             bool flip = (Direction.Up | Direction.Left).HasFlag(direction);
@@ -902,7 +915,7 @@ namespace Orikivo.Drawing
         }
 
         // TODO: Implement angled gradient generation (AngleF angle)
-        public static Bitmap CreateGradient(GammaPalette palette, int width, int height, Direction direction = Direction.Right, GradientColorHandling colorHandling = GradientColorHandling.Snap)
+        public static Bitmap CreateGradient(GammaPalette palette, int width, int height, Direction direction = Direction.Right, GradientColorMode colorHandling = GradientColorMode.Snap)
         {
             const float colorDist = 1.0f / GammaPalette.RequiredLength;
             var markers = new Dictionary<float, Color>();
@@ -1369,7 +1382,7 @@ namespace Orikivo.Drawing
             return markers.OrderBy(x => x.Key).First().Value;
         }
 
-        private static Color GetColorAtProgress(Dictionary<float, Color> markers, float progress, GradientColorHandling colorHandling = GradientColorHandling.Blend)
+        private static Color GetColorAtProgress(Dictionary<float, Color> markers, float progress, GradientColorMode colorHandling = GradientColorMode.Blend)
         {
             float? lastClosest = GetLastClosest(markers, progress);
             float? nextClosest = GetNextClosest(markers, progress);
@@ -1385,7 +1398,7 @@ namespace Orikivo.Drawing
 
             switch (colorHandling)
             {
-                case GradientColorHandling.Snap:
+                case GradientColorMode.Snap:
                     return lastClosest.Value < nextClosest.Value ? markers[lastClosest.Value] : markers[nextClosest.Value];
 
                 default:

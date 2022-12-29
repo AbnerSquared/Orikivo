@@ -1,4 +1,4 @@
-﻿namespace Orikivo.Drawing
+﻿namespace Arcadia.Graphics
 {
     /// <summary>
     /// The type of media that is to be used within a Discord.Embed.

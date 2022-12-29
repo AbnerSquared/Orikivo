@@ -30,7 +30,7 @@ namespace Arcadia.Multiplayer
         // Does this specific input need to be placed on all connected displays?
         public bool RequireOnMessage { get; set; }
 
-        public InputResult TryParse(Input input)
+        public InputResult TryParse(InputResponse input)
         {
             var result = new InputResult();
 

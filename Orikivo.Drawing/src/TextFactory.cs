@@ -123,7 +123,7 @@ namespace Orikivo.Drawing
             Cache[value] = new CachedChar(_fonts.IndexOf(font), bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), bmp.PixelFormat));
 
             if (!font.IsMonospace && trimEmptyPixels)
-                return ImageHelper.Crop(bmp, 0, 0, ImageHelper.GetNonEmptyWidth(bmp), font.CharHeight);
+                return ImageHelper.Crop(bmp, 0, 0, ImageHelper.GetBoundingWidth(bmp), font.CharHeight);
 
             return bmp;
         }
@@ -350,7 +350,7 @@ namespace Orikivo.Drawing
 
                     if (c.HasSprite())
                     {
-                        using Bitmap sprite = c.GetSprite();
+                        using Bitmap sprite = c.CloneSprite();
                         ImageHelper.ClipAndDrawImage(graphics, sprite, cursor, c.Size);
                     }
 

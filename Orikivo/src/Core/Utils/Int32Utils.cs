@@ -11,7 +11,7 @@ namespace Orikivo
             if (increment == 0)
                 throw new ArgumentException("The specified increment amount must not be equal to 0.");
 
-            return Enumerable.Repeat(start, (int)((end - start) / increment) + 1).Select((u, v) => u + (increment * v));
+            return Enumerable.Repeat(start, ((end - start) / increment) + 1).Select((u, v) => u + (increment * v));
         }
 
         public static IEnumerable<int> CreateInt32Range(int start, int end, int increment, HashSet<int> exclude)

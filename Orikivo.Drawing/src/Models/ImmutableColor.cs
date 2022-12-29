@@ -252,9 +252,9 @@ namespace Orikivo.Drawing
 
         public static ImmutableColor Subtract(ImmutableColor a, ImmutableColor b)
         {
-            byte red = (byte) Math.Min(0, a.R - b.R);;
-            byte green = (byte) Math.Min(0, a.G - b.G);
-            byte blue = (byte) Math.Min(0, a.B - b.B);
+            byte red = (byte) Math.Max(0, a.R - b.R);
+            byte green = (byte) Math.Max(0, a.G - b.G);
+            byte blue = (byte) Math.Max(0, a.B - b.B);
 
             return new ImmutableColor(red, green, blue);
         }

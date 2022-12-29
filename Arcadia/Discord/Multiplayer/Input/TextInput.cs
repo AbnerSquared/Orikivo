@@ -35,7 +35,7 @@ namespace Arcadia.Multiplayer
 
         public List<GameProperty> Args { get; set; }
 
-        public InputResult TryParse(Input input)
+        public InputResult TryParse(InputResponse input)
         {
             var result = new InputResult();
 

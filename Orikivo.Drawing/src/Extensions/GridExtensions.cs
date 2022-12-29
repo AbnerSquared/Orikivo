@@ -130,5 +130,21 @@ namespace Orikivo.Drawing
 
             return t;
         }
+
+        public static long Average(this Grid<int> grid)
+        {
+            long total = 0;
+            grid.ForEachValue(x => total += x);
+
+            return total / grid.Count;
+        }
+
+        public static double Average(this Grid<float> grid)
+        {
+            double total = 0;
+            grid.ForEachValue(x => total += x);
+
+            return total / grid.Count;
+        }
     }
 }

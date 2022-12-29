@@ -10,12 +10,12 @@
             Scale = Vector2.One,
             Matte = null,
             Palette = GammaPalette.Default,
-            ColorHandling = DrawablePaletteHandling.Map,
+            ColorHandling = DrawableColorMode.Map,
             Opacity = 1,
             Border = null
         };
 
-        public DrawablePaletteHandling ColorHandling { get; set; } = DrawablePaletteHandling.Map;
+        public DrawableColorMode ColorHandling { get; set; } = DrawableColorMode.Map;
 
         public GammaPalette Palette { get; set; }
 
@@ -32,11 +32,5 @@
         public Shadow Shadow { get; set; }
 
         public Border Border { get; set; }
-
-        public DrawableProperties WithScale(ImageScale scale)
-        {
-            Scale = new Vector2((int)scale, (int)scale);
-            return this;
-        }
     }
 }

@@ -13,19 +13,6 @@ namespace Orikivo.Drawing.Graphics2D
 
         public Grid<Color> Pixels { get; set; }
 
-        // NOTE: This is the active pen used to draw when active
-        public Pen Pen { get; set; }
-
-        public void PenDown()
-        {
-            Pen.IsDown = true;
-        }
-
-        public void PenUp()
-        {
-            Pen.IsDown = false;
-        }
-
         public void Clear(Color color)
         {
             Pixels.Clear(color);
@@ -36,15 +23,6 @@ namespace Orikivo.Drawing.Graphics2D
             Pixels.SetRegion(pixels, x, y);
         }
 
-        // TODO: Implement Canvas.Stamp(Image)
-        //public void Stamp(Image image) { }
-
-        public void DrawCircle(Point origin, int radius, Color color)
-            => DrawCircle(origin.X, origin.Y, radius, color);
-
-        // REF: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-        // REF: https://www.geeksforgeeks.org/mid-point-circle-drawing-algorithm/
-        // NOTE: This method draws a circle using the Midpoint Circle Algorithm
         public void DrawCircle(int originX, int originY, int radius, Color color)
         {
             var pixels = GetCirclePixels(originX, originY, radius);
@@ -66,9 +44,6 @@ namespace Orikivo.Drawing.Graphics2D
                     Pixels.SetValue(color, pixel.X, pixel.Y);
             }
         }
-
-        public void DrawLine(Point a, Point b, Color color)
-            => DrawLine(a.X, a.Y, b.X, b.Y, color);
 
         public void DrawRectangle(int x, int y, int width, int height, Color color)
         {
@@ -93,16 +68,18 @@ namespace Orikivo.Drawing.Graphics2D
 
         }
 
-        public void DrawRectangle(Point point, Size size, Color color)
-            => DrawRectangle(point.X, point.Y, size.Width, size.Height, color);
-        
         public void DrawPoint(int x, int y, Color color)
         {
             if (Pixels.Contains(x, y))
                 Pixels.SetValue(color, x, y);
         }
 
-        public List<Point> GetCirclePixels(int originX, int originY, int radius)
+        // TODO: Move GetPixel methods into a helper class
+
+        // REF: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+        // REF: https://www.geeksforgeeks.org/mid-point-circle-drawing-algorithm/
+        // NOTE: This method draws a circle using the Midpoint Circle Algorithm
+        private List<Point> GetCirclePixels(int originX, int originY, int radius)
         {
             var pixels = new List<Point>();
             // initial points
@@ -166,7 +143,7 @@ namespace Orikivo.Drawing.Graphics2D
         // REF: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
         // REF: http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.23
         // NOTE: This draws a line using Bresenham's Line algorithm
-        public List<Point> GetLinePixels(int ax, int ay, int bx, int by)
+        private List<Point> GetLinePixels(int ax, int ay, int bx, int by)
         {
             var pixels = new List<Point>();
 

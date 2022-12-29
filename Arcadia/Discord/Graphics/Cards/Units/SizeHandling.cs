@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines how component size specifications are handled.
     /// </summary>
-    public enum SizeHandling
+    public enum ComponentSizeMode
     {
         /// <summary>
         /// Size limitations are ignored.
@@ -13,7 +13,7 @@
         /// <summary>
         /// Size limitations will throw an exception if the reference size is larger.
         /// </summary>
-        Throw = 1,
+        Error = 1,
 
         /// <summary>
         /// Size limitations will override the reference size.

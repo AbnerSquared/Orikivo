@@ -1,6 +1,6 @@
 ﻿namespace Orikivo.Drawing
 {
-    public enum DrawablePaletteHandling
+    public enum DrawableColorMode
     {
         /// <summary>
         /// Ignores overriding the colors on each <see cref="DrawableLayer"/>.

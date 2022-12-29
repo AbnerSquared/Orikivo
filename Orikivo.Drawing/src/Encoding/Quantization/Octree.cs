@@ -208,7 +208,7 @@ namespace Orikivo.Drawing
                     if (Children[index] != null)
                         paletteIndex = Children[index].GetPaletteIndex(pixel, level + 1);
                     else
-                        throw new Exception("I knew it. You were a liberal this whole time.");
+                        throw new Exception("The specified child index is null");
                 }
 
                 return paletteIndex;

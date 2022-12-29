@@ -1,4 +1,4 @@
-﻿namespace Orikivo.Drawing
+﻿namespace Arcadia.Graphics
 {
     public enum ImageScale
     {

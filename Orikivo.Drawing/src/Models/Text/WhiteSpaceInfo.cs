@@ -10,19 +10,18 @@ namespace Orikivo.Drawing
     /// </summary>
     public class WhiteSpaceInfo
     {
-        public static List<WhiteSpaceInfo> Default
-            => new List<WhiteSpaceInfo> { new WhiteSpaceInfo(1, '​'), new WhiteSpaceInfo(4, ' ', '⠀') };
-
-        public static bool IsWhiteSpace(char c)
-            => _emptyChars.Contains(c);
-
-        // These are all of the valid empty characters.
         private static readonly char[] _emptyChars =
         {
             '​', /* Zero-Width Space */
             ' ', /* Space */
             '⠀' /* Braille Empty */
         };
+
+        public static List<WhiteSpaceInfo> Default
+            => new List<WhiteSpaceInfo> { new WhiteSpaceInfo(1, '​'), new WhiteSpaceInfo(4, ' ', '⠀') };
+
+        public static bool IsWhiteSpace(char c)
+            => _emptyChars.Contains(c);
 
         [JsonConstructor]
         public WhiteSpaceInfo(char[] chars, int width)

@@ -13,7 +13,7 @@ namespace Orikivo
         /// Determines if this message contains any emotes.
         /// </summary>
         public static bool ContainsEmote(this IMessage message)
-            => OriRegex.ContainsEmote(message.Content);
+            => RegexHelper.ContainsEmote(message.Content);
 
         /// <summary>
         /// Determines if this message contains the specified emote.
@@ -22,13 +22,13 @@ namespace Orikivo
         /// <param name="emote">The emote to compare the collection of captured emotes to.</param>
         /// <returns>A value that represents the result of this comparison.</returns>
         public static bool ContainsEmote(this IMessage message, IEmote emote)
-            => OriRegex.CaptureEmotes(message.Content).Any(x => x.Equals(emote));
+            => RegexHelper.CaptureEmotes(message.Content).Any(x => x.Equals(emote));
 
         /// <summary>
         /// Returns a collection of all emotes that this message contains.
         /// </summary>
         public static List<Emote> GetEmotes(this IMessage message)
-            => OriRegex.CaptureEmotes(message.Content);
+            => RegexHelper.CaptureEmotes(message.Content);
 
         /// <summary>
         /// Attempts to return an embed of <see cref="EmbedType.Rich"/> from this message.

@@ -177,9 +177,9 @@ namespace Orikivo.Drawing
 
             result = Properties.ColorHandling switch
             {
-                DrawablePaletteHandling.Ignore => result,
-                DrawablePaletteHandling.Force => ImageHelper.ForcePalette(result, Palette),
-                DrawablePaletteHandling.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
+                DrawableColorMode.Ignore => result,
+                DrawableColorMode.Force => ImageHelper.ForcePalette(result, Palette),
+                DrawableColorMode.Map => ImageHelper.SetColorMap(result, GammaPalette.Default, Palette),
                 _ => result
             };
 

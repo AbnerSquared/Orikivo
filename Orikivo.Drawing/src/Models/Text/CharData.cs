@@ -69,7 +69,7 @@ namespace Orikivo.Drawing
         /// <summary>
         /// Attempts to get the <see cref="Bitmap"/> stored from this <see cref="CharData"/>.
         /// </summary>
-        public Bitmap GetSprite()
+        public Bitmap CloneSprite()
             => _sprite?.Clone(new Rectangle(0, 0, _sprite.Width, _sprite.Height), _sprite.PixelFormat);
 
         public void Dispose()

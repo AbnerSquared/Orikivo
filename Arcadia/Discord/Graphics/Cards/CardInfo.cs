@@ -73,7 +73,7 @@ namespace Arcadia.Graphics
         {
             int width = info.BaseWidth;
 
-            if (info.SizeHandling == SizeHandling.Set)
+            if (info.SizeHandling == ComponentSizeMode.Set)
             {
                 width = info.MaxWidth < 0 ? 0 : info.MaxWidth;
                 return width;
@@ -92,7 +92,7 @@ namespace Arcadia.Graphics
         {
             int height = info.BaseHeight;
 
-            if (info.SizeHandling == SizeHandling.Set)
+            if (info.SizeHandling == ComponentSizeMode.Set)
             {
                 height = info.MaxHeight < 0 ? 0 : info.MaxHeight;
                 return height;

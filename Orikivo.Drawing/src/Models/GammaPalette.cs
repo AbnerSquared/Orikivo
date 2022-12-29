@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Orikivo.Drawing
 {
+    // TODO: Move to Arcadia.Graphics
     public class GammaPalette
     {
         public const int RequiredLength = 8;
@@ -50,10 +51,6 @@ namespace Orikivo.Drawing
             for (int g = 0; g < RequiredLength; g++)
             {
                 var strength = mergeStrength * g;
-
-                //if (g == 0)
-                //    strength = 0.1f;
-
                 colors.Add(ImmutableColor.Blend(a[g], b[g], strength));
             }
 

@@ -8,7 +8,7 @@ namespace Orikivo
     /// <summary>
     /// A utility class that provides common <see cref="Regex"/> methods.
     /// </summary>
-    public static class OriRegex
+    public static class RegexHelper
     {
         /// <summary>
         /// Gets the <see cref="Regex"/> pattern that is used to parse an <see cref="Emote"/>.
