@@ -13,6 +13,9 @@ using Arcadia.Multiplayer.Games;
 using Arcadia.Services;
 using Orikivo;
 using Orikivo.Text;
+using Arcadia.Interactions;
+using Discord.Interactions;
+using Arcadia.Converters;
 
 namespace Arcadia
 {
@@ -38,7 +41,7 @@ namespace Arcadia
 
                 layout.Set();
 
-                var builder = new ClientBuilder();
+                var builder = new InteractionClientBuilder();
 
                 builder.Services
                     .AddSingleton<GameManager>()
@@ -47,12 +50,34 @@ namespace Arcadia
                     .AddSingleton<InfoService>()
                     .AddSingleton<ArcadeContainer>()
                     .AddSingleton<LogService>()
-                    .AddSingleton<CommandHandler>()
+                    .AddSingleton<InteractionHandler>()
                     .AddSingleton<EventHandler>()
                     .AddSingleton<CasinoService>();
 
                 builder.SocketConfig = Orikivo.DiscordConfig.DefaultSocketConfig;
-                builder.CommandConfig = Orikivo.DiscordConfig.DefaultCommandConfig;
+                builder.InteractionConfig = Orikivo.DiscordConfig.DefaultInteractionConfig;
+
+                builder
+                    .AddTypeConverter<Item>(new ItemTypeConverter())
+                    .AddTypeConverter<Badge>(new BadgeTypeConverter())
+                    .AddTypeConverter<Recipe>(new RecipeTypeConverter())
+                    .AddTypeConverter<Quest>(new QuestTypeConverter())
+                    .AddTypeConverter<Shop>(new ShopTypeConverter())
+                    .AddTypeConverter<ArcadeUser>(new ArcadeUserTypeConverter())
+                    .AddTypeConverter<Wager>(new WagerTypeConverter())
+                    .AddEnumTypeConverter<Casing>()
+                    .AddEnumTypeConverter<FontType>()
+                    .AddEnumTypeConverter<PaletteType>()
+                    .AddEnumTypeConverter<BorderAllow>()
+                    .AddEnumTypeConverter<ImageScale>()
+                    .AddEnumTypeConverter<CardGroup>()
+                    .AddEnumTypeConverter<Gamma>()
+                    .AddEnumTypeConverter<BorderEdge>()
+                    .AddEnumTypeConverter<DoublerWinMethod>()
+                    .AddEnumTypeConverter<StackTraceMode>()
+                    .AddEnumTypeConverter<ChessOwner>()
+                    .AddEnumTypeConverter<Privacy>()
+                    .AddEnumTypeConverter<RouletteBetMode>();
 
                 builder
                     .AddTypeReader<Item>(new ItemTypeReader())
@@ -77,14 +102,15 @@ namespace Arcadia
                     .AddEnumTypeReader<RouletteBetMode>();
 
                 builder
-                    .AddModule<Core>()
-                    .AddModule<Modules.Casino>()
-                    .AddModule<Modules.Multiplayer>()
-                    .AddModule<Common>()
-                    .AddModule<Economy>()
-                    .AddModule<Records>();
+                    //.AddModule<Core>()
+                    //.AddModule<Modules.Casino>()
+                    //.AddModule<Modules.Multiplayer>()
+                    .AddModule<Common>();
+                    //.AddModule<Economy>()
+                    //.AddModule<Records>();
 
-                Client client = builder.Build();
+                InteractionClient client = builder.Build();
+
                 client.Status = UserStatus.Online;
                 client.Activity = new ActivityConfig
                 {
@@ -93,7 +119,7 @@ namespace Arcadia
                 };
 
                 client.Provider.GetRequiredService<EventHandler>();
-                client.Provider.GetRequiredService<CommandHandler>();
+                client.Provider.GetRequiredService<InteractionHandler>();
 
                 client.Provider.GetRequiredService<GameManager>().DefaultGameId = "trivia";
                 // TODO: Implement GameInfo instead, where a custom ID can be written to support custom games

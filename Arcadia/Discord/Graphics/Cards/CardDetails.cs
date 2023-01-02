@@ -1,5 +1,5 @@
 ﻿using Discord;
-using Orikivo.Drawing;
+using System.Linq;
 
 namespace Arcadia.Graphics
 {
@@ -12,8 +12,16 @@ namespace Arcadia.Graphics
 
         public CardDetails(ArcadeUser user, IUser socket, ImageScale avatarScale = ImageScale.Medium)
         {
-            Program = socket.Activity?.Name;
-            Activity = socket.Activity?.Type;
+            IActivity? activity = null;
+
+            if (socket.Activities.Count >= 1)
+            {
+                activity = socket.Activities.First();
+            }
+
+
+            Program = activity?.Name;
+            Activity = activity?.Type;
             Ascent = user.Ascent;
             Status = socket.Status;
             Name = user.Username;

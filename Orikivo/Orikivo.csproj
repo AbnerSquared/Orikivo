@@ -60,5 +60,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Core\Typereaders\Converters\" />
+  </ItemGroup>
   
 </Project>

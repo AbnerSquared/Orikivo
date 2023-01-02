@@ -3,6 +3,7 @@ using Arcadia.Services;
 using Discord.Commands;
 using Orikivo;
 using Orikivo.Text;
+using Arcadia.Commands;
 
 namespace Arcadia.Modules
 {

@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Orikivo.Drawing;
 using Image = System.Drawing.Image;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using Path = System.IO.Path;
+using MongoDB.Driver;
 
 namespace Orikivo
 {
@@ -17,24 +19,35 @@ namespace Orikivo
         /// Sends a message to this message channel.
         /// </summary>
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
-            Embed embed,
-            string text = null,
-            bool isTTS = false,
-            RequestOptions options = null,
-            AllowedMentions allowedMentions = null)
-        {
-            return await channel.SendMessageAsync(text, isTTS, embed, options, allowedMentions);
-        }
-
-        /// <summary>
-        /// Sends a message to this message channel.
-        /// </summary>
-        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
             MessageContent content,
             RequestOptions options = null,
             AllowedMentions allowedMentions = null)
         {
             return await channel.SendMessageAsync(content.Content, content.IsTTS, content.Embed.Build(), options, allowedMentions);
+        }
+
+        public static async Task RespondAsync(this IDiscordInteraction interaction,
+            Message message,
+            bool ephemeral = false,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            if (Check.NotNull(message.AttachmentUrl))
+                await interaction.RespondWithFileAsync(message.AttachmentUrl, message.Text, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+            else
+                await interaction.RespondAsync(message.Text, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        public static async Task<IUserMessage> FollowupAsync(this IDiscordInteraction interaction,
+            Message message,
+            bool ephemeral = false,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            if (Check.NotNull(message.AttachmentUrl))
+                return await interaction.FollowupWithFileAsync(message.AttachmentUrl, message.Text, isTTS: message.IsTTS, embed: message.Embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+
+            return await interaction.FollowupAsync(message.Text, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -51,27 +64,65 @@ namespace Orikivo
             return await channel.SendMessageAsync(message.Text, message.IsTTS, message.Embed, options, allowedMentions);
         }
 
-        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
-            BaseUser user,
-            string text = null,
-            bool isTTS = false,
-            Embed embed = null,
-            RequestOptions options = null,
-            AllowedMentions allowedMentions = null)
+        public static async Task RespondAsync(this IDiscordInteraction interaction,
+        BaseUser user,
+        string text = null,
+        bool isTTS = false,
+        bool ephemeral = false,
+        Embed embed = null,
+        RequestOptions options = null,
+        AllowedMentions allowedMentions = null)
+        => await interaction.RespondAsync(BuildUserMessage(user, text), isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+       
+        public static async Task<IUserMessage> FollowupAsync(this IDiscordInteraction interaction,
+        BaseUser user,
+        string text = null,
+        bool isTTS = false,
+        bool ephemeral = false,
+        Embed embed = null,
+        RequestOptions options = null,
+        AllowedMentions allowedMentions = null)
         {
-            var content = new StringBuilder();
+            return await interaction.FollowupAsync(BuildUserMessage(user, text), isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+        }
 
-            if (user.Notifier.CanNotify)
-            {
-                text ??= string.Empty;
-                content.AppendLine(user.Notifier.Notify(2000 - text.Length));
-                user.Notifier.LastNotified = DateTime.UtcNow;
-            }
+        public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
+        BaseUser user,
+        string text = null,
+        bool isTTS = false,
+        Embed embed = null,
+        RequestOptions options = null,
+        AllowedMentions allowedMentions = null)
+        {
+            return await channel.SendMessageAsync(BuildUserMessage(user, text), isTTS, embed, options, allowedMentions);
+        }
 
-            if (!string.IsNullOrWhiteSpace(text))
-                content.Append(text);
+        public static async Task RespondAsync(this IDiscordInteraction interaction,
+        BaseUser user,
+        Message message,
+        bool ephemeral = false,
+        RequestOptions options = null)
+        {
+            string content = BuildUserMessage(user, message);
 
-            return await channel.SendMessageAsync(content.ToString(), isTTS, embed, options, allowedMentions);
+            if (!string.IsNullOrWhiteSpace(message.AttachmentUrl))
+                await interaction.RespondWithFileAsync(message.AttachmentUrl, content, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options).ConfigureAwait(continueOnCapturedContext: false);
+            else
+                await interaction.RespondAsync(content, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options).ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        public static async Task<IUserMessage> FollowupAsync(this IDiscordInteraction interaction,
+        BaseUser user,
+        Message message,
+        bool ephemeral = false,
+        RequestOptions options = null)
+        {
+            string content = BuildUserMessage(user, message);
+
+            if (!string.IsNullOrWhiteSpace(message.AttachmentUrl))
+                return await interaction.FollowupWithFileAsync(message.AttachmentUrl, content, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options).ConfigureAwait(continueOnCapturedContext: false);
+
+            return await interaction.FollowupAsync(content, isTTS: message.IsTTS, ephemeral: ephemeral, embed: message.Embed, options: options).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         public static async Task<IUserMessage> SendMessageAsync(this IMessageChannel channel,
@@ -79,25 +130,36 @@ namespace Orikivo
             Message message,
             RequestOptions options = null)
         {
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-
-            var content = new StringBuilder();
-
-            if (user.Notifier.CanNotify)
-            {
-                content.AppendLine(user.Notifier.Notify(2000 - (message.Text?.Length ?? 0)));
-                user.Notifier.LastNotified = DateTime.UtcNow;
-            }
-
-            if (!string.IsNullOrWhiteSpace(message.Text))
-                content.Append(message.Text);
+            string content = BuildUserMessage(user, message);
 
             if (!string.IsNullOrWhiteSpace(message.AttachmentUrl))
-                return await channel.SendFileAsync(message.AttachmentUrl, content.ToString(), message.IsTTS, message.Embed, options, message.IsSpoiler);
+                return await channel.SendFileAsync(message.AttachmentUrl, content, message.IsTTS, message.Embed, options, message.IsSpoiler);
 
-            return await channel.SendMessageAsync(content.ToString(), message.IsTTS, message.Embed, options);
+            return await channel.SendMessageAsync(content, message.IsTTS, message.Embed, options);
         }
+
+        
+
+        public static async Task RespondWithAttachmentAsync(this IDiscordInteraction interaction,
+            IAttachment attachment,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.RespondWithFileAsync(attachment.Url, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions);
+
+        public static async Task<IUserMessage> FollowupWithAttachmentAsync(this IDiscordInteraction interaction,
+            IAttachment attachment,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.FollowupWithFileAsync(attachment.Url, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions);
+
 
         /// <summary>
         /// Sends an attachment to this message channel.
@@ -110,8 +172,37 @@ namespace Orikivo
             RequestOptions options = null,
             bool isSpoiler = false,
             AllowedMentions allowedMentions = null)
+            => await channel.SendFileAsync(attachment.Url, text, isTTS, embed, options, isSpoiler, allowedMentions);
+
+        public static async Task RespondWithImageAsync(this IDiscordInteraction interaction,
+            Image image,
+            string path,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            GraphicsFormat format = GraphicsFormat.Png,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
         {
-            return await channel.SendFileAsync(attachment.Url, text, isTTS, embed, options, isSpoiler, allowedMentions);
+            SaveImage(image, path, format);
+            await interaction.RespondWithFileAsync(path, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        public static async Task<IUserMessage> FollowupWithImageAsync(this IDiscordInteraction interaction,
+            Image image,
+            string path,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            GraphicsFormat format = GraphicsFormat.Png,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+
+            SaveImage(image, path, format);
+            return await interaction.FollowupWithFileAsync(path, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -128,13 +219,36 @@ namespace Orikivo
             bool isSpoiler = false,
             AllowedMentions allowedMentions = null)
         {
-
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-
-            using (image)
-                ImageHelper.Save(image, path, GetImageFormat(format));
-
+            SaveImage(image, path, format);
             return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler, allowedMentions);
+        }
+
+        public static async Task RespondWithGifAsync(this IDiscordInteraction interaction,
+            MemoryStream gif,
+            string path,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            await SaveGifAsync(gif, path);
+            await interaction.RespondWithFileAsync(path, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        public static async Task<IUserMessage> FollowupWithGifAsync(this IDiscordInteraction interaction,
+            MemoryStream gif,
+            string path,
+            string text = null,
+            bool isTTS = false,
+            bool ephemeral = false,
+            Embed embed = null,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+        {
+            await SaveGifAsync(gif, path);
+            return await interaction.FollowupWithFileAsync(path, text, isTTS: isTTS, ephemeral: ephemeral, embed: embed, options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -150,12 +264,23 @@ namespace Orikivo
             bool isSpoiler = false,
             AllowedMentions allowedMentions = null)
         {
-            using (Image img = Image.FromStream(gif))
-                img.Save(path, GetImageFormat(GraphicsFormat.Gif));
-
-            await gif.DisposeAsync();
+            await SaveGifAsync(gif, path);
             return await channel.SendFileAsync(path, text, isTTS, embed, options, isSpoiler, allowedMentions);
         }
+
+        public static async Task RespondWithErrorAsync(this IDiscordInteraction interaction,
+            string error,
+            bool ephemeral = false,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.RespondAsync(Format.Error("Oops!", "An error has occurred.", error), ephemeral: ephemeral, options: options, allowedMentions: allowedMentions);
+
+        public static async Task<IUserMessage> FollowupWithErrorAsync(this IDiscordInteraction interaction,
+            string error,
+            bool ephemeral = false,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.FollowupAsync(Format.Error("Oops!", "An error has occurred.", error), ephemeral: ephemeral, options: options, allowedMentions: allowedMentions);
 
         /// <summary>
         /// Sends an error message to the specified channel.
@@ -164,42 +289,28 @@ namespace Orikivo
             string error,
             RequestOptions options = null,
             AllowedMentions allowedMentions = null)
-        {
-            return await channel.SendMessageAsync(Format.Error("Oops!", "An error has occurred.", error), options: options, allowedMentions: allowedMentions);
-        }
+            => await channel.SendMessageAsync(Format.Error("Oops!", "An error has occurred.", error), options: options, allowedMentions: allowedMentions);
 
-        /// <summary>
-        /// Catches an <see cref="Exception"/> and sends its information to this message channel.
-        /// </summary>
+        public static async Task RespondWithErrorAsync(this IDiscordInteraction interaction,
+            Exception ex,
+            StackTraceMode stackTraceMode = StackTraceMode.Simple,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.RespondAsync(CreateStackTrace(ex, stackTraceMode), options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+
+        public static async Task<IUserMessage> FollowupWithErrorAsync(this IDiscordInteraction interaction,
+            Exception ex,
+            StackTraceMode stackTraceMode = StackTraceMode.Simple,
+            RequestOptions options = null,
+            AllowedMentions allowedMentions = null)
+            => await interaction.FollowupAsync(CreateStackTrace(ex, stackTraceMode), options: options, allowedMentions: allowedMentions).ConfigureAwait(continueOnCapturedContext: false);
+
         public static async Task<IUserMessage> CatchAsync(this IMessageChannel channel,
             Exception ex,
             StackTraceMode stackTraceMode = StackTraceMode.Simple,
             RequestOptions options = null,
             AllowedMentions allowedMentions = null)
-        {
-            var error = new StringBuilder();
-
-            error.AppendLine("> **Yikes!**");
-            error.AppendLine("> An exception has been thrown.");
-
-            if (ex == null)
-                return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
-
-            if (!string.IsNullOrWhiteSpace(ex.Message))
-            {
-                error.AppendLine("```");
-                error.AppendLine(ex.Message);
-                error.Append("```");
-            }
-
-            if (string.IsNullOrWhiteSpace(ex.StackTrace) || stackTraceMode == StackTraceMode.None)
-                return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
-
-            error.AppendLine();
-            error.Append(GetStackTrace(ex.StackTrace, stackTraceMode, error.Length));
-
-            return await channel.SendMessageAsync(error.ToString(), options: options, allowedMentions: allowedMentions);
-        }
+            => await channel.SendMessageAsync(CreateStackTrace(ex, stackTraceMode), options: options, allowedMentions: allowedMentions);
 
         private static string GetStackTrace(string stackTrace, StackTraceMode traceMode, int messageLength)
         {
@@ -258,6 +369,8 @@ namespace Orikivo
             return result.ToString();
         }
 
+
+
         private static ImageFormat GetImageFormat(GraphicsFormat format)
         {
             return format switch
@@ -265,6 +378,84 @@ namespace Orikivo
                 GraphicsFormat.Gif => ImageFormat.Gif,
                 _ => ImageFormat.Png
             };
+        }
+
+        private static string CreateStackTrace(Exception ex, StackTraceMode stackTraceMode)
+        {
+            var error = new StringBuilder();
+
+            error.AppendLine("> **Yikes!**");
+            error.AppendLine("> An exception has been thrown.");
+
+            if (ex == null)
+                return error.ToString();
+
+            if (!string.IsNullOrWhiteSpace(ex.Message))
+            {
+                error.AppendLine("```");
+                error.AppendLine(ex.Message);
+                error.Append("```");
+            }
+
+            if (string.IsNullOrWhiteSpace(ex.StackTrace) || stackTraceMode == StackTraceMode.None)
+                return error.ToString();
+
+            error.AppendLine();
+            error.Append(GetStackTrace(ex.StackTrace, stackTraceMode, error.Length));
+
+            return error.ToString();
+        }
+
+        private static async Task SaveGifAsync(MemoryStream gif, string path)
+        {
+            using (Image img = Image.FromStream(gif))
+                img.Save(path, GetImageFormat(GraphicsFormat.Gif));
+
+            await gif.DisposeAsync();
+        }
+
+        private static void SaveImage(Image image, string path, GraphicsFormat format)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            using (image)
+                ImageHelper.Save(image, path, GetImageFormat(format));
+        }
+
+        private static string BuildUserMessage(BaseUser user, Message message)
+        {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+
+            var content = new StringBuilder();
+
+            if (user.Notifier.CanNotify)
+            {
+                content.AppendLine(user.Notifier.Notify(2000 - (message.Text?.Length ?? 0)));
+                user.Notifier.LastNotified = DateTime.UtcNow;
+            }
+
+            if (!string.IsNullOrWhiteSpace(message.Text))
+                content.Append(message.Text);
+
+            return content.ToString();
+        }
+
+        private static string BuildUserMessage(BaseUser user, string text)
+        {
+            var content = new StringBuilder();
+
+            if (user.Notifier.CanNotify)
+            {
+                text ??= string.Empty;
+                content.AppendLine(user.Notifier.Notify(2000 - text.Length));
+                user.Notifier.LastNotified = DateTime.UtcNow;
+            }
+
+            if (!string.IsNullOrWhiteSpace(text))
+                content.Append(text);
+
+            return content.ToString();
         }
     }
 }

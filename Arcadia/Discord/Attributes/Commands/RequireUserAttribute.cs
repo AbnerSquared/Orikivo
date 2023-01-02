@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-namespace Arcadia
+namespace Arcadia.Commands
 {
     // TODO: Implement easy class overrides of results to allow for different context
     /// <summary>

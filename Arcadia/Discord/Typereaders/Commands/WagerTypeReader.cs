@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Arcadia
+namespace Arcadia.Commands
 {
     public sealed class WagerTypeReader : TypeReader
     {
@@ -30,7 +30,7 @@ namespace Arcadia
 
         private static long FromPercent(long wager, long percent)
         {
-            return (long)Math.Floor((percent / (double)100) * wager);
+            return (long)Math.Floor(percent / (double)100 * wager);
         }
     }
 }

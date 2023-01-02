@@ -13,6 +13,7 @@ using Arcadia.Services;
 using DiscordBoats;
 using Microsoft.Extensions.Configuration;
 using Format = Orikivo.Format;
+using Arcadia.Commands;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia
@@ -239,7 +240,7 @@ namespace Arcadia
         {
             SearchResult searchResult = _service.Search(ctx, argPos);
 
-            var preconditionResults = new Dictionary<CommandMatch, PreconditionResult>();
+            var preconditionResults = new Dictionary<CommandMatch, Discord.Commands.PreconditionResult>();
             if (searchResult.IsSuccess)
             {
                 foreach (CommandMatch match in searchResult.Commands)
@@ -247,7 +248,7 @@ namespace Arcadia
                     preconditionResults[match] = await match.Command.CheckPreconditionsAsync(ctx, _provider);
                 }
 
-                KeyValuePair<CommandMatch, PreconditionResult>[] successfulPreconditions = preconditionResults
+                KeyValuePair<CommandMatch, Discord.Commands.PreconditionResult>[] successfulPreconditions = preconditionResults
                     .Where(x => x.Value.IsSuccess)
                     .ToArray();
 
@@ -255,7 +256,7 @@ namespace Arcadia
                 {
                     var parseResultsDict = new Dictionary<CommandMatch, ParseResult>();
 
-                    foreach ((CommandMatch key, PreconditionResult value) in successfulPreconditions)
+                    foreach ((CommandMatch key, Discord.Commands.PreconditionResult value) in successfulPreconditions)
                     {
                         ParseResult parseResult = await key.ParseAsync(ctx, searchResult, value, _provider).ConfigureAwait(false);
                         parseResultsDict[key] = parseResult;
@@ -390,7 +391,7 @@ namespace Arcadia
             Var.ClearAll(user, x => x.Key.StartsWith("monthly", StringComparison.OrdinalIgnoreCase));
         }
 
-        private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        private async Task OnExecutedAsync(Optional<CommandInfo> command, ICommandContext context, Discord.Commands.IResult result)
         {
             // TODO: Make the specific context exchangeable.
             //Logger.Debug($"Executed {command.Value?.Name}");
@@ -409,7 +410,7 @@ namespace Arcadia
             // If the command failed
             if (!result.IsSuccess)
             {
-                if (result is ExecuteResult execute)
+                if (result is Discord.Commands.ExecuteResult execute)
                 {
                     if (!result.IsSuccess)
                         await context.Channel.CatchAsync(execute.Exception, ctx?.Account?.Config?.ErrorHandling ?? StackTraceMode.Simple);

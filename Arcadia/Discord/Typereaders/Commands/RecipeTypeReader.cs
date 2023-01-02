@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Arcadia
+namespace Arcadia.Commands
 {
     public sealed class RecipeTypeReader : TypeReader
     {

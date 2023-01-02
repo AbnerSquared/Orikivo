@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Orikivo;
 using Orikivo.Text;
+using Arcadia.Commands;
 
 namespace Arcadia.Modules
 {

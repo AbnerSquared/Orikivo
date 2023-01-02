@@ -327,7 +327,7 @@ namespace Arcadia.Services
             return result.ToString();
         }
 
-        public static string InspectItem(ArcadeContext ctx, ArcadeUser user, ItemData data, int index)
+        public static string InspectItem(ArcadeInteractionContext ctx, ArcadeUser user, ItemData data, int index)
         {
             var details = new StringBuilder();
 

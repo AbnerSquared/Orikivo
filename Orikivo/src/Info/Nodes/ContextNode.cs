@@ -1,9 +1,9 @@
 ﻿using System;
-using Discord.Commands;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using static System.Reflection.CustomAttributeExtensions;
+using Discord.Commands;
 
 namespace Orikivo
 {
@@ -18,7 +18,6 @@ namespace Orikivo
             Id = GetId(module);
             Name = module.Name;
             Aliases = module.Aliases.ToList();
-
             List<string> tooltips = module.Attributes.FirstOrDefault<TooltipAttribute>()?.Tips.ToList() ?? new List<string>();
             Tooltips = tooltips;
 

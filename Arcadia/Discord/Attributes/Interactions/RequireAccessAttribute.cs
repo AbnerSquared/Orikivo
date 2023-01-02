@@ -1,11 +1,13 @@
-﻿using Discord.Commands;
+﻿using Discord.Interactions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcadia;
+using Orikivo;
+using Discord;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-namespace Orikivo
+namespace Arcadia.Interactions
 {
     /// <summary>
     /// Represents a <see cref="PreconditionAttribute"/> that enforces an <see cref="AccessLevel"/> requirement.
@@ -32,9 +34,9 @@ namespace Orikivo
             DevOverride = devOverride;
         }
 
-        public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
+        public override async Task<PreconditionResult> CheckRequirementsAsync(IInteractionContext context, ICommandInfo command, IServiceProvider provider)
         {
-            if (!(context is ArcadeContext Context))
+            if (!(context is ArcadeInteractionContext Context))
                 throw new Exception("Unknown CommandContext type");
 
             switch(Level)
@@ -62,12 +64,12 @@ namespace Orikivo
         }
 
         private static bool CheckDev(ulong userId)
-            => Constants.DevId == userId;
+            => Orikivo.Constants.DevId == userId;
 
-        private bool CheckOwner(ulong userId, ArcadeContext ctx)
+        private bool CheckOwner(ulong userId, ArcadeInteractionContext ctx)
             => DevOverride ? CheckDev(userId) : ctx.Guild?.OwnerId == userId;
 
-        private bool CheckInherit(ulong userId, ArcadeContext ctx)
+        private bool CheckInherit(ulong userId, ArcadeInteractionContext ctx)
         {
             if (DevOverride)
                 return CheckDev(userId);

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Arcadia
+namespace Arcadia.Commands
 {
     // Once ready, you can then reference the command context to load the item information
     public sealed class ItemTypeReader : TypeReader

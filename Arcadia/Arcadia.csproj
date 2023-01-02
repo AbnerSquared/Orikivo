@@ -16,4 +16,8 @@
     <PackageReference Include="Discord.Addons.Collectors" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Discord\Modals\" />
+  </ItemGroup>
+
 </Project>

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Arcadia.Casino;
 using Arcadia.Multiplayer;
 using Orikivo.Text;
+using Arcadia.Commands;
 
 namespace Arcadia.Modules
 {

@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 
-namespace Orikivo
+namespace Orikivo.Converters.Json
 {
     // TODO: Re-create as JsonOptionalArrayConverter<T>
     /// <summary>

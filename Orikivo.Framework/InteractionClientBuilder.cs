@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+﻿using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,11 +8,7 @@ using System.IO;
 
 namespace Orikivo.Framework
 {
-    // TODO: Learn how to shard.
-    /// <summary>
-    /// Represents a constructor for an <see cref="Client"/>.
-    /// </summary>
-    public class ClientBuilder
+    public class InteractionClientBuilder
     {
         private const string CONFIG_FILE_NAME = "config.json";
 
@@ -20,7 +16,7 @@ namespace Orikivo.Framework
         /// Initializes a new default <see cref="ClientBuilder"/>.
         /// </summary>
         /// <param name="configPath">The base directory at which the configuration will be stored. If unspecified, it will default to <see cref="Directory.GetCurrentDirectory"/>.</param>
-        public ClientBuilder(string configPath = null)
+        public InteractionClientBuilder(string configPath = null)
         {
             Config = new ConfigurationBuilder();
 
@@ -41,11 +37,13 @@ namespace Orikivo.Framework
 
         public Dictionary<Type, TypeReader> TypeReaders { get; set; } = new Dictionary<Type, TypeReader>();
 
+        public Dictionary<Type, TypeConverter> TypeConverters { get; set; } = new Dictionary<Type, TypeConverter>();
+
         public List<Type> Modules { get; set; } = new List<Type>();
 
-        public DiscordSocketConfig SocketConfig { get; set; }
+        public InteractionServiceConfig InteractionConfig { get; set; }
 
-        public CommandServiceConfig CommandConfig { get; set; }
+        public DiscordSocketConfig SocketConfig { get; set; }
 
         public void SetConfigPath(string path)
         {
@@ -61,10 +59,30 @@ namespace Orikivo.Framework
             Config.SetBasePath(directory);
         }
 
-        public ClientBuilder AddTypeReader<T>(TypeReader reader)
+        public InteractionClientBuilder AddTypeConverter<T>(TypeConverter converter)
+            => AddTypeConverter(typeof(T), converter);
+
+        public InteractionClientBuilder AddTypeConverter(Type type, TypeConverter converter)
+        {
+            if (!TypeConverters.TryAdd(type, converter))
+                TypeConverters[type] = converter;
+
+            return this;
+        }
+
+        public void RemoveTypeConverter<T>()
+            => RemoveTypeConverter(typeof(T));
+
+        public void RemoveTypeConverter(Type type)
+        {
+            if (TypeConverters.ContainsKey(type))
+                TypeConverters.Remove(type);
+        }
+
+        public InteractionClientBuilder AddTypeReader<T>(TypeReader reader)
             => AddTypeReader(typeof(T), reader);
 
-        public ClientBuilder AddTypeReader(Type type, TypeReader reader)
+        public InteractionClientBuilder AddTypeReader(Type type, TypeReader reader)
         {
             if (!TypeReaders.TryAdd(type, reader))
                 TypeReaders[type] = reader;
@@ -81,7 +99,7 @@ namespace Orikivo.Framework
                 TypeReaders.Remove(type);
         }
 
-        public ClientBuilder AddModule<T>()
+        public InteractionClientBuilder AddModule<T>()
             where T : class
         {
             if (!Modules.Contains(typeof(T)))
@@ -97,15 +115,17 @@ namespace Orikivo.Framework
                 Modules.Remove(typeof(T));
         }
 
-        public Client Build()
+        public InteractionClient Build()
         {
-            Services
-                .AddSingleton(new DiscordSocketClient(SocketConfig))
-                .AddSingleton(new CommandService(CommandConfig))
-                .AddSingleton(Config.AddJsonFile(!string.IsNullOrWhiteSpace(_configPath) ? _configPath : CONFIG_FILE_NAME).Build())
-                .AddSingleton<ConnectionService>();
+            var client = new DiscordSocketClient(SocketConfig);
 
-            return new Client(Services.BuildServiceProvider(), TypeReaders, Modules);
+            Services
+                .AddSingleton(client)
+                .AddSingleton(new InteractionService(client, InteractionConfig))
+                .AddSingleton(Config.AddJsonFile(!string.IsNullOrWhiteSpace(_configPath) ? _configPath : CONFIG_FILE_NAME).Build())
+                .AddSingleton<InteractionConnectionService>();
+
+            return new InteractionClient(Services.BuildServiceProvider(), TypeReaders, Modules, TypeConverters);
         }
     }
 }

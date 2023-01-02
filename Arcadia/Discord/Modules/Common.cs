@@ -1,111 +1,82 @@
-﻿using Discord.Commands;
+﻿
 using Discord.WebSocket;
 using Orikivo;
 using System;
-using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Arcadia.Formatters;
 using Arcadia.Services;
 using Arcadia.Graphics;
-using DiscordBoats;
-using Microsoft.Extensions.Configuration;
 using Orikivo.Text;
 using Discord;
 using Format = Orikivo.Format;
+using Discord.Interactions;
+using SummaryAttribute = Discord.Interactions.SummaryAttribute;
+using Discord.Commands;
+using Arcadia.Interactions;
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace Arcadia.Modules
 {
     // TODO: Transfer everything to CommonService
     [Icon("🧮")]
     [Name("Common")]
-    [Summary("Generic commands that are commonly used.")]
-    public class Common : ArcadeModule
+    // [Summary("Generic commands that are commonly used.")]
+    public class Common : ArcadeInteractionModule
     {
-        private readonly DiscordSocketClient _client;
-        private readonly IConfigurationRoot _config;
         private readonly LocaleProvider _locale;
 
-        public Common(DiscordSocketClient client, IConfigurationRoot config, LocaleProvider locale)
+        public Common(LocaleProvider locale)
         {
-            _client = client;
-            _config = config;
             _locale = locale;
         }
 
+        #region Slash Commands
         [RequireUser]
-        [Command("equipment")]
-        [Summary("View all of your equipped items.")]
+        [SlashCommand("equipment", "View all of your equipped items.")]
         public async Task ViewEquipmentAsync()
         {
-            await Context.Channel.SendMessageAsync(EquipHelper.View(Context.Account));
+            await Context.Interaction.RespondAsync(EquipHelper.View(Context.Account)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        //[Command("challenges")]
-        [Summary("View your current challenge set.")]
-        public async Task ViewChallengesAsync()
-        {
-            string result = ChallengeHelper.View(Context.Account);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [RequireUser]
-        //[Command("submit")]
-        [Summary("Submit your challenge set for completion.")]
-        public async Task SubmitChallengesAsync()
-        {
-            string result = ChallengeHelper.Submit(Context.Account);
-            await Context.Channel.SendMessageAsync(result);
-        }
-
-        [RequireUser]
-        [Command("researchinfo"), Alias("rinfo")]
-        [Summary("View details about the research progress of an **Item**.")]
-        public async Task ReadResearchAsync(Item item)
+        [SlashCommand("researchinfo", "View details about the research progress of an Item.")]
+        public async Task ReadResearchAsync([Summary("item", "The ID of the Item to view")]Item item)
         {
             string result = ResearchHelper.ViewResearch(Context.Account, item);
-            await Context.Channel.SendMessageAsync(Context.Account, result);
+            await Context.Interaction.RespondAsync(Context.Account, result);
         }
 
         [RequireUser]
-        [Command("research"), Priority(0)]
-        [Summary("View the current progress of your research.")]
+        [SlashCommand("research", "View the current progress of your research.")]
         public async Task ViewResearchAsync()
         {
             string result = ResearchHelper.ViewProgress(Context.Account);
-            await Context.Channel.SendMessageAsync(Context.Account, result);
+            await Context.Interaction.RespondAsync(Context.Account, result);
         }
 
         [RequireUser]
-        [Command("research"), Priority(1)]
-        [Summary("Begin research on the specified **Item**.")]
-        public async Task ResearchAsync(Item item)
+        [SlashCommand("researchstart", "Begin research on the specified Item."), Priority(1)]
+        public async Task ResearchAsync([Summary("item", "The ID of the Item to view")]Item item)
         {
             string result = ResearchHelper.ResearchItem(Context.Account, item);
-            await Context.Channel.SendMessageAsync(Context.Account, result);
+            await Context.Interaction.RespondAsync(Context.Account, result);
         }
 
-        [Command("guide")]
-        [Summary("Read and view the contents of the specified guide.")]
-        public async Task ReadGuideAsync([Name("guide_id")]string id, int page = 1)
+        [SlashCommand("guide", "Read and view the contents of the specified guide.")]
+        public async Task ReadGuideAsync([Summary("guide_id", "The ID of the Guide to read")]string id, [Summary("page", "The page to view of the specified Guide")]int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GuideViewer.ViewGuide(id, --page));
+            await Context.Interaction.RespondAsync(GuideViewer.ViewGuide(id, --page)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
-        [Command("guides")]
-        [Summary("Learn how to use **Orikivo Arcade** with this collection of guides.")]
-        public async Task ViewGuidesAsync(int page = 1)
+        [SlashCommand("guides", "Learn how to use **Orikivo Arcade** with this collection of guides.")]
+        public async Task ViewGuidesAsync([Summary("page", "The page that shows all guides")]int page = 1)
         {
-            await Context.Channel.SendMessageAsync(GuideViewer.View(--page));
+            await Context.Interaction.RespondAsync(GuideViewer.View(--page)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("craft")]
-        [Summary("Attempt to craft an **Item** using the specified **Recipe**.")]
-        public async Task CraftAsync([Name("recipe_id")]Recipe recipe)
+        [SlashCommand("craft", "Attempt to craft an Item using the specified Recipe.")]
+        public async Task CraftAsync([Summary("recipe", "The ID of the Recipe to view")]Recipe recipe)
         {
             if (!CraftHelper.CanCraft(Context.Account, recipe))
             {
@@ -119,7 +90,7 @@ namespace Arcadia.Modules
                     notice.AppendLine(RecipeViewer.PreviewRecipeComponent(itemId, amount));
                 }
 
-                await Context.Channel.SendMessageAsync(notice.ToString());
+                await Context.Interaction.RespondAsync(notice.ToString(), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
@@ -139,144 +110,92 @@ namespace Arcadia.Modules
                     result.AppendLine($"{icon} **{ItemHelper.NameOf(itemId)}**{Format.ElementCount(amount, false)}");
                 }
 
-                await Context.Channel.SendMessageAsync(result.ToString());
+                await Context.Interaction.RespondAsync(result.ToString()).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_craft_unknown_error", Context.Account.Config.Language)));
+            await Context.Interaction.RespondAsync(Format.Warning(_locale.GetValue("warning_craft_unknown_error", Context.Account.Config.Language)), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
 
         }
 
         [RequireUser]
-        [Command("quests"), Alias("missions", "tasks"), Priority(0)]
-        [Summary("View all of your currently assigned quests.")]
+        [SlashCommand("quests", "View all of your currently assigned quests.")]
         public async Task ViewQuestsAsync()
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.View(Context.Account));
+            await Context.Interaction.RespondAsync(QuestHelper.View(Context.Account)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("quests"), Alias("missions", "tasks"), Priority(1)]
-        [Summary("View the currently assigned objective on the specified slot.")]
-        public async Task ViewQuestAsync(int slot)
+        [SlashCommand("questat", "View the currently assigned objective on the specified slot.")]
+        public async Task ViewQuestAsync([Summary("slot", "The slot position of the specified Quest")]int slot)
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.InspectQuest(Context.Account, --slot));
+            await Context.Interaction.RespondAsync(QuestHelper.InspectQuest(Context.Account, --slot)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("assign")]
-        [Summary("Assign a new set of quests.")]
+        [SlashCommand("questassign", "Assign a new set of quests.")]
         public async Task AssignQuestsAsync()
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.AssignAndDisplay(Context.Account));
+            await Context.Interaction.RespondAsync(QuestHelper.AssignAndDisplay(Context.Account)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("skip")]
-        [Summary("Skip the specified **Quest** you are currently working on.")]
-        public async Task TossQuestAsync(int slot)
+        [SlashCommand("questskip", "Skip the specified Quest you are currently working on.")]
+        public async Task TossQuestAsync([Summary("slot", "The slot position of the active Quest")]int slot)
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.SkipAndDisplay(Context.Account, --slot));
+            await Context.Interaction.RespondAsync(QuestHelper.SkipAndDisplay(Context.Account, --slot)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("complete")]
-        [Summary("Claim the rewards from all of your completed quests.")]
+        [SlashCommand("complete", "Claim the rewards from all of your completed quests.")]
         public async Task CompleteQuestsAsync()
         {
-            await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
+            await Context.Interaction.RespondAsync(QuestHelper.CompleteAndDisplay(Context.Account)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("cooldowns"), Alias("cooldown", "expiry")]
-        [Summary("View all currently active cooldowns and expirations.")]
+        [SlashCommand("cooldowns", "View all currently active cooldowns and expirations.")]
         public async Task ViewCooldownsAsync()
         {
-            await Context.Channel.SendMessageAsync(CooldownHelper.ViewAllTimers(Context.Account));
+            await Context.Interaction.RespondAsync(CooldownHelper.ViewAllTimers(Context.Account)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("claim")]
-        [Summary("Attempt to claim the specified **Merit**.")]
-        public async Task ClaimAsync(string meritId = null)
+        [SlashCommand("claim", "Attempt to claim the specified Badge.")]
+        public async Task ClaimAsync([Summary("badge", "The specific Badge to claim, if any")]Badge badge = null)
         {
-            await Context.Channel.SendMessageAsync(MeritHelper.ClaimAndDisplay(Context.Account, meritId));
+            await Context.Interaction.RespondAsync(MeritHelper.ClaimAndDisplay(Context.Account, badge)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("level"), Alias("exp", "ascent", "lv", "xp")]
-        [Summary("View a user's current experience.")]
-        public async Task ViewLevelAsync(ArcadeUser user = null)
+        [SlashCommand("level", "View a user's current experience.")]
+        public async Task ViewLevelAsync([Summary("user", "The user to view")]ArcadeUser user = null)
         {
             user ??= Context.Account;
 
-            await Context.Channel.SendMessageAsync(LevelViewer.View(user, !user.Equals(Context.Account)));
-        }
-
-        /*
-        [Group("quests"), Alias("missions", "tasks")]
-        public class Quests : BaseModule<ArcadeContext>
-        {
-            [RequireUser]
-            [Command("assign")]
-            [Summary("Assign a new set of quests.")]
-            public async Task AssignQuestsAsync()
-            {
-                await Context.Channel.SendMessageAsync(QuestHelper.AssignAndDisplay(Context.Account));
-            }
-
-            [RequireUser]
-            [Command("toss")]
-            [Summary("Toss the specified quest you are currently working on.")]
-            public async Task TossQuestAsync(int slot)
-            {
-                await Context.Channel.SendMessageAsync(QuestHelper.TossSlot(Context.Account, --slot));
-            }
-
-            [RequireUser]
-            [Command("complete")]
-            [Summary("Claim the rewards from all of your completed quests.")]
-            public async Task CompleteQuestsAsync()
-            {
-                await Context.Channel.SendMessageAsync(QuestHelper.CompleteAndDisplay(Context.Account));
-            }
-        }
-        */
-
-        [RequireUser]
-        [Command("vote")]
-        [Summary("Support **Orikivo Arcade** and receive **Tokens**.")]
-        public async Task VoteAsync()
-        {
-            if (string.IsNullOrWhiteSpace(_config["token_discord_boats"]))
-                throw new Exception("Expected valid API token for Discord Boats");
-
-            using var boatClient = new BoatClient(_client.CurrentUser.Id, _config["token_discord_boats"]);
-            VoteResultFlag result = VoteService.Next(boatClient, Context.Account);
-            await Context.Channel.SendMessageAsync(VoteService.ApplyAndDisplay(Context.Account, result));
+            await Context.Interaction.RespondAsync(LevelViewer.View(user, !user.Equals(Context.Account))).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("cashout")]
-        [Summary("Cash out **Tokens** for **Orite**.")]
-        public async Task CashOutAsync(long amount = 0)
+        [SlashCommand("cashout", "Cash out Favors for Cash.")]
+        public async Task CashOutAsync([Summary("amount", "The amount of Favors to convert into Cash")]long amount = 0)
         {
             if (amount < 0)
             {
-                await Context.Channel.SendMessageAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*");
+                await Context.Interaction.RespondAsync($"> 👁️ {_locale.GetValue("warning_negative_wager", Context.Account.Config.Language)}\n> *\"{_locale.GetValue("warning_negative_wager_subtitle", Context.Account.Config.Language)}\"*", ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
             if (amount == 0)
             {
                 // $"> ⚠️ You need to specify a positive amount of **Orite** to convert.
-                await Context.Channel.SendMessageAsync(CommandDetailsViewer.WriteCashOut());
+                await Context.Interaction.RespondAsync(CommandDetailsViewer.WriteCashOut(), ephemeral: true);
                 return;
             }
 
             if (amount > Context.Account.TokenBalance)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_missing_convert", Context.Account.Config.Language, Format.Bold("Tokens"))));
+                await Context.Interaction.RespondAsync(Format.Warning(_locale.GetValue("warning_missing_convert", Context.Account.Config.Language, Format.Bold("Tokens"))), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
@@ -284,16 +203,15 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount, CurrencyType.Tokens);
             Context.Account.Give(money, CurrencyType.Money);
-            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount, CurrencyType.Tokens), CurrencyHelper.WriteCost(money, CurrencyType.Money))}");
+            await Context.Interaction.RespondAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount, CurrencyType.Tokens), CurrencyHelper.WriteCost(money, CurrencyType.Money))}").ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("daily")]
-        [Summary("Check in for the day to receive rewards.")]
+        [SlashCommand("daily", "Check in for the day to receive rewards.")]
         public async Task GetDailyAsync()
         {
             DailyResultFlag result = DailyService.Next(Context.Account);
-            await Context.Channel.SendMessageAsync(DailyService.ApplyAndDisplay(Context.Account, result));
+            await Context.Interaction.RespondAsync(DailyService.ApplyAndDisplay(Context.Account, result));
         }
 
         public Message UseItem(ArcadeUser invoker, ItemData data, string input = null)
@@ -307,11 +225,10 @@ namespace Arcadia.Modules
         }
 
         [RequireUser]
-        [Command("use")]
-        [Summary("Uses the specified **Item** by its internal or unique ID.")]
-        public async Task UseItemAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId, [Remainder]string input = null)
+        [SlashCommand("use", "Uses the specified Item by its internal or unique ID.")]
+        public async Task UseItemAsync([Summary("data_id", "The item data instance to inspect.")]string dataId, [Summary("input", "Item usage arguments")]string input = null)
         {
-            await Context.Channel.SendMessageAsync(UseItem(Context.Account, ItemHelper.GetItemData(Context.Account, dataId), input));
+            await Context.Interaction.RespondAsync(UseItem(Context.Account, ItemHelper.GetItemData(Context.Account, dataId), input)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         public Message ViewSlot(ArcadeUser invoker, int slot)
@@ -330,17 +247,15 @@ namespace Arcadia.Modules
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("inspectat")]
-        [Summary("Inspect a specific **Item** slot in your inventory.")]
-        public async Task ViewInventorySlotAsync([Name("slot_index")]int slot)
+        [SlashCommand("inspectat", "Inspect a specific Item slot in your inventory.")]
+        public async Task ViewInventorySlotAsync([Summary("slot_index")]int slot)
         {
-            await Context.Channel.SendMessageAsync(ViewSlot(Context.Account, slot));
+            await Context.Interaction.RespondAsync(ViewSlot(Context.Account, slot)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("inspect")]
-        [Summary("Inspect a specific **Item** in your inventory using a data instance.")]
-        public async Task InspectInInventoryAsync([Name("data_id")][Summary("The item data instance to inspect.")]string dataId)
+        [SlashCommand("inspect", "Inspect a specific Item in your inventory using a data instance.")]
+        public async Task InspectInInventoryAsync([Summary("data_id", "The item data instance to inspect.")]string dataId)
         {
             ItemData data = ItemHelper.GetItemData(Context.Account, dataId);
             int slot = Context.Account.Items.IndexOf(data);
@@ -349,30 +264,28 @@ namespace Arcadia.Modules
             {
                 if (ItemHelper.Exists(dataId))
                 {
-                    await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_item_not_owned", Context.Account.Config.Language)));
+                    await Context.Interaction.RespondAsync(Format.Warning(_locale.GetValue("warning_item_not_owned", Context.Account.Config.Language)), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                     return;
                 }
 
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)));
+                await Context.Interaction.RespondAsync(Format.Warning(_locale.GetValue("warning_invalid_data_reference", Context.Account.Config.Language)), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
-            await Context.Channel.SendMessageAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot));
+            await Context.Interaction.RespondAsync(CatalogViewer.InspectItem(Context, Context.Account, data, slot)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("inventory"), Alias("backpack", "inv", "bp")]
-        [Summary("View a collection of items that you or another user own.")]
+        [SlashCommand("inventory", "View a collection of items that you or another user own.")]
         public async Task GetBackpackAsync(ArcadeUser user = null)
         {
             user ??= Context.Account;
-            await Context.Channel.SendMessageAsync(InventoryViewer.View(user, user.Id == Context.Account.Id));
+            await Context.Interaction.RespondAsync(InventoryViewer.View(user, user.Id == Context.Account.Id)).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser(AccountHandling.ReadOnly)]
-        [Command("balance"), Alias("money", "bal", "chips", "tokens", "debt")]
-        [Summary("Returns a display showing all of the values in a wallet.")]
-        public async Task GetMoneyAsync(ArcadeUser user = null)
+        [SlashCommand("wallet", "View the contents of your wallet.")]
+        public async Task GetWalletAsync(ArcadeUser user = null)
         {
             user ??= Context.Account;
             var provider = new CurrencyFormatter();
@@ -389,29 +302,27 @@ namespace Arcadia.Modules
             result.AppendLine(string.Format(provider, "{0:C}", user.ChipBalance));
             result.AppendLine(string.Format(provider, "{0:T}", user.TokenBalance));
 
-            await Context.Channel.SendMessageAsync(result.ToString());
+            await Context.Interaction.RespondAsync(result.ToString()).ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("clearpalette")]
-        [Summary("Remove your currently equipped palette, if any.")]
+        [SlashCommand("clearpalette", "Remove your currently equipped palette, if any.")]
         public async Task RemovePaletteAsync()
         {
             string name = ItemHelper.NameFor(Context.Account.Card.Palette.Primary, Context.Account.Card.Palette.Secondary);
 
             if (!ItemHelper.RemovePalette(Context.Account))
             {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_palette_not_equipped", Context.Account.Config.Language)));
+                await Context.Interaction.RespondAsync(Format.Warning(_locale.GetValue("warning_palette_not_equipped", Context.Account.Config.Language)), ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
-            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("card_remove_success", Context.Account.Config.Language, Format.Bold(name), Format.Bold("Card Palette"))}");
+            await Context.Interaction.RespondAsync($"> {_locale.GetValue("card_remove_success", Context.Account.Config.Language, Format.Bold(name), Format.Bold("Card Palette"))}").ConfigureAwait(continueOnCapturedContext: false);
         }
 
         [RequireUser]
-        [Command("card")]
-        [Summary("View a user's or your own current **Card**.")]
-        public async Task GetCardAsync(SocketUser user = null)
+        [SlashCommand("card", "View a Card.")]
+        public async Task GetCardAsync(IUser user = null)
         {
             // bool canRender = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
@@ -427,7 +338,7 @@ namespace Arcadia.Modules
 
             if (account == null)
             {
-                await Context.Channel.SendMessageAsync($"> {Icons.Warning} **Odd.**\n> {_locale.GetValue("warning_account_not_found", Context.Account.Config.Language)}");
+                await Context.Interaction.RespondAsync($"> {Icons.Warning} **Odd.**\n> {_locale.GetValue("warning_account_not_found", Context.Account.Config.Language)}", ephemeral: true).ConfigureAwait(continueOnCapturedContext: false);
                 return;
             }
 
@@ -446,12 +357,44 @@ namespace Arcadia.Modules
                 CardInfo info = CardBuilder.BuildCardInfo(layout, details, properties);
                 System.Drawing.Bitmap card = graphics.DrawCard(info, properties.Deny);
 
-                await Context.Channel.SendImageAsync(card, $@"bin/Release/tmp/{user.Id}_card.png");
+                await Context.Interaction.RespondWithImageAsync(card, $@"bin/Release/tmp/{user.Id}_card.png");
             }
             catch (Exception ex)
             {
-                await Context.Channel.CatchAsync(ex, Context.Account.Config.ErrorHandling);
+                await Context.Interaction.RespondWithErrorAsync(ex, Context.Account.Config.ErrorHandling);
             }
         }
+        #endregion
+
+        #region User Commands
+        [UserCommand("View Wallet")]
+        public async Task GetWalletAsync(IUser user)
+        {
+            bool canFindAccount = Context.TryGetUser(user.Id, out ArcadeUser account);
+
+            if (!canFindAccount)
+            {
+                await Context.Interaction.RespondAsync("> **Oops!\n> This user does not have an account.", ephemeral: true);
+                return;
+            }
+
+            var result = new StringBuilder();
+            var provider = new CurrencyFormatter();
+
+
+            if (Context.User.Id != account.Id)
+                result.AppendLine($"> **Wallet: {user.Username}**");
+
+            if (account.Debt > 0)
+                result.AppendLine(string.Format(provider, "{0:D}", account.Debt));
+            else if (account.Balance > 0)
+                result.AppendLine(string.Format(provider, "{0:O}", account.Balance));
+
+            result.AppendLine(string.Format(provider, "{0:C}", account.ChipBalance));
+            result.AppendLine(string.Format(provider, "{0:T}", account.TokenBalance));
+
+            await Context.Interaction.RespondAsync(result.ToString());
+        }
+        #endregion
     }
 }

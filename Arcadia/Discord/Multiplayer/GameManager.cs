@@ -319,15 +319,15 @@ namespace Arcadia.Multiplayer
                 await Servers[ReservedChannels[channel.Id]].RemoveConnectionAsync(channel.Id);
         }
 
-        public async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
             => await OnReaction(message, channel, reaction, ReactionHandling.Add);
 
-        public async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
             => await OnReaction(message, channel, reaction, ReactionHandling.Remove);
 
         private async Task OnReaction(
             Cacheable<IUserMessage, ulong> message,
-            ISocketMessageChannel channel,
+            Cacheable<IMessageChannel, ulong> channel,
             SocketReaction reaction,
             ReactionHandling flag)
         {
@@ -1424,7 +1424,7 @@ namespace Arcadia.Multiplayer
             Logger.Debug($"Ensured deletion state as {connection.DeleteMessages}");
         }
 
-        public async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        public async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
             // check to see where the message was deleted
 

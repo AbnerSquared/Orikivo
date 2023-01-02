@@ -14,7 +14,7 @@ namespace Arcadia
 
             foreach(BoostData data in user.Boosters)
             {
-                string row = $" • **{BoostViewer.WriteName(data)}**: {Format.Percent(data.Rate)} **{data.Type.ToString()}** income";
+                string row = $" • **{BoostViewer.WriteName(data)}**: {Format.Percent(data.Rate)} **{data.Type}** income";
 
                 result.AppendLine(row);
             }
