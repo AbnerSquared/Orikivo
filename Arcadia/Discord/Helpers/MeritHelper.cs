@@ -228,7 +228,7 @@ namespace Arcadia
             };
 
             queries.AddRange(GetActiveTags().GetFlagNames().Select(x => x.ToLower()));
-            queries.AddRange(EnumUtils.GetValueNames<BadgeRank>().Select(x => x.ToLower()));
+            queries.AddRange(EnumUtils.GetValueNames<BadgeTier>().Select(x => x.ToLower()));
 
             if (user.Merits.Any(x => GetMerit(x.Key).Hidden))
                 queries.Add("hidden");
@@ -264,7 +264,7 @@ namespace Arcadia
 
             if (!isNumber && Enum.TryParse(query, true, out BadgeTag tag))
                 comparer = x => x.Tags.HasFlag(tag);
-            else if (!isNumber && Enum.TryParse(query, true, out BadgeRank rank))
+            else if (!isNumber && Enum.TryParse(query, true, out BadgeTier rank))
                 comparer = x => x.Rank == rank;
             else
             {
@@ -371,7 +371,7 @@ namespace Arcadia
 
         public static void UnlockAvailable(ArcadeUser user)
         {
-            bool canNotify = user.Config.Notifier.HasFlag(NotifyAllow.Merit);
+            bool canNotify = user.Config.Notifier.HasFlag(NotificationType.BadgeReceived);
 
             foreach (Badge merit in Assets.Merits.Where(x => CanUnlock(user, x)))
             {
@@ -422,7 +422,7 @@ namespace Arcadia
             if (!CanUnlock(user, merit))
                 return;
 
-            bool canNotify = user.Config.Notifier.HasFlag(NotifyAllow.Merit);
+            bool canNotify = user.Config.Notifier.HasFlag(NotificationType.BadgeReceived);
             user.Merits.Add(merit.Id, GetEmptyData());
 
             if (canNotify)

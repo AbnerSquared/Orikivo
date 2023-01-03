@@ -3,7 +3,7 @@
 namespace Arcadia
 {
     [Flags]
-    public enum ShopMode
+    public enum AllowedShopActions
     {
         Buy = 1,
         Sell = 2,

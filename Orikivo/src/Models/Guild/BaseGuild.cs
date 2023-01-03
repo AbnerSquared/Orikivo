@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using Discord;
+using Orikivo.Models.Json;
 
 namespace Orikivo
 {

@@ -23,18 +23,18 @@ namespace Orikivo
         public GuildConfig()
         {
             Prefix = null;
-            SystemRoles = new Dictionary<SystemRole, ulong>();
+            SystemRoles = new Dictionary<SystemRoleType, ulong>();
         }
 
         [JsonConstructor]
         internal GuildConfig(string prefix,bool allowPrefixes, int gameServerLimit, bool allowCooldownNotices,
-            Dictionary<SystemRole, ulong> systemRoles)
+            Dictionary<SystemRoleType, ulong> systemRoles)
         {
             Prefix = prefix;
             AllowPrefixes = allowPrefixes;
             GameServerLimit = gameServerLimit;
             AllowCooldownNotices = allowCooldownNotices;
-            SystemRoles = systemRoles ?? new Dictionary<SystemRole, ulong>();
+            SystemRoles = systemRoles ?? new Dictionary<SystemRoleType, ulong>();
         }
 
         [JsonProperty("prefix")]
@@ -62,7 +62,7 @@ namespace Orikivo
 
         [Ignore]
         [JsonProperty("system_roles")]
-        public Dictionary<SystemRole, ulong> SystemRoles { get; }
+        public Dictionary<SystemRoleType, ulong> SystemRoles { get; }
 
         [JsonIgnore]
         [Id("default_role_id")]
@@ -70,16 +70,16 @@ namespace Orikivo
         [Description("Represents the ID of the default role that a user will be given when joining this server.")]
         public ulong? DefaultRoleId
         {
-            get => SystemRoles.ContainsKey(SystemRole.Default)
-                ? SystemRoles[SystemRole.Default]
+            get => SystemRoles.ContainsKey(SystemRoleType.Default)
+                ? SystemRoles[SystemRoleType.Default]
                 : (ulong?) null;
             set
             {
                 if (!value.HasValue)
                     return;
 
-                if (!SystemRoles.TryAdd(SystemRole.Default, value.Value))
-                    SystemRoles[SystemRole.Default] = value.Value;
+                if (!SystemRoles.TryAdd(SystemRoleType.Default, value.Value))
+                    SystemRoles[SystemRoleType.Default] = value.Value;
             }
         }
 
@@ -89,16 +89,16 @@ namespace Orikivo
         [Description("Represents the ID of the role that grants a user access to higher level commands.")]
         public ulong? TrustedRoleId
         {
-            get => SystemRoles.ContainsKey(SystemRole.Trusted)
-                ? SystemRoles[SystemRole.Trusted]
+            get => SystemRoles.ContainsKey(SystemRoleType.Trusted)
+                ? SystemRoles[SystemRoleType.Trusted]
                 : (ulong?) null;
             set
             {
                 if (!value.HasValue)
                     return;
 
-                if (!SystemRoles.TryAdd(SystemRole.Trusted, value.Value))
-                    SystemRoles[SystemRole.Trusted] = value.Value;
+                if (!SystemRoles.TryAdd(SystemRoleType.Trusted, value.Value))
+                    SystemRoles[SystemRoleType.Trusted] = value.Value;
             }
         }
     }

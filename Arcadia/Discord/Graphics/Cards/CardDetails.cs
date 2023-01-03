@@ -65,12 +65,12 @@ namespace Arcadia.Graphics
         /// <summary>
         /// The user's current experience.
         /// </summary>
-        public ulong Exp { get; set; }
+        public long Exp { get; set; }
 
         /// <summary>
         /// The user's current ascent, otherwise known as their rebirths.
         /// </summary>
-       public int Ascent { get; set; }
+       public long Ascent { get; set; }
 
         /// <summary>
         /// The user's current activity, if any.

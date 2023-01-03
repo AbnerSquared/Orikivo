@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the difficulty of a <see cref="Badge"/>.
     /// </summary>
-    public enum BadgeRank
+    public enum BadgeTier
     {
         Bronze = 1,
         Silver = 2,

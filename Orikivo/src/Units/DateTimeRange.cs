@@ -78,6 +78,14 @@ namespace Orikivo
         }
 
         /// <summary>
+        /// Returns a <see cref="bool"/> defining if the specified <see cref="DateTime"/> is after the <see cref="DateTimeRange"/>.
+        /// </summary>
+        public bool IsAfter(DateTime time)
+        {
+            return To < time;
+        }
+
+        /// <summary>
         /// Returns a new <see cref="DateTimeRange"/> in which its entries are offset by the specified <see cref="TimeSpan"/>.
         /// </summary>
         public DateTimeRange Offset(TimeSpan time)

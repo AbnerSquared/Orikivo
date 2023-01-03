@@ -105,8 +105,8 @@ namespace Arcadia.Graphics
             if (info.Group.HasFlag(CardGroup.Exp) && fillInfo.Mode == FillMode.Bar)
             {
                 int level = ExpConvert.AsLevel(details.Exp, details.Ascent);
-                ulong currentExp = ExpConvert.AsExp(level, details.Ascent);
-                ulong nextExp = ExpConvert.AsExp(level + 1, details.Ascent);
+                long currentExp = ExpConvert.AsExp(level, details.Ascent);
+                long nextExp = ExpConvert.AsExp(level + 1, details.Ascent);
 
                 fillInfo.FillPercent = RangeF.Convert(currentExp, nextExp, 0, 1, details.Exp);
             }

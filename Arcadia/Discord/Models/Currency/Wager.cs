@@ -1,14 +1,12 @@
 ﻿namespace Arcadia
 {
-    public class Wager
+    public readonly struct Wager
     {
-        public Wager(long value, CurrencyType currency = CurrencyType.Chips)
+        public Wager(long value, CurrencyType currency = CurrencyType.Token)
         {
             Value = value;
             Currency = currency;
         }
-
-        // public ulong UserId { get; }
 
         public long Value { get; }
 

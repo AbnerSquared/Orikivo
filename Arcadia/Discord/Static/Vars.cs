@@ -2,7 +2,8 @@
 {
     internal static class Vars
     {
-        // access:mido_casino
+        internal static readonly string Experience = "var:experience";
+        internal static readonly string Ascent = "var:ascent";
         internal static readonly string Balance = "var:balance";
         internal static readonly string Tokens = "var:tokens";
         internal static readonly string Chips = "var:chips";

@@ -26,7 +26,7 @@ namespace Arcadia.Services
             return details.ToString();
         }
 
-        public static string GetLevel(int level, int ascent)
+        public static string GetLevel(int level, long ascent)
         {
             return $"v**{ascent}.{level:00}**";
         }

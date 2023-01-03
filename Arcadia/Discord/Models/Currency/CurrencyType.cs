@@ -5,9 +5,9 @@ namespace Arcadia
     [Flags]
     public enum CurrencyType
     {
-        Money = 1,
-        Chips = 2,
-        Tokens = 4,
+        Cash = 1,
+        Token = 2,
+        Favor = 4,
         Debt = 8
     }
 }

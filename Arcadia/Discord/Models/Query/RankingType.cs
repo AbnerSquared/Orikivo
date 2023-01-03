@@ -2,7 +2,7 @@
 {
     // This could possibly be used instead so that it's easier to filter out stuff
 
-    public enum LeaderSection
+    public enum RankingType
     {
         Income = 1,
         Experience = 2,

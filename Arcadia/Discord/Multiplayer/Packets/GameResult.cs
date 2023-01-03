@@ -126,7 +126,7 @@ namespace Arcadia.Multiplayer
                         baseMultiplier -= 0.4f;
                     }
 
-                    ulong exp = (ulong)Math.Floor(result.Exp * baseMultiplier);
+                    long exp = (long) Math.Floor(result.Exp * baseMultiplier);
                     user.Exp += exp;
                 }
 

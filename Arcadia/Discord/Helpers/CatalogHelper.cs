@@ -187,7 +187,7 @@ namespace Arcadia
                     completedOrders++;
             }
 
-            if (completedOrders > 0 && user.Config.Notifier.HasFlag(NotifyAllow.ItemInbound))
+            if (completedOrders > 0 && user.Config.Notifier.HasFlag(NotificationType.ItemReceived))
             {
                 if (completedOrders == 1)
                     user.Notifier.Add("An order has been delivered!");
@@ -210,7 +210,7 @@ namespace Arcadia
             ItemData package = ItemHelper.CreateData(order.Item, 1, Ids.Items.InternalPackage);
             ItemHelper.AddItem(user, package);
 
-            if (notify && user.Config.Notifier.HasFlag(NotifyAllow.ItemInbound))
+            if (notify && user.Config.Notifier.HasFlag(NotificationType.ItemReceived))
                 user.Notifier.Add("An order has been delivered!");
 
             return true;
@@ -305,6 +305,11 @@ namespace Arcadia
                             && ItemHelper.GroupOf(Var.GetKey(x.Key)) == itemGroupId
                             && x.Value == (long)CatalogStatus.Known)
                 .Select(x => ItemHelper.GetItem(Var.GetKey(x.Key)));
+        }
+
+        public static IEnumerable<Item> GetOwnedItems(ArcadeUser user)
+        {
+            return ItemHelper.GetReferencedItems(user.Items);
         }
 
         public static bool CanViewCatalog(ArcadeUser user)

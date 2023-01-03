@@ -12,22 +12,13 @@ namespace Arcadia
         private static readonly int StackGroupSize = 10;
         private static readonly int CounterGroupSize = 4;
 
-        private static string GetHeader(long capacity, int pageCount = 1, int page = 0, string username = null)
+        private static string GetHeader(int pageCount = 1, int page = 0, string username = null)
         {
             page = Paginate.ClampIndex(page, pageCount);
             string extra = Format.PageCount(page, pageCount, " ({0})", false);
             var header = new StringBuilder(Locale.GetHeaderTitle(Headers.Inventory, extra, username));
 
-            if (username == null)
-                header.Append($"\n> You have {WriteCapacity(capacity)} available.\n");
-
             return header.ToString();
-        }
-
-        public static string WriteCapacity(long capacity)
-        {
-            StorageSize suffix = GetSuffix(capacity);
-            return $"**{GetCapacity(capacity)} {((int)suffix >= 5 ? "" : suffix.ToString())}**";
         }
 
         public static string PreviewItemStack(ItemData data, bool isPrivate = true, int? index = null)
@@ -54,7 +45,7 @@ namespace Arcadia
 
             string name = ItemHelper.NameOf(data);
 
-            return DrawItemStack(exists, isPrivate, visibleId, data.Data?.Id, icon, name, item.Size, data.Count, index);
+            return DrawItemStack(exists, visibleId, data.Data?.Id, icon, name, data.Count, index);
         }
 
         public static long GetReservedSize(ArcadeUser user)
@@ -70,7 +61,7 @@ namespace Arcadia
             List<ItemData> items = isPrivate ? user.Items : user.Items.Where(x => x.Seal == null && ItemHelper.Exists(x.Id)).ToList();
 
             int pageCount = Paginate.GetPageCount(items.Count, StackGroupSize);
-            result.AppendLine(GetHeader(user.GetVar(Vars.Capacity) - GetReservedSize(user), pageCount, page, isPrivate ? null : user.Username));
+            result.AppendLine(GetHeader(pageCount, page, isPrivate ? null : user.Username));
 
             if (items.Count == 0)
             {
@@ -118,34 +109,7 @@ namespace Arcadia
             return result.ToString();
         }
 
-        private static string GetCapacity(long capacity)
-        {
-            StorageSize suffix = GetSuffix(capacity);
-            double dividend = (double)1000 * (int)suffix;
-
-            if (suffix == 0)
-                dividend = 1;
-
-            return suffix switch
-            {
-                _ when suffix >= StorageSize.Infinity => "∞",
-                _ when suffix >= StorageSize.B => $"{capacity / dividend}",
-                _ => throw new ArgumentOutOfRangeException(nameof(suffix), "The specified suffix is out of range")
-            };
-        }
-
-        private static StorageSize GetSuffix(long capacity)
-        {
-            int len = capacity.ToString().Length;
-            int count = (int)Math.Floor((len - 1) / (double)3);
-
-            if (count > 5)
-                return StorageSize.Infinity;
-
-            return (StorageSize)count;
-        }
-
-        private static string DrawItemStack(bool exists, bool showSize, string visibleId, string uniqueId, string icon, string name, long size, int count, int? index = null)
+        private static string DrawItemStack(bool exists, string visibleId, string uniqueId, string icon, string name, int count, int? index = null)
         {
             var slot = new StringBuilder();
 
@@ -165,9 +129,6 @@ namespace Arcadia
 
             if (exists)
             {
-                if (showSize && size > 0)
-                    slot.Append($" [{WriteCapacity(size)}]");
-
                 if (count > 1)
                     slot.Append($" (x**{count:##,0}**)");
             }

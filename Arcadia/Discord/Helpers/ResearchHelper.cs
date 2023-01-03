@@ -157,7 +157,7 @@ namespace Arcadia.Services
             user.AddToVar(CatalogHelper.GetCatalogId(item.Id));
             user.SetVar(GetResearchId(item.Id), 0);
 
-            if (user.Config.Notifier.HasFlag(NotifyAllow.Research))
+            if (user.Config.Notifier.HasFlag(NotificationType.ResearchCompleted))
                 user.Notifier.Add(WriteNotice(item.Name, GetResearchTier(user, item)));
 
         }

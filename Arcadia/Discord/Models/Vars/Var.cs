@@ -96,8 +96,7 @@ namespace Arcadia
                 Name = "Inventory Capacity",
                 Type = VarType.Attribute,
                 Summary = "This determines how many items you are able to hold at a time.",
-                DefaultValue = 4000,
-                ValueWriter = InventoryViewer.WriteCapacity
+                DefaultValue = 4000
             },
             new Var
             {

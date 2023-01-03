@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines a collection of system roles.
     /// </summary>
-    public enum SystemRole
+    public enum SystemRoleType
     {
         /// <summary>
         /// Represents the default role that will be given to a user upon joining a guild.

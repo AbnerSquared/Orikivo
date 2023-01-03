@@ -10,10 +10,10 @@ namespace Arcadia
         {
             return currency switch
             {
-                CurrencyType.Chips => user.ChipBalance,
-                CurrencyType.Money => user.Balance,
+                CurrencyType.Token => user.ChipBalance,
+                CurrencyType.Cash => user.Balance,
                 CurrencyType.Debt => user.Debt,
-                CurrencyType.Tokens => user.TokenBalance,
+                CurrencyType.Favor => user.TokenBalance,
                 _ => throw new ArgumentException("Unknown currency type")
             };
         }
@@ -23,10 +23,10 @@ namespace Arcadia
             bool isPlural = value != 0 && value > 1;
             return currency switch
             {
-                CurrencyType.Chips => Format.TryPluralize("Chip", isPlural),
-                CurrencyType.Money => "Orite",
+                CurrencyType.Token => Format.TryPluralize("Chip", isPlural),
+                CurrencyType.Cash => "Orite",
                 CurrencyType.Debt => "Debt",
-                CurrencyType.Tokens => Format.TryPluralize("Token", isPlural),
+                CurrencyType.Favor => Format.TryPluralize("Token", isPlural),
                 _ => "UNKNOWN_CURRENCY"
             };
         }

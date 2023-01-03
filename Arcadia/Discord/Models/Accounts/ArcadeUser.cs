@@ -5,7 +5,6 @@ using System.Linq;
 using Arcadia.Graphics;
 using Discord;
 using Orikivo;
-using Arcadia.Services;
 
 namespace Arcadia
 {
@@ -17,8 +16,6 @@ namespace Arcadia
         public ArcadeUser(IUser user)
             : base(user)
         {
-            Exp = 0;
-            Ascent = 0;
             Stats = new Dictionary<string, long>();
             Merits = new Dictionary<string, BadgeData>();
             Boosters = new List<BoostData>();
@@ -37,14 +34,12 @@ namespace Arcadia
 
         [JsonConstructor]
         internal ArcadeUser(ulong id, string username, string discriminator, DateTime createdAt, UserConfig config,
-            ulong exp, int ascent, Dictionary<string, long> stats,
+            Dictionary<string, long> stats,
             Dictionary<string, BadgeData> merits, List<BoostData> boosters, Dictionary<string, ChallengeData> challenges,
             List<QuestData> quests, List<ItemData> items, CardConfig card,
             Dictionary<string, CatalogHistory> catalogHistory)
             : base(id, username, discriminator, createdAt, config)
         {
-            Exp = exp;
-            Ascent = ascent;
             Stats = stats ?? new Dictionary<string, long>();
             Merits = merits ?? new Dictionary<string, BadgeData>();
             Boosters = boosters ?? new List<BoostData>();
@@ -88,14 +83,22 @@ namespace Arcadia
             set => SetVar(Vars.Debt, value);
         }
 
-        [JsonProperty("exp")]
-        public ulong Exp { get; internal set; }
+        [JsonIgnore]
+        public long Exp
+        {
+            get => GetVar(Vars.Experience);
+            set => SetVar(Vars.Experience, value);
+        }
 
         [JsonIgnore]
         public int Level => ExpConvert.AsLevel(Exp, Ascent);
 
-        [JsonProperty("ascent")]
-        public int Ascent { get; internal set; }
+        [JsonIgnore]
+        public long Ascent
+        {
+            get => GetVar(Vars.Ascent);
+            set => SetVar(Vars.Ascent, value);
+        }
 
         [JsonProperty("stats")]
         public Dictionary<string, long> Stats { get; }
@@ -233,37 +236,33 @@ namespace Arcadia
             AddToVar(id, amount);
         }
 
-        public void GiveExp(ulong amount)
+        public void GiveExp(long amount)
         {
-            ulong previous = Exp;
-
+            long previous = Exp;
             Exp += amount;
 
-            if (Config.Notifier.HasFlag(NotifyAllow.Level))
+            if (Config.Notifier.HasFlag(NotificationType.LevelUpdated))
             {
                 int oldLevel = ExpConvert.AsLevel(previous, Ascent);
-                int level = Level;
 
-                if (level > oldLevel)
-                {
-                    Notifier.Add($"Level up! ({LevelViewer.GetLevel(oldLevel, Ascent)} to {LevelViewer.GetLevel(level, Ascent)})");
-                }
+                if (Level > oldLevel)
+                    Notifier.Notifications.Add(NotificationFactory.CreateLevelUpdated(oldLevel, Level, Ascent));
             }
         }
 
-        public void Give(long value, CurrencyType currency = CurrencyType.Money)
+        public void Give(long value, CurrencyType currency = CurrencyType.Cash)
         {
             switch (currency)
             {
-                case CurrencyType.Chips:
+                case CurrencyType.Token:
                     ChipBalance += value;
                     return;
 
-                case CurrencyType.Tokens:
+                case CurrencyType.Favor:
                     TokenBalance += value;
                     return;
 
-                case CurrencyType.Money:
+                case CurrencyType.Cash:
 
                     if (Debt >= value)
                     {
@@ -282,7 +281,7 @@ namespace Arcadia
 
                 case CurrencyType.Debt:
                     if (Config.AutoPayDebt)
-                        Take(value, CurrencyType.Money);
+                        Take(value, CurrencyType.Cash);
                     else
                         Debt += value;
                     return;
@@ -292,25 +291,25 @@ namespace Arcadia
             }
         }
 
-        public void Take(long value, CurrencyType currency = CurrencyType.Money)
+        public void Take(long value, CurrencyType currency = CurrencyType.Cash)
         {
             switch (currency)
             {
-                case CurrencyType.Chips:
+                case CurrencyType.Token:
                     if (value > ChipBalance)
                         throw new Exception("Unable to take more than the currently specified chip balance");
 
                     ChipBalance -= value;
                     return;
 
-                case CurrencyType.Tokens:
+                case CurrencyType.Favor:
                     if (value > TokenBalance)
                         throw new Exception("Unable to take more than the currently specified token balance");
 
                     TokenBalance -= value;
                     return;
 
-                case CurrencyType.Money:
+                case CurrencyType.Cash:
                     if (Balance >= value)
                     {
                         Balance -= value;
@@ -327,7 +326,7 @@ namespace Arcadia
                     return;
 
                 case CurrencyType.Debt:
-                    Give(value, CurrencyType.Money);
+                    Give(value, CurrencyType.Cash);
                     return;
 
                 default:

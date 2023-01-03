@@ -38,7 +38,7 @@ namespace Orikivo
         /// <param name="subscriber">The value that will be subscribed to the <see cref="AsyncEvent{T}"/>.</param>
         public void Add(T subscriber)
         {
-            Catch.NotNull(subscriber, nameof(subscriber));
+            Requires.NotNull(subscriber, nameof(subscriber));
 
             lock (_subLock)
                 _subscriptions = _subscriptions.Add(subscriber);
@@ -50,7 +50,7 @@ namespace Orikivo
         /// <param name="subscriber">The value that will be unsubscribed from the <see cref="AsyncEvent{T}"/>.</param>
         public void Remove(T subscriber)
         {
-            Catch.NotNull(subscriber, nameof(subscriber));
+            Requires.NotNull(subscriber, nameof(subscriber));
 
             lock (_subLock)
                 _subscriptions = _subscriptions.Remove(subscriber);

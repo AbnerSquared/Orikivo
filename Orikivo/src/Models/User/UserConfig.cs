@@ -20,22 +20,22 @@ namespace Orikivo
         public override ConfigBase GetDefault()
             => Default;
 
-        private static UserFlag GetFlagValue(bool tooltips, bool autoPayDebt)
+        private static ConfigurationFlags GetFlagValue(bool tooltips, bool autoPayDebt)
         {
-            UserFlag flag = 0;
+            ConfigurationFlags flag = 0;
 
             if (tooltips)
-                flag |= UserFlag.Tooltips;
+                flag |= ConfigurationFlags.Tooltips;
 
             if (autoPayDebt)
-                flag |= UserFlag.AutoPayDebt;
+                flag |= ConfigurationFlags.AutoPayDebt;
 
             return flag;
         }
 
         public UserConfig()
         {
-            Notifier = NotifyAllow.Merit | NotifyAllow.Cooldown | NotifyAllow.OfferAccepted | NotifyAllow.OfferInbound | NotifyAllow.GiftInbound | NotifyAllow.Invite | NotifyAllow.Level | NotifyAllow.Research | NotifyAllow.Daily | NotifyAllow.ItemInbound;
+            Notifier = NotificationType.BadgeReceived | NotificationType.CooldownExpired | NotificationType.OfferAccepted | NotificationType.OfferReceived | NotificationType.GiftReceived | NotificationType.InviteReceived | NotificationType.LevelUpdated | NotificationType.ResearchCompleted | NotificationType.DailyAvailable | NotificationType.ItemReceived;
             Prefix = null;
             Tooltips = true;
             AutoPayDebt = true;
@@ -43,7 +43,7 @@ namespace Orikivo
         }
 
         [JsonConstructor]
-        internal UserConfig(string prefix, NotifyAllow notifier, UserFlag flag, Language language)
+        internal UserConfig(string prefix, NotificationType notifier, ConfigurationFlags flag, Language language)
         {
             Prefix = prefix;
             Notifier = notifier;
@@ -70,11 +70,11 @@ namespace Orikivo
         [Description("Determines the type of notifications you can receive.")]
         [Details("Typing `1` or `Merit` will set only merits to have the ability to send notifications. If you unlock a merit, a notification is applied.",
             "Typing `6` will set both `Cooldown` and `OfferAccepted`. If a cooldown expires or someone accepts a trade offer you sent, a notification is applied.")]
-        public NotifyAllow Notifier { get; set; }
+        public NotificationType Notifier { get; set; }
 
         [Ignore]
         [JsonProperty("flags")]
-        public UserFlag Flag { get; set; } = 0;
+        public ConfigurationFlags Flag { get; set; } = 0;
 
         [JsonProperty("error_handling")]
         [Title("Error Handling")]
@@ -94,8 +94,8 @@ namespace Orikivo
             "If this option is disabled, all tooltips will be hidden from every command you execute.")]
         public bool Tooltips
         {
-            get => Flag.HasFlag(UserFlag.Tooltips);
-            set => Flag = value ? Flag | UserFlag.Tooltips : Flag & ~UserFlag.Tooltips;
+            get => Flag.HasFlag(ConfigurationFlags.Tooltips);
+            set => Flag = value ? Flag | ConfigurationFlags.Tooltips : Flag & ~ConfigurationFlags.Tooltips;
         }
 
         [JsonIgnore]
@@ -106,8 +106,8 @@ namespace Orikivo
             "If this option is disabled, debt will only be paid off by future income instead of what you currently have.")]
         public bool AutoPayDebt
         {
-            get => Flag.HasFlag(UserFlag.AutoPayDebt);
-            set => Flag = value ? Flag | UserFlag.AutoPayDebt : Flag & ~UserFlag.AutoPayDebt;
+            get => Flag.HasFlag(ConfigurationFlags.AutoPayDebt);
+            set => Flag = value ? Flag | ConfigurationFlags.AutoPayDebt : Flag & ~ConfigurationFlags.AutoPayDebt;
         }
 
         [Id("language")]
@@ -117,7 +117,7 @@ namespace Orikivo
         [Details("This sets the base language for most text values in **Orikivo Arcade**. The excluded values are ones that are required as command input and argument names. An example would be typing a query for the leaderboard command, typed as `leaderboard money`.")]
         public Language Language { get; set; }
 
-        public bool CanNotify(NotifyAllow notifier)
+        public bool CanNotify(NotificationType notifier)
         {
             return Notifier.HasFlag(notifier);
         }

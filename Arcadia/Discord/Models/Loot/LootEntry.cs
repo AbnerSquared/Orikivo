@@ -4,6 +4,12 @@
     {
         public LootEntry() { }
 
+        public LootEntry(long money, CurrencyType currency)
+        {
+            Money = money;
+            Currency = currency;
+        }
+
         public LootEntry(string itemId, int weight)
         {
             ItemId = itemId;
@@ -15,10 +21,10 @@
         // If specified, overrides the item ID
         public long Money { get; set; } // Replace with Wager thing
 
-        public CurrencyType Currency { get; set; } = CurrencyType.Money;
+        public CurrencyType Currency { get; set; } = CurrencyType.Cash;
 
         public int Weight { get; set; }
 
-        public StackRange StackSize { get; set; } = 1;
+        public StackRange Stack { get; set; } = 1;
     }
 }

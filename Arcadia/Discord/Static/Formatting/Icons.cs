@@ -19,9 +19,9 @@
         {
             return type switch
             {
-                CurrencyType.Money => Balance,
-                CurrencyType.Chips => Chips,
-                CurrencyType.Tokens => Tokens,
+                CurrencyType.Cash => Balance,
+                CurrencyType.Token => Chips,
+                CurrencyType.Favor => Tokens,
                 CurrencyType.Debt => Debt,
                 _ => Unknown
             };

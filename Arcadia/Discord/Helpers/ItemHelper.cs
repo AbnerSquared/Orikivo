@@ -28,6 +28,19 @@ namespace Arcadia
             return $"`{itemId}` {icon} **{name}**{counter}";
         }
 
+        public static IEnumerable<Item> GetReferencedItems(IEnumerable<ItemData> items)
+        {
+            var result = new List<Item>();
+
+            foreach (ItemData item in items)
+            {
+                if (!result.Any(x => x.Id == item.Id))
+                    result.Add(GetItem(item.Id));
+            }
+
+            return result;
+        }
+
         // TODO: Return a dictionary of ITEM_ID, AMOUNT (Only items that are currently marked as active [EquipSlot is NOT 0])
         // Returns all items that are activated from the trigger
         public static IEnumerable<ItemData> ActivateTrigger(ArcadeUser user, UsageTrigger triggers, string triggerId)

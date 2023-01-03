@@ -1,51 +1,27 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 
 namespace Orikivo
 {
-    /// <summary>
-    /// Represents a notice.
-    /// </summary>
     public class Notification
     {
-        /// <summary>
-        /// Initializes a new <see cref="Notification"/> with the specified content.
-        /// </summary>
-        /// <param name="content">The content to display for this <see cref="Notification"/>.</param>
-        public Notification(string content)
+        public Notification(string content, NotificationType type = 0) : this(content, DateTime.UtcNow, false, type) { }
+
+        internal Notification(string content, DateTime createdAt, bool read, NotificationType type)
         {
-            if (string.IsNullOrWhiteSpace(content))
-                throw new ArgumentException("The specified content cannot be null or consist of only whitespace characters", nameof(content));
+            Requires.NotNull(content, nameof(content));
 
             Content = content;
-            SentAt = DateTime.UtcNow;
-            Read = false;
-        }
-
-        [JsonConstructor]
-        internal Notification(string content, DateTime sentAt, bool read)
-        {
-            Content = content;
-            SentAt = sentAt;
+            CreatedAt = createdAt;
             Read = read;
+            Type = type;
         }
 
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents the content that this <see cref="Notification"/> will display.
-        /// </summary>
-        [JsonProperty("content")]
         public string Content { get; }
 
-        /// <summary>
-        /// Represents the <see cref="DateTime"/> at which this <see cref="Notification"/> was sent.
-        /// </summary>
-        [JsonProperty("sent_at")]
-        public DateTime SentAt { get; }
+        public DateTime CreatedAt { get; }
 
-        /// <summary>
-        /// Represents the read status of this <see cref="Notification"/>.
-        /// </summary>
-        [JsonProperty("read")]
         public bool Read { get; set; }
+
+        public NotificationType Type { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orikivo
+namespace Orikivo.Models.Json
 {
     /// <summary>
     /// Represents a generic JSON-cacheable entity.

@@ -4,36 +4,37 @@ namespace Arcadia
 {
     public static class ExpConvert
     {
-        public static ulong BaseMaxExp => AsExp(MaxLevel, 0);
+        public static long BaseMaxExp => AsExp(MaxLevel, 0);
 
         public static readonly int MaxLevel = 100;
-        public static readonly uint LevelStartScale = 100;
-        public static readonly uint LevelTierScale = 1000;
+        public static readonly int LevelNumberBase = 10; // Base-10
+        public static readonly int LevelStartScale = 100;
+        public static readonly int LevelTierScale = 1000;
         public static readonly float RatePerAscent = 0.15f;
         public static readonly float BaseAscentRate = 1;
         public static readonly float MaxAscentRate = 2.5f;
 
-        private static ulong GetAscentExp(int ascent)
+        private static long GetAscentExp(long ascent)
         {
-            return (ulong) Math.Floor(10 * LevelTierScale * Math.Min(BaseAscentRate + (RatePerAscent * ascent), MaxAscentRate));
+            return (long) Math.Floor(10 * LevelTierScale * Math.Min(BaseAscentRate + (RatePerAscent * ascent), MaxAscentRate));
         }
 
-        private static ulong GetBaseExp()
+        private static long GetBaseExp()
         {
-            ulong sum = 0;
+            long sum = 0;
 
-            for (uint l = 1; l < 10; l++)
+            for (int l = 1; l < LevelNumberBase; l++)
                 sum += l * LevelStartScale;
 
             return sum;
         }
 
-        private static int GetInverseTier(ulong exp)
+        private static int GetInverseTier(long exp)
         {
             if (exp == 0)
                 return 0;
 
-            ulong expSum = GetBaseExp();
+            long expSum = GetBaseExp();
             int level = 0;
 
             if (exp < expSum)
@@ -41,7 +42,7 @@ namespace Arcadia
                 expSum = 0;
                 while (exp > expSum)
                 {
-                    expSum += (ulong)(level + 1) * LevelStartScale;
+                    expSum += (long) (level + 1) * LevelStartScale;
 
                     if (exp >= expSum)
                         level++;
@@ -52,20 +53,20 @@ namespace Arcadia
 
             level = 9;
 
-            ulong tier = 1;
-            ulong partial = tier * LevelTierScale * 10;
+            long tier = 1;
+            long partial = tier * LevelTierScale * LevelNumberBase;
 
             while (exp > expSum + partial)
             {
                 expSum += partial;
-                level += 10;
+                level += LevelNumberBase;
                 tier++;
-                partial = tier * LevelTierScale * 10;
+                partial = tier * LevelTierScale * LevelNumberBase;
             }
 
             while (exp > expSum)
             {
-                expSum += (ulong)Math.Floor((level + 1) / (double)10) * LevelTierScale;
+                expSum += (long) Math.Floor((level + 1) / (double) LevelNumberBase) * LevelTierScale;
 
                 if (exp >= expSum)
                     level++;
@@ -74,62 +75,62 @@ namespace Arcadia
             return level;
         }
 
-        private static ulong GetExpTier(int level)
+        private static long GetExpTier(int level)
         {
             if (level <= 0)
                 return 0;
 
-            ulong sum = 0;
-            int b = Math.Min(level, 9);
+            long sum = 0;
+            int b = Math.Min(level, LevelNumberBase - 1);
 
-            for (uint l = 1; l <= b; l++)
+            for (int l = 1; l <= b; l++)
                 sum += l * LevelStartScale;
 
-            if (level < 10)
+            if (level < LevelNumberBase)
                 return sum;
 
-            int tier = (int) Math.Min(Math.Floor((level + 1) / (double)10), 10);
+            int tier = (int) Math.Min(Math.Floor((level + 1) / (double) LevelNumberBase), LevelNumberBase);
 
-            int leftover = level - 9;
+            int leftover = level - (LevelNumberBase - 1);
  
-            if (leftover >= 10)
+            if (leftover >= LevelNumberBase)
             {
                 for (int t = 1; t < tier; t++)
                 {
-                    sum += (ulong)t * LevelTierScale * 10;
-                    leftover -= 10;
+                    sum += (long) t * LevelTierScale * LevelNumberBase;
+                    leftover -= LevelNumberBase;
                 }
             }
 
             // If there were remainder exp values
             if (leftover > 0)
-                sum += (ulong) (tier * LevelTierScale * leftover);
+                sum += tier * LevelTierScale * leftover;
 
             return sum;
         }
 
-        public static ulong GetMaxExp(int ascent)
+        public static long GetMaxExp(long ascent)
         {
             return AsExp(MaxLevel, ascent);
         }
 
-        public static int AsLevel(ulong exp, int ascent)
+        public static int AsLevel(long exp, long ascent)
         {
             if (ascent > 0)
-                return (int) Math.Floor(exp / (double)GetAscentExp(ascent));
+                return (int) Math.Floor(exp / (double) GetAscentExp(ascent));
 
             return GetInverseTier(exp);
         }
 
-        public static ulong AsExp(int level, int ascent)
+        public static long AsExp(int level, long ascent)
         {
             if (ascent > 0)
-                return (ulong)level * GetAscentExp(ascent);
+                return level * GetAscentExp(ascent);
 
             return GetExpTier(level);
         }
 
-        public static ulong ExpBetween(int fromLevel, int toLevel, int ascent)
+        public static long ExpBetween(int fromLevel, int toLevel, long ascent)
         {
             if (fromLevel > toLevel)
                 throw new ArgumentException("The level from cannot be larger than the level to.", nameof(fromLevel));
@@ -137,7 +138,7 @@ namespace Arcadia
             return AsExp(toLevel, ascent) - AsExp(fromLevel, ascent);
         }
 
-        public static ulong ExpToLevel(ulong exp, int level, int ascent)
+        public static long ExpToLevel(long exp, int level, long ascent)
         {
             if (level > MaxLevel)
                 level = MaxLevel;
@@ -148,7 +149,7 @@ namespace Arcadia
             return AsExp(level, ascent) - exp;
         }
 
-        public static ulong ExpToNext(ulong exp, int ascent)
+        public static long ExpToNext(long exp, long ascent)
             => ExpToLevel(exp, AsLevel(exp, ascent) + 1, ascent);
     }
 }

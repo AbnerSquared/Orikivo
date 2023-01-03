@@ -13,54 +13,54 @@ namespace Arcadia.Services
 
         private static readonly string DefaultIcon = "🎖️";
 
-        private static string GetSectionIcon(LeaderSection section)
+        private static string GetSectionIcon(RankingType section)
         {
             return section switch
             {
-                LeaderSection.Income => "🪙",
-                LeaderSection.Experience => "🧠",
-                LeaderSection.Quest => "🏟️",
-                LeaderSection.Multiplayer => "🪃",
-                LeaderSection.Casino => "🎯",
+                RankingType.Income => "🪙",
+                RankingType.Experience => "🧠",
+                RankingType.Quest => "🏟️",
+                RankingType.Multiplayer => "🪃",
+                RankingType.Casino => "🎯",
                 _ => Icons.Unknown
             };
         }
 
-        private static string GetSectionName(LeaderSection section)
+        private static string GetSectionName(RankingType section)
         {
             return section switch
             {
-                LeaderSection.Income => "The Field of Wealth",
-                LeaderSection.Experience => "Wisdom's Canyon",
-                LeaderSection.Quest => "Challenger's Approach",
-                LeaderSection.Multiplayer => "The Arcade",
-                LeaderSection.Casino => "The Prediction Pool",
+                RankingType.Income => "The Field of Wealth",
+                RankingType.Experience => "Wisdom's Canyon",
+                RankingType.Quest => "Challenger's Approach",
+                RankingType.Multiplayer => "The Arcade",
+                RankingType.Casino => "The Prediction Pool",
                 _ => "REDACTED"
             };
         }
 
-        private static string GetSectionCall(LeaderSection section)
+        private static string GetSectionCall(RankingType section)
         {
             return section switch
             {
-                LeaderSection.Income => "The Wealthy",
-                LeaderSection.Experience => "The Wise",
-                LeaderSection.Quest => "The Challenger",
-                LeaderSection.Multiplayer => "The Arcadian",
-                LeaderSection.Casino => "The Predictor",
+                RankingType.Income => "The Wealthy",
+                RankingType.Experience => "The Wise",
+                RankingType.Quest => "The Challenger",
+                RankingType.Multiplayer => "The Arcadian",
+                RankingType.Casino => "The Predictor",
                 _ => "INVALID_FLAG"
             };
         }
 
-        private static string GetSectionSubtitle(LeaderSection flag)
+        private static string GetSectionSubtitle(RankingType flag)
         {
             string subtitle = flag switch
             {
-                LeaderSection.Income => "Stability in finance is what these members have mastered.",
-                LeaderSection.Experience => "Those who seek experience shall be known.",
-                LeaderSection.Quest => "Challenges that await these members are no issue.",
-                LeaderSection.Multiplayer => "Gaming is their passion and it shows.",
-                LeaderSection.Casino => "Risk and luck fuel these members.",
+                RankingType.Income => "Stability in finance is what these members have mastered.",
+                RankingType.Experience => "Those who seek experience shall be known.",
+                RankingType.Quest => "Challenges that await these members are no issue.",
+                RankingType.Multiplayer => "Gaming is their passion and it shows.",
+                RankingType.Casino => "Risk and luck fuel these members.",
                 _ => ""
             };
 
@@ -88,18 +88,18 @@ namespace Arcadia.Services
         private static long GetRawValue(ArcadeUser user, string statId)
             => user.GetVar(statId);
 
-        private static long GetRawValue(ArcadeUser user, LeaderSection section)
+        private static long GetRawValue(ArcadeUser user, RankingType section)
             => GetRawValue(user, GetSectionId(section));
 
-        public static string GetSectionId(LeaderSection section)
+        public static string GetSectionId(RankingType section)
         {
             return section switch
             {
-                LeaderSection.Income => Vars.MonthlyIncome,
-                LeaderSection.Experience => Vars.MonthlyExp,
-                LeaderSection.Quest => Vars.MonthlyQuests,
-                LeaderSection.Multiplayer => Vars.MonthlyArcade,
-                LeaderSection.Casino => Vars.MonthlyCasino,
+                RankingType.Income => Vars.MonthlyIncome,
+                RankingType.Experience => Vars.MonthlyExp,
+                RankingType.Quest => Vars.MonthlyQuests,
+                RankingType.Multiplayer => Vars.MonthlyArcade,
+                RankingType.Casino => Vars.MonthlyCasino,
                 _ => throw new ArgumentException("An unknown leaderboard ranking section was specified")
             };
         }
@@ -113,7 +113,7 @@ namespace Arcadia.Services
             return sorted.FindIndex(x => x.Id == user.Id) + 1;
         }
 
-        private static string WriteLeader(ArcadeUser user, LeaderSection section, bool allowEmptyValues = false)
+        private static string WriteLeader(ArcadeUser user, RankingType section, bool allowEmptyValues = false)
         {
             if (user == null || !allowEmptyValues && GetRawValue(user, section) == 0)
                 return "";
@@ -129,7 +129,7 @@ namespace Arcadia.Services
             return users.OrderByDescending(x => GetRawValue(x, statId));
         }
 
-        private static string WriteUser(ArcadeUser user, LeaderSection section)
+        private static string WriteUser(ArcadeUser user, RankingType section)
             => WriteUser(user, GetSectionId(section));
 
         private static string WriteUser(ArcadeUser user, string statId)
@@ -141,11 +141,11 @@ namespace Arcadia.Services
         private static string DrawSectionPreviews(IEnumerable<ArcadeUser> users)
         {
             return new StringBuilder()
-                .AppendJoin("\n\n", EnumUtils.GetValues<LeaderSection>().Select(x => DrawSection(x, users)))
+                .AppendJoin("\n\n", EnumUtils.GetValues<RankingType>().Select(x => DrawSection(x, users)))
                 .ToString();
         }
 
-        private static string DrawSection(LeaderSection section, IEnumerable<ArcadeUser> users)
+        private static string DrawSection(RankingType section, IEnumerable<ArcadeUser> users)
         {
             var result = new StringBuilder();
 
@@ -175,7 +175,7 @@ namespace Arcadia.Services
 
         private static string ViewQuery(ArcadeUser user, in IEnumerable<ArcadeUser> users, string query, int page = 0)
         {
-            bool isSection = Enum.TryParse(query, true, out LeaderSection section);
+            bool isSection = Enum.TryParse(query, true, out RankingType section);
             string statId = isSection ? GetSectionId(section) : query;
 
             if (!isSection && !Var.IsType(statId, VarType.Stat))

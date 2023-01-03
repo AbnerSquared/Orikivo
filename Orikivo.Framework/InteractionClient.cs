@@ -55,9 +55,9 @@ namespace Orikivo.Framework
         /// <summary>
         /// Initializes the connection between Discord and the <see cref="Client"/>. Once this starts, methods executed outside of this process will be executed once this Task ends.
         /// </summary>
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken, ulong? guildId = null)
         {
-            await Network.CompileAsync(_typeReaders, _modules, _typeConverters);
+            await Network.CompileAsync(_typeReaders, _modules, _typeConverters, guildId);
             await Network.SetStatusAsync(Status);
             await Network.SetActivityAsync(Activity);
             await Network.StartAsync();

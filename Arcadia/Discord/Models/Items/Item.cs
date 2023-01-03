@@ -8,7 +8,7 @@ namespace Arcadia
     /// <summary>
     /// Represents a generic interactive object.
     /// </summary>
-    public class Item : IModel<string>
+    public class Item : IItem
     {
         public static readonly int MaxNameLength = 32;
 
@@ -64,7 +64,7 @@ namespace Arcadia
         /// <summary>
         /// Represents the currency type that this <see cref="Item"/> is handled in.
         /// </summary>
-        public CurrencyType Currency { get; set; } = CurrencyType.Money;
+        public CurrencyType Currency { get; set; } = CurrencyType.Cash;
 
         /// <summary>
         /// Represents the base value of this <see cref="Item"/>.
@@ -128,6 +128,14 @@ namespace Arcadia
         public bool CanSell => ItemHelper.CanSell(this);
 
         public bool CanBuy => ItemHelper.CanBuy(this);
+
+        string IItem.Icon => Icon.ToString();
+
+        public long Tag => (long) Tags;
+
+        int IItem.Rarity => (int) Rarity;
+
+        int IItem.Currency => (int) Currency;
 
         public string GetName()
         {

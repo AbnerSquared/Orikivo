@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Orikivo
 {
-    public sealed class InteractionEnumTypeReader<TEnum> : Discord.Interactions.TypeReader
+    public sealed class InteractionEnumTypeReader<TEnum> : TypeReader
         where TEnum : struct
     {
         public override bool CanConvertTo(Type type)

@@ -1,26 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using Arcadia.Services;
 using Orikivo;
 
 namespace Arcadia
 {
     public class Reward
     {
-        public Reward()
-        {
-            //ItemIds = new Dictionary<string, int>();
-            //Wagers = new Dictionary<CurrencyType, long>();
-            //Money = 0;
-            //Exp = 0;
-        }
+        public Reward() { }
 
         public Reward(IEnumerable<Reward> rewards)
         {
             var itemIds = new Dictionary<string, int>();
             var wagers = new Dictionary<CurrencyType, long>();
             long money = 0;
-            ulong exp = 0;
+            long exp = 0;
 
             foreach (Reward reward in rewards)
             {
@@ -45,18 +38,19 @@ namespace Arcadia
         {
             get
             {
-                Wagers.TryGetValue(CurrencyType.Money, out long money);
+                Wagers.TryGetValue(CurrencyType.Cash, out long money);
                 return money;
             }
             set
             {
-                if (value <= 0 && Wagers.ContainsKey(CurrencyType.Money))
-                    Wagers.Remove(CurrencyType.Money);
-                else if (!Wagers.TryAdd(CurrencyType.Money, value))
-                    Wagers[CurrencyType.Money] = value;
+                if (value <= 0 && Wagers.ContainsKey(CurrencyType.Cash))
+                    Wagers.Remove(CurrencyType.Cash);
+                else if (!Wagers.TryAdd(CurrencyType.Cash, value))
+                    Wagers[CurrencyType.Cash] = value;
             }
         }
-        public ulong Exp { get; set; } = 0;
+
+        public long Exp { get; set; } = 0;
 
         public int Count => GetCount();
 

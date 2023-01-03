@@ -10,7 +10,7 @@ namespace Arcadia.Multiplayer
     {
         public long Money { get; set; }
 
-        public ulong Exp { get; set; }
+        public long Exp { get; set; }
 
         public List<StatUpdatePacket> Stats { get; set; } = new List<StatUpdatePacket>();
 

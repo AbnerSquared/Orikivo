@@ -410,7 +410,7 @@ namespace Arcadia
             // If the command failed
             if (!result.IsSuccess)
             {
-                if (result is Discord.Commands.ExecuteResult execute)
+                if (result is ExecuteResult execute)
                 {
                     if (!result.IsSuccess)
                         await context.Channel.CatchAsync(execute.Exception, ctx?.Account?.Config?.ErrorHandling ?? StackTraceMode.Simple);

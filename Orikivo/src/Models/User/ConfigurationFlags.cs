@@ -1,7 +1,7 @@
 ﻿namespace Orikivo
 {
     [System.Flags]
-    public enum UserFlag
+    public enum ConfigurationFlags
     {
         Tooltips = 1,
         AutoPayDebt = 2

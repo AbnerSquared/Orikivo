@@ -74,7 +74,7 @@ namespace Arcadia
             target.Offers.RemoveAll(x => x.Id == offer.Id);
             author.Offers.RemoveAll(x => x.Id == offer.Id);
 
-            if (author.Config.CanNotify(NotifyAllow.OfferAccepted))
+            if (author.Config.CanNotify(NotificationType.OfferAccepted))
             {
                 author.Notifier.Add($"Your trade offer (`{offer.Id}`) has been accepted.");
             }
@@ -136,7 +136,7 @@ namespace Arcadia
             target.Offers.Add(offer);
             author.Offers.Add(TradeOffer.CloneAsOutbound(offer));
 
-            if (target.Config.CanNotify(NotifyAllow.OfferInbound))
+            if (target.Config.CanNotify(NotificationType.OfferReceived))
             {
                 target.Notifier.Add("You have received a new trade offer.");
             }

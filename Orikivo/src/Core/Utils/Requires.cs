@@ -5,7 +5,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a strict handler for possible exceptions.
     /// </summary>
-    public static class Catch
+    public static class Requires
     {
         public static void NotNull(string obj, string name, string msg = null)
         {

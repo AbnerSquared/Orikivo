@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using Orikivo;
+using Orikivo.Text;
 using Orikivo.Text.Pagination;
 
 namespace Arcadia
@@ -34,36 +36,64 @@ namespace Arcadia
         public static string ViewGuide(string id, int page = 0)
         {
             Guide guide = Assets.Guides.FirstOrDefault(x => x.Id == id);
+            return GetGuidePage(guide, page);
+        }
 
+        public static string GetGuidePage(Guide guide, int index = 0)
+        {
             if (guide == null)
                 return Format.Warning("Could not find the specified guide.");
-
-            if (Check.NotNull(guide.Content))
-            {
-                string header = $"> {guide.Icon ?? "📚"} **Guides: {guide.Title}** ({Format.PageCount(page + 1, guide.Pages.Count)})\n";
-
-                string[] sections = guide.Content.Split("<#>", StringSplitOptions.RemoveEmptyEntries);
-                List<string> pages = Paginate.GetPages(sections, 1250, header.Length, "\n\n").ToList();
-
-                page = Math.Clamp(page, 0, pages.Count - 1);
-                var result = new StringBuilder();
-                result.AppendLine(header);
-                result.Append(pages[page]);
-
-                return result.ToString();
-            }
-
 
             if (!Check.NotNullOrEmpty(guide.Pages))
                 throw new Exception("Expected the specified guide to have at least a single page");
 
-            page = Math.Clamp(page, 0, guide.Pages.Count - 1);
+            index = Math.Clamp(index, 0, guide.Pages.Count - 1);
 
             var info = new StringBuilder();
-            info.AppendLine($"> {guide.Icon ?? "📚"} **Guides: {guide.Title}** ({Format.PageCount(page + 1, guide.Pages.Count)})\n");
-            info.Append(guide.Pages[page]);
+            info.AppendLine($"{GetGuideContentPrefix(guide)} ({Format.PageCount(index + 1, guide.Pages.Count)})\n");
+            info.Append(guide.Pages[index]);
 
             return info.ToString();
+        }
+
+        public static Guide TryFindGuide(string content)
+        {
+            if (!Check.NotNull(content)) return null;
+
+            foreach (Guide guide in Assets.Guides)
+            {
+                if (content.StartsWith(GetGuideContentPrefix(guide)))
+                    return guide;
+            }
+
+            return null;
+        }
+
+        public static int GetGuideContentIndex(string content)
+        {
+            foreach (Guide guide in Assets.Guides)
+            {
+                string contentPrefix = GetGuideContentPrefix(guide);
+
+                if (content.StartsWith(contentPrefix))
+                {
+                    string indexPrefix = " (Page **";
+
+                    string search = content[(contentPrefix.Length + indexPrefix.Length)..];
+
+                    var reader = new StringReader(search);
+                    string rawIndex = reader.ReadUntil('*');
+
+                    return int.Parse(rawIndex) - 1;
+                }
+            }
+
+            return 0;
+        }
+
+        public static string GetGuideContentPrefix(Guide guide)
+        {
+            return $"> {guide.Icon ?? "📚"} **Guide: {guide.Title}**";
         }
     }
 }

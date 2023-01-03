@@ -40,7 +40,7 @@ namespace Arcadia
             var reward = new Reward
             {
                 Money = (long)MathF.Floor((BaseMoney + (dailyCompleted * MoneyScalar)) * baseScale),
-                Exp = (ulong)MathF.Floor((BaseExp + ((ulong)dailyCompleted * ExpScalar)) * baseScale)
+                Exp = (long)MathF.Floor((BaseExp + (dailyCompleted * ExpScalar)) * baseScale)
             };
 
             // Set the reward scalar based on completed sets
@@ -77,7 +77,7 @@ namespace Arcadia
             Reward reward = GetReward(completed);
 
             if (reward.Money > 0)
-                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Money)}");
+                result.AppendLine($"> {CurrencyHelper.WriteCost(reward.Money, CurrencyType.Cash)}");
 
             if (reward.Exp > 0)
                 result.AppendLine($"> {Icons.Exp} **{reward.Exp:##,0}**");

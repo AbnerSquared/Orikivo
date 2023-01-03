@@ -375,8 +375,6 @@ namespace Arcadia.Services
             if (!exists)
                 return details.ToString();
 
-            details.AppendLine($"📏 **Size**: {InventoryViewer.WriteCapacity(item.Size * data.Count)}");
-
             if (!ItemHelper.CanTrade(data))
                 details.AppendLine($"📫 **Untradable**");
             else if (item.TradeLimit.HasValue && isUnique)
@@ -482,9 +480,6 @@ namespace Arcadia.Services
 
             if (item.Value > 0)
                 details.AppendLine($"> Valued at {Icons.IconOf(item.Currency)} **{item.Value:##,0}**");
-
-            if (item.Size > 0)
-                details.AppendLine($"Storage Size: {InventoryViewer.WriteCapacity(item.Size)}");
 
             if (!CatalogHelper.HasAttributes(item))
                 return details.ToString();

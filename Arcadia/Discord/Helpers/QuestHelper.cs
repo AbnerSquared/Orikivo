@@ -414,10 +414,10 @@ namespace Arcadia
                 QuestData data = completed.First();
                 Quest quest = GetQuest(data.Id);
 
-                return $"> {Format.Bold(quest.Name)} ({GetDifficultyName(quest.Difficulty)})\n> {Icons.Complete} You have fulfilled this quest!\n";
+                return $"> {Format.Bold(quest.Name)} ({GetDifficultyName(quest.Difficulty)})\n> {Icons.Complete} You have completed this quest!\n";
             }
 
-            return $"> {Icons.Complete} You have fulfilled **{completed.Count:##,0}** quests!\n";
+            return $"> {Icons.Complete} You have completed **{completed.Count:##,0}** quests!\n";
         }
 
         private static string GetDifficultyName(int difficulty)
@@ -440,9 +440,9 @@ namespace Arcadia
             return BaseMoneyReward + (MoneyDifficultyScale * difficulty);
         }
 
-        private static ulong GetBaseExp(int difficulty)
+        private static long GetBaseExp(int difficulty)
         {
-            return (ulong)(BaseExpReward + (ExpDifficultyScale * difficulty));
+            return BaseExpReward + (ExpDifficultyScale * difficulty);
         }
 
         private static Reward GetDefaultReward(int difficulty)

@@ -200,7 +200,7 @@ namespace Arcadia.Modules
             }
 
 
-            if (account.Config.CanNotify(NotifyAllow.GiftInbound))
+            if (account.Config.CanNotify(NotificationType.GiftReceived))
             {
                 account.Notifier.Add($"You have received a gift! Type `inspect {data.TempId}` to learn more.");
             }

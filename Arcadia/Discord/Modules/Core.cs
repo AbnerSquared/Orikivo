@@ -112,7 +112,7 @@ namespace Arcadia.Modules
             result.AppendLine($"Once you erase your account, **ALL** data will be completely deleted. Please keep this in mind. This includes:");
 
             if (Context.Account.Balance > 0)
-                result.AppendLine($"• Your wallet ({CurrencyHelper.WriteCost(Context.Account.Balance, CurrencyType.Money)})");
+                result.AppendLine($"• Your wallet ({CurrencyHelper.WriteCost(Context.Account.Balance, CurrencyType.Cash)})");
 
             if (Context.Account.Merits.Count > 0)
                 result.AppendLine($"• Your completed merits (**{Context.Account.Merits.Count:##,0}**)");

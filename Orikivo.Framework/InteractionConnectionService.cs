@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Orikivo.Framework
@@ -16,6 +17,8 @@ namespace Orikivo.Framework
         private readonly IServiceProvider _provider;
         private readonly IConfigurationRoot _config;
         private bool _compiled;
+        private List<Type> _modules;
+        private ulong? _guildId;
 
         public InteractionConnectionService(DiscordSocketClient client, InteractionService service,
             IServiceProvider provider, IConfigurationRoot config)
@@ -26,7 +29,7 @@ namespace Orikivo.Framework
             _config = config;
         }
 
-        internal async Task CompileAsync(Dictionary<Type, TypeReader> typeReaders, List<Type> modules, Dictionary<Type, TypeConverter> typeConverters)
+        internal async Task CompileAsync(Dictionary<Type, TypeReader> typeReaders, List<Type> modules, Dictionary<Type, TypeConverter> typeConverters, ulong? guildId = null)
         {
             if (_compiled)
                 return;
@@ -50,13 +53,31 @@ namespace Orikivo.Framework
                     Logger.Debug($"Compiled '{type.Name}' as a typereader");
                 }
 
-            if (modules?.Count > 0)
-                foreach (Type moduleType in modules)
+            _modules = modules;
+            _guildId = guildId;
+            _client.Ready += RegisterModules;
+            _compiled = true;
+        }
+
+        internal async Task RegisterModules()
+        {
+            if (_modules?.Count > 0)
+                foreach (Type moduleType in _modules)
                 {
                     await _service.AddModuleAsync(moduleType, _provider);
                     Logger.Debug($"Compiled '{moduleType.Name}' as a module");
                 }
-            _compiled = true;
+
+            if (_guildId.HasValue)
+            {
+                await _service.AddModulesToGuildAsync(_guildId.Value, true, _service.Modules.ToArray());
+                Logger.Debug("Added commands to target guild");
+            }
+            else
+            {
+                await _service.AddModulesGloballyAsync(true, _service.Modules.ToArray());
+                Logger.Debug("Added commands globally");
+            }
         }
 
         /// <summary>

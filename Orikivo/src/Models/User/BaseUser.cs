@@ -2,6 +2,7 @@
 using System;
 using Discord;
 using MongoDB.Bson.Serialization.Attributes;
+using Orikivo.Models.Json;
 
 namespace Orikivo
 {
@@ -46,15 +47,6 @@ namespace Orikivo
 
         [JsonIgnore]
         public Notifier Notifier { get; } = new Notifier();
-
-        public void Synchronize(IUser user)
-        {
-            if (Id != user.Id)
-                throw new Exception("The user specified must have the same matching ID as the account.");
-
-            Username = user.Username;
-            Discriminator = user.Discriminator;
-        }
 
         public override bool Equals(object obj)
             => obj != null

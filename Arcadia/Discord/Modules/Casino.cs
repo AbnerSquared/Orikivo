@@ -56,7 +56,7 @@ namespace Arcadia.Modules
 
             if (wager.Value > Roulette.MaxWager)
             {
-                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_wager_cap", Context.Account.Config.Language, Format.Bold("Roulette"), CurrencyHelper.WriteCost(Roulette.MaxWager, CurrencyType.Chips))));
+                await Context.Channel.SendMessageAsync(Format.Warning(_locale.GetValue("warning_wager_cap", Context.Account.Config.Language, Format.Bold("Roulette"), CurrencyHelper.WriteCost(Roulette.MaxWager, CurrencyType.Token))));
                 return;
             }
 
@@ -190,7 +190,7 @@ namespace Arcadia.Modules
 
             Context.Account.Take(amount.Value);
             Context.Account.ChipBalance += chips;
-            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount.Value, CurrencyType.Money), CurrencyHelper.WriteCost(chips, CurrencyType.Chips))}");
+            await Context.Channel.SendMessageAsync($"> {_locale.GetValue("currency_convert_success", Context.Account.Config.Language, CurrencyHelper.WriteCost(amount.Value, CurrencyType.Cash), CurrencyHelper.WriteCost(chips, CurrencyType.Token))}");
         }
     }
 }

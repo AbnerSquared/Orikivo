@@ -7,11 +7,12 @@
     {
         public RecipeResult() { }
 
-        public RecipeResult(string itemId, int minStack = 1, int? maxStack = null, float chance = 1f)
+        public RecipeResult(string itemId, int minStack = 1, int? maxStack = null, float chance = 1f) : this(itemId, new StackRange(minStack, maxStack), chance) { }
+        
+        public RecipeResult(string itemId, StackRange stack, float chance)
         {
             ItemId = itemId;
-            MinStack = minStack;
-            MaxStack = maxStack;
+            Stack = stack;
             Chance = chance;
         }
 
@@ -20,15 +21,7 @@
         /// </summary>
         public string ItemId { get; set; }
 
-        /// <summary>
-        /// The minimum amount of this component to return.
-        /// </summary>
-        public int MinStack { get; set; } = 1;
-
-        /// <summary>
-        /// The maximum amount of this component to return.
-        /// </summary>
-        public int? MaxStack { get; set; }
+        public StackRange Stack { get; set; }
 
         /// <summary>
         /// The chance that this component is returned.

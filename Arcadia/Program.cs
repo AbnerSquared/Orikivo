@@ -105,7 +105,9 @@ namespace Arcadia
                     //.AddModule<Core>()
                     //.AddModule<Modules.Casino>()
                     //.AddModule<Modules.Multiplayer>()
-                    .AddModule<Common>();
+                    .AddModule<Common>()
+                    .AddModule<ResearchGroupModule>()
+                    .AddModule<QuestGroupModule>();
                     //.AddModule<Economy>()
                     //.AddModule<Records>();
 

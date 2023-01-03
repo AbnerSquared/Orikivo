@@ -557,9 +557,9 @@ namespace Arcadia
         {
             return currency switch
             {
-                CurrencyType.Money => Math.Max(User.Balance - User.Debt, 0),
-                CurrencyType.Chips => User.ChipBalance,
-                CurrencyType.Tokens => User.TokenBalance,
+                CurrencyType.Cash => Math.Max(User.Balance - User.Debt, 0),
+                CurrencyType.Token => User.ChipBalance,
+                CurrencyType.Favor => User.TokenBalance,
                 CurrencyType.Debt => User.Debt,
                 _ => throw new Exception("Unknown currency")
             };

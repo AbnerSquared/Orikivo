@@ -14,7 +14,7 @@ namespace Orikivo
         /// <summary>
         /// Defines the max limit that a <see cref="Notifier"/> can display at once on a message.
         /// </summary>
-        public const int MaxNotifierDisplay = 3;
+        public const int NotificationsPerMessage = 3;
 
         /// <summary>
         /// Initializes a new <see cref="Notifier"/>.
@@ -70,9 +70,9 @@ namespace Orikivo
         {
             var notifier = new StringBuilder();
 
-            foreach (Notification n in Notifications.OrderByDescending(x => x.SentAt))
+            foreach (Notification n in Notifications.OrderByDescending(x => x.CreatedAt))
             {
-                notifier.AppendLine($"> {n.Content} ({Format.FullTime(n.SentAt)})");
+                notifier.AppendLine($"> {n.Content} ({Format.FullTime(n.CreatedAt)})");
 
                 if (!n.Read)
                     n.Read = true;
@@ -88,7 +88,7 @@ namespace Orikivo
         {
             IEnumerable<Notification> notifications = Notifications
                 .Where(x => !x.Read)
-                .OrderByDescending(x => x.SentAt)
+                .OrderByDescending(x => x.CreatedAt)
                 .ToList();
 
             if (!Check.NotNullOrEmpty(notifications))
@@ -111,7 +111,7 @@ namespace Orikivo
 
             foreach (Notification notification in notifications)
             {
-                if (i >= MaxNotifierDisplay || (availableLength > 0 && (availableLength - notification.Content.Length) <= 0))
+                if (i >= NotificationsPerMessage || (availableLength > 0 && (availableLength - notification.Content.Length) <= 0))
                     break;
 
                 result.AppendLine($"• {notification.Content}");

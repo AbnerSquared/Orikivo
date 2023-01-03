@@ -3,11 +3,7 @@ using Arcadia.Models;
 
 namespace Arcadia
 {
-
-    /// <summary>
-    /// Represents an achievement.
-    /// </summary>
-    public class Badge : IModel<string>
+    public class Badge : IBadge
     {
         public string Id { get; internal set; }
 
@@ -21,7 +17,7 @@ namespace Arcadia
 
         public BadgeTag Tags { get; internal set; }
 
-        public BadgeRank Rank { get; internal set; }
+        public BadgeTier Rank { get; internal set; }
 
         public long Score { get; internal set; }
 

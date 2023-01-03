@@ -46,10 +46,10 @@ namespace Arcadia
             _client.GuildAvailable += SumGuildCount;
             _client.JoinedGuild += UpdateGuildCount;
             _client.LeftGuild += UpdateGuildCount;
-            _client.Ready += OnReady;
+            // _client.Ready += OnReady;
             _client.Disconnected += ResetGuildCount;
             _client.InteractionCreated += HandleInteractionAsync;
-
+            _client.ButtonExecuted += ComponentFactory.GuideButtonHandler;
 
             _service = service;
             _service.Log += Logger.LogAsync;
@@ -100,7 +100,7 @@ namespace Arcadia
             // All of the commands that WE can execute are returned with this method.
             // We can use these to get command IDs and so forth
             await _service.AddModulesGloballyAsync(true, _service.Modules.ToArray());
-            // await _service.AddModulesToGuildAsync(Orikivo.Constants.SupportId, modules: _service.Modules.ToArray());
+            //await _service.AddModulesToGuildAsync(Orikivo.Constants.SupportId, true); // modules: _service.Modules.ToArray());
         }
 
         private static string WriteCooldownText(DateTime expiry, bool isGlobal = true)
@@ -222,7 +222,7 @@ namespace Arcadia
                 throw new Exception("Invalid context provided.");
 
             // Remove any session locks IF the command that was executed invoked a session call
-            if (command.Attributes.FirstOrDefault<SessionAttribute>() != null && ctx.Account != null)
+            if (command?.Attributes.FirstOrDefault<SessionAttribute>() != null && ctx.Account != null)
             {
                 ctx.Account.IsInSession = false;
             }

@@ -99,7 +99,7 @@ namespace Arcadia.Services
                 user.AddToVar(Stats.Common.VoteStreak);
                 user.AddToVar(Stats.Common.TimesVoted);
                 Var.SetIfGreater(user, Stats.Common.LongestVoteStreak, Stats.Common.VoteStreak);
-                user.Give(reward, CurrencyType.Tokens);
+                user.Give(reward, CurrencyType.Favor);
             }
 
             var message = new MessageBuilder();

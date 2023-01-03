@@ -75,27 +75,6 @@ namespace Orikivo
             }
         }
 
-        public Message(ErrorMessageBuilder builder)
-        {
-            if (Check.NotNull(builder.Color))
-            {
-                EmbedBuilder embed = new EmbedBuilder();
-
-                embed.WithColor(builder.Color);
-
-                if (Check.NotNull(builder.Reaction))
-                    embed.WithTitle(Discord.Format.Bold(builder.Reaction));
-
-                embed.WithDescription(Format.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace, Check.NotNull(builder.Color)));
-
-                Embed = embed.Build();
-            }
-            else
-            {
-                Text = Format.Error(builder.Reaction, builder.Title, builder.Reason, builder.StackTrace);
-            }
-        }
-
         public string Text { get; }
 
         public string AttachmentUrl { get; }

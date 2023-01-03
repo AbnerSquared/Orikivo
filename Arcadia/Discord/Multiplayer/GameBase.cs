@@ -154,7 +154,7 @@ namespace Arcadia.Multiplayer
         }
 
         // Determine a player's exp amount based on their results
-        protected virtual ulong CalculateExp(GameSession session, PlayerData player)
+        protected virtual long CalculateExp(GameSession session, PlayerData player)
             => 0;
 
         // TODO: Implement usage of OnPlayerRemoved in games to handle random disconnects

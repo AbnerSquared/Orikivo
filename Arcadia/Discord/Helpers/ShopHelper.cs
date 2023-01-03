@@ -231,7 +231,7 @@ namespace Arcadia
             return info.ToString();
         }
 
-        public static string PreviewItem(Item item, int discount, ShopMode mode, bool showDetails = false)
+        public static string PreviewItem(Item item, int discount, AllowedShopActions mode, bool showDetails = false)
         {
             var cost = new StringBuilder();
             cost.Append($"{Icons.IconOf(item.Currency)} ");
@@ -246,7 +246,7 @@ namespace Arcadia
 
             if (discount == 100)
             {
-                cost.Append(mode == ShopMode.Buy ? "**Free**" : "**Worthless**");
+                cost.Append(mode == AllowedShopActions.Buy ? "**Free**" : "**Worthless**");
                 return cost.ToString();
             }
 
@@ -254,7 +254,7 @@ namespace Arcadia
 
             if (showDetails && discount > 0)
             {
-                cost.Append($" (**{discount}**% {(mode == ShopMode.Buy ? "discount" : "deduction")})");
+                cost.Append($" (**{discount}**% {(mode == AllowedShopActions.Buy ? "discount" : "deduction")})");
             }
 
             return cost.ToString();
@@ -281,7 +281,7 @@ namespace Arcadia
             if (Check.NotNullOrEmpty(item.Quotes))
                 entry.AppendLine($"> *\"{item.GetQuote()}\"*");
 
-            entry.Append($"> {PreviewItem(item, discount, ShopMode.Buy, true)} • {InventoryViewer.WriteCapacity(item.Size)}");
+            entry.Append($"> {PreviewItem(item, discount, AllowedShopActions.Buy, true)}");
             return entry.ToString();
         }
 

@@ -153,7 +153,7 @@ namespace Arcadia.Casino
             display
                 .AppendLine($"> **{Locale.GetString("blackjack_header")}**")
                 // Playing with {0}
-                .AppendLine($"> {Locale.GetString("blackjack_hand_title")} {CurrencyHelper.WriteCost(Wager, CurrencyType.Chips)}\n")
+                .AppendLine($"> {Locale.GetString("blackjack_hand_title")} {CurrencyHelper.WriteCost(Wager, CurrencyType.Token)}\n")
                 .AppendLine($"{DrawDealerHand(IsHidden)}\n")
                 .AppendLine($"{DrawPlayerHand()}\n");
 
@@ -166,7 +166,7 @@ namespace Arcadia.Casino
                 if (Offhand.State != BlackJackState.Active)
                 {
                     bool isLoss = Offhand.State.EqualsAny(BlackJackState.Bust, BlackJackState.Lose, BlackJackState.Fold);
-                    string wager = Offhand.State == BlackJackState.Draw ? "" : $" [{(isLoss ? "-" : "+")} {CurrencyHelper.WriteCost(Offhand.Wager, CurrencyType.Chips)}]";
+                    string wager = Offhand.State == BlackJackState.Draw ? "" : $" [{(isLoss ? "-" : "+")} {CurrencyHelper.WriteCost(Offhand.Wager, CurrencyType.Token)}]";
                     title = $"**{Locale.GetString("blackjack_previous_title")}** (**{Locale.GetString($"blackjack_state_{Offhand.State.ToString().ToLower()}")}!**){wager}";
                 }
 
@@ -191,7 +191,7 @@ namespace Arcadia.Casino
 
         private string GetStateSummary(BlackJackState state)
         {
-            string chips = CurrencyHelper.WriteCost(Wager, CurrencyType.Chips);
+            string chips = CurrencyHelper.WriteCost(Wager, CurrencyType.Token);
             return state switch
             {
                 BlackJackState.Bust => Locale.GetString("blackjack_on_bust"),
@@ -359,7 +359,7 @@ namespace Arcadia.Casino
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
-                    Invoker.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Token);
 
                     if (HasSplitHand())
                     {
@@ -393,10 +393,10 @@ namespace Arcadia.Casino
                     }
 
                     Invoker.AddToVar(Stats.BlackJack.TimesWon);
-                    Invoker.Give(Wager, CurrencyType.Chips);
+                    Invoker.Give(Wager, CurrencyType.Token);
                 }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
-                    Invoker.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Token);
 
                 if (HasSplitHand())
                 {
@@ -419,7 +419,7 @@ namespace Arcadia.Casino
                 if (Hit() == BlackJackState.Bust)
                 {
                     State = BlackJackState.Bust;
-                    Invoker.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Token);
 
                     if (HasSplitHand())
                     {
@@ -442,11 +442,11 @@ namespace Arcadia.Casino
                     }
 
                     Invoker.AddToVar(Stats.BlackJack.TimesWon);
-                    Invoker.Give(Wager, CurrencyType.Chips);
+                    Invoker.Give(Wager, CurrencyType.Token);
                     Var.SetIfGreater(Invoker, Stats.Common.MostChipsRound, Wager);
                 }
                 else if (State != BlackJackState.Draw && State != BlackJackState.Timeout)
-                    Invoker.Take(Wager, CurrencyType.Chips);
+                    Invoker.Take(Wager, CurrencyType.Token);
 
                 if (HasSplitHand())
                 {
@@ -485,7 +485,7 @@ namespace Arcadia.Casino
                 long partial = (long)Math.Floor(Wager / (double)2);
                 Wager = partial == 0 ? 1 : partial;
                 State = BlackJackState.Fold;
-                Invoker.Take(Wager, CurrencyType.Chips);
+                Invoker.Take(Wager, CurrencyType.Token);
 
                 if (HasSplitHand())
                 {

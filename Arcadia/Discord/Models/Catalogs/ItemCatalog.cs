@@ -67,7 +67,7 @@ namespace Arcadia
         public Dictionary<string, int> Discounts { get; }
 
         /// <summary>
-        /// Represents a collection of unique cost scales for this <see cref="ItemCatalog"/>.
+        /// Represents a collection of unique costs for this <see cref="ItemCatalog"/>.
         /// </summary>
         [JsonProperty("costs")]
         public Dictionary<string, long> Costs { get; }

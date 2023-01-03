@@ -62,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="src\Core\Typereaders\Converters\" />
+    <Folder Include="src\Core\Discord\" />
   </ItemGroup>
   
 </Project>

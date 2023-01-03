@@ -19,6 +19,6 @@ namespace Arcadia
 
         public bool ShowHeaderOnPartialSection { get; set; }
 
-        public SectionSplitOptions SectionOptions { get; set; }
+        public SectionOverflowMode SectionOptions { get; set; }
     }
 }

@@ -729,7 +729,7 @@ namespace Arcadia.Multiplayer.Games
 
         // TODO: Move method elsewhere
         /// <inheritdoc />
-        protected override ulong CalculateExp(GameSession session, PlayerData player)
+        protected override long CalculateExp(GameSession session, PlayerData player)
         {
             TriviaDifficulty difficulty = session.GetConfigValue<TriviaDifficulty>(TriviaConfig.Difficulty);
             int questionCount = session.GetConfigValue<int>(TriviaConfig.QuestionCount);
@@ -755,7 +755,7 @@ namespace Arcadia.Multiplayer.Games
                 if (questionCount <= 5)
                     baseQuestionExp = 1;
 
-                ulong score = (ulong) (baseQuestionExp * totalCorrect); // return the amount of questions below 5
+                long score = (baseQuestionExp * totalCorrect); // return the amount of questions below 5
 
                 // Don't grant bonus exp for a game with less than 5 questions
                 if (questionCount < 5)
@@ -777,7 +777,7 @@ namespace Arcadia.Multiplayer.Games
             bool isOpenTdb = session.GetConfigValue<bool>(TriviaConfig.UseOpenTDB);
 
             // multiply score by total correct
-            ulong baseScore = (ulong)(baseQuestionExp * totalCorrect);
+            long baseScore = baseQuestionExp * totalCorrect;
 
             if (!isOpenTdb)
                 return baseScore;
@@ -793,7 +793,7 @@ namespace Arcadia.Multiplayer.Games
                 baseMultiplier += 0.1f;
 
             // Multiply the score with the multiplier
-            baseScore = (ulong)Math.Floor(baseScore * baseMultiplier);
+            baseScore = (long) Math.Floor(baseScore * baseMultiplier);
 
             return baseScore;
         }
